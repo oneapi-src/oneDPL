@@ -18,7 +18,6 @@
 #pragma once
 
 #include <atomic>
-#include <ostream>
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 
 namespace oneapi {
@@ -103,21 +102,7 @@ namespace experimental{
     auto wait_for_all() {
       sched_->wait_for_all();
     }
-
-    template<typename S>
-    friend std::ostream& operator<<(std::ostream &os, const round_robin_policy_impl<S>& p);
   };
-
-  template<typename S>
-  std::ostream& operator<<(std::ostream &os, const round_robin_policy_impl<S>& p) {
-    os << "round_robin_policy_impl:\n";
-    int r = 0;
-    for (auto e : query(p, oneapi::dpl::experimental::property::universe)) {
-      os << e.get_native();
-    }
-    return os;
-  }
-
 } // namespace experimental
 
 } // namespace dpl

@@ -15,8 +15,6 @@
 
 #include <memory>
 #include <utility>
-#include <iostream>
-#include <sstream>
 
 #ifndef _ONEDPL_DYNAMIC_SELECTION_DEFS_H
 #define _ONEDPL_DYNAMIC_SELECTION_DEFS_H
@@ -148,17 +146,7 @@ namespace experimental {
     auto wait_for_all() {
       return scoring_policy_->wait_for_all();
     }
-
-    template<typename SP>
-    friend std::ostream& operator<<(std::ostream &os, const policy<SP>& p);
   };
-
-  template<typename SP>
-  std::ostream& operator<<(std::ostream &os, const oneapi::dpl::experimental::policy<SP>& q) {
-    os << "DS policy:\n";
-    os << *q.scoring_policy_;
-    return os;
-  }
 } // namespace experimental
 } // namespace dpl
 } // namespace oneapi

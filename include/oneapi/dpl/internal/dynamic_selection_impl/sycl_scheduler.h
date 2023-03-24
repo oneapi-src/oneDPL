@@ -26,7 +26,6 @@
 
 #include <atomic>
 #include <mutex>
-#include <ostream>
 #include <stdlib.h>
 
 namespace oneapi {
@@ -128,40 +127,10 @@ namespace experimental {
       global_rank_ = gr;
     }
 
-    friend std::ostream& operator<<(std::ostream &os, const sycl_scheduler& s);
   };
 
-  std::ostream& operator<<(std::ostream &os, const sycl_scheduler& s) {
-    return os << "sycl_scheduler\n";
-  }
-
-  std::ostream& operator<<(std::ostream &os, const sycl_scheduler::execution_resource_t& e) {
-    auto device = e.get_native().get_info<sycl::info::queue::device>();
-    if (device.is_cpu()) {
-      os << "cpu\n";
-    } else if (device.is_gpu()) {
-      os << "gpu\n";
-    } else {
-      os << "other\n";
-    }
-    return os;
-  }
 } //namespace experimental
 } //namespace dpl
 } //namespace oneapi
-
-namespace sycl {
-  std::ostream& operator<<(std::ostream &os, const sycl::queue& q) {
-    auto device = q.get_info<sycl::info::queue::device>();
-    if (device.is_cpu()) {
-      os << "cpu\n";
-    } else if (device.is_gpu()) {
-      os << "gpu\n";
-    } else {
-      os << "other\n";
-    }
-    return os;
-  }
-}
 
 #endif /*_SYCL_SCHEDULER_IMPL_H*/

@@ -34,7 +34,7 @@ public:
 int test_cout() {
   oneapi::dpl::experimental::int_inline_scheduler_t s;
   oneapi::dpl::experimental::int_inline_scheduler_t::execution_resource_t e;
-  std::cout << e;
+//  std::cout << e;
   return 0;
 }
 

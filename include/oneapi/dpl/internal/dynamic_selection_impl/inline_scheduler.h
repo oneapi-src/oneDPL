@@ -20,7 +20,6 @@
 #include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
 
-#include <ostream>
 #include <vector>
 #include <atomic>
 
@@ -105,17 +104,8 @@ struct int_inline_scheduler_t {
   auto report(oneapi::dpl::experimental::property::universe_t, const universe_container_t &u) noexcept {
     universe_ = u;
   }
-
-  friend std::ostream& operator<<(std::ostream &os, const int_inline_scheduler_t& s);
 };
 
-std::ostream& operator<<(std::ostream &os, const int_inline_scheduler_t&) {
-  return os << "int_inline_scheduler";
-}
-
-std::ostream& operator<<(std::ostream &os, const int_inline_scheduler_t::execution_resource_t &e) {
-  return os << e.get_native();
-}
 inline int_inline_scheduler_t int_inline_scheduler;
 
 } //namespace experimental
