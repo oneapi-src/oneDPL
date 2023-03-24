@@ -1,0 +1,14 @@
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _ONEDPL_KERNEL_TEMPLATES
+#define _ONEDPL_KERNEL_TEMPLATES
+
+#include "../pstl/hetero/dpcpp/parallel_backend_esimd_radix_sort.h"
+
+#endif // _ONEDPL_KERNEL_TEMPLATES
