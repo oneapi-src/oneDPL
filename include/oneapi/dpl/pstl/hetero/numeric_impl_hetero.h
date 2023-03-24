@@ -175,14 +175,21 @@ struct is_equality_comparable<_Iterator1, _Iterator2,
 
 // Check the ability to compare two sycl_iterator's
 /*
+ * @param sycl_iterator<_Mode1, _T, _Allocator> __it1 - first iterator
+ * @param sycl_iterator<_Mode2, _T, _Allocator> __it2 - second iterator
+ * @param bool& bIsEqual - evaluated as true if we should think that two iterators are equal:
+ *      for example when one or two of them describes subbufer and we are unable to
+ *      check that this two iterators are equal;
+ *      false - otherwise.
  * @return bool - true, if these iterators may be the same;
  *         false - we know these iterators are different
  */
 template <sycl::access::mode _Mode1, sycl::access::mode _Mode2, typename _T, typename _Allocator>
 bool
 __check_if_iterator_equality_is_possible(sycl_iterator<_Mode1, _T, _Allocator> __it1,
-                                         sycl_iterator<_Mode2, _T, _Allocator> __it2)
+                                         sycl_iterator<_Mode2, _T, _Allocator> __it2, bool& bIsEqual)
 {
+    bIsEqual = false;
     const auto buf1 = __it1.get_buffer();
     const auto buf2 = __it2.get_buffer();
 
@@ -190,16 +197,16 @@ __check_if_iterator_equality_is_possible(sycl_iterator<_Mode1, _T, _Allocator> _
     if (buf1 != buf2)
         return false;
 
-    // We are unable to compare two sycl_iterator's if one of them is sub_buffer
-    if (buf1.is_sub_buffer() || buf2.is_sub_buffer())
-        return false;
+    // We are unable to compare two sycl_iterator's if one of them is sub_buffer.
+    // But in this case we should continue like in case when they are the same.
+    bIsEqual = buf1.is_sub_buffer() || buf2.is_sub_buffer();
 
     return true;
 }
 
 template <typename _Iterator1, typename _Iterator2>
 bool
-__check_if_iterator_equality_is_possible(_Iterator1, _Iterator2)
+__check_if_iterator_equality_is_possible(_Iterator1, _Iterator2, bool&)
 {
     return true;
 }
@@ -217,11 +224,12 @@ __check_equal_iterators(_Iterator1 __it1, _Iterator2 __it2)
     {
         // 2. we should be able to compare two iterators in run-time:
         //    for example they may have different types or iterate different contaqiners and so on.
-        if (!__check_if_iterator_equality_is_possible(__it1, __it2))
+        bool bIsEqual = false;
+        if (!__check_if_iterator_equality_is_possible(__it1, __it2, bIsEqual))
             return false;
 
         // 3. Now we are ready to compare two iterators
-        return __it1 == __it2;
+        return bIsEqual || __it1 == __it2;
     }
 }
 
