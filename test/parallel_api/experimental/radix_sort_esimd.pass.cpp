@@ -17,6 +17,7 @@
 
 #include "support/test_config.h"
 
+#include <oneapi/dpl/experimental/kernel_templates>
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #if _ENABLE_RANGES_TESTING
