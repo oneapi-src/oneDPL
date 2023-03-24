@@ -101,6 +101,12 @@ Use `ONEDPL_PAR_BACKEND` variable before the invocation of `find_package(oneDPL 
 - Macro `ONEDPL_USE_TBB_BACKEND` is set to `0` if OpenMP backend is chosen.
 - Macro `ONEDPL_USE_TBB_BACKEND` is set to `0` and `ONEDPL_USE_OPENMP_BACKEND` is set to `0` if serial backend is chosen.
 
+### Using oneDPL package on Windows
+On windows, CMake requires some workarounds to use icx[-cl] and icpx successfully.  A toolchain file is provided 'windows-IntelLLVM-toolchain.cmake' to apply these required workarounds.
+We recommend using icx or icx-cl, as it requires fewer changes for proper usage.  We also recommend updating to the most recent version of CMake, as they are actively improving support for intel compilers (https://gitlab.kitware.com/cmake/cmake/-/issues/24314).
+To use the toolchain file, please add `-DCMAKE_TOOLCHAIN_FILE=windows-IntelLLVM-toolchain.cmake` to your cmake configuration call.
+
+
 ### oneDPLConfig files generation
 
 This section is applicable for oneDPL packaging creation process, but not for usual development flow.
