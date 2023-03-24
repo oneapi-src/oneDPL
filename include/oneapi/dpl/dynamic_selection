@@ -32,7 +32,7 @@ namespace oneapi {
 namespace dpl {
 namespace experimental {
 
-#if _DS_BACKEND_SYCL
+#if _DS_BACKEND_SYCL != 0
   using static_policy = policy<static_policy_impl<sycl_scheduler>>;
   using round_robin_policy = policy<round_robin_policy_impl<sycl_scheduler>>;
   inline static_policy default_policy;

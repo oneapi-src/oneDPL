@@ -150,7 +150,7 @@ namespace experimental {
 } // namespace experimental
 } // namespace dpl
 } // namespace oneapi
-#if !defined(_DS_BACKEND_SYCL)
+#if _DS_BACKEND_SYCL != 0
 #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_scheduler.h"
 #endif
 #include "oneapi/dpl/internal/dynamic_selection_impl/inline_scheduler.h"
