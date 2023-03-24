@@ -92,9 +92,8 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 // parallel_transform_reduce
 //------------------------------------------------------------------------
 
-template <typename _Tp, typename _ReduceOp, typename _TransformOp, typename _Functor, typename _ExecutionPolicy,
-          typename _InitType, oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0,
-          typename... _Ranges>
+template <typename _Tp, typename _ReduceOp, typename _TransformOp, typename _ExecutionPolicy, typename _InitType,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _TransformOp __transform_op,
                             _InitType __init, _Ranges&&... __rngs)
