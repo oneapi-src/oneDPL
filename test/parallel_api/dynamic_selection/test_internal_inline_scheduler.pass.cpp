@@ -15,7 +15,7 @@
 
 
 #include "oneapi/dpl/dynamic_selection"
-#include "oneapi/dpl/internal/dynamic_selection_impl/inline_scheduler.h"
+#include "support/inline_scheduler.h"
 
 #include <iostream>
 #include <sstream>
