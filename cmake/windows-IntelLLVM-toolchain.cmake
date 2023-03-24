@@ -21,7 +21,6 @@ if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
 
     #CMake does not properly handle IntelLLVM compilers with GNU-like front ends after 3.19,
     if (NOT ${CMAKE_VERSION} VERSION_LESS "3.20")
-        message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} is not supported by CMake (https://gitlab.kitware.com/cmake/cmake/-/issues/24314). A workaround is provided but may have limitations. We recommend using CMAKE_CXX_COMPILER=icx or icx-cl on Windows.")
         set(CMAKE_CXX_COMPILER_ID "IntelLLVM GNU-Like Workaround" CACHE STRING "Switch compiler identification" FORCE)
         set(CMAKE_CXX_COMPILER_VERSION "${INTEL_LLVM_COMPILER_VERSION}" CACHE STRING "Switch compiler version" FORCE)
         # Explicitly setting the c++17 standard compile option so that "target_compile_features()" check functions properly for this workaround
@@ -34,11 +33,12 @@ if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
         set(CMAKE_CXX20_STANDARD_COMPILE_OPTION "-std=c++20")
         set(CMAKE_CXX_STANDARD_COMPUTED_DEFAULT 14)
         set(INTELLLVM_WIN_STD_IGNORE_FIX TRUE)
+        set(INTELLLVM_WIN_GNULIKE_WARNING TRUE)
+
     endif()
 endif()
 
 if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_MSVC_LIKE AND (NOT ${CMAKE_VERSION} VERSION_LESS "3.20") AND (${CMAKE_VERSION} VERSION_LESS "3.23"))
-    message(WARNING "${CMAKE_CXX_COMPILER} requires changes to linker settings to allow proper usage with CMake ${CMAKE_VERSION} on Windows. We recommend using CMake version 3.23.0 or newer on Windows")
     # Fixing linker rules to provide the linker options to the linker despite being before "/link" (see below)
     # Adapted from fix in CMake 3.23: https://github.com/Kitware/CMake/commit/5d5a7123034361b6cacff96d3ed20d2bb78c33cc
     set(CMAKE_EXE_LINKER_FLAGS_INIT "/Qoption,link,/machine:x64")
@@ -47,6 +47,7 @@ if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_MSVC_LIKE AND (NOT ${CMAKE_VERSION}
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "/Qoption,link,/debug /Qoption,link,/INCREMENTAL")
     set(CMAKE_CXX_CREATE_CONSOLE_EXE "/Qoption,link,/subsystem:console")
     set(CMAKE_CXX_CREATE_WINDOWS_EXE "/Qoption,link,/subsystem:windows") 
+    set(INTELLLVM_WIN_MSVCLIKE_WARNING TRUE)
 endif()
 
 
