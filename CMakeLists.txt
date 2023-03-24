@@ -36,8 +36,8 @@ if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx|icx)(.exe)?$")
     endif()
 endif()
 
-if (NOT INTELLLVM_WIN_TOOLCHAIN_APPLIED AND CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_GNU_LIKE))
-    message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} CMake requires some workarounds to function properly. We recommend using the provided toolchain file by adding '-DCMAKE_TOOLCHAIN_FILE=windows-IntelLLVM-toolchain.cmake' to your cmake call.")
+if (NOT INTELLLVM_WIN_TOOLCHAIN_APPLIED AND CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_GNU_LIKE) )
+    message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} requires some workarounds to function properly with CMake. We recommend using the provided toolchain file by adding '-DCMAKE_TOOLCHAIN_FILE=windows-IntelLLVM-toolchain.cmake' to enable these workarounds.")
 endif()
 
 if (INTELLLVM_WIN_GNULIKE_WARNING)
@@ -45,7 +45,7 @@ if (INTELLLVM_WIN_GNULIKE_WARNING)
 endif()
 
 if (INTELLLVM_WIN_MSVCLIKE_WARNING)
-    message(WARNING "${CMAKE_CXX_COMPILER} requires changes to linker settings to allow proper usage with CMake ${CMAKE_VERSION} on Windows. We recommend using CMake version 3.23.0 or newer on Windows")
+    message(WARNING "${CMAKE_CXX_COMPILER} requires changes to linker settings to allow proper usage with CMake ${CMAKE_VERSION} on Windows.  A workaround is provided but may have limitations. We recommend using CMake version 3.23.0 or newer on Windows")
 endif()
 
 project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
