@@ -389,7 +389,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             auto __end_idx_acc = __end_idx.template get_access<sycl::access_mode::write>(__cgh);
         
             __dpl_sycl::__local_accessor<__val_type> __loc_partials_acc(__wgroup_size, __cgh);
-            __dpl_sycl::__local_accessor<__val_type> __loc_seg_ends_acc(__wgroup_size, __cgh);
+            __dpl_sycl::__local_accessor<__diff_type> __loc_seg_ends_acc(__wgroup_size, __cgh);
             __val_type __identity{}; 
 
             __cgh.depends_on(__wg_reduce);
