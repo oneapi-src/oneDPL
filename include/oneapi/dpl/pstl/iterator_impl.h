@@ -897,7 +897,7 @@ class direct_iterator
 
     using iterator_category = std::random_access_iterator_tag;
 
-    using iterator = direct_iterator<Iter>;
+    using iterator = direct_iterator<_Iter>;
     using pointer = iterator;
 
     using is_passed_directly = ::std::true_type;
