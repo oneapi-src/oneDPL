@@ -203,10 +203,10 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
 
     // adjust __wgroup_size according to local memory limit. Double the requirement on __val_type due to sycl group algorithm's use
     // of SLM.
-    __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(
+    __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
         ::std::forward<_ExecutionPolicy>(__exec), sizeof(__key_type) + 2 * sizeof(__val_type), __wgroup_size);
 
-    ::std::size_t __n_groups = __par_backend_hetero::__ceiling_div(__n, __wgroup_size * __vals_per_item);
+    ::std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
     // intermediate reductions within a workgroup
     auto __partials = oneapi::dpl::__par_backend_hetero:: __internal::__buffer<_ExecutionPolicy, __val_type>(
