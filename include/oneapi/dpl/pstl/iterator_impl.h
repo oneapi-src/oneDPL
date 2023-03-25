@@ -894,11 +894,11 @@ class direct_iterator
     typedef typename ::std::iterator_traits<_Iter>::value_type value_type;
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
     typedef typename ::std::iterator_traits<_Iter>::reference reference;
-    using pointer = iterator;
 
     using iterator_category = std::random_access_iterator_tag;
 
     using iterator = direct_iterator<Iter>;
+    using pointer = iterator;
 
     using is_passed_directly = ::std::true_type;
 
@@ -910,9 +910,15 @@ class direct_iterator
     operator=(const direct_iterator&) noexcept = default;
 
     bool
-    operator==(const direct_iterator&) const noexcept = default;
+    operator==(const direct_iterator& other) const noexcept
+    {
+        return __iter == other.__iter;
+    }
     bool
-    operator!=(const direct_iterator&) const noexcept = default;
+    operator!=(const direct_iterator&) const noexcept
+    {
+        return __iter != other.__iter;
+    }
 
     iterator
     operator+(difference_type offset) const noexcept
