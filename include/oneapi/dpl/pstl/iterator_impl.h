@@ -915,7 +915,7 @@ class direct_iterator
         return __iter == other.__iter;
     }
     bool
-    operator!=(const direct_iterator&) const noexcept
+    operator!=(const direct_iterator& other) const noexcept
     {
         return __iter != other.__iter;
     }
