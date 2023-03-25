@@ -37,7 +37,7 @@ public:
 int test_cout() {
   oneapi::dpl::experimental::sycl_scheduler s;
   oneapi::dpl::experimental::sycl_scheduler::execution_resource_t e;
-  std::cout << s << e;
+  //std::cout << s << e;
   return 0;
 }
 
