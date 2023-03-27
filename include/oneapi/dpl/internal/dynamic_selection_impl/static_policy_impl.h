@@ -30,7 +30,7 @@ namespace experimental {
     using execution_resource_t = typename scheduler_t::execution_resource_t;
     using native_sync_t = typename scheduler_t::native_sync_t;
     using universe_container_t = typename scheduler_t::universe_container_t;
-    using selection_handle_t = oneapi::dpl::experimental::nop_selection_handle_t<execution_resource_t>;
+    using selection_handle_t = oneapi::dpl::experimental::basic_selection_handle_t<execution_resource_t>;
 
     std::shared_ptr<scheduler_t> sched_;
     universe_container_t universe_;

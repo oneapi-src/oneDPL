@@ -36,7 +36,7 @@ namespace experimental {
 
     using native_resource_t = sycl::queue;
     using native_sync_t = sycl::event;
-    using execution_resource_t = oneapi::dpl::experimental::nop_execution_resource_t<native_resource_t>;
+    using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<native_resource_t>;
     using universe_container_t = std::vector<execution_resource_t>;
 
     class async_wait_t {
