@@ -45,7 +45,7 @@ namespace experimental {
     }
 
     template<typename T, typename Property, typename Argument>
-    auto query(T& t, const Property& prop, const Argument& arg) {
+    auto query(T&& t, const Property& prop, const Argument& arg) {
       return t.query(prop, arg);
     }
 
