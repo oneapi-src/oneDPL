@@ -16,6 +16,7 @@
 #ifndef _ONEDPL_ALGORITHM_IMPL_HETERO_H
 #define _ONEDPL_ALGORITHM_IMPL_HETERO_H
 
+#include "../../functional"
 #include "../algorithm_fwd.h"
 
 #include "../parallel_backend.h"
@@ -1184,7 +1185,8 @@ __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp)
+    __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp,
+                                                 oneapi::dpl::identity{})
         .wait();
 }
 
@@ -1202,7 +1204,8 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp)
+    __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp,
+                                                 oneapi::dpl::identity{})
         .wait();
 }
 
