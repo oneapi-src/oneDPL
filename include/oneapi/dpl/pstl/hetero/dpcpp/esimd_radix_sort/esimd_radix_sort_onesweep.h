@@ -16,9 +16,12 @@
 #ifndef _ONEDPL_esimd_radix_sort_onesweep_H
 #define _ONEDPL_esimd_radix_sort_onesweep_H
 
-
 #include <ext/intel/esimd.hpp>
 #include "../sycl_defs.h"
+#include "../execution_sycl_defs.h"
+#include "../parallel_backend_sycl_utils.h"
+#include "../utils_ranges_sycl.h"
+
 #include <cstdint>
 
 namespace oneapi::dpl::experimental::esimd::impl
@@ -382,7 +385,7 @@ struct __radix_sort_onesweep_histogram_submitter;
 template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t HW_TG_COUNT, ::std::uint32_t THREAD_PER_TG,
           typename... _Name>
 struct __radix_sort_onesweep_histogram_submitter<KeyT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG,
-                                                 __par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+                                                 oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Range, typename _GlobalOffsetData, typename _SyncData,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
@@ -409,7 +412,7 @@ struct __radix_sort_onesweep_scan_submitter;
 
 template <::std::uint32_t STAGES, ::std::uint32_t BINCOUNT, typename... _Name>
 struct __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT,
-                                            __par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+                                            oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _GlobalOffsetData,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
