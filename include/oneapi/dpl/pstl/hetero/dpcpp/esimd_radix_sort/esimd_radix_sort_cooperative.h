@@ -16,9 +16,11 @@
 #ifndef _ONEDPL_esimd_radix_sort_cooperative_H
 #define _ONEDPL_esimd_radix_sort_cooperative_H
 
-
 #include <ext/intel/esimd.hpp>
 #include "../sycl_defs.h"
+#include "../execution_sycl_defs.h"
+#include "../parallel_backend_sycl_utils.h"
+#include "../utils_ranges_sycl.h"
 #include <cstdint>
 
 namespace oneapi::dpl::experimental::esimd::impl
@@ -321,7 +323,7 @@ struct __radix_sort_cooperative_submitter;
 template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_TG, ::std::uint32_t PROCESS_SIZE,
           typename... _Name>
 struct __radix_sort_cooperative_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE,
-                                          __par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+                                          oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Range, typename _SyncData,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
