@@ -24,7 +24,7 @@ if (EXISTS "${_onedpl_headers}")
             set(INTEL_LLVM_COMPILER_GNU_LIKE TRUE)
         endif()
 
-        if (NOT INTELLLVM_WIN_TOOLCHAIN_APPLIED AND CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_GNU_LIKE) )
+        if ((NOT INTELLLVM_WIN_TOOLCHAIN_APPLIED) AND CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_GNU_LIKE) )
             message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} requires some workarounds to function properly with CMake. We recommend using the provided toolchain file by adding '-DCMAKE_TOOLCHAIN_FILE=windows-IntelLLVM-toolchain.cmake' to enable these workarounds.")
         endif()
 
