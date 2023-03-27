@@ -51,11 +51,10 @@ namespace experimental {
     class async_wait_impl_t : public async_wait_t {
       PropertyHandle p_;
       native_sync_t w_;
-      std::chrono::high_resolution_clock::time_point t0_;
       std::shared_ptr<std::atomic<bool>> wait_reported_;
     public:
 
-      async_wait_impl_t(PropertyHandle p, sycl::event e) : p_(p), w_(e), t0_(std::chrono::high_resolution_clock::now()),
+      async_wait_impl_t(PropertyHandle p, sycl::event e) : p_(p), w_(e),
                                                            wait_reported_{std::make_shared<std::atomic<bool>>(false)} { };
 
       native_sync_t get_native() const override {
