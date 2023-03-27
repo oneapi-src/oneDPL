@@ -140,8 +140,6 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Int, _N> __src)
     return __src.template bit_cast_view<_UInt>() ^ __mask;
 }
 
-const __SYCL_CONSTANT_AS char print_order_cast_float[] = "order cast float\n";
-
 template <bool __is_ascending, typename _Float, int _N,
           std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
 sycl::ext::intel::esimd::simd<::std::uint32_t, _N>
