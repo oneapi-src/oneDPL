@@ -584,7 +584,7 @@ struct __lifetime_keeper : public __lifetime_keeper_base
 // Bitwise type casting, same as C++20 std::bit_cast
 template <typename _Dst, typename _Src>
 ::std::enable_if_t<
-    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
+    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst>&& ::std::is_trivially_copyable_v<_Src>, _Dst>
 __dpl_bit_cast(const _Src& __src) noexcept
 {
 #if __cpp_lib_bit_cast >= 201806L && __has_include(<bit>)
@@ -602,7 +602,7 @@ __dpl_bit_cast(const _Src& __src) noexcept
 
 // The max power of 2 not exceeding the given value, same as C++20 std::bit_floor
 template <typename _T>
-::std::enable_if_t<::std::is_integral_v<_T> && ::std::is_unsigned_v<_T>, _T>
+::std::enable_if_t<::std::is_integral_v<_T>&& ::std::is_unsigned_v<_T>, _T>
 __dpl_bit_floor(_T __x) noexcept
 {
     if (__x == 0)
@@ -617,9 +617,12 @@ __dpl_bit_floor(_T __x) noexcept
     __x |= (__x >> 1);
     __x |= (__x >> 2);
     __x |= (__x >> 4);
-    if constexpr (sizeof(_T) > 1) __x |= (__x >> 8);
-    if constexpr (sizeof(_T) > 2) __x |= (__x >> 16);
-    if constexpr (sizeof(_T) > 4) __x |= (__x >> 32);
+    if constexpr (sizeof(_T) > 1)
+        __x |= (__x >> 8);
+    if constexpr (sizeof(_T) > 2)
+        __x |= (__x >> 16);
+    if constexpr (sizeof(_T) > 4)
+        __x |= (__x >> 32);
     __x += 1; // Now it equals to the next greater power of 2, or 0 in case of wraparound
     return (__x == 0) ? 1 << (sizeof(_T) * CHAR_BIT - 1) : __x >> 1;
 #endif
