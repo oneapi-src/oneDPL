@@ -73,7 +73,7 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
     simd<KeyT, PROCESS_SIZE> keys;
     simd<bin_t, PROCESS_SIZE> bins;
     simd<global_hist_t, BINCOUNT * STAGES> state_hist_grf(0);
-    bin_t MASK = BINCOUNT-1;
+    constexpr bin_t MASK = BINCOUNT - 1;
 
     device_addr_t read_addr;
     for (read_addr = tid * PROCESS_SIZE; read_addr < __n; read_addr += addr_step) {
@@ -95,13 +95,16 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
             }
         }
         #pragma unroll
-        for (uint32_t i = 0; i < STAGES; i++) //4*3 = 12 instr
+        for (uint32_t stage = 0; stage < STAGES; stage++)
         {
-            bins = (keys >> (i * RADIX_BITS))&MASK;
+            // bins = (keys >> (stage * RADIX_BITS)) & MASK;
+            bins = oneapi::dpl::experimental::esimd::impl::utils::__get_bucket<MASK>(
+                oneapi::dpl::experimental::esimd::impl::utils::__order_preserving_cast<true>(keys), stage * RADIX_BITS);
+
             #pragma unroll
             for (uint32_t s = 0; s < PROCESS_SIZE; s++)
             {
-                state_hist_grf[i * BINCOUNT + bins[s]]++;// 256K * 4 * 1.25 = 1310720 instr for grf indirect addr
+                state_hist_grf[stage * BINCOUNT + bins[s]]++;// 256K * 4 * 1.25 = 1310720 instr for grf indirect addr
             }
         }
     }
@@ -214,7 +217,10 @@ void onesweep_kernel(sycl::nd_item<1> idx, uint32_t __n, uint32_t stage, const I
                 keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(-1), m);
             }
         }
-        bins = (keys >> (stage * RADIX_BITS)) & MASK;
+        // bins = (keys >> (stage * RADIX_BITS)) & MASK;
+        bins = oneapi::dpl::experimental::esimd::impl::utils::__get_bucket<MASK>(
+            oneapi::dpl::experimental::esimd::impl::utils::__order_preserving_cast<true>(keys), stage * RADIX_BITS);
+
         bin_offset = 0;
 
         #pragma unroll
@@ -351,7 +357,10 @@ void onesweep_kernel(sycl::nd_item<1> idx, uint32_t __n, uint32_t stage, const I
 
                 keys = merge(source, simd<KeyT, BLOCK_SIZE>(-1), m);
 
-                bins = (keys >> (stage * RADIX_BITS)) & MASK;
+                // bins = (keys >> (stage * RADIX_BITS)) & MASK;
+                bins = oneapi::dpl::experimental::esimd::impl::utils::__get_bucket<MASK>(
+                    oneapi::dpl::experimental::esimd::impl::utils::__order_preserving_cast<true>(keys), stage * RADIX_BITS);
+
                 #pragma unroll
                 for (uint32_t s = 0; s<BLOCK_SIZE; s+=1) {
                     write_addr[s] = bin_offset[bins[s]];
