@@ -40,54 +40,54 @@ namespace experimental {
     inline constexpr universe_size_t universe_size;
 
     template<typename T, typename Property>
-    inline auto query(T& t, const Property& prop) {
+    auto query(T& t, const Property& prop) {
       return t.query(prop);
     }
 
     template<typename T, typename Property, typename Argument>
-    inline auto query(T& t, const Property& prop, const Argument& arg) {
+    auto query(T& t, const Property& prop, const Argument& arg) {
       return t.query(prop, arg);
     }
 
     template<typename Handle, typename Property>
-    inline auto report(Handle&& h, const Property& prop) {
+    auto report(Handle&& h, const Property& prop) {
       return std::forward<Handle>(h).report(prop);
     }
 
     template<typename Handle, typename Property, typename ValueType>
-    inline auto report(Handle&& h, const Property& prop, const ValueType& v) {
+    auto report(Handle&& h, const Property& prop, const ValueType& v) {
       return std::forward<Handle>(h).report(prop, v);
     }
   } //namespace property
 
 //ds_algorithms
   template<typename Handle>
-  inline auto wait_for_all(Handle&& h) {
+  auto wait_for_all(Handle&& h) {
     return std::forward<Handle>(h).wait_for_all();
   }
 
   template<typename DSPolicy, typename... Args>
-  inline auto select(DSPolicy&& dp, Args&&... args) {
+  auto select(DSPolicy&& dp, Args&&... args) {
     return std::forward<DSPolicy>(dp).select(std::forward<Args>(args)...);
   }
 
   template<typename DSPolicy, typename Function, typename... Args>
-  inline auto invoke_async(DSPolicy&& dp, Function&&f, Args&&... args) {
+  auto invoke_async(DSPolicy&& dp, Function&&f, Args&&... args) {
     return std::forward<DSPolicy>(dp).invoke_async(std::forward<Function>(f), std::forward<Args>(args)...);
   }
 
   template<typename DSPolicy, typename Function, typename... Args>
-  inline auto invoke(DSPolicy&& dp, Function&&f, Args&&... args) {
+  auto invoke(DSPolicy&& dp, Function&&f, Args&&... args) {
     return wait_for_all(invoke_async(std::forward<DSPolicy>(dp), std::forward<Function>(f), std::forward<Args>(args)...));
   }
 
   template<typename DSPolicy, typename Function, typename... Args>
-  inline auto invoke_async(DSPolicy&& dp, typename DSPolicy::selection_handle_t e, Function&&f, Args&&... args) {
+  auto invoke_async(DSPolicy&& dp, typename DSPolicy::selection_handle_t e, Function&&f, Args&&... args) {
     return std::forward<DSPolicy>(dp).invoke_async(e, std::forward<Function>(f), std::forward<Args>(args)...);
   }
 
   template<typename DSPolicy, typename Function, typename... Args>
-  inline auto invoke(DSPolicy&& dp, typename DSPolicy::selection_handle_t e, Function&&f, Args&&... args) {
+  auto invoke(DSPolicy&& dp, typename DSPolicy::selection_handle_t e, Function&&f, Args&&... args) {
     return wait_for_all(invoke_async(std::forward<DSPolicy>(dp), e, std::forward<Function>(f), std::forward<Args>(args)...));
   }
 //ds_policy
