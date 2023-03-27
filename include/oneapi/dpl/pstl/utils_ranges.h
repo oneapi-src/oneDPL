@@ -346,28 +346,30 @@ struct drop_view_simple
     }
 };
 
+//replicate_start_view_simple inserts replicates of the first element m times, then continues with the range as normal.
+// For counting iterator range {0,1,2,3,4,5,...}, and __replicate_count = 3, the result is {0,0,0,0,1,2,3,4,5,...} 
 template <typename _R, typename _Size>
 struct replicate_start_view_simple
 {
     _R __r;
-    _Size __n;
+    _Size __repl_count;
 
-    replicate_start_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size)
+    replicate_start_view_simple(_R __rng, _Size __replicate_count) : __r(__rng), __repl_count(__replicate_count)
     {
-        assert(__n >= 0 && __n < __r.size());
+        assert(__repl_count >= 0 && __r.size() > 0);
     }
 
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(__r[__i])
     {
-        return (__i < __n) ? __r[0] : __r[__i - __n];
+        return (__i < __repl_count) ? __r[0] : __r[__i - __repl_count];
     }
 
     _Size
     size() const
     {
-        return __r.size() + __n;
+        return __r.size() + __repl_count;
     }
 
     bool
