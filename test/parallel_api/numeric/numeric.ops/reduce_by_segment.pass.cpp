@@ -308,13 +308,18 @@ test_flag_pred()
 
     // check values
     auto count = std::distance(key_res_head, res1.first);
-    ASSERT_EQUAL(count, 3);
-    ASSERT_EQUAL(key_res_head_on_host[0], T(1));
-    ASSERT_EQUAL(val_res_head_on_host[0], T(11));
-    ASSERT_EQUAL(key_res_head_on_host[1], T(1));
-    ASSERT_EQUAL(val_res_head_on_host[1], T(12));
-    ASSERT_EQUAL(key_res_head_on_host[2], T(1));
-    ASSERT_EQUAL(val_res_head_on_host[2], T(10));
+    std::int64_t expected_count = 3;
+    EXPECT_EQ(count, expected_count, "reduce_by_segment: incorrect number of segments");
+    T expected_key(1);
+    T expected_value(11);
+    EXPECT_EQ(key_res_head_on_host[0], expected_key, "reduce_by_segment: wrong key");
+    EXPECT_EQ(val_res_head_on_host[0], expected_value, "reduce_by_segment: wrong value");
+    EXPECT_EQ(key_res_head_on_host[1], expected_key, "reduce_by_segment: wrong key");
+    expected_value = T(12);
+    EXPECT_EQ(val_res_head_on_host[1], expected_value, "reduce_by_segment: wrong value");
+    EXPECT_EQ(key_res_head_on_host[2], expected_key, "reduce_by_segment: wrong key");
+    expected_value = T(10);
+    EXPECT_EQ(val_res_head_on_host[2], expected_value, "reduce_by_segment: wrong value");
 }
 
 
