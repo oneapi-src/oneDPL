@@ -245,45 +245,34 @@ __joint_inclusive_scan(_Args&&... __args)
 
 template <typename... _Args>
 constexpr auto
-__joint_inclusive_scan(_Args... __args)
+__joint_reduce(_Args...&& __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_inclusive_scan(__args...);
+    return sycl::joint_reduce(::std::forward(__args)...);
 #else
-    return sycl::ONEAPI::inclusive_scan(__args...);
+    return sycl::ONEAPI::reduce(::std::forward(__args)...);
 #endif
 }
 
 template <typename... _Args>
 constexpr auto
-__joint_reduce(_Args... __args)
+__joint_any_of(_Args...&& __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_reduce(__args...);
+    return sycl::joint_any_of(::std::forward(__args)...);
 #else
-    return sycl::ONEAPI::reduce(__args...);
+    return sycl::ONEAPI::any_of(::std::forward(__args)...);
 #endif
 }
 
 template <typename... _Args>
 constexpr auto
-__joint_any_of(_Args... __args)
+__joint_all_of(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_any_of(__args...);
+    return sycl::joint_all_of(::std::forward(__args)...);
 #else
-    return sycl::ONEAPI::any_of(__args...);
-#endif
-}
-
-template <typename... _Args>
-constexpr auto
-__joint_all_of(_Args... __args)
-{
-#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_all_of(__args...);
-#else
-    return sycl::ONEAPI::all_of(__args...);
+    return sycl::ONEAPI::all_of(::std::forward(__args)...);
 #endif
 }
 

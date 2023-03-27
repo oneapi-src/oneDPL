@@ -38,6 +38,7 @@ namespace dpl
 namespace internal
 {
 
+#if _ONEDPL_BACKEND_SYCL
 // TODO: Remove prior to merge. This function is intended to live in scan_by_segment_impl.h which is not currently in the main branch
 // and is instead temporarily placed here to allow for development in a branch separate from mmichel11/by_segment_sycl_rewrites. Once PR #608
 // is merged, this can be removed
@@ -64,6 +65,7 @@ wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, _I
 
     return (__local_id ? __local_acc[__first + __local_id - 1] : 0);
 }
+#endif
 
 template <typename Name>
 class Reduce1;
