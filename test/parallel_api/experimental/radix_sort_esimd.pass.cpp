@@ -177,6 +177,9 @@ int main()
     for(auto size: sizes)
     {
         test_general_cases<uint32_t>(size);
+        // test_general_cases<int>(size);
+        // test_general_cases<float>(size);
+        // test_general_cases<double>(size);
     }
     test_small_sizes();
 
