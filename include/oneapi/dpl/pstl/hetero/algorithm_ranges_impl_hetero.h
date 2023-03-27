@@ -520,13 +520,13 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
 // sort
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _Compare>
+template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
-__pattern_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+__pattern_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
     if (__rng.size() >= 2)
         __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec),
-                                                     ::std::forward<_Range>(__rng), __comp)
+                                                     ::std::forward<_Range>(__rng), __comp, __proj)
             .wait();
 }
 
