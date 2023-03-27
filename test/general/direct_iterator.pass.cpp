@@ -58,8 +58,8 @@ main()
 
     std::span<T> x(p, n);
 
-    dpl::make_direct_iterator s_first(p);
-    dpl::make_direct_iterator s_last(p + n);
+    dpl::make_direct_iterator s_first(x.begin());
+    dpl::make_direct_iterator s_last(x.end());
 
     auto s_dev = dpl::reduce(s_first, s_last, 0);
 
