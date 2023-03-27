@@ -16,9 +16,12 @@
 #ifndef _ONEDPL_esimd_radix_sort_one_wg_H
 #define _ONEDPL_esimd_radix_sort_one_wg_H
 
-
 #include <ext/intel/esimd.hpp>
 #include "../sycl_defs.h"
+#include "../execution_sycl_defs.h"
+#include "../parallel_backend_sycl_utils.h"
+#include "../utils_ranges_sycl.h"
+
 
 #include "esimd_radix_sort_utils.h"
 #include "../../../utils.h"
@@ -193,7 +196,7 @@ struct __radix_sort_one_wg_submitter;
 
 template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t PROCESS_SIZE, typename... _Name>
 struct __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, PROCESS_SIZE,
-                                     __par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+                                     oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Range,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
