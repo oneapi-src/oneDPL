@@ -30,7 +30,7 @@
 #    include "hetero/dpcpp/sycl_iterator.h"
 #endif
 
-#if _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
+#if __cpp_lib_bit_cast >= 201806L && __has_include(<bit>)
 #    include <bit>
 #else
 #    ifndef __has_builtin
@@ -587,7 +587,7 @@ template <typename _Dst, typename _Src>
     sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
 __dpl_bit_cast(const _Src& __src) noexcept
 {
-#if __cpp_lib_bit_cast >= 201806L || _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
+#if __cpp_lib_bit_cast >= 201806L && __has_include(<bit>)
     return ::std::bit_cast<_Dst>(__src);
 #elif _ONEDPL_BACKEND_SYCL && _ONEDPL_LIBSYCL_VERSION >= 50300
     return sycl::bit_cast<_Dst>(__src);
