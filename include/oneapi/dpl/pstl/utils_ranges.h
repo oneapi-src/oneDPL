@@ -347,7 +347,7 @@ struct drop_view_simple
 };
 
 //replicate_start_view_simple inserts replicates of the first element m times, then continues with the range as normal.
-// For counting iterator range {0,1,2,3,4,5,...}, and __replicate_count = 3, the result is {0,0,0,0,1,2,3,4,5,...} 
+// For counting iterator range {0,1,2,3,4,5,...}, and __replicate_count = 3, the result is {0,0,0,0,1,2,3,4,5,...}
 template <typename _R, typename _Size>
 struct replicate_start_view_simple
 {
