@@ -9,6 +9,9 @@
 #ifndef _ONEDPL_KERNEL_TEMPLATES
 #define _ONEDPL_KERNEL_TEMPLATES
 
+#include "../internal/common_config.h"
+#include "../pstl/onedpl_config.h"
+
 #include "../pstl/hetero/dpcpp/parallel_backend_esimd_radix_sort.h"
 
 #endif // _ONEDPL_KERNEL_TEMPLATES
