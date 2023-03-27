@@ -687,7 +687,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     // Replicating first element of keys view to be able to compare (i-1)-th and (i)-th key with aligned sequences,
     //  dropping the last key for the i-1 sequence.
     auto __k1 =
-        oneapi::dpl::__ranges::replicate_start_view_simple(oneapi::dpl::__ranges::take_view_simple(__keys, __n - 1), 1);
+        oneapi::dpl::__ranges::take_view_simple(oneapi::dpl::__ranges::replicate_start_view_simple(__keys, 1), __n);
 
     // view1 elements are a tuple of the element index and pairs of adjacent keys
     // view2 elements are a tuple of the elements where key-index pairs will be written by copy_if
@@ -739,8 +739,8 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     //  dropping the last key for the i-1 sequence.  Only taking the appropriate number of keys to start with here.
     auto __clipped_new_keys = oneapi::dpl::__ranges::take_view_simple(__new_keys, __intermediate_result_end);
 
-    auto __k3 = oneapi::dpl::__ranges::replicate_start_view_simple(
-        oneapi::dpl::__ranges::take_view_simple(__clipped_new_keys, __intermediate_result_end - 1), 1);
+    auto __k3 = oneapi::dpl::__ranges::take_view_simple(
+        oneapi::dpl::__ranges::replicate_start_view_simple(__clipped_new_keys, 1), __intermediate_result_end);
 
     // view3 elements are a tuple of the element index and pairs of adjacent keys
     // view4 elements are a tuple of the elements where key-index pairs will be written by copy_if
