@@ -162,6 +162,7 @@ jobs:
           export PATH=$CONDA/lib:$PATH
           export CPATH=$CONDA/include:$CPATH
           export OCL_ICD_FILENAMES=$CONDA/lib/libintelocl.so
+          echo "::warning::Compiler: $(cmake --version)"
           if [[ "${{ matrix.cxx_compiler }}" == "icpx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx-cl" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp-cl" ]]; then
             echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
           fi
@@ -238,7 +239,6 @@ jobs:
           if "%TMP_INTEL_LLVM_COMPILER%" == "TRUE" (
             powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
             powershell -Command "(Get-Content '%CONDA_PREFIX%\Library\lib\cl.cfg') -replace 'CL_CONFIG_TBB_DLL_PATH = .*', 'CL_CONFIG_TBB_DLL_PATH = %CONDA_PREFIX%\Library\bin' | Out-File -encoding ASCII -FilePath '%CONDA_PREFIX%\Library\lib\cl.cfg'"
-            set TOOLCHAIN_ARG=-DCMAKE_TOOLCHAIN_FILE=cmake/windows-IntelLLVM-toolchain.cmake
           )
           mkdir build && cd build
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
@@ -248,8 +248,7 @@ jobs:
           set CPATH=%CONDA_PREFIX%\include
           set TBB_DLL_PATH=%CONDA_PREFIX%\Library\bin
           reg add HKLM\SOFTWARE\khronos\OpenCL\Vendors /v intelocl64.dll /t REG_DWORD /d 00000000
-          echo cmake -G "Ninja" %TOOLCHAIN_ARG% -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
-          cmake -G "Ninja" %TOOLCHAIN_ARG% -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
+          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           ninja -j 2 -v %ninja_targets%
           ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags%
 
@@ -282,6 +281,7 @@ jobs:
         run: |
           set -x
           source /opt/intel/oneapi/setvars.sh
+          echo "::warning::Compiler: $(cmake --version)"
           if [[ "${{ matrix.cxx_compiler }}" == "icpc" ]]; then
             echo "::warning::Compiler: $(icpc --version)"
           fi
