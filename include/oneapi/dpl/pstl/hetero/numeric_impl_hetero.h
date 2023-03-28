@@ -176,8 +176,8 @@ struct __is_equality_comparable<_Iterator1, _Iterator2,
 #if _ONEDPL_BACKEND_SYCL
 template <sycl::access::mode _Mode1, sycl::access::mode _Mode2, typename _T, typename _Allocator>
 bool
-__check_if_iterator_equality_is_possible(const sycl_iterator<_Mode1, _T, _Allocator>& __it1,
-                                         const sycl_iterator<_Mode2, _T, _Allocator>& __it2)
+__iterators_possibly_equal(const sycl_iterator<_Mode1, _T, _Allocator>& __it1,
+                           const sycl_iterator<_Mode2, _T, _Allocator>& __it2)
 {
     const auto buf1 = __it1.get_buffer();
     const auto buf2 = __it2.get_buffer();
@@ -197,7 +197,7 @@ __check_if_iterator_equality_is_possible(const sycl_iterator<_Mode1, _T, _Alloca
 
 template <typename _Iterator1, typename _Iterator2>
 constexpr bool
-__check_if_iterator_equality_is_possible(_Iterator1 __it1, _Iterator2 __it2)
+__iterators_possibly_equal(_Iterator1 __it1, _Iterator2 __it2)
 {
     if constexpr (__is_equality_comparable<_Iterator1, _Iterator2>::value)
     {
@@ -225,7 +225,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     const auto __n = __last - __first;
 
     // This is a temporary workaround for an in-place exclusive scan while the SYCL backend scan pattern is not fixed.
-    const bool __is_scan_inplace_exclusive = __n > 1 && !_Inclusive{} && __check_if_iterator_equality_is_possible(__first, __result);
+    const bool __is_scan_inplace_exclusive = __n > 1 && !_Inclusive{} && __iterators_possibly_equal(__first, __result);
     if (!__is_scan_inplace_exclusive)
     {
         __pattern_transform_scan_base_impl(__exec, __first, __last, __result, __unary_op, __init, __binary_op,
@@ -235,7 +235,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     {
         assert(__n > 1);
         assert(!_Inclusive{});
-        assert(__check_if_iterator_equality_is_possible(__first, __result));
+        assert(__iterators_possibly_equal(__first, __result));
 
         using _Type = typename _InitType::__value_type;
 
