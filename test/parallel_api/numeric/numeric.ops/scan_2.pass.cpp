@@ -24,6 +24,8 @@
 #include "support/utils.h"
 #include "support/scan_serial_impl.h"
 
+#include <vector>
+
 using namespace TestUtils;
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -370,18 +372,46 @@ namespace oneapi::dpl::__internal
         EXPECT_FALSE(__check_if_iterator_equality_is_possible(nullptr, oneapi::dpl::begin(buf2)),
                      "wrong __check_if_iterator_equality_is_possible result");
 
-        int srcIntData = 0;
-        const auto& intConstData = srcIntData;
-        auto& intData = srcIntData;
-        float floatData = .0;
+        {
+            float floatData = .0;
 
-        EXPECT_TRUE(__check_if_iterator_equality_is_possible(&intData, &intData), "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_TRUE(__check_if_iterator_equality_is_possible(&intConstData, &intData),
-                    "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_TRUE(__check_if_iterator_equality_is_possible(&intData, &intConstData),
-                    "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_FALSE(__check_if_iterator_equality_is_possible(&intData, &floatData),
-                     "wrong __check_if_iterator_equality_is_possible result");
+            ::std::vector<int> dataVec{1, 2, 3};
+            const auto intConstData = dataVec.data();
+            auto intData = dataVec.data();
+
+            // check pointer + pointer
+            EXPECT_TRUE(__check_if_iterator_equality_is_possible(intData, intData),
+                        "wrong __check_if_iterator_equality_is_possible result");
+            // check const pointer + pointer
+            EXPECT_TRUE(__check_if_iterator_equality_is_possible(intConstData, intData),
+                        "wrong __check_if_iterator_equality_is_possible result");
+            // check pointer + const pointer
+            EXPECT_TRUE(__check_if_iterator_equality_is_possible(intData, intConstData),
+                        "wrong __check_if_iterator_equality_is_possible result");
+            // check pointer + pointer to other type
+            EXPECT_FALSE(__check_if_iterator_equality_is_possible(intData, floatData),
+                         "wrong __check_if_iterator_equality_is_possible result");
+        }
+
+        {
+            int srcIntData = 0;
+            const auto& intConstData = srcIntData;
+            auto& intData = srcIntData;
+            float floatData = .0;
+
+            //intConstData = 1; // OK: error: cannot assign to variable 'intConstData' with const-qualified type 'const int &'
+            intData = 0;
+
+            // Check pointer to const data + pointer to data
+            EXPECT_TRUE(__check_if_iterator_equality_is_possible(&intConstData, &intData),
+                        "wrong __check_if_iterator_equality_is_possible result");
+            // Check pointer to data + pointer to const data
+            EXPECT_TRUE(__check_if_iterator_equality_is_possible(&intData, &intConstData),
+                        "wrong __check_if_iterator_equality_is_possible result");
+            // Check pointer to const data + pointer to const data
+            EXPECT_TRUE(__check_if_iterator_equality_is_possible(&intConstData, &intConstData),
+                        "wrong __check_if_iterator_equality_is_possible result");
+        }
     }
 };
 #endif // TEST_DPCPP_BACKEND_PRESENT
