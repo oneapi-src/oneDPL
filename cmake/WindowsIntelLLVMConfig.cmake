@@ -11,6 +11,8 @@
 # See https://llvm.org/LICENSE.txt for license information.
 #
 ##===----------------------------------------------------------------------===##
+cmake_minimum_required(VERSION 3.15.0)
+
 include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
 
 # CMAKE_CXX_COMPILER and CMAKE_CXX_COMPILER_VERSION cannot be used because
