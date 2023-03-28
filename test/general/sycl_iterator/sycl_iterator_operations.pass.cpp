@@ -23,7 +23,7 @@ namespace oneapi::dpl::__internal
 {
 // Check the correctness of oneapi::dpl::__internal::__iterators_possibly_equal
 void
-test_internals()
+test_iterators_possibly_equal()
 {
     // Check some internals from oneapi::dpl::__internal
     using namespace oneapi::dpl::__internal;
@@ -102,7 +102,7 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
 
     // Check the correctness of oneapi::dpl::__internal::__iterators_possibly_equal
-    oneapi::dpl::__internal::test_internals();
+    oneapi::dpl::__internal::test_iterators_possibly_equal();
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
