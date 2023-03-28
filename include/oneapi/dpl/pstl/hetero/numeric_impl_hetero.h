@@ -173,6 +173,7 @@ struct __is_equality_comparable<_Iterator1, _Iterator2,
 {
 };
 
+#if _ONEDPL_BACKEND_SYCL
 template <sycl::access::mode _Mode1, sycl::access::mode _Mode2, typename _T, typename _Allocator>
 bool
 __check_if_iterator_equality_is_possible(const sycl_iterator<_Mode1, _T, _Allocator>& __it1,
@@ -192,6 +193,7 @@ __check_if_iterator_equality_is_possible(const sycl_iterator<_Mode1, _T, _Alloca
 
     return __it1 == __it2;
 }
+#endif // _ONEDPL_BACKEND_SYCL
 
 template <typename _Iterator1, typename _Iterator2>
 constexpr bool
