@@ -324,6 +324,7 @@ run_test()
 
 namespace oneapi::dpl::__internal
 {
+    // Check the correctness of oneapi::dpl::__internal::__check_if_iterator_equality_is_possible
     void
     test_internals()
     {
@@ -393,6 +394,7 @@ main()
     using ValueType = int;
     using BinaryOperation = ::std::plus<ValueType>;
 
+    // Check the correctness of oneapi::dpl::__internal::__check_if_iterator_equality_is_possible
     oneapi::dpl::__internal::test_internals();
 
     // Run tests for USM shared memory
