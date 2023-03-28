@@ -43,6 +43,11 @@ public:
         mlock.unlock();
         cond_.notify_one();
     }
+
+    bool is_empty(){
+        return queue_.empty();
+    }
+
     Queue() = default;
     Queue(const Queue& q) : queue_(q.queue_) {};
     Queue& operator=(const Queue& q) {q=q.queue_; return *this;}

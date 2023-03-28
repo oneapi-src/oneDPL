@@ -16,15 +16,14 @@
 #ifndef _ONEDPL_SYCL_SCHEDULER_IMPL_H
 #define _ONEDPL_SYCL_SCHEDULER_IMPL_H
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include "oneapi/dpl/internal/dynamic_selection.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
 
-#include <atomic>
-#include <mutex>
-#include <stdlib.h>
+#include <vector>
+#include <memory>
 
 namespace oneapi {
 namespace dpl {
@@ -68,9 +67,9 @@ namespace experimental {
     universe_container_t global_rank_;
     waiter_container_t waiters_;
 
-    sycl_scheduler() { }
+    sycl_scheduler() = default;
 
-    sycl_scheduler(const sycl_scheduler& v) : global_rank_(v.global_rank_), waiters_(v.waiters_) { }
+    sycl_scheduler(const sycl_scheduler& v) = delete;
 
     template<typename NativeUniverseVector, typename ...Args>
     sycl_scheduler(const NativeUniverseVector& v, Args&&... args) {
@@ -88,10 +87,12 @@ namespace experimental {
     }
 
     void wait_for_all() {
-      async_wait_t *w;
-      waiters_.pop(w);
-      w->wait_for_all();
-      delete w;
+      while(!waiters_.is_empty()){
+        async_wait_t *w;
+        waiters_.pop(w);
+        w->wait_for_all();
+        delete w;
+      }
     }
 
     //
