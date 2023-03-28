@@ -80,9 +80,6 @@ test_iterators_possibly_equal()
         auto& intData = srcIntData;
         const float floatData = .0;
 
-        //intConstData = 1; // OK: error: cannot assign to variable 'intConstData' with const-qualified type 'const int &'
-        intData = 0;
-
         // Check pointer to const data + pointer to data
         EXPECT_TRUE(__iterators_possibly_equal(&intConstData, &intData), "wrong __iterators_possibly_equal result");
         // Check pointer to data + pointer to const data
