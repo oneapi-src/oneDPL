@@ -15,6 +15,12 @@
 cmake_minimum_required(VERSION 3.4.3)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
+option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
+option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
+option(ONEDPL_WIN_ICPX_ICX_FIXS "Enable icpx and icx workarounds for Windows" ON)
+
+
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/oneapi/dpl/pstl/onedpl_config.h
     _onedpl_version_info
     LIMIT 1024)
@@ -22,71 +28,19 @@ string(REGEX REPLACE ".*#define ONEDPL_VERSION_MAJOR ([0-9]+).*" "\\1" _onedpl_v
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_MINOR ([0-9]+).*" "\\1" _onedpl_ver_minor "${_onedpl_version_info}")
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_ver_patch "${_onedpl_version_info}")
 
-# CMAKE_CXX_COMPILER and CMAKE_CXX_COMPILER_VERSION cannot be used because
-# CMake 3.19 and older will detect IntelLLVM compiler as CLang with CLang-specific version, see https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
-if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx|icx)(.exe)?$")
-    set(INTEL_LLVM_COMPILER TRUE)
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE INTEL_LLVM_COMPILER_VERSION_RAW)
-    string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" INTEL_LLVM_COMPILER_VERSION ${INTEL_LLVM_COMPILER_VERSION_RAW})
-    if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|icx-cl|icx)(.exe)?$")
-        set(INTEL_LLVM_COMPILER_MSVC_LIKE TRUE)
-        set(MSVC TRUE)
-    else()
-        set(INTEL_LLVM_COMPILER_GNU_LIKE TRUE)
-    endif()
-endif()
-
-if ((NOT INTELLLVM_WIN_TOOLCHAIN_APPLIED) AND CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_GNU_LIKE) )
-    message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} requires some workarounds to function properly with CMake. We recommend using the provided toolchain file by adding '-DCMAKE_TOOLCHAIN_FILE=windows-IntelLLVM-toolchain.cmake' to enable these workarounds.")
-endif()
-
-if (INTELLLVM_WIN_GNULIKE_WARNING)
-    message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} is not supported by CMake (https://gitlab.kitware.com/cmake/cmake/-/issues/24314). A workaround is provided but may have limitations. We recommend using CMAKE_CXX_COMPILER=icx or icx-cl on Windows.")
-endif()
-
-if (INTELLLVM_WIN_MSVCLIKE_WARNING)
-    message(WARNING "${CMAKE_CXX_COMPILER} requires changes to linker settings to allow proper usage with CMake ${CMAKE_VERSION} on Windows.  A workaround is provided but may have limitations. We recommend using CMake version 3.23.0 or newer on Windows")
+if (CMAKE_HOST_WIN32 AND ONEDPL_WIN_ICPX_ICX_FIXS)
+    list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+    find_package(WindowsIntelLLVM)
 endif()
 
 project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION}")
-
-# The following fixes are requested by windows-IntelLLVM-toolchain.cmake
-if (INTELLLVM_MSVC_WIN_STDOPTION_FIX)
-    # Fix std compiler options for icx, icx-cl (Adapted from https://github.com/Kitware/CMake/commit/42ca6416afeabd445bc6c19749e68604c9c2d733)
-    set(CMAKE_CXX14_STANDARD_COMPILE_OPTION  "-Qstd:c++14")
-    set(CMAKE_CXX14_EXTENSION_COMPILE_OPTION "-Qstd:c++14")
-    set(CMAKE_CXX17_STANDARD_COMPILE_OPTION  "-Qstd:c++17")
-    set(CMAKE_CXX17_EXTENSION_COMPILE_OPTION "-Qstd:c++17")
-    set(CMAKE_CXX20_STANDARD_COMPILE_OPTION  "-Qstd:c++20")
-    set(CMAKE_CXX20_EXTENSION_COMPILE_OPTION "-Qstd:c++20")
-endif()
-
-if (INTELLLVM_MSVC_WIN_LINKORDER_FIX)
-    # Fixing linker rule to use the compiler for linking and moving link options before /link
-    # Adapted from fix in CMake 3.23: https://github.com/Kitware/CMake/commit/5d5a7123034361b6cacff96d3ed20d2bb78c33cc
-    set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_COMMAND> -E vs_link_exe --intdir=<OBJECT_DIR> --rc=<CMAKE_RC_COMPILER> --mt=<CMAKE_MT> --manifests <MANIFESTS> -- <CMAKE_CXX_COMPILER> /nologo <CMAKE_CXX_LINK_FLAGS> <OBJECTS> <LINK_FLAGS> <LINK_LIBRARIES> /link /out:<TARGET> /implib:<TARGET_IMPLIB> /pdb:<TARGET_PDB> /version:<TARGET_VERSION_MAJOR>.<TARGET_VERSION_MINOR>")
-endif()
-
-if (INTELLLVM_WIN_OFFICIAL_SUPPORT_FIX)
-    # Intel provided workaround for CMake version 3.23+
-    find_package(IntelDPCPP REQUIRED)
-endif()
-
-if (INTELLLVM_WIN_STD_IGNORE_FIX)
-    include(Compiler/CMakeCommonCompilerMacros)
-    # Setting c++ standard default to 14, and enabling usage of CMAKE_CXX_STANDARD
-    __compiler_check_default_language_standard(CXX 2020 14)
-endif()
 
 find_program(FIND_GXX_EXE g++)
 if (FIND_GXX_EXE)
     execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
 endif()
 
-option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
-option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
-option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)

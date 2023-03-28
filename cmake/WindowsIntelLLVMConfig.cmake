@@ -1,3 +1,17 @@
+##===-- WindowsIntelLLVMConfig.cmake --------------------------------------===##
+#
+# Copyright (C) Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# This file incorporates work covered by the following copyright and permission
+# notice:
+#
+# Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+#
+##===----------------------------------------------------------------------===##
+
 # CMAKE_CXX_COMPILER and CMAKE_CXX_COMPILER_VERSION cannot be used because
 # CMake 3.19 and older will detect IntelLLVM compiler as CLang with CLang-specific version, see https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
 if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx|icx)(.exe)?$")
@@ -33,8 +47,7 @@ if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
         set(CMAKE_CXX20_STANDARD_COMPILE_OPTION "-std=c++20")
         set(CMAKE_CXX_STANDARD_COMPUTED_DEFAULT 14)
         set(INTELLLVM_WIN_STD_IGNORE_FIX TRUE)
-        set(INTELLLVM_WIN_GNULIKE_WARNING TRUE)
-
+        message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} is not supported by CMake (https://gitlab.kitware.com/cmake/cmake/-/issues/24314). A workaround is provided but may have limitations. We recommend using CMAKE_CXX_COMPILER=icx or icx-cl on Windows.")
     endif()
 endif()
 
@@ -46,8 +59,8 @@ if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_MSVC_LIKE AND (NOT ${CMAKE_VERSION}
     set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO_INIT "/Qoption,link,/debug /Qoption,link,/INCREMENTAL:NO")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "/Qoption,link,/debug /Qoption,link,/INCREMENTAL")
     set(CMAKE_CXX_CREATE_CONSOLE_EXE "/Qoption,link,/subsystem:console")
-    set(CMAKE_CXX_CREATE_WINDOWS_EXE "/Qoption,link,/subsystem:windows") 
-    set(INTELLLVM_WIN_MSVCLIKE_WARNING TRUE)
+    set(CMAKE_CXX_CREATE_WINDOWS_EXE "/Qoption,link,/subsystem:windows")
+    message(WARNING "${CMAKE_CXX_COMPILER} requires changes to linker settings to allow proper usage with CMake ${CMAKE_VERSION} on Windows.  A workaround is provided but may have limitations. We recommend using CMake version 3.23.0 or newer on Windows")
 endif()
 
 
@@ -72,4 +85,8 @@ if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_MSVC_LIKE)
     # No workaround required for CMake version 3.25+
 endif()
 
-set(INTELLLVM_WIN_TOOLCHAIN_APPLIED TRUE)
+set(CMAKE_PROJECT_INCLUDE ${CMAKE_CURRENT_LIST_DIR}/WindowsIntelLLVMApply.cmake)
+
+find_package_handle_standard_args(WindowsIntelLLVM 
+    FOUND_VAR WindowsIntelLLVM_FOUND
+    REQUIRED_VARS CMAKE_PROJECT_INCLUDE)
