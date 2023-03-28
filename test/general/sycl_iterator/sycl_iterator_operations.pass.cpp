@@ -57,6 +57,20 @@ test_iterators_possibly_equal()
     EXPECT_FALSE(__iterators_possibly_equal(nullptr, oneapi::dpl::begin(buf2)),
                  "wrong __iterators_possibly_equal result");
 
+    // sub - buffer vs it's "root" buffer (expect true)
+    sycl::buffer<int, 1> buf11{buf1, sycl::range<1>{0}, sycl::range<1>{0}};
+    EXPECT_TRUE(__iterators_possibly_equal(oneapi::dpl::end(buf1), oneapi::dpl::begin(buf11)),
+                "wrong __iterators_possibly_equal result");
+
+    // sub - buffer vs sub - buffer which share a "root" buffer(expect true)
+    sycl::buffer<int, 1> buf12{buf1, sycl::range<1>{0}, sycl::range<1>{0}};
+    EXPECT_TRUE(__iterators_possibly_equal(oneapi::dpl::begin(buf11), oneapi::dpl::end(buf12)),
+                "wrong __iterators_possibly_equal result");
+
+    // two sycl_iterators pointing to different elements in the same "root" buffer(expect false)
+    auto it1next = it1 + 1;
+    EXPECT_FALSE(__iterators_possibly_equal(it1, it1next), "wrong __iterators_possibly_equal result");
+
     {
         float floatData = .0;
 
