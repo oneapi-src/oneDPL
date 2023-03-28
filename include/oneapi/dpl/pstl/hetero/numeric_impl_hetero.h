@@ -175,8 +175,8 @@ struct is_equality_comparable<_Iterator1, _Iterator2,
 
 template <sycl::access::mode _Mode1, sycl::access::mode _Mode2, typename _T, typename _Allocator>
 bool
-__check_if_iterator_equality_is_possible(sycl_iterator<_Mode1, _T, _Allocator> __it1,
-                                         sycl_iterator<_Mode2, _T, _Allocator> __it2)
+__check_if_iterator_equality_is_possible(const sycl_iterator<_Mode1, _T, _Allocator>& __it1,
+                                         const sycl_iterator<_Mode2, _T, _Allocator>& __it2)
 {
     const auto buf1 = __it1.get_buffer();
     const auto buf2 = __it2.get_buffer();
