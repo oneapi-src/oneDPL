@@ -339,21 +339,34 @@ namespace oneapi::dpl::__internal
         auto& it1Ref = it1;
         auto& it2Ref = it2;
 
-        EXPECT_TRUE(__check_equal_iterators(it1, it1), "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_TRUE(__check_equal_iterators(it1, it1Ref), "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_TRUE(__check_equal_iterators(it1Ref, it1), "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_TRUE(__check_equal_iterators(it1Ref, it1Ref), "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_FALSE(__check_equal_iterators(it1, it2), "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_FALSE(__check_equal_iterators(it1Ref, it2), "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_FALSE(__check_equal_iterators(it1, it2Ref), "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_FALSE(__check_equal_iterators(it1Ref, it2Ref), "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_FALSE(__check_equal_iterators(oneapi::dpl::begin(buf1), it2),
+        EXPECT_TRUE(__check_if_iterator_equality_is_possible(it1, it1),
+                    "wrong __check_if_iterator_equality_is_possible result");
+        EXPECT_TRUE(__check_if_iterator_equality_is_possible(it1, it1Ref),
+                    "wrong __check_if_iterator_equality_is_possible result");
+        EXPECT_TRUE(__check_if_iterator_equality_is_possible(it1Ref, it1),
+                    "wrong __check_if_iterator_equality_is_possible result");
+        EXPECT_TRUE(__check_if_iterator_equality_is_possible(it1Ref, it1Ref),
+                    "wrong __check_if_iterator_equality_is_possible result");
+        EXPECT_FALSE(__check_if_iterator_equality_is_possible(it1, it2),
                      "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_FALSE(__check_equal_iterators(oneapi::dpl::begin(buf1), it2Ref),
+        EXPECT_FALSE(__check_if_iterator_equality_is_possible(it1Ref, it2),
                      "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_FALSE(__check_equal_iterators(oneapi::dpl::begin(buf1), oneapi::dpl::begin(buf2)),
+        EXPECT_FALSE(__check_if_iterator_equality_is_possible(it1, it2Ref),
                      "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_FALSE(__check_equal_iterators(it1, oneapi::dpl::begin(buf2)),
+        EXPECT_FALSE(__check_if_iterator_equality_is_possible(it1Ref, it2Ref),
+                     "wrong __check_if_iterator_equality_is_possible result");
+        EXPECT_FALSE(__check_if_iterator_equality_is_possible(oneapi::dpl::begin(buf1), it2),
+                     "wrong __check_if_iterator_equality_is_possible result");
+        EXPECT_FALSE(__check_if_iterator_equality_is_possible(oneapi::dpl::begin(buf1), it2Ref),
+                     "wrong __check_if_iterator_equality_is_possible result");
+        EXPECT_FALSE(__check_if_iterator_equality_is_possible(oneapi::dpl::begin(buf1), oneapi::dpl::begin(buf2)),
+                     "wrong __check_if_iterator_equality_is_possible result");
+        EXPECT_FALSE(__check_if_iterator_equality_is_possible(it1, oneapi::dpl::begin(buf2)),
+                     "wrong __check_if_iterator_equality_is_possible result");
+
+        EXPECT_FALSE(__check_if_iterator_equality_is_possible(oneapi::dpl::begin(buf1), nullptr),
+                     "wrong __check_if_iterator_equality_is_possible result");
+        EXPECT_FALSE(__check_if_iterator_equality_is_possible(nullptr, oneapi::dpl::begin(buf2)),
                      "wrong __check_if_iterator_equality_is_possible result");
 
         int srcIntData = 0;
@@ -361,12 +374,12 @@ namespace oneapi::dpl::__internal
         auto& intData = srcIntData;
         float floatData = .0;
 
-        EXPECT_TRUE(__check_equal_iterators(&intData, &intData), "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_TRUE(__check_equal_iterators(&intConstData, &intData),
+        EXPECT_TRUE(__check_if_iterator_equality_is_possible(&intData, &intData), "wrong __check_if_iterator_equality_is_possible result");
+        EXPECT_TRUE(__check_if_iterator_equality_is_possible(&intConstData, &intData),
                     "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_TRUE(__check_equal_iterators(&intData, &intConstData),
+        EXPECT_TRUE(__check_if_iterator_equality_is_possible(&intData, &intConstData),
                     "wrong __check_if_iterator_equality_is_possible result");
-        EXPECT_FALSE(__check_equal_iterators(&intData, &floatData),
+        EXPECT_FALSE(__check_if_iterator_equality_is_possible(&intData, &floatData),
                      "wrong __check_if_iterator_equality_is_possible result");
     }
 };
