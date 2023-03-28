@@ -203,6 +203,10 @@ __check_if_iterator_equality_is_possible(_Iterator1 __it1, _Iterator2 __it2)
     {
         return __it1 == __it2;
     }
+    else if constexpr (__is_equality_comparable<_Iterator2, _Iterator1>::value)
+    {
+        return __it2 == __it1;
+    }
     else
     {
         return false;
