@@ -13,7 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+#ifndef _ONEDPL_INLINE_SCHEDULER_H
+#define _ONEDPL_INLINE_SCHEDULER_H
 
 #include "oneapi/dpl/dynamic_selection"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
@@ -113,3 +114,5 @@ inline int_inline_scheduler_t int_inline_scheduler;
 } //namespace oneapi
 
 using default_scheduler_t = oneapi::dpl::experimental::int_inline_scheduler_t;
+
+#endif /* _ONEDPL_INLINE_SCHEDULER_H */

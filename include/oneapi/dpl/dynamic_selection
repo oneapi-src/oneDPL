@@ -13,9 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_DS_H
-#define _ONEDPL_DS_H
-#pragma once
+#ifndef _ONEDPL_DYNAMIC_SELECTION
+#define _ONEDPL_DYNAMIC_SELECTION
 
 // Check the user-defined macro for parallel policies
 // define _DS_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
@@ -43,4 +42,4 @@ namespace experimental {
 } //namespace dpl
 } //namespace oneapi
 
-#endif /* ONEDPL_DS_H */
+#endif /* ONEDPL_DYNAMIC_SELECTION */

@@ -13,13 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+
+#ifndef _ONEDPL_INTERNAL_DYNAMIC_SELECTION_H
+#define _ONEDPL_INTERNAL_DYNAMIC_SELECTION_H
+
 #include <memory>
 #include <utility>
-
-#ifndef _ONEDPL_DYNAMIC_SELECTION_DEFS_H
-#define _ONEDPL_DYNAMIC_SELECTION_DEFS_H
-#pragma once
-
 
 namespace oneapi {
 namespace dpl {
@@ -156,4 +155,4 @@ namespace experimental {
 #include "oneapi/dpl/internal/dynamic_selection_impl/static_policy_impl.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy_impl.h"
 
-#endif /*_ONEDPL_DYNAMIC_SELECTION_DEFS_H*/
+#endif /*_ONEDPL_INTERNAL_DYNAMIC_SELECTION_H*/

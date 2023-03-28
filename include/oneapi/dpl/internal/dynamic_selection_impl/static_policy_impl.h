@@ -13,10 +13,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _STATIC_POLICY_IMPL_H
-#define _STATIC_POLICY_IMPL_H
+#ifndef _ONEDPL_STATIC_POLICY_IMPL_H
+#define _ONEDPL_STATIC_POLICY_IMPL_H
 
-#pragma once
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 
 namespace oneapi {
@@ -98,4 +97,4 @@ namespace experimental {
 } //namespace dpl
 } //namespace oneapi
 
-#endif /*_STATIC_POLICY_IMPL_H*/
+#endif /*_ONEDPL_STATIC_POLICY_IMPL_H*/

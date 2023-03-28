@@ -16,8 +16,6 @@
 #ifndef _ONEDPL_SCHEDULER_DEFS_H
 #define _ONEDPL_SCHEDULER_DEFS_H
 
-#pragma once
-
 namespace oneapi {
 namespace dpl{
 namespace experimental{

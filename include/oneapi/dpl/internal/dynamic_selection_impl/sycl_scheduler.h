@@ -13,10 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _SYCL_SCHEDULER_IMPL_H
-#define _SYCL_SCHEDULER_IMPL_H
-
-#pragma once
+#ifndef _ONEDPL_SYCL_SCHEDULER_IMPL_H
+#define _ONEDPL_SYCL_SCHEDULER_IMPL_H
 
 #include <CL/sycl.hpp>
 #include "oneapi/dpl/internal/dynamic_selection.h"
@@ -132,4 +130,4 @@ namespace experimental {
 } //namespace dpl
 } //namespace oneapi
 
-#endif /*_SYCL_SCHEDULER_IMPL_H*/
+#endif /*_ONEDPL_SYCL_SCHEDULER_IMPL_H*/

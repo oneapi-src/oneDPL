@@ -14,10 +14,8 @@
 //===----------------------------------------------------------------------===//
 
 
-#ifndef _SCORING_POLICY_DEFS_H
-#define _SCORING_POLICY_DEFS_H
-
-#pragma once
+#ifndef _ONEDPL_SCORING_POLICY_DEFS_H
+#define _ONEDPL_SCORING_POLICY_DEFS_H
 
 namespace oneapi {
 namespace dpl {
@@ -53,4 +51,4 @@ namespace experimental {
 } //namespace oneapi
 
 
-#endif /* _SCORING_POLICY_DEFS_H */
+#endif /* _ONEDPL_SCORING_POLICY_DEFS_H */

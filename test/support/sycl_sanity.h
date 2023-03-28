@@ -13,7 +13,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#pragma once
+
+#ifndef _ONEDPL_SYCL_SANITY_H
+#define _ONEDPL_SYCL_SANITY_H
 
 #include <cstdio>
 #include <memory>
@@ -84,3 +86,4 @@ static inline sycl::queue build_universe(std::vector<sycl::queue> &u) {
   return u[0];
 }
 
+#endif /* _ONEDPL_SYCL_SANITY_H */

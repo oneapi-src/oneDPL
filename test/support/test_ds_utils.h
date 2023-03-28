@@ -14,6 +14,9 @@
 //===----------------------------------------------------------------------===//
 
 
+#ifndef _ONEDPL_TEST_DS_UTILS_H
+#define _ONEDPL_TEST_DS_UTILS_H
+
 template<typename Policy>
 int test_cout() {
   Policy p;
@@ -446,4 +449,4 @@ int test_auto_tune_select(UniverseContainer u, ResourceFunction&& f) {
   std::cout << "select: OK\n";
   return 0;
 }
-
+#endif /* _ONEDPL_TEST_DS_UTILS_H */

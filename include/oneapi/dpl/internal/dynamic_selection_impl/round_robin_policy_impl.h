@@ -13,9 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ROUND_ROBIN_POLICY_IMPL_H
-#define _ROUND_ROBIN_POLICY_IMPL_H
-#pragma once
+#ifndef _ONEDPL_ROUND_ROBIN_POLICY_IMPL_H
+#define _ONEDPL_ROUND_ROBIN_POLICY_IMPL_H
 
 #include <atomic>
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
@@ -110,4 +109,4 @@ namespace experimental{
 } // namespace oneapi
 
 
-#endif //_ROUND_ROBIN_POLICY_IMPL_H
+#endif //_ONEDPL_ROUND_ROBIN_POLICY_IMPL_H
