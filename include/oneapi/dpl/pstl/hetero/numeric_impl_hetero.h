@@ -154,21 +154,21 @@ __pattern_transform_scan_base_impl(_ExecutionPolicy&& __exec, _Iterator1 __first
 
 // TODO In C++20 we may try to use std::equality_comparable
 template <typename _Iterator1, typename _Iterator2, typename = void>
-struct is_equality_comparable : std::false_type
+struct __is_equality_comparable : std::false_type
 {
 };
 
 // Two sycl_iterator's (with different access modes)
 template <sycl::access::mode _Mode1, sycl::access::mode _Mode2, typename _T, typename _Allocator>
-struct is_equality_comparable<sycl_iterator<_Mode1, _T, _Allocator>, sycl_iterator<_Mode2, _T, _Allocator>>
+struct __is_equality_comparable<sycl_iterator<_Mode1, _T, _Allocator>, sycl_iterator<_Mode2, _T, _Allocator>>
     : std::true_type
 {
 };
 
 // All with implemented operator ==
 template <typename _Iterator1, typename _Iterator2>
-struct is_equality_comparable<_Iterator1, _Iterator2,
-                              std::void_t<decltype(::std::decay_t<_Iterator1>() == ::std::decay_t<_Iterator2>())>>
+struct __is_equality_comparable<_Iterator1, _Iterator2,
+                                std::void_t<decltype(::std::decay_t<_Iterator1>() == ::std::decay_t<_Iterator2>())>>
     : std::true_type
 {
 };
@@ -197,7 +197,7 @@ template <typename _Iterator1, typename _Iterator2>
 constexpr bool
 __check_if_iterator_equality_is_possible(_Iterator1 __it1, _Iterator2 __it2)
 {
-    if constexpr (is_equality_comparable<_Iterator1, _Iterator2>::value)
+    if constexpr (__is_equality_comparable<_Iterator1, _Iterator2>::value)
     {
         return __it1 == __it2;
     }
