@@ -71,14 +71,14 @@ test_iterators_possibly_equal()
         // check pointer + const pointer
         EXPECT_TRUE(__iterators_possibly_equal(intData, intConstData), "wrong __iterators_possibly_equal result");
         // check pointer + pointer to other type
-        EXPECT_FALSE(__iterators_possibly_equal(intData, floatData), "wrong __iterators_possibly_equal result");
+        EXPECT_FALSE(__iterators_possibly_equal(intData, &floatData), "wrong __iterators_possibly_equal result");
     }
 
     {
         int srcIntData = 0;
         const auto& intConstData = srcIntData;
         auto& intData = srcIntData;
-        float floatData = .0;
+        const float floatData = .0;
 
         //intConstData = 1; // OK: error: cannot assign to variable 'intConstData' with const-qualified type 'const int &'
         intData = 0;
@@ -90,6 +90,8 @@ test_iterators_possibly_equal()
         // Check pointer to const data + pointer to const data
         EXPECT_TRUE(__iterators_possibly_equal(&intConstData, &intConstData),
                     "wrong __iterators_possibly_equal result");
+        // check pointer + pointer to other const type
+        EXPECT_FALSE(__iterators_possibly_equal(intData, &floatData), "wrong __iterators_possibly_equal result");
     }
 }
 };
