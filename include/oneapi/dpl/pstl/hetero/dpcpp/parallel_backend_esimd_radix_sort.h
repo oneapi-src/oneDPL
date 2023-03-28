@@ -63,14 +63,14 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
         // TODO: allow differnt sorting orders
         // TODO: allow diferent types
         // TODO: allow all RadixBits values (only 7 or 8 are currently supported)
-        oneapi::dpl::experimental::esimd::impl::one_wg<_ExecutionPolicy, _KeyT, _Range, RadixBits>(
+        oneapi::dpl::experimental::esimd::impl::one_wg<_ExecutionPolicy, _KeyT, _Range, RadixBits, IsAscending>(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n);
     }
     else if (__n <= 262144)
     {
         // TODO: allow differnt sorting orders
         // TODO: allow diferent types
-        oneapi::dpl::experimental::esimd::impl::cooperative<_ExecutionPolicy, _KeyT, _Range, RadixBits>(
+        oneapi::dpl::experimental::esimd::impl::cooperative<_ExecutionPolicy, _KeyT, _Range, RadixBits, IsAscending>(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n);
     }
     else
@@ -80,8 +80,8 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
         // TODO: avoid kernel duplication (generate the output storate with the same type as input storatge and use swap)
         // TODO: allow different RadixBits, make sure the data is in the input storage after the last stage
         // TODO: pass _ProcessSize according to __n
-        // TODO: fix when compiled in-O0 mode: "esimd_radix_sort_one_wg.h : 54 : 5>: SLM init call is supported only in kernels"
-        oneapi::dpl::experimental::esimd::impl::onesweep<_ExecutionPolicy, _KeyT, _Range, RadixBits, /*_ProcessSize*/ 512>(
+        // TODO: fix when compiled in -O0 mode: "esimd_radix_sort_one_wg.h : 54 : 5>: SLM init call is supported only in kernels"
+        oneapi::dpl::experimental::esimd::impl::onesweep<_ExecutionPolicy, _KeyT, _Range, RadixBits, IsAscending, /*_ProcessSize*/ 512>(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n);
     }
 }

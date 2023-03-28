@@ -13,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define USE_ESIMD_SORT 1
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/experimental/kernel_templates>
@@ -56,6 +54,9 @@ void generate_data(T* input, std::size_t size)
 template<typename T>
 void test_all_view(std::size_t size)
 {
+    sycl::queue q{};
+    auto policy = oneapi::dpl::execution::make_device_policy(q);
+
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
@@ -63,7 +64,7 @@ void test_all_view(std::size_t size)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::esimd::radix_sort<256,16>(dpl::execution::dpcpp_default, view);
+        oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, view);
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
@@ -176,6 +177,9 @@ int main()
     for(auto size: sizes)
     {
         test_general_cases<uint32_t>(size);
+        // test_general_cases<int>(size);
+        // test_general_cases<float>(size);
+        // test_general_cases<double>(size);
     }
     test_small_sizes();
 
