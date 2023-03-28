@@ -680,6 +680,20 @@ stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcc
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec));
 }
 
+// [sort_by_key]
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Compare>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _RandomAccessIterator1 __keys_last,
+            _RandomAccessIterator2 __values_first, _Compare __comp)
+{
+    oneapi::dpl::__internal::__pattern_sort_by_key(
+        ::std::forward<_ExecutionPolicy>(__exec), __keys_first, __keys_last, __values_first, __comp,
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator1,
+            _RandomAccessIterator2>(__exec),
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator1,
+            _RandomAccessIterator2>(__exec));
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last)
