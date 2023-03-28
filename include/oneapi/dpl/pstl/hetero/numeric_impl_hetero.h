@@ -197,13 +197,13 @@ template <typename _Iterator1, typename _Iterator2>
 constexpr bool
 __check_if_iterator_equality_is_possible(_Iterator1 __it1, _Iterator2 __it2)
 {
-    if constexpr (!is_equality_comparable<_Iterator1, _Iterator2>::value)
+    if constexpr (is_equality_comparable<_Iterator1, _Iterator2>::value)
     {
-        return false;
+        return __it1 == __it2;
     }
     else
     {
-        return __it1 == __it2;
+        return false;
     }
 }
 
