@@ -158,13 +158,6 @@ struct __is_equality_comparable : std::false_type
 {
 };
 
-// Two sycl_iterator's (with different access modes)
-template <sycl::access::mode _Mode1, sycl::access::mode _Mode2, typename _T, typename _Allocator>
-struct __is_equality_comparable<sycl_iterator<_Mode1, _T, _Allocator>, sycl_iterator<_Mode2, _T, _Allocator>>
-    : std::true_type
-{
-};
-
 // All with implemented operator ==
 template <typename _Iterator1, typename _Iterator2>
 struct __is_equality_comparable<_Iterator1, _Iterator2,
