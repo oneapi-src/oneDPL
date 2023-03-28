@@ -11,6 +11,7 @@
 # See https://llvm.org/LICENSE.txt for license information.
 #
 ##===----------------------------------------------------------------------===##
+include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
 
 # CMAKE_CXX_COMPILER and CMAKE_CXX_COMPILER_VERSION cannot be used because
 # CMake 3.19 and older will detect IntelLLVM compiler as CLang with CLang-specific version, see https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
