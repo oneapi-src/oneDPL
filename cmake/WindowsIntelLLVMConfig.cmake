@@ -86,6 +86,8 @@ if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_MSVC_LIKE)
     # No workaround required for CMake version 3.25+
 endif()
 
+# Set up WindowsIntelLLVMApply.cmake to be code injected at the end of the 'project()' call for the cmake project using this
+# This is required for workarounds which must be applied after the project() call
 set(CMAKE_PROJECT_INCLUDE ${CMAKE_CURRENT_LIST_DIR}/WindowsIntelLLVMApply.cmake)
 
 find_package_handle_standard_args(WindowsIntelLLVM 
