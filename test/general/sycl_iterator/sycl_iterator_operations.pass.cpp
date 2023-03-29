@@ -108,6 +108,27 @@ test_iterators_possibly_equal()
 };
 
 void
+test_sycl_const_iterator_assignment()
+{
+    constexpr std::size_t count = 10;
+
+    sycl::buffer<float> buf{count};
+
+    using TSyclConstIterator = decltype(oneapi::dpl::cbegin(buf));
+    using TSyclIterator = decltype(oneapi::dpl::begin(buf));
+
+    static_assert(::std::is_same_v<TSyclConstIterator, decltype(oneapi::dpl::cend(buf))>, "");
+    static_assert(::std::is_same_v<TSyclIterator, decltype(oneapi::dpl::end(buf))>, "");
+
+    TSyclIterator it = oneapi::dpl::begin(buf);
+    TSyclConstIterator it_const = it;
+    it_const = it_const;
+
+    TSyclConstIterator it_const1(it_const);
+    EXPECT_TRUE(it_const1 == it_const, "Wrong compare result of two iterators");
+}
+
+void
 test_sycl_const_iterator_equal()
 {
     constexpr std::size_t count = 10;
@@ -161,6 +182,7 @@ main()
     // Check the correctness of oneapi::dpl::__internal::__iterators_possibly_equal
     oneapi::dpl::__internal::test_iterators_possibly_equal();
 
+    test_sycl_const_iterator_assignment();
     test_sycl_const_iterator_equal();
     test_sycl_const_iterator_not_equal();
 
