@@ -26,7 +26,7 @@ namespace TestUtils{
     {
     public:
 
-        void pop(const T& item)
+        void pop(T& item)
         {
             std::unique_lock<std::mutex> mlock(mutex_);
             while (queue_.empty())

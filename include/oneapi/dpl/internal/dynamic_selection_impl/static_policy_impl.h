@@ -62,8 +62,8 @@ namespace experimental {
 
     template<typename ...Args>
     selection_handle_t select(Args&&...) {
-      for(auto& e : universe_) {
-          return selection_handle_t{e};
+      if(!universe_.empty()) {
+          return selection_handle_t{universe_[0]};
       }
       return {};
     }
