@@ -42,7 +42,7 @@ namespace experimental {
       virtual native_sync_t get_native() const = 0;
       virtual ~async_wait_t() {}
     };
-    using waiter_container_t = Queue<async_wait_t *>;
+    using waiter_container_t = util::concurrent_queue<async_wait_t *>;
 
     template<typename PropertyHandle>
     class async_wait_impl_t : public async_wait_t {

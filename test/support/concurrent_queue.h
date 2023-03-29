@@ -13,17 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_CONCURRENT_QUEUE_H
-#define _ONEDPL_CONCURRENT_QUEUE_H
+#ifndef _ONEDPL_CONCURRENT_QUEUE_TESTUTILS_H
+#define _ONEDPL_CONCURRENT_QUEUE_TESTUTILS_H
 
 #include <queue>
 #include <mutex>
 #include <condition_variable>
 
-namespace oneapi {
-namespace dpl{
-namespace experimental{
-namespace util{
+namespace TestUtils{
     template <typename T>
     class concurrent_queue
     {
@@ -61,9 +58,5 @@ namespace util{
         std::mutex mutex_;
         std::condition_variable cond_;
     };
-} // namespace util
-} // namespace experimental
-} // namespace dpl
-} // namespace oneapi
-
-#endif /* _ONEDPL_CONCURRENT_QUEUE_H */
+} //namespace TestUtils
+#endif /* _ONEDPL_CONCURRENT_QUEUE_TESTUTILS_H */

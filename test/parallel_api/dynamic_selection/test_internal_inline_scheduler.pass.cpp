@@ -32,15 +32,15 @@ public:
 };
 
 int test_cout() {
-  oneapi::dpl::experimental::int_inline_scheduler_t s;
-  oneapi::dpl::experimental::int_inline_scheduler_t::execution_resource_t e;
+  TestUtils::int_inline_scheduler_t s;
+  TestUtils::int_inline_scheduler_t::execution_resource_t e;
 //  std::cout << e;
   return 0;
 }
 
 int test_submit_and_wait_on_scheduler() {
   const int N = 100;
-  oneapi::dpl::experimental::int_inline_scheduler_t s;
+  TestUtils::int_inline_scheduler_t s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -64,7 +64,7 @@ int test_submit_and_wait_on_scheduler() {
 
 int test_submit_and_wait_on_sync() {
   const int N = 100;
-  oneapi::dpl::experimental::int_inline_scheduler_t s;
+  TestUtils::int_inline_scheduler_t s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -88,8 +88,8 @@ int test_submit_and_wait_on_sync() {
 }
 
 int test_properties() {
-  oneapi::dpl::experimental::int_inline_scheduler_t s;
-  oneapi::dpl::experimental::int_inline_scheduler_t::universe_container_t v = { 1,2};
+  TestUtils::int_inline_scheduler_t s;
+  TestUtils::int_inline_scheduler_t::universe_container_t v = { 1,2};
   oneapi::dpl::experimental::property::report(s, oneapi::dpl::experimental::property::universe, v);
   auto v2 = oneapi::dpl::experimental::property::query(s, oneapi::dpl::experimental::property::universe);
   auto v2s = v2.size();

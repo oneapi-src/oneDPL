@@ -17,16 +17,14 @@
 #define _ONEDPL_INLINE_SCHEDULER_H
 
 #include "oneapi/dpl/dynamic_selection"
-#include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
-#include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
-#include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
+#include "support/concurrent_queue.h"
+//#include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
+//#include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
 
 #include <vector>
 #include <atomic>
 
-namespace oneapi {
-namespace dpl {
-namespace experimental {
+namespace TestUtils {
 struct int_inline_scheduler_t {
   using native_resource_t = int;
   using native_sync_t = int;
@@ -40,7 +38,7 @@ struct int_inline_scheduler_t {
     virtual native_sync_t get_native() const = 0;
     virtual ~async_wait_t() {}
   };
-  using waiter_container_t = Queue<async_wait_t *>;
+  using waiter_container_t = concurrent_queue<async_wait_t *>;
 
   template<typename PropertyHandle>
   class async_wait_impl_t : public async_wait_t {
@@ -109,10 +107,6 @@ struct int_inline_scheduler_t {
 
 inline int_inline_scheduler_t int_inline_scheduler;
 
-} //namespace experimental
-} //namespace dpl
-} //namespace oneapi
-
-using default_scheduler_t = oneapi::dpl::experimental::int_inline_scheduler_t;
+} //namespace TestUtils
 
 #endif /* _ONEDPL_INLINE_SCHEDULER_H */
