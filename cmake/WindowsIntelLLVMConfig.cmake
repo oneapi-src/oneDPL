@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.15.0)
 
 include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
 
-#if this is included after project() and WindowsIntelLLVM hasnt already been included (in a previous cmake call), we are too late to make the compiler changes we need to
+#if this is included after project() and WindowsIntelLLVM hasn't already been included (in a previous cmake call), we are too late to make the compiler changes we need to
 if (DEFINED CMAKE_PROJECT_NAME AND (NOT DEFINED WindowsIntelLLVM_DIR))
     set(WindowsIntelLLVM_FOUND False)
     set(REASON_FAILURE "WindowsIntelLLVM package must be included before the project() call!")
