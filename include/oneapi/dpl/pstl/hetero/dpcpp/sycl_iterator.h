@@ -55,13 +55,13 @@ struct sycl_iterator
         : buffer(vec), idx(index)
     {
     }
-    // required for iter_mode
-    sycl_iterator(const sycl_iterator<access_mode::read_write, T, Allocator>& in,
-                  typename ::std::enable_if<Mode == access_mode::read, void>::type* = nullptr)
-        : buffer(in.get_buffer())
+
+    sycl_iterator(const sycl_iterator<access_mode::read_write, T, Allocator>& in)
+        : buffer(in.get_buffer()),
+          idx(in.get_index())
     {
-        auto old_iter = sycl_iterator<inMode, T, Allocator>{in.get_buffer(), 0};
-        idx = in - old_iter;
+        static_assert(Mode == access_mode::read_write || Mode == access_mode::read || Mode == access_mode::write,
+                      "We are able to convert 'read_write' interator only to 'read' or 'write' iterator");
     }
     sycl_iterator&
     operator=(const sycl_iterator& in)
