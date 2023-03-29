@@ -47,13 +47,6 @@ namespace dpl
 namespace __par_backend_hetero
 {
 
-template <access_mode outMode, typename _Iterator>
-auto
-make_iter_mode(const _Iterator& __it) -> decltype(iter_mode<outMode>()(__it))
-{
-    return iter_mode<outMode>()(__it);
-}
-
 // set of class templates to name kernels
 
 template <typename... _Name>
