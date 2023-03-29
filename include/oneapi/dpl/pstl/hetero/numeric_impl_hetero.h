@@ -133,7 +133,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         auto __buf2 = __keep2(__result, __result + __n);
 
         oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__exec, __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init, __binary_op,
-                                           _Inclusive{});
+                                           _Inclusive{}).wait();
     }
     else
     {
@@ -156,7 +156,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
 
         // Run main algorithm and save data into temporary buffer
         oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__exec, __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init, __binary_op,
-                                           _Inclusive{});
+                                           _Inclusive{}).wait();
 
 
         // Move data from temporary buffer into results
