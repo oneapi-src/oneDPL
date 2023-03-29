@@ -124,6 +124,9 @@ test_sycl_const_iterator_assignment()
     TSyclConstIterator it_const = it;
     it_const = it_const;
 
+    //TSyclIterator it1 = it_const;
+    //it1;
+
     TSyclConstIterator it_const1(it_const);
     EXPECT_TRUE(it_const1 == it_const, "Wrong compare result of two iterators");
 }
