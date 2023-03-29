@@ -38,6 +38,12 @@ namespace experimental {
     };
     inline constexpr universe_size_t universe_size;
 
+    struct task_completion_t {
+      static constexpr bool is_property_v = true;
+      static constexpr bool can_report_v = true;
+    };
+    inline constexpr task_completion_t task_completion;
+       
     template<typename T, typename Property>
     auto query(T& t, const Property& prop) {
       return t.query(prop);
