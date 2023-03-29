@@ -157,10 +157,10 @@ __internal::sycl_iterator<Mode, T, Allocator>
 }
 
 template <typename T, typename Allocator>
-__internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>
+__internal::sycl_iterator<access_mode::read_write, T, Allocator>
     begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, __dpl_sycl::__no_init)
 {
-    return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf, 0};
+    return __internal::sycl_iterator<access_mode::read_write, T, Allocator>{buf, 0};
 }
 
 // end
@@ -179,11 +179,11 @@ __internal::sycl_iterator<Mode, T, Allocator>
 }
 
 template <typename T, typename Allocator>
-__internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf,
+__internal::sycl_iterator<access_mode::read_write, T, Allocator> end(sycl::buffer<T, /*dim=*/1, Allocator> buf,
                                                                              __dpl_sycl::__no_init)
 {
-    return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf,
-                                                                                    __dpl_sycl::__get_buffer_size(buf)};
+    return __internal::sycl_iterator<access_mode::read_write, T, Allocator>{buf,
+                                                                            __dpl_sycl::__get_buffer_size(buf)};
 }
 
 // cbegin / cend
