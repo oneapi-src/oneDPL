@@ -49,6 +49,13 @@ struct sycl_iterator
     using is_hetero = ::std::true_type;
     static constexpr access_mode mode = Mode;
 
+  private:
+    template <access_mode otherMode>
+    difference_type
+    eval_diff_with(const sycl_iterator<otherMode, T, Allocator>& itOther) const;
+
+  public:
+
     // required for make_sycl_iterator
     //TODO: sycl::buffer doesn't have a default constructor (SYCL API issue), so we have to create a trivial size buffer
     sycl_iterator(sycl::buffer<T, dim, Allocator> vec = sycl::buffer<T, dim, Allocator>(0), Size index = 0)
@@ -96,26 +103,25 @@ struct sycl_iterator
     difference_type
     operator-(const sycl_iterator& it) const
     {
-        assert(buffer == it.get_buffer());
-        return idx - it.idx;
+        return eval_diff_with(it);
     }
+    template <access_mode inMode>
     bool
-    operator==(const sycl_iterator& it) const
+    operator==(const sycl_iterator<inMode, T, Allocator>& it) const
     {
-        assert(buffer == it.get_buffer());
-        return *this - it == 0;
+        return eval_diff_with(it) == 0;
     }
+    template <access_mode inMode>
     bool
-    operator!=(const sycl_iterator& it) const
+    operator!=(const sycl_iterator<inMode, T, Allocator>& it) const
     {
-        assert(buffer == it.get_buffer());
-        return !(*this == it);
+        return eval_diff_with(it) != 0;
     }
+    template <access_mode inMode>
     bool
-    operator<(const sycl_iterator& it) const
+    operator<(const sycl_iterator<inMode, T, Allocator>& it) const
     {
-        assert(buffer == it.get_buffer());
-        return *this - it < 0;
+        return eval_diff_with(it) < 0;
     }
 
     sycl::buffer<T, dim, Allocator>
@@ -123,7 +129,22 @@ struct sycl_iterator
     {
         return buffer;
     }
+
+    Size
+    get_index() const
+    {
+        return idx;
+    }
 };
+
+template <access_mode Mode, typename T, typename Allocator>
+template <access_mode otherMode>
+typename sycl_iterator<Mode, T, Allocator>::difference_type
+sycl_iterator<Mode, T, Allocator>::eval_diff_with(const sycl_iterator<otherMode, T, Allocator>& itOther) const
+{
+    assert(buffer == itOther.get_buffer());
+    return idx - itOther.get_index();
+}
 
 template <typename T, typename Allocator = __dpl_sycl::__buffer_allocator<T>>
 using sycl_const_iterator = sycl_iterator<access_mode::read, T, Allocator>;
