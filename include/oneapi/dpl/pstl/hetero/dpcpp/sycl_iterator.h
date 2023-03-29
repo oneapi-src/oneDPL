@@ -128,25 +128,6 @@ struct sycl_iterator
 template <typename T, typename Allocator = __dpl_sycl::__buffer_allocator<T>>
 using sycl_const_iterator = sycl_iterator<access_mode::read, T, Allocator>;
 
-// mode converter when property::noinit present
-template <access_mode __mode>
-struct _ModeConverter
-{
-    static constexpr access_mode __value = __mode;
-};
-
-template <>
-struct _ModeConverter<access_mode::read_write>
-{
-    static constexpr access_mode __value = access_mode::discard_read_write;
-};
-
-template <>
-struct _ModeConverter<access_mode::write>
-{
-    static constexpr access_mode __value = access_mode::discard_write;
-};
-
 } // namespace __internal
 
 template <typename T, typename Allocator>
@@ -169,10 +150,10 @@ __internal::sycl_iterator<Mode, T, Allocator> begin(sycl::buffer<T, /*dim=*/1, A
 }
 
 template <typename T, typename Allocator, access_mode Mode>
-__internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
+__internal::sycl_iterator<Mode, T, Allocator>
     begin(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, __dpl_sycl::__no_init)
 {
-    return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{buf, 0};
+    return __internal::sycl_iterator<Mode, T, Allocator>{buf, 0};
 }
 
 template <typename T, typename Allocator>
@@ -190,10 +171,10 @@ __internal::sycl_iterator<Mode, T, Allocator> end(sycl::buffer<T, /*dim=*/1, All
 }
 
 template <typename T, typename Allocator, access_mode Mode>
-__internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>
+__internal::sycl_iterator<Mode, T, Allocator>
     end(sycl::buffer<T, /*dim=*/1, Allocator> buf, sycl::mode_tag_t<Mode>, __dpl_sycl::__no_init)
 {
-    return __internal::sycl_iterator<__internal::_ModeConverter<Mode>::__value, T, Allocator>{
+    return __internal::sycl_iterator<Mode, T, Allocator>{
         buf, __dpl_sycl::__get_buffer_size(buf)};
 }
 
