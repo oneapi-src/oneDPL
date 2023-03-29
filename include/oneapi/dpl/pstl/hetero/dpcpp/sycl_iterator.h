@@ -65,8 +65,11 @@ struct sycl_iterator
     sycl_iterator&
     operator=(const sycl_iterator& in)
     {
-        buffer = in.buffer;
-        idx = in.idx;
+        if (&in != this)
+        {
+            buffer = in.buffer;
+            idx = in.idx;
+        }
         return *this;
     }
     sycl_iterator
