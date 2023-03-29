@@ -48,69 +48,6 @@ namespace __par_backend_hetero
 {
 
 //-----------------------------------------------------------------------------
-//- iter_mode_resolver
-//-----------------------------------------------------------------------------
-
-// iter_mode_resolver resolves the situations when
-// the access mode provided by a user differs (inMode) from
-// the access mode required by an algorithm (outMode).
-// In general case iter_mode_resolver accepts the only situations
-// when inMode == outMode,
-// whereas the template specializations describe cases with specific
-// inMode and outMode and the preferred access mode between the two.
-template <access_mode inMode, access_mode outMode>
-struct iter_mode_resolver
-{
-    static_assert(inMode == outMode, "Access mode provided by user conflicts with the one required by the algorithm");
-    static constexpr access_mode value = inMode;
-};
-
-template <>
-struct iter_mode_resolver<access_mode::read, access_mode::read_write>
-{
-    static constexpr access_mode value = access_mode::read;
-};
-
-template <>
-struct iter_mode_resolver<access_mode::write, access_mode::read_write>
-{
-    static constexpr access_mode value = access_mode::write;
-};
-
-template <>
-struct iter_mode_resolver<access_mode::read_write, access_mode::read>
-{
-    //TODO: warn user that the access mode is changed
-    static constexpr access_mode value = access_mode::read;
-};
-
-template <>
-struct iter_mode_resolver<access_mode::read_write, access_mode::write>
-{
-    //TODO: warn user that the access mode is changed
-    static constexpr access_mode value = access_mode::write;
-};
-
-template <>
-struct iter_mode_resolver<access_mode::discard_write, access_mode::write>
-{
-    static constexpr access_mode value = access_mode::discard_write;
-};
-
-template <>
-struct iter_mode_resolver<access_mode::discard_read_write, access_mode::write>
-{
-    //TODO: warn user that the access mode is changed
-    static constexpr access_mode value = access_mode::write;
-};
-
-template <>
-struct iter_mode_resolver<access_mode::discard_read_write, access_mode::read_write>
-{
-    static constexpr access_mode value = access_mode::discard_read_write;
-};
-
-//-----------------------------------------------------------------------------
 //- iter_mode
 //-----------------------------------------------------------------------------
 
