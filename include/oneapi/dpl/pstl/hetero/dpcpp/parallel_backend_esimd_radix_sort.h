@@ -47,9 +47,9 @@ namespace oneapi::dpl::experimental::esimd::impl
             gather: Element type; can only be a 1,2,4-byte integer, sycl::half or float.
             lsc_gather: limited supported platforms: see https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__lsc.html#ga250b3c0085f39c236582352fb711aadb)
 */
-// TODO: call it only for all_view (accessor) and guard_view (USM) ranges, views::ubrange and sycl_iterator
-template <typename _ExecutionPolicy, typename _Range, bool IsAscending, std::uint16_t WorkGroupSize,
-          std::uint16_t ItemsPerWorkItem, std::uint32_t RadixBits>
+// TODO: call it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
+template <std::uint16_t WorkGroupSize, std::uint16_t DataPerWorkItem, bool IsAscending, std::uint32_t RadixBits,
+          typename _ExecutionPolicy, typename _Range>
 void
 radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
@@ -90,20 +90,19 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 
 namespace oneapi::dpl::experimental::esimd
 {
-template <typename _ExecutionPolicy, typename _Range, bool IsAscending = true, std::uint16_t WorkGroupSize = 256,
-          std::uint16_t ItemsPerWorkItem = 16, std::uint32_t RadixBits = 8>
+template <std::uint16_t WorkGroupSize, std::uint16_t DataPerWorkItem, bool IsAscending = true,
+          std::uint32_t RadixBits = 8, typename _ExecutionPolicy, typename _Range>
 void
 radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
     if(__rng.size() < 2)
         return;
-    oneapi::dpl::experimental::esimd::impl::radix_sort<
-        _ExecutionPolicy, _Range, IsAscending, WorkGroupSize, ItemsPerWorkItem, RadixBits>(
-            ::std::forward<_ExecutionPolicy>(__exec), __rng);
+    oneapi::dpl::experimental::esimd::impl::radix_sort<WorkGroupSize, DataPerWorkItem, IsAscending, RadixBits>
+        (::std::forward<_ExecutionPolicy>(__exec), __rng);
 }
 
-template <typename _ExecutionPolicy, typename _Iterator, bool IsAscending = true, std::uint16_t WorkGroupSize = 256,
-          std::uint16_t ItemsPerWorkItem = 16, std::uint32_t RadixBits = 8>
+template <std::uint16_t WorkGroupSize, std::uint16_t DataPerWorkItem, bool IsAscending = true,
+          std::uint32_t RadixBits = 8, typename _ExecutionPolicy, typename _Iterator>
 void
 radix_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last)
 {
@@ -111,9 +110,8 @@ radix_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last)
         return;
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __rng = __keep(__first, __last);
-    oneapi::dpl::experimental::esimd::impl::radix_sort<
-        _ExecutionPolicy, decltype(__rng.all_view()), IsAscending, WorkGroupSize, ItemsPerWorkItem, RadixBits>(
-            ::std::forward<_ExecutionPolicy>(__exec), __rng.all_view());
+    oneapi::dpl::experimental::esimd::impl::radix_sort<WorkGroupSize, DataPerWorkItem, IsAscending, RadixBits>
+        (::std::forward<_ExecutionPolicy>(__exec), __rng.all_view());
 }
 
 } // namespace oneapi::dpl::experimental::esimd
