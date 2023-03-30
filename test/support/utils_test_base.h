@@ -376,19 +376,15 @@ protected:
     const Size                     __count = 0;                         // Count of items in test data
 };
 
-template <typename Iterator, typename ReverseIterator = ::std::reverse_iterator<Iterator>>
-constexpr bool
-is_reverse_it()
+template <typename Iterator>
+struct is_reverse_it : ::std::false_type
 {
-    return true;
-}
+};
 
 template <typename Iterator>
-constexpr bool
-is_reverse_it(Iterator)
+struct is_reverse_it<::std::reverse_iterator<Iterator>> : ::std::true_type
 {
-    return false;
-}
+};
 
 template <typename T>
 struct is_const_reference : ::std::false_type
