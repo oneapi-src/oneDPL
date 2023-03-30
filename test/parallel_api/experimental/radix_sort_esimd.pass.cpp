@@ -30,8 +30,9 @@
 #include <random>
 #include <string>
 
-template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-void generate_data(T* input, std::size_t size)
+template <typename T>
+typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
+generate_data(T* input, std::size_t size)
 {
     std::default_random_engine gen{std::random_device{}()};
     if constexpr (std::is_integral_v<T>)
