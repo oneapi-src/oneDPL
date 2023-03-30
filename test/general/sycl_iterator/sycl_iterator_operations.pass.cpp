@@ -206,6 +206,29 @@ test_sycl_const_iterator_less()
     EXPECT_FALSE(it_end < it_cbegin, "Wrong compare result of two iterators");
 }
 
+void
+test_sycl_const_iterator_minus()
+{
+    constexpr std::size_t count = 10;
+
+    sycl::buffer<float> buf{count};
+
+    const auto it_cbegin = oneapi::dpl::cbegin(buf);
+    const auto it_cbegin_1 = oneapi::dpl::cbegin(buf) + 1;
+    const auto it_begin = oneapi::dpl::begin(buf);
+    const auto it_begin_1 = oneapi::dpl::begin(buf) + 1;
+    const auto it_cend = oneapi::dpl::cend(buf);
+    const auto it_end = oneapi::dpl::end(buf);
+
+    EXPECT_TRUE(0 == (it_cbegin - it_cbegin), "Wrong diff result of two iterators");
+    EXPECT_TRUE(1 == (it_cbegin_1 - it_cbegin), "Wrong diff result of two iterators");
+    EXPECT_TRUE(0 == (it_begin - it_begin), "Wrong diff result of two iterators");
+    EXPECT_TRUE(1 == (it_begin_1 - it_begin), "Wrong diff result of two iterators");
+
+    EXPECT_TRUE(count == (it_end - it_cbegin), "Wrong diff result of two iterators");
+    EXPECT_TRUE(count == (it_cend - it_begin), "Wrong diff result of two iterators");
+}
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 std::int32_t
@@ -220,6 +243,7 @@ main()
     test_sycl_const_iterator_equal();
     test_sycl_const_iterator_not_equal();
     test_sycl_const_iterator_less();
+    test_sycl_const_iterator_minus();
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
