@@ -175,6 +175,37 @@ test_sycl_const_iterator_not_equal()
     EXPECT_TRUE(it_cbegin != it_cend, "Wrong compare result of two iterators");
 }
 
+void
+test_sycl_const_iterator_less()
+{
+    constexpr std::size_t count = 10;
+
+    sycl::buffer<float> buf{count};
+
+    const auto it_cbegin = oneapi::dpl::cbegin(buf);
+    const auto it_cbegin_1 = oneapi::dpl::cbegin(buf) + 1;
+    const auto it_begin = oneapi::dpl::begin(buf);
+    const auto it_begin_1 = oneapi::dpl::begin(buf) + 1;
+    const auto it_cend = oneapi::dpl::cend(buf);
+    const auto it_end = oneapi::dpl::end(buf);
+
+    EXPECT_TRUE(it_begin < it_begin_1, "Wrong compare result of two iterators");
+    EXPECT_TRUE(it_begin < it_cend, "Wrong compare result of two iterators");
+    EXPECT_TRUE(it_begin < it_end, "Wrong compare result of two iterators");
+    EXPECT_TRUE(it_cbegin < it_cend, "Wrong compare result of two iterators");
+    EXPECT_TRUE(it_cbegin < it_end, "Wrong compare result of two iterators");
+
+    EXPECT_FALSE(it_begin_1 < it_begin, "Wrong compare result of two iterators");
+    EXPECT_FALSE(it_cend < it_begin, "Wrong compare result of two iterators");
+    EXPECT_FALSE(it_end < it_begin, "Wrong compare result of two iterators");
+    EXPECT_FALSE(it_cend < it_cbegin, "Wrong compare result of two iterators");
+    EXPECT_FALSE(it_end < it_cbegin, "Wrong compare result of two iterators");
+
+    EXPECT_TRUE(it_cbegin < it_cbegin_1, "Wrong compare result of two iterators");
+    EXPECT_TRUE(it_cbegin < it_end, "Wrong compare result of two iterators");
+    EXPECT_FALSE(it_end < it_cbegin, "Wrong compare result of two iterators");
+}
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 std::int32_t
@@ -188,6 +219,7 @@ main()
     test_sycl_const_iterator_assignment();
     test_sycl_const_iterator_equal();
     test_sycl_const_iterator_not_equal();
+    test_sycl_const_iterator_less();
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
