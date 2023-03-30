@@ -17,6 +17,7 @@
 #define _ONEDPL_INLINE_SCHEDULER_H
 
 #include "oneapi/dpl/dynamic_selection"
+#include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
 #include "support/concurrent_queue.h"
 
 #include <vector>
