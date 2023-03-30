@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- kt/esimd_radix_sort_one_wg.h --------------------------------===//
+//===-- esimd_radix_sort_one_wg.h --------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

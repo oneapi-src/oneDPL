@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- kt/esimd_radix_sort_onesweep.h --------------------------------===//
+//===-- esimd_radix_sort_onesweep.h --------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
