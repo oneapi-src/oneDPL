@@ -15,15 +15,19 @@
 
 #include "support/test_config.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
+
 #include <oneapi/dpl/experimental/kernel_templates>
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #if _ENABLE_RANGES_TESTING
 #include <oneapi/dpl/ranges>
 #endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 #include "support/utils.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 #include <sycl/sycl.hpp>
 #include <vector>
 #include <algorithm>
@@ -167,9 +171,11 @@ void test_general_cases(std::size_t size)
     test_usm<T>(size);
     test_sycl_iterators<T>(size);
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     const std::vector<std::size_t> sizes = {
         6, 16, 42, 256, 316, 2048, 5072, 8192, 14001,                        // one work-group
         2<<14, 50000, 67543, 100'000, 2<<17, 179'581, 250'000,               // cooperative
@@ -192,6 +198,7 @@ int main()
         std::cout << "Exception: " << exc.what() << std::endl;
         return EXIT_FAILURE;
     }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done();
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
