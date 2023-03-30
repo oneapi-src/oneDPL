@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- parallel_backend_esimd_radix_sort.h --------------------------------===//
+//===-- kt_esimd_radix_sort.h --------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -13,15 +13,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_parallel_backend_esimd_radix_sort_H
-#define _ONEDPL_parallel_backend_esimd_radix_sort_H
+#ifndef _ONEDPL_kt_esimd_radix_sort_H
+#define _ONEDPL_kt_esimd_radix_sort_H
 
 #include <ext/intel/esimd.hpp>
 #include "sycl_defs.h"
 
-#include "esimd_radix_sort/esimd_radix_sort_one_wg.h"
-#include "esimd_radix_sort/esimd_radix_sort_cooperative.h"
-#include "esimd_radix_sort/esimd_radix_sort_onesweep.h"
+#include "kt/esimd_radix_sort_one_wg.h"
+#include "kt/esimd_radix_sort_cooperative.h"
+#include "kt/esimd_radix_sort_onesweep.h"
 
 #include "../../utils.h"
 #include "../../utils_ranges.h"
@@ -116,4 +116,4 @@ radix_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last)
 
 } // namespace oneapi::dpl::experimental::esimd
 
-#endif // _ONEDPL_parallel_backend_esimd_radix_sort_H
+#endif // _ONEDPL_kt_esimd_radix_sort_H
