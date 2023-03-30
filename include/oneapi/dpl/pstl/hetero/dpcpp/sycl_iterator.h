@@ -99,8 +99,9 @@ struct sycl_iterator
     {
         return it - forward;
     }
+    template <access_mode inMode>
     difference_type
-    operator-(const sycl_iterator& it) const
+    operator-(const sycl_iterator<inMode, T, Allocator>& it) const
     {
         return eval_diff_with(it);
     }
