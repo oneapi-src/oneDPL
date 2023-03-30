@@ -406,28 +406,28 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
 
-template <typename _ValueType, bool _Inclusive, typename _Group, typename _Begin, typename _End,
+template <typename _ValueType, bool _Inclusive, typename _Group, typename _Begin, typename _End, typename _OutIt,
           typename _BinaryOperation>
 void
-__scan_work_group(const _Group& __group, _Begin __begin, _End __end, _BinaryOperation __bin_op,
+__scan_work_group(const _Group& __group, _Begin __begin, _End __end, _OutIt __out_it, _BinaryOperation __bin_op,
                   unseq_backend::__no_init_value<_ValueType>)
 {
     if constexpr (_Inclusive)
-        __dpl_sycl::__joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op);
+        __dpl_sycl::__joint_inclusive_scan(__group, __begin, __end, __out_it, __bin_op);
     else
-        __dpl_sycl::__joint_exclusive_scan(__group, __begin, __end, __begin, __bin_op);
+        __dpl_sycl::__joint_exclusive_scan(__group, __begin, __end, __out_it, __bin_op);
 }
 
-template <typename _ValueType, bool _Inclusive, typename _Group, typename _Begin, typename _End,
+template <typename _ValueType, bool _Inclusive, typename _Group, typename _Begin, typename _End, typename _OutIt,
           typename _BinaryOperation>
 void
-__scan_work_group(const _Group& __group, _Begin __begin, _End __end, _BinaryOperation __bin_op,
+__scan_work_group(const _Group& __group, _Begin __begin, _End __end, _OutIt __out_it, _BinaryOperation __bin_op,
                   unseq_backend::__init_value<_ValueType> __init)
 {
     if constexpr (_Inclusive)
-        __dpl_sycl::__joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op, __init.__value);
+        __dpl_sycl::__joint_inclusive_scan(__group, __begin, __end, __out_it, __bin_op, __init.__value);
     else
-        __dpl_sycl::__joint_exclusive_scan(__group, __begin, __end, __begin, __init.__value, __bin_op);
+        __dpl_sycl::__joint_exclusive_scan(__group, __begin, __end, __out_it, __init.__value, __bin_op);
 }
 
 template <bool _Inclusive, typename _KernelName>
@@ -463,7 +463,7 @@ struct __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive,
                         __lacc[__idx] = __unary_op(__in_rng[__idx]);
                     }
 
-                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n,
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __lacc.get_pointer(),
                                                               __bin_op, __init);
 
                     for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
@@ -542,7 +542,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                         }
                     }
 
-                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n,
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __lacc.get_pointer(),
                                                               __bin_op, __init);
 
                     if constexpr (__can_use_subgroup_load_store)
@@ -576,6 +576,97 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
         return __future(__event);
     }
 };
+
+template <::std::uint16_t _ElemsPerItem, ::std::uint16_t _WGSize, bool _IsFullGroup,
+          typename _KernelName>
+struct __parallel_scan_copy_static_single_group_submitter;
+
+template <::std::uint16_t _ElemsPerItem, ::std::uint16_t _WGSize, bool _IsFullGroup,
+          typename... _ScanKernelName>
+struct __parallel_scan_copy_static_single_group_submitter<_ElemsPerItem, _WGSize, _IsFullGroup,
+                                                               __internal::__optional_kernel_name<_ScanKernelName...>>
+{
+    template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
+              typename _UnaryOp>
+    auto
+    operator()(const _Policy& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
+               _BinaryOperation __bin_op, _UnaryOp __unary_op)
+    {
+        using _ValueType = uint16_t;
+
+        constexpr ::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
+
+        sycl::buffer<uint16_t> __res(sycl::range<1>(1));
+
+        auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
+            oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
+
+            auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg*2}, __hdl);
+            auto __res_acc = __res.template get_access<access_mode::write>(__hdl);
+
+            __hdl.parallel_for<_ScanKernelName...>(
+                sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
+                    const auto& __group = __self_item.get_group();
+                    const auto& __subgroup = __self_item.get_sub_group();
+                    // This kernel is only launched for sizes less than 2^16
+                    const ::std::uint16_t __item_id = __self_item.get_local_linear_id();
+                    const ::std::uint16_t __subgroup_id = __subgroup.get_group_id();
+                    const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
+
+#if 1
+                    constexpr bool __can_use_subgroup_load_store = _IsFullGroup;
+#else
+                    constexpr bool __can_use_subgroup_load_store = false;
+#endif
+
+                    if constexpr (__can_use_subgroup_load_store)
+                    {
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
+                        {
+                            auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
+                            uint16_t __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
+                            __subgroup.store(__lacc.get_pointer() + __idx, __val);
+                        }
+                    }
+                    else
+                    {
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
+                        {
+                            __lacc[__idx] = __unary_op(__in_rng[__idx]);
+                        }
+                    }
+
+                    __scan_work_group<_ValueType, /* _Inclusive */ false>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __elems_per_wg, __lacc.get_pointer() + __elems_per_wg,
+                                                              __bin_op, __init);
+
+                    {
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
+                        {
+                            if (__lacc[__idx])
+                                __out_rng[__lacc[__idx + __elems_per_wg]] = __in_rng[__idx];
+                        }
+
+                        const ::std::uint16_t __residual = __n % _WGSize;
+                        const ::std::uint16_t __residual_start = __n - __residual;
+                        if (__item_id < __residual)
+                        {
+                            auto __idx = __residual_start + __item_id;
+                            if (__lacc[__idx])
+                                __out_rng[__lacc[__idx + __elems_per_wg]] = __in_rng[__idx];
+                        }
+                    }
+
+                    if (__item_id == 0)
+                        __res_acc[0] = __lacc[2*__elems_per_wg - 1] + __lacc[__n-1];
+                });
+        });
+        return __future(__event, __res);
+    }
+};
+
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
