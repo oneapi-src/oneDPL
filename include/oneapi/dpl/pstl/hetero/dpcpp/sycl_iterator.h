@@ -64,8 +64,7 @@ struct sycl_iterator
     }
 
     sycl_iterator(const sycl_iterator<access_mode::read_write, T, Allocator>& in)
-        : buffer(in.get_buffer()),
-          idx(in.get_index())
+        : buffer(in.get_buffer()), idx(in.get_index())
     {
         static_assert(Mode == access_mode::read_write || Mode == access_mode::read || Mode == access_mode::write,
                       "We are able to convert 'read_write' interator only to 'read' or 'write' iterator");
