@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_SYCL_SCHEDULER_IMPL_H
 #define _ONEDPL_SYCL_SCHEDULER_IMPL_H
 
-#include <sycl/sycl.hpp>
+#include <CL/sycl.hpp>
 #include "oneapi/dpl/internal/dynamic_selection.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
