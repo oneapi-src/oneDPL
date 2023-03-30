@@ -80,7 +80,7 @@ namespace experimental {
 
     template<typename Function, typename ...Args>
     auto invoke(Function&& f, Args&&... args) {
-      return wait_for_all(sched_->submit(select(std::forward<Function>(f), std::forward<Args>(args)...),
+      return wait_for_all(sched_->submit(select(f, args...),
                                          std::forward<Function>(f), std::forward<Args>(args)...));
     }
 
