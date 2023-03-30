@@ -89,7 +89,7 @@ sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Comp
     auto __buf = __keep(__first, __last);
 
     return __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
-                                                        __comp);
+                                                        __comp, oneapi::dpl::identity{});
 }
 
 // [async.for_each]

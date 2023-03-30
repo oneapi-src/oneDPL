@@ -8,61 +8,67 @@
 namespace oneapi::dpl::experimental::esimd::impl::utils
 {
 
-template<typename SIMD, typename Input, std::enable_if_t<std::is_pointer_v<Input>, bool> = true>
-inline void
+template<typename SIMD, typename Input>
+inline
+typename ::std::enable_if_t<::std::is_pointer_v<Input>, void>
 copy_from(SIMD& simd, const Input& input, uint32_t offset)
 {
     simd.copy_from(input + offset);
 }
 
-template<typename SIMD, typename Input, std::enable_if_t<!std::is_pointer_v<Input>, bool> = true>
-inline void
+template<typename SIMD, typename Input>
+inline
+typename ::std::enable_if_t<!::std::is_pointer_v<Input>, void>
 copy_from(SIMD& simd, const Input& input, uint32_t offset)
 {
     simd.copy_from(input, offset);
 }
 
-template<typename SIMD, typename Output, std::enable_if_t<std::is_pointer_v<Output>, bool> = true>
-inline void
+template<typename SIMD, typename Output>
+inline
+typename ::std::enable_if_t<::std::is_pointer_v<Output>, void>
 copy_to(const SIMD& simd, Output& output, uint32_t offset)
 {
     simd.copy_to(output + offset);
 }
 
-template<typename SIMD, typename Output, std::enable_if_t<!std::is_pointer_v<Output>, bool> = true>
-inline void
+template<typename SIMD, typename Output>
+inline
+typename ::std::enable_if_t<!::std::is_pointer_v<Output>, void>
 copy_to(const SIMD& simd, Output& output, uint32_t offset)
 {
     simd.copy_to(output, offset);
 }
 
-template<typename T, int N, typename InputT, std::enable_if_t<std::is_pointer_v<InputT>, bool> = true>
-inline sycl::ext::intel::esimd::simd<T, N>
+template<typename T, int N, typename InputT>
+inline
+typename ::std::enable_if_t<::std::is_pointer_v<InputT>, sycl::ext::intel::esimd::simd<T, N>>
 gather(const InputT& input, sycl::ext::intel::esimd::simd<T, N> offsets, uint32_t base_offset)
 {
     return sycl::ext::intel::esimd::gather(input + base_offset, offsets*static_cast<uint32_t>(sizeof(T)));
 }
 
-template<typename T, int N, typename InputT, std::enable_if_t<!std::is_pointer_v<InputT>, bool> = true>
-inline sycl::ext::intel::esimd::simd<T, N>
+template<typename T, int N, typename InputT>
+inline
+typename ::std::enable_if_t<!std::is_pointer_v<InputT>, sycl::ext::intel::esimd::simd<T, N>>
 gather(const InputT& input, sycl::ext::intel::esimd::simd<T, N> offsets, uint32_t base_offset)
 {
     return sycl::ext::intel::esimd::gather<T>(input, offsets*static_cast<uint32_t>(sizeof(T)),
                                               base_offset*static_cast<uint32_t>(sizeof(T)));
 }
 
-template<typename T, int N, typename InputT,
-         std::enable_if_t<std::is_pointer_v<InputT>, bool> = true>
-inline void
+template<typename T, int N, typename InputT>
+inline
+typename ::std::enable_if_t<std::is_pointer_v<InputT>, void>
 scatter(InputT& input, sycl::ext::intel::esimd::simd<uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> vals, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
     return sycl::ext::intel::esimd::scatter(input, offsets, vals, mask);
 }
 
-template<typename T, int N, typename InputT,
-         std::enable_if_t<!std::is_pointer_v<InputT>, bool> = true>
-inline void
+template<typename T, int N, typename InputT>
+inline
+typename ::std::enable_if_t<!::std::is_pointer_v<InputT>, void>
 scatter(InputT& input, sycl::ext::intel::esimd::simd<uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> vals, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
@@ -80,7 +86,10 @@ class simd2d:public sycl::ext::intel::esimd::simd<T, R*C> {
 };
 
 template <typename RT, typename T>
-inline sycl::ext::intel::esimd::simd<RT, 32> scan(sycl::ext::intel::esimd::simd<T, 32> src) {
+inline
+sycl::ext::intel::esimd::simd<RT, 32>
+scan(sycl::ext::intel::esimd::simd<T, 32> src)
+{
 	sycl::ext::intel::esimd::simd<RT, 32> result;
 	result.template select<8, 4>(0) = src.template select<8, 4>(0);
 	result.template select<8, 4>(1) = src.template select<8, 4>(1) + src.template select<8, 4>(0);
@@ -97,7 +106,9 @@ inline sycl::ext::intel::esimd::simd<RT, 32> scan(sycl::ext::intel::esimd::simd<
 }
 
 template <typename RT, typename T>
-inline sycl::ext::intel::esimd::simd<RT, 16> scan(sycl::ext::intel::esimd::simd<T, 16> src) {
+inline sycl::ext::intel::esimd::simd<RT, 16>
+scan(sycl::ext::intel::esimd::simd<T, 16> src)
+{
 	sycl::ext::intel::esimd::simd<RT, 16> result;
 	result.template select<4, 4>(0) = src.template select<4, 4>(0);
 	result.template select<4, 4>(1) = src.template select<4, 4>(1) + src.template select<4, 4>(0);
@@ -127,8 +138,9 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<bool, _N> __src)
         return !__src;
 }
 
-template <bool __is_ascending, typename _UInt, int _N, std::enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
-sycl::ext::intel::esimd::simd<_UInt, _N>
+template <bool __is_ascending, typename _UInt, int _N>
+inline
+typename ::std::enable_if_t<::std::is_unsigned_v<_UInt>, sycl::ext::intel::esimd::simd<_UInt, _N>>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_UInt, _N> __src)
 {
     if constexpr (__is_ascending)
@@ -137,9 +149,9 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_UInt, _N> __src)
         return ~__src; //bitwise inversion
 }
 
-template <bool __is_ascending, typename _Int, int _N,
-          std::enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
-sycl::ext::intel::esimd::simd<::std::make_unsigned_t<_Int>, _N>
+template <bool __is_ascending, typename _Int, int _N>
+typename ::std::enable_if_t<::std::is_integral_v<_Int>&& ::std::is_signed_v<_Int>,
+                            sycl::ext::intel::esimd::simd<::std::make_unsigned_t<_Int>, _N>>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_Int, _N> __src)
 {
     using _UInt = ::std::make_unsigned_t<_Int>;
@@ -148,9 +160,9 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Int, _N> __src)
     return __src.template bit_cast_view<_UInt>() ^ __mask;
 }
 
-template <bool __is_ascending, typename _Float, int _N,
-          std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
-sycl::ext::intel::esimd::simd<::std::uint32_t, _N>
+template <bool __is_ascending, typename _Float, int _N>
+typename ::std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t),
+                            sycl::ext::intel::esimd::simd<::std::uint32_t, _N>>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
 {
     auto __uint32_src = __src.template bit_cast_view<::std::uint32_t>();
@@ -172,9 +184,9 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
     return __res;
 }
 
-template <bool __is_ascending, typename _Float, int _N,
-          std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t), int> = 0>
-sycl::ext::intel::esimd::simd<::std::uint64_t, _N>
+template <bool __is_ascending, typename _Float, int _N>
+typename ::std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t),
+                            sycl::ext::intel::esimd::simd<::std::uint64_t, _N>>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
 {
     auto __uint64_src = __src.template bit_cast_view<::std::uint64_t>();

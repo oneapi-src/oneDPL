@@ -42,6 +42,8 @@ class all_view
     using __accessor_t = sycl::accessor<_T, 1, _AccMode, _Target, _Placeholder>;
 
   public:
+    using value_type = _T;
+
     all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), __diff_type __offset = 0, __diff_type __n = 0)
         : __m_acc(__create_accessor(__buf, __offset, __n))
     {

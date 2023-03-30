@@ -458,12 +458,12 @@ replace_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, con
 
 // [alg.sort]
 
-template <typename _ExecutionPolicy, typename _Range, typename _Compare>
+template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
-sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
     oneapi::dpl::__internal::__ranges::__pattern_sort(::std::forward<_ExecutionPolicy>(__exec),
-                                                      views::all(::std::forward<_Range>(__rng)), __comp);
+                                                      views::all(::std::forward<_Range>(__rng)), __comp, __proj);
 }
 
 template <typename _ExecutionPolicy, typename _Range>
