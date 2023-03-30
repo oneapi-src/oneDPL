@@ -70,7 +70,7 @@ void test_all_view(std::size_t size)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::esimd::radix_sort(policy, view);
+        oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, view);
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
@@ -90,7 +90,7 @@ void test_subrange_view(std::size_t size)
     std::sort(ref, ref + size);
 
     oneapi::dpl::experimental::ranges::views::subrange view(input, input + size);
-    oneapi::dpl::experimental::esimd::radix_sort(policy, view);
+    oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, view);
 
     T* host_input = sycl::malloc_host<T>(size, q);
     q.copy(input, host_input, size).wait();
@@ -114,7 +114,7 @@ void test_usm(std::size_t size)
     generate_data(ref, size);
     q.copy(ref, input, size).wait();
     std::sort(ref, ref + size);
-    oneapi::dpl::experimental::esimd::radix_sort(policy, input, input + size);
+    oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, input, input + size);
 
     T* host_input = sycl::malloc_host<T>(size, q);
     q.copy(input, host_input, size).wait();
@@ -138,7 +138,7 @@ void test_sycl_iterators(std::size_t size)
     std::vector<T> ref(input);
     std::sort(std::begin(ref), std::end(ref));
 
-    oneapi::dpl::experimental::esimd::radix_sort(policy, oneapi::dpl::begin(input), oneapi::dpl::end(input));
+    oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::end(input));
 
     std::string msg = "wrong results with sycl_iterator, n: " + std::to_string(size);
     EXPECT_EQ_RANGES(input, ref, msg.c_str());
@@ -153,9 +153,9 @@ void test_small_sizes()
     generate_data(input.data(), input.size());
     std::vector<uint32_t> ref(input);
 
-    oneapi::dpl::experimental::esimd::radix_sort(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+    oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
     EXPECT_EQ_RANGES(input, ref, "sort modified input data when size == 0");
-    oneapi::dpl::experimental::esimd::radix_sort(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+    oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
     EXPECT_EQ_RANGES(input, ref, "sort modified input data when size == 1");
 }
 
