@@ -67,7 +67,7 @@ struct sycl_iterator
         : buffer(in.get_buffer()), idx(in.get_index())
     {
         static_assert(Mode == access_mode::read_write || Mode == access_mode::read || Mode == access_mode::write,
-                      "We are able to convert 'read_write' interator only to 'read' or 'write' iterator");
+                      "We are able to convert 'read_write' iterator only to 'read' or 'write' iterator");
     }
     sycl_iterator&
     operator=(const sycl_iterator& in)
