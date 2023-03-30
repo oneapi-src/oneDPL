@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <random>
 #include <string>
+#include <iostream>
 
 template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
@@ -169,20 +170,28 @@ void test_general_cases(std::size_t size)
 
 int main()
 {
-    std::vector<std::size_t> sizes = {
+    const std::vector<std::size_t> sizes = {
         6, 16, 42, 256, 316, 2048, 5072, 8192, 14001,                        // one work-group
         2<<14, 50000, 67543, 100'000, 2<<17, 179'581, 250'000,               // cooperative
         2<<18, 500'000, 888'235, 1'000'000, 2<<20, 10'000'000                // onesweep
     };
 
-    for(auto size: sizes)
+    try
     {
-        test_general_cases<uint32_t>(size);
-        // test_general_cases<int>(size);
-        // test_general_cases<float>(size);
-        // test_general_cases<double>(size);
+        for(auto size: sizes)
+        {
+            test_general_cases<uint32_t>(size);
+            // test_general_cases<int>(size);
+            // test_general_cases<float>(size);
+            // test_general_cases<double>(size);
+        }
+        test_small_sizes();
     }
-    test_small_sizes();
+    catch (const ::std::exception& exc)
+    {
+        std::cout << "Exception: " << exc.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
     return TestUtils::done();
 }
