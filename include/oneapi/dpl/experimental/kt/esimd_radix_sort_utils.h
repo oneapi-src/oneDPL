@@ -7,57 +7,61 @@
 namespace oneapi::dpl::experimental::esimd::impl::utils
 {
 
-template<typename SIMD, typename Input>
-inline
+template <typename T>
+struct is_sycl_accessor : public ::std::false_type
+{
+};
+template <typename... Ts>
+struct is_sycl_accessor<sycl::accessor<Ts...>> : public ::std::true_type
+{
+};
+template <typename T>
+using is_sycl_accessor_v = is_sycl_accessor<T>::value;
+
+template <typename SIMD, typename Input>
 typename ::std::enable_if_t<::std::is_pointer_v<Input>, void>
-copy_from(SIMD& simd, const Input& input, uint32_t offset)
+simd_load(SIMD& simd, const Input& input, uint32_t offset)
 {
     simd.copy_from(input + offset);
 }
 
-template<typename SIMD, typename Input>
-inline
-typename ::std::enable_if_t<!::std::is_pointer_v<Input>, void>
-copy_from(SIMD& simd, const Input& input, uint32_t offset)
+template <typename SIMD, typename Input>
+typename ::std::enable_if_t<is_sycl_accessor_v<Input>, void>
+simd_load(SIMD& simd, const Input& input, uint32_t offset)
 {
     simd.copy_from(input, offset);
 }
 
-template<typename SIMD, typename Output>
-inline
+template <typename SIMD, typename Output>
 typename ::std::enable_if_t<::std::is_pointer_v<Output>, void>
-copy_to(const SIMD& simd, Output& output, uint32_t offset)
+simd_store(const SIMD& simd, Output& output, uint32_t offset)
 {
     simd.copy_to(output + offset);
 }
 
-template<typename SIMD, typename Output>
-inline
-typename ::std::enable_if_t<!::std::is_pointer_v<Output>, void>
-copy_to(const SIMD& simd, Output& output, uint32_t offset)
+template <typename SIMD, typename Output>
+typename ::std::enable_if_t<is_sycl_accessor_v<Output>, void>
+simd_store(const SIMD& simd, Output& output, uint32_t offset)
 {
     simd.copy_to(output, offset);
 }
 
-template<typename T, int N, typename InputT>
-inline
+template <typename T, int N, typename InputT>
 typename ::std::enable_if_t<::std::is_pointer_v<InputT>, sycl::ext::intel::esimd::simd<T, N>>
 gather(const InputT& input, sycl::ext::intel::esimd::simd<T, N> offsets, uint32_t base_offset)
 {
     return sycl::ext::intel::esimd::gather(input + base_offset, offsets*static_cast<uint32_t>(sizeof(T)));
 }
 
-template<typename T, int N, typename InputT>
-inline
-typename ::std::enable_if_t<!std::is_pointer_v<InputT>, sycl::ext::intel::esimd::simd<T, N>>
+template <typename T, int N, typename InputT>
+typename ::std::enable_if_t<is_sycl_accessor_v<InputT>, sycl::ext::intel::esimd::simd<T, N>>
 gather(const InputT& input, sycl::ext::intel::esimd::simd<T, N> offsets, uint32_t base_offset)
 {
     return sycl::ext::intel::esimd::gather<T>(input, offsets*static_cast<uint32_t>(sizeof(T)),
                                               base_offset*static_cast<uint32_t>(sizeof(T)));
 }
 
-template<typename T, int N, typename InputT>
-inline
+template <typename T, int N, typename InputT>
 typename ::std::enable_if_t<std::is_pointer_v<InputT>, void>
 scatter(InputT& input, sycl::ext::intel::esimd::simd<uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> vals, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
@@ -66,8 +70,7 @@ scatter(InputT& input, sycl::ext::intel::esimd::simd<uint32_t, N> offsets,
 }
 
 template<typename T, int N, typename InputT>
-inline
-typename ::std::enable_if_t<!::std::is_pointer_v<InputT>, void>
+typename ::std::enable_if_t<is_sycl_accessor_v<InputT>, void>
 scatter(InputT& input, sycl::ext::intel::esimd::simd<uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> vals, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
@@ -75,7 +78,7 @@ scatter(InputT& input, sycl::ext::intel::esimd::simd<uint32_t, N> offsets,
 }
 
 template <typename T, uint32_t R, uint32_t C>
-class simd2d:public sycl::ext::intel::esimd::simd<T, R*C> {
+class simd2d : public sycl::ext::intel::esimd::simd<T, R*C> {
     public:
         auto row(uint16_t r) {return this->template bit_cast_view<T, R, C>().row(r);}
         template <int SizeY, int StrideY, int SizeX, int StrideX>
