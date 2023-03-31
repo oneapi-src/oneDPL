@@ -36,3 +36,4 @@ required ranges and Async API.
    parallel_api/range_based_api
    parallel_api/additional_algorithms
    parallel_api/pass_data_algorithms
+   parallel_api/dynamic_selection_api
