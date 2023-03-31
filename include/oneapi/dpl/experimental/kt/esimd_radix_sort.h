@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- parallel_backend_esimd_radix_sort.h --------------------------------===//
+//===-- esimd_radix_sort.h --------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -13,19 +13,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_parallel_backend_esimd_radix_sort_H
-#define _ONEDPL_parallel_backend_esimd_radix_sort_H
+#ifndef _ONEDPL_kt_esimd_radix_sort_H
+#define _ONEDPL_kt_esimd_radix_sort_H
 
 #include <ext/intel/esimd.hpp>
-#include "sycl_defs.h"
+#include "../../pstl/hetero/dpcpp/sycl_defs.h" // TODO: unneeded?
 
-#include "esimd_radix_sort/esimd_radix_sort_one_wg.h"
-#include "esimd_radix_sort/esimd_radix_sort_cooperative.h"
-#include "esimd_radix_sort/esimd_radix_sort_onesweep.h"
+#include "esimd_radix_sort_one_wg.h"
+#include "esimd_radix_sort_cooperative.h"
+#include "esimd_radix_sort_onesweep.h"
 
-#include "../../utils.h"
-#include "../../utils_ranges.h"
-#include "utils_ranges_sycl.h"
+#include "../../pstl/utils.h" // TODO: unneeded?
+#include "../../pstl/utils_ranges.h"
+#include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 
 #include <cstdint>
 #include <type_traits>
@@ -116,4 +116,4 @@ radix_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last)
 
 } // namespace oneapi::dpl::experimental::esimd
 
-#endif // _ONEDPL_parallel_backend_esimd_radix_sort_H
+#endif // _ONEDPL_kt_esimd_radix_sort_H
