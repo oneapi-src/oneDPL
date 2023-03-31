@@ -134,7 +134,7 @@ namespace experimental {
     }
 
     template<typename Function, typename ...Args>
-    auto invoke_async(native_resource_t e, Function&& f, Args&&... args) {
+    auto invoke_async(selection_handle_t e, Function&& f, Args&&... args) {
       return scoring_policy_->invoke_async(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }
 
@@ -144,7 +144,7 @@ namespace experimental {
     }
 
     template<typename Function, typename ...Args>
-    auto invoke(native_resource_t e, Function&& f, Args&&... args) {
+    auto invoke(selection_handle_t e, Function&& f, Args&&... args) {
       return scoring_policy_->invoke(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }
 
