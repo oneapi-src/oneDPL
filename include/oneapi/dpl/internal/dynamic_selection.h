@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <utility>
+#include <list>
 
 namespace oneapi {
 namespace dpl {
@@ -43,7 +44,7 @@ namespace experimental {
       static constexpr bool can_report_v = true;
     };
     inline constexpr task_completion_t task_completion;
-       
+
     template<typename T, typename Property>
     auto query(T& t, const Property& prop) {
       return t.query(prop);
@@ -69,6 +70,18 @@ namespace experimental {
   template<typename Handle>
   auto wait_for_all(Handle&& h) {
     return std::forward<Handle>(h).wait_for_all();
+  }
+
+  template<typename Handle>
+  auto wait_for_all(std::list<Handle> l) {
+      for(auto h : l){
+        return std::forward<Handle>(h)->wait_for_all();
+      }
+  }
+
+  template<typename DSPolicy>
+  auto get_wait_list(DSPolicy&& dp){
+    return std::forward<DSPolicy>(dp).get_wait_list();
   }
 
   template<typename DSPolicy, typename... Args>
@@ -146,6 +159,10 @@ namespace experimental {
     template<typename Function, typename ...Args>
     auto invoke(selection_handle_t e, Function&& f, Args&&... args) {
       return scoring_policy_->invoke(e, std::forward<Function>(f), std::forward<Args>(args)...);
+    }
+
+    auto get_wait_list(){
+      return scoring_policy_->get_wait_list();
     }
 
     auto wait_for_all() {

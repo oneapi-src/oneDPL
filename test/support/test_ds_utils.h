@@ -83,6 +83,44 @@ int test_invoke_async_and_wait_on_policy(UniverseContainer u, ResourceFunction&&
 }
 
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
+int test_invoke_async_and_get_wait_list(UniverseContainer u, ResourceFunction&& f) {
+  using my_policy_t = Policy;
+  my_policy_t p{u};
+
+  const int N = 100;
+  std::atomic<int> ecount = 0;
+  bool pass = true;
+
+  for (int i = 1; i <= N; ++i) {
+    auto test_resource = f(i);
+    oneapi::dpl::experimental::invoke_async(p,
+                     [&pass,&ecount,test_resource, i](typename Policy::native_resource_t e) {
+                       if (e != test_resource) {
+                         pass = false;
+                       }
+                       ecount += i;
+                       if constexpr (std::is_same_v<typename Policy::native_resource_t, int>)
+                         return e;
+                       else
+                         return typename Policy::native_sync_t{};
+                     });
+  }
+  auto wlist=oneapi::dpl::experimental::get_wait_list(p);
+  oneapi::dpl::experimental::wait_for_all(wlist);
+  int count = ecount.load();
+  if (count != N*(N+1)/2) {
+    std::cout << "ERROR: scheduler did not execute all tasks exactly once: " << count << "\n";
+    return 1;
+  }
+  if (!pass) {
+    std::cout << "ERROR: did not select expected resources\n";
+    return 1;
+  }
+  std::cout << "async_invoke_and_get_wait_list: OK\n";
+  return 0;
+}
+
+template<typename Policy, typename UniverseContainer, typename ResourceFunction>
 int test_invoke_async_and_wait_on_sync(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};

@@ -98,6 +98,10 @@ namespace experimental{
       return wait_for_all(sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...));
     }
 
+    auto get_wait_list() {
+      return sched_->get_wait_list();
+    }
+
     auto wait_for_all() {
       sched_->wait_for_all();
     }

@@ -18,6 +18,7 @@
 
 #include <queue>
 #include <mutex>
+#include <list>
 #include <condition_variable>
 
 namespace oneapi {
@@ -46,6 +47,21 @@ namespace util{
             queue_.push(item);
             mlock.unlock();
             cond_.notify_one();
+        }
+
+        void pop_all(std::list<T>& item_list)
+        {
+            std::unique_lock<std::mutex> mlock(mutex_);
+            while (queue_.empty())
+            {
+                cond_.wait(mlock);
+            }
+            while(!queue_.empty()){
+                auto item = queue_.front();
+                queue_.pop();
+                item_list.push_back(item);
+
+            }
         }
 
         bool is_empty(){

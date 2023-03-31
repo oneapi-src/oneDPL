@@ -79,12 +79,19 @@ struct int_inline_scheduler_t {
     return *w;
   }
 
-  void wait_for_all() {
-    async_wait_t *w;
-    waiters_.pop(w);
-    w->wait_for_all();
-    delete w;
+  auto get_wait_list(){
+    std::list<async_wait_t*> wlist;
+    waiters_.pop_all(wlist);
+    return wlist;
+  }
 
+  void wait_for_all() {
+    while(!waiters_.is_empty()){
+      async_wait_t *w;
+      waiters_.pop(w);
+      w->wait_for_all();
+      delete w;
+    }
   }
 
   //

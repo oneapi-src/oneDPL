@@ -25,15 +25,16 @@
 
 int main() {
   using policy_t = oneapi::dpl::experimental::static_policy;
-  std::vector<sycl::queue> u; 
+  std::vector<sycl::queue> u;
   sycl::queue test_resource = build_universe(u);
   auto f = [test_resource](int i) { return test_resource; };
 
-  if (test_cout<policy_t>() 
+  if (test_cout<policy_t>()
       || test_properties<policy_t>(u, test_resource)
       || test_invoke<policy_t>(u, f)
       || test_invoke_async_and_wait_on_policy<policy_t>(u, f)
       || test_invoke_async_and_wait_on_sync<policy_t>(u, f)
+      || test_invoke_async_and_get_wait_list<policy_t>(u, f)
       || test_select<policy_t>(u, f)
       || test_select_and_wait_on_policy<policy_t>(u, f)
       || test_select_and_wait_on_sync<policy_t>(u, f)
