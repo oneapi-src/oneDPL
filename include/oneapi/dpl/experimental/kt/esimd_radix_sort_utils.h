@@ -2,7 +2,6 @@
 #define _ONEDPL_kt_esimd_radix_sort_utils_H
 
 #include <ext/intel/esimd.hpp>
-#include "../sycl_defs.h"
 #include <cstdint>
 
 namespace oneapi::dpl::experimental::esimd::impl::utils

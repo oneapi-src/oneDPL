@@ -17,14 +17,14 @@
 #define _ONEDPL_kt_esimd_radix_sort_one_wg_H
 
 #include <ext/intel/esimd.hpp>
-#include "../sycl_defs.h"
-#include "../execution_sycl_defs.h"
-#include "../parallel_backend_sycl_utils.h"
-#include "../utils_ranges_sycl.h"
+#include "../../pstl/hetero/dpcpp/sycl_defs.h"
+#include "../../pstl/hetero/dpcpp/execution_sycl_defs.h"
+#include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 
 
 #include "esimd_radix_sort_utils.h"
-#include "../../../utils.h"
+#include "../../pstl/utils.h"
 
 #include <cstdint>
 

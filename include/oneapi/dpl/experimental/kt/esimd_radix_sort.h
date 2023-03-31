@@ -17,15 +17,15 @@
 #define _ONEDPL_kt_esimd_radix_sort_H
 
 #include <ext/intel/esimd.hpp>
-#include "sycl_defs.h"
+#include "../../pstl/hetero/dpcpp/sycl_defs.h" // TODO: unneeded?
 
-#include "kt/esimd_radix_sort_one_wg.h"
-#include "kt/esimd_radix_sort_cooperative.h"
-#include "kt/esimd_radix_sort_onesweep.h"
+#include "esimd_radix_sort_one_wg.h"
+#include "esimd_radix_sort_cooperative.h"
+#include "esimd_radix_sort_onesweep.h"
 
-#include "../../utils.h"
-#include "../../utils_ranges.h"
-#include "utils_ranges_sycl.h"
+#include "../../pstl/utils.h" // TODO: unneeded?
+#include "../../pstl/utils_ranges.h"
+#include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 
 #include <cstdint>
 #include <type_traits>
