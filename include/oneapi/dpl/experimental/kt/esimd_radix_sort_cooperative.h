@@ -13,14 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_esimd_radix_sort_cooperative_H
-#define _ONEDPL_esimd_radix_sort_cooperative_H
+#ifndef _ONEDPL_kt_esimd_radix_sort_cooperative_H
+#define _ONEDPL_kt_esimd_radix_sort_cooperative_H
 
 #include <ext/intel/esimd.hpp>
-#include "../sycl_defs.h"
-#include "../execution_sycl_defs.h"
-#include "../parallel_backend_sycl_utils.h"
-#include "../utils_ranges_sycl.h"
+#include "../../pstl/hetero/dpcpp/sycl_defs.h"
+#include "../../pstl/hetero/dpcpp/execution_sycl_defs.h"
+#include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include <cstdint>
 
 namespace oneapi::dpl::experimental::esimd::impl
@@ -384,4 +384,4 @@ void cooperative(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
 
 } // oneapi::dpl::experimental::esimd::impl
 
-#endif // _ONEDPL_esimd_radix_sort_cooperative_H
+#endif // _ONEDPL_kt_esimd_radix_sort_cooperative_H
