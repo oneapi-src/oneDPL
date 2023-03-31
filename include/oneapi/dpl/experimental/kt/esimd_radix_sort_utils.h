@@ -1,8 +1,7 @@
-#ifndef _ONEDPL_esimd_radix_sort_utils_H
-#define _ONEDPL_esimd_radix_sort_utils_H
+#ifndef _ONEDPL_kt_esimd_radix_sort_utils_H
+#define _ONEDPL_kt_esimd_radix_sort_utils_H
 
 #include <ext/intel/esimd.hpp>
-#include "../sycl_defs.h"
 #include <cstdint>
 
 namespace oneapi::dpl::experimental::esimd::impl::utils
@@ -209,4 +208,4 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
 }
 
 }
-#endif // _ONEDPL_esimd_radix_sort_utils_H
+#endif // _ONEDPL_kt_esimd_radix_sort_utils_H
