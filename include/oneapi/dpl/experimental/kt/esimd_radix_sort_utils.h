@@ -11,30 +11,30 @@ namespace oneapi::dpl::experimental::esimd::impl::utils
 
 template <typename T, int N>
 void
-copy_from(T* input, ::std::uint32_t offset, sycl::ext::intel::esimd::simd<T, N>& simd)
+copy_from(T* input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd<T, N>& values)
 {
-    simd.copy_from(input + offset);
+    values.copy_from(input + base_offset);
 }
 
 template <typename T, int N, typename... Args>
 void
-copy_from(const sycl::accessor<Args...>& input, ::std::uint32_t offset, sycl::ext::intel::esimd::simd<T, N>& simd)
+copy_from(const sycl::accessor<Args...>& input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd<T, N>& values)
 {
-    simd.copy_from(input, offset);
+    values.copy_from(input, base_offset);
 }
 
 template <typename T, int N>
 void
-copy_to(T* output, ::std::uint32_t offset, const sycl::ext::intel::esimd::simd<T, N>& simd)
+copy_to(T* output, ::std::uint32_t base_offset, const sycl::ext::intel::esimd::simd<T, N>& values)
 {
-    simd.copy_to(output + offset);
+    values.copy_to(output + base_offset);
 }
 
 template <typename T, int N, typename... Args>
 void
-copy_to(sycl::accessor<Args...>& output, ::std::uint32_t offset, const sycl::ext::intel::esimd::simd<T, N>& simd)
+copy_to(sycl::accessor<Args...>& output, ::std::uint32_t base_offset, const sycl::ext::intel::esimd::simd<T, N>& values)
 {
-    simd.copy_to(output, offset);
+    values.copy_to(output, base_offset);
 }
 
 template <typename T, int N>
@@ -55,17 +55,17 @@ gather(const sycl::accessor<Args...>& input, sycl::ext::intel::esimd::simd<::std
 template <typename T, int N>
 void
 scatter(T* output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
-        sycl::ext::intel::esimd::simd<T, N> vals, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+        sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    return sycl::ext::intel::esimd::scatter(output, offsets, vals, mask);
+    return sycl::ext::intel::esimd::scatter(output, offsets, values, mask);
 }
 
 template<typename T, int N, typename... Args>
 void
 scatter(sycl::accessor<Args...>& output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
-        sycl::ext::intel::esimd::simd<T, N> vals, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+        sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    sycl::ext::intel::esimd::scatter(output, offsets, vals, /*global_offset*/ 0, mask);
+    sycl::ext::intel::esimd::scatter(output, offsets, values, /*global_offset*/ 0, mask);
 }
 
 template <typename T, uint32_t R, uint32_t C>
