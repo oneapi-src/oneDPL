@@ -20,28 +20,28 @@ using is_sycl_accessor_v = is_sycl_accessor<T>::value;
 
 template <typename SIMD, typename Input>
 typename ::std::enable_if_t<::std::is_pointer_v<Input>, void>
-simd_load(SIMD& simd, const Input& input, uint32_t offset)
+load_simd(SIMD& simd, const Input& input, uint32_t offset)
 {
     simd.copy_from(input + offset);
 }
 
 template <typename SIMD, typename Input>
 typename ::std::enable_if_t<is_sycl_accessor_v<Input>, void>
-simd_load(SIMD& simd, const Input& input, uint32_t offset)
+load_simd(SIMD& simd, const Input& input, uint32_t offset)
 {
     simd.copy_from(input, offset);
 }
 
 template <typename SIMD, typename Output>
 typename ::std::enable_if_t<::std::is_pointer_v<Output>, void>
-simd_store(const SIMD& simd, Output& output, uint32_t offset)
+store_simd(const SIMD& simd, Output& output, uint32_t offset)
 {
     simd.copy_to(output + offset);
 }
 
 template <typename SIMD, typename Output>
 typename ::std::enable_if_t<is_sycl_accessor_v<Output>, void>
-simd_store(const SIMD& simd, Output& output, uint32_t offset)
+store_simd(const SIMD& simd, Output& output, uint32_t offset)
 {
     simd.copy_to(output, offset);
 }
