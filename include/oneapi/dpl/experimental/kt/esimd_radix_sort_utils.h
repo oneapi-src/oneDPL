@@ -3,75 +3,66 @@
 
 #include <ext/intel/esimd.hpp>
 #include <cstdint>
+#include <type_traits>
+#include <limits>
 
 namespace oneapi::dpl::experimental::esimd::impl::utils
 {
 
-template <typename T>
-struct is_sycl_accessor : public ::std::false_type
-{
-};
-template <typename... Ts>
-struct is_sycl_accessor<sycl::accessor<Ts...>> : public ::std::true_type
-{
-};
-template <typename T>
-using is_sycl_accessor_v = is_sycl_accessor<T>::value;
-
-template <typename SIMD, typename Input>
-typename ::std::enable_if_t<::std::is_pointer_v<Input>, void>
-load_simd(SIMD& simd, const Input& input, uint32_t offset)
+template <typename SIMD, typename T>
+void
+load_simd(SIMD& simd, T* input, ::std::uint32_t offset)
 {
     simd.copy_from(input + offset);
 }
 
-template <typename SIMD, typename Input>
-typename ::std::enable_if_t<is_sycl_accessor_v<Input>, void>
-load_simd(SIMD& simd, const Input& input, uint32_t offset)
+template <typename SIMD, typename... Args>
+void
+load_simd(SIMD& simd, const sycl::accessor<Args...>& input, ::std::uint32_t offset)
 {
     simd.copy_from(input, offset);
 }
 
-template <typename SIMD, typename Output>
-typename ::std::enable_if_t<::std::is_pointer_v<Output>, void>
-store_simd(const SIMD& simd, Output& output, uint32_t offset)
+template <typename SIMD, typename T>
+void
+store_simd(const SIMD& simd, T* input, ::std::uint32_t offset)
 {
     simd.copy_to(output + offset);
 }
 
-template <typename SIMD, typename Output>
-typename ::std::enable_if_t<is_sycl_accessor_v<Output>, void>
-store_simd(const SIMD& simd, Output& output, uint32_t offset)
+template <typename SIMD, typename... Args>
+void
+store_simd(const SIMD& simd, sycl::accessor<Args...>& output, ::std::uint32_t offset)
 {
     simd.copy_to(output, offset);
 }
 
-template <typename T, int N, typename InputT>
-typename ::std::enable_if_t<::std::is_pointer_v<InputT>, sycl::ext::intel::esimd::simd<T, N>>
-gather(const InputT& input, sycl::ext::intel::esimd::simd<T, N> offsets, uint32_t base_offset)
+template <typename T, int N>
+sycl::ext::intel::esimd::simd<T, N>
+gather(T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset)
 {
-    return sycl::ext::intel::esimd::gather(input + base_offset, offsets*static_cast<uint32_t>(sizeof(T)));
+    return sycl::ext::intel::esimd::gather(input + base_offset, offsets);
 }
 
-template <typename T, int N, typename InputT>
-typename ::std::enable_if_t<is_sycl_accessor_v<InputT>, sycl::ext::intel::esimd::simd<T, N>>
-gather(const InputT& input, sycl::ext::intel::esimd::simd<T, N> offsets, uint32_t base_offset)
+template <typename T, int N, typename... Args>
+sycl::ext::intel::esimd::simd<T, N>
+gather(const sycl::accessor<Args...>& input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+       ::std::uint32_t base_offset)
 {
-    return sycl::ext::intel::esimd::gather<T>(input, offsets*static_cast<uint32_t>(sizeof(T)),
-                                              base_offset*static_cast<uint32_t>(sizeof(T)));
+    return sycl::ext::intel::esimd::gather<T>(input, offsets, base_offset);
 }
 
-template <typename T, int N, typename InputT>
-typename ::std::enable_if_t<std::is_pointer_v<InputT>, void>
-scatter(InputT& input, sycl::ext::intel::esimd::simd<uint32_t, N> offsets,
+template <typename T, int N>
+void
+scatter(T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> vals, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
     return sycl::ext::intel::esimd::scatter(input, offsets, vals, mask);
 }
 
-template<typename T, int N, typename InputT>
-typename ::std::enable_if_t<is_sycl_accessor_v<InputT>, void>
-scatter(InputT& input, sycl::ext::intel::esimd::simd<uint32_t, N> offsets,
+template<typename T, int N, typename... Args>
+void
+scatter(sycl::accessor<Args...>& input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> vals, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
     sycl::ext::intel::esimd::scatter(input, offsets, vals, /*global_offset*/ 0, mask);
