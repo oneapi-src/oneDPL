@@ -79,7 +79,6 @@ class simd2d : public sycl::ext::intel::esimd::simd<T, R*C> {
 };
 
 template <typename RT, typename T>
-inline
 sycl::ext::intel::esimd::simd<RT, 32>
 scan(sycl::ext::intel::esimd::simd<T, 32> src)
 {
@@ -99,7 +98,7 @@ scan(sycl::ext::intel::esimd::simd<T, 32> src)
 }
 
 template <typename RT, typename T>
-inline sycl::ext::intel::esimd::simd<RT, 16>
+sycl::ext::intel::esimd::simd<RT, 16>
 scan(sycl::ext::intel::esimd::simd<T, 16> src)
 {
 	sycl::ext::intel::esimd::simd<RT, 16> result;
@@ -132,7 +131,6 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<bool, _N> __src)
 }
 
 template <bool __is_ascending, typename _UInt, int _N>
-inline
 typename ::std::enable_if_t<::std::is_unsigned_v<_UInt>, sycl::ext::intel::esimd::simd<_UInt, _N>>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_UInt, _N> __src)
 {
