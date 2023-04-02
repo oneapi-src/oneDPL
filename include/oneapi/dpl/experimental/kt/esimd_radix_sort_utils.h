@@ -9,30 +9,30 @@
 namespace oneapi::dpl::experimental::esimd::impl::utils
 {
 
-template <typename SIMD, typename T>
+template <typename T, int N>
 void
-load_simd(SIMD& simd, T* input, ::std::uint32_t offset)
+copy_from(T* input, ::std::uint32_t offset, sycl::ext::intel::esimd::simd<T, N>& simd)
 {
     simd.copy_from(input + offset);
 }
 
-template <typename SIMD, typename... Args>
+template <typename T, int N, typename... Args>
 void
-load_simd(SIMD& simd, const sycl::accessor<Args...>& input, ::std::uint32_t offset)
+copy_from(const sycl::accessor<Args...>& input, ::std::uint32_t offset, sycl::ext::intel::esimd::simd<T, N>& simd)
 {
     simd.copy_from(input, offset);
 }
 
-template <typename SIMD, typename T>
+template <typename T, int N>
 void
-store_simd(const SIMD& simd, T* input, ::std::uint32_t offset)
+copy_to(T* input, ::std::uint32_t offset, const sycl::ext::intel::esimd::simd<T, N>& simd)
 {
     simd.copy_to(output + offset);
 }
 
-template <typename SIMD, typename... Args>
+template <typename T, int N, typename... Args>
 void
-store_simd(const SIMD& simd, sycl::accessor<Args...>& output, ::std::uint32_t offset)
+copy_to(sycl::accessor<Args...>& output, ::std::uint32_t offset, const sycl::ext::intel::esimd::simd<T, N>& simd)
 {
     simd.copy_to(output, offset);
 }
