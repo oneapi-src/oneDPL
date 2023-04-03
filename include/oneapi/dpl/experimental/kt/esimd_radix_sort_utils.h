@@ -18,7 +18,7 @@ copy_from(T* input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd<T
 
 template <typename T, int N, typename... Args>
 void
-copy_from(const sycl::accessor<Args...>& input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd<T, N>& values)
+copy_from(const sycl::accessor<T, 1, Args...>& input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd<T, N>& values)
 {
     values.copy_from(input, base_offset);
 }
@@ -32,7 +32,7 @@ copy_to(T* output, ::std::uint32_t base_offset, const sycl::ext::intel::esimd::s
 
 template <typename T, int N, typename... Args>
 void
-copy_to(sycl::accessor<Args...>& output, ::std::uint32_t base_offset, const sycl::ext::intel::esimd::simd<T, N>& values)
+copy_to(sycl::accessor<T, 1, Args...>& output, ::std::uint32_t base_offset, const sycl::ext::intel::esimd::simd<T, N>& values)
 {
     values.copy_to(output, base_offset);
 }
@@ -46,7 +46,7 @@ gather(T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::st
 
 template <typename T, int N, typename... Args>
 sycl::ext::intel::esimd::simd<T, N>
-gather(const sycl::accessor<Args...>& input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+gather(const sycl::accessor<T, 1, Args...>& input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
        ::std::uint32_t base_offset)
 {
     return sycl::ext::intel::esimd::gather<T>(input, offsets, base_offset);
@@ -62,7 +62,7 @@ scatter(T* output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
 
 template<typename T, int N, typename... Args>
 void
-scatter(sycl::accessor<Args...>& output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+scatter(sycl::accessor<T, 1, Args...>& output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
     sycl::ext::intel::esimd::scatter(output, offsets, values, /*global_offset*/ 0, mask);
