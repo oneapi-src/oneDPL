@@ -11,7 +11,7 @@ namespace oneapi::dpl::experimental::esimd::impl::utils
 
 template <typename T, int N>
 void
-copy_from(T* input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd<T, N>& values)
+copy_from(const T* input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd<T, N>& values)
 {
     values.copy_from(input + base_offset);
 }
@@ -39,7 +39,7 @@ copy_to(sycl::accessor<T, 1, Args...>& output, ::std::uint32_t base_offset, cons
 
 template <typename T, int N>
 sycl::ext::intel::esimd::simd<T, N>
-gather(T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset)
+gather(const T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset)
 {
     return sycl::ext::intel::esimd::gather(input + base_offset, offsets * sizeof(T));
 }
