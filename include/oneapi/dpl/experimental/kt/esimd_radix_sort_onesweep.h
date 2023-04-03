@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_kt_esimd_radix_sort_onesweep_H
-#define _ONEDPL_kt_esimd_radix_sort_onesweep_H
+#ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_ONESWEEP_H
+#define _ONEDPL_KT_ESIMD_RADIX_SORT_ONESWEEP_H
 
 #include <ext/intel/esimd.hpp>
 #include "../../pstl/hetero/dpcpp/sycl_defs.h"
@@ -578,4 +578,4 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 
 } // oneapi::dpl::experimental::esimd::impl
 
-#endif // _ONEDPL_kt_esimd_radix_sort_onesweep_H
+#endif // _ONEDPL_KT_ESIMD_RADIX_SORT_ONESWEEP_H
