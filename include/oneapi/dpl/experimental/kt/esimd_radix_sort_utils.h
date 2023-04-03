@@ -1,5 +1,5 @@
-#ifndef _ONEDPL_kt_esimd_radix_sort_utils_H
-#define _ONEDPL_kt_esimd_radix_sort_utils_H
+#ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
+#define _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
 
 #include <ext/intel/esimd.hpp>
 #include <cstdint>
@@ -208,4 +208,4 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
 }
 
 }
-#endif // _ONEDPL_kt_esimd_radix_sort_utils_H
+#endif // _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
