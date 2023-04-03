@@ -64,7 +64,9 @@ void
 scatter(T* output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    sycl::ext::intel::esimd::scatter(output, offsets * sizeof(T), values, mask);
+    //static_assert(::std::is_same<decltype(offsets), decltype(offsets * sizeof(T))>::value, "'offsets' and 'offsets * sizeof(T)' are not the same");
+
+    sycl::ext::intel::esimd::scatter(output, offsets /** sizeof(T)*/, values, mask);
 }
 
 template <typename T, int N, typename AccessorT>
@@ -72,7 +74,9 @@ typename ::std::enable_if<!::std::is_pointer<AccessorT>::value, void>::type
 scatter(AccessorT& output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    sycl::ext::intel::esimd::scatter(output, offsets * sizeof(T), values, /*global_offset*/ 0, mask);
+    //static_assert(::std::is_same<decltype(offsets), decltype(offsets * sizeof(T))>::value, "'offsets' and 'offsets * sizeof(T)' are not the same");
+
+    sycl::ext::intel::esimd::scatter(output, offsets /** sizeof(T)*/, values, /*global_offset*/ 0, mask);
 }
 
 template <typename T, uint32_t R, uint32_t C>
