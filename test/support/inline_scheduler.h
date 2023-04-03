@@ -33,7 +33,7 @@ struct int_inline_scheduler_t {
 
   class async_wait_t {
   public:
-    virtual void wait_for_all() = 0;
+    virtual void wait() = 0;
     virtual native_sync_t get_native() const = 0;
     virtual ~async_wait_t() {}
   };
@@ -52,7 +52,7 @@ struct int_inline_scheduler_t {
     native_sync_t get_native() const override {
       return w_;
     }
-    void wait_for_all() override {
+    void wait() override {
       if (wait_reported_->exchange(true) == false) {
       }
     }
@@ -85,11 +85,11 @@ struct int_inline_scheduler_t {
     return wlist;
   }
 
-  void wait_for_all() {
+  void wait() {
     while(!waiters_.is_empty()){
       async_wait_t *w;
       waiters_.pop(w);
-      w->wait_for_all();
+      w->wait();
       delete w;
     }
   }

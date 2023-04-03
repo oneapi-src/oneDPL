@@ -68,14 +68,14 @@ namespace experimental {
 
 //ds_algorithms
   template<typename Handle>
-  auto wait_for_all(Handle&& h) {
-    return std::forward<Handle>(h).wait_for_all();
+  auto wait(Handle&& h) {
+    return std::forward<Handle>(h).wait();
   }
 
   template<typename Handle>
-  auto wait_for_all(std::list<Handle> l) {
+  auto wait(std::list<Handle> l) {
       for(auto h : l){
-        return std::forward<Handle>(h)->wait_for_all();
+        return std::forward<Handle>(h)->wait();
       }
   }
 
@@ -96,7 +96,7 @@ namespace experimental {
 
   template<typename DSPolicy, typename Function, typename... Args>
   auto invoke(DSPolicy&& dp, Function&&f, Args&&... args) {
-    return wait_for_all(invoke_async(std::forward<DSPolicy>(dp), std::forward<Function>(f), std::forward<Args>(args)...));
+    return wait(invoke_async(std::forward<DSPolicy>(dp), std::forward<Function>(f), std::forward<Args>(args)...));
   }
 
   template<typename DSPolicy, typename Function, typename... Args>
@@ -106,7 +106,7 @@ namespace experimental {
 
   template<typename DSPolicy, typename Function, typename... Args>
   auto invoke(DSPolicy&& dp, typename DSPolicy::selection_handle_t e, Function&&f, Args&&... args) {
-    return wait_for_all(invoke_async(std::forward<DSPolicy>(dp), e, std::forward<Function>(f), std::forward<Args>(args)...));
+    return wait(invoke_async(std::forward<DSPolicy>(dp), e, std::forward<Function>(f), std::forward<Args>(args)...));
   }
 //ds_policy
 
@@ -165,8 +165,8 @@ namespace experimental {
       return scoring_policy_->get_wait_list();
     }
 
-    auto wait_for_all() {
-      return scoring_policy_->wait_for_all();
+    auto wait() {
+      return scoring_policy_->wait();
     }
   };
 } // namespace experimental

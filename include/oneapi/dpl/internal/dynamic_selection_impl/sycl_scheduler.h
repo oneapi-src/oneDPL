@@ -39,7 +39,7 @@ namespace experimental {
 
     class async_wait_t {
     public:
-      virtual void wait_for_all() = 0;
+      virtual void wait() = 0;
       virtual native_sync_t get_native() const = 0;
       virtual ~async_wait_t() {}
     };
@@ -59,7 +59,7 @@ namespace experimental {
         return w_;
       }
 
-      void wait_for_all() override {
+      void wait() override {
         w_.wait();
       }
     };
@@ -92,11 +92,11 @@ namespace experimental {
        waiters_.pop_all(wlist);
        return wlist;
     }
-    void wait_for_all() {
+    void wait() {
       while(!waiters_.is_empty()){
         async_wait_t *w;
         waiters_.pop(w);
-        w->wait_for_all();
+        w->wait();
         delete w;
       }
     }
