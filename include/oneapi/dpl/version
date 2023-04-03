@@ -1,0 +1,31 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef __ONEDPL_version_H
+#define __ONEDPL_version_H
+
+#include "oneapi/dpl/internal/common_config.h"
+
+#if _ONEDPL___cplusplus >= 202002L 
+#    include <version> // The standard C++20 header
+#endif
+
+// The library version
+#define ONEDPL_VERSION_MAJOR 2022
+#define ONEDPL_VERSION_MINOR 3
+#define ONEDPL_VERSION_PATCH 0
+
+#ifndef _PSTL_VERSION
+#    define _PSTL_VERSION 14000
+#    define _PSTL_VERSION_MAJOR (_PSTL_VERSION / 1000)
+#    define _PSTL_VERSION_MINOR ((_PSTL_VERSION % 1000) / 10)
+#    define _PSTL_VERSION_PATCH (_PSTL_VERSION % 10)
+#endif
+
+#endif // __ONEDPL_version_H
