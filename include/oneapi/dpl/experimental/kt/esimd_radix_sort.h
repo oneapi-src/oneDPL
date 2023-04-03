@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_kt_esimd_radix_sort_H
-#define _ONEDPL_kt_esimd_radix_sort_H
+#ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_H
+#define _ONEDPL_KT_ESIMD_RADIX_SORT_H
 
 #include <ext/intel/esimd.hpp>
 #include "../../pstl/hetero/dpcpp/sycl_defs.h" // TODO: unneeded?
@@ -116,4 +116,4 @@ radix_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last)
 
 } // namespace oneapi::dpl::experimental::esimd
 
-#endif // _ONEDPL_kt_esimd_radix_sort_H
+#endif // _ONEDPL_KT_ESIMD_RADIX_SORT_H
