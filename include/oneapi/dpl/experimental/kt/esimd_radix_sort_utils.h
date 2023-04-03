@@ -41,14 +41,22 @@ template <typename T, int N>
 sycl::ext::intel::esimd::simd<T, N>
 gather(const T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset)
 {
-    return sycl::ext::intel::esimd::gather(input + base_offset, offsets * sizeof(T));
+    //static_assert(::std::is_same<decltype(input), decltype(input + base_offset)>::value, "'input' and 'input + base_offset' are not the same");
+    //static_assert(::std::is_same<decltype(offsets), decltype(offsets * sizeof(T))>::value, "'offsets' and 'offsets * sizeof(T)' are not the same");
+    //decltype(offsets)::dummy;
+    //decltype(sizeof(T))::dummy;
+    //decltype(offsets * sizeof(T))::dummy;
+    return sycl::ext::intel::esimd::gather(input + base_offset, offsets/* * sizeof(T)*/);
 }
 
 template <typename T, int N, typename AccessorT>
 typename ::std::enable_if<!::std::is_pointer<AccessorT>::value, sycl::ext::intel::esimd::simd<T, N>>::type
 gather(AccessorT input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,::std::uint32_t base_offset)
 {
-    return sycl::ext::intel::esimd::gather<T>(input, offsets * sizeof(T), base_offset * sizeof(T));
+    //static_assert(::std::is_same<decltype(offsets), decltype(offsets * sizeof(T))>::value, "'offsets' and 'offsets * sizeof(T)' are not the same");
+    //static_assert(::std::is_same<decltype(base_offset), decltype(base_offset * sizeof(T))>::value, "'base_offset' and 'base_offset * sizeof(T)' are not the same");
+
+    return sycl::ext::intel::esimd::gather<T>(input, offsets /** sizeof(T)*/, base_offset /** sizeof(T)*/);
 }
 
 template <typename T, int N>
