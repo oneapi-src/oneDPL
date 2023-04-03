@@ -16,9 +16,9 @@ copy_from(const T* input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::
     values.copy_from(input + base_offset);
 }
 
-template <typename T, int N, typename... Args>
-void
-copy_from(const sycl::accessor<T, 1, Args...>& input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd<T, N>& values)
+template <typename AccessorT, typename T, int N, typename... Args>
+typename ::std::enable_if<!::std::is_pointer<AccessorT>::value, void>::type
+copy_from(const AccessorT& input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd<T, N>& values)
 {
     values.copy_from(input, base_offset * sizeof(T));
 }
@@ -30,9 +30,9 @@ copy_to(T* output, ::std::uint32_t base_offset, const sycl::ext::intel::esimd::s
     values.copy_to(output + base_offset);
 }
 
-template <typename T, int N, typename... Args>
-void
-copy_to(sycl::accessor<T, 1, Args...>& output, ::std::uint32_t base_offset, const sycl::ext::intel::esimd::simd<T, N>& values)
+template <typename AccessorT, typename T, int N, typename... Args>
+typename ::std::enable_if<!::std::is_pointer<AccessorT>::value, void>::type
+copy_to(AccessorT& output, ::std::uint32_t base_offset, const sycl::ext::intel::esimd::simd<T, N>& values)
 {
     values.copy_to(output, base_offset * sizeof(T));
 }
@@ -44,10 +44,9 @@ gather(const T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets
     return sycl::ext::intel::esimd::gather(input + base_offset, offsets * sizeof(T));
 }
 
-template <typename T, int N, typename... Args>
-sycl::ext::intel::esimd::simd<T, N>
-gather(const sycl::accessor<T, 1, Args...>& input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
-       ::std::uint32_t base_offset)
+template <typename T, int N, typename AccessorT>
+typename ::std::enable_if<!::std::is_pointer<AccessorT>::value, sycl::ext::intel::esimd::simd<T, N>>::type
+gather(AccessorT input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,::std::uint32_t base_offset)
 {
     return sycl::ext::intel::esimd::gather<T>(input, offsets * sizeof(T), base_offset * sizeof(T));
 }
@@ -60,9 +59,9 @@ scatter(T* output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
     sycl::ext::intel::esimd::scatter(output, offsets * sizeof(T), values, mask);
 }
 
-template<typename T, int N, typename... Args>
-void
-scatter(sycl::accessor<T, 1, Args...>& output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+template <typename T, int N, typename AccessorT>
+typename ::std::enable_if<!::std::is_pointer<AccessorT>::value, void>::type
+scatter(AccessorT& output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
     sycl::ext::intel::esimd::scatter(output, offsets * sizeof(T), values, /*global_offset*/ 0, mask);
