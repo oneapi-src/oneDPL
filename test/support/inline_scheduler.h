@@ -54,6 +54,9 @@ struct int_inline_scheduler_t {
     }
     void wait_for_all() override {
       if (wait_reported_->exchange(true) == false) {
+        if constexpr (PropertyHandle::should_report_task_completion) {
+          oneapi::dpl::experimental::property::report(p_, oneapi::dpl::experimental::property::task_completion);
+        }
       }
     }
   };
