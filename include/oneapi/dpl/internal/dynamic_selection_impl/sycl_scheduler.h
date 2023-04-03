@@ -22,6 +22,7 @@
 #include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
 
+#include <atomic>
 #include <vector>
 #include <memory>
 

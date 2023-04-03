@@ -21,6 +21,7 @@
 #include "oneapi/dpl/dynamic_selection"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 
+#include <atomic>
 #include <iostream>
 
 class fake_selection_handle_t {
@@ -29,7 +30,7 @@ public:
   using property_handle_t = oneapi::dpl::experimental::basic_property_handle_t;
   using native_context_t = sycl::queue;
 
-  fake_selection_handle_t(native_context_t q = sycl::queue(sycl::cpu_selector{})) : q_(q) {}
+  fake_selection_handle_t(native_context_t q = sycl::queue(sycl::default_selector{})) : q_(q) {}
   native_context_t get_native() { return q_; }
   property_handle_t get_property_handle() { return oneapi::dpl::experimental::basic_property_handle; }
 };
@@ -37,7 +38,6 @@ public:
 int test_cout() {
   oneapi::dpl::experimental::sycl_scheduler s;
   oneapi::dpl::experimental::sycl_scheduler::execution_resource_t e;
-  //std::cout << s << e;
   return 0;
 }
 
@@ -125,6 +125,13 @@ int test_properties() {
 }
 
 int main() {
+  try {
+    sycl::queue q;
+  } catch (sycl::exception) {
+    std::cout << "SKIPPED: Unable to use sycl at all\n";
+    return 0;
+  }
+
   if (test_cout()
       || test_submit_and_wait_on_scheduler()
       || test_submit_and_wait_on_sync()
