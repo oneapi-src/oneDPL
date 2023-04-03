@@ -301,7 +301,7 @@ struct reduce_over_group
         for (::std::uint32_t __k = 1; __k < __group_size; __k <<= 1)
         {
             __dpl_sycl::__group_barrier(__item_id);
-            if (__local_idx % (2 * __k) == 0 && __local_idx + __k < __group_size && __global_idx + __k < __n)
+            if ((__local_idx & (2 * __k - 1)) == 0 && __local_idx + __k < __group_size && __global_idx + __k < __n)
             {
                 __local_mem[__local_idx] = __bin_op1(__local_mem[__local_idx], __local_mem[__local_idx + __k]);
             }
