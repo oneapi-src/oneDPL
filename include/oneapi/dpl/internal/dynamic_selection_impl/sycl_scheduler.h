@@ -60,6 +60,12 @@ namespace experimental {
 
       void wait_for_all() override {
         w_.wait();
+        if (wait_reported_->exchange(true) == false) {
+          if constexpr (PropertyHandle::should_report_task_completion) {
+            property::report(p_, property::task_completion);
+          }
+        }
+
       }
     };
 
