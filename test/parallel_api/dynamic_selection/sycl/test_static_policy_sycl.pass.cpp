@@ -27,6 +27,7 @@ int main() {
   using policy_t = oneapi::dpl::experimental::static_policy;
   std::vector<sycl::queue> u; 
   build_universe(u);
+  std::cout << "UNIVERSE SIZE " << u.size() << std::endl;
   if (u.empty()) {
     std::cout << "PASS\n";
     return 0;
