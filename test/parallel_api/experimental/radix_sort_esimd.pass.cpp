@@ -28,7 +28,12 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
+#if __has_include(<sycl/sycl.hpp>)
 #include <sycl/sycl.hpp>
+#else
+#include <CL/sycl.hpp>
+#endif
+
 #include <vector>
 #include <algorithm>
 #include <random>
