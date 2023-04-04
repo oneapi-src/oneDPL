@@ -30,6 +30,8 @@ int main() {
   sycl::queue test_resource = u[0];
 
   auto n = u.size();
+  std::cout << "UNIVERSE SIZE " << n << std::endl;
+  
   auto f = [test_resource, u, n](int i) { return u[(i-1)%n]; };
 
   if (test_cout<policy_t>()
