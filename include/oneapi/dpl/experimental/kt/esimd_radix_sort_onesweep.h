@@ -78,7 +78,7 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
     device_addr_t read_addr;
     for (read_addr = tid * PROCESS_SIZE; read_addr < __n; read_addr += addr_step) {
         if (read_addr+PROCESS_SIZE < __n) {
-            utils::copy_from(keys, input, read_addr);
+            utils::copy_from(input, read_addr, keys);
         }
         else
         {
@@ -200,7 +200,7 @@ void onesweep_kernel(sycl::nd_item<1> idx, uint32_t __n, uint32_t stage, const I
         simd<KeyT, PROCESS_SIZE> keys;
         simd<bin_t, PROCESS_SIZE> bins;
         if (io_offset+PROCESS_SIZE < __n) {
-            utils::copy_from(keys, input, io_offset);
+            utils::copy_from(input, io_offset, keys);
         }
         else if (io_offset >= __n) {
             keys = -1;
