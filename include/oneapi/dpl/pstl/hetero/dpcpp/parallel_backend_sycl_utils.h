@@ -587,6 +587,8 @@ class __reduce_future
     {
     }
 
+    ~__reduce_future() { sycl::free(__my_res, __my_exec.queue()); }
+
     auto
     event() const
     {
@@ -604,11 +606,8 @@ class __reduce_future
     auto
     get()
     {
-        using _Tp = typename ::std::remove_pointer<_Res>::type;
         __my_event.wait();
-        _Tp __local_val = __my_res[0];
-        sycl::free(__my_res, __my_exec.queue());
-        return __local_val;
+        return __my_res[0];
     }
 };
 
