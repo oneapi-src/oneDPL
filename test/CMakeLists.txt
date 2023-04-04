@@ -76,7 +76,10 @@ macro(onedpl_add_test test_source_file)
             string(TOLOWER ${ONEDPL_DEVICE_TYPE} ONEDPL_DEVICE_TYPE)
             set(SYCL_DEVICE_FILTER ${ONEDPL_DEVICE_BACKEND}:${ONEDPL_DEVICE_TYPE})
         endif()
-        set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT SYCL_DEVICE_FILTER=${SYCL_DEVICE_FILTER})
+        file(GLOB_RECURSE DS_TESTS "parallel_api/dynamic_selection/*.cpp")
+        if (NOT "${DS_TESTS}" MATCHES "${_test_name}") # do not set SYCL_DEVICE_FILTER for device selector tests
+            set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT SYCL_DEVICE_FILTER=${SYCL_DEVICE_FILTER})
+        endif()
     endif()
 
     add_custom_target(run-${_test_name}
