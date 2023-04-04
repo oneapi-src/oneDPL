@@ -63,7 +63,7 @@ void
 scatter(T* output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    return sycl::ext::intel::esimd::scatter(output, offsets * size32<T>, values, mask);
+    sycl::ext::intel::esimd::scatter(output, offsets * size32<T>, values, mask);
 }
 
 template<typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
