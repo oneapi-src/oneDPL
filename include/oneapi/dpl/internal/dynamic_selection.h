@@ -75,7 +75,7 @@ namespace experimental {
   template<typename Handle>
   auto wait(std::list<Handle> l) {
       for(auto h : l){
-        return std::forward<Handle>(h)->wait();
+        return h->wait();
       }
   }
 
