@@ -146,9 +146,9 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_UInt, _N> __src)
         return ~__src; //bitwise inversion
 }
 
-template <bool __is_ascending, typename _Int, int _N>
-typename ::std::enable_if_t<::std::is_integral_v<_Int>&& ::std::is_signed_v<_Int>,
-                            sycl::ext::intel::esimd::simd<::std::make_unsigned_t<_Int>, _N>>
+template <bool __is_ascending, typename _Int, int _N,
+          std::enable_if_t<::std::is_integral_v<_Int>&& ::std::is_signed_v<_Int>, int> = 0>
+sycl::ext::intel::esimd::simd<::std::make_unsigned_t<_Int>, _N>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_Int, _N> __src)
 {
     using _UInt = ::std::make_unsigned_t<_Int>;
