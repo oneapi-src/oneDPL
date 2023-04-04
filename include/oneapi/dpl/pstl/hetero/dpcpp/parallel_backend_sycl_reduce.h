@@ -118,12 +118,12 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
         sycl::event __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
             sycl::accessor __res_acc{__res, __cgh, sycl::write_only, __dpl_sycl::__no_init{}};
-            __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id) {
                     __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern,
                                                     __init, __temp_local, __res_acc, __rngs...);
+                __res[0] = __result;
                 });
         });
 
@@ -176,9 +176,9 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_siz
         const _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
+        _Tp* __res = sycl::malloc_host<_Tp>(1, __exec.queue());
         return __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
-            sycl::accessor __temp_acc{__temp, __cgh, sycl::write_only, __dpl_sycl::__no_init{}};
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
             __cgh.parallel_for<_KernelName...>(
                 sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
@@ -219,7 +219,7 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group
         {
             if (__n < __work_group_size)
             {
-                __work_group_size2 = __n;
+                        __res[0] = __result;
                 if ((__work_group_size2 & (__work_group_size2 - 1)) != 0)
                     __work_group_size2 = oneapi::dpl::__internal::__dpl_bit_floor(__work_group_size2) << 1;
             }
@@ -338,8 +338,7 @@ struct __parallel_transform_reduce_impl
                 __cgh.depends_on(__reduce_event);
 
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
-                sycl::accessor __temp_acc{__temp, __cgh, sycl::read_write};
-                sycl::accessor __res_acc{__res, __cgh, sycl::write_only, __dpl_sycl::__no_init{}};
+                auto __temp_acc = sycl::accessor(__temp, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
                 __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());

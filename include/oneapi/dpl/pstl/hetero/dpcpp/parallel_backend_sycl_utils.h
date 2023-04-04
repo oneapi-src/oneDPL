@@ -581,44 +581,31 @@ class __future : private std::tuple<_Args...>
 //
 // will call f<4>(), since 4 is the smallest value in the sequence not less than 3.
 //
-// If there are no values in the sequence less than the run-time integer, the last value in
-// the sequence will be used.
-//
+// A contract for a future class for reduce: <execution policy, sycl::event, USM host memory for the reduced value>
 // Note that the integers provided in the integer_sequence must be monotonically increasing
 template <typename>
 class __static_monotonic_dispatcher;
 
 template <::std::uint16_t _X, ::std::uint16_t... _Xs>
 class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X, _Xs...>>
-{
-    template <::std::uint16_t... _Vals>
-    using _Head = typename ::std::conditional_t<
-        sizeof...(_Vals) != 0,
+    _ExecutionPolicy __my_exec;
+    _Event __my_event;
+    _Res __my_res;
         ::std::tuple_element<0, ::std::tuple<::std::integral_constant<::std::uint32_t, _Vals>...>>,
         ::std::integral_constant<::std::uint32_t, ::std::numeric_limits<::std::uint32_t>::max()>>::type;
-
     static_assert(_X < _Head<_Xs...>::value, "Sequence must be monotonically increasing");
 
-  public:
-    template <typename _F, typename... _Args>
-    static auto
+    __reduce_future(_ExecutionPolicy __exec, _Event __e, _Res __res)
+        : __my_exec(__exec), __my_event(__e), __my_res(__res)
     __dispatch(_F&& __f, ::std::uint16_t __x, _Args&&... args)
-    {
-        if constexpr (sizeof...(_Xs) == 0)
-        {
-            return ::std::forward<_F>(__f).template operator()<_X>(::std::forward<_Args>(args)...);
-        }
-        else
-        {
-            if (__x <= _X)
-                return ::std::forward<_F>(__f).template operator()<_X>(::std::forward<_Args>(args)...);
-            else
+    }
+        return __my_event;
+    void
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        __my_event.wait_and_throw();
+#endif
                 return __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _Xs...>>::__dispatch(
                     ::std::forward<_F>(__f), __x, ::std::forward<_Args>(args)...);
-        }
-    }
-};
-
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
