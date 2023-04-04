@@ -45,6 +45,17 @@ namespace TestUtils{
             cond_.notify_one();
         }
 
+        void pop_all(std::list<T>& item_list)
+        {
+            std::unique_lock<std::mutex> mlock(mutex_);
+            while(!queue_.empty()){
+                auto item = queue_.front();
+                queue_.pop();
+                item_list.push_back(item);
+
+            }
+        }
+
         bool is_empty(){
             return queue_.empty();
         }

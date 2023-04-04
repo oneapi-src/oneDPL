@@ -89,17 +89,21 @@ namespace experimental{
 
     template<typename Function, typename ...Args>
     auto invoke(Function&& f, Args&&... args) {
-      return wait_for_all(sched_->submit(select(std::forward<Function>(f), std::forward<Args>(args)...),
+      return wait(sched_->submit(select(std::forward<Function>(f), std::forward<Args>(args)...),
                                          std::forward<Function>(f), std::forward<Args>(args)...));
     }
 
     template<typename Function, typename ...Args>
     auto invoke(selection_handle_t e, Function&& f, Args&&... args) {
-      return wait_for_all(sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...));
+      return wait(sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...));
     }
 
-    auto wait_for_all() {
-      sched_->wait_for_all();
+    auto get_wait_list() {
+      return sched_->get_wait_list();
+    }
+
+    auto wait() {
+      sched_->wait();
     }
   };
 } // namespace experimental

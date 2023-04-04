@@ -55,13 +55,61 @@ int test_submit_and_wait_on_scheduler() {
            }, i
     );
   }
-  s.wait_for_all();
+  s.wait();
   int count = ecount.load();
   if (count != N*(N+1)/2) {
     std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
     return 1;
   }
   std::cout << "wait_on_scheduler: OK\n";
+  return 0;
+}
+
+int test_submit_and_wait_on_scheduler_single_element() {
+  const int N = 1;
+  oneapi::dpl::experimental::sycl_scheduler s;
+  fake_selection_handle_t h;
+
+  std::atomic<int> ecount = 0;
+
+  for (int i = 1; i <= N; ++i) {
+    s.submit(h, [&](sycl::queue q, int i) {
+             ecount += i;
+             return sycl::event{};
+           }, i
+    );
+  }
+  s.wait();
+  int count = ecount.load();
+  if (count != 1) {
+    std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
+    return 1;
+  }
+  std::cout << "wait_on_scheduler single element: OK\n";
+  return 0;
+}
+
+int test_submit_and_wait_on_scheduler_empty() {
+  const int N = 0;
+  oneapi::dpl::experimental::sycl_scheduler s;
+  fake_selection_handle_t h;
+
+  std::atomic<int> ecount = 0;
+
+  for (int i = 1; i <= N; ++i) {
+    s.submit(h, [&](sycl::queue q, int i) {
+             ecount += i;
+             return sycl::event{};
+           }, i
+    );
+  }
+  s.wait();
+  int count = ecount.load();
+  if (count != 0) {
+    std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
+    return 1;
+  }
+  std::cout << "wait_on_scheduler empty list: OK\n";
   return 0;
 }
 
@@ -79,7 +127,7 @@ int test_submit_and_wait_on_sync() {
              return sycl::event{};
            }, i
     );
-    w.wait_for_all();
+    w.wait();
     int count = ecount.load();
     if (count != i*(i+1)/2) {
       std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
@@ -87,6 +135,56 @@ int test_submit_and_wait_on_sync() {
     }
   }
   std::cout << "wait_on_sync: OK\n";
+  return 0;
+}
+
+int test_submit_and_wait_on_sync_single_element() {
+  const int N = 1;
+  oneapi::dpl::experimental::sycl_scheduler s;
+  fake_selection_handle_t h;
+
+  std::atomic<int> ecount = 0;
+
+  for (int i = 1; i <= N; ++i) {
+    auto w = s.submit(h,
+           [&](sycl::queue q, int i) {
+             ecount += i;
+             return sycl::event{};
+           }, i
+    );
+    w.wait();
+    int count = ecount.load();
+    if (count != 1) {
+      std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
+      return 1;
+    }
+  }
+  std::cout << "wait_on_sync single element: OK\n";
+  return 0;
+}
+
+int test_submit_and_wait_on_sync_empty() {
+  const int N = 0;
+  oneapi::dpl::experimental::sycl_scheduler s;
+  fake_selection_handle_t h;
+
+  std::atomic<int> ecount = 0;
+
+  for (int i = 1; i <= N; ++i) {
+    auto w = s.submit(h,
+           [&](sycl::queue q, int i) {
+             ecount += i;
+             return sycl::event{};
+           }, i
+    );
+    w.wait();
+    int count = ecount.load();
+    if (count != 0) {
+      std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
+      return 1;
+    }
+  }
+  std::cout << "wait_on_sync empty list: OK\n";
   return 0;
 }
 
@@ -136,7 +234,11 @@ int main() {
 
   if (test_cout()
       || test_submit_and_wait_on_scheduler()
+      || test_submit_and_wait_on_scheduler_single_element()
+      || test_submit_and_wait_on_scheduler_empty()
       || test_submit_and_wait_on_sync()
+      || test_submit_and_wait_on_sync_single_element()
+      || test_submit_and_wait_on_sync_empty()
       || test_properties()
    ) {
     std::cout << "FAIL\n";
