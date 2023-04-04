@@ -13,22 +13,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_parallel_backend_sycl_utils_H
-#define _ONEDPL_parallel_backend_sycl_utils_H
+#ifndef _ONEDPL_PARALLEL_BACKEND_SYCL_UTILS_H
+#define _ONEDPL_PARALLEL_BACKEND_SYCL_UTILS_H
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
 #include <type_traits>
 #include <tuple>
 
-#if _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
-#    include <bit>
-#else
-#    include <cstring> // memcpy
-#endif
-
 #include "../../iterator_impl.h"
 
 #include "sycl_defs.h"
+#include "execution_sycl_defs.h"
 #include "sycl_iterator.h"
 #include "../../utils.h"
 
@@ -43,6 +38,109 @@ namespace oneapi
 {
 namespace dpl
 {
+namespace __internal
+{
+
+//-----------------------------------------------------------------------------
+// Device run-time information helpers
+//-----------------------------------------------------------------------------
+
+#if _ONEDPL_DEBUG_SYCL
+template <typename _ExecutionPolicy>
+::std::string
+__device_info(const _ExecutionPolicy& __policy)
+{
+    return __policy.queue().get_device().template get_info<sycl::info::device::name>();
+}
+#endif
+
+template <typename _ExecutionPolicy>
+::std::size_t
+__max_work_group_size(const _ExecutionPolicy& __policy)
+{
+    return __policy.queue().get_device().template get_info<sycl::info::device::max_work_group_size>();
+}
+
+template <typename _ExecutionPolicy, typename _Size>
+_Size
+__slm_adjusted_work_group_size(const _ExecutionPolicy& __policy, _Size __local_mem_per_wi, _Size __wg_size = 0)
+{
+    if (__wg_size == 0)
+        __wg_size = __max_work_group_size(__policy);
+    auto __local_mem_size = __policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
+    return sycl::min(__local_mem_size / __local_mem_per_wi, __wg_size);
+}
+
+#if _USE_SUB_GROUPS
+template <typename _ExecutionPolicy>
+::std::size_t
+__max_sub_group_size(const _ExecutionPolicy& __policy)
+{
+    auto __supported_sg_sizes = __policy.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
+    //The result of get_info<sycl::info::device::sub_group_sizes>() can be empty; if so, return 0
+    return __supported_sg_sizes.empty() ? 0 : __supported_sg_sizes.back();
+}
+#endif
+
+template <typename _ExecutionPolicy>
+::std::uint32_t
+__max_compute_units(const _ExecutionPolicy& __policy)
+{
+    return __policy.queue().get_device().template get_info<sycl::info::device::max_compute_units>();
+}
+
+//-----------------------------------------------------------------------------
+// Kernel run-time information helpers
+//-----------------------------------------------------------------------------
+
+// 20201214 value corresponds to Intel(R) oneAPI C++ Compiler Classic 2021.1.2 Patch release
+#define _USE_KERNEL_DEVICE_SPECIFIC_API (__SYCL_COMPILER_VERSION > 20201214) || (_ONEDPL_LIBSYCL_VERSION >= 50700)
+
+template <typename _ExecutionPolicy>
+::std::size_t
+__kernel_work_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
+{
+    const sycl::device& __device = __policy.queue().get_device();
+    ::std::size_t __max_wg_size =
+#if _USE_KERNEL_DEVICE_SPECIFIC_API
+        __kernel.template get_info<sycl::info::kernel_device_specific::work_group_size>(__device);
+#else
+        __kernel.template get_work_group_info<sycl::info::kernel_work_group::work_group_size>(__device);
+#endif
+    // The variable below is needed to achieve better performance on CPU devices.
+    // Experimentally it was found that the most common divisor is 4 with all patterns.
+    // TODO: choose the divisor according to specific pattern.
+    if (__device.is_cpu() && __max_wg_size >= 4)
+        __max_wg_size /= 4;
+
+    return __max_wg_size;
+}
+
+template <typename _ExecutionPolicy>
+::std::uint32_t
+__kernel_sub_group_size(const _ExecutionPolicy& __policy, const sycl::kernel& __kernel)
+{
+    const sycl::device& __device = __policy.queue().get_device();
+    [[maybe_unused]] const ::std::size_t __wg_size = __kernel_work_group_size(__policy, __kernel);
+    const ::std::uint32_t __sg_size =
+#if _USE_KERNEL_DEVICE_SPECIFIC_API
+        __kernel.template get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
+            __device
+#    if _ONEDPL_LIBSYCL_VERSION < 60000
+            ,
+            sycl::range<3> { __wg_size, 1, 1 }
+#    endif
+        );
+#else
+        __kernel.template get_sub_group_info<sycl::info::kernel_sub_group::max_sub_group_size>(
+            __device, sycl::range<3>{__wg_size, 1, 1});
+#endif
+    return __sg_size;
+}
+//-----------------------------------------------------------------------------
+
+} // namespace __internal
+
 namespace __par_backend_hetero
 {
 
@@ -55,58 +153,7 @@ using __decay_t = typename ::std::decay<_T>::type;
 template <bool __flag, typename _T = void>
 using __enable_if_t = typename ::std::enable_if<__flag, _T>::type;
 
-// Bitwise type casting, same as C++20 std::bit_cast
-template <typename _Dst, typename _Src>
-__enable_if_t<
-    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
-__dpl_bit_cast(const _Src& __src) noexcept
-{
-#if SYCL_LANGUAGE_VERSION >= 2020
-    return sycl::bit_cast<_Dst>(__src);
-#elif _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
-    return ::std::bit_cast<_Dst>(__src);
-#elif defined(__has_builtin) && __has_builtin(__builtin_bit_cast)
-    return __builtin_bit_cast(_Dst, __src);
-#else
-    _Dst __result;
-    ::std::memcpy(&__result, &__src, sizeof(_Dst));
-    return __result;
-#endif
-}
-
-// The max power of 2 not exceeding the given value, same as C++20 std::bit_floor
-template <typename _T>
-__enable_if_t<::std::is_integral<_T>::value && ::std::is_unsigned<_T>::value, _T>
-__dpl_bit_floor(_T __x) noexcept
-{
-    if (__x == 0) return 0;
-#if SYCL_LANGUAGE_VERSION >= 2020
-    // Use the count-leading-zeros function
-    return 1 << (sycl::clz(_T{0}) - sycl::clz(__x) - 1);
-#elif _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
-    return ::std::bit_floor(__x);
-#else
-    // Fill all the lower bits with 1s
-    __x |= (__x >> 1);
-    __x |= (__x >> 2);
-    __x |= (__x >> 4);
-    if constexpr (sizeof(_T) > 1) __x |= (__x >> 8);
-    if constexpr (sizeof(_T) > 2) __x |= (__x >> 16);
-    if constexpr (sizeof(_T) > 4) __x |= (__x >> 32);
-    __x += 1; // Now it equals to the next greater power of 2, or 0 in case of wraparound
-    return (__x == 0) ? 1 << (sizeof(_T) * 8 - 1) : __x >> 1;
-#endif
-}
-
-// rounded up result of (__number / __divisor)
-template <typename _T1, typename _T2>
-constexpr auto
-__ceiling_div(_T1 __number, _T2 __divisor) -> decltype((__number - 1) / __divisor + 1)
-{
-    return (__number - 1) / __divisor + 1;
-}
-
-// function to hide zip_iterator creation
+// function to simplify zip_iterator creation
 template <typename... T>
 oneapi::dpl::zip_iterator<T...>
 zip(T... args)
@@ -144,6 +191,10 @@ make_wrapped_policy(_Policy&& __policy)
 namespace __internal
 {
 
+//-----------------------------------------------------------------------
+// Kernel name generation helpers
+//-----------------------------------------------------------------------
+
 // extract the deepest kernel name when we have a policy wrapper that might hide the default name
 template <typename _CustomName>
 struct _HasDefaultName
@@ -155,10 +206,10 @@ struct _HasDefaultName
         ;
 };
 
-template <template <typename...> class _ExternalName, typename _InternalName>
-struct _HasDefaultName<_ExternalName<_InternalName>>
+template <template <typename...> class _ExternalName, typename... _InternalName>
+struct _HasDefaultName<_ExternalName<_InternalName...>>
 {
-    static constexpr bool value = _HasDefaultName<_InternalName>::value;
+    static constexpr bool value = (... || _HasDefaultName<_InternalName>::value);
 };
 
 template <typename... _Name>
@@ -261,12 +312,12 @@ class __kernel_compiler
 template <typename _Policy>
 inline void
 // Passing policy by value should be enough for debugging
-__print_device_debug_info(_Policy __policy, size_t __wg_size = 0, size_t __mcu = 0)
+__print_device_debug_info(_Policy __policy, size_t __wg_size = 0, size_t __max_cu = 0)
 {
     ::std::cout << "Device info" << ::std::endl;
     ::std::cout << " > device name:         " << oneapi::dpl::__internal::__device_info(__policy) << ::std::endl;
     ::std::cout << " > max compute units:   "
-                << (__mcu ? __mcu : oneapi::dpl::__internal::__max_compute_units(__policy)) << ::std::endl;
+                << (__max_cu ? __max_cu : oneapi::dpl::__internal::__max_compute_units(__policy)) << ::std::endl;
     ::std::cout << " > max work-group size: "
                 << (__wg_size ? __wg_size : oneapi::dpl::__internal::__max_work_group_size(__policy)) << ::std::endl;
 }
@@ -469,7 +520,7 @@ class __future : private std::tuple<_Args...>
     __wait_and_get_value(sycl::buffer<_T>& __buf)
     {
         //according to a contract, returned value is one-element sycl::buffer
-        return __buf.template get_access<access_mode::read>()[0];
+        return __buf.get_host_access(sycl::read_only)[0];
     }
 
     template <typename _T>
@@ -480,7 +531,7 @@ class __future : private std::tuple<_Args...>
         return __val;
     }
 
-public:
+  public:
     __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
     __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
 
@@ -526,4 +577,4 @@ public:
 } // namespace dpl
 } // namespace oneapi
 
-#endif //_ONEDPL_parallel_backend_sycl_utils_H
+#endif //_ONEDPL_PARALLEL_BACKEND_SYCL_UTILS_H

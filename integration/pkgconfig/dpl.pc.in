@@ -13,7 +13,7 @@
 ##===----------------------------------------------------------------------===##
 
 prefix=${pcfiledir}/../../
-includedir=${prefix}/@_onedpl_headers_subdir@/include
+includedir=${prefix}/@_onedpl_pkgconfig_header_suffix@
 
 Name: oneDPL
 Description: Intel(R) DPC++ Library.

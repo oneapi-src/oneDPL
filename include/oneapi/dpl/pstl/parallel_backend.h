@@ -53,4 +53,4 @@ namespace __par_backend = __serial_backend;
 _PSTL_PRAGMA_MESSAGE("Parallel backend was not specified");
 #endif
 
-#endif /* _ONEDPL_PARALLEL_BACKEND_H */
+#endif // _ONEDPL_PARALLEL_BACKEND_H

@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Extreme Value Distribution
 
-#ifndef _ONEDPL_EXTREME_VALUE_DISTRIBUTION
-#define _ONEDPL_EXTREME_VALUE_DISTRIBUTION
+#ifndef _ONEDPL_EXTREME_VALUE_DISTRIBUTION_H
+#define _ONEDPL_EXTREME_VALUE_DISTRIBUTION_H
 
 namespace oneapi
 {
@@ -242,4 +242,4 @@ class extreme_value_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_EXTREME_VALUE_DISTRIBUTION
+#endif // _ONEDPL_EXTREME_VALUE_DISTRIBUTION_H

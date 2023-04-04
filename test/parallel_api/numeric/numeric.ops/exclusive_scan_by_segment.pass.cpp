@@ -100,7 +100,6 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
 
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
-        typedef typename ::std::iterator_traits<Iterator3>::value_type ValR;
 
         const ValT init = 1;
 

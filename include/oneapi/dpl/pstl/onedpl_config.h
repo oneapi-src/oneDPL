@@ -25,7 +25,7 @@
 
 #define ONEDPL_VERSION_MAJOR 2022
 #define ONEDPL_VERSION_MINOR 1
-#define ONEDPL_VERSION_PATCH 0
+#define ONEDPL_VERSION_PATCH 1
 
 #if defined(ONEDPL_USE_DPCPP_BACKEND)
 #    undef _ONEDPL_BACKEND_SYCL
@@ -103,6 +103,13 @@
 #    define _ONEDPL_PRAGMA_DECLARE_SIMD
 #    define _ONEDPL_PRAGMA_SIMD_REDUCTION(PRM)
 #endif //Enable SIMD
+
+// Enable loop unrolling pragmas where supported
+#if (__INTEL_COMPILER || (!defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 80000))
+#    define _ONEDPL_PRAGMA_UNROLL _ONEDPL_PRAGMA(unroll)
+#else //no pragma unroll
+#    define _ONEDPL_PRAGMA_UNROLL
+#endif
 
 #if (__INTEL_COMPILER)
 #    define _ONEDPL_PRAGMA_FORCEINLINE _ONEDPL_PRAGMA(forceinline)
@@ -283,4 +290,4 @@
 #    define _ONEDPL_SYCL_INTEL_COMPILER 1
 #endif
 
-#endif /* _ONEDPL_CONFIG_H */
+#endif // _ONEDPL_CONFIG_H

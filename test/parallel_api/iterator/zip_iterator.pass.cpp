@@ -52,10 +52,8 @@
 #define _PSTL_TEST_STABLE_SORT
 #define _PSTL_TEST_LEXICOGRAPHICAL_COMPIARE
 #define _PSTL_TEST_COUNTING_ZIP_TRANSFORM
-#if (_ONEDPL_TEST___cplusplus >= 201703L)
-#   define _PSTL_TEST_FOR_EACH_STRUCTURED_BINDING
-#   define _PSTL_TEST_EQUAL_STRUCTURED_BINDING
-#endif
+#define _PSTL_TEST_FOR_EACH_STRUCTURED_BINDING
+#define _PSTL_TEST_EQUAL_STRUCTURED_BINDING
 #endif
 
 using namespace TestUtils;
@@ -616,7 +614,6 @@ DEFINE_TEST(test_merge)
         retrieve_data(host_keys, host_vals, host_res_merge);
 
         auto host_first1 = host_keys.get();
-        auto host_first2 = host_vals.get();
         auto host_first3 = host_res_merge.get();
 
         for (size_t i = 0; i < ::std::min(res_size, exp_size) && is_correct; ++i)

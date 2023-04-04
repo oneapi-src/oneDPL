@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Linear Congruential Engine
 
-#ifndef _ONEDPL_LINEAR_CONGRUENTIAL_ENGINE
-#define _ONEDPL_LINEAR_CONGRUENTIAL_ENGINE
+#ifndef _ONEDPL_LINEAR_CONGRUENTIAL_ENGINE_H
+#define _ONEDPL_LINEAR_CONGRUENTIAL_ENGINE_H
 
 namespace oneapi
 {
@@ -256,4 +256,4 @@ class linear_congruential_engine
 } // namespace dpl
 } // namespace oneapi
 
-#endif // ifndef _ONEDPL_LINEAR_CONGRUENTIAL_ENGINE
+#endif // _ONEDPL_LINEAR_CONGRUENTIAL_ENGINE_H

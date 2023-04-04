@@ -10,8 +10,8 @@
 
 // test cases
 
-#ifndef CASES_H
-#define CASES_H
+#ifndef _CASES_H
+#define _CASES_H
 
 #include <oneapi/dpl/complex>
 #include <cassert>
@@ -247,4 +247,4 @@ is_about(const dpl::complex<T>& x, const dpl::complex<T>& y, const T eps = __tol
     return is_about(::std::abs(y - x), T(0.), eps);
 }
 
-#endif // CASES_H
+#endif // _CASES_H

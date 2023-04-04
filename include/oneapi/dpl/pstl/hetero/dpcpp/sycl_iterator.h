@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_sycl_iterator_H
-#define _ONEDPL_sycl_iterator_H
+#ifndef _ONEDPL_SYCL_ITERATOR_H
+#define _ONEDPL_SYCL_ITERATOR_H
 
 #include <iterator>
 #include "../../onedpl_config.h"
@@ -50,7 +50,11 @@ struct sycl_iterator
     static constexpr access_mode mode = Mode;
 
     // required for make_sycl_iterator
-    sycl_iterator(sycl::buffer<T, dim, Allocator> vec, Size index) : buffer(vec), idx(index) {}
+    //TODO: sycl::buffer doesn't have a default constructor (SYCL API issue), so we have to create a trivial size buffer
+    sycl_iterator(sycl::buffer<T, dim, Allocator> vec = sycl::buffer<T, dim, Allocator>(0), Size index = 0)
+        : buffer(vec), idx(index)
+    {
+    }
     // required for iter_mode
     template <access_mode inMode>
     sycl_iterator(const sycl_iterator<inMode, T, Allocator>& in) : buffer(in.get_buffer())
@@ -192,4 +196,4 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(syc
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_sycl_iterator_H */
+#endif // _ONEDPL_SYCL_ITERATOR_H

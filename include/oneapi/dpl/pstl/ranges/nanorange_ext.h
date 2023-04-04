@@ -271,4 +271,4 @@ NANO_INLINE_VAR(nano::detail::fill_view_fn, fill)
 
 NANO_END_NAMESPACE
 
-#endif //_ONEDPL_NANO_RANGES_EXT_H
+#endif // _ONEDPL_NANO_RANGES_EXT_H

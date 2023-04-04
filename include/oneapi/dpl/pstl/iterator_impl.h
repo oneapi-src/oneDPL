@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_iterator_impl_H
-#define _ONEDPL_iterator_impl_H
+#ifndef _ONEDPL_ITERATOR_IMPL_H
+#define _ONEDPL_ITERATOR_IMPL_H
 
 #include <iterator>
 #include <tuple>
@@ -764,7 +764,7 @@ struct ignore_copyable
     }
 };
 
-constexpr ignore_copyable ignore{};
+inline constexpr ignore_copyable ignore{};
 } // namespace internal
 
 class discard_iterator
@@ -923,4 +923,4 @@ map_zip(F f, TBig<T...> in, RestTuples... rest)
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_iterator_impl_H */
+#endif // _ONEDPL_ITERATOR_IMPL_H

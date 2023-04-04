@@ -683,4 +683,4 @@ reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __value
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_GLUE_ALGORITHM_RANGES_IMPL_H */
+#endif // _ONEDPL_GLUE_ALGORITHM_RANGES_IMPL_H

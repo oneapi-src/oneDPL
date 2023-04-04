@@ -140,7 +140,7 @@ public:
                         dpstd_acc[offset] = is_inequal;
                     });
                 });
-                auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>();
+                auto dpstd_acc = dpstd_buffer.get_host_access(sycl::write_only);
                 for (int i = 0; i < N_GEN; ++i)
                 {
                     sum += dpstd_acc[i];
@@ -216,7 +216,7 @@ public:
                         dpstd_acc[offset] = is_inequal;
                     });
                 });
-                auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>();
+                auto dpstd_acc = dpstd_buffer.get_host_access(sycl::write_only);
                 for (int i = 0; i < N_GEN; ++i)
                 {
                     sum += dpstd_acc[i];
@@ -284,7 +284,7 @@ public:
                         }
                     });
                 });
-                auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>();
+                auto dpstd_acc = dpstd_buffer.get_host_access(sycl::write_only);
                 for (int i = 0; i < N_GEN; ++i)
                 {
                     sum += dpstd_acc[i];
@@ -355,7 +355,7 @@ public:
                         }
                     });
                 });
-                auto dpstd_acc = dpstd_buffer.template get_access<sycl::access::mode::write>();
+                auto dpstd_acc = dpstd_buffer.get_host_access(sycl::write_only);
                 for (int i = 0; i < N_GEN; ++i)
                 {
                     sum += dpstd_acc[i];

@@ -3033,7 +3033,7 @@ __pattern_includes(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _
     });
 }
 
-constexpr auto __set_algo_cut_off = 1000;
+inline constexpr auto __set_algo_cut_off = 1000;
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _OutputIterator,
           class _Compare, class _IsVector, class _SizeFunction, class _SetOP>
@@ -4112,7 +4112,7 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
         {
             auto __end = ::std::min(__k + __n, __size);
             __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __k, __end,
-                                          [__first, __k, __n, __is_vector](_DiffType __i, _DiffType __j) {
+                                          [__first, __n, __is_vector](_DiffType __i, _DiffType __j) {
                                               __brick_move<_ExecutionPolicy>{}(__first + __i, __first + __j,
                                                                                __first + __i - __n, __is_vector);
                                           });
@@ -4140,4 +4140,4 @@ __pattern_shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_ALGORITHM_IMPL_H */
+#endif // _ONEDPL_ALGORITHM_IMPL_H

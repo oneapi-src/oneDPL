@@ -69,8 +69,7 @@ struct test_shift
         TestUtils::usm_data_transfer<alloc_type, _ValueType> dt_helper(queue, first, m);
 
         auto ptr = dt_helper.get_data();
-        auto het_res = algo(oneapi::dpl::execution::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)),
-                            ptr, ptr + m, n);
+        auto het_res = algo(TestUtils::make_device_policy<USM<Algo>>(::std::forward<Policy>(exec)), ptr, ptr + m, n);
         _DiffType res_idx = het_res - ptr;
 
         //3.2 check result

@@ -342,7 +342,7 @@ struct transform_view_simple
 
 template <typename _Map>
 auto
-test_map_view(int) -> decltype(::std::declval<_Map>().begin(), ::std::true_type{});
+test_map_view(int) -> decltype(::std::declval<_Map>()[0], ::std::true_type{});
 
 template <typename _Map>
 auto
@@ -466,4 +466,4 @@ struct __range_traits<oneapi::dpl::__ranges::zip_view<_Ranges...>>
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_UTILS_RANGES_H */
+#endif // _ONEDPL_UTILS_RANGES_H

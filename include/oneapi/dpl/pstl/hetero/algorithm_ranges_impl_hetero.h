@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_algorithm_ranges_impl_hetero_H
-#define _ONEDPL_algorithm_ranges_impl_hetero_H
+#ifndef _ONEDPL_ALGORITHM_RANGES_IMPL_HETERO_H
+#define _ONEDPL_ALGORITHM_RANGES_IMPL_HETERO_H
 
 #include "../algorithm_fwd.h"
 #include "../parallel_backend.h"
@@ -311,20 +311,14 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
         return 0;
 
     using _ReduceValueType = oneapi::dpl::__internal::__difference_t<_Range>;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = acc_handler_count<_Predicate>{__predicate};
     auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-               ::std::forward<_ExecutionPolicy>(__exec),
-               unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
-                                             decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-               unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), _NoOpFunctor>{
-                   __identity_reduce_fn, _NoOpFunctor{}},
-               unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
-                   __identity_reduce_fn},
-               unseq_backend::__no_init_value{}, //no initial value
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<
+               _ReduceValueType, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>(
+               ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
+               unseq_backend::__no_init_value{}, // no initial value
                ::std::forward<_Range>(__rng))
         .get();
 }
@@ -552,7 +546,6 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
     using _IteratorValueType = typename ::std::iterator_traits<decltype(__rng.begin())>::value_type;
     using _IndexValueType = oneapi::dpl::__internal::__difference_t<_Range>;
     using _ReduceValueType = oneapi::dpl::__internal::tuple<_IndexValueType, _IteratorValueType>;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = __acc_handler_minelement<_ReduceValueType>{};
     auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
@@ -561,15 +554,10 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
     };
 
     auto __ret_idx =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-            ::std::forward<_ExecutionPolicy>(__exec),
-            unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn),
-                                          decltype(__identity_init_fn)>{__identity_reduce_fn, __identity_init_fn},
-            unseq_backend::transform_init<_ExecutionPolicy, decltype(__identity_reduce_fn), _NoOpFunctor>{
-                __identity_reduce_fn, _NoOpFunctor{}},
-            unseq_backend::reduce<_ExecutionPolicy, decltype(__identity_reduce_fn), _ReduceValueType>{
-                __identity_reduce_fn},
-            unseq_backend::__no_init_value{}, //no initial value
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
+                                                                       decltype(__identity_init_fn)>(
+            ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
+            unseq_backend::__no_init_value{}, // no initial value
             ::std::forward<_Range>(__rng))
             .get();
 
@@ -595,21 +583,14 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
     using _IndexValueType = oneapi::dpl::__internal::__difference_t<_Range>;
     using _ReduceValueType =
         oneapi::dpl::__internal::tuple<_IndexValueType, _IndexValueType, _IteratorValueType, _IteratorValueType>;
-    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     auto __identity_init_fn = __acc_handler_minmaxelement<_ReduceValueType>{};
 
     _ReduceValueType __ret =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType>(
-            ::std::forward<_ExecutionPolicy>(__exec),
-            unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>,
-                                          decltype(__identity_init_fn)>{__identity_reduce_fn<_Compare>{__comp},
-                                                                        __identity_init_fn},
-            unseq_backend::transform_init<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _NoOpFunctor>{
-                __identity_reduce_fn<_Compare>{__comp}, _NoOpFunctor{}},
-            unseq_backend::reduce<_ExecutionPolicy, __identity_reduce_fn<_Compare>, _ReduceValueType>{
-                __identity_reduce_fn<_Compare>{__comp}},
-            unseq_backend::__no_init_value{}, //no initial value
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, __identity_reduce_fn<_Compare>,
+                                                                       decltype(__identity_init_fn)>(
+            ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn<_Compare>{__comp}, __identity_init_fn,
+            unseq_backend::__no_init_value{}, // no initial value
             ::std::forward<_Range>(__rng))
             .get();
 
@@ -712,11 +693,9 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     auto __view2 = experimental::ranges::zip_view(experimental::ranges::views::all_write(__tmp_out_keys),
                                                   experimental::ranges::views::all_write(__idx));
 
-    // use workgroup size as the maximum segment size.
-    ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    // change __wgroup_size according to local memory limit
-    __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(
-        ::std::forward<_ExecutionPolicy>(__exec), sizeof(__key_type) + sizeof(__val_type), __wgroup_size);
+    // use work group size adjusted to shared local memory as the maximum segment size.
+    ::std::size_t __wgroup_size =
+        oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(__key_type) + sizeof(__val_type));
 
     // element is copied if it is the last element (marks end of final segment), is in an index
     // evenly divisible by wg size (ensures segments are not long), or has a key not equal to the
@@ -769,7 +748,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
         __pattern_copy_if(oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__assign_key2_wrapper>(
                               ::std::forward<_ExecutionPolicy>(__exec)),
                           __view3, __view4,
-                          [__m, __result_end, __binary_pred](const auto& __a) {
+                          [__m, __binary_pred](const auto& __a) {
                               // The size of key ranges is one less, so for the last index we do not check the keys,
                               // and we need the index itself as the boundaries of the last subrange.
                               const auto index = ::std::get<0>(__a);
@@ -797,4 +776,4 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_algorithm_ranges_impl_hetero_H */
+#endif // _ONEDPL_ALGORITHM_RANGES_IMPL_HETERO_H

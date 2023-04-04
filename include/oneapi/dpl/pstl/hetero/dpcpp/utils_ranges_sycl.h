@@ -517,9 +517,8 @@ struct __get_sycl_range
         auto buf = copy_direct(__first, __last, copy_direct_tag());
         buf = copy_back(__first, buf, copy_back_tag());
 
-        auto __p_buf = ::std::shared_ptr<oneapi::dpl::__internal::__lifetime_keeper<decltype(buf)>>(
-            new oneapi::dpl::__internal::__lifetime_keeper<decltype(buf)>(buf));
-        m_buffers.push_back(__p_buf);
+        using BufferType = oneapi::dpl::__internal::__lifetime_keeper<decltype(buf)>;
+        m_buffers.push_back(::std::make_shared<BufferType>(buf));
 
         return __buffer_holder<val_t<_Iter>, AccMode>{buf};
     }
@@ -529,4 +528,4 @@ struct __get_sycl_range
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_UTILS_RANGES_SYCL_H */
+#endif // _ONEDPL_UTILS_RANGES_SYCL_H

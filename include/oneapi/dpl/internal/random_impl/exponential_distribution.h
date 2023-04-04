@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Exponential Distribution
 
-#ifndef _ONEDPL_EXPONENTIAL_DISTRIBUTION
-#define _ONEDPL_EXPONENTIAL_DISTRIBUTION
+#ifndef _ONEDPL_EXPONENTIAL_DISTRIBUTION_H
+#define _ONEDPL_EXPONENTIAL_DISTRIBUTION_H
 
 namespace oneapi
 {
@@ -210,4 +210,4 @@ class exponential_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_EXPONENTIAL_DISTRIBUTION
+#endif // _ONEDPL_EXPONENTIAL_DISTRIBUTION_H

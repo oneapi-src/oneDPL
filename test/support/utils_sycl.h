@@ -86,9 +86,9 @@ template <typename _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
 auto
 make_new_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy)))
+    -> decltype(TestUtils::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy)))
 {
-    return oneapi::dpl::execution::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy));
+    return TestUtils::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy));
 }
 
 #if ONEDPL_FPGA_DEVICE
@@ -96,10 +96,10 @@ template <typename _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
 auto
 make_new_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_fpga_policy<::std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
+    -> decltype(TestUtils::make_fpga_policy<::std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
         ::std::forward<_Policy>(__policy)))
 {
-    return oneapi::dpl::execution::make_fpga_policy<::std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
+    return TestUtils::make_fpga_policy<::std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
         ::std::forward<_Policy>(__policy));
 }
 #endif
@@ -116,7 +116,7 @@ make_new_policy(_Policy&& __policy)
 #    if ONEDPL_USE_PREDEFINED_POLICIES
         oneapi::dpl::execution::dpcpp_fpga;
 #    else
-        oneapi::dpl::execution::make_fpga_policy(sycl::queue{default_selector});
+        TestUtils::make_fpga_policy(sycl::queue{default_selector});
 #    endif // ONEDPL_USE_PREDEFINED_POLICIES
 #else
     auto default_selector =

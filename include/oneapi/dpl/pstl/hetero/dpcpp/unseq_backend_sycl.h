@@ -14,8 +14,8 @@
 //===----------------------------------------------------------------------===//
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
-#ifndef _ONEDPL_unseq_backend_sycl_H
-#define _ONEDPL_unseq_backend_sycl_H
+#ifndef _ONEDPL_UNSEQ_BACKEND_SYCL_H
+#define _ONEDPL_UNSEQ_BACKEND_SYCL_H
 
 #include <type_traits>
 
@@ -184,16 +184,72 @@ struct __init_processing
 // transform_reduce
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2>
-struct transform_init
+// TODO: Think about unifying "transform_reduce" structures since their code is very similar.
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp>
+struct transform_reduce_seq
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
 
-    template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
+    template <typename _Size, typename... _Acc>
+    _Tp
+    operator()(const _Size __n, const _Acc&... __acc) const
+    {
+        _Tp __result = __unary_op(0, __acc...);
+        // Add neighbour to the current __result
+        for (_Size __i = 1; __i < __n; ++__i)
+            __result = __binary_op(__result, __unary_op(__i, __acc...));
+        return __result;
+    }
+};
+
+template <typename _ExecutionPolicy, ::std::size_t __iters_per_work_item, typename _Operation1, typename _Operation2>
+struct transform_reduce_known
+{
+    _Operation1 __binary_op;
+    _Operation2 __unary_op;
+
+    template <typename _Size, typename _AccLocal, typename... _Acc>
     void
-    operator()(const _NDItemId __item, _Size __n, ::std::size_t __iters_per_work_item, ::std::size_t __global_id,
-               ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
+    operator()(const ::std::uint16_t __local_id, const _Size __n,
+               const ::std::size_t /* unused __iters_per_work_item */, const ::std::size_t __global_id,
+               const ::std::size_t __global_offset, _AccLocal& __local_mem, const _Acc&... __acc) const
+    {
+        const _Size __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
+        const _Size __adjusted_n = __global_offset + __n;
+        // Add neighbour to the current __local_mem
+        if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
+        {
+            // Keep these statements in the same scope to allow for better memory alignment
+            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+            _ONEDPL_PRAGMA_UNROLL
+            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
+                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
+            __local_mem[__local_id] = __res;
+        }
+        else if (__adjusted_global_id < __adjusted_n)
+        {
+            const _Size __items_to_process = __adjusted_n - __adjusted_global_id;
+            // Keep these statements in the same scope to allow for better memory alignment
+            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+            for (_Size __i = 1; __i < __items_to_process; ++__i)
+                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
+            __local_mem[__local_id] = __res;
+        }
+    }
+};
+
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2>
+struct transform_reduce_unknown
+{
+    _Operation1 __binary_op;
+    _Operation2 __unary_op;
+
+    template <typename _Size, typename _AccLocal, typename... _Acc>
+    void
+    operator()(const ::std::uint16_t __local_id, const _Size __n, const ::std::size_t __iters_per_work_item,
+               const ::std::size_t __global_id, const ::std::size_t __global_offset, _AccLocal& __local_mem,
+               const _Acc&... __acc) const
     {
         ::std::size_t __adjusted_global_id = __global_offset + __iters_per_work_item * __global_id;
         _Size __adjusted_n = __global_offset + __n;
@@ -201,20 +257,20 @@ struct transform_init
         {
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
             // Add neighbour to the current __local_mem
-            for (::std::size_t __i = 1; __i < __iters_per_work_item; ++__i)
+            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
             {
                 ::std::size_t __shifted_id = __adjusted_global_id + __i;
                 if (__shifted_id < __adjusted_n)
                     __res = __binary_op(__res, __unary_op(__shifted_id, __acc...));
             }
-            __local_mem[__item.get_local_id(0)] = __res;
+            __local_mem[__local_id] = __res;
         }
     }
 };
 
 // Reduce on local memory
 template <typename _ExecutionPolicy, typename _BinaryOperation1, typename _Tp>
-struct reduce
+struct reduce_over_group
 {
     _BinaryOperation1 __bin_op1;
 
@@ -661,7 +717,6 @@ struct __scan
               _InitType __init, std::true_type /*has_known_identity*/) const
     {
         auto __group_id = __item.get_group(0);
-        auto __global_id = __item.get_global_id(0);
         auto __local_id = __item.get_local_id(0);
         auto __use_init = __init_processing<_Tp>{};
 
@@ -875,7 +930,7 @@ class __brick_set_op
                                      __internal::__pstl_left_bound(__b, _Size2(0), _Size2(__res), __val_b, __comp);
 
             if constexpr (_IsOpDifference::value)
-                bres = __count_a_left > __count_b;   /*difference*/
+                bres = __count_a_left > __count_b; /*difference*/
             else
                 bres = __count_a_left <= __count_b; /*intersection*/
         }
@@ -951,4 +1006,4 @@ struct __brick_reduce_idx
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_unseq_backend_sycl_H */
+#endif // _ONEDPL_UNSEQ_BACKEND_SYCL_H
