@@ -1,15 +1,9 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-// Copyright (C) Intel Corporation
+// Copyright (C) 2023 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-// This file incorporates work covered by the following copyright and permission
-// notice:
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
 
@@ -86,7 +80,7 @@ namespace experimental {
       }
     }
 
-  
+
     template<typename SelectionHandle, typename Function, typename ...Args>
     auto submit(SelectionHandle h, Function&& f, Args&&... args) {
       if constexpr (!std::is_same_v <SelectionHandle, native_resource_t> || !std::is_same_v <SelectionHandle, execution_resource_t>) {

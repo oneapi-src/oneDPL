@@ -1,15 +1,9 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-// Copyright (C) Intel Corporation
+// Copyright (C) 2023 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-// This file incorporates work covered by the following copyright and permission
-// notice:
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
 
@@ -31,7 +25,7 @@ int main() {
 
   auto n = u.size();
   std::cout << "UNIVERSE SIZE " << n << std::endl;
-  
+
   auto f = [test_resource, u, n](int i) { return u[(i-1)%n]; };
 
   if (test_cout<policy_t>()
