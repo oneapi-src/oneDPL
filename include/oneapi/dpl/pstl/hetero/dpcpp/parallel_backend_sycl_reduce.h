@@ -65,19 +65,18 @@ struct __parallel_transform_reduce_seq_submitter<_Tp, __internal::__optional_ker
             __reduce_op, _TransformOp{__transform_op}};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
-        sycl::buffer<_Tp> __res(sycl::range<1>(1));
+        _Tp* __res = sycl::malloc_host<_Tp>(1, __exec.queue());
 
         sycl::event __reduce_event = __exec.queue().submit([&, __n](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
-            auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
             __cgh.single_task<_Name...>([=] {
                 _Tp __result = __transform_pattern(__n, __rngs...);
                 __reduce_pattern.apply_init(__init, __result);
-                __res_acc[0] = __result;
+                __res[0] = __result;
             });
         });
 
-        return __future(__reduce_event, __res);
+        return __reduce_future(::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __res);
     }
 };
 
@@ -120,11 +119,10 @@ struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_pe
 
         const _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
-        sycl::buffer<_Tp> __res(sycl::range<1>(1));
+        _Tp* __res = sycl::malloc_host<_Tp>(1, __exec.queue());
 
         sycl::event __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
-            auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size), sycl::range<1>(__work_group_size)),
@@ -140,12 +138,12 @@ struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_pe
                     if (__local_idx == 0)
                     {
                         __reduce_pattern.apply_init(__init, __result);
-                        __res_acc[0] = __result;
+                        __res[0] = __result;
                     }
                 });
         });
 
-        return __future(__reduce_event, __res);
+        return __reduce_future(::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __res);
     }
 }; // struct __parallel_transform_reduce_small_submitter
 
@@ -216,7 +214,7 @@ struct __parallel_transform_reduce_impl
 
         // Create temporary global buffers to store temporary values
         sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
-        sycl::buffer<_Tp> __res(sycl::range<1>(1));
+        _Tp* __res = sycl::malloc_host<_Tp>(1, __exec.queue());
         // __is_first == true. Reduce over each work_group
         // __is_first == false. Reduce between work groups
         bool __is_first = true;
@@ -234,8 +232,7 @@ struct __parallel_transform_reduce_impl
                 __cgh.depends_on(__reduce_event);
 
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
-                auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-                auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
+                auto __temp_acc = sycl::accessor(__temp, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
                 __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
@@ -269,7 +266,7 @@ struct __parallel_transform_reduce_impl
                             if (__n_groups == 1)
                             {
                                 __reduce_op.apply_init(__init, __result);
-                                __res_acc[0] = __result;
+                                __res[0] = __result;
                             }
 
                             __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
@@ -284,7 +281,7 @@ struct __parallel_transform_reduce_impl
             __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         } while (__n > 1);
 
-        return __future(__reduce_event, __res);
+        return __reduce_future(::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __res);
     }
 }; // struct __parallel_transform_reduce_impl
 

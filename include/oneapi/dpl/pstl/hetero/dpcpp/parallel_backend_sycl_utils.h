@@ -573,6 +573,45 @@ class __future : private std::tuple<_Args...>
     }
 };
 
+// A contract for a future class for reduce: <execution policy, sycl::event, USM host memory for the reduced value>
+template <typename _ExecutionPolicy, typename _Event, typename _Res>
+class __reduce_future
+{
+    _ExecutionPolicy __my_exec;
+    _Event __my_event;
+    _Res __my_res;
+
+  public:
+    __reduce_future(_ExecutionPolicy __exec, _Event __e, _Res __res)
+        : __my_exec(__exec), __my_event(__e), __my_res(__res)
+    {
+    }
+
+    auto
+    event() const
+    {
+        return __my_event;
+    }
+    operator _Event() const { return event(); }
+    void
+    wait()
+    {
+#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        __my_event.wait_and_throw();
+#endif
+    }
+
+    auto
+    get()
+    {
+        using _Tp = typename ::std::remove_pointer<_Res>::type;
+        __my_event.wait();
+        _Tp __local_val = __my_res[0];
+        sycl::free(__my_res, __my_exec.queue());
+        return __local_val;
+    }
+};
+
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
