@@ -17,6 +17,7 @@
 #define _ONEDPL_PARALLEL_BACKEND_SYCL_UTILS_H
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
+#include <memory>
 #include <type_traits>
 #include <tuple>
 
@@ -579,15 +580,19 @@ class __reduce_future
 {
     _ExecutionPolicy __my_exec;
     _Event __my_event;
-    _Res __my_res;
+    ::std::shared_ptr<_Res> __my_res;
 
   public:
-    __reduce_future(_ExecutionPolicy __exec, _Event __e, _Res __res)
-        : __my_exec(__exec), __my_event(__e), __my_res(__res)
+    __reduce_future(const _ExecutionPolicy& __exec, _Event __e, _Res __res)
+        : __my_exec(__exec), __my_event(__e), __my_res(::std::make_shared<_Res>(__res))
     {
     }
 
-    ~__reduce_future() { sycl::free(__my_res, __my_exec.queue()); }
+    ~__reduce_future()
+    {
+        if (__my_res.use_count() == 1)
+            sycl::free(*__my_res.get(), __my_exec.queue());
+    }
 
     auto
     event() const
@@ -606,8 +611,8 @@ class __reduce_future
     auto
     get()
     {
-        __my_event.wait();
-        return __my_res[0];
+        __my_event.wait_and_throw();
+        return *__my_res.get()[0];
     }
 };
 
