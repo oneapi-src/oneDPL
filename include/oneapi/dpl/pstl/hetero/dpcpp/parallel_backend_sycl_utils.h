@@ -606,6 +606,10 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
 #endif
                 return __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _Xs...>>::__dispatch(
                     ::std::forward<_F>(__f), __x, ::std::forward<_Args>(args)...);
+        using _Tp = typename ::std::remove_pointer<_Res>::type;
+        _Tp __local_val = __my_res[0];
+        sycl::free(__my_res, __my_exec.queue());
+        return __my_res[0];
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
