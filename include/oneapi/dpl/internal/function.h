@@ -216,4 +216,4 @@ class transform_if_stencil_fun
 } // namespace internal
 } // namespace dpl
 } // namespace oneapi
-#endif
+#endif // _ONEDPL_INTERNAL_FUNCTION_H

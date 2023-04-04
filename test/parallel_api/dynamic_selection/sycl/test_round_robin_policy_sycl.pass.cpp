@@ -22,8 +22,16 @@
 int main() {
   using policy_t = oneapi::dpl::experimental::round_robin_policy;
   std::vector<sycl::queue> u;
-  sycl::queue test_resource = build_universe(u);
+  build_universe(u);
+  if (u.empty()) {
+    std::cout << "PASS\n";
+    return 0;
+  }
+  sycl::queue test_resource = u[0];
+
   auto n = u.size();
+  std::cout << "UNIVERSE SIZE " << n << std::endl;
+  
   auto f = [test_resource, u, n](int i) { return u[(i-1)%n]; };
 
   if (test_cout<policy_t>()

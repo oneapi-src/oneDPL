@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Weibull Distribution
 
-#ifndef _ONEDPL_WEIBULL_DISTRIBUTION
-#define _ONEDPL_WEIBULL_DISTRIBUTION
+#ifndef _ONEDPL_WEIBULL_DISTRIBUTION_H
+#define _ONEDPL_WEIBULL_DISTRIBUTION_H
 
 namespace oneapi
 {
@@ -219,4 +219,4 @@ class weibull_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_WEIBULL_DISTRIBUTION
+#endif // _ONEDPL_WEIBULL_DISTRIBUTION_H

@@ -93,4 +93,4 @@ void inclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Si
             res[i] = binary_op(res[i - 1], vals[i]);
 }
 
-#endif //  _SCAN_SERIAL_IMPL_H
+#endif // _SCAN_SERIAL_IMPL_H

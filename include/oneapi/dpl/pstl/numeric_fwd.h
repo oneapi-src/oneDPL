@@ -156,4 +156,4 @@ __pattern_adjacent_difference(_ExecutionPolicy&&, _RandomAccessIterator, _Random
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
-#endif /* _ONEDPL_NUMERIC_FWD_H */
+#endif // _ONEDPL_NUMERIC_FWD_H

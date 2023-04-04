@@ -37,6 +37,44 @@ struct unique_kernel_name;
 template <typename Policy, int idx>
 using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
 
+/**
+ * make_policy functions test wrappers
+ * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
+ * oneapi::dpl::execution::device_policy function calls depend on TEST_EXPLICIT_KERNEL_NAMES macro state.
+ * 
+ * ATTENTION: Please avoid using oneapi::dpl::execution::device_policy directly in the tests.
+ */
+template <typename KernelName = oneapi::dpl::execution::DefaultKernelName, typename Arg>
+inline auto
+make_device_policy(Arg&& arg)
+{
+#if TEST_EXPLICIT_KERNEL_NAMES
+    return oneapi::dpl::execution::make_device_policy<KernelName>(::std::forward<Arg>(arg));
+#else
+    return oneapi::dpl::execution::make_device_policy(::std::forward<Arg>(arg));
+#endif // TEST_EXPLICIT_KERNEL_NAMES
+}
+
+#if _ONEDPL_FPGA_DEVICE
+/**
+ * make_fpga_policy functions test wrappers
+ * The main purpose of this function wrapper in TestUtils namespace - to cut template params from
+ * oneapi::dpl::execution::device_policy function calls depend on TEST_EXPLICIT_KERNEL_NAMES macro state.
+ * 
+ * ATTENTION: Please avoid using oneapi::dpl::execution::make_fpga_policy directly in tests.
+ */
+template <unsigned int unroll_factor = 1, typename KernelName = oneapi::dpl::execution::DefaultKernelNameFPGA, typename Arg>
+inline auto
+make_fpga_policy(Arg&& arg)
+{
+#if TEST_EXPLICIT_KERNEL_NAMES
+    return oneapi::dpl::execution::make_fpga_policy<unroll_factor, KernelName>(::std::forward<Arg>(arg));
+#else
+    return oneapi::dpl::execution::make_fpga_policy<unroll_factor>(::std::forward<Arg>(arg));
+#endif // TEST_EXPLICIT_KERNEL_NAMES
+}
+#endif // _ONEDPL_FPGA_DEVICE
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -51,9 +89,9 @@ struct invoke_on_all_host_policies
 
 #if !TEST_ONLY_HETERO_POLICIES
         // Try static execution policies
-        invoke_on_all_iterator_types()(seq,       op, ::std::forward<T>(rest)...);
-        invoke_on_all_iterator_types()(unseq,     op, ::std::forward<T>(rest)...);
-        invoke_on_all_iterator_types()(par,       op, ::std::forward<T>(rest)...);
+        invoke_on_all_iterator_types()(seq,       op, rest...);
+        invoke_on_all_iterator_types()(unseq,     op, rest...);
+        invoke_on_all_iterator_types()(par,       op, rest...);
         invoke_on_all_iterator_types()(par_unseq, op, ::std::forward<T>(rest)...);
 #endif
     }
@@ -139,9 +177,9 @@ struct invoke_on_all_hetero_policies
             using kernel_name = unique_kernel_name<Op, CallNumber>;
             auto my_policy =
 #if ONEDPL_FPGA_DEVICE
-                oneapi::dpl::execution::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(queue);
+                TestUtils::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(queue);
 #else
-                oneapi::dpl::execution::make_device_policy<kernel_name>(queue);
+                TestUtils::make_device_policy<kernel_name>(queue);
 #endif
             iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
                 my_policy, op, ::std::forward<Args>(rest)...);
@@ -162,10 +200,12 @@ struct invoke_on_all_policies
     void
     operator()(Op op, T&&... rest)
     {
-        invoke_on_all_host_policies()(op, ::std::forward<T>(rest)...);
 #if TEST_DPCPP_BACKEND_PRESENT
+        invoke_on_all_host_policies()(op, rest...);
         invoke_on_all_hetero_policies<CallNumber>()(op, ::std::forward<T>(rest)...);
-#endif
+#else
+        invoke_on_all_host_policies()(op, ::std::forward<T>(rest)...);
+#endif // TEST_DPCPP_BACKEND_PRESENT
     }
 };
 

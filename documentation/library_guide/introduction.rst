@@ -60,6 +60,19 @@ To use Parallel API with the device execution policies, you need to install the 
 
 * A C++ compiler with support for SYCL 2020
 
+Difference with Standard C++ Parallel Algorithms
+************************************************
+
+* oneDPL execution policies only result in parallel execution if random access iterators are provided,
+  the execution will remain serial for other iterator types.
+* For the following algorithms, par_unseq and unseq policies do not result in vectorized execution:
+  ``includes``, ``inplace_merge``, ``merge``, ``set_difference``, ``set_intersection``,
+  ``set_symmetric_difference``, ``set_union``, ``stable_partition``, ``unique``.
+* The following algorithms require additional O(n) memory space for parallel execution:
+  ``copy_if``, ``inplace_merge``, ``partial_sort``, ``partial_sort_copy``, ``partition_copy``,
+  ``remove``, ``remove_if``, ``rotate``, ``sort``, ``stable_sort``, ``unique``, ``unique_copy``.
+
+
 Restrictions
 ************
 
@@ -78,11 +91,13 @@ When called with |dpcpp_short| execution policies, |onedpl_short| algorithms app
 Known Limitations
 *****************
 
-* For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms, the result of the unary operation should be
+* For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms the result of the unary operation should be
   convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
 * ``exclusive_scan`` and ``transform_exclusive_scan`` algorithms may provide wrong results with
   vector execution policies when building a program with GCC 10 and using ``-O0`` option.
+* Compiling ``reduce`` and ``transform_reduce`` algorithms with the Intel DPC++ Compiler, versions 2021 and older,
+  may result in a runtime error. To fix this issue, use an Intel DPC++ Compiler version 2022 or newer.
 * The use of |onedpl_short| together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
   compilation errors (caused by oneTBB API changes).
   Using libstdc++ version 9 requires TBB version 2020 for the header file. This may result in compilation errors when
@@ -98,6 +113,18 @@ Known Limitations
 * Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
   (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
   for double precision. 
+* The initial value type for ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
+  ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan`` should satisfy
+  the ``DefaultConstructible`` requirements. Additionally, a default-constructed instance of that type should be
+  the identity element for the provided scan binary operation. 
+* The initial value type for ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
+  ``inclusive_scan_by_segment``, ``reduce``, ``reduce_by_segment``, ``transform_reduce``, ``transform_exclusive_scan``,
+  ``transform_inclusive_scan`` should satisfy the ``MoveAssignable`` and the ``CopyConstructible`` requirements.
+* For ``max_element``, ``min_element``, ``minmax_element``, ``partial_sort``, ``partial_sort_copy``, ``sort``, ``stable_sort``
+  the dereferenced value type of the provided iterators should satisfy the ``DefaultConstructible`` requirements.
+* For ``remove``, ``remove_if``, ``unique`` the dereferenced value type of the provided
+  iterators should be ``MoveConstructible``.
+        
 
 Build Your Code with |onedpl_short|
 ===================================

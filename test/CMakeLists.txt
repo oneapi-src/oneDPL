@@ -15,12 +15,37 @@
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
-# disable fast math for ALL TESTS
-check_cxx_compiler_flag("-fno-fast-math" _fno_fast_math_option)
+# disable fast math for ALL TESTS 
+# icpx and dpcpp accept -fno-fast-math, but icx-cl and dpcpp-cl only accept /clang:-fno-fast-math
+foreach(_fno_fast_math_flag -fno-fast-math /clang:-fno-fast-math)
+    string(MAKE_C_IDENTIFIER ${_fno_fast_math_flag} FLAG_DISPLAY_NAME)
+    check_cxx_compiler_flag(${_fno_fast_math_flag} ${FLAG_DISPLAY_NAME}_option)
+    if (${FLAG_DISPLAY_NAME}_option)
+        target_compile_options(oneDPL INTERFACE ${_fno_fast_math_flag})
+        set(_fno_fast_math_option ${_fno_fast_math_flag})
+        break()
+    endif()
+endforeach()
 if (_fno_fast_math_option)
-    add_compile_options("-fno-fast-math")
+    add_compile_options(${_fno_fast_math_option})
 else()
     message(STATUS "oneDPL: -fno-fast-math is not supported by current compiler")
+endif()
+
+# usage of Kernel names in tests
+set(ONEDPL_TEST_EXPLICIT_KERNEL_NAMES AUTO CACHE STRING "Use explicit Kernel names in tests")
+set_property(CACHE ONEDPL_TEST_EXPLICIT_KERNEL_NAMES PROPERTY STRINGS AUTO ALWAYS)
+message(STATUS "Usage of Kernel names in tests: ONEDPL_TEST_EXPLICIT_KERNEL_NAMES=${ONEDPL_TEST_EXPLICIT_KERNEL_NAMES}")
+if (${ONEDPL_TEST_EXPLICIT_KERNEL_NAMES} STREQUAL AUTO)
+    message(STATUS "    Usage of Kernel names in tests depend on unnamed lambda option")
+    # State of TEST_EXPLICIT_KERNEL_NAMES will be definel later in C++ code
+elseif(${ONEDPL_TEST_EXPLICIT_KERNEL_NAMES} STREQUAL ALWAYS)
+    add_definitions(-DTEST_EXPLICIT_KERNEL_NAMES=1)
+    message(STATUS "    Use Kernel names in tests :")
+    message(STATUS "        #define TEST_EXPLICIT_KERNEL_NAMES 1")
+else()
+    message(FATAL_ERROR "Unsupported explicit Kernel names usage in tests: ${ONEDPL_TEST_EXPLICIT_KERNEL_NAMES}.\n"
+            "Select one of the following values: AUTO, ALWAYS")
 endif()
 
 add_custom_target(build-onedpl-tests
@@ -69,14 +94,12 @@ macro(onedpl_add_test test_source_file)
     endif()
 
     set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
-    if (ONEDPL_DEVICE_TYPE)
-        if (ONEDPL_DEVICE_TYPE MATCHES "FPGA")
-            set(SYCL_DEVICE_FILTER *:acc)
-        else()
-            string(TOLOWER ${ONEDPL_DEVICE_TYPE} ONEDPL_DEVICE_TYPE)
-            set(SYCL_DEVICE_FILTER ${ONEDPL_DEVICE_BACKEND}:${ONEDPL_DEVICE_TYPE})
+
+    if (DEFINED DEVICE_SELECTION_LINE)
+        file(GLOB_RECURSE DS_TESTS "parallel_api/dynamic_selection/*.cpp")
+        if (NOT "${DS_TESTS}" MATCHES "${_test_name}") # do not set SYCL_DEVICE_FILTER for device selector tests
+            set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
         endif()
-        set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT SYCL_DEVICE_FILTER=${SYCL_DEVICE_FILTER})
     endif()
 
     add_custom_target(run-${_test_name}

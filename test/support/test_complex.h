@@ -151,6 +151,7 @@ namespace TestUtils
                             [fncDoubleHasntSupportInRuntime]() { fncDoubleHasntSupportInRuntime(); });
                     });
             }
+            deviceQueue.wait_and_throw();
         }
         catch (const std::exception& exc)
         {
@@ -167,4 +168,4 @@ namespace TestUtils
 
 } /* namespace TestUtils */
 
-#endif /* _TEST_COMPLEX_H */
+#endif // _TEST_COMPLEX_H

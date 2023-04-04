@@ -214,4 +214,4 @@ struct __op_uninitialized_value_construct<_ExecutionPolicy>
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_MEMORY_IMPL_H */
+#endif // _ONEDPL_MEMORY_IMPL_H

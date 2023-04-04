@@ -22,6 +22,7 @@
 #include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
 
+#include <atomic>
 #include <vector>
 #include <memory>
 #include <list>
@@ -61,6 +62,12 @@ namespace experimental {
 
       void wait() override {
         w_.wait();
+        if (wait_reported_->exchange(true) == false) {
+          if constexpr (PropertyHandle::should_report_task_completion) {
+            property::report(p_, property::task_completion);
+          }
+        }
+
       }
     };
 
@@ -79,12 +86,17 @@ namespace experimental {
       }
     }
 
+  
     template<typename SelectionHandle, typename Function, typename ...Args>
     auto submit(SelectionHandle h, Function&& f, Args&&... args) {
-      using PropertyHandle = typename SelectionHandle::property_handle_t;
-      auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), f(h.get_native(), std::forward<Args>(args)...));
-      waiters_.push(w);
-      return *w;
+      if constexpr (!std::is_same_v <SelectionHandle, native_resource_t> || !std::is_same_v <SelectionHandle, execution_resource_t>) {
+          using PropertyHandle = typename SelectionHandle::property_handle_t;
+          auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), f(h.get_native(), std::forward<Args>(args)...));
+          waiters_.push(w);
+          return *w;
+      } else {
+        return;
+      }
     }
 
     auto get_wait_list(){

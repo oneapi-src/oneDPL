@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Discard Block Engine
 
-#ifndef _ONEDPL_DISCARD_BLOCK_ENGINE
-#define _ONEDPL_DISCARD_BLOCK_ENGINE
+#ifndef _ONEDPL_DISCARD_BLOCK_ENGINE_H
+#define _ONEDPL_DISCARD_BLOCK_ENGINE_H
 
 #include <cstddef>
 #include <utility>
@@ -216,4 +216,4 @@ class discard_block_engine
 } // namespace dpl
 } // namespace oneapi
 
-#endif // ifndef _ONEDPL_DISCARD_BLOCK_ENGINE
+#endif // _ONEDPL_DISCARD_BLOCK_ENGINE_H

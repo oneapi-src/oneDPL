@@ -118,7 +118,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     internal::__buffer<policy_type, FlagType> _flags(policy, n);
     {
         auto flag_buf = _flags.get_buffer();
-        auto flags = flag_buf.template get_access<sycl::access::mode::read_write>();
+        auto flags = flag_buf.get_host_access(sycl::read_write);
         flags[0] = 1;
     }
 
@@ -129,7 +129,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     internal::__buffer<policy_type, OutputType> _temp(policy, n);
     {
         auto temp_buf = _temp.get_buffer();
-        auto temp = temp_buf.template get_access<sycl::access::mode::read_write>();
+        auto temp = temp_buf.get_host_access(sycl::read_write);
 
         temp[0] = init;
     }
@@ -236,4 +236,4 @@ exclusive_scan_by_key(Policy&& policy, InputIterator1 first1, InputIterator1 las
 } // end namespace dpl
 } // end namespace oneapi
 
-#endif
+#endif // _ONEDPL_EXCLUSIVE_SCAN_BY_SEGMENT_IMPL_H

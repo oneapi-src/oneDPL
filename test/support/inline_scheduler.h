@@ -54,6 +54,9 @@ struct int_inline_scheduler_t {
     }
     void wait() override {
       if (wait_reported_->exchange(true) == false) {
+        if constexpr (PropertyHandle::should_report_task_completion) {
+          oneapi::dpl::experimental::property::report(p_, oneapi::dpl::experimental::property::task_completion);
+        }
       }
     }
   };
@@ -73,10 +76,14 @@ struct int_inline_scheduler_t {
 
   template<typename SelectionHandle, typename Function, typename ...Args>
   auto submit(SelectionHandle h, Function&& f, Args&&... args) {
-    using PropertyHandle = typename SelectionHandle::property_handle_t;
-    auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), std::forward<Function>(f)(h.get_native(), std::forward<Args>(args)...));
-    waiters_.push(w);
-    return *w;
+    if constexpr (!std::is_same_v <SelectionHandle, native_resource_t> || !std::is_same_v <SelectionHandle, execution_resource_t>) {
+      using PropertyHandle = typename SelectionHandle::property_handle_t;
+      auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), std::forward<Function>(f)(h.get_native(), std::forward<Args>(args)...));
+      waiters_.push(w);
+      return *w;
+    } else {
+      return;
+    }
   }
 
   auto get_wait_list(){

@@ -9,13 +9,14 @@ The following variables are provided for oneDPL configuration:
 | Variable                     | Type   | Description                                                                                   | Default value |
 |------------------------------|--------|-----------------------------------------------------------------------------------------------|---------------|
 | ONEDPL_BACKEND               | STRING | Threading backend; supported values: tbb, dpcpp, dpcpp_only, serial, ...; the default value is defined by compiler: dpcpp for DPC++ and tbb for others | tbb/dpcpp |
-| ONEDPL_DEVICE_TYPE           | STRING | Device type, applicable only for DPC++ backends; supported values: GPU, CPU, FPGA_HW, FPGA_EMU | GPU           |
-| ONEDPL_DEVICE_BACKEND        | STRING | Device backend type, applicable only for oneDPL DPC++ backends; supported values: opencl, level_zero. | Any(*) |
+| ONEDPL_DEVICE_TYPE           | STRING | Select device type for oneDPL test targets; affects only DPC++ backends; supported values: GPU, CPU, FPGA_HW, FPGA_EMU | GPU           |
+| ONEDPL_DEVICE_BACKEND        | STRING | Select device backend type for oneDPL test targets; affects only oneDPL DPC++ backends; supported values: opencl, level_zero, cuda, hip or * (the best backend as per DPC++ runtime heuristics). | * |
 | ONEDPL_USE_UNNAMED_LAMBDA    | BOOL   | Pass `-fsycl-unnamed-lambda`, `-fno-sycl-unnamed-lambda` compile options or nothing           |               |
 | ONEDPL_FPGA_STATIC_REPORT    | BOOL   | Enable the static report generation for the FPGA_HW device type                               | OFF           |
-| ONEDPL_USE_AOT_COMPILATION   | BOOL   | Enable the ahead of time compilation via OpenCL™ Offline Compiler (OCLOC)                     | OFF           |
+| ONEDPL_USE_AOT_COMPILATION   | BOOL   | Enable ahead-of-time compilation for the GPU or CPU device types                              | OFF           |
 | ONEDPL_ENABLE_SIMD           | BOOL   | Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported; the flag is passed to user project compilation string if enabled | ON           |
-| ONEDPL_AOT_ARCH              | STRING | Architecture options for the ahead of time compilation, supported values can be found [here](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html); the default value `*` means compilation for all available options | *             |
+| ONEDPL_AOT_ARCH              | STRING | Architecture options for ahead-of-time compilation, supported values can be found [here](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html)                                                                                            | "*" for GPU device and "avx" for CPU device |
+| ONEDPL_TEST_EXPLICIT_KERNEL_NAMES   | STRING | Control kernel naming. Affects only oneDPL test targets. Supported values: AUTO, ALWAYS. AUTO: rely on the compiler if "Unnamed SYCL lambda kernels" feature is on, otherwise provide kernel names explicitly; ALWAYS: provide kernel names explicitly | AUTO          |
 
 Some useful CMake variables ([here](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) you can find a full list of CMake variables for the latest version):
 
@@ -108,4 +109,8 @@ This section is applicable for oneDPL packaging creation process, but not for us
 
 How to use:
 
-`cmake [-DOUTPUT_DIR=<output_dir>] -P cmake/scripts/generate_config.cmake`
+`cmake [-DSKIP_HEADERS_SUBDIR=<TRUE|FALSE>] [-DOUTPUT_DIR=<output_dir>] -P cmake/scripts/generate_config.cmake`
+
+When `SKIP_HEADERS_SUBDIR` is set to false or not defined (by default), the script adds the subdirectories:
+- `windows` and `linux` for headers in `<prefix></subdirectory>/include` pattern.
+- `pkgconfig-win` and `pkgconfig-lin` for pkg-config files in `<prefix></subdirectory>/dpl.pc` pattern.

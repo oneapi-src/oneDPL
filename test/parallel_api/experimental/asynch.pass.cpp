@@ -37,40 +37,40 @@ void test1_with_buffers()
         sycl::buffer<int> y{n};
         sycl::buffer<int> z{n};
 
-        auto my_policy = oneapi::dpl::execution::make_device_policy<class Copy1>(oneapi::dpl::execution::dpcpp_default);
+        auto my_policy = TestUtils::make_device_policy<class Copy1>(oneapi::dpl::execution::dpcpp_default);
         auto res_1a = oneapi::dpl::experimental::copy_async(my_policy, oneapi::dpl::counting_iterator<int>(0),
                                                             oneapi::dpl::counting_iterator<int>(n),
                                                             oneapi::dpl::begin(x)); // x = [0..n]
-        auto my_policy1 = oneapi::dpl::execution::make_device_policy<class Fill1>(my_policy);
+        auto my_policy1 = TestUtils::make_device_policy<class Fill1>(my_policy);
         auto res_1b = oneapi::dpl::experimental::fill_async(my_policy1, oneapi::dpl::begin(y), oneapi::dpl::end(y),
                                                             7); // y = [7..7]
-        auto my_policy2 = oneapi::dpl::execution::make_device_policy<class ForEach1>(my_policy);
+        auto my_policy2 = TestUtils::make_device_policy<class ForEach1>(my_policy);
         auto res_2a = oneapi::dpl::experimental::for_each_async(
             my_policy2, oneapi::dpl::begin(x), oneapi::dpl::end(x), [](int& e) { ++e; }, res_1a); // x = [1..n]
-        auto my_policy3 = oneapi::dpl::execution::make_device_policy<class Transform1>(my_policy);
+        auto my_policy3 = TestUtils::make_device_policy<class Transform1>(my_policy);
         auto res_2b = oneapi::dpl::experimental::transform_async(
             my_policy3, oneapi::dpl::begin(y), oneapi::dpl::end(y), oneapi::dpl::begin(y),
             [](const int& e) { return e / 2; },
             res_1b); // y = [3..3]
 
-        auto my_policy4 = oneapi::dpl::execution::make_device_policy<class Transform2>(my_policy);
+        auto my_policy4 = TestUtils::make_device_policy<class Transform2>(my_policy);
         auto res_3 = oneapi::dpl::experimental::transform_async(my_policy4, oneapi::dpl::begin(x), oneapi::dpl::end(x),
                                                                 oneapi::dpl::begin(y), oneapi::dpl::begin(z),
                                                                 std::plus<int>(), res_2a, res_2b); // z = [4..n+3]
-        auto my_policy5 = oneapi::dpl::execution::make_device_policy<class Reduce1>(my_policy);
+        auto my_policy5 = TestUtils::make_device_policy<class Reduce1>(my_policy);
         auto alpha = oneapi::dpl::experimental::reduce_async(my_policy5, oneapi::dpl::begin(x), oneapi::dpl::end(x), 0,
                                                              std::plus<int>(),
                                                              res_2a)
                          .get(); // alpha = n*(n+1)/2
-        auto my_policy6 = oneapi::dpl::execution::make_device_policy<class Reduce2>(my_policy);
+        auto my_policy6 = TestUtils::make_device_policy<class Reduce2>(my_policy);
         auto beta =
             oneapi::dpl::experimental::transform_reduce_async(my_policy6, oneapi::dpl::begin(z), oneapi::dpl::end(z), 0,
                                                               std::plus<int>(), [=](int e) { return alpha * e; });
 
-        auto my_policy7 = oneapi::dpl::execution::make_device_policy<class Scan>(my_policy);
+        auto my_policy7 = TestUtils::make_device_policy<class Scan>(my_policy);
         auto gamma = oneapi::dpl::experimental::transform_inclusive_scan_async(my_policy6, oneapi::dpl::begin(x), oneapi::dpl::end(x),oneapi::dpl::begin(y), std::plus<int>(), [](auto x) { return x * 10; }, 0);
 
-        auto my_policy8 = oneapi::dpl::execution::make_device_policy<class Sort>(my_policy);
+        auto my_policy8 = TestUtils::make_device_policy<class Sort>(my_policy);
         auto delta = oneapi::dpl::experimental::sort_async(my_policy8, oneapi::dpl::begin(y), oneapi::dpl::end(y), std::greater<int>(), gamma);
 
         oneapi::dpl::experimental::wait_for_all(sycl::event{},beta,gamma,delta);
@@ -78,7 +78,7 @@ void test1_with_buffers()
         const int expected1 = (n * (n + 1) / 2) * ((n + 3) * (n + 4) / 2 - 6);
         const int expected2 = (n * (n + 1) / 2) * 10;
         auto result1 = beta.get();
-        auto result2 = y.get_access<sycl::access::mode::read>()[0];
+        auto result2 = y.get_host_access(sycl::read_only)[0];
 
         EXPECT_TRUE(result1 == expected1 && result2 == expected2, "wrong effect from async test (I) with sycl buffer");
     }
@@ -92,24 +92,24 @@ void test2_with_buffers()
         sycl::buffer<float> y{n};
         sycl::buffer<float> z{n};
 
-        auto my_policy = oneapi::dpl::execution::make_device_policy<class Copy2a>(oneapi::dpl::execution::dpcpp_default);
+        auto my_policy = TestUtils::make_device_policy<class Copy2a>(oneapi::dpl::execution::dpcpp_default);
         auto res_1a = oneapi::dpl::experimental::copy_async(my_policy, oneapi::dpl::counting_iterator<int>(0),
                                                                 oneapi::dpl::counting_iterator<int>(n),
                                                                 oneapi::dpl::begin(x)); // x = [1..n]
         auto alpha = 1.0f;
-        auto my_policy6 = oneapi::dpl::execution::make_device_policy<class Scan2a>(my_policy);
+        auto my_policy6 = TestUtils::make_device_policy<class Scan2a>(my_policy);
         auto beta = oneapi::dpl::experimental::transform_inclusive_scan_async(my_policy6, oneapi::dpl::begin(x), oneapi::dpl::end(x), oneapi::dpl::begin(y), std::plus<float>(), [=](auto x) { return x * alpha; }, 0.0f, res_1a);
         
-        auto my_policy1 = oneapi::dpl::execution::make_device_policy<class Fill2a>(my_policy);
+        auto my_policy1 = TestUtils::make_device_policy<class Fill2a>(my_policy);
         auto res_1b = oneapi::dpl::experimental::fill_async(my_policy1, oneapi::dpl::begin(x), oneapi::dpl::end(x),
                                                             -1.0f, beta);
 
         auto input1 = oneapi::dpl::counting_iterator<int>(0);
-        auto my_policy7 = oneapi::dpl::execution::make_device_policy<class Scan2b>(my_policy);
+        auto my_policy7 = TestUtils::make_device_policy<class Scan2b>(my_policy);
         auto gamma = oneapi::dpl::experimental::inclusive_scan_async(my_policy7, input1, input1 + n, oneapi::dpl::begin(z), std::plus<float>(), 0.0f);
 
-        auto result1 = gamma.get().get_buffer().get_access<sycl::access::mode::read>()[n-1];
-        auto result2 = beta.get().get_buffer().get_access<sycl::access::mode::read>()[n-1];
+        auto result1 = gamma.get().get_buffer().get_host_access(sycl::read_only)[n-1];
+        auto result2 = beta.get().get_buffer().get_host_access(sycl::read_only)[n-1];
 
         const float expected1 = static_cast<float>(n * (n - 1) / 2);
         EXPECT_TRUE(fabs(result1-expected1) <= 0.001f && fabs(result2-expected1) <= 0.001f, "wrong effect from async test (II) with sycl buffer");
@@ -158,19 +158,19 @@ test_with_usm()
     const std::uint64_t ref2 = std::accumulate(data1_on_host, data1_on_host + n_small, 0);
 
     // call first algorithm
-    auto new_policy1 = oneapi::dpl::execution::make_device_policy<
+    auto new_policy1 = TestUtils::make_device_policy<
         TestUtils::unique_kernel_name<class async1, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
     auto fut1 =
         oneapi::dpl::experimental::transform_reduce_async(new_policy1, data2, data2 + n, data1, 0,
                                                           std::plus<std::uint64_t>(), std::multiplies<std::uint64_t>());
 
     // call second algorithm and wait for result
-    auto new_policy2 = oneapi::dpl::execution::make_device_policy<
+    auto new_policy2 = TestUtils::make_device_policy<
         TestUtils::unique_kernel_name<class async2, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
     auto res2 = oneapi::dpl::experimental::reduce_async(new_policy2, data1, data1 + n_small).get();
 
     // call third algorithm that has to wait for first to complete
-    auto new_policy3 = oneapi::dpl::execution::make_device_policy<
+    auto new_policy3 = TestUtils::make_device_policy<
         TestUtils::unique_kernel_name<class async3, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
     oneapi::dpl::experimental::sort_async(new_policy3, data2, data2 + n, fut1);
 

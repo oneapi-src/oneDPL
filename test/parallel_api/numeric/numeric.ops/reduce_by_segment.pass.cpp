@@ -44,10 +44,10 @@ void test_with_buffers()
     sycl::buffer<T, 1> val_res_buf{ sycl::range<1>(13) };
 
     {
-        auto keys    = key_buf.template get_access<sycl::access::mode::read_write>();
-        auto vals    = val_buf.template get_access<sycl::access::mode::read_write>();
-        auto keys_res    = key_res_buf.template get_access<sycl::access::mode::read_write>();
-        auto vals_res    = val_res_buf.template get_access<sycl::access::mode::read_write>();
+        auto keys    = key_buf.get_host_access(sycl::read_write);
+        auto vals    = val_buf.get_host_access(sycl::read_write);
+        auto keys_res    = key_res_buf.get_host_access(sycl::read_write);
+        auto vals_res    = val_res_buf.get_host_access(sycl::read_write);
 
         //T keys[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
         //T vals[n1] = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 };
@@ -81,15 +81,15 @@ void test_with_buffers()
     auto val_res_beg = oneapi::dpl::begin(val_res_buf);
 
     // create named policy from existing one
-    auto new_policy = oneapi::dpl::execution::make_device_policy<KernelName>(oneapi::dpl::execution::dpcpp_default);
+    auto new_policy = TestUtils::make_device_policy<KernelName>(oneapi::dpl::execution::dpcpp_default);
 
     // call algorithm
     auto res1 = oneapi::dpl::reduce_by_segment(new_policy, key_beg, key_end, val_beg, key_res_beg, val_res_beg);
 
     {
         // check values
-        auto keys_res    = key_res_buf.template get_access<sycl::access::mode::read_write>();
-        auto vals_res    = val_res_buf.template get_access<sycl::access::mode::read_write>();
+        auto keys_res    = key_res_buf.get_host_access(sycl::read_write);
+        auto vals_res    = val_res_buf.get_host_access(sycl::read_write);
         int n = std::distance(key_res_beg, res1.first);
         for (auto i = 0; i != n; ++i) {
             if (i < 4) {
@@ -170,7 +170,7 @@ test_with_usm()
     auto val_res_head = dt_helper4.get_data();
 
     // call algorithm
-    auto new_policy = oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<
+    auto new_policy = TestUtils::make_device_policy<TestUtils::unique_kernel_name<
         TestUtils::unique_kernel_name<KernelName, 1>, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
     auto res1 =
         oneapi::dpl::reduce_by_segment(new_policy, key_head, key_head + n, val_head, key_res_head, val_res_head);
@@ -203,7 +203,7 @@ test_with_usm()
     key_res_head_on_host[0] = T(9);
     val_res_head_on_host[0] = T(9);
 
-    auto new_policy2 = oneapi::dpl::execution::make_device_policy<TestUtils::unique_kernel_name<
+    auto new_policy2 = TestUtils::make_device_policy<TestUtils::unique_kernel_name<
         TestUtils::unique_kernel_name<KernelName, 2>, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
     auto res2 =
         oneapi::dpl::reduce_by_segment(new_policy2, key_head, key_head + 1, val_head, key_res_head, val_res_head);

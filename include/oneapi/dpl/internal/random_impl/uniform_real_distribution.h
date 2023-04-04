@@ -17,8 +17,8 @@
 //
 // Public header file provides implementation for Uniform Real Distribution
 
-#ifndef _ONEDPL_UNIFORM_REAL_DISTRIBUTION
-#define _ONEDPL_UNIFORM_REAL_DISTRIBUTION
+#ifndef _ONEDPL_UNIFORM_REAL_DISTRIBUTION_H
+#define _ONEDPL_UNIFORM_REAL_DISTRIBUTION_H
 
 namespace oneapi
 {
@@ -372,4 +372,4 @@ class uniform_real_distribution
 } // namespace dpl
 } // namespace oneapi
 
-#endif // #ifndf _ONEDPL_UNIFORM_REAL_DISTRIBUTION
+#endif // _ONEDPL_UNIFORM_REAL_DISTRIBUTION_H

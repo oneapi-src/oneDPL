@@ -17,8 +17,8 @@
 
 // This header guard is used to check inclusion of DPC++ backend.
 // Changing this macro may result in broken tests.
-#ifndef _ONEDPL_parallel_backend_sycl_H
-#define _ONEDPL_parallel_backend_sycl_H
+#ifndef _ONEDPL_PARALLEL_BACKEND_SYCL_H
+#define _ONEDPL_PARALLEL_BACKEND_SYCL_H
 
 #include <cassert>
 #include <algorithm>
@@ -30,8 +30,10 @@
 
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
+#include "parallel_backend_sycl_reduce.h"
 #include "execution_sycl_defs.h"
 #include "sycl_iterator.h"
+#include "unseq_backend_sycl.h"
 #include "utils_ranges_sycl.h"
 
 #if _USE_RADIX_SORT
@@ -179,9 +181,6 @@ make_iter_mode(const _Iterator& __it) -> decltype(iter_mode<outMode>()(__it))
 // set of class templates to name kernels
 
 template <typename... _Name>
-class __reduce_kernel;
-
-template <typename... _Name>
 class __scan_local_kernel;
 
 template <typename... _Name>
@@ -201,6 +200,12 @@ class __sort_global_kernel;
 
 template <typename... _Name>
 class __sort_copy_back_kernel;
+
+template <typename... _Name>
+class __scan_single_wg_kernel;
+
+template <typename... _Name>
+class __scan_single_wg_dynamic_kernel;
 
 //------------------------------------------------------------------------
 // parallel_for - async pattern
@@ -247,121 +252,6 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 
     return __parallel_for_submitter<_ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
                                                   ::std::forward<_Ranges>(__rngs)...);
-}
-
-//------------------------------------------------------------------------
-// parallel_transform_reduce - async pattern
-//------------------------------------------------------------------------
-template <typename _Tp, ::std::size_t __grainsize = 4, typename _ExecutionPolicy, typename _Up, typename _LRp,
-          typename _Rp, typename _InitType,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
-auto
-__parallel_transform_reduce(_ExecutionPolicy&& __exec, _Up __u, _LRp __brick_leaf_reduce, _Rp __brick_reduce,
-                            _InitType __init, _Ranges&&... __rngs)
-{
-    auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
-    assert(__n > 0);
-
-    using _Size = decltype(__n);
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using _CustomName = typename _Policy::kernel_name;
-    using _ReduceKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__reduce_kernel, _CustomName, _Up, _LRp,
-                                                                               _Rp, _Ranges...>;
-
-    auto __max_compute_units = oneapi::dpl::__internal::__max_compute_units(__exec);
-    // TODO: find a way to generalize getting of reliable work-group size
-    ::std::size_t __work_group_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-    // change __work_group_size according to local memory limit
-    __work_group_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                             sizeof(_Tp), __work_group_size);
-
-#if _ONEDPL_COMPILE_KERNEL
-    auto __kernel = __internal::__kernel_compiler<_ReduceKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
-    __work_group_size = ::std::min(__work_group_size, oneapi::dpl::__internal::__kernel_work_group_size(
-                                                          ::std::forward<_ExecutionPolicy>(__exec), __kernel));
-#endif
-    ::std::size_t __iters_per_work_item = __grainsize;
-    // distribution is ~1 work groups per compute init
-    if (__exec.queue().get_device().is_cpu())
-        __iters_per_work_item = (__n - 1) / (__max_compute_units * __work_group_size) + 1;
-    // __iters_per_work_item shows number of elements to reduce on global memory
-    // __work_group_size shows number of elements to reduce on local memory
-    // guarantee convergence of the reduction
-    if (__iters_per_work_item == 1 && __work_group_size == 1)
-        __iters_per_work_item = 2;
-
-    ::std::size_t __size_per_work_group =
-        __iters_per_work_item * __work_group_size;            // number of buffer elements processed within workgroup
-    _Size __n_groups = (__n - 1) / __size_per_work_group + 1; // number of work groups
-    _Size __n_items = (__n - 1) / __iters_per_work_item + 1;  // number of work items
-
-    _PRINT_INFO_IN_DEBUG_MODE(__exec, __work_group_size, __max_compute_units);
-
-    // Create temporary global buffers to store temporary values
-    sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
-    // __is_first == true. Reduce over each work_group
-    // __is_first == false. Reduce between work groups
-    bool __is_first = true;
-
-    // For memory utilization it's better to use one big buffer instead of two small because size of the buffer is close to a few MB
-    _Size __offset_1 = 0;
-    _Size __offset_2 = __n_groups;
-
-    sycl::event __reduce_event;
-    do
-    {
-        __reduce_event = __exec.queue().submit([&, __is_first, __offset_1, __offset_2, __n, __n_items,
-                                                __n_groups](sycl::handler& __cgh) {
-            __cgh.depends_on(__reduce_event);
-
-            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); //get an access to data under SYCL buffer
-            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-            __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
-#endif
-            __cgh.parallel_for<_ReduceKernel>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel,
-#endif
-                sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
-                [=](sycl::nd_item<1> __item_id) {
-                    ::std::size_t __global_idx = __item_id.get_global_id(0);
-                    ::std::size_t __local_idx = __item_id.get_local_id(0);
-                    // 1. Initialization (transform part). Fill local memory
-                    if (__is_first)
-                    {
-                        __u(__item_id, __n, __iters_per_work_item, __global_idx, /*global_offset*/ 0, __temp_local,
-                            __rngs...);
-                    }
-                    else
-                    {
-                        __brick_leaf_reduce(__item_id, __n, __iters_per_work_item, __global_idx, __offset_2,
-                                            __temp_local, __temp_acc);
-                    }
-                    __dpl_sycl::__group_barrier(__item_id);
-                    // 2. Reduce within work group using local memory
-                    _Tp __result = __brick_reduce(__item_id, __global_idx, __n_items, __temp_local);
-                    if (__local_idx == 0)
-                    {
-                        //final reduction
-                        if (__n_groups == 1)
-                            __brick_reduce.apply_init(__init, __result);
-
-                        __temp_acc[__offset_1 + __item_id.get_group(0)] = __result;
-                    }
-                });
-        });
-        if (__is_first)
-            __is_first = false;
-        ::std::swap(__offset_1, __offset_2);
-        __n = __n_groups;
-        __n_items = (__n - 1) / __iters_per_work_item + 1;
-        __n_groups = (__n - 1) / __size_per_work_group + 1;
-    } while (__n > 1);
-
-    return __future(__reduce_event, sycl::buffer(__temp, sycl::id<1>(__offset_2), sycl::range<1>(1)));
 }
 
 //------------------------------------------------------------------------
@@ -414,12 +304,10 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         auto __n = __rng1.size();
         assert(__n > 0);
 
-        auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        // get the work group size adjusted to the local memory limit
         // TODO: find a way to generalize getting of reliable work-group sizes
-        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-        // change __wgroup_size according to local memory limit
-        __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                             sizeof(_Type), __wgroup_size);
+        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_Type));
 
 #if _ONEDPL_COMPILE_KERNEL
         //Actually there is one kernel_bundle for the all kernels of the pattern.
@@ -441,7 +329,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         // Storage for the results of scan for each workgroup
         sycl::buffer<_Type> __wg_sums(__n_groups);
 
-        _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
+        _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
         // 1. Local scan on each workgroup
         auto __submit_event = __exec.queue().submit([&](sycl::handler& __cgh) {
@@ -516,6 +404,283 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&&
     return __parallel_scan_submitter<_CustomName, _PropagateKernel>()(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
+}
+
+template <typename _ValueType, bool _Inclusive, typename _Group, typename _Begin, typename _End,
+          typename _BinaryOperation>
+void
+__scan_work_group(const _Group& __group, _Begin __begin, _End __end, _BinaryOperation __bin_op,
+                  unseq_backend::__no_init_value<_ValueType>)
+{
+    if constexpr (_Inclusive)
+        __dpl_sycl::__joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op);
+    else
+        __dpl_sycl::__joint_exclusive_scan(__group, __begin, __end, __begin, __bin_op);
+}
+
+template <typename _ValueType, bool _Inclusive, typename _Group, typename _Begin, typename _End,
+          typename _BinaryOperation>
+void
+__scan_work_group(const _Group& __group, _Begin __begin, _End __end, _BinaryOperation __bin_op,
+                  unseq_backend::__init_value<_ValueType> __init)
+{
+    if constexpr (_Inclusive)
+        __dpl_sycl::__joint_inclusive_scan(__group, __begin, __end, __begin, __bin_op, __init.__value);
+    else
+        __dpl_sycl::__joint_exclusive_scan(__group, __begin, __end, __begin, __init.__value, __bin_op);
+}
+
+template <bool _Inclusive, typename _KernelName>
+struct __parallel_transform_scan_dynamic_single_group_submitter;
+
+template <bool _Inclusive, typename... _ScanKernelName>
+struct __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive,
+                                                                __internal::__optional_kernel_name<_ScanKernelName...>>
+{
+    template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
+              typename _UnaryOp>
+    auto
+    operator()(const _Policy& __policy, _InRng __in_rng, _OutRng __out_rng, ::std::size_t __n, _InitType __init,
+               _BinaryOperation __bin_op, _UnaryOp __unary_op, ::std::uint16_t __wg_size)
+    {
+        using _ValueType = typename _InitType::__value_type;
+
+        const ::std::uint16_t __elems_per_item = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wg_size);
+        const ::std::uint16_t __elems_per_wg = __elems_per_item * __wg_size;
+
+        auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
+            oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
+
+            auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg}, __hdl);
+            __hdl.parallel_for<_ScanKernelName...>(
+                sycl::nd_range<1>(__wg_size, __wg_size), [=](sycl::nd_item<1> __self_item) {
+                    const auto& __group = __self_item.get_group();
+                    // This kernel is only launched for sizes less than 2^16
+                    const ::std::uint16_t __item_id = __self_item.get_local_linear_id();
+
+                    for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
+                    {
+                        __lacc[__idx] = __unary_op(__in_rng[__idx]);
+                    }
+
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n,
+                                                              __bin_op, __init);
+
+                    for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
+                    {
+                        __out_rng[__idx] = __lacc[__idx];
+                    }
+
+                    const ::std::uint16_t __residual = __n % __wg_size;
+                    const ::std::uint16_t __residual_start = __n - __residual;
+                    if (__residual > 0 && __item_id < __residual)
+                    {
+                        auto __idx = __residual_start + __item_id;
+                        __out_rng[__idx] = __lacc[__idx];
+                    }
+                });
+        });
+        return __future(__event);
+    }
+};
+
+template <bool _Inclusive, ::std::uint16_t _ElemsPerItem, ::std::uint16_t _WGSize, bool _IsFullGroup,
+          typename _KernelName>
+struct __parallel_transform_scan_static_single_group_submitter;
+
+template <bool _Inclusive, ::std::uint16_t _ElemsPerItem, ::std::uint16_t _WGSize, bool _IsFullGroup,
+          typename... _ScanKernelName>
+struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _ElemsPerItem, _WGSize, _IsFullGroup,
+                                                               __internal::__optional_kernel_name<_ScanKernelName...>>
+{
+    template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
+              typename _UnaryOp>
+    auto
+    operator()(const _Policy& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
+               _BinaryOperation __bin_op, _UnaryOp __unary_op)
+    {
+        using _ValueType = typename _InitType::__value_type;
+
+        constexpr ::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
+
+        auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
+            oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
+
+            auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg}, __hdl);
+
+            __hdl.parallel_for<_ScanKernelName...>(
+                sycl::nd_range<1>(_WGSize, _WGSize), [=](sycl::nd_item<1> __self_item) {
+                    const auto& __group = __self_item.get_group();
+                    const auto& __subgroup = __self_item.get_sub_group();
+                    // This kernel is only launched for sizes less than 2^16
+                    const ::std::uint16_t __item_id = __self_item.get_local_linear_id();
+                    const ::std::uint16_t __subgroup_id = __subgroup.get_group_id();
+                    const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
+
+#if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
+                    constexpr bool __can_use_subgroup_load_store = _IsFullGroup;
+#else
+                    constexpr bool __can_use_subgroup_load_store = false;
+#endif
+
+                    if constexpr (__can_use_subgroup_load_store)
+                    {
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
+                        {
+                            auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
+                            auto __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
+                            __subgroup.store(__lacc.get_pointer() + __idx, __val);
+                        }
+                    }
+                    else
+                    {
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
+                        {
+                            __lacc[__idx] = __unary_op(__in_rng[__idx]);
+                        }
+                    }
+
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n,
+                                                              __bin_op, __init);
+
+                    if constexpr (__can_use_subgroup_load_store)
+                    {
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
+                        {
+                            auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
+                            auto __val = __subgroup.load(__lacc.get_pointer() + __idx);
+                            __subgroup.store(__out_rng.begin() + __idx, __val);
+                        }
+                    }
+                    else
+                    {
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
+                        {
+                            __out_rng[__idx] = __lacc[__idx];
+                        }
+
+                        const ::std::uint16_t __residual = __n % _WGSize;
+                        const ::std::uint16_t __residual_start = __n - __residual;
+                        if (__item_id < __residual)
+                        {
+                            auto __idx = __residual_start + __item_id;
+                            __out_rng[__idx] = __lacc[__idx];
+                        }
+                    }
+                });
+        });
+        return __future(__event);
+    }
+};
+
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
+          typename _BinaryOperation, typename _Inclusive>
+auto
+__pattern_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng __out_rng,
+                                      ::std::size_t __n, _UnaryOperation __unary_op, _InitType __init,
+                                      _BinaryOperation __binary_op, _Inclusive)
+{
+    using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
+
+    ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+
+    // Specialization for devices that have a max work-group size of 1024
+    constexpr ::std::uint16_t __targeted_wg_size = 1024;
+
+    if (__max_wg_size >= __targeted_wg_size)
+    {
+        auto __single_group_scan_f = [&](auto __size_constant) {
+            constexpr ::std::uint16_t __size = decltype(__size_constant)::value;
+            constexpr ::std::uint16_t __wg_size = ::std::min(__size, __targeted_wg_size);
+            constexpr ::std::uint16_t __num_elems_per_item =
+                oneapi::dpl::__internal::__dpl_ceiling_div(__size, __wg_size);
+            const bool __is_full_group = __n == __wg_size;
+
+            if (__is_full_group)
+                return __parallel_transform_scan_static_single_group_submitter<
+                    _Inclusive::value, __num_elems_per_item, __wg_size,
+                    /* _IsFullGroup= */ true,
+                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                        __scan_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
+                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                /* _IsFullGroup= */ std::true_type, _Inclusive, _CustomName>>>()(
+                    __exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op);
+            else
+                return __parallel_transform_scan_static_single_group_submitter<
+                    _Inclusive::value, __num_elems_per_item, __wg_size,
+                    /* _IsFullGroup= */ false,
+                    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                        __scan_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
+                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                /* _IsFullGroup= */ ::std::false_type, _Inclusive, _CustomName>>>()(
+                    __exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op);
+        };
+        if (__n <= 16)
+            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 16>{});
+        else if (__n <= 32)
+            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 32>{});
+        else if (__n <= 64)
+            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 64>{});
+        else if (__n <= 128)
+            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 128>{});
+        else if (__n <= 256)
+            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 256>{});
+        else if (__n <= 512)
+            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 512>{});
+        else if (__n <= 1024)
+            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 1024>{});
+        else if (__n <= 2048)
+            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 2048>{});
+        else if (__n <= 4096)
+            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 4096>{});
+        else if (__n <= 8192)
+            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 8192>{});
+        else
+            return __single_group_scan_f(std::integral_constant<::std::uint16_t, 16384>{});
+    }
+    else
+    {
+        using _DynamicGroupScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __par_backend_hetero::__scan_single_wg_dynamic_kernel<_CustomName>>;
+
+        return __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive::value, _DynamicGroupScanKernel>()(
+            __exec, __in_rng.all_view(), __out_rng.all_view(), __n, __init, __binary_op, __unary_op, __max_wg_size);
+    }
+}
+
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
+          typename _BinaryOperation, typename _Inclusive>
+auto
+__pattern_transform_scan_multi_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng __out_rng,
+                                     _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op,
+                                     _Inclusive)
+{
+    using _Type = typename _InitType::__value_type;
+    using _Assigner = unseq_backend::__scan_assigner;
+    using _NoAssign = unseq_backend::__scan_no_assign;
+    using _UnaryFunctor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
+    using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
+
+    _Assigner __assign_op;
+    _NoAssign __no_assign_op;
+    _NoOpFunctor __get_data_op;
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+        ::std::forward<_ExecutionPolicy>(__exec), __in_rng.all_view(), __out_rng.all_view(), __binary_op, __init,
+        // local scan
+        unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
+                              _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,
+                                                       __get_data_op},
+        // scan between groups
+        unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
+                              _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
+            __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
+        // global scan
+        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init});
 }
 
 //------------------------------------------------------------------------
@@ -639,8 +804,7 @@ struct __early_exit_find_or
                     __found_local.store(1);
                 else
                 {
-                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old);
-                         __old = __found_local.load())
+                    for (auto __old = __found_local.load(); __comp(__shifted_idx, __old); __old = __found_local.load())
                     {
                         __found_local.compare_exchange_strong(__old, __shifted_idx);
                     }
@@ -668,7 +832,7 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     using _AtomicType = typename _BrickTag::_AtomicType;
     using _FindOrKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
-                                                                               _Ranges...>;
+                                                                               _BrickTag, _Ranges...>;
 
     constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
     auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
@@ -681,15 +845,15 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
                                                   ::std::forward<_ExecutionPolicy>(__exec), __kernel));
 #endif
-    auto __mcu = oneapi::dpl::__internal::__max_compute_units(__exec);
+    auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
     auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
     // TODO: try to change __n_groups with another formula for more perfect load balancing
-    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__mcu));
+    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
 
     auto __n_iter = (__rng_n - 1) / (__n_groups * __wgroup_size) + 1;
 
-    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __mcu);
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
 
     _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
     auto __result = __init_value;
@@ -1436,4 +1600,4 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_parallel_backend_sycl_H */
+#endif // _ONEDPL_PARALLEL_BACKEND_SYCL_H

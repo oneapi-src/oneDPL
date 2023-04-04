@@ -58,4 +58,4 @@ struct extract_accessor<oneapi::dpl::__internal::sycl_iterator<Mode, T, Allocato
 } // end namespace dpl
 } // end namespace oneapi
 
-#endif /* __DPSTD_iterator_impl_H */
+#endif // _ONEDPL_ITERATOR_IMPL_H

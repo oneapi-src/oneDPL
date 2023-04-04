@@ -17,8 +17,8 @@
 //
 // Common functionality for conformance tests
 
-#ifndef DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON
-#define DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON
+#ifndef _DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON_HPP
+#define _DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON_HPP
 
 #include <vector>
 #include <random>
@@ -66,4 +66,4 @@ typename Engine::scalar_type test(sycl::queue& queue) {
     return dpstd_samples[REF_SAMPLE_ID];
 }
 
-#endif // ifndef DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON
+#endif // _DPSTD_RANDOM_CONFORMANCE_TESTS_COMMON_HPP

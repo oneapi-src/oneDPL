@@ -94,7 +94,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     internal::__buffer<policy_type, FlagType> _mask(policy, n);
     {
         auto mask_buf = _mask.get_buffer();
-        auto mask = mask_buf.template get_access<sycl::access::mode::read_write>();
+        auto mask = mask_buf.get_host_access(sycl::read_write);
 
         mask[0] = initial_mask;
     }
@@ -171,4 +171,4 @@ inclusive_scan_by_key(Policy&& policy, InputIter1 first1, InputIter1 last1, Inpu
 } // end namespace dpl
 } // end namespace oneapi
 
-#endif
+#endif // _ONEDPL_INCLUSIVE_SCAN_BY_SEGMENT_IMPL_H

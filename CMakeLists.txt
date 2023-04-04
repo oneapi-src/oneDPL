@@ -22,6 +22,39 @@ string(REGEX REPLACE ".*#define ONEDPL_VERSION_MAJOR ([0-9]+).*" "\\1" _onedpl_v
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_MINOR ([0-9]+).*" "\\1" _onedpl_ver_minor "${_onedpl_version_info}")
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_ver_patch "${_onedpl_version_info}")
 
+# CMAKE_CXX_COMPILER and CMAKE_CXX_COMPILER_VERSION cannot be used because
+# CMake 3.19 and older will detect IntelLLVM compiler as CLang with CLang-specific version, see https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
+if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx|icx)(.exe)?$")
+    set(INTEL_LLVM_COMPILER TRUE)
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE INTEL_LLVM_COMPILER_VERSION_RAW)
+    string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" INTEL_LLVM_COMPILER_VERSION ${INTEL_LLVM_COMPILER_VERSION_RAW})
+    if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|icx-cl|icx)(.exe)?$")
+        set(INTEL_LLVM_COMPILER_MSVC_LIKE TRUE)
+        set(MSVC TRUE)
+    else()
+        set(INTEL_LLVM_COMPILER_GNU_LIKE TRUE)
+    endif()
+endif()
+
+if (WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
+    set(CMAKE_CXX_FLAGS_DEBUG_INIT "-O0")
+    set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "-O2 -DNDEBUG")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "/debug")
+    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO_INIT "/debug")
+
+    #CMake does not properly handle IntelLLVM compilers with GNU-like front ends after 3.19,
+    if (NOT ${CMAKE_VERSION} VERSION_LESS "3.20")
+        message(WARNING "${CMAKE_CXX_COMPILER} requires a workaround to allow proper usage with CMake ${CMAKE_VERSION} on Windows. We recommend using CMAKE_CXX_COMPILER=icx or icx-cl on Windows.")
+        set(CMAKE_CXX_COMPILER_ID "IntelLLVM GNU-Like Workaround" CACHE STRING "Switch compiler identification" FORCE)
+        set(CMAKE_CXX_COMPILER_VERSION "${INTEL_LLVM_COMPILER_VERSION}" CACHE STRING "Switch compiler version" FORCE)
+        # Explicitly setting the c++17 standard compile option so that "target_compile_features()" check functions properly for this workaround
+        set(CMAKE_CXX_COMPILE_FEATURES cxx_std_17)
+        set(CMAKE_CXX17_COMPILE_FEATURES cxx_std_17)
+        set(CMAKE_CXX17_STANDARD_COMPILE_OPTION "-std=c++17")
+    endif()
+endif()
+
 project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION}")
 
@@ -47,13 +80,14 @@ if (NOT ONEDPL_BACKEND)
         set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend")
     endif()
     string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
-    message(STATUS "Use ${ONEDPL_BACKEND} as default backend")
+    message(STATUS "Using ${ONEDPL_BACKEND} as default backend")
 endif()
 
 ###############################################################################
 # Setup the oneDPL library target
 ###############################################################################
 add_library(oneDPL INTERFACE)
+target_compile_features(oneDPL INTERFACE cxx_std_17)
 
 if (CMAKE_BUILD_TYPE)
     message(STATUS "Build type is ${CMAKE_BUILD_TYPE}")
@@ -72,11 +106,7 @@ message(STATUS "Using parallel policies with ${ONEDPL_BACKEND} backend")
 string(TOLOWER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
 
 if (ONEDPL_ENABLE_SIMD)
-    if (CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$")
-        execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE VER)
-        string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" DPCPP_VER ${VER})
-    endif()
-    if (NOT CMAKE_CXX_COMPILER MATCHES ".*dpcpp(-cl)?(.exe)?$" OR NOT DPCPP_VER VERSION_LESS 2021.4)
+    if (NOT INTEL_LLVM_COMPILER OR NOT INTEL_LLVM_COMPILER_VERSION VERSION_LESS 2021.4)
         foreach(_simd_flag -fopenmp-simd /Qopenmp-simd -qopenmp-simd -openmp-simd)
             string(MAKE_C_IDENTIFIER ${_simd_flag} FLAG_DISPLAY_NAME)
             check_cxx_compiler_flag(${_simd_flag} ${FLAG_DISPLAY_NAME}_option)
@@ -99,7 +129,7 @@ endif()
 
 if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
     string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
-    set(ONEDPL_USE_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
+    set(SET_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
 
     if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp)$")
         find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
@@ -123,8 +153,8 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
     target_compile_definitions(oneDPL INTERFACE
         $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
         $<$<CONFIG:Debug>:PSTL_USE_DEBUG>
-        $<$<BOOL:${ONEDPL_USE_BACKEND_DPCPP_ONLY}>:ONEDPL_USE_TBB_BACKEND=0>
-        $<$<BOOL:${ONEDPL_USE_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
+        $<$<BOOL:${SET_BACKEND_DPCPP_ONLY}>:ONEDPL_USE_TBB_BACKEND=0>
+        $<$<BOOL:${SET_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
         )
 
     if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
@@ -132,47 +162,50 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option.\n"
             "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
         endif()
-
-        # settings for the specific compilation type
-        if (NOT ONEDPL_USE_AOT_COMPILATION)
-            message(STATUS "Use the ahead of time compilation. No additional parameters needed")
-        else()
-            if (NOT ONEDPL_AOT_ARCH)
-                set(ONEDPL_AOT_ARCH "*")
-                message(STATUS "Ahead of time compilation for all available architectures")
-            else()
-                string(TOLOWER ${ONEDPL_AOT_ARCH} ONEDPL_AOT_ARCH)
-                message(STATUS "Ahead of time compilation for ${ONEDPL_AOT_ARCH} architecture")
-            endif()
-            set(ONEDPL_AOT_COMP_OPTION_REL "-Xs \"-device ${ONEDPL_AOT_ARCH}\"")
-            set(ONEDPL_AOT_COMP_OPTION_DEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable -options -cl-opt-disable\"")
-            set(ONEDPL_AOT_COMP_OPTION_RELDEB "-Xs \"-device ${ONEDPL_AOT_ARCH} -internal_options -cl-kernel-debug-enable\"")
+        # Enable SYCL* with compilers/compiler drivers not passing -fsycl by default
+        if (_fsycl_option AND NOT CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp)(.exe)?$")
+            message(STATUS "Adding -fsycl compiler option")
+            set(USE_FSYCL_OPTION TRUE)
         endif()
 
         # check device type
-        if (NOT ONEDPL_DEVICE_TYPE)
-            set(ONEDPL_DEVICE_TYPE "GPU")
-            message(STATUS "Use GPU as default device")
-        endif()
-
-        string(TOUPPER ${ONEDPL_DEVICE_TYPE} ONEDPL_DEVICE_TYPE)
-        if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_EMU|FPGA_HW?)$")
-            message(STATUS "Compilation for ${ONEDPL_DEVICE_TYPE}")
+        if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_EMU|FPGA_HW)$")
+            message(STATUS "Using ${ONEDPL_DEVICE_TYPE} device type")
             set(ONEDPL_USE_DEVICE_${ONEDPL_DEVICE_TYPE} TRUE)
-        else()
+        elseif(DEFINED ONEDPL_DEVICE_BACKEND)
             message(FATAL_ERROR "Unsupported device type: ${ONEDPL_DEVICE_TYPE}.\n"
                 "Select one of the following devices: CPU, GPU, FPGA_EMU or FPGA_HW")
+        else()
+            set(ONEDPL_DEVICE_TYPE "GPU")
+            message(STATUS "Using a default device type (GPU)")
         endif()
 
         # check device backend
-        if (ONEDPL_DEVICE_BACKEND MATCHES "^(opencl|level_zero)$")
-            message(STATUS "Compilation using ${ONEDPL_DEVICE_BACKEND} device backend")
+        if (ONEDPL_DEVICE_BACKEND MATCHES "^(opencl|level_zero|cuda|hip|\\*)$")
+            message(STATUS "Using ${ONEDPL_DEVICE_BACKEND} device backend")
         elseif (DEFINED ONEDPL_DEVICE_BACKEND)
             message(FATAL_ERROR "Unsupported device backend: ${ONEDPL_DEVICE_BACKEND}.\n"
-                "Select one of the following device backends: opencl or level_zero")
+                "Select one of the following device backends: opencl, level_zero, cuda, hip or *")
         else()
             set(ONEDPL_DEVICE_BACKEND "*")
-            message(STATUS "Use a default device backend")
+            message(STATUS "Using a default device backend (*)")
+        endif()
+
+        # set up device selection line basing on ONEDPL_DEVICE_BACKEND and ONEDPL_DEVICE_TYPE values
+        if (DEFINED ONEDPL_DEVICE_BACKEND AND DEFINED ONEDPL_DEVICE_TYPE)
+            if (INTEL_LLVM_COMPILER AND INTEL_LLVM_COMPILER_VERSION VERSION_LESS 2023.1)
+                set(DEVICE_SELECTION_VARIABLE "SYCL_DEVICE_FILTER")
+                set(FPGA_DEVICE_TYPE "acc")
+            else()
+                set(DEVICE_SELECTION_VARIABLE "ONEAPI_DEVICE_SELECTOR")
+                set(FPGA_DEVICE_TYPE "fpga")
+            endif()
+            if (ONEDPL_DEVICE_TYPE MATCHES "FPGA")
+                set(DEVICE_SELECTION_LINE "${DEVICE_SELECTION_VARIABLE}=${ONEDPL_DEVICE_BACKEND}:${FPGA_DEVICE_TYPE}")
+            else()
+                string(TOLOWER ${ONEDPL_DEVICE_TYPE} ONEDPL_DEVICE_TYPE)
+                set(DEVICE_SELECTION_LINE "${DEVICE_SELECTION_VARIABLE}=${ONEDPL_DEVICE_BACKEND}:${ONEDPL_DEVICE_TYPE}")
+            endif()
         endif()
 
         # Check correctness of STATIC_REPORT
@@ -184,16 +217,42 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             endif()
         endif()
 
+        # settings for the specific compilation type
+        if (NOT ONEDPL_USE_AOT_COMPILATION)
+            message(STATUS "Using just-in-time compilation")
+        else()
+            if (NOT ONEDPL_AOT_ARCH)
+                if (ONEDPL_USE_DEVICE_GPU)
+                    set(ONEDPL_AOT_ARCH "*")
+                endif()
+                if (ONEDPL_USE_DEVICE_CPU)
+                    set(ONEDPL_AOT_ARCH "avx")
+                endif()
+            endif()
+            message(STATUS "Using ahead-of-time compilation for \"${ONEDPL_AOT_ARCH}\" architecture(s)")
+
+            if (ONEDPL_USE_DEVICE_GPU)
+                # -cl-kernel-debug-enable is not needed since https://github.com/intel/compute-runtime/commit/9c237d99ec49ceb3678c815314bc7c745226e4a2
+                # TODO: remove that option when older driver versions are not expected to be used
+                set(ONEDPL_AOT_EXTRA_BACKEND_OPTIONS "$<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:-internal_options -cl-kernel-debug-enable>")
+                set(ONEDPL_AOT_OPTIONS "-fsycl-targets=spir64_gen -Xs \"-device ${ONEDPL_AOT_ARCH} ${ONEDPL_AOT_EXTRA_BACKEND_OPTIONS}\"")
+            endif()
+            if (ONEDPL_USE_DEVICE_CPU)
+                set(ONEDPL_AOT_OPTIONS "-fsycl-targets=spir64_x86_64 -Xs \"-march=${ONEDPL_AOT_ARCH}\"")
+            endif()
+        endif()
+
         # DPC++ specific compiler options
         target_compile_options(oneDPL INTERFACE
+            $<$<BOOL:${USE_FSYCL_OPTION}>:-fsycl>
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
             )
         if (DEFINED ONEDPL_USE_UNNAMED_LAMBDA)
             if(ONEDPL_USE_UNNAMED_LAMBDA)
-                message(STATUS "Use unnamed lambdas")
+                message(STATUS "Adding -fsycl-unnamed-lambda option")
                 target_compile_options(oneDPL INTERFACE -fsycl-unnamed-lambda)
             else()
-                message(STATUS "Don't use unnamed lambdas")
+                message(STATUS "Adding -fno-sycl-unnamed-lambda option")
                 target_compile_options(oneDPL INTERFACE -fno-sycl-unnamed-lambda)
             endif()
         endif()
@@ -206,13 +265,11 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
 
         # DPC++ specific link options
         target_link_libraries(oneDPL INTERFACE
+            $<$<BOOL:${USE_FSYCL_OPTION}>:-fsycl>
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:-fintelfpga>
             $<$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>:-Xshardware>
             $<$<AND:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_FPGA_STATIC_REPORT}>>:-fsycl-link>
-            $<$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>:-fsycl-targets=spir64_gen-unknown-unknown-sycldevice>
-            $<$<AND:$<CONFIG:Release>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_REL}>
-            $<$<AND:$<CONFIG:Debug>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_DEB}>
-            $<$<AND:$<CONFIG:RelWithDebInfo>,$<BOOL:${ONEDPL_USE_AOT_COMPILATION}>>:${ONEDPL_AOT_COMP_OPTION_RELDEB}>
+            ${ONEDPL_AOT_OPTIONS}
             )
     endif()
 

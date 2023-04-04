@@ -18,8 +18,8 @@
 //
 // Include this header instead of sycl.hpp throughout the project
 
-#ifndef _ONEDPL_sycl_defs_H
-#define _ONEDPL_sycl_defs_H
+#ifndef _ONEDPL_SYCL_DEFS_H
+#define _ONEDPL_SYCL_DEFS_H
 
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
@@ -52,6 +52,15 @@
 #define _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50300)
 #define _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT (_ONEDPL_LIBSYCL_VERSION >= 50500)
 #define _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT (SYCL_EXT_ONEAPI_SUB_GROUP_MASK == 1) && (_ONEDPL_LIBSYCL_VERSION >= 50700)
+
+// TODO: determine which compiler configurations provide subgroup load/store
+#define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT false
+
+#if _ONEDPL_LIBSYCL_VERSION >= 50300
+#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
+#else
+#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
+#endif
 
 namespace __dpl_sycl
 {
@@ -181,12 +190,23 @@ __reduce_over_group(_Args... __args)
 
 template <typename... _Args>
 constexpr auto
-__joint_exclusive_scan(_Args... __args)
+__joint_exclusive_scan(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_exclusive_scan(__args...);
+    return sycl::joint_exclusive_scan(::std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::exclusive_scan(__args...);
+    return sycl::ONEAPI::exclusive_scan(::std::forward<_Args>(__args)...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__joint_inclusive_scan(_Args&&... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_inclusive_scan(::std::forward<_Args>(__args)...);
+#else
+    return sycl::ONEAPI::inclusive_scan(::std::forward<_Args>(__args)...);
 #endif
 }
 
@@ -243,4 +263,4 @@ using __local_accessor =
 
 } // namespace __dpl_sycl
 
-#endif /* _ONEDPL_sycl_defs_H */
+#endif // _ONEDPL_SYCL_DEFS_H

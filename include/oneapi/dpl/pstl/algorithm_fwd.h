@@ -1343,4 +1343,4 @@ __pattern_shift_right(_ExecutionPolicy&&, _BidirectionalIterator, _Bidirectional
 } // namespace dpl
 } // namespace oneapi
 
-#endif /* _ONEDPL_ALGORITHM_FWD_H */
+#endif // _ONEDPL_ALGORITHM_FWD_H
