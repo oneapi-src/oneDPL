@@ -136,8 +136,8 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<bool, _N> __src)
         return !__src;
 }
 
-template <bool __is_ascending, typename _UInt, int _N>
-typename ::std::enable_if_t<::std::is_unsigned_v<_UInt>, sycl::ext::intel::esimd::simd<_UInt, _N>>
+template <bool __is_ascending, typename _UInt, int _N, std::enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
+sycl::ext::intel::esimd::simd<_UInt, _N>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_UInt, _N> __src)
 {
     if constexpr (__is_ascending)
@@ -157,9 +157,9 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Int, _N> __src)
     return __src.template bit_cast_view<_UInt>() ^ __mask;
 }
 
-template <bool __is_ascending, typename _Float, int _N>
-typename ::std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t),
-                            sycl::ext::intel::esimd::simd<::std::uint32_t, _N>>
+template <bool __is_ascending, typename _Float, int _N,
+          std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
+sycl::ext::intel::esimd::simd<::std::uint32_t, _N>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
 {
     auto __uint32_src = __src.template bit_cast_view<::std::uint32_t>();
@@ -181,9 +181,9 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
     return __res;
 }
 
-template <bool __is_ascending, typename _Float, int _N>
-typename ::std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t),
-                            sycl::ext::intel::esimd::simd<::std::uint64_t, _N>>
+template <bool __is_ascending, typename _Float, int _N,
+          std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t), int> = 0>
+sycl::ext::intel::esimd::simd<::std::uint64_t, _N>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
 {
     auto __uint64_src = __src.template bit_cast_view<::std::uint64_t>();
