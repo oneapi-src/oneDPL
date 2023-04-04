@@ -108,6 +108,8 @@ int test_properties() {
   } catch (sycl::exception) {
     std::cout << "SKIPPED: Unable to use gpu selector\n";
   }
+  
+  std::cout << "UNIVERSE SIZE " << v.size() << std::endl;
   oneapi::dpl::experimental::property::report(s, oneapi::dpl::experimental::property::universe, v);
   auto v2 = oneapi::dpl::experimental::property::query(s, oneapi::dpl::experimental::property::universe);
   auto v2s = v2.size();
