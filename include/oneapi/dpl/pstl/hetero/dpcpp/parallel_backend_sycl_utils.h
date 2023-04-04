@@ -599,6 +599,7 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
         : __my_exec(__exec), __my_event(__e), __my_res(__res)
     __dispatch(_F&& __f, ::std::uint16_t __x, _Args&&... args)
     }
+            sycl::free(*__my_res.get(), __my_exec.queue());
         return __my_event;
     void
 #if !ONEDPL_ALLOW_DEFERRED_WAITING
@@ -609,6 +610,7 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
         using _Tp = typename ::std::remove_pointer<_Res>::type;
         _Tp __local_val = __my_res[0];
         sycl::free(__my_res, __my_exec.queue());
+        __my_event.wait_and_throw();
         return __my_res[0];
 } // namespace __par_backend_hetero
 } // namespace dpl
