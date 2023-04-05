@@ -583,8 +583,8 @@ class __reduce_future
     ::std::shared_ptr<_Res> __my_res;
 
   public:
-    __reduce_future(const _ExecutionPolicy& __exec, _Event __e, _Res* __res)
-        : __my_exec(__exec), __my_event(__e)
+    __reduce_future(_ExecutionPolicy&& __exec, _Event&& __e, _Res* __res)
+        : __my_exec(::std::forward<_ExecutionPolicy>(__exec)), __my_event(::std::forward<_Event>(__e))
     {
         auto queue = __my_exec.queue();
         __my_res.reset(__res, [queue](_Res* __res) { ::sycl::free(__res, queue); });
