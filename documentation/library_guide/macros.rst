@@ -29,7 +29,7 @@ Macro                             Description
 
 Feature Macros
 ==============
-Use these macros to test presense of specific |onedpl_short| functionality.
+Use these macros to test presence of specific |onedpl_short| functionality.
 
 ================================== ===============================================
 Macro                              Macro values and the functionality
