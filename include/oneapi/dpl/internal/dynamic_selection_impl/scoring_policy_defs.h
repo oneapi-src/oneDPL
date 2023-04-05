@@ -32,7 +32,7 @@ namespace experimental {
     using execution_resource_t = ExecutionContext;
     using native_resource_t = typename execution_resource_t::native_resource_t;
 
-    basic_selection_handle_t(execution_resource_t e = execution_resource_t{}) : e_(e) {}
+    explicit basic_selection_handle_t(execution_resource_t e = execution_resource_t{}) : e_(e) {}
     native_resource_t get_native() { return e_.get_native(); }
     property_handle_t get_property_handle() { return oneapi::dpl::experimental::basic_property_handle; }
   };

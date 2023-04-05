@@ -59,7 +59,7 @@ namespace experimental {
       if(!universe_.empty()) {
           return selection_handle_t{universe_[0]};
       }
-      return {};
+      return selection_handle_t{};
     }
 
     template<typename Function, typename ...Args>
