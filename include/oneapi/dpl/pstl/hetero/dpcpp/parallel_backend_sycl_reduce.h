@@ -368,7 +368,7 @@ struct __parallel_transform_reduce_impl
                             if (__n_groups == 1)
                             {
                                 __reduce_pattern.apply_init(__init, __result);
-                                __res_acc[0] = __result;
+                                *__res = __result;
                             }
 
                             __temp_acc[__offset_1 + __group_idx] = __result;
