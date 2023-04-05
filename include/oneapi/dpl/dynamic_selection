@@ -1,0 +1,41 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) 2023 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _ONEDPL_DYNAMIC_SELECTION
+#define _ONEDPL_DYNAMIC_SELECTION
+
+#include "oneapi/dpl/internal/common_config.h"
+
+// Check the user-defined macro for parallel policies
+// define _DS_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
+#if !defined(_DS_BACKEND_SYCL)
+#    if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
+#        define _DS_BACKEND_SYCL 1
+#    else
+#        define _DS_BACKEND_SYCL 0
+#    endif // CL_SYCL_LANGUAGE_VERSION
+#endif
+
+#include "oneapi/dpl/internal/dynamic_selection.h"
+namespace oneapi {
+namespace dpl {
+namespace experimental {
+
+#if _DS_BACKEND_SYCL != 0
+  using static_policy = policy<static_policy_impl<sycl_scheduler>>;
+  using round_robin_policy = policy<round_robin_policy_impl<sycl_scheduler>>;
+  inline static_policy default_policy;
+#endif
+  template<typename S> using static_policy_t = policy<static_policy_impl<S>>;
+  template<typename S> using round_robin_policy_t = policy<round_robin_policy_impl<S>>;
+} //namespace experimental
+} //namespace dpl
+} //namespace oneapi
+
+#endif /* ONEDPL_DYNAMIC_SELECTION */

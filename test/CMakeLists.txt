@@ -111,7 +111,10 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
 
     if (DEFINED DEVICE_SELECTION_LINE)
-        set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
+        file(GLOB_RECURSE DS_TESTS "parallel_api/dynamic_selection/*.cpp")
+        if (NOT "${DS_TESTS}" MATCHES "${_test_name}") # do not set SYCL_DEVICE_FILTER for device selector tests
+            set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
+        endif()
     endif()
 
     add_custom_target(run-${_test_name}
@@ -143,7 +146,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     add_dependencies(build-onedpl-tests ${_test_name})
 endmacro()
 
-set(_regexp_dpcpp_backend_required "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics)")
+set(_regexp_dpcpp_backend_required "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics|parallel_api/dynamic_selection/sycl)")
 set(_regexp_switch_off_checked_it  "(test/general/header_order_ranges|test/parallel_api/algorithm/alg.sorting/alg.min.max|test/parallel_api/ranges|test/xpu_api/random/device_tests|test/xpu_api/random/interface_tests|test/xpu_api/random/statistics_tests|test/parallel_api/numeric/numeric.ops/transform_scan)")
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
