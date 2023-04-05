@@ -612,7 +612,7 @@ class __reduce_future
     get()
     {
         __my_event.wait_and_throw();
-        return *__my_res.get()[0];
+        return *__my_res.get();
     }
 };
 
