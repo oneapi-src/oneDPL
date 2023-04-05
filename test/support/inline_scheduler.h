@@ -87,7 +87,7 @@ struct int_inline_scheduler_t {
   }
 
   void wait() {
-    while(!waiters_.is_empty()){
+    while(!waiters_.empty()){
       async_wait_t *w;
       waiters_.pop(w);
       w->wait();

@@ -40,13 +40,13 @@ namespace experimental {
     inline constexpr task_completion_t task_completion;
 
     template<typename T, typename Property>
-    auto query(T& t, const Property& prop) {
-      return t.query(prop);
+    auto query(T&& t, const Property& prop) {
+      return std::forward<T>(t).query(prop);
     }
 
     template<typename T, typename Property, typename Argument>
     auto query(T&& t, const Property& prop, const Argument& arg) {
-      return t.query(prop, arg);
+      return std::forward<T>(t).query(prop, arg);
     }
 
     template<typename Handle, typename Property>

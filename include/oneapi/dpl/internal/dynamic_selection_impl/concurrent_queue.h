@@ -55,13 +55,13 @@ namespace util{
             }
         }
 
-        bool is_empty(){
+        bool empty(){
             return queue_.empty();
         }
 
         concurrent_queue() = default;
-        concurrent_queue(const concurrent_queue& q) : queue_(q.queue_) {};
-        concurrent_queue& operator=(const concurrent_queue& q) {q=q.queue_; return *this;}
+        concurrent_queue(const concurrent_queue& q) = delete;
+        concurrent_queue& operator=(const concurrent_queue& q) = delete;
 
     private:
         std::queue<T> queue_;
