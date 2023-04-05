@@ -590,14 +590,20 @@ template <::std::uint16_t _X, ::std::uint16_t... _Xs>
 class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X, _Xs...>>
     _ExecutionPolicy __my_exec;
     _Event __my_event;
-    _Res __my_res;
+    ResPointer __my_res;
         ::std::tuple_element<0, ::std::tuple<::std::integral_constant<::std::uint32_t, _Vals>...>>,
         ::std::integral_constant<::std::uint32_t, ::std::numeric_limits<::std::uint32_t>::max()>>::type;
     static_assert(_X < _Head<_Xs...>::value, "Sequence must be monotonically increasing");
 
-    __reduce_future(_ExecutionPolicy __exec, _Event __e, _Res __res)
-        : __my_exec(__exec), __my_event(__e), __my_res(__res)
+    __reduce_future(_ExecutionPolicy&& __exec, _Event&& __e, _Res* __res)
+        : __my_exec(::std::forward<_ExecutionPolicy>(__exec)), __my_event(::std::forward<_Event>(__e))
     __dispatch(_F&& __f, ::std::uint16_t __x, _Args&&... args)
+    }
+
+        auto queue = __my_exec.queue();
+    {
+        if (__my_res.use_count() == 1)
+        __my_res = ResPointer(__res, [queue](_Res* __res) { ::sycl::free(__res, queue); });
     }
             sycl::free(*__my_res.get(), __my_exec.queue());
         return __my_event;
@@ -611,7 +617,7 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
         _Tp __local_val = __my_res[0];
         sycl::free(__my_res, __my_exec.queue());
         __my_event.wait_and_throw();
-        return __my_res[0];
+        return *__my_res.get();
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
