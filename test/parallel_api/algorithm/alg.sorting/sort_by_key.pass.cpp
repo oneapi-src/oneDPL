@@ -20,6 +20,47 @@
 
 #include "support/utils.h"
 
+template<typename _Policy>
+void
+test_with_std_pol(_Policy&& policy)
+{
+    const int n = 1000000;
+    std::vector<int> keys_buf(n); //keys
+    std::vector<int> vals_buf(n); //values
+
+    // create objects to iterate over buffers
+    auto keys_begin = keys_buf.begin();
+    auto vals_begin = vals_buf.begin();
+
+    auto counting_begin = oneapi::dpl::counting_iterator<int>{0};
+
+    // 1. Initialization of buffers
+    std::transform(policy, counting_begin, counting_begin + n, keys_begin,
+                   [n](int i) { return i%2 + 1; });
+    // fill vals_buf with the analogue of std::iota using counting_iterator
+    std::copy(policy, counting_begin, counting_begin + n, vals_begin);
+
+    // 2. Sorting
+    // stable sort by keys
+    oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, std::less<void>());
+
+    // 3.Checking results
+    auto k = (n-1)/2 + 1;
+    for (int i = 0; i < n; ++i)
+    {
+        if(i-k < 0)
+        {
+             //a key should be 1 and value should be even
+            EXPECT_TRUE(keys_buf[i] == 1 && vals_buf[i] % 2 == 0, "wrong sort_by_key result with a standard policy");
+        }
+        else
+        {
+            //a key should be 2 and value should be odd
+            EXPECT_TRUE(keys_buf[i] == 2 && vals_buf[i] % 2 == 1, "wrong sort_by_key result with a standard policy");
+        }
+    }
+}
+
 #if TEST_DPCPP_BACKEND_PRESENT
 
 #include "support/sycl_alloc_utils.h"
@@ -44,13 +85,9 @@ test_with_usm(sycl::queue& q)
     int* d_key = dt_helper_h_key.get_data();
     int* d_val = dt_helper_h_val.get_data();
 
-    auto first = oneapi::dpl::make_zip_iterator(d_key, d_val);
-    auto last = first + N;
-
     auto myPolicy = TestUtils::make_device_policy<
         TestUtils::unique_kernel_name<class copy, TestUtils::uniq_kernel_index<alloc_type>()>>(q);
-    std::sort(myPolicy, first, last,
-              [](const auto& item1, const auto& item2) { return std::get<0>(item1) > std::get<0>(item2); });
+    oneapi::dpl::sort_by_key(myPolicy, d_key, d_key + N, d_val, std::greater<void>());
 
     int h_skey[N] = {};
     int h_sval[N] = {};
@@ -62,7 +99,55 @@ test_with_usm(sycl::queue& q)
     {
         if (i < (N - 1))
         {
-            EXPECT_TRUE(h_skey[i] >= h_skey[i + 1], "wrong sort result");
+            EXPECT_TRUE(h_skey[i] >= h_skey[i + 1], "wrong sort result with hetero policy, USM data");
+        }
+    }
+}
+
+void
+test_with_buffers(sycl::queue& q)
+{
+    const int n = 1000000;
+    sycl::buffer<int> keys_buf{n};  // buffer with keys
+    sycl::buffer<int> vals_buf{n};  // buffer with values
+
+    auto policy = TestUtils::make_device_policy(q);
+
+    // create objects to iterate over buffers
+    auto keys_begin = oneapi::dpl::begin(keys_buf);
+    auto vals_begin = oneapi::dpl::begin(vals_buf);
+
+    auto counting_begin = oneapi::dpl::counting_iterator<int>{0};
+
+    // 1. Initialization of buffers
+    std::transform(policy, counting_begin, counting_begin + n, keys_begin,
+                   [n](int i) { return i%2 + 1; });
+    // fill vals_buf with the analogue of std::iota using counting_iterator
+    std::copy(policy, counting_begin, counting_begin + n, vals_begin);
+
+    // 2. Sorting
+    // stable sort by keys
+    oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, std::less<void>());
+
+    // 3.Checking results
+    sycl::host_accessor host_keys(keys_buf, sycl::read_only);
+    sycl::host_accessor host_vals(vals_buf, sycl::read_only);
+
+    // expected output:
+    auto k = (n-1)/2 + 1;
+    for (int i = 0; i < n; ++i)
+    {
+        if(i-k < 0)
+        {
+             //a key should be 1 and value should be even
+            EXPECT_TRUE(host_keys[i] == 1 && host_vals[i] % 2 == 0,
+                "wrong sort_by_key result with a herero policy, sycl buffer");
+        }
+        else
+        {
+            //a key should be 2 and value should be odd
+            EXPECT_TRUE(host_keys[i] == 2 && host_vals[i] % 2 == 1,
+                "wrong sort_by_key result with a herero policy, sycl buffer");
         }
     }
 }
@@ -82,7 +167,16 @@ main()
     test_with_usm<sycl::usm::alloc::shared>(q);
     // Run tests for USM device memory
     test_with_usm<sycl::usm::alloc::device>(q);
+    // Run tests for sycl buffers
+    test_with_buffers(q);
 #endif // TEST_DPCPP_BACKEND_PRESENT
+
+#if !TEST_DPCPP_BACKEND_PRESENT
+    test_with_std_pol(oneapi::dpl::execution::seq);
+    test_with_std_pol(oneapi::dpl::execution::unseq);
+    test_with_std_pol(oneapi::dpl::execution::par);
+    test_with_std_pol(oneapi::dpl::execution::par_unseq);
+#endif // !TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

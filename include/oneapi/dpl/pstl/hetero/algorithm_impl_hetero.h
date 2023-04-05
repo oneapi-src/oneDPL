@@ -1176,7 +1176,8 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare, typename _Proj>
 void
-__stable_sort_pattern_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp, _Proj __proj)
+__stable_sort_pattern_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
+                           _Proj __proj)
 {
     if (__last - __first < 2)
         return;
