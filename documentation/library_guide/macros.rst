@@ -27,6 +27,17 @@ Macro                             Description
 ``_PSTL_VERSION_PATCH``           ``_PSTL_VERSION % 10``: The patch number.
 ================================= ==============================
 
+Feature Macros
+==============
+Use these macros to test presense of specific |onedpl_short| functionality.
+
+================================== ===============================================
+Macro                              Macro values and the functionality
+================================== ===============================================
+``ONEDPL_HAS_DYNAMIC_SELECTION``   ``202304L`` for "Beta" version of the ``<dynamic_selection>`` header
+                                   featuring static and round-robin selection policies for SYCL queues.
+================================== ===============================================
+
 Additional Macros
 ==================
 Use these macros to control aspects of |onedpl_short| usage. You can set them in your program code
