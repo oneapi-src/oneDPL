@@ -590,12 +590,6 @@ class __reduce_future
         __my_res.reset(__res, [queue](_Res* __res) { ::sycl::free(__res, queue); });
     }
 
-    ~__reduce_future()
-    {
-        if (__my_res.use_count() == 1)
-            sycl::free(*__my_res.get(), __my_exec.queue());
-    }
-
     auto
     event() const
     {
