@@ -76,7 +76,8 @@ struct __parallel_transform_reduce_seq_submitter<_Tp, __internal::__optional_ker
             });
         });
 
-        return __reduce_future(::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __res);
+        return __reduce_future<_ExecutionPolicy, sycl::event, _Tp>(::std::forward<_ExecutionPolicy>(__exec),
+                                                                   ::std::move(__reduce_event), __res);
     }
 };
 
@@ -143,7 +144,8 @@ struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_pe
                 });
         });
 
-        return __reduce_future(::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __res);
+        return __reduce_future<_ExecutionPolicy, sycl::event, _Tp>(::std::forward<_ExecutionPolicy>(__exec),
+                                                                   ::std::move(__reduce_event), __res);
     }
 }; // struct __parallel_transform_reduce_small_submitter
 
@@ -281,7 +283,8 @@ struct __parallel_transform_reduce_impl
             __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         } while (__n > 1);
 
-        return __reduce_future(::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __res);
+        return __reduce_future<_ExecutionPolicy, sycl::event, _Tp>(::std::forward<_ExecutionPolicy>(__exec),
+                                                                   ::std::move(__reduce_event), __res);
     }
 }; // struct __parallel_transform_reduce_impl
 
