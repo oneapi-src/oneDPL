@@ -96,7 +96,10 @@ macro(onedpl_add_test test_source_file)
     set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
 
     if (DEFINED DEVICE_SELECTION_LINE)
-        set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
+        file(GLOB_RECURSE DS_TESTS "parallel_api/dynamic_selection/*.cpp")
+        if (NOT "${DS_TESTS}" MATCHES "${_test_name}") # do not set SYCL_DEVICE_FILTER for device selector tests
+            set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
+        endif()
     endif()
 
     add_custom_target(run-${_test_name}
@@ -128,7 +131,7 @@ macro(onedpl_add_test test_source_file)
     add_dependencies(build-onedpl-tests ${_test_name})
 endmacro()
 
-set(_skip_regex_for_not_dpcpp "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics)")
+set(_skip_regex_for_not_dpcpp "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics|parallel_api/dynamic_selection/sycl)")
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
     if (_file MATCHES "${_skip_regex_for_not_dpcpp}" AND NOT ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
