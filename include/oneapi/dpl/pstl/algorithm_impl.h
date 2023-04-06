@@ -2364,8 +2364,8 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_f
                       _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp,
                       _IsVector /*vector=*/, /*is_parallel=*/::std::true_type)
 {
-    static_assert(::std::is_move_constructible_v<_RandomAccessIterator1> && 
-        ::std::is_move_constructible_v<_RandomAccessIterator2>,
+    static_assert(::std::is_move_constructible_v<::std::iterator_traits<_RandomAccessIterator1>::value_type> && 
+        ::std::is_move_constructible_v<::std::iterator_traits<_RandomAccessIterator2>::value_type>,
         "The keys abd values should be move constructible in case of parallel execution.");
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
@@ -2373,7 +2373,7 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_f
     auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(::std::get<0>(__a), ::std::get<0>(__b));};
 
     __internal::__except_handler([&]() {
-        __par_backend::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __cmp_f,
+        __par_backend::(::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __cmp_f,
                                               [](auto __first, auto __last, auto __cmp)
                                                 { ::std::sort(__first, __last, __cmp); },__end - __beg);
     });

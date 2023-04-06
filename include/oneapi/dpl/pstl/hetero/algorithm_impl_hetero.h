@@ -1176,7 +1176,7 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare, typename _Proj>
 void
-__stable_sort_pattern_impl(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
+__stable_sort_with_projection(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                            _Proj __proj)
 {
     if (__last - __first < 2)
@@ -1194,7 +1194,7 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                /*vector=*/::std::true_type, /*parallel=*/::std::true_type, /*is_move_constructible=*/::std::true_type)
 {
-    __stable_sort_pattern_impl(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp, oneapi::dpl::identity{});
+    __stable_sort_with_projection(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp, oneapi::dpl::identity{});
 }
 
 //------------------------------------------------------------------------
@@ -1205,7 +1205,7 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                       /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
-    __stable_sort_pattern_impl(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp, oneapi::dpl::identity{});
+    __stable_sort_with_projection(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp, oneapi::dpl::identity{});
 }
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Compare>
@@ -1214,12 +1214,13 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _Iterator1 __keys_first, _Itera
                       _Iterator2 __values_first, _Compare __comp, /*vector=*/::std::true_type,
                       /*parallel=*/::std::true_type)
 {
-    static_assert(::std::is_move_constructible_v<_Iterator1> && ::std::is_move_constructible_v<_Iterator2>,
+    static_assert(::std::is_move_constructible_v<::std::iterator_traits<_Iterator1>::value_type>
+        && ::std::is_move_constructible_v<::std::iterator_traits<_Iterator2>>,
         "The keys abd values should be move constructible in case of parallel execution.");
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
-    __stable_sort_pattern_impl(::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __comp,
+    __stable_sort_with_projection(::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __comp,
         [](const auto& __a) { return ::std::get<0>(__a); });
 }
 

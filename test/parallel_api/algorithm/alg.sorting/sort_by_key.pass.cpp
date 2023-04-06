@@ -178,5 +178,5 @@ main()
     test_with_std_pol(oneapi::dpl::execution::par_unseq);
 #endif // !TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }
