@@ -11,6 +11,7 @@
 #define _ONEDPL_DYNAMIC_SELECTION
 
 #include "oneapi/dpl/internal/common_config.h"
+#include "oneapi/dpl/pstl/onedpl_config.h"
 
 // Check the user-defined macro for parallel policies
 // define _DS_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
