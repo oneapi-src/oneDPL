@@ -19,6 +19,7 @@
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
 #include <type_traits>
 #include <tuple>
+#include <functional>
 
 #include "../../iterator_impl.h"
 
@@ -590,6 +591,7 @@ template <::std::uint16_t _X, ::std::uint16_t... _Xs>
 class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X, _Xs...>>
     _ExecutionPolicy __my_exec;
     _Event __my_event;
+    using ResPointer = ::std::unique_ptr<_Res, ResDeleter>;
     ResPointer __my_res;
         ::std::tuple_element<0, ::std::tuple<::std::integral_constant<::std::uint32_t, _Vals>...>>,
         ::std::integral_constant<::std::uint32_t, ::std::numeric_limits<::std::uint32_t>::max()>>::type;
@@ -597,7 +599,9 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
 
     __reduce_future(_ExecutionPolicy&& __exec, _Event&& __e, _Res* __res)
         : __my_exec(::std::forward<_ExecutionPolicy>(__exec)), __my_event(::std::forward<_Event>(__e))
-    __dispatch(_F&& __f, ::std::uint16_t __x, _Args&&... args)
+          __my_res(__res, __my_exec.queue())
+        auto queue = __my_exec.queue();
+        __my_res = ResPointer(__res, [queue](_Res* __res) { ::sycl::free(__res, queue); });
     }
 
         auto queue = __my_exec.queue();
