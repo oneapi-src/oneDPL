@@ -312,6 +312,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _RandomAccessIterator1 __keys_last,
             _RandomAccessIterator2 __values_first, _Compare __comp);
 
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _RandomAccessIterator1 __keys_last,
+            _RandomAccessIterator2 __values_first);
+
 // [stable.sort]
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>

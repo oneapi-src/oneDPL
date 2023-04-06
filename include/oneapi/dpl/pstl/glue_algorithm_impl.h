@@ -694,6 +694,15 @@ sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _Ran
             _RandomAccessIterator2>(__exec));
 }
 
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _RandomAccessIterator1 __keys_last,
+            _RandomAccessIterator2 __values_first)
+{
+    oneapi::dpl::sort_by_key(::std::forward<_ExecutionPolicy>(__exec), __keys_first, __keys_last, __values_first,
+                             oneapi::dpl::__internal::__pstl_less());
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last)
