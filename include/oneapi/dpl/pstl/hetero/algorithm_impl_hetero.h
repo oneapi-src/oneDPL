@@ -834,14 +834,40 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
 
     ::std::size_t __num_copied{0};
 
-    if (__n == 1024)
+    if (__n == 16)
     {
         using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
         using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_copy_single_wg_kernel<_CustomName>>;
         using _InitType = unseq_backend::__no_init_value<uint16_t>;
         using _ReduceOp = ::std::plus<uint16_t>;
-        printf("=== calling single WG specialization\n");
+        auto __res = __par_backend_hetero::__parallel_scan_copy_static_single_group_submitter<1, 16, true, _SingleWGKernel>()(__exec, __buf1.all_view(), __buf2.all_view(), __n, _InitType{}, _ReduceOp{}, __create_mask_op.__pred);
+        __num_copied = __res.get();
+    }
+    else if (__n == 128)
+    {
+        using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
+        using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_copy_single_wg_kernel<_CustomName>>;
+        using _InitType = unseq_backend::__no_init_value<uint16_t>;
+        using _ReduceOp = ::std::plus<uint16_t>;
+        auto __res = __par_backend_hetero::__parallel_scan_copy_static_single_group_submitter<1, 128, true, _SingleWGKernel>()(__exec, __buf1.all_view(), __buf2.all_view(), __n, _InitType{}, _ReduceOp{}, __create_mask_op.__pred);
+        __num_copied = __res.get();
+    }
+    else if (__n == 1024)
+    {
+        using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
+        using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_copy_single_wg_kernel<_CustomName>>;
+        using _InitType = unseq_backend::__no_init_value<uint16_t>;
+        using _ReduceOp = ::std::plus<uint16_t>;
         auto __res = __par_backend_hetero::__parallel_scan_copy_static_single_group_submitter<1, 1024, true, _SingleWGKernel>()(__exec, __buf1.all_view(), __buf2.all_view(), __n, _InitType{}, _ReduceOp{}, __create_mask_op.__pred);
+        __num_copied = __res.get();
+    }
+    else if (__n == 8192)
+    {
+        using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
+        using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_copy_single_wg_kernel<_CustomName>>;
+        using _InitType = unseq_backend::__no_init_value<uint16_t>;
+        using _ReduceOp = ::std::plus<uint16_t>;
+        auto __res = __par_backend_hetero::__parallel_scan_copy_static_single_group_submitter<8, 1024, true, _SingleWGKernel>()(__exec, __buf1.all_view(), __buf2.all_view(), __n, _InitType{}, _ReduceOp{}, __create_mask_op.__pred);
         __num_copied = __res.get();
     }
     else
