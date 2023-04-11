@@ -194,7 +194,7 @@ struct __parallel_transform_reduce_impl
 #endif
 
         _Size __iters_per_work_item = 1;
-        if (_IsGPU{})
+        if constexpr (_IsGPU{})
         {
             // empirically tested launch configuration
             __iters_per_work_item = 32;
