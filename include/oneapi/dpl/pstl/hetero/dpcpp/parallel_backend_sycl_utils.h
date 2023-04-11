@@ -574,14 +574,9 @@ class __future : private std::tuple<_Args...>
     }
 };
 
-// Invoke a callable and pass a compile-time integer based on a provided run-time integer.
-// The compile-time integer that will be provided to the callable is defined as the smallest
 // value in the integer_sequence not less than the run-time integer. For example:
-//
-//   __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, 2, 4, 8, 16>::__dispatch(f, 3);
-//
 // will call f<4>(), since 4 is the smallest value in the sequence not less than 3.
-//
+
 // A contract for a future class for reduce: <execution policy, sycl::event, USM host memory for the reduced value>
 // Note that the integers provided in the integer_sequence must be monotonically increasing
 template <typename>
@@ -601,7 +596,7 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
         : __my_exec(::std::forward<_ExecutionPolicy>(__exec)), __my_event(::std::forward<_Event>(__e))
           __my_res(__res, __my_exec.queue())
         auto queue = __my_exec.queue();
-        __my_res = ResPointer(__res, [queue](_Res* __res) { ::sycl::free(__res, queue); });
+          __res_buf(::std::move(__buf)), __res_ptr(__res, __my_exec.queue())
     }
 
         auto queue = __my_exec.queue();
