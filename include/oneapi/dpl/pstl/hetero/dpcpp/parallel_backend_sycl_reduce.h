@@ -111,19 +111,20 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
                 __reduce_op, __transform_op};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
-        const _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
+        const bool __has_usm_host_allocations = has_usm_host_allocations(__exec.queue());
 
-        sycl::buffer<_Tp> __res(sycl::range<1>(1));
+        sycl::buffer<_Tp> __res_buf(sycl::range<1>(__has_usm_host_allocations ? 0 : 1));
+        _Tp* __res_host_ptr = __has_usm_host_allocations ? sycl::malloc_host<_Tp>(1, __exec.queue()) : nullptr;
 
         sycl::event __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
-            sycl::accessor __res_acc{__res, __cgh, sycl::write_only, __dpl_sycl::__no_init{}};
+            auto __res_acc = __res_buf.template get_access<access_mode::write>(__cgh);
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id) {
                     __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern,
                                                     __init, __temp_local, __res_acc, __rngs...);
-                __res[0] = __result;
+                    __res_acc[0] = __result;
                 });
         });
 
@@ -207,20 +208,19 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group
     auto
     operator()(_ExecutionPolicy&& __exec, sycl::event& __reduce_event, _Size __n, _ReduceOp __reduce_op,
                _TransformOp __transform_op, _InitType __init, sycl::buffer<_Tp>& __temp) const
-    {
+                        if (__has_usm_host_allocations)
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
-        auto __transform_pattern =
+                            *__res_host_ptr = __result;
             unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _NoOpFunctor>{
                 __reduce_op, _NoOpFunctor{}};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
-
         // Lower the work group size of the second kernel to the next power of 2 if __n < __work_group_size.
         auto __work_group_size2 = __work_group_size;
         if constexpr (__iters_per_work_item == 1)
         {
             if (__n < __work_group_size)
             {
-                        __res[0] = __result;
+                            __res_acc[0] = __result;
                 if ((__work_group_size2 & (__work_group_size2 - 1)) != 0)
                     __work_group_size2 = oneapi::dpl::__internal::__dpl_bit_floor(__work_group_size2) << 1;
             }
@@ -322,7 +322,6 @@ struct __parallel_transform_reduce_impl
 
         // Create temporary global buffers to store temporary values
         sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
-        sycl::buffer<_Tp> __res(sycl::range<1>(1));
         // __is_first == true. Reduce over each work_group
         // __is_first == false. Reduce between work groups
         bool __is_first = true;
