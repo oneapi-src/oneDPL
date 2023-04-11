@@ -239,7 +239,7 @@ jobs:
             powershell -command "(Get-Content %CONDA_PREFIX%\Library\lib\cl.cfg) -replace 'CL_CONFIG_TBB_DLL_PATH =', 'CL_CONFIG_TBB_DLL_PATH = %CONDA_PREFIX%\Library\bin' | Out-File -encoding ASCII %CONDA_PREFIX%\Library\lib\cl.cfg"
           )
           mkdir build && cd build
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\VC\Auxiliary\Build\vcvarsall.bat" x64
           set INCLUDE=%CONDA_PREFIX%\Library\include;%INCLUDE%
           set LIB=%CONDA_PREFIX%\Library\lib;%LIB%
           set PATH=%CONDA_PREFIX%\Library\lib;%PATH%
