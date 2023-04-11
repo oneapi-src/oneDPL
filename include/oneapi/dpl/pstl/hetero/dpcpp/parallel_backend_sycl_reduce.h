@@ -127,6 +127,8 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
                         *__res_host_ptr = __result;
                         (*__res_acc)[0] = __result;
                 });
+
+            delete __res_acc;
         });
 
         return __reduce_future<_ExecutionPolicy, sycl::event, _Tp>(
@@ -245,6 +247,8 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group
                     __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern,
                                                     __init, __temp_local, __res_acc, __temp_acc);
                 });
+
+            delete __res_acc;
         });
 
         return __reduce_future<_ExecutionPolicy, sycl::event, _Tp>(::std::forward<_ExecutionPolicy>(__exec),
@@ -379,6 +383,8 @@ struct __parallel_transform_reduce_impl
                             __temp_acc[__offset_1 + __group_idx] = __result;
                         }
                     });
+
+                    delete __res_acc;
             });
             if (__is_first)
                 __is_first = false;
