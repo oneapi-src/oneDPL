@@ -586,13 +586,14 @@ template <::std::uint16_t _X, ::std::uint16_t... _Xs>
 class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X, _Xs...>>
     _ExecutionPolicy __my_exec;
     _Event __my_event;
+    ::std::unique_ptr<sycl::buffer<_Res>> __res_buf;
     using ResPointer = ::std::unique_ptr<_Res, ResDeleter>;
     ResPointer __my_res;
         ::std::tuple_element<0, ::std::tuple<::std::integral_constant<::std::uint32_t, _Vals>...>>,
         ::std::integral_constant<::std::uint32_t, ::std::numeric_limits<::std::uint32_t>::max()>>::type;
     static_assert(_X < _Head<_Xs...>::value, "Sequence must be monotonically increasing");
 
-    __reduce_future(_ExecutionPolicy&& __exec, _Event&& __e, _Res* __res)
+    __reduce_future(_ExecutionPolicy&& __exec, _Event&& __e, ::std::unique_ptr<sycl::buffer<_Res>>&& __buf, _Res* __res)
         : __my_exec(::std::forward<_ExecutionPolicy>(__exec)), __my_event(::std::forward<_Event>(__e))
           __my_res(__res, __my_exec.queue())
         auto queue = __my_exec.queue();
@@ -616,6 +617,7 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
         _Tp __local_val = __my_res[0];
         sycl::free(__my_res, __my_exec.queue());
         __my_event.wait_and_throw();
+            return __res_buf->get_host_access(sycl::read_only)[0];
         return *__my_res.get();
 } // namespace __par_backend_hetero
 } // namespace dpl

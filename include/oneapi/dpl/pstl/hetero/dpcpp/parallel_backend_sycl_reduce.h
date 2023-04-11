@@ -112,8 +112,7 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
         const bool __has_usm_host_allocations = has_usm_host_allocations(__exec.queue());
-
-        sycl::buffer<_Tp> __res_buf(sycl::range<1>(__has_usm_host_allocations ? 0 : 1));
+            __res_buf = ::std::make_unique<sycl::buffer<_Tp>>(sycl::range<1>(1));
         _Tp* __res_host_ptr = __has_usm_host_allocations ? sycl::malloc_host<_Tp>(1, __exec.queue()) : nullptr;
 
         sycl::event __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
@@ -124,12 +123,14 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
                 [=](sycl::nd_item<1> __item_id) {
                     __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern,
                                                     __init, __temp_local, __res_acc, __rngs...);
-                    __res_acc[0] = __result;
+                    if (__has_usm_host_allocations)
+                        *__res_host_ptr = __result;
+                        (*__res_acc)[0] = __result;
                 });
         });
 
-        return __reduce_future<_ExecutionPolicy, sycl::event, _Tp>(::std::forward<_ExecutionPolicy>(__exec),
-                                                                   ::std::move(__reduce_event), __res);
+        return __reduce_future<_ExecutionPolicy, sycl::event, _Tp>(
+                                                                   ::std::move(__reduce_event), std::move(__res_buf),
     }
 }; // struct __parallel_transform_reduce_small_submitter
 
@@ -182,6 +183,7 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_siz
         _Tp* __res = sycl::malloc_host<_Tp>(1, __exec.queue());
         return __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
+                __res_acc = new acc_type(__res_buf->template get_access<access_mode::write>(__cgh));
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
             __cgh.parallel_for<_KernelName...>(
                 sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
@@ -341,7 +343,8 @@ struct __parallel_transform_reduce_impl
                 __cgh.depends_on(__reduce_event);
 
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
-                auto __temp_acc = sycl::accessor(__temp, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+                using acc_type = decltype(__res_buf->template get_access<access_mode::write>(__cgh));
+                    __res_acc = new acc_type(__res_buf->template get_access<access_mode::write>(__cgh));
                 __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
@@ -370,6 +373,7 @@ struct __parallel_transform_reduce_impl
                             {
                                 __reduce_pattern.apply_init(__init, __result);
                                 *__res = __result;
+                                    (*__res_acc)[0] = __result;
                             }
 
                             __temp_acc[__offset_1 + __group_idx] = __result;
