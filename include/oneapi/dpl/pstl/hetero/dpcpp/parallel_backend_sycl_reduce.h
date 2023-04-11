@@ -112,6 +112,7 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
         const bool __has_usm_host_allocations = has_usm_host_allocations(__exec.queue());
+        SyclBufferUniqPtr<_Tp> __res_buf;
             __res_buf = ::std::make_unique<sycl::buffer<_Tp>>(sycl::range<1>(1));
         _Tp* __res_host_ptr = __has_usm_host_allocations ? sycl::malloc_host<_Tp>(1, __exec.queue()) : nullptr;
 
@@ -181,6 +182,7 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_siz
         const _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
+        SyclBufferUniqPtr<_Tp> __res_buf;
         sycl::buffer<_Tp> __res_buf(sycl::range<1>(1));
         _Tp* __res = sycl::malloc_host<_Tp>(1, __exec.queue());
         return __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
@@ -338,6 +340,7 @@ struct __parallel_transform_reduce_impl
         _Size __offset_1 = 0;
         _Size __offset_2 = __n_groups;
 
+        SyclBufferUniqPtr<_Tp> __res_buf;
         sycl::buffer<_Tp> __res_buf(sycl::range<1>(1));
         sycl::event __reduce_event;
         do
