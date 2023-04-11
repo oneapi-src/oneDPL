@@ -298,12 +298,13 @@ struct reduce_over_group
         auto __local_idx = __item_id.get_local_id(0);
         auto __group_size = __item_id.get_local_range().size();
 
-        for (::std::uint32_t __k = 1; __k < __group_size; __k <<= 1)
+        for (::std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
         {
             __dpl_sycl::__group_barrier(__item_id);
-            if ((__local_idx & (2 * __k - 1)) == 0 && __local_idx + __k < __group_size && __global_idx + __k < __n)
+            if ((__local_idx & (2 * __power_2 - 1)) == 0 && __local_idx + __power_2 < __group_size &&
+                __global_idx + __power_2 < __n)
             {
-                __local_mem[__local_idx] = __bin_op1(__local_mem[__local_idx], __local_mem[__local_idx + __k]);
+                __local_mem[__local_idx] = __bin_op1(__local_mem[__local_idx], __local_mem[__local_idx + __power_2]);
             }
         }
         return __local_mem[__local_idx];
