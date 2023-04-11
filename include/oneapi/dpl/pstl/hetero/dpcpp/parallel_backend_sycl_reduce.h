@@ -178,6 +178,7 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_siz
         const _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
+        sycl::buffer<_Tp> __res_buf(sycl::range<1>(1));
         _Tp* __res = sycl::malloc_host<_Tp>(1, __exec.queue());
         return __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
@@ -331,6 +332,7 @@ struct __parallel_transform_reduce_impl
         _Size __offset_1 = 0;
         _Size __offset_2 = __n_groups;
 
+        sycl::buffer<_Tp> __res_buf(sycl::range<1>(1));
         sycl::event __reduce_event;
         do
         {
