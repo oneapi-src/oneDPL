@@ -85,6 +85,9 @@ namespace experimental {
     auto submit(SelectionHandle h, Function&& f, Args&&... args) {
       if constexpr (!std::is_same_v <SelectionHandle, native_resource_t> || !std::is_same_v <SelectionHandle, execution_resource_t>) {
           using PropertyHandle = typename SelectionHandle::property_handle_t;
+          if constexpr (PropertyHandle::should_report_task_submission) {
+            property::report(h.get_property_handle(), property::task_submission);
+          }
           auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), f(h.get_native(), std::forward<Args>(args)...));
           waiters_.push(w);
           return *w;
