@@ -39,6 +39,12 @@ namespace experimental {
     };
     inline constexpr task_completion_t task_completion;
 
+    struct task_submission_t {
+      static constexpr bool is_property_v = true;
+      static constexpr bool can_report_v = true;
+    };
+    inline constexpr task_submission_t task_submission;
+
     template<typename T, typename Property>
     auto query(T&& t, const Property& prop) {
       return std::forward<T>(t).query(prop);

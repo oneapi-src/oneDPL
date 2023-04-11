@@ -33,8 +33,8 @@ namespace experimental {
     using native_resource_t = typename execution_resource_t::native_resource_t;
 
     basic_selection_handle_t(execution_resource_t e = execution_resource_t{}) : e_(e) {}
-    native_resource_t get_native() { return e_.get_native(); }
-    property_handle_t get_property_handle() { return oneapi::dpl::experimental::basic_property_handle; }
+    auto get_native() { return e_.get_native(); }
+    auto get_property_handle() { return oneapi::dpl::experimental::basic_property_handle; }
   };
 
 } // namespace experimental
