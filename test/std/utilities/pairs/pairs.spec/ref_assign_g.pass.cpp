@@ -18,7 +18,7 @@ constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 sycl::cl_bool
 kernel_test1()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::range<1> numOfItem{1};
     {
@@ -44,7 +44,7 @@ kernel_test1()
 sycl::cl_bool
 kernel_test2()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::range<1> numOfItem{1};
     {
@@ -69,7 +69,7 @@ kernel_test2()
 sycl::cl_bool
 kernel_test3()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::range<1> numOfItem{1};
     {

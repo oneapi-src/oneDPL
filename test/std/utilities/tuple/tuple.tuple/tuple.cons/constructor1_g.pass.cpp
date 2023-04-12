@@ -23,7 +23,7 @@ using namespace std;
 sycl::cl_bool
 kernel_test1()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::range<1> numOfItem{1};
     {

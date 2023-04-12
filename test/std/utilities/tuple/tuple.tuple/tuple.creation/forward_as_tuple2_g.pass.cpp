@@ -35,7 +35,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     {
         deviceQueue.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest>([=]() { s::tuple<S&&>(s::forward_as_tuple(S{})); });

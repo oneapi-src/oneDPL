@@ -97,7 +97,7 @@ class B
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_default_constructible<A>(deviceQueue);
     test_is_default_constructible<Union>(deviceQueue);
     test_is_default_constructible<Empty>(deviceQueue);

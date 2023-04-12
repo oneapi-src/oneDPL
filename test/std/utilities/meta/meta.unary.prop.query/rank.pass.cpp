@@ -56,7 +56,7 @@ class Class
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_rank<void, 0>(deviceQueue);
     test_rank<int&, 0>(deviceQueue);
     test_rank<Class, 0>(deviceQueue);

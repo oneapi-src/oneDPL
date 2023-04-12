@@ -87,7 +87,7 @@ struct A
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_has_not_trivial_default_constructor<void>(deviceQueue);
     test_has_not_trivial_default_constructor<int&>(deviceQueue);
     test_has_not_trivial_default_constructor<A>(deviceQueue);

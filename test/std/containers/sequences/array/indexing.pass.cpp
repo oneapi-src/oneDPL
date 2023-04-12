@@ -25,7 +25,7 @@ kernel_test()
 {
     auto ret = true;
     {
-        sycl::queue deviceQueue;
+        sycl::queue deviceQueue = TestUtils::get_test_queue();
         sycl::buffer<bool, 1> buf1(&ret, sycl::range<1>(1));
 
         deviceQueue.submit([&](sycl::handler& cgh) {

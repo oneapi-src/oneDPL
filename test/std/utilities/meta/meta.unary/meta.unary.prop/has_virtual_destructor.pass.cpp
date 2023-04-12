@@ -67,7 +67,7 @@ struct A
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_has_not_virtual_destructor<void>(deviceQueue);
     test_has_not_virtual_destructor<A>(deviceQueue);
     test_has_not_virtual_destructor<int&>(deviceQueue);

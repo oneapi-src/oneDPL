@@ -22,7 +22,7 @@ constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 sycl::cl_bool
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = true;
     sycl::range<1> numOfItems{1};
     {

@@ -18,7 +18,7 @@ constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 sycl::cl_bool
 kernel_test1()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::cl_bool check = false;
     sycl::range<1> numOfItem{1};
@@ -58,7 +58,7 @@ struct empty
 sycl::cl_bool
 kernel_test2()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::range<1> numOfItem{1};
     s::pair<s::pair<empty, empty>, empty> p;
@@ -81,7 +81,7 @@ kernel_test2()
 sycl::cl_bool
 kernel_test3()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::range<1> numOfItem{1};
     typedef s::pair<int, int> int_pair;

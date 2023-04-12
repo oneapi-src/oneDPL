@@ -76,7 +76,7 @@ class Class
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_not_pod<void>(deviceQueue);
     test_is_not_pod<int&>(deviceQueue);
     test_is_not_pod<Class>(deviceQueue);

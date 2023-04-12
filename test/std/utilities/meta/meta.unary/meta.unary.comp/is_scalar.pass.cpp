@@ -124,7 +124,7 @@ class KernelTest29;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_scalar<KernelTest1, s::nullptr_t>(deviceQueue);
     test_is_scalar<KernelTest2, short>(deviceQueue);
     test_is_scalar<KernelTest3, unsigned short>(deviceQueue);
