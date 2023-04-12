@@ -156,7 +156,7 @@ kernel_test()
     typedef NotDerived ND;
     { // functor object
         test_result_of<KernelTest1, S(int), short>(deviceQueue);
-        if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+        if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
         {
             test_result_of<KernelTest2, S&(unsigned char, int&), double>(deviceQueue);
             test_result_of<KernelTest3, S const&(unsigned char, int&), double const&>(deviceQueue);

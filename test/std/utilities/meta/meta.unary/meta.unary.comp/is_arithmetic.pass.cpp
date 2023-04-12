@@ -133,7 +133,7 @@ kernel_test()
     test_is_arithmetic<KernelTest9, signed char>(deviceQueue);
     test_is_arithmetic<KernelTest10, unsigned char>(deviceQueue);
     test_is_arithmetic<KernelTest11, wchar_t>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_arithmetic<KernelTest12, double>(deviceQueue);
     }

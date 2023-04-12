@@ -136,7 +136,7 @@ kernel_test()
     test_is_not_reference<KernelTest17, int(int)>(deviceQueue);
     test_is_not_reference<KernelTest18, int Empty::*>(deviceQueue);
     test_is_not_reference<KernelTest19, void (Empty::*)(int)>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_not_reference<KernelTest20, double>(deviceQueue);
     }

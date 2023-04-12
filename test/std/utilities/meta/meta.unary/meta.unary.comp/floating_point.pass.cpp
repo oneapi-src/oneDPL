@@ -59,7 +59,7 @@ kernel_test()
 {
     sycl::queue deviceQueue;
     test_floating_point<float>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_floating_point<double>(deviceQueue);
     }

@@ -105,7 +105,7 @@ kernel_test()
     test_is_nothrow_copy_constructible<KernelTest7, int*>(deviceQueue);
     test_is_nothrow_copy_constructible<KernelTest8, const int*>(deviceQueue);
     test_is_nothrow_copy_constructible<KernelTest9, bit_zero>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_nothrow_copy_constructible<KernelTest10, double>(deviceQueue);
     }
