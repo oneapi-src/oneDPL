@@ -24,14 +24,14 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class KernelTest, class T, unsigned A>
 void
-test_extent(cl::sycl::queue& deviceQueue)
+test_extent(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
             static_assert((s::extent<T>::value == A), "");
             static_assert((s::extent<const T>::value == A), "");
@@ -49,9 +49,9 @@ test_extent(cl::sycl::queue& deviceQueue)
 
 template <class KernelTest, class T, unsigned A>
 void
-test_extent1(cl::sycl::queue& deviceQueue)
+test_extent1(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
             static_assert((s::extent<T, 1>::value == A), "");
             static_assert((s::extent<const T, 1>::value == A), "");
@@ -93,7 +93,7 @@ class KernelTest16;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     test_extent<KernelTest1, void, 0>(deviceQueue);
     test_extent<KernelTest2, int&, 0>(deviceQueue);
     test_extent<KernelTest3, Class, 0>(deviceQueue);

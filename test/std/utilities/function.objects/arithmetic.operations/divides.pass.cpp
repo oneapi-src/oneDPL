@@ -11,23 +11,23 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 class KernelDividesTest;
 
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
+    sycl::queue deviceQueue;
+    sycl::cl_bool ret = false;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItems);
 
     int div_array[2] = {10, 5};
-    cl::sycl::range<1> numOfItems2{2};
-    cl::sycl::buffer<cl::sycl::cl_int, 1> div_buffer(div_array, numOfItems2);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    sycl::range<1> numOfItems2{2};
+    sycl::buffer<sycl::cl_int, 1> div_buffer(div_array, numOfItems2);
+    deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl_write>(cgh);
         auto div_access = div_buffer.get_access<sycl_write>(cgh);
         cgh.single_task<class KernelDividesTest>([=]() {

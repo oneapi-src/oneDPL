@@ -16,8 +16,8 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 struct X
 {
@@ -42,23 +42,23 @@ struct X
     }
 };
 
-cl::sycl::cl_bool
+sycl::cl_bool
 kernel_test()
 {
     // Test with range that is partitioned, but not sorted.
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     X seq[] = {1, 3, 5, 7, 1, 6, 4};
     auto tmp = seq;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::cl_bool check = false;
+    sycl::cl_bool ret = false;
+    sycl::cl_bool check = false;
     const int N = sizeof(seq) / sizeof(seq[0]);
-    cl::sycl::range<1> item1{1};
-    cl::sycl::range<1> itemN{N};
+    sycl::range<1> item1{1};
+    sycl::range<1> itemN{N};
     {
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, item1);
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer2(&check, itemN);
-        cl::sycl::buffer<X, 1> buffer3(seq, itemN);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, item1);
+        sycl::buffer<sycl::cl_bool, 1> buffer2(&check, itemN);
+        sycl::buffer<X, 1> buffer3(seq, itemN);
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
             auto check_access = buffer2.get_access<sycl_write>(cgh);
             auto access = buffer3.get_access<sycl_write>(cgh);

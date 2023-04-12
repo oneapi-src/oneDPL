@@ -28,10 +28,10 @@ main(int, char**)
     const s::size_t N = 1;
     bool ret = true;
     {
-        cl::sycl::buffer<bool, 1> buf(&ret, cl::sycl::range<1>{N});
-        cl::sycl::queue q;
-        q.submit([&](cl::sycl::handler& cgh) {
-            auto acc = buf.get_access<cl::sycl::access::mode::write>(cgh);
+        sycl::buffer<bool, 1> buf(&ret, sycl::range<1>{N});
+        sycl::queue q;
+        q.submit([&](sycl::handler& cgh) {
+            auto acc = buf.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
                 s::ptrdiff_t i = reinterpret_cast<s::ptrdiff_t>(nullptr);
                 acc[0] &= (i == 0);

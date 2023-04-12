@@ -26,14 +26,14 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class KernelTest, class T>
 void
-test_is_member_pointer(cl::sycl::queue& deviceQueue)
+test_is_member_pointer(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
             static_assert(s::is_member_pointer<T>::value, "");
             static_assert(s::is_member_pointer<const T>::value, "");
@@ -51,9 +51,9 @@ test_is_member_pointer(cl::sycl::queue& deviceQueue)
 
 template <class KernelTest, class T>
 void
-test_is_not_member_pointer(cl::sycl::queue& deviceQueue)
+test_is_not_member_pointer(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
             static_assert(!s::is_member_pointer<T>::value, "");
             static_assert(!s::is_member_pointer<const T>::value, "");
@@ -122,7 +122,7 @@ void
 kernel_test()
 {
 
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     test_is_not_member_pointer<KernelTest1, s::nullptr_t>(deviceQueue);
     test_is_not_member_pointer<KernelTest2, void>(deviceQueue);
     test_is_not_member_pointer<KernelTest3, void*>(deviceQueue);

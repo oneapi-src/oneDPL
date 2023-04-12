@@ -24,14 +24,14 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class T>
 void
-test_is_copy_constructible(cl::sycl::queue& deviceQueue)
+test_is_copy_constructible(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
             static_assert(s::is_copy_constructible<T>::value, "");
 #if TEST_STD_VER > 14
@@ -43,9 +43,9 @@ test_is_copy_constructible(cl::sycl::queue& deviceQueue)
 
 template <class T>
 void
-test_is_not_copy_constructible(cl::sycl::queue& deviceQueue)
+test_is_not_copy_constructible(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
             static_assert(!s::is_copy_constructible<T>::value, "");
 #if TEST_STD_VER > 14
@@ -87,7 +87,7 @@ struct C
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     test_is_copy_constructible<A>(deviceQueue);
     test_is_copy_constructible<int&>(deviceQueue);
     test_is_copy_constructible<Union>(deviceQueue);

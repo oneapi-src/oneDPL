@@ -48,10 +48,10 @@ main(int, char**)
 #if TEST_DPCPP_BACKEND_PRESENT
     bool ret = false;
     {
-        cl::sycl::buffer<bool, 1> buf(&ret, cl::sycl::range<1>{1});
-        cl::sycl::queue q;
-        q.submit([&](cl::sycl::handler& cgh) {
-            auto ret_acc = buf.get_access<cl::sycl::access::mode::write>(cgh);
+        sycl::buffer<bool, 1> buf(&ret, sycl::range<1>{1});
+        sycl::queue q;
+        q.submit([&](sycl::handler& cgh) {
+            auto ret_acc = buf.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
                 test<float, 0>();
                 test<float, 3>();

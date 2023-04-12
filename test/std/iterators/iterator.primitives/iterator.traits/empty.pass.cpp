@@ -54,8 +54,8 @@ struct has_value_type
 void
 kernelTest()
 {
-    cl::sycl::queue q;
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::queue q;
+    q.submit([&](sycl::handler& cgh) {
         cgh.single_task<class IteratorTest>([=]() {
             typedef s::iterator_traits<not_an_iterator> It;
             static_assert(!(has_value_type<It>::value), "");

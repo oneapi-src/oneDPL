@@ -24,14 +24,14 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class T>
 void
-test_is_destructible(cl::sycl::queue& deviceQueue)
+test_is_destructible(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
             static_assert(s::is_destructible<T>::value, "");
             static_assert(s::is_destructible<const T>::value, "");
@@ -49,9 +49,9 @@ test_is_destructible(cl::sycl::queue& deviceQueue)
 
 template <class T>
 void
-test_is_not_destructible(cl::sycl::queue& deviceQueue)
+test_is_not_destructible(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
             static_assert(!s::is_destructible<T>::value, "");
             static_assert(!s::is_destructible<const T>::value, "");
@@ -116,7 +116,7 @@ struct DeletedPrivateDestructor
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     test_is_destructible<int&>(deviceQueue);
     test_is_destructible<Union>(deviceQueue);
     test_is_destructible<Empty>(deviceQueue);

@@ -53,7 +53,7 @@ struct test_t
 };
 
 // const&
-cl::sycl::cl_bool
+sycl::cl_bool
 kernel_test()
 {
     sycl::queue deviceQueue;
@@ -70,7 +70,7 @@ kernel_test()
         sycl::buffer<sycl::cl_bool, 1> buffer2(&check, numOfItem);
         sycl::buffer<decltype(p_st_1), 1> buffer3(&p_st_1, numOfItem);
         sycl::buffer<decltype(p_st_1), 1> buffer4(&p_st_2, numOfItem);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_acc = buffer1.get_access<sycl_write>(cgh);
             auto check_acc = buffer2.get_access<sycl_write>(cgh);
             auto acc1 = buffer3.get_access<sycl_write>(cgh);

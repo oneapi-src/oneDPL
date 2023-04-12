@@ -34,11 +34,11 @@ using s::optional;
 void
 kernel_test()
 {
-    cl::sycl::queue q;
-    cl::sycl::range<1> numOfItems1{1};
+    sycl::queue q;
+    sycl::range<1> numOfItems1{1};
     {
 
-        q.submit([&](cl::sycl::handler& cgh) {
+        q.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest>([=]() {
                 {
                     constexpr auto opt = make_optional<int>('a');

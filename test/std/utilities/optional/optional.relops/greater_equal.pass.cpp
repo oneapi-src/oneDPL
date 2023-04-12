@@ -44,8 +44,8 @@ operator>=(const X& lhs, const X& rhs)
 void
 kernel_test()
 {
-    cl::sycl::queue q;
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::queue q;
+    q.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest>([=]() {
             {
                 typedef optional<X> O;

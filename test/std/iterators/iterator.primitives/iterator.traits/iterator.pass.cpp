@@ -49,8 +49,8 @@ struct test_iterator
 void
 kernelTest()
 {
-    cl::sycl::queue q;
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::queue q;
+    q.submit([&](sycl::handler& cgh) {
         cgh.single_task<class IteratorTest>([=]() {
             typedef s::iterator_traits<test_iterator> It;
             static_assert((s::is_same<It::difference_type, int>::value), "");

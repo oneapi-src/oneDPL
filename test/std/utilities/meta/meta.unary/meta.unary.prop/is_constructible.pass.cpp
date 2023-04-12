@@ -23,8 +23,8 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 struct A
 {
@@ -130,9 +130,9 @@ test_is_not_constructible()
 }
 
 void
-kernel_test1(cl::sycl::queue& deviceQueue)
+kernel_test1(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest1>([=]() {
             typedef Base B;
             typedef Derived D;
@@ -223,9 +223,9 @@ kernel_test1(cl::sycl::queue& deviceQueue)
 }
 
 void
-kernel_test2(cl::sycl::queue& deviceQueue)
+kernel_test2(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest2>([=]() {
             test_is_constructible<A, int>();
             test_is_constructible<A, int, double>();
@@ -247,7 +247,7 @@ int
 main(int, char**)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     kernel_test1(deviceQueue);
     if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
     {

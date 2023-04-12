@@ -16,8 +16,8 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <typename T>
 class KernelTest1;
@@ -28,13 +28,13 @@ template <class C>
 bool
 test_iterators()
 {
-    cl::sycl::cl_bool ret = true;
+    sycl::cl_bool ret = true;
     {
-        cl::sycl::queue deviceQueue;
-        cl::sycl::range<1> numOfItems{1};
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buf1(&ret, numOfItems);
+        sycl::queue deviceQueue;
+        sycl::range<1> numOfItems{1};
+        sycl::buffer<sycl::cl_bool, 1> buf1(&ret, numOfItems);
 
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_acc = buf1.get_access<sycl_write>(cgh);
             cgh.single_task<KernelTest1<C>>([=]() {
                 typedef s::iterator_traits<typename C::iterator> ItT;
@@ -71,11 +71,11 @@ kernel_test()
 {
     bool ret = true;
     {
-        cl::sycl::queue deviceQueue;
-        cl::sycl::range<1> numOfItems{1};
-        cl::sycl::buffer<bool, 1> buf1(&ret, numOfItems);
+        sycl::queue deviceQueue;
+        sycl::range<1> numOfItems{1};
+        sycl::buffer<bool, 1> buf1(&ret, numOfItems);
 
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto ptr1 = buf1.get_access<sycl_write>(cgh);
             cgh.single_task<KernelTest2<T>>([=]() {
                 typedef s::array<T, 10> C;

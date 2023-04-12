@@ -15,7 +15,7 @@ namespace s = std;
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
-cl::sycl::cl_bool
+sycl::cl_bool
 kernel_test1()
 {
     sycl::queue deviceQueue;
@@ -55,7 +55,7 @@ struct empty
 {
 };
 
-cl::sycl::cl_bool
+sycl::cl_bool
 kernel_test2()
 {
     sycl::queue deviceQueue;
@@ -78,7 +78,7 @@ kernel_test2()
     return ret;
 }
 
-cl::sycl::cl_bool
+sycl::cl_bool
 kernel_test3()
 {
     sycl::queue deviceQueue;

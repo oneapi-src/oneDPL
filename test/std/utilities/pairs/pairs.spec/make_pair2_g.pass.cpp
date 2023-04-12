@@ -12,8 +12,8 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 class test_obj
 {
@@ -53,7 +53,7 @@ struct test_t
 };
 
 // homogeneous
-cl::sycl::cl_bool
+sycl::cl_bool
 kernel_test()
 {
     sycl::queue deviceQueue;

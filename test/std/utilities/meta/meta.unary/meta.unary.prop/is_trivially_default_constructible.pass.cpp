@@ -24,14 +24,14 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class T>
 void
-test_is_trivially_default_constructible(cl::sycl::queue& deviceQueue)
+test_is_trivially_default_constructible(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
             static_assert(s::is_trivially_default_constructible<T>::value, "");
             static_assert(s::is_trivially_default_constructible<const T>::value, "");
@@ -49,9 +49,9 @@ test_is_trivially_default_constructible(cl::sycl::queue& deviceQueue)
 
 template <class T>
 void
-test_has_not_trivial_default_constructor(cl::sycl::queue& deviceQueue)
+test_has_not_trivial_default_constructor(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
             static_assert(!s::is_trivially_default_constructible<T>::value, "");
             static_assert(!s::is_trivially_default_constructible<const T>::value, "");
@@ -87,7 +87,7 @@ struct A
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     test_has_not_trivial_default_constructor<void>(deviceQueue);
     test_has_not_trivial_default_constructor<int&>(deviceQueue);
     test_has_not_trivial_default_constructor<A>(deviceQueue);

@@ -39,8 +39,8 @@ struct TestT
 void
 kernel_test()
 {
-    cl::sycl::queue q;
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::queue q;
+    q.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest>([=]() {
             using s::make_optional;
             {

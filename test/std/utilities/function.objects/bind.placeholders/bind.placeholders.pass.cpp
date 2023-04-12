@@ -11,8 +11,8 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 class Object
 {
@@ -35,12 +35,12 @@ class KernelTest;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::cl_int result = 10;
+    sycl::queue deviceQueue;
+    sycl::range<1> numOfItems{1};
+    sycl::cl_int result = 10;
     {
-        cl::sycl::buffer<cl::sycl::cl_int, 1> buffer1(&result, numOfItems);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        sycl::buffer<sycl::cl_int, 1> buffer1(&result, numOfItems);
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto res_access = buffer1.get_access<sycl_write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 Object instance;

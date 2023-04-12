@@ -25,8 +25,8 @@ namespace s = std;
 //   lower_bound(Iter first, Iter last, const T& value. Compare comp);
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class Iter, class T>
 bool __attribute__((always_inline)) test(Iter first, Iter last, const T& value)
@@ -55,10 +55,10 @@ template <typename Iter, typename KC>
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
+    sycl::queue deviceQueue;
+    sycl::cl_bool ret = false;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItems);
     const unsigned N = 1000;
     const int M = 10;
     int host_vbuf[N];
@@ -71,9 +71,9 @@ kernel_test()
     }
 
     std::sort(host_vbuf, host_vbuf + N, s::greater<int>());
-    cl::sycl::range<1> host_buffer_sz{N};
-    cl::sycl::buffer<cl::sycl::cl_int, 1> host_data_buffer(host_vbuf, host_buffer_sz);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    sycl::range<1> host_buffer_sz{N};
+    sycl::buffer<sycl::cl_int, 1> host_data_buffer(host_vbuf, host_buffer_sz);
+    deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl_write>(cgh);
         auto data_access = host_data_buffer.get_access<sycl_read>(cgh);
         cgh.single_task<KC>([=]() {

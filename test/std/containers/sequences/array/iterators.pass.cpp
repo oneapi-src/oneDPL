@@ -15,9 +15,9 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
-constexpr cl::sycl::access::mode sycl_read_write = cl::sycl::access::mode::read_write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read_write = sycl::access::mode::read_write;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
@@ -26,11 +26,11 @@ main(int, char**)
 #if TEST_DPCPP_BACKEND_PRESENT
     bool ret = true;
     {
-        cl::sycl::queue deviceQueue;
-        cl::sycl::range<1> numOfItems{1};
-        cl::sycl::buffer<bool, 1> buf1(&ret, numOfItems);
+        sycl::queue deviceQueue;
+        sycl::range<1> numOfItems{1};
+        sycl::buffer<bool, 1> buf1(&ret, numOfItems);
 
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_acc = buf1.get_access<sycl_read_write>(cgh);
 
             cgh.single_task<class KernelIteratorTest1>([=]() {
