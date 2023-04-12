@@ -13,9 +13,9 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
-constexpr cl::sycl::access::mode sycl_read_write = cl::sycl::access::mode::read_write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read_write = sycl::access::mode::read_write;
 
 struct CopyOnly
 {
@@ -91,15 +91,15 @@ class KernelSwapTest;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::range<1> numOfItems_acc{2};
+    sycl::queue deviceQueue;
+    sycl::cl_bool ret = false;
+    sycl::range<1> numOfItems{1};
+    sycl::range<1> numOfItems_acc{2};
     int acc[2] = {1, 2};
     {
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-        cl::sycl::buffer<int, 1> acc_buffer(acc, numOfItems_acc);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItems);
+        sycl::buffer<int, 1> acc_buffer(acc, numOfItems_acc);
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
             auto acc_dev = acc_buffer.get_access<sycl_read_write>(cgh);
             cgh.single_task<class KernelSwapTest>([=]() {

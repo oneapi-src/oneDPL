@@ -33,8 +33,8 @@ main(int, char**)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     {
-        cl::sycl::queue q;
-        q.submit([&](cl::sycl::handler& cgh) {
+        sycl::queue q;
+        q.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest1>([=]() { static_assert(noexcept(offsetof(A, x)), ""); });
         });
     }

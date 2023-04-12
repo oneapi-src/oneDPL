@@ -14,8 +14,8 @@
 //   operator()(ArgTypes&&... args) const;
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 struct A_void_0
 {
@@ -33,11 +33,11 @@ class KernelInvokeVoid0Test;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    sycl::queue deviceQueue;
+    sycl::cl_bool ret = false;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItems);
+    deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl_write>(cgh);
         cgh.single_task<class KernelInvokeVoid0Test>([=]() {
             int count = 0;

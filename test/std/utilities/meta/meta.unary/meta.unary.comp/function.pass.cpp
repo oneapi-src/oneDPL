@@ -24,14 +24,14 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class T>
 void
-test_function_imp(cl::sycl::queue& deviceQueue)
+test_function_imp(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
             static_assert(!s::is_reference<T>::value, "");
             static_assert(!s::is_arithmetic<T>::value, "");
@@ -46,7 +46,7 @@ test_function_imp(cl::sycl::queue& deviceQueue)
 
 template <class T>
 void
-test_function(cl::sycl::queue& deviceQueue)
+test_function(sycl::queue& deviceQueue)
 {
     test_function_imp<T>(deviceQueue);
     test_function_imp<const T>(deviceQueue);
@@ -57,7 +57,7 @@ test_function(cl::sycl::queue& deviceQueue)
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
     {
         test_function<int(double)>(deviceQueue);

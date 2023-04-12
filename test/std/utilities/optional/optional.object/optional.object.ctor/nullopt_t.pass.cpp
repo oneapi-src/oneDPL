@@ -27,8 +27,8 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 using s::nullopt;
 using s::nullopt_t;
@@ -38,10 +38,10 @@ template <class Opt>
 void
 test_constexpr()
 {
-    cl::sycl::queue q;
-    cl::sycl::range<1> numOfItems1{1};
+    sycl::queue q;
+    sycl::range<1> numOfItems1{1};
     {
-        q.submit([&](cl::sycl::handler& cgh) {
+        q.submit([&](sycl::handler& cgh) {
             cgh.single_task<Opt>([=]() {
                 static_assert(s::is_nothrow_constructible<Opt, nullopt_t&>::value, "");
                 static_assert(s::is_trivially_destructible<Opt>::value, "");

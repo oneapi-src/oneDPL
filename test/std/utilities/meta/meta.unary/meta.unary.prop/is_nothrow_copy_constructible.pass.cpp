@@ -24,14 +24,14 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class KernelTest, class T>
 void
-test_is_nothrow_copy_constructible(cl::sycl::queue& deviceQueue)
+test_is_nothrow_copy_constructible(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
             static_assert(s::is_nothrow_copy_constructible<T>::value, "");
             static_assert(s::is_nothrow_copy_constructible<const T>::value, "");
@@ -45,9 +45,9 @@ test_is_nothrow_copy_constructible(cl::sycl::queue& deviceQueue)
 
 template <class KernelTest, class T>
 void
-test_has_not_nothrow_copy_constructor(cl::sycl::queue& deviceQueue)
+test_has_not_nothrow_copy_constructor(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
             static_assert(!s::is_nothrow_copy_constructible<T>::value, "");
             static_assert(!s::is_nothrow_copy_constructible<const T>::value, "");
@@ -94,7 +94,7 @@ class KernelTest10;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     test_has_not_nothrow_copy_constructor<KernelTest1, void>(deviceQueue);
     test_has_not_nothrow_copy_constructor<KernelTest2, A>(deviceQueue);
 

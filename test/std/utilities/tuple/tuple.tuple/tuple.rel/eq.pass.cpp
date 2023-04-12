@@ -20,19 +20,19 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 class KernelTupleEQTest1;
 class KernelTupleEQTest2;
 
 void
-kernel_test1(cl::sycl::queue& deviceQueue)
+kernel_test1(sycl::queue& deviceQueue)
 {
-    cl::sycl::cl_bool ret = true;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    sycl::cl_bool ret = true;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItems);
+    deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl_write>(cgh);
         cgh.single_task<class KernelTupleEQTest1>([=]() {
             {
@@ -163,12 +163,12 @@ kernel_test1(cl::sycl::queue& deviceQueue)
 }
 
 void
-kernel_test2(cl::sycl::queue& deviceQueue)
+kernel_test2(sycl::queue& deviceQueue)
 {
-    cl::sycl::cl_bool ret = true;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    sycl::cl_bool ret = true;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItems);
+    deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl_write>(cgh);
         cgh.single_task<class KernelTupleEQTest>([=]() {
             {
@@ -303,7 +303,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     kernel_test1(deviceQueue);
     if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
     {

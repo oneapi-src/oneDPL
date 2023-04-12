@@ -47,8 +47,8 @@ test()
 void
 kernel_test()
 {
-    cl::sycl::queue q;
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::queue q;
+    q.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest>([=]() {
             static_assert(s::is_empty_v<nullopt_t>);
             static_assert(!s::is_default_constructible_v<nullopt_t>);
