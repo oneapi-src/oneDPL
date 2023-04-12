@@ -99,13 +99,13 @@ jobs:
             build_type: release
             backend: omp
             device_type: HOST
-          - os: ubuntu-latest
+          - os: ubuntu-18.04
             cxx_compiler: g++
             std: 17
             build_type: release
             backend: omp
             device_type: HOST
-          - os: ubuntu-latest
+          - os: ubuntu-18.04
             cxx_compiler: g++
             std: 17
             build_type: release
@@ -129,7 +129,7 @@ jobs:
             build_type: release
             backend: omp
             device_type: HOST
-          - os: ubuntu-latest
+          - os: ubuntu-18.04
             cxx_compiler: clang++
             std: 17
             build_type: release
