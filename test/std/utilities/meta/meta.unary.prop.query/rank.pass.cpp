@@ -68,7 +68,7 @@ kernel_test()
     test_rank<char[3], 1>(deviceQueue);
     test_rank<char[][3], 2>(deviceQueue);
     test_rank<char[][4][3], 3>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_rank<double, 0>(deviceQueue);
     }

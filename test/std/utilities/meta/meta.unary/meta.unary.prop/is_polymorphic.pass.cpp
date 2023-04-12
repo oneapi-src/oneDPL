@@ -79,7 +79,7 @@ kernel_test()
     test_is_not_polymorphic<bit_zero>(deviceQueue);
     test_is_not_polymorphic<Final>(deviceQueue);
 
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_not_polymorphic<double>(deviceQueue);
     }

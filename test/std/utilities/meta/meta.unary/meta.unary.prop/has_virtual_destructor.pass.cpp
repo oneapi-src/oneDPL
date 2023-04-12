@@ -79,7 +79,7 @@ kernel_test()
     test_has_not_virtual_destructor<char[3]>(deviceQueue);
     test_has_not_virtual_destructor<char[]>(deviceQueue);
     test_has_not_virtual_destructor<bit_zero>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_has_not_virtual_destructor<double>(deviceQueue);
     }

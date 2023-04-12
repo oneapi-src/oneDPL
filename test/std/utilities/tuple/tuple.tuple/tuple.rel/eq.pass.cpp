@@ -305,7 +305,7 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue;
     kernel_test1(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         kernel_test2(deviceQueue);
     }

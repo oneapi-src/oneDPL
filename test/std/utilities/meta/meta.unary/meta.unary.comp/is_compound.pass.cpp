@@ -130,7 +130,7 @@ kernel_test()
     test_is_not_compound<KernelTest14, std::nullptr_t>(deviceQueue);
     test_is_not_compound<KernelTest15, void>(deviceQueue);
     test_is_not_compound<KernelTest16, int>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_not_compound<KernelTest17, double>(deviceQueue);
     }

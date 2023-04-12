@@ -99,7 +99,7 @@ kernel_test()
     test_is_trivially_default_constructible<const int*>(deviceQueue);
     test_is_trivially_default_constructible<char[3]>(deviceQueue);
     test_is_trivially_default_constructible<bit_zero>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_trivially_default_constructible<double>(deviceQueue);
     }

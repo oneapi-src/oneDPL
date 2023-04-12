@@ -108,7 +108,7 @@ kernel_test()
     test_is_assignable<KernelTest4, void*&, void*>(deviceQueue);
 
     test_is_assignable<KernelTest5, E, int>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_assignable<KernelTest6, int&, double>(deviceQueue);
     }

@@ -130,7 +130,7 @@ kernel_test()
     test_is_literal_type<KernelTest13, Union>(deviceQueue);
     test_is_literal_type<KernelTest14, Enum>(deviceQueue);
     test_is_literal_type<KernelTest15, FunctionPtr>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_literal_type<KernelTest16, double>(deviceQueue);
     }

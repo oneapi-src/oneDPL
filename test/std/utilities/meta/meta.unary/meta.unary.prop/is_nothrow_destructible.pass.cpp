@@ -108,7 +108,7 @@ kernel_test()
     test_is_nothrow_destructible<int*>(deviceQueue);
     test_is_nothrow_destructible<const int*>(deviceQueue);
     test_is_nothrow_destructible<char[3]>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_nothrow_destructible<double>(deviceQueue);
     }
