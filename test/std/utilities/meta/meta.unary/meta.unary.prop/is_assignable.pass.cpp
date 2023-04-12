@@ -24,8 +24,8 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 struct A
 {
@@ -38,9 +38,9 @@ struct B
 
 template <class KernelTest, class T, class U>
 void
-test_is_assignable(cl::sycl::queue& deviceQueue)
+test_is_assignable(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
             static_assert((s::is_assignable<T, U>::value), "");
 #if TEST_STD_VER > 14
@@ -52,9 +52,9 @@ test_is_assignable(cl::sycl::queue& deviceQueue)
 
 template <class KernelTest, class T, class U>
 void
-test_is_not_assignable(cl::sycl::queue& deviceQueue)
+test_is_not_assignable(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
             static_assert((!s::is_assignable<T, U>::value), "");
 #if TEST_STD_VER > 14
@@ -101,7 +101,7 @@ class KernelTest13;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     test_is_assignable<KernelTest1, int&, int&>(deviceQueue);
     test_is_assignable<KernelTest2, int&, int>(deviceQueue);
     test_is_assignable<KernelTest3, B, A>(deviceQueue);

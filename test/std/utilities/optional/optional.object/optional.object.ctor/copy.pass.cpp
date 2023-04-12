@@ -29,8 +29,8 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 using s::optional;
 
 class KernelTest1;
@@ -40,15 +40,15 @@ template <class KernelTest, class T, class... InitArgs>
 bool
 test1(InitArgs&&... args)
 {
-    cl::sycl::queue q;
+    sycl::queue q;
     bool ret = true;
     const optional<T> rhs(s::forward<InitArgs>(args)...);
-    cl::sycl::range<1> numOfItems1{1};
+    sycl::range<1> numOfItems1{1};
     {
-        cl::sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
-        cl::sycl::buffer<optional<T>, 1> buffer2(&rhs, numOfItems1);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
+        sycl::buffer<optional<T>, 1> buffer2(&rhs, numOfItems1);
 
-        q.submit([&](cl::sycl::handler& cgh) {
+        q.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
             auto rhs_access = buffer2.template get_access<sycl_write>(cgh);
             cgh.single_task<KernelTest>([=]() {
@@ -66,15 +66,15 @@ test1(InitArgs&&... args)
 bool
 test2()
 {
-    cl::sycl::queue q;
+    sycl::queue q;
     bool ret = true;
     const optional<const int> o(42);
-    cl::sycl::range<1> numOfItems1{1};
+    sycl::range<1> numOfItems1{1};
     {
-        cl::sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
-        cl::sycl::buffer<optional<const int>, 1> buffer2(&o, numOfItems1);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
+        sycl::buffer<optional<const int>, 1> buffer2(&o, numOfItems1);
 
-        q.submit([&](cl::sycl::handler& cgh) {
+        q.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
             auto o_access = buffer2.template get_access<sycl_write>(cgh);
             cgh.single_task<class KernelTest>([=]() {

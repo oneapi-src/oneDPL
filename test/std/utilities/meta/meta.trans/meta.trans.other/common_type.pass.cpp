@@ -26,8 +26,8 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 struct E
 {
@@ -180,9 +180,9 @@ using s::result_of;
 } // namespace note_b_example
 
 void
-kernel_test1(cl::sycl::queue& deviceQueue)
+kernel_test1(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest1>([=]() {
             static_assert((s::is_same<s::common_type<int>::type, int>::value), "");
             static_assert((s::is_same<s::common_type<char>::type, char>::value), "");
@@ -254,9 +254,9 @@ kernel_test1(cl::sycl::queue& deviceQueue)
 }
 
 void
-kernel_test2(cl::sycl::queue& deviceQueue)
+kernel_test2(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest2>([=]() {
             static_assert((s::is_same<s::common_type<double, char>::type, double>::value), "");
 #if TEST_STD_VER > 11
@@ -276,7 +276,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     kernel_test1(deviceQueue);
     if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
     {

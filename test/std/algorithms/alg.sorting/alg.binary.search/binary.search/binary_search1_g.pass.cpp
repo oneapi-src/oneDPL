@@ -14,26 +14,26 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 using s::binary_search;
 
 typedef test_container<int, forward_iterator_wrapper> Container;
 
-cl::sycl::cl_bool
+sycl::cl_bool
 kernel_test1()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     int array[] = {0};
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::cl_bool transferCheck = false;
-    cl::sycl::range<1> numOfItems{1};
+    sycl::cl_bool ret = false;
+    sycl::cl_bool transferCheck = false;
+    sycl::range<1> numOfItems{1};
     {
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer2(&transferCheck, numOfItems);
-        cl::sycl::buffer<int, 1> buffer3(array, numOfItems);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItems);
+        sycl::buffer<sycl::cl_bool, 1> buffer2(&transferCheck, numOfItems);
+        sycl::buffer<int, 1> buffer3(array, numOfItems);
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
             auto check_access = buffer2.get_access<sycl_write>(cgh);
             auto acc_arr = buffer3.get_access<sycl_write>(cgh);
@@ -55,22 +55,22 @@ kernel_test1()
     return ret;
 }
 
-cl::sycl::cl_bool
+sycl::cl_bool
 kernel_test2()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     int array[] = {0, 2, 4, 6, 8};
     int tmp[] = {0, 2, 4, 6, 8};
     const int N = sizeof(array) / sizeof(array[0]);
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::cl_bool check = false;
-    cl::sycl::range<1> item1{1};
-    cl::sycl::range<1> itemN{N};
+    sycl::cl_bool ret = false;
+    sycl::cl_bool check = false;
+    sycl::range<1> item1{1};
+    sycl::range<1> itemN{N};
     {
-        cl::sycl::buffer<int, 1> buffer1(array, itemN);
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer2(&ret, item1);
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer3(&check, item1);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        sycl::buffer<int, 1> buffer1(array, itemN);
+        sycl::buffer<sycl::cl_bool, 1> buffer2(&ret, item1);
+        sycl::buffer<sycl::cl_bool, 1> buffer3(&check, item1);
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto access1 = buffer1.get_access<sycl_write>(cgh);
             auto ret_access = buffer2.get_access<sycl_write>(cgh);
             auto check_access = buffer3.get_access<sycl_write>(cgh);

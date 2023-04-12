@@ -30,18 +30,18 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 bool
 kernel_test()
 {
     bool ret = true;
     {
-        cl::sycl::queue q;
-        cl::sycl::buffer<bool, 1> buf(&ret, cl::sycl::range<1>{1});
-        q.submit([&](cl::sycl::handler& cgh) {
-            auto ret_access = buf.get_access<cl::sycl::access::mode::write>(cgh);
+        sycl::queue q;
+        sycl::buffer<bool, 1> buf(&ret, sycl::range<1>{1});
+        q.submit([&](sycl::handler& cgh) {
+            auto ret_access = buf.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 using s::optional;
                 using s::make_optional;

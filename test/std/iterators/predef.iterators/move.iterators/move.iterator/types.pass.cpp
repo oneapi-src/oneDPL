@@ -41,8 +41,8 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class ValueType, class Reference>
 struct DummyIt
@@ -71,10 +71,10 @@ test()
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     {
-        cl::sycl::range<1> numOfItems{1};
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        sycl::range<1> numOfItems{1};
+        deviceQueue.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest>([=]() {
                 test<input_iterator<char*>>();
                 test<forward_iterator<char*>>();

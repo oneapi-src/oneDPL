@@ -75,7 +75,7 @@ struct type_two
     int n1_, n2_;
 };
 
-cl::sycl::cl_bool
+sycl::cl_bool
 kernel_test()
 {
     sycl::queue deviceQueue;
@@ -87,11 +87,11 @@ kernel_test()
     s::pair<type_one, type_two> pp1(s::piecewise_construct, s::forward_as_tuple(6), s::forward_as_tuple(5, 4));
     s::pair<type_two, type_two> pp2(s::piecewise_construct, s::forward_as_tuple(2, 1), s::forward_as_tuple(-1, -3));
     {
-        sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItem);
+        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItem);
         sycl::buffer<decltype(pp0), 1> buffer2(&pp0, numOfItem);
         sycl::buffer<decltype(pp1), 1> buffer3(&pp1, numOfItem);
         sycl::buffer<decltype(pp2), 1> buffer4(&pp2, numOfItem);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_acc1 = buffer1.get_access<sycl_write>(cgh);
             auto acc1 = buffer2.get_access<sycl_write>(cgh);
             auto acc2 = buffer3.get_access<sycl_write>(cgh);

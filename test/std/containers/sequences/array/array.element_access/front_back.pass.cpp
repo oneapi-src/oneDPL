@@ -23,12 +23,12 @@ namespace s = std;
 bool
 kernel_test()
 {
-    cl::sycl::queue myQueue;
+    sycl::queue myQueue;
     auto ret = true;
     {
-        cl::sycl::buffer<bool, 1> buf1(&ret, cl::sycl::range<1>(1));
-        myQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_access = buf1.get_access<cl::sycl::access::mode::read_write>(cgh);
+        sycl::buffer<bool, 1> buf1(&ret, sycl::range<1>(1));
+        myQueue.submit([&](sycl::handler& cgh) {
+            auto ret_access = buf1.get_access<sycl::access::mode::read_write>(cgh);
 
             cgh.single_task<class KernelFrontBackTest>([=]() {
                 typedef int T;

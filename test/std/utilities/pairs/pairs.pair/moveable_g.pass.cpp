@@ -15,7 +15,7 @@ namespace s = std;
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
-cl::sycl::cl_bool
+sycl::cl_bool
 kernel_test()
 {
     sycl::queue deviceQueue;

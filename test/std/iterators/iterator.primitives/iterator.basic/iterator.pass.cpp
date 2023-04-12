@@ -46,8 +46,8 @@ template <class T>
 void
 kernelTest()
 {
-    cl::sycl::queue q;
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::queue q;
+    q.submit([&](sycl::handler& cgh) {
         cgh.single_task<IteratorTest<T>>([=]() {
             {
                 typedef s::iterator<s::forward_iterator_tag, T> It;

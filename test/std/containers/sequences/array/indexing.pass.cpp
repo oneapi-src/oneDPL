@@ -25,11 +25,11 @@ kernel_test()
 {
     auto ret = true;
     {
-        cl::sycl::queue deviceQueue;
-        cl::sycl::buffer<bool, 1> buf1(&ret, cl::sycl::range<1>(1));
+        sycl::queue deviceQueue;
+        sycl::buffer<bool, 1> buf1(&ret, sycl::range<1>(1));
 
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_acc = buf1.get_access<cl::sycl::access::mode::read_write>(cgh);
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            auto ret_acc = buf1.get_access<sycl::access::mode::read_write>(cgh);
             cgh.single_task<class KernelIndexTest1>([=]() {
                 {
                     typedef float T;

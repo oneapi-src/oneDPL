@@ -13,8 +13,8 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 // A comparison, equalivalent to std::greater<int> without the
 // dependency on <functional>.
@@ -28,11 +28,11 @@ struct gt
 };
 
 // binary_search, with and without comparison predicate
-cl::sycl::cl_bool
+sycl::cl_bool
 kernel_test()
 {
     using s::binary_search;
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
 
     const int A[] = {1, 2, 3, 3, 3, 5, 8};
     const int C[] = {8, 5, 3, 3, 3, 2, 1};
@@ -40,17 +40,17 @@ kernel_test()
     const int N = sizeof(A) / sizeof(int);
     const int first = A[0];
     const int last = A[N - 1];
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::cl_bool check = false; // for checking data transfer
-    cl::sycl::range<1> item1{1};
-    cl::sycl::range<1> itemN{N};
+    sycl::cl_bool ret = false;
+    sycl::cl_bool check = false; // for checking data transfer
+    sycl::range<1> item1{1};
+    sycl::range<1> itemN{N};
 
     {
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, item1);
-        cl::sycl::buffer<int, 1> buffer2(A, itemN);
-        cl::sycl::buffer<int, 1> buffer3(C, itemN);
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer4(&check, item1);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, item1);
+        sycl::buffer<int, 1> buffer2(A, itemN);
+        sycl::buffer<int, 1> buffer3(C, itemN);
+        sycl::buffer<sycl::cl_bool, 1> buffer4(&check, item1);
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
             auto access2 = buffer2.get_access<sycl_write>(cgh);
             auto access3 = buffer3.get_access<sycl_write>(cgh);

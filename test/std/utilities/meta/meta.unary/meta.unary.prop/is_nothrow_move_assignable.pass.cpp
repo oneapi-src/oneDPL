@@ -24,14 +24,14 @@ namespace s = std;
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class KernelTest, class T>
 void
-test_has_nothrow_assign(cl::sycl::queue& deviceQueue)
+test_has_nothrow_assign(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
             static_assert(s::is_nothrow_move_assignable<T>::value, "");
 #if TEST_STD_VER > 14
@@ -43,9 +43,9 @@ test_has_nothrow_assign(cl::sycl::queue& deviceQueue)
 
 template <class KernelTest, class T>
 void
-test_has_not_nothrow_assign(cl::sycl::queue& deviceQueue)
+test_has_not_nothrow_assign(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
             static_assert(!s::is_nothrow_move_assignable<T>::value, "");
 #if TEST_STD_VER > 14
@@ -87,7 +87,7 @@ class KernelTest10;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     test_has_nothrow_assign<KernelTest1, int&>(deviceQueue);
     test_has_nothrow_assign<KernelTest2, Union>(deviceQueue);
     test_has_nothrow_assign<KernelTest3, Empty>(deviceQueue);

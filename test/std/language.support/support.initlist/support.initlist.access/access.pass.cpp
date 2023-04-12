@@ -49,10 +49,10 @@ main(int, char**)
     bool rs[N] = {false};
 
     {
-        cl::sycl::buffer<bool, 1> buf(rs, cl::sycl::range<1>{N});
-        cl::sycl::queue q;
-        q.submit([&](cl::sycl::handler& cgh) {
-            auto acc = buf.get_access<cl::sycl::access::mode::write>(cgh);
+        sycl::buffer<bool, 1> buf(rs, sycl::range<1>{N});
+        sycl::queue q;
+        q.submit([&](sycl::handler& cgh) {
+            auto acc = buf.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
                 A test1 = {3, 2, 1};
                 acc[0] = (test1.size == 3);

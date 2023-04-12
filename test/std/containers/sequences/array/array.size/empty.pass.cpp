@@ -23,11 +23,11 @@ main(int, char**)
     {
         auto ret = true;
         {
-            cl::sycl::queue deviceQueue;
-            cl::sycl::buffer<bool, 1> buf(&ret, cl::sycl::range<1>(1));
+            sycl::queue deviceQueue;
+            sycl::buffer<bool, 1> buf(&ret, sycl::range<1>(1));
 
-            deviceQueue.submit([&](cl::sycl::handler& cgh) {
-                auto ret_acc = buf.get_access<cl::sycl::access::mode::read_write>(cgh);
+            deviceQueue.submit([&](sycl::handler& cgh) {
+                auto ret_acc = buf.get_access<sycl::access::mode::read_write>(cgh);
 
                 cgh.single_task<class KernelEmptyTest1>([=]() {
                     {
