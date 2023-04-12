@@ -85,7 +85,7 @@ main()
     sycl::queue deviceQueue;
     kernel_test<int>(deviceQueue);
     kernel_test<MoveOnly>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         kernel_test<double>(deviceQueue);
     }

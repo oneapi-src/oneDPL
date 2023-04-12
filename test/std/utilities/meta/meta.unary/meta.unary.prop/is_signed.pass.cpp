@@ -104,7 +104,7 @@ kernel_test()
     test_is_not_signed<KernelTest10, A>(deviceQueue);
 
     test_is_signed<KernelTest11, int>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_signed<KernelTest12, double>(deviceQueue);
     }

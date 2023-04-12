@@ -94,7 +94,7 @@ kernel_test()
     test_is_nothrow_move_constructible<int*>(deviceQueue);
     test_is_nothrow_move_constructible<const int*>(deviceQueue);
     test_is_nothrow_move_constructible<bit_zero>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_nothrow_move_constructible<double>(deviceQueue);
     }

@@ -86,7 +86,7 @@ kernel_test()
     test_is_pod<const int*>(deviceQueue);
     test_is_pod<char[3]>(deviceQueue);
     test_is_pod<char[]>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_pod<double>(deviceQueue);
     }

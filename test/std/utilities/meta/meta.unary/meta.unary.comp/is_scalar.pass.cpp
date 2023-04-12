@@ -144,7 +144,7 @@ kernel_test()
     test_is_scalar<KernelTest17, Enum>(deviceQueue);
     test_is_scalar<KernelTest18, FunctionPtr>(deviceQueue);
 
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_scalar<KernelTest19, double>(deviceQueue);
     }
