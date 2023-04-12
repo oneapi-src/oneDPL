@@ -98,7 +98,7 @@ class Z
 sycl::cl_bool
 test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = true;
     sycl::range<1> item1{1};
     {

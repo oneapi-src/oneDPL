@@ -83,7 +83,7 @@ struct A
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_has_not_nothrow_move_constructor<void>(deviceQueue);
     test_has_not_nothrow_move_constructor<A>(deviceQueue);
 

@@ -47,7 +47,7 @@ test(It i)
 bool
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = true;
     {
         sycl::range<1> numOfItems{1};

@@ -46,7 +46,7 @@ sycl::cl_bool
 kernel_test()
 {
     // Test with range that is partitioned, but not sorted.
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     X seq[] = {1, 3, 5, 7, 1, 6, 4};
     auto tmp = seq;
     sycl::cl_bool ret = false;

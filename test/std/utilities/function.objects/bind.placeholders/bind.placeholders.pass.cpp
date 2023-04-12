@@ -35,7 +35,7 @@ class KernelTest;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::range<1> numOfItems{1};
     sycl::cl_int result = 10;
     {

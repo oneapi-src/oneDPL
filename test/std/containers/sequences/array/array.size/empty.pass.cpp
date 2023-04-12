@@ -23,7 +23,7 @@ main(int, char**)
     {
         auto ret = true;
         {
-            sycl::queue deviceQueue;
+            sycl::queue deviceQueue = TestUtils::get_test_queue();
             sycl::buffer<bool, 1> buf(&ret, sycl::range<1>(1));
 
             deviceQueue.submit([&](sycl::handler& cgh) {

@@ -47,7 +47,7 @@ test(It i, typename s::iterator_traits<It>::difference_type n, It x)
 bool
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = true;
     {
         sycl::range<1> numOfItems{1};

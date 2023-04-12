@@ -121,7 +121,7 @@ class KernelTest26;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_arithmetic<KernelTest1, short>(deviceQueue);
     test_is_arithmetic<KernelTest2, unsigned short>(deviceQueue);
     test_is_arithmetic<KernelTest3, int>(deviceQueue);

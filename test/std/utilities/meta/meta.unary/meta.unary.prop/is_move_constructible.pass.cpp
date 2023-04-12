@@ -80,7 +80,7 @@ struct B
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_not_move_constructible<char[3]>(deviceQueue);
     test_is_not_move_constructible<char[]>(deviceQueue);
     test_is_not_move_constructible<void>(deviceQueue);

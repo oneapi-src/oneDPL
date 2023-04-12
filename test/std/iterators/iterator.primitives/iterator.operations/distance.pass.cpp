@@ -53,7 +53,7 @@ constexpr_test(It first, It last, typename std::iterator_traits<It>::difference_
 bool
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = true;
     {
         sycl::range<1> numOfItems{1};

@@ -24,7 +24,7 @@ class KernelNonMemberSwapTest;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::range<1> numOfItems{1};
     sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItems);
