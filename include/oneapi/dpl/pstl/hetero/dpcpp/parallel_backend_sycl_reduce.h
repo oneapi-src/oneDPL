@@ -45,7 +45,7 @@ class __reduce_mid_work_group_kernel;
 template <typename... _Name>
 class __reduce_kernel;
 
-//------------------------------------------------------------------------
+template <typename _Tp>
 // parallel_transform_reduce - async patterns
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
 //------------------------------------------------------------------------
@@ -58,37 +58,30 @@ __work_group_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Si
                            _TransformPattern __transform_pattern, _ReducePattern __reduce_pattern, _InitType __init,
                            const _AccLocal& __local_mem, const _Res& __res_acc, const _Acc&... __acc)
 {
-    auto __local_idx = __item_id.get_local_id(0);
+    _Tp* __ptr = nullptr;
     // 1. Initialization (transform part). Fill local memory
-    __transform_pattern(__item_id, __n, /*global_offset*/ (_Size)0, __local_mem, __acc...);
+    DeleteOnDestroy(_Tp* _ptr) : __ptr(_ptr) {}
     __dpl_sycl::__group_barrier(__item_id);
     // 2. Reduce within work group using local memory
-    _Tp __result = __reduce_pattern(__item_id, __n_items, __local_mem);
+__get_result_accesssor(sycl::handler& __cgh, ::std::unique_ptr<sycl::buffer<_Tp>>&& __res_buf)
     if (__local_idx == 0)
-    {
-        __reduce_pattern.apply_init(__init, __result);
-        __res_acc[0] = __result;
+    acc_type* __res_acc = nullptr;
+    return __res_acc;
     }
-}
-
 // Device kernel that transforms and reduces __n elements to the number of work groups preliminary results.
 template <typename _Tp, typename _NDItemId, typename _Size, typename _TransformPattern, typename _ReducePattern,
-          typename _AccLocal, typename _Tmp, typename... _Acc>
-void
-__device_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Size __n_items,
+template <typename _Acc, typename _Tp>
+__set_result(bool __use_usm, _Acc& __res_acc, _Tp* __res_host_ptr, _Tp& __result)
                        _TransformPattern __transform_pattern, _ReducePattern __reduce_pattern,
                        const _AccLocal& __local_mem, const _Tmp& __temp_acc, const _Acc&... __acc)
-{
-    auto __local_idx = __item_id.get_local_id(0);
-    auto __group_idx = __item_id.get_group(0);
-    // 1. Initialization (transform part). Fill local memory
+    if (__use_usm)
+        *__res_host_ptr = __result;
     __transform_pattern(__item_id, __n, /*global_offset*/ (_Size)0, __local_mem, __acc...);
     __dpl_sycl::__group_barrier(__item_id);
     // 2. Reduce within work group using local memory
     _Tp __result = __reduce_pattern(__item_id, __n_items, __local_mem);
     if (__local_idx == 0)
-        __temp_acc[__group_idx] = __result;
-}
+        (*__res_acc)[0] = __result;
 
 template <typename T>
 using SyclBufferUniqPtr = ::std::unique_ptr<sycl::buffer<T>>;
@@ -122,6 +115,10 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
 
         return __exec.queue().submit([&, __n](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
+            using acc_type = decltype(__res_buf->template get_access<access_mode::write>(__cgh));
+            auto __res_acc =
+            if (__res_buf)
+                __get_result_accesssor(__cgh, ::std::forward<::std::unique_ptr<sycl::buffer<_Tp>>>(__res_buf));
             auto __res_acc = __res_buf.template get_access<access_mode::write>(__cgh);
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size), sycl::range<1>(__work_group_size)),
@@ -131,6 +128,7 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
                     if (__has_usm_host_allocations)
                     if (__use_usm)
                         *__res_host_ptr = __result;
+                    else
                         (*__res_acc)[0] = __result;
                 });
 
@@ -194,6 +192,9 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_siz
 
         sycl::event __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
+            using acc_type = decltype(__res_buf->template get_access<access_mode::write>(__cgh));
+            auto __res_acc =
+            if (__res_buf)
                 __res_acc = new acc_type(__res_buf->template get_access<access_mode::write>(__cgh));
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
             __cgh.parallel_for<_KernelName...>(
@@ -222,7 +223,7 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group
     auto
     operator()(_ExecutionPolicy&& __exec, sycl::event& __reduce_event, _Size __n, _ReduceOp __reduce_op,
                _TransformOp __transform_op, _InitType __init, sycl::buffer<_Tp>& __temp) const
-                        if (__has_usm_host_allocations)
+                        __set_result(__use_usm, __res_acc, __res_host_ptr, __result);
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
                             *__res_host_ptr = __result;
             unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _NoOpFunctor>{
@@ -231,10 +232,8 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group
         // Lower the work group size of the second kernel to the next power of 2 if __n < __work_group_size.
         auto __work_group_size2 = __work_group_size;
         if constexpr (__iters_per_work_item == 1)
-        {
             if (__n < __work_group_size)
             {
-                            __res_acc[0] = __result;
                 if ((__work_group_size2 & (__work_group_size2 - 1)) != 0)
                     __work_group_size2 = oneapi::dpl::__internal::__dpl_bit_floor(__work_group_size2) << 1;
             }
@@ -364,6 +363,9 @@ struct __parallel_transform_reduce_impl
 
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
                 using acc_type = decltype(__res_buf->template get_access<access_mode::write>(__cgh));
+                using acc_type = decltype(__res_buf->template get_access<access_mode::write>(__cgh));
+                auto __res_acc =
+                if (__res_buf)
                     __res_acc = new acc_type(__res_buf->template get_access<access_mode::write>(__cgh));
                 __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
@@ -393,7 +395,7 @@ struct __parallel_transform_reduce_impl
                             {
                                 __reduce_pattern.apply_init(__init, __result);
                                 if (__use_usm)
-                                *__res = __result;
+                                else
                                     (*__res_acc)[0] = __result;
                             }
 
