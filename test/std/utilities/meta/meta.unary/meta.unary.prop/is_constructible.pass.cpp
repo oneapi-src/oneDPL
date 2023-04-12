@@ -247,7 +247,7 @@ int
 main(int, char**)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {

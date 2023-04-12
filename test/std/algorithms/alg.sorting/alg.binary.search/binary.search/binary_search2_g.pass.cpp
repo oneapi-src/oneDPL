@@ -32,7 +32,7 @@ sycl::cl_bool
 kernel_test()
 {
     using s::binary_search;
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
 
     const int A[] = {1, 2, 3, 3, 3, 5, 8};
     const int C[] = {8, 5, 3, 3, 3, 2, 1};

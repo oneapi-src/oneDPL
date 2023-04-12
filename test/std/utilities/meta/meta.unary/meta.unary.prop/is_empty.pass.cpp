@@ -110,7 +110,7 @@ struct bit_one
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_not_empty<void>(deviceQueue);
     test_is_not_empty<int&>(deviceQueue);
     test_is_not_empty<int>(deviceQueue);

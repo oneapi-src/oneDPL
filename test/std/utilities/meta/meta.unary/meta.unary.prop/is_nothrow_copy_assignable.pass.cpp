@@ -76,7 +76,7 @@ struct A
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_has_nothrow_assign<int&>(deviceQueue);
     test_has_nothrow_assign<Union>(deviceQueue);
     test_has_nothrow_assign<Empty>(deviceQueue);

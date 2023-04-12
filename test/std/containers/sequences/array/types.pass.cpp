@@ -30,7 +30,7 @@ test_iterators()
 {
     sycl::cl_bool ret = true;
     {
-        sycl::queue deviceQueue;
+        sycl::queue deviceQueue = TestUtils::get_test_queue();
         sycl::range<1> numOfItems{1};
         sycl::buffer<sycl::cl_bool, 1> buf1(&ret, numOfItems);
 
@@ -71,7 +71,7 @@ kernel_test()
 {
     bool ret = true;
     {
-        sycl::queue deviceQueue;
+        sycl::queue deviceQueue = TestUtils::get_test_queue();
         sycl::range<1> numOfItems{1};
         sycl::buffer<bool, 1> buf1(&ret, numOfItems);
 

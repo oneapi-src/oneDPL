@@ -61,7 +61,7 @@ template <class It>
 void
 test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     {
         sycl::range<1> numOfItems{1};
         deviceQueue.submit([&](sycl::handler& cgh) {

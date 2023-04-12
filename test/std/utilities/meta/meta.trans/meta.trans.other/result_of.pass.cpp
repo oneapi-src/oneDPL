@@ -152,7 +152,7 @@ class KernelTest21;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     typedef NotDerived ND;
     { // functor object
         test_result_of<KernelTest1, S(int), short>(deviceQueue);

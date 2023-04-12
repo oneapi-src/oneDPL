@@ -87,7 +87,7 @@ class KernelTest10;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_has_nothrow_assign<KernelTest1, int&>(deviceQueue);
     test_has_nothrow_assign<KernelTest2, Union>(deviceQueue);
     test_has_nothrow_assign<KernelTest3, Empty>(deviceQueue);

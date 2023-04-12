@@ -115,7 +115,7 @@ class KernelTest20;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_reference<KernelTest1, int&>(deviceQueue);
     test_is_reference<KernelTest2, int&&>(deviceQueue);
 

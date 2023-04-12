@@ -94,7 +94,7 @@ class KernelTest10;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_has_not_nothrow_copy_constructor<KernelTest1, void>(deviceQueue);
     test_has_not_nothrow_copy_constructor<KernelTest2, A>(deviceQueue);
 

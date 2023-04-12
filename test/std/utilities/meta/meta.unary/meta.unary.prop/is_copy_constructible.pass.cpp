@@ -87,7 +87,7 @@ struct C
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_copy_constructible<A>(deviceQueue);
     test_is_copy_constructible<int&>(deviceQueue);
     test_is_copy_constructible<Union>(deviceQueue);

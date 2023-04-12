@@ -91,7 +91,7 @@ class KernelTest12;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_not_signed<KernelTest1, void>(deviceQueue);
     test_is_not_signed<KernelTest2, int&>(deviceQueue);
     test_is_not_signed<KernelTest3, Class>(deviceQueue);

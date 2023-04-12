@@ -22,7 +22,7 @@ template <long long N, long long D, long long eN, long long eD, class KernelName
 sycl::cl_bool
 test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::range<1> item1{1};
     {

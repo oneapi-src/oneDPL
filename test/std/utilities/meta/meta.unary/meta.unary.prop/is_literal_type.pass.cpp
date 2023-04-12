@@ -107,7 +107,7 @@ class KernelTest16;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_literal_type<KernelTest1, std::nullptr_t>(deviceQueue);
 
 // Before C++14, void was not a literal type

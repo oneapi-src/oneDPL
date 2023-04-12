@@ -116,7 +116,7 @@ struct DeletedPrivateDestructor
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_destructible<int&>(deviceQueue);
     test_is_destructible<Union>(deviceQueue);
     test_is_destructible<Empty>(deviceQueue);

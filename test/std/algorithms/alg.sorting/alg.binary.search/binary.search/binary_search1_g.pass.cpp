@@ -24,7 +24,7 @@ typedef test_container<int, forward_iterator_wrapper> Container;
 sycl::cl_bool
 kernel_test1()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     int array[] = {0};
     sycl::cl_bool ret = false;
     sycl::cl_bool transferCheck = false;
@@ -58,7 +58,7 @@ kernel_test1()
 sycl::cl_bool
 kernel_test2()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     int array[] = {0, 2, 4, 6, 8};
     int tmp[] = {0, 2, 4, 6, 8};
     const int N = sizeof(array) / sizeof(array[0]);

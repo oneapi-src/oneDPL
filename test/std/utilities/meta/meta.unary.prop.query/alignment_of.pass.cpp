@@ -60,7 +60,7 @@ class Class
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_alignment_of<int&, 4>(deviceQueue);
     test_alignment_of<Class, 1>(deviceQueue);
     test_alignment_of<int*, sizeof(intptr_t)>(deviceQueue);

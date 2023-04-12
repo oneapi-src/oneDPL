@@ -78,7 +78,7 @@ struct type_two
 sycl::cl_bool
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::cl_bool check = false;
     sycl::range<1> numOfItem{1};

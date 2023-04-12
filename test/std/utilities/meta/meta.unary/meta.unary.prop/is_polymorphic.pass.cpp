@@ -66,7 +66,7 @@ class Final /*final*/
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_not_polymorphic<void>(deviceQueue);
     test_is_not_polymorphic<int&>(deviceQueue);
     test_is_not_polymorphic<int>(deviceQueue);

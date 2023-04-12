@@ -98,7 +98,7 @@ struct bit_zero
 void
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_not_nothrow_destructible<void>(deviceQueue);
     test_is_not_nothrow_destructible<char[]>(deviceQueue);
     test_is_not_nothrow_destructible<char[][3]>(deviceQueue);
