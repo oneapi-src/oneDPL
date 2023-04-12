@@ -59,7 +59,7 @@ struct bit_zero
     int : 0;
 };
 
-class Final final
+class Final /*final*/
 {
 };
 
