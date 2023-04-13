@@ -65,7 +65,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators is_std_test)
     endif()
 
     if (${is_std_test})
-        #process std tests: target name equal to parent folders names plus cpp file name without extention
+        #process std tests: target name equal to parent folders names plus cpp file name without extension
         file(RELATIVE_PATH _test_name "${CMAKE_CURRENT_SOURCE_DIR}" "${test_source_file}")
         string(REPLACE "\.cpp" "" _test_name ${_test_name})
         string(REPLACE "/" ";" _test_name_list ${_test_name})
@@ -77,7 +77,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators is_std_test)
         set(result_test_name "std-${parent_folder_name}-${test_name}")
         string(REPLACE "-" "-" _test_name ${result_test_name})
     else()
-        #process oneDPL tests: target name equal to cpp file name without extention
+        #process oneDPL tests: target name equal to cpp file name without extension
         get_filename_component(_test_name ${test_source_file} NAME)
         string(REPLACE "\.cpp" "" _test_name ${_test_name})
     endif()
