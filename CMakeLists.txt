@@ -18,7 +18,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
 option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
 option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
-option(ONEDPL_WIN_ICPX_ICX_FIXS "Enable icpx and icx workarounds for Windows" ON)
+cmake_dependant_option(ONEDPL_WIN_ICPX_ICX_FIXS "Enable icpx and icx workarounds for Windows" ON "CMAKE_HOST_WIN32" OFF)
 
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/oneapi/dpl/pstl/onedpl_config.h
     _onedpl_version_info
