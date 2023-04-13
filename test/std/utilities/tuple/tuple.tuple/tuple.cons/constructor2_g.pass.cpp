@@ -37,8 +37,6 @@ main()
             cgh.single_task<class KernelTest>([=]() { s::tuple<ConvertibleToAny&&> t(ConvertibleToAny{}); });
         });
     }
-
-    std::cout << "pass" << std::endl;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
