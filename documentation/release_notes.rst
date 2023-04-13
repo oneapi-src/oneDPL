@@ -8,6 +8,18 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.1.1
+===============
+New Features
+------------
+- AOT compilation for CPU devices is now possible with the use of ONEDPL_USE_AOT_COMPILATION cmake option.
+
+Fixes Issues
+------------
+- Fixed 'Device name missing' error occurring with the following cmake options: ONEDPL_USE_AOT_COMPILATION=ON, ONEDPL_DEVICE_BACKEND=GPU or not specified and CMAKE_BUILD_TYPE is not specified.
+- Fixed an error that caused segmentation faults in transform_reduce, minmax_element, and related algorithms when ran on the CPU. 
+- Fixed a compilation error in transform_reduce, minmax_element, and related algorithms on FPGAs.
+
 New in 2022.1.0
 ===============
 
