@@ -802,10 +802,34 @@ __pattern_mismatch(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __
 // copy_if
 //------------------------------------------------------------------------
 
-class Foobar {};
-
 template<typename... Name>
 class __scan_copy_single_wg_kernel;
+
+struct __invoke_single_group_scan_copy
+{
+    // Specialization for devices that have a max work-group size of 1024
+    static constexpr ::std::uint16_t __targeted_wg_size = 1024;
+
+    template <::std::uint16_t _Size, typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Pred>
+    auto
+    operator()(_ExecutionPolicy&& __exec, ::std::size_t __n, _InRng&& __in_rng, _OutRng&& __out_rng, _Pred&& __pred)
+    {
+        constexpr ::std::uint16_t __wg_size = ::std::min(_Size, __targeted_wg_size);
+        constexpr ::std::uint16_t __num_elems_per_item = __dpl_ceiling_div(_Size, __wg_size);
+        const bool __is_full_group = __n == __wg_size;
+        printf("calling 1 sg impl for n=%lu\n", __n);
+
+        using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
+        using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_copy_single_wg_kernel<_CustomName>>;
+        using _InitType = unseq_backend::__no_init_value<uint16_t>;
+        using _ReduceOp = ::std::plus<uint16_t>;
+        if (__is_full_group)
+            return __par_backend_hetero::__parallel_scan_copy_static_single_group_submitter<__num_elems_per_item, __wg_size, true, _SingleWGKernel>()(__exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, ::std::forward<_Pred>(__pred));
+        else
+            return __par_backend_hetero::__parallel_scan_copy_static_single_group_submitter<__num_elems_per_item, __wg_size, false, _SingleWGKernel>()(__exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, ::std::forward<_Pred>(__pred));
+    }
+};
+
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _IteratorOrTuple, typename _CreateMaskOp,
           typename _CopyByMaskOp>
@@ -834,40 +858,15 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
 
     ::std::size_t __num_copied{0};
 
-    if (__n == 16)
+    if (__n < 8192)
     {
-        using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
-        using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_copy_single_wg_kernel<_CustomName>>;
-        using _InitType = unseq_backend::__no_init_value<uint16_t>;
-        using _ReduceOp = ::std::plus<uint16_t>;
-        auto __res = __par_backend_hetero::__parallel_scan_copy_static_single_group_submitter<1, 16, true, _SingleWGKernel>()(__exec, __buf1.all_view(), __buf2.all_view(), __n, _InitType{}, _ReduceOp{}, __create_mask_op.__pred);
-        __num_copied = __res.get();
-    }
-    else if (__n == 128)
-    {
-        using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
-        using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_copy_single_wg_kernel<_CustomName>>;
-        using _InitType = unseq_backend::__no_init_value<uint16_t>;
-        using _ReduceOp = ::std::plus<uint16_t>;
-        auto __res = __par_backend_hetero::__parallel_scan_copy_static_single_group_submitter<1, 128, true, _SingleWGKernel>()(__exec, __buf1.all_view(), __buf2.all_view(), __n, _InitType{}, _ReduceOp{}, __create_mask_op.__pred);
-        __num_copied = __res.get();
-    }
-    else if (__n == 1024)
-    {
-        using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
-        using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_copy_single_wg_kernel<_CustomName>>;
-        using _InitType = unseq_backend::__no_init_value<uint16_t>;
-        using _ReduceOp = ::std::plus<uint16_t>;
-        auto __res = __par_backend_hetero::__parallel_scan_copy_static_single_group_submitter<1, 1024, true, _SingleWGKernel>()(__exec, __buf1.all_view(), __buf2.all_view(), __n, _InitType{}, _ReduceOp{}, __create_mask_op.__pred);
-        __num_copied = __res.get();
-    }
-    else if (__n == 8192)
-    {
-        using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
-        using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_copy_single_wg_kernel<_CustomName>>;
-        using _InitType = unseq_backend::__no_init_value<uint16_t>;
-        using _ReduceOp = ::std::plus<uint16_t>;
-        auto __res = __par_backend_hetero::__parallel_scan_copy_static_single_group_submitter<8, 1024, true, _SingleWGKernel>()(__exec, __buf1.all_view(), __buf2.all_view(), __n, _InitType{}, _ReduceOp{}, __create_mask_op.__pred);
+        using _SizeBreakpoints =
+            ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192>;
+            //::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
+
+        auto __res = __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
+            __invoke_single_group_scan_copy{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, __buf1.all_view(), __buf2.all_view(),
+            __create_mask_op.__pred);
         __num_copied = __res.get();
     }
     else
