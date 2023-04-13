@@ -64,7 +64,6 @@ main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    std::cout << "pass" << std::endl;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
