@@ -13,6 +13,8 @@
 ##===----------------------------------------------------------------------===##
 
 cmake_minimum_required(VERSION 3.4.3)
+
+include(CMakeDependentOption)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
