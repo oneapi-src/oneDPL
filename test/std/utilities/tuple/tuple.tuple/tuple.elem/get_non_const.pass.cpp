@@ -46,9 +46,8 @@ getP()
 class KernelGetNonConstTest;
 
 void
-kernel_test()
+kernel_test(sycl::queue deviceQueue)
 {
-    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::range<1> numOfItems{1};
     sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItems);
@@ -82,9 +81,16 @@ kernel_test()
 int
 main()
 {
+    int is_done = 0;
+
 #if TEST_DPCPP_BACKEND_PRESENT
-    kernel_test();
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
+    {
+        kernel_test();
+        is_done = 1;
+    }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done(is_done);
 }
