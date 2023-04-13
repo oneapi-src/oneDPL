@@ -24,7 +24,7 @@ template<typename _Policy>
 void
 test_with_std_pol(_Policy&& policy)
 {
-    const int n = 1000000;
+    constexpr int n = 1000000;
     std::vector<int> keys_buf(n); //keys
     std::vector<int> vals_buf(n); //values
 
@@ -36,7 +36,7 @@ test_with_std_pol(_Policy&& policy)
 
     // 1. Initialization of buffers
     std::transform(policy, counting_begin, counting_begin + n, keys_begin,
-                   [n](int i) { return i%2 + 1; });
+                   [](int i) { return i % 2 + 1; });
     // fill vals_buf with the analogue of std::iota using counting_iterator
     std::copy(policy, counting_begin, counting_begin + n, vals_begin);
 
@@ -45,7 +45,7 @@ test_with_std_pol(_Policy&& policy)
     oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, std::less<void>());
 
     // 3.Checking results
-    auto k = (n-1)/2 + 1;
+    constexpr k = (n - 1) / 2 + 1;
     for (int i = 0; i < n; ++i)
     {
         if(i-k < 0)
@@ -121,7 +121,7 @@ test_with_buffers(sycl::queue& q)
 
     // 1. Initialization of buffers
     std::transform(policy, counting_begin, counting_begin + n, keys_begin,
-                   [n](int i) { return i%2 + 1; });
+                   [](int i) { return i % 2 + 1; });
     // fill vals_buf with the analogue of std::iota using counting_iterator
     std::copy(policy, counting_begin, counting_begin + n, vals_begin);
 
@@ -134,10 +134,10 @@ test_with_buffers(sycl::queue& q)
     sycl::host_accessor host_vals(vals_buf, sycl::read_only);
 
     // expected output:
-    auto k = (n-1)/2 + 1;
+    auto k = (n - 1) / 2 + 1;
     for (int i = 0; i < n; ++i)
     {
-        if(i-k < 0)
+        if(i - k < 0)
         {
              //a key should be 1 and value should be even
             EXPECT_TRUE(host_keys[i] == 1 && host_vals[i] % 2 == 0,
