@@ -92,10 +92,17 @@ kernel_test()
 int
 main(int, char**)
 {
+    int is_done = 0;
+
 #if TEST_DPCPP_BACKEND_PRESENT
-    auto ret = kernel_test();
-    TestUtils::exitOnError(ret);
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
+    {
+        auto ret = kernel_test();
+        TestUtils::exitOnError(ret);
+
+        is_done = 1;
+    }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done(is_done);
 }
