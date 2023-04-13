@@ -20,18 +20,10 @@
 
 #include "support/utils.h"
 
-template<typename _Policy>
+template<typename _Policy, typename _KeyIt, typename _ValIt, typename _Size>
 void
-test_with_std_pol(_Policy&& policy)
+call_sort_by_key(_Policy&& policy, _KeyIt keys_begin, _ValIt vals_begin,  _Size n)
 {
-    constexpr int n = 1000000;
-    std::vector<int> keys_buf(n); //keys
-    std::vector<int> vals_buf(n); //values
-
-    // create objects to iterate over buffers
-    auto keys_begin = keys_buf.begin();
-    auto vals_begin = vals_buf.begin();
-
     auto counting_begin = oneapi::dpl::counting_iterator<int>{0};
 
     // 1. Initialization of buffers
@@ -43,12 +35,17 @@ test_with_std_pol(_Policy&& policy)
     // 2. Sorting
     // stable sort by keys
     oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, std::less<void>());
+}
 
-    // 3.Checking results
-    constexpr k = (n - 1) / 2 + 1;
+template<typename _Keys, typename _Vals, typename _Size>
+void
+check_sort_by_key_results(const _Keys& keys_buf, const _Vals& vals_buf,  _Size n)
+{
+    //Checking results
+    const int k = (n - 1) / 2 + 1;
     for (int i = 0; i < n; ++i)
     {
-        if(i-k < 0)
+        if(i - k < 0)
         {
              //a key should be 1 and value should be even
             EXPECT_TRUE(keys_buf[i] == 1 && vals_buf[i] % 2 == 0, "wrong sort_by_key result with a standard policy");
@@ -59,6 +56,18 @@ test_with_std_pol(_Policy&& policy)
             EXPECT_TRUE(keys_buf[i] == 2 && vals_buf[i] % 2 == 1, "wrong sort_by_key result with a standard policy");
         }
     }
+}
+
+template<typename _Policy>
+void
+test_with_std_policy(_Policy&& policy)
+{
+    constexpr int n = 1000000;
+    std::vector<int> keys_buf(n); //keys
+    std::vector<int> vals_buf(n); //values
+
+    call_sort_by_key(policy, keys_buf.begin(), vals_buf.begin(), n);
+    check_sort_by_key_results(keys_buf, vals_buf, n);
 }
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -107,7 +116,7 @@ test_with_usm(sycl::queue& q)
 void
 test_with_buffers(sycl::queue& q)
 {
-    const int n = 1000000;
+    constexpr int n = 1000000;
     sycl::buffer<int> keys_buf{n};  // buffer with keys
     sycl::buffer<int> vals_buf{n};  // buffer with values
 
@@ -117,39 +126,14 @@ test_with_buffers(sycl::queue& q)
     auto keys_begin = oneapi::dpl::begin(keys_buf);
     auto vals_begin = oneapi::dpl::begin(vals_buf);
 
-    auto counting_begin = oneapi::dpl::counting_iterator<int>{0};
+    // call algo
+    call_sort_by_key(policy, keys_begin, vals_begin, n);
 
-    // 1. Initialization of buffers
-    std::transform(policy, counting_begin, counting_begin + n, keys_begin,
-                   [](int i) { return i % 2 + 1; });
-    // fill vals_buf with the analogue of std::iota using counting_iterator
-    std::copy(policy, counting_begin, counting_begin + n, vals_begin);
-
-    // 2. Sorting
-    // stable sort by keys
-    oneapi::dpl::sort_by_key(policy, keys_begin, keys_begin + n, vals_begin, std::less<void>());
-
-    // 3.Checking results
+    // checking results
     sycl::host_accessor host_keys(keys_buf, sycl::read_only);
     sycl::host_accessor host_vals(vals_buf, sycl::read_only);
 
-    // expected output:
-    auto k = (n - 1) / 2 + 1;
-    for (int i = 0; i < n; ++i)
-    {
-        if(i - k < 0)
-        {
-             //a key should be 1 and value should be even
-            EXPECT_TRUE(host_keys[i] == 1 && host_vals[i] % 2 == 0,
-                "wrong sort_by_key result with a herero policy, sycl buffer");
-        }
-        else
-        {
-            //a key should be 2 and value should be odd
-            EXPECT_TRUE(host_keys[i] == 2 && host_vals[i] % 2 == 1,
-                "wrong sort_by_key result with a herero policy, sycl buffer");
-        }
-    }
+    check_sort_by_key_results(host_keys, host_vals, n);
 }
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -172,10 +156,10 @@ main()
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test_with_std_pol(oneapi::dpl::execution::seq);
-    test_with_std_pol(oneapi::dpl::execution::unseq);
-    test_with_std_pol(oneapi::dpl::execution::par);
-    test_with_std_pol(oneapi::dpl::execution::par_unseq);
+    test_with_std_policy(oneapi::dpl::execution::seq);
+    test_with_std_policy(oneapi::dpl::execution::unseq);
+    test_with_std_policy(oneapi::dpl::execution::par);
+    test_with_std_policy(oneapi::dpl::execution::par_unseq);
 #endif // !TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done();
