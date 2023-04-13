@@ -1,4 +1,4 @@
-##===-- WindowsIntelLLVMApply.cmake ---------------------------------------===##
+##===-- oneDPLWindowsIntelLLVMApply.cmake ---------------------------------------===##
 #
 # Copyright (C) Intel Corporation
 #
@@ -12,7 +12,7 @@
 #
 ##===----------------------------------------------------------------------===##
 
-# The following fixes are requested by WindowsIntelLLVMConfig.cmake (and must be applied after the project() call)
+# The following fixes are requested by oneDPLWindowsIntelLLVMConfig.cmake (and must be applied after the project() call)
 if (INTELLLVM_MSVC_WIN_STDOPTION_FIX)
     # Fix std compiler options for icx, icx-cl (Adapted from https://github.com/Kitware/CMake/commit/42ca6416afeabd445bc6c19749e68604c9c2d733)
     set(CMAKE_CXX14_STANDARD_COMPILE_OPTION  "-Qstd:c++14")

@@ -1,4 +1,4 @@
-##===-- WindowsIntelLLVMConfig.cmake --------------------------------------===##
+##===-- oneDPLWindowsIntelLLVMConfig.cmake --------------------------------------===##
 #
 # Copyright (C) Intel Corporation
 #
@@ -15,10 +15,10 @@ cmake_minimum_required(VERSION 3.15.0)
 
 include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
 
-#if this is included after project() and WindowsIntelLLVM hasn't already been included (in a previous cmake call), we are too late to make the compiler changes we need to
-if (DEFINED CMAKE_PROJECT_NAME AND (NOT DEFINED WindowsIntelLLVM_DIR))
-    set(WindowsIntelLLVM_FOUND False)
-    set(REASON_FAILURE "WindowsIntelLLVM package must be included before the project() call!")
+#if this is included after project() and oneDPLWindowsIntelLLVM hasn't already been included (in a previous cmake call), we are too late to make the compiler changes we need to
+if (DEFINED CMAKE_PROJECT_NAME AND (NOT DEFINED oneDPLWindowsIntelLLVM_DIR))
+    set(oneDPLWindowsIntelLLVM_FOUND False)
+    set(REASON_FAILURE "oneDPLWindowsIntelLLVM package must be included before the project() call!")
 else()
 
     # CMAKE_CXX_COMPILER and CMAKE_CXX_COMPILER_VERSION cannot be used because
@@ -94,12 +94,12 @@ else()
         # No workaround required for CMake version 3.25+
     endif()
 
-    # Set up WindowsIntelLLVMApply.cmake to be code injected at the end of the 'project()' call for the cmake project using this
+    # Set up oneDPLWindowsIntelLLVMApply.cmake to be code injected at the end of the 'project()' call for the cmake project using this
     # This is required for workarounds which must be applied after the project() call
-    set(CMAKE_PROJECT_INCLUDE ${CMAKE_CURRENT_LIST_DIR}/WindowsIntelLLVMApply.cmake)
+    set(CMAKE_PROJECT_INCLUDE ${CMAKE_CURRENT_LIST_DIR}/oneDPLWindowsIntelLLVMApply.cmake)
 endif()
 
-find_package_handle_standard_args(WindowsIntelLLVM 
-    FOUND_VAR WindowsIntelLLVM_FOUND
+find_package_handle_standard_args(oneDPLWindowsIntelLLVM 
+    FOUND_VAR oneDPLWindowsIntelLLVM_FOUND
     REQUIRED_VARS CMAKE_PROJECT_INCLUDE
     REASON_FAILURE_MESSAGE "${REASON_FAILURE}")

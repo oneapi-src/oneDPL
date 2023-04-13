@@ -29,7 +29,7 @@ string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_v
 
 if (CMAKE_HOST_WIN32 AND ONEDPL_WIN_ICPX_ICX_FIXS)
     list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-    find_package(WindowsIntelLLVM)
+    find_package(oneDPLWindowsIntelLLVM)
 endif()
 
 project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
