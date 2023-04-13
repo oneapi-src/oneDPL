@@ -154,7 +154,6 @@ main()
     {
         kernel_test2(deviceQueue);
     }
-    std::cout << "pass" << std::endl;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

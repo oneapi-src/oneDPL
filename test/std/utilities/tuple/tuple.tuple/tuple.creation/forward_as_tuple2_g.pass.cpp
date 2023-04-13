@@ -41,8 +41,6 @@ main()
             cgh.single_task<class KernelTest>([=]() { s::tuple<S&&>(s::forward_as_tuple(S{})); });
         });
     }
-
-    std::cout << "pass" << std::endl;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
