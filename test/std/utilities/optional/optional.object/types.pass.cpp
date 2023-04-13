@@ -38,9 +38,8 @@ using s::optional;
 
 template <class KernelTest, class Opt, class T>
 void
-test()
+test(sycl::queue q)
 {
-    sycl::queue q;
     {
 
         q.submit([&](sycl::handler& cgh) {
@@ -60,10 +59,15 @@ int
 main(int, char**)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test<KernelTest1, optional<int>, int>();
-    test<KernelTest2, optional<const int>, const int>();
-    test<KernelTest3, optional<double>, double>();
-    test<KernelTest4, optional<const double>, const double>();
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+
+    test<KernelTest1, optional<int>, int>(deviceQueue);
+    test<KernelTest2, optional<const int>, const int>(deviceQueue);
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
+    {
+        test<KernelTest3, optional<double>, double>(deviceQueue);
+        test<KernelTest4, optional<const double>, const double>(deviceQueue);
+    }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

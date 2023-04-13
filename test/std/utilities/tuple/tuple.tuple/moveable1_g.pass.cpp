@@ -18,9 +18,8 @@ constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 sycl::cl_bool
-kernel_test()
+kernel_test(sycl::queue deviceQueue)
 {
-    sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = true;
     sycl::range<1> numOfItem{1};
     {
@@ -46,10 +45,18 @@ kernel_test()
 int
 main()
 {
+    int is_done = 0;
+
 #if TEST_DPCPP_BACKEND_PRESENT
-    auto ret = kernel_test();
-    TestUtils::exitOnError(ret);
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
+    {
+        auto ret = kernel_test(deviceQueue);
+        TestUtils::exitOnError(ret);
+
+        is_done = 1;
+    }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done(is_done);
 }
