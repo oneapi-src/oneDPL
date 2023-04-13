@@ -2352,7 +2352,8 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_f
 {
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
-    auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(::std::get<0>(__a), ::std::get<0>(__b));};
+    auto __cmp_f =
+        [__comp](const auto& __a, const auto& __b) { return __comp(::std::get<0>(__a), ::std::get<0>(__b)); };
 
     ::std::sort(__beg, __end, __cmp_f);
 }
@@ -2370,7 +2371,8 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_f
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
-    auto __cmp_f = [__comp](const auto& __a, const auto& __b) { return __comp(::std::get<0>(__a), ::std::get<0>(__b));};
+    auto __cmp_f =
+        [__comp](const auto& __a, const auto& __b) { return __comp(::std::get<0>(__a), ::std::get<0>(__b)); };
 
     __internal::__except_handler([&]() {
         __par_backend::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __cmp_f,
