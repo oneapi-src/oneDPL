@@ -20,7 +20,6 @@ option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLO
 option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
 option(ONEDPL_WIN_ICPX_ICX_FIXS "Enable icpx and icx workarounds for Windows" ON)
 
-
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/oneapi/dpl/pstl/onedpl_config.h
     _onedpl_version_info
     LIMIT 1024)
