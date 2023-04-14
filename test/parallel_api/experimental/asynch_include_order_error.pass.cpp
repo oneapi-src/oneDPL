@@ -13,13 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <sycl/sycl.hpp>
-#include <iostream>
-
 // Including `async` after `execution` and `numeric` compiles successfully.
 #include <oneapi/dpl/async>
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/numeric>
+
+#include <iostream>
+
+#include <sycl/sycl.hpp>
 
 int
 main(int argc, char** argv)
