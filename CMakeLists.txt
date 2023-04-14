@@ -32,9 +32,23 @@ string(REGEX REPLACE ".*#define ONEDPL_VERSION_MAJOR ([0-9]+).*" "\\1" _onedpl_v
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_MINOR ([0-9]+).*" "\\1" _onedpl_ver_minor "${_onedpl_version_info}")
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_ver_patch "${_onedpl_version_info}")
 
-if (NOT _onedpl_is_subproject AND CMAKE_HOST_WIN32 AND ONEDPL_WIN_ICPX_ICX_FIXS)
-    list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-    find_package(oneDPLWindowsIntelLLVM)
+if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|icx-cl|icx)(.exe)?$")
+    set(INTEL_LLVM_COMPILER_MSVC_LIKE TRUE)
+elseif(CMAKE_CXX_COMPILER MATCHES ".*(dpcpp|icpx)(.exe)?$")
+    set(INTEL_LLVM_COMPILER_GNU_LIKE TRUE)
+endif()
+
+if (CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_GNU_LIKE))
+    if (_onedpl_is_subproject)
+        # If oneDPL is a subproject, warn if workarounds are not included
+        if (NOT oneDPLWindowsIntelLLVM_FOUND)
+            message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} requires some workarounds to function properly with CMake. Please see "Using oneDPL package on Windows" in oneDPL/cmake/README.md for more details.")
+        endif()
+    else(ONEDPL_WIN_ICPX_ICX_FIXS)
+        #if oneDPL is not a subproject, automatically include workarounds
+        list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+        find_package(oneDPLWindowsIntelLLVM)
+    endif()
 endif()
 
 project(oneDPL VERSION ${_onedpl_ver_major}.${_onedpl_ver_minor}.${_onedpl_ver_patch} LANGUAGES CXX)
