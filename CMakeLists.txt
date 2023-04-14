@@ -14,6 +14,9 @@
 
 cmake_minimum_required(VERSION 3.4.3)
 
+# oneDPL is a subproject only when PARENT_DIRECTORY is defined
+get_directory_property(_onedpl_is_subproject PARENT_DIRECTORY)
+
 include(CMakeDependentOption)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -29,7 +32,7 @@ string(REGEX REPLACE ".*#define ONEDPL_VERSION_MAJOR ([0-9]+).*" "\\1" _onedpl_v
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_MINOR ([0-9]+).*" "\\1" _onedpl_ver_minor "${_onedpl_version_info}")
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_ver_patch "${_onedpl_version_info}")
 
-if (CMAKE_HOST_WIN32 AND ONEDPL_WIN_ICPX_ICX_FIXS)
+if (NOT _onedpl_is_subproject AND CMAKE_HOST_WIN32 AND ONEDPL_WIN_ICPX_ICX_FIXS)
     list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
     find_package(oneDPLWindowsIntelLLVM)
 endif()
@@ -299,7 +302,6 @@ target_include_directories(oneDPL
 ###############################################################################
 # Setup tests
 ###############################################################################
-get_directory_property(_onedpl_is_subproject PARENT_DIRECTORY)
 if (NOT _onedpl_is_subproject)
     enable_testing()
     add_subdirectory(test)
