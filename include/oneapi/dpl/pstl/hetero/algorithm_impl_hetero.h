@@ -848,7 +848,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
         return ::std::make_pair(__output_first, _It1DifferenceType{0});
 
     // temporary buffer to store boolean mask
-    auto __n = __last - __first;
+    ::std::size_t __n = __last - __first;
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first, __last);
@@ -858,11 +858,20 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
 
     ::std::size_t __num_copied{0};
 
-    if (__n < 8192)
+    // Next power of 2 greater than or equal to __n
+    auto __n_uniform = __dpl_bit_ceil(__n);
+
+    // Pessimistically only use half of the memory to take into account memory used by compiled kernel
+    const ::std::size_t __max_slm_size =
+        __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
+    const auto __req_slm_size = sizeof(::std::uint16_t) * __n_uniform;
+
+    constexpr int __single_group_upper_limit = 16384;
+
+    if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size)
     {
         using _SizeBreakpoints =
-            ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192>;
-            //::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
+            ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
 
         auto __res = __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
             __invoke_single_group_scan_copy{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, __buf1.all_view(), __buf2.all_view(),
