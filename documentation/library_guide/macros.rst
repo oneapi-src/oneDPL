@@ -27,6 +27,13 @@ Macro                             Description
 ``_PSTL_VERSION_PATCH``           ``_PSTL_VERSION % 10``: The patch number.
 ================================= ==============================
 
+Feature Macros
+==============
+Use these macros to test presence of specific |onedpl_short| functionality.
+
+================================== ===============================================
+================================== ===============================================
+
 Additional Macros
 ==================
 Use these macros to control aspects of |onedpl_short| usage. You can set them in your program code
