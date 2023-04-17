@@ -13,6 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_config.h"
+
 // Including `async` after `execution` and `numeric` compiles successfully.
 #include <oneapi/dpl/async>
 #include <oneapi/dpl/execution>
@@ -20,11 +22,16 @@
 
 #include <iostream>
 
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
 #include <sycl/sycl.hpp>
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main(int argc, char** argv)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue q(sycl::default_selector_v);
 
     std::size_t n = 100;
@@ -42,6 +49,7 @@ main(int argc, char** argv)
     T value = f.get();
 
     std::cout << value << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
