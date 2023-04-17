@@ -116,11 +116,11 @@ struct __identity_reduce_fn
     {
         using ::std::get;
         auto __chosen_for_min = __a;
-        auto __chosen_for_max = __a;
+        auto __chosen_for_max = __b;
         if (__comp(get<2>(__b), get<2>(__a)))
             __chosen_for_min = __b;
-        if (!__comp(get<3>(__b), get<3>(__a)))
-            __chosen_for_max = __b;
+        if (__comp(get<3>(__b), get<3>(__a)))
+            __chosen_for_max = __a;
         auto __result = _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
                                          get<3>(__chosen_for_max)};
 
