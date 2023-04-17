@@ -13,7 +13,7 @@
 namespace oneapi {
 namespace dpl{
 namespace experimental{
-
+namespace ds_impl {
   template<typename NativeContext>
   struct basic_execution_resource_t {
     using native_resource_t = NativeContext;
@@ -28,6 +28,8 @@ namespace experimental{
       return native_resource_ == e;
     }
   };
+
+} // namespace ds_impl
 
 } // namespace experimental
 

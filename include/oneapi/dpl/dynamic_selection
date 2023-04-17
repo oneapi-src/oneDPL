@@ -29,12 +29,12 @@ namespace dpl {
 namespace experimental {
 
 #if _DS_BACKEND_SYCL != 0
-  using static_policy = policy<static_policy_impl<sycl_scheduler>>;
-  using round_robin_policy = policy<round_robin_policy_impl<sycl_scheduler>>;
+  using static_policy = policy<ds_impl::static_policy_impl<ds_impl::sycl_scheduler>>;
+  using round_robin_policy = policy<ds_impl::round_robin_policy_impl<ds_impl::sycl_scheduler>>;
   inline static_policy default_policy;
 #endif
-  template<typename S> using static_policy_t = policy<static_policy_impl<S>>;
-  template<typename S> using round_robin_policy_t = policy<round_robin_policy_impl<S>>;
+  template<typename S> using static_policy_t = policy<ds_impl::static_policy_impl<S>>;
+  template<typename S> using round_robin_policy_t = policy<ds_impl::round_robin_policy_impl<S>>;
 } //namespace experimental
 } //namespace dpl
 } //namespace oneapi

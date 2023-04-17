@@ -24,12 +24,13 @@
 namespace oneapi {
 namespace dpl {
 namespace experimental {
+namespace ds_impl {
 
   struct sycl_scheduler {
 
     using native_resource_t = sycl::queue;
     using native_sync_t = sycl::event;
-    using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<native_resource_t>;
+    using execution_resource_t = oneapi::dpl::experimental::ds_impl::basic_execution_resource_t<native_resource_t>;
     using universe_container_t = std::vector<execution_resource_t>;
 
     class async_wait_t {
@@ -134,7 +135,7 @@ namespace experimental {
     }
 
   };
-
+} //namespace ds_impl
 } //namespace experimental
 } //namespace dpl
 } //namespace oneapi

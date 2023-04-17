@@ -15,6 +15,7 @@
 namespace oneapi {
 namespace dpl {
 namespace experimental {
+namespace ds_impl {
 
   template <typename Scheduler>
   struct static_policy_impl {
@@ -23,7 +24,7 @@ namespace experimental {
     using execution_resource_t = typename scheduler_t::execution_resource_t;
     using native_sync_t = typename scheduler_t::native_sync_t;
     using universe_container_t = typename scheduler_t::universe_container_t;
-    using selection_handle_t = oneapi::dpl::experimental::basic_selection_handle_t<execution_resource_t>;
+    using selection_handle_t = oneapi::dpl::experimental::ds_impl::basic_selection_handle_t<execution_resource_t>;
 
     std::shared_ptr<scheduler_t> sched_;
     universe_container_t universe_;
@@ -91,6 +92,7 @@ namespace experimental {
       sched_->wait();
     }
   };
+} //namespace ds_impl
 } //namespace experimental
 } //namespace dpl
 } //namespace oneapi

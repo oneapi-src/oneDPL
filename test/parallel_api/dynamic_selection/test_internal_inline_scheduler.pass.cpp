@@ -18,12 +18,12 @@
 class fake_selection_handle_t {
   int  q_;
 public:
-  using property_handle_t = oneapi::dpl::experimental::basic_property_handle_t;
+  using property_handle_t = oneapi::dpl::experimental::ds_impl::basic_property_handle_t;
   using native_context_t = int;
 
   fake_selection_handle_t(native_context_t q = 0) : q_(q) {}
   native_context_t get_native() { return q_; }
-  property_handle_t get_property_handle() { return oneapi::dpl::experimental::basic_property_handle; }
+  property_handle_t get_property_handle() { return oneapi::dpl::experimental::ds_impl::basic_property_handle; }
 };
 
 int test_cout() {

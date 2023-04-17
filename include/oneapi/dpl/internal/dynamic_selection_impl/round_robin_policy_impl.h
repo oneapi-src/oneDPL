@@ -16,6 +16,7 @@
 namespace oneapi {
 namespace dpl{
 namespace experimental{
+namespace ds_impl {
 
   template <typename Scheduler>
   struct round_robin_policy_impl {
@@ -24,7 +25,7 @@ namespace experimental{
     using execution_resource_t = typename scheduler_t::execution_resource_t;
     using native_sync_t = typename scheduler_t::native_sync_t;
     using universe_container_t = typename scheduler_t::universe_container_t;
-    using selection_handle_t = oneapi::dpl::experimental::basic_selection_handle_t<execution_resource_t>;
+    using selection_handle_t = oneapi::dpl::experimental::ds_impl::basic_selection_handle_t<execution_resource_t>;
     using universe_container_size_t = typename universe_container_t::size_type;
 
     std::shared_ptr<scheduler_t> sched_;
@@ -100,6 +101,8 @@ namespace experimental{
       sched_->wait();
     }
   };
+} //namespce ds_impl
+
 } // namespace experimental
 
 } // namespace dpl

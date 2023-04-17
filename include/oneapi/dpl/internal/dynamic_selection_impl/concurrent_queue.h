@@ -19,6 +19,7 @@
 namespace oneapi {
 namespace dpl{
 namespace experimental{
+namespace ds_impl{
 namespace util{
     template <typename T>
     class concurrent_queue
@@ -69,6 +70,7 @@ namespace util{
         std::condition_variable cond_;
     };
 } // namespace util
+} // namespace ds_impl
 } // namespace experimental
 } // namespace dpl
 } // namespace oneapi

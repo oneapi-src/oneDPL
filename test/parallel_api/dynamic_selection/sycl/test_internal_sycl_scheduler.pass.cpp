@@ -16,23 +16,23 @@
 class fake_selection_handle_t {
   sycl::queue q_;
 public:
-  using property_handle_t = oneapi::dpl::experimental::basic_property_handle_t;
+  using property_handle_t = oneapi::dpl::experimental::ds_impl::basic_property_handle_t;
   using native_context_t = sycl::queue;
 
   fake_selection_handle_t(native_context_t q = sycl::queue(sycl::default_selector{})) : q_(q) {}
   native_context_t get_native() { return q_; }
-  property_handle_t get_property_handle() { return oneapi::dpl::experimental::basic_property_handle; }
+  property_handle_t get_property_handle() { return oneapi::dpl::experimental::ds_impl::basic_property_handle; }
 };
 
 int test_cout() {
-  oneapi::dpl::experimental::sycl_scheduler s;
-  oneapi::dpl::experimental::sycl_scheduler::execution_resource_t e;
+  oneapi::dpl::experimental::ds_impl::sycl_scheduler s;
+  oneapi::dpl::experimental::ds_impl::sycl_scheduler::execution_resource_t e;
   return 0;
 }
 
 int test_submit_and_wait_on_scheduler() {
   const int N = 100;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::ds_impl::sycl_scheduler s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -56,7 +56,7 @@ int test_submit_and_wait_on_scheduler() {
 
 int test_submit_and_wait_on_scheduler_single_element() {
   const int N = 1;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::ds_impl::sycl_scheduler s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -80,7 +80,7 @@ int test_submit_and_wait_on_scheduler_single_element() {
 
 int test_submit_and_wait_on_scheduler_empty() {
   const int N = 0;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::ds_impl::sycl_scheduler s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -104,7 +104,7 @@ int test_submit_and_wait_on_scheduler_empty() {
 
 int test_submit_and_wait_on_sync() {
   const int N = 100;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::ds_impl::sycl_scheduler s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -129,7 +129,7 @@ int test_submit_and_wait_on_sync() {
 
 int test_submit_and_wait_on_sync_single_element() {
   const int N = 1;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::ds_impl::sycl_scheduler s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -154,7 +154,7 @@ int test_submit_and_wait_on_sync_single_element() {
 
 int test_submit_and_wait_on_sync_empty() {
   const int N = 0;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::ds_impl::sycl_scheduler s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -178,8 +178,8 @@ int test_submit_and_wait_on_sync_empty() {
 }
 
 int test_properties() {
-  oneapi::dpl::experimental::sycl_scheduler s;
-  oneapi::dpl::experimental::sycl_scheduler::universe_container_t v;
+  oneapi::dpl::experimental::ds_impl::sycl_scheduler s;
+  oneapi::dpl::experimental::ds_impl::sycl_scheduler::universe_container_t v;
   //= { sycl::queue(sycl::cpu_selector{}), sycl::queue(sycl::gpu_selector{}) };
   try {
     sycl::cpu_selector ds_cpu;

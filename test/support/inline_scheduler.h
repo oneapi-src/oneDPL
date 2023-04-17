@@ -21,7 +21,7 @@ namespace TestUtils {
 struct int_inline_scheduler_t {
   using native_resource_t = int;
   using native_sync_t = int;
-  using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<native_resource_t>;
+  using execution_resource_t = oneapi::dpl::experimental::ds_impl::basic_execution_resource_t<native_resource_t>;
   using native_universe_container_t = std::vector<native_resource_t>;
   using universe_container_t = std::vector<execution_resource_t>;
 

@@ -13,6 +13,7 @@
 namespace oneapi {
 namespace dpl {
 namespace experimental {
+namespace ds_impl {
   struct basic_property_handle_t {
     static constexpr bool should_report_task_submission = false;
     static constexpr bool should_report_task_completion = false;
@@ -28,14 +29,15 @@ namespace experimental {
   class basic_selection_handle_t {
     ExecutionContext e_;
   public:
-    using property_handle_t = oneapi::dpl::experimental::basic_property_handle_t;
+    using property_handle_t = oneapi::dpl::experimental::ds_impl::basic_property_handle_t;
     using execution_resource_t = ExecutionContext;
     using native_resource_t = typename execution_resource_t::native_resource_t;
 
     explicit basic_selection_handle_t(execution_resource_t e = execution_resource_t{}) : e_(e) {}
     native_resource_t get_native() { return e_.get_native(); }
-    property_handle_t get_property_handle() { return oneapi::dpl::experimental::basic_property_handle; }
+    property_handle_t get_property_handle() { return oneapi::dpl::experimental::ds_impl::basic_property_handle; }
   };
+} // namespace ds_impl
 
 } // namespace experimental
 
