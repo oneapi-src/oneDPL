@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "oneapi/dpl/execution"
 #include "oneapi/dpl/async"
+#include "oneapi/dpl/execution"
 #include "oneapi/dpl/iterator"
 
 #include "support/utils.h"
