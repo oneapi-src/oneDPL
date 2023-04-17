@@ -56,7 +56,9 @@
 #endif // _ONEDPL_NUMERIC_RANGES_FORWARD_DECLARED
 
 #if _ONEDPL_ASYNC_FORWARD_DECLARED
+#ifdef _ONEDPL_BACKEND_SYCL
 #    include "oneapi/dpl/internal/async_impl/glue_async_impl.h"
+#endif // _ONEDPL_BACKEND_SYCL
 #endif // _ONEDPL_ASYNC_FORWARD_DECLARED
 
 #if _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT
