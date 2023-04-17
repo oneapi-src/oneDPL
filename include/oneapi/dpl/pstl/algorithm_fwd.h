@@ -799,6 +799,22 @@ __pattern_sort(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
                /*is_move_constructible=*/::std::true_type);
 
 //------------------------------------------------------------------------
+// stable_sort
+//------------------------------------------------------------------------
+
+template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, void>
+__pattern_stable_sort(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare,
+                      _IsVector /*is_vector*/,
+                      /*is_parallel=*/::std::false_type) noexcept;
+
+template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, void>
+__pattern_stable_sort(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare,
+                      _IsVector /*is_vector*/,
+                      /*is_parallel=*/::std::true_type);
+
+//------------------------------------------------------------------------
 // sort_by_key
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
@@ -814,22 +830,6 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, voi
 __pattern_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
                       _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp,
                       _IsVector /*vector=*/, /*is_parallel=*/::std::true_type);
-
-//------------------------------------------------------------------------
-// stable_sort
-//------------------------------------------------------------------------
-
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, void>
-__pattern_stable_sort(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare,
-                      _IsVector /*is_vector*/,
-                      /*is_parallel=*/::std::false_type) noexcept;
-
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, void>
-__pattern_stable_sort(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare,
-                      _IsVector /*is_vector*/,
-                      /*is_parallel=*/::std::true_type);
 
 //------------------------------------------------------------------------
 // partial_sort
