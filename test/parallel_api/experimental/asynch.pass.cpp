@@ -14,13 +14,10 @@
 //===----------------------------------------------------------------------===//
 
 #include "oneapi/dpl/execution"
+#include "oneapi/dpl/async"
 #include "oneapi/dpl/iterator"
 
 #include "support/utils.h"
-
-#if TEST_DPCPP_BACKEND_PRESENT
-#   include "oneapi/dpl/async"
-#endif
 
 #include <iostream>
 #include <iomanip>
