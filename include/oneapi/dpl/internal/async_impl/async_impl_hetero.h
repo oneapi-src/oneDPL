@@ -17,6 +17,10 @@
 #ifndef _ONEDPL_ASYNC_IMPL_HETERO_H
 #define _ONEDPL_ASYNC_IMPL_HETERO_H
 
+#include "oneapi/dpl/pstl/hetero/algorithm_impl_hetero.h"
+#include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"
+
 #include <cassert>
 
 namespace oneapi

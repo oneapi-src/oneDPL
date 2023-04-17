@@ -22,6 +22,9 @@
 #    include "async_impl_hetero.h"
 #endif
 
+#include "async_impl.h"
+#include "async_utils.h"
+
 namespace oneapi
 {
 namespace dpl
