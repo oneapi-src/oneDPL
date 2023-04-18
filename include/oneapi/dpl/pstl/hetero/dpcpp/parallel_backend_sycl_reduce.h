@@ -43,14 +43,15 @@ template <typename... _Name>
 class __reduce_mid_leaf_kernel;
 
 template <typename... _Name>
-class __reduce_large_kernel;
+class __reduce_kernel;
 
 //------------------------------------------------------------------------
 // parallel_transform_reduce - async patterns
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
 //------------------------------------------------------------------------
 
-// Parallel_transform_reduce for a small arrays using a single work group
+// Parallel_transform_reduce for a small arrays using a single work group.
+// Transforms and reduces __work_group_size * __iters_per_work_item elements.
 template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item, typename _Tp, typename _KernelName>
 struct __parallel_transform_reduce_small_submitter;
 
@@ -117,7 +118,10 @@ __parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, _Size __n, _Re
         ::std::forward<_Ranges>(__rngs)...);
 }
 
-// Parallel_transform_reduce for a mid-sized arrays using two tree reductions
+// Parallel_transform_reduce for a mid-sized arrays using two reduction steps.
+// First: __work_group_size * __iters_per_work_item1 elements are transformed and reduced to a single partial result by 
+// each work group.
+// Second: __work_group_size * __iters_per_work_item2 elements are reduced to the single result.
 template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item1, ::std::size_t __iters_per_work_item2,
           typename _Tp, typename _MainName, typename _LeafName>
 struct __parallel_transform_reduce_mid_submitter;
@@ -227,22 +231,23 @@ __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _Redu
         ::std::forward<_Ranges>(__rngs)...);
 }
 
-// Parallel_transform_reduce for a large arrays using a recursive tree reduction
-template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item, typename _Tp, typename _KernelName>
-struct __parallel_transform_reduce_large_submitter;
-
-template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item, typename _Tp, typename... _Name>
-struct __parallel_transform_reduce_large_submitter<__work_group_size, __iters_per_work_item, _Tp,
-                                                   __internal::__optional_kernel_name<_Name...>>
+// General implementation using a tree reduction
+template <typename _Tp, ::std::size_t __iters_per_work_item>
+struct __parallel_transform_reduce_impl
 {
-    template <typename _ExecutionPolicy, typename _ReduceOp, typename _TransformOp, typename _Size, typename _InitType,
+    template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
               typename... _Ranges>
-    auto
-    operator()(_ExecutionPolicy&& __exec, _Size __n, _ReduceOp __reduce_op, _TransformOp __transform_op,
-               _InitType __init, _Ranges&&... __rngs) const
+    static auto
+    submit(_ExecutionPolicy&& __exec, _Size __n, ::std::uint16_t __work_group_size, _ReduceOp __reduce_op,
+           _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
     {
+        using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+        using _CustomName = typename _Policy::kernel_name;
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
+        using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            __reduce_kernel, _CustomName, _ReduceOp, _TransformOp, _NoOpFunctor, _Ranges...>;
+
         auto __transform_pattern1 =
             unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _TransformOp>{
                 __reduce_op, _TransformOp{__transform_op}};
@@ -250,6 +255,12 @@ struct __parallel_transform_reduce_large_submitter<__work_group_size, __iters_pe
             unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _NoOpFunctor>{
                 __reduce_op, _NoOpFunctor{}};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
+
+#if _ONEDPL_COMPILE_KERNEL
+        auto __kernel = __internal::__kernel_compiler<_ReduceKernel>::__compile(__exec);
+        __work_group_size = ::std::min(
+            __work_group_size, (::std::uint16_t)oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
+#endif
 
         _Size __size_per_work_group =
             __iters_per_work_item * __work_group_size; // number of buffer elements processed within workgroup
@@ -279,7 +290,13 @@ struct __parallel_transform_reduce_large_submitter<__work_group_size, __iters_pe
                 auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
                 auto __res_acc = __res.template get_access<access_mode::write>(__cgh);
                 __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
-                __cgh.parallel_for<_Name...>(
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+                __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
+                __cgh.parallel_for<_ReduceKernel>(
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+                    __kernel,
+#endif
                     sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size),
                                       sycl::range<1>(__work_group_size)),
                     [=](sycl::nd_item<1> __item_id) {
@@ -289,7 +306,7 @@ struct __parallel_transform_reduce_large_submitter<__work_group_size, __iters_pe
                         if (__is_first)
                             __transform_pattern1(__item_id, __n, /*global_offset*/ 0, __temp_local, __rngs...);
                         else
-                            __transform_pattern2(__item_id, __n,  __offset_2, __temp_local, __temp_acc);
+                            __transform_pattern2(__item_id, __n, __offset_2, __temp_local, __temp_acc);
                         __dpl_sycl::__group_barrier(__item_id);
                         // 2. Reduce within work group using local memory
                         _Tp __result = __reduce_pattern(__item_id, __n_items, __temp_local);
@@ -316,25 +333,7 @@ struct __parallel_transform_reduce_large_submitter<__work_group_size, __iters_pe
 
         return __future(__reduce_event, __res);
     }
-}; // struct __parallel_transform_reduce_large_submitter
-
-template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item, typename _Tp, typename _ReduceOp,
-          typename _TransformOp, typename _ExecutionPolicy, typename _Size, typename _InitType,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
-auto
-__parallel_transform_reduce_large_impl(_ExecutionPolicy&& __exec, _Size __n, _ReduceOp __reduce_op,
-                                       _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
-{
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using _CustomName = typename _Policy::kernel_name;
-    using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __reduce_large_kernel<::std::integral_constant<::std::uint16_t, __work_group_size>,
-                              ::std::integral_constant<::std::size_t, __iters_per_work_item>, _CustomName>>;
-
-    return __parallel_transform_reduce_large_submitter<__work_group_size, __iters_per_work_item, _Tp, _ReduceKernel>()(
-        ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-        ::std::forward<_Ranges>(__rngs)...);
-}
+}; // struct __parallel_transform_reduce_impl
 
 // General version of parallel_transform_reduce. Processes elements in order to enable non-commutative algorithms.
 // Each work item transforms and reduces __iters_per_work_item elements from global memory and stores the result in SLM.
@@ -438,28 +437,9 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
     }
 
     // Else use a recursive tree reduction.
-    if (__work_group_size >= 256)
-    {
-        return __parallel_transform_reduce_large_impl<256, 32, _Tp>(::std::forward<_ExecutionPolicy>(__exec), __n,
-                                                                    __reduce_op, __transform_op, __init,
-                                                                    ::std::forward<_Ranges>(__rngs)...);
-    }
-    if (__work_group_size >= 128)
-    {
-        return __parallel_transform_reduce_large_impl<128, 32, _Tp>(::std::forward<_ExecutionPolicy>(__exec), __n,
-                                                                    __reduce_op, __transform_op, __init,
-                                                                    ::std::forward<_Ranges>(__rngs)...);
-    }
-    if (__work_group_size >= 64)
-    {
-        return __parallel_transform_reduce_large_impl<64, 32, _Tp>(::std::forward<_ExecutionPolicy>(__exec), __n,
-                                                                   __reduce_op, __transform_op, __init,
-                                                                   ::std::forward<_Ranges>(__rngs)...);
-    }
-    assert("Work group sizes of at least 32 are required." && __work_group_size >= 32);
-    return __parallel_transform_reduce_large_impl<32, 32, _Tp>(::std::forward<_ExecutionPolicy>(__exec), __n,
-                                                               __reduce_op, __transform_op, __init,
-                                                               ::std::forward<_Ranges>(__rngs)...);
+    return __parallel_transform_reduce_impl<_Tp, 32>::submit(::std::forward<_ExecutionPolicy>(__exec), __n,
+                                                             __work_group_size, __reduce_op, __transform_op, __init,
+                                                             ::std::forward<_Ranges>(__rngs)...);
 }
 
 } // namespace __par_backend_hetero
