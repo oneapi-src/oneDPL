@@ -33,6 +33,8 @@ else()
         else()
             set(INTEL_LLVM_COMPILER_GNU_LIKE TRUE)
         endif()
+    else()
+        set(INTEL_LLVM_COMPILER FALSE)
     endif()
 
     if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
@@ -75,8 +77,11 @@ else()
 
     # The following are planned workarounds to be applied after project() by oneDPL CMake files
     if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_MSVC_LIKE)
-        # Fix std compiler options for icx, icx-cl (Adapted from https://github.com/Kitware/CMake/commit/42ca6416afeabd445bc6c19749e68604c9c2d733)
-        set(INTELLLVM_MSVC_WIN_STDOPTION_FIX TRUE)
+        # Fix std compiler options for icx, icx-cl 
+        # Adapted from fix in CMake 3.26: https://github.com/Kitware/CMake/commit/42ca6416afeabd445bc6c19749e68604c9c2d733
+        if (${CMAKE_VERSION} VERSION_LESS "3.26")
+            set(INTELLLVM_MSVC_WIN_STDOPTION_FIX TRUE)
+        endif()
 
         if ((NOT ${CMAKE_VERSION} VERSION_LESS "3.20") AND (${CMAKE_VERSION} VERSION_LESS "3.23"))
             # Fixing linker rule to use the compiler for linking and moving link options before /link
@@ -91,15 +96,16 @@ else()
             # Intel provided workaround for CMake version 3.23+
             set(INTELLLVM_WIN_OFFICIAL_SUPPORT_FIX TRUE)
         endif()
-        # No workaround required for CMake version 3.25+
     endif()
 
-    # Set up oneDPLWindowsIntelLLVMApply.cmake to be code injected at the end of the 'project()' call for the cmake project using this
-    # This is required for workarounds which must be applied after the project() call
-    set(CMAKE_PROJECT_INCLUDE ${CMAKE_CURRENT_LIST_DIR}/oneDPLWindowsIntelLLVMApply.cmake)
+    if (INTELLLVM_MSVC_WIN_STDOPTION_FIX OR INTELLLVM_MSVC_WIN_LINKORDER_FIX OR INTELLLVM_WIN_STD_IGNORE_FIX OR INTELLLVM_WIN_OFFICIAL_SUPPORT_FIX)
+        # Set up oneDPLWindowsIntelLLVMApply.cmake to be code injected at the end of the 'project()' call for the cmake project using this
+        # This is required for workarounds which must be applied after the project() call
+        set(CMAKE_PROJECT_INCLUDE ${CMAKE_CURRENT_LIST_DIR}/oneDPLWindowsIntelLLVMApply.cmake)
+    endif()
 endif()
 
 find_package_handle_standard_args(oneDPLWindowsIntelLLVM 
     FOUND_VAR oneDPLWindowsIntelLLVM_FOUND
-    REQUIRED_VARS CMAKE_PROJECT_INCLUDE
+    REQUIRED_VARS INTEL_LLVM_COMPILER
     REASON_FAILURE_MESSAGE "${REASON_FAILURE}")
