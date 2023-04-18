@@ -459,6 +459,7 @@ template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_
           bool IsAscending, typename _KernelName>
 struct __radix_sort_onesweep_submitter;
 
+// KSATODO It was renamed in Quolly's new version into radix_sort_onesweep_slm_reorder_kernel
 template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_TG, ::std::uint32_t PROCESS_SIZE,
           bool IsAscending, typename... _Name>
 struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending,
@@ -480,7 +481,11 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __data = __rng.data();
                 __cgh.depends_on(__e);
-                __cgh.parallel_for<_Name...>(
+
+                // radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, THREAD_PER_TG, 256> K(
+                //     n, stage, p_input, p_output, tmp_buffer, p_job_queue + stage);
+                __cgh
+                    .parallel_for<_Name...>(
                         __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
                             onesweep_kernel<KeyT, decltype(__data), _Output, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
                                 __nd_item, __n, __stage, __data, __output, __tmp_data);
@@ -493,6 +498,10 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __data = __rng.data();
                 __cgh.depends_on(__e);
+
+                // radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, THREAD_PER_TG, 256> K(
+                //     n, stage, p_output, p_input, tmp_buffer, p_job_queue + stage);
+
                 __cgh.parallel_for<_Name...>(
                         __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
                             onesweep_kernel<KeyT, _Output, decltype(__data), RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
@@ -576,6 +585,23 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
         if (SWEEP_PROCESSING_SIZE == 256)
         {
             // KSATODO required to pass p_job_queue + stage
+            // KSATODO It was renamed in Quolly's new version into radix_sort_onesweep_slm_reorder_kernel
+
+            // radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, THREAD_PER_TG, 256> K(
+            //     n, stage, p_input, p_output, tmp_buffer, p_job_queue + stage);
+            // cgh.parallel_for<class onesweep_256>(Range, K);
+            // + RADIX_BITS                     (template param)
+            // + THREAD_PER_TG                  (constexpr uint32_t)
+            // + /*PROCESS_SIZE*/ 256, 384, 416
+            //     -> SWEEP_PROCESSING_SIZE     (constexpr uint32_t)
+            // + n -> __n                       (::std::size_t)
+            // + stage -> __stage               (::std::uint32_t)
+            // ? p_input
+            // ? p_output
+            // ? tmp_buffer
+            // + p_job_queue -> p_job_queue     (uint32_t*)
+            // + stage -> __stage               (::std::uint32_t)
+
             __e = __radix_sort_onesweep_submitter<
                 KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 256, IsAscending, _EsimRadixSort>()(
                     ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
@@ -584,6 +610,7 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
         else if (SWEEP_PROCESSING_SIZE == 384)
         {
             // KSATODO required to pass p_job_queue + stage
+            // KSATODO It was renamed in Quolly's new version into radix_sort_onesweep_slm_reorder_kernel
             __e = __radix_sort_onesweep_submitter<
                 KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 384, IsAscending, _EsimRadixSort>()(
                     ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
@@ -592,6 +619,7 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
         else if (SWEEP_PROCESSING_SIZE == 416)
         {
             // KSATODO required to pass p_job_queue + stage
+            // KSATODO It was renamed in Quolly's new version into radix_sort_onesweep_slm_reorder_kernel
             __e = __radix_sort_onesweep_submitter<
                 KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 416, IsAscending, _EsimRadixSort>()(
                     ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
