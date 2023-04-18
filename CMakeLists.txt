@@ -44,7 +44,7 @@ if (CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_G
         if (NOT oneDPLWindowsIntelLLVM_FOUND)
             message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} requires some workarounds to function properly with CMake. Please see "Using oneDPL package on Windows" in oneDPL/cmake/README.md for more details.")
         endif()
-    else(ONEDPL_WIN_ICPX_ICX_FIXS)
+    elseif(ONEDPL_WIN_ICPX_ICX_FIXS)
         #if oneDPL is not a subproject, automatically include workarounds
         list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
         find_package(oneDPLWindowsIntelLLVM)
