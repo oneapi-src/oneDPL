@@ -24,7 +24,6 @@
 #endif
 
 #include "async_impl.h"
-#include "async_utils.h"
 
 namespace oneapi
 {
