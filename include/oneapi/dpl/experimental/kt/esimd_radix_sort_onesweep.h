@@ -557,7 +557,11 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     auto __output = sycl::malloc_device<uint32_t>(__n, __exec.queue());
     SyclFreeOnDestroy __output_free(__exec.queue(), __output);
 
-    sycl::event __e_init = __exec.queue().memset(tmp_buffer, 0, temp_buffer_size);
+    //sycl::event __e_init = __exec.queue().memset(tmp_buffer, 0, temp_buffer_size);
+    // KSATODO fixed error
+    // https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.members.handler.copy
+    //     void memset(void* ptr, int value, size_t numBytes) - Fills numBytes bytes of memory beginning at address ptr with value.
+    sycl::event __e_init = __exec.queue().memset(tmp_buffer, 0, /* size_t numBytes */ temp_buffer_size * sizeof(uint8_t));
     __e_init.wait();
 
     sycl::event __e = __radix_sort_onesweep_histogram_submitter<
