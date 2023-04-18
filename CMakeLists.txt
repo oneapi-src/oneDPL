@@ -23,7 +23,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
 option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
 option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
-cmake_dependent_option(ONEDPL_WIN_ICPX_ICX_FIXS "Enable icpx and icx workarounds for Windows" ON "CMAKE_HOST_WIN32" OFF)
+cmake_dependent_option(ONEDPL_TEST_WIN_ICPX_ICX_FIXS "Enable icpx and icx workarounds for Windows" ON "CMAKE_HOST_WIN32;NOT _onedpl_is_subproject" OFF)
 
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/oneapi/dpl/pstl/onedpl_config.h
     _onedpl_version_info
@@ -44,7 +44,7 @@ if (CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_G
         if (NOT oneDPLWindowsIntelLLVM_FOUND)
             message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} requires some workarounds to function properly with CMake. Please see \"Using oneDPL package on Windows\" in oneDPL/cmake/README.md for more details.")
         endif()
-    elseif(ONEDPL_WIN_ICPX_ICX_FIXS)
+    elseif(ONEDPL_TEST_WIN_ICPX_ICX_FIXS)
         #if oneDPL is not a subproject, automatically include workarounds
         list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
         find_package(oneDPLWindowsIntelLLVM)
