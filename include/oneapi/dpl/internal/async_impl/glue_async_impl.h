@@ -16,6 +16,7 @@
 #ifndef _ONEDPL_GLUE_ASYNC_IMPL_H
 #define _ONEDPL_GLUE_ASYNC_IMPL_H
 
+#ifdef _ONEDPL_BACKEND_SYCL
 #include "../async_extension_defs.h"
 
 #if _ONEDPL_HETERO_BACKEND
@@ -280,5 +281,7 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
 } // namespace dpl
 
 } // namespace oneapi
+
+#endif // _ONEDPL_BACKEND_SYCL
 
 #endif // _ONEDPL_GLUE_ASYNC_IMPL_H
