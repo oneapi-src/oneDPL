@@ -484,8 +484,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
 
                 // radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, THREAD_PER_TG, 256> K(
                 //     n, stage, p_input, p_output, tmp_buffer, p_job_queue + stage);
-                __cgh
-                    .parallel_for<_Name...>(
+                __cgh.parallel_for<_Name...>(
                         __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
                             onesweep_kernel<KeyT, decltype(__data), _Output, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
                                 __nd_item, __n, __stage, __data, __output, __tmp_data);
@@ -596,7 +595,7 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
         // + stage -> __stage               (::std::uint32_t)
         // ? p_input
         // ? p_output
-        // ? tmp_buffer
+        // + tmp_buffer -> tmp_buffer       (uint8_t*)
         // + p_job_queue -> p_job_queue     (uint32_t*)
         // + stage -> __stage               (::std::uint32_t)
 
