@@ -104,8 +104,8 @@ Use `ONEDPL_PAR_BACKEND` variable before the invocation of `find_package(oneDPL 
 
 ### Using oneDPL package on Windows
 On windows, CMake requires some workarounds to use icx[-cl] and icpx successfully.  A cmake package has been provided 'oneDPLWindowsIntelLLVM' to apply these required workarounds.
-We recommend using icx or icx-cl, as it requires fewer changes for proper usage.  We also recommend updating to the most recent version of CMake, as they are actively improving support for intel compilers (https://gitlab.kitware.com/cmake/cmake/-/issues/24314).
-To enable the workarounds, please add `find_package(oneDPLWindowsIntelLLVM)` to your cmake file before you call `project()`.  If using oneDPL from source files, you must add oneDPL's cmake directory to your to your `CMAKE_PREFIX_PATH` to allow CMake to find `oneDPLWindowsIntelLLVM`. 
+We recommend using icx or icx-cl, as it requires fewer changes for proper usage.  We also recommend updating to the most recent version of CMake, as they are actively improving support for Intel compilers (https://gitlab.kitware.com/cmake/cmake/-/issues/24314).
+To enable the workarounds, please add `find_package(oneDPLWindowsIntelLLVM)` to your cmake file before you call `project()`.  If using oneDPL from source files, you must add oneDPL's cmake directory to your `CMAKE_PREFIX_PATH` to allow CMake to find `oneDPLWindowsIntelLLVM`. 
 
 For example:
 
