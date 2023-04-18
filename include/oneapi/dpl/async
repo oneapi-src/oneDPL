@@ -26,7 +26,7 @@
 #    endif // !_ONEDPL_ASYNC_FORWARD_DECLARED
 
 #    if _ONEDPL_EXECUTION_POLICIES_DEFINED
-// If <execution> has already been included, pull in implementations
+         // If <execution> has already been included, pull in implementations
 #        include "oneapi/dpl/internal/async_impl/async_utils.h"
 #        include "oneapi/dpl/internal/async_impl/async_impl.h"
 #        include "oneapi/dpl/internal/async_impl/glue_async_impl.h"
