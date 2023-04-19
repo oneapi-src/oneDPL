@@ -16,13 +16,11 @@
 #ifndef _ONEDPL_GLUE_ASYNC_IMPL_H
 #define _ONEDPL_GLUE_ASYNC_IMPL_H
 
-#if _ONEDPL_BACKEND_SYCL
-#    include "../async_extension_defs.h"
+#include "../async_extension_defs.h"
 
-#    if _ONEDPL_HETERO_BACKEND
-#        include "async_impl_hetero.h"
-#    endif
-#endif // _ONEDPL_BACKEND_SYCL
+#if _ONEDPL_HETERO_BACKEND
+#    include "async_impl_hetero.h"
+#endif
 
 namespace oneapi
 {
@@ -30,8 +28,6 @@ namespace dpl
 {
 namespace experimental
 {
-#if _ONEDPL_BACKEND_SYCL
-
 // [wait_for_all]
 template <typename... _Ts>
 oneapi::dpl::__internal::__enable_if_convertible_to_events<void, _Ts...>
@@ -327,8 +323,6 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
                                                                    __last1, __first2, __unary_op, __init, __binary_op,
                                                                    /*inclusive=*/::std::true_type());
 }
-
-#endif // _ONEDPL_BACKEND_SYCL
 
 } // namespace experimental
 

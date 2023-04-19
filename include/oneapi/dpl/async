@@ -19,6 +19,10 @@
 #include "oneapi/dpl/internal/common_config.h"
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
+#if !_ONEDPL_BACKEND_SYCL
+#    error "Unable to include oneapi/dpl/async header because _ONEDPL_BACKEND_SYCL is not defined"
+#endif // !_ONEDPL_BACKEND_SYCL
+
 #if !_ONEDPL_ASYNC_FORWARD_DECLARED
 #    include "oneapi/dpl/internal/async_extension_defs.h"
 #    define _ONEDPL_ASYNC_FORWARD_DECLARED 1

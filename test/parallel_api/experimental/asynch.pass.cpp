@@ -13,7 +13,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "oneapi/dpl/async"
+#include "support/test_config.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+#    include "oneapi/dpl/async"
+#endif // TEST_DPCPP_BACKEND_PRESENT
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/iterator"
 

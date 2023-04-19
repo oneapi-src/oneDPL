@@ -15,7 +15,9 @@
 
 #include "support/test_config.h"
 
-#include _PSTL_TEST_HEADER(async)
+#if TEST_DPCPP_BACKEND_PRESENT
+#    include _PSTL_TEST_HEADER(async)
+#endif // TEST_DPCPP_BACKEND_PRESENT
 #include _PSTL_TEST_HEADER(execution)
 
 #include "support/utils.h"
