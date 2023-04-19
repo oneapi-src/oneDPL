@@ -279,17 +279,18 @@ using __enable_if_convertible_to_events = ::std::enable_if_t<__is_convertible_to
 
 // Extension: execution policies type traits
 template <typename _ExecPolicy, typename _T, typename... _Events>
-using __enable_if_device_execution_policy = ::std::enable_if_t<
-    oneapi::dpl::__internal::__is_device_execution_policy<::std::decay_t<_ExecPolicy>>::value &&
-    oneapi::dpl::__internal::__is_convertible_to_event<_Events...>, _T>;
+using __enable_if_device_execution_policy =
+    ::std::enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<::std::decay_t<_ExecPolicy>>::value &&
+                           oneapi::dpl::__internal::__is_convertible_to_event<_Events...>,
+                       _T>;
 
 template <typename _ExecPolicy, typename _T>
-using __enable_if_hetero_execution_policy = ::std::enable_if_t<
-    oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
+using __enable_if_hetero_execution_policy =
+    ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
 template <typename _ExecPolicy, typename _T>
-using __enable_if_fpga_execution_policy = ::std::enable_if_t<
-    oneapi::dpl::__internal::__is_fpga_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
+using __enable_if_fpga_execution_policy =
+    ::std::enable_if_t<oneapi::dpl::__internal::__is_fpga_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
 template <typename _ExecPolicy, typename _T, typename _Op1, typename... _Events>
 using __enable_if_device_execution_policy_single_no_default = typename ::std::enable_if<
