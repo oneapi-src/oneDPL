@@ -19,19 +19,16 @@
 #include "oneapi/dpl/internal/common_config.h"
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
-#if _ONEDPL_BACKEND_SYCL
-#    if !_ONEDPL_ASYNC_FORWARD_DECLARED
-#        include "oneapi/dpl/internal/async_extension_defs.h"
-#        define _ONEDPL_ASYNC_FORWARD_DECLARED 1
-#    endif // !_ONEDPL_ASYNC_FORWARD_DECLARED
+#if !_ONEDPL_ASYNC_FORWARD_DECLARED
+#    include "oneapi/dpl/internal/async_extension_defs.h"
+#    define _ONEDPL_ASYNC_FORWARD_DECLARED 1
+#endif // !_ONEDPL_ASYNC_FORWARD_DECLARED
 
-#    if _ONEDPL_EXECUTION_POLICIES_DEFINED
-         // If <execution> has already been included, pull in implementations
-#        include "oneapi/dpl/internal/async_impl/glue_async_impl.h"
-#    endif // _ONEDPL_EXECUTION_POLICIES_DEFINED
+#if _ONEDPL_EXECUTION_POLICIES_DEFINED
+     // If <execution> has already been included, pull in implementations
+#    include "oneapi/dpl/internal/async_impl/glue_async_impl.h"
+#endif // _ONEDPL_EXECUTION_POLICIES_DEFINED
 
 namespace dpl = oneapi::dpl;
-
-#endif     // _ONEDPL_BACKEND_SYCL
 
 #endif // _ONEDPL_ASYNC

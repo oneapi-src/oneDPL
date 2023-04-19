@@ -16,13 +16,12 @@
 #ifndef _ONEDPL_GLUE_ASYNC_IMPL_H
 #define _ONEDPL_GLUE_ASYNC_IMPL_H
 
-#ifdef _ONEDPL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
 #    include "../async_extension_defs.h"
 
 #    if _ONEDPL_HETERO_BACKEND
 #        include "async_impl_hetero.h"
 #    endif
-
 #endif // _ONEDPL_BACKEND_SYCL
 
 namespace oneapi
@@ -31,6 +30,8 @@ namespace dpl
 {
 namespace experimental
 {
+#if _ONEDPL_BACKEND_SYCL
+
 // [wait_for_all]
 template <typename... _Ts>
 oneapi::dpl::__internal::__enable_if_convertible_to_events<void, _Ts...>
@@ -40,7 +41,6 @@ wait_for_all(_Ts&&... __events)
     (void)i;
 }
 
-#ifdef _ONEDPL_BACKEND_SYCL
 // [async.transform]
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _UnaryOperation,
           class... _Events,

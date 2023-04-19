@@ -29,6 +29,7 @@ namespace dpl
 // Public API for asynch algorithms:
 namespace experimental
 {
+#if _ONEDPL_BACKEND_SYCL
 
 template <typename... _Ts>
 oneapi::dpl::__internal::__enable_if_convertible_to_events<void, _Ts...>
@@ -177,6 +178,8 @@ auto
 transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1,
                                _ForwardIt2 __first2, _BinaryOperation __binary_op, _UnaryOperation __unary_op,
                                _T __init, _Events&&... __dependencies);
+
+#endif // _ONEDPL_BACKEND_SYCL
 
 } // namespace experimental
 
