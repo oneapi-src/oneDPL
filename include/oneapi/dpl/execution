@@ -57,7 +57,7 @@
 
 #if _ONEDPL_ASYNC_FORWARD_DECLARED
 #    include "oneapi/dpl/internal/async_impl/glue_async_impl.h"
-#endif     // _ONEDPL_ASYNC_FORWARD_DECLARED
+#endif // _ONEDPL_ASYNC_FORWARD_DECLARED
 
 #if _ONEDPL_CPP17_EXECUTION_POLICIES_PRESENT
 _PSTL_PRAGMA_MESSAGE_POLICIES(
