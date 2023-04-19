@@ -23,7 +23,6 @@
 #        include "async_impl_hetero.h"
 #    endif
 
-#    include "async_impl.h"
 #endif // _ONEDPL_BACKEND_SYCL
 
 namespace oneapi
@@ -32,6 +31,15 @@ namespace dpl
 {
 namespace experimental
 {
+// [wait_for_all]
+template <typename... _Ts>
+oneapi::dpl::__internal::__enable_if_convertible_to_events<void, _Ts...>
+wait_for_all(_Ts&&... __events)
+{
+    ::std::initializer_list<int> i = {0, (static_cast<sycl::event>(__events).wait_and_throw(), 0)...};
+    (void)i;
+}
+
 #ifdef _ONEDPL_BACKEND_SYCL
 // [async.transform]
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _UnaryOperation,
@@ -96,6 +104,17 @@ sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Comp
                                                         __comp, oneapi::dpl::identity{});
 }
 
+template <class _ExecutionPolicy, class _RandomAccessIterator, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
+auto
+sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
+           _Events&&... __dependencies)
+{
+    using __T = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
+    return sort_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, ::std::less<__T>(),
+                      ::std::forward<_Events>(__dependencies)...);
+}
+
 // [async.for_each]
 template <class _ExecutionPolicy, class _ForwardIterator, class _Function, class... _Events,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
@@ -124,6 +143,26 @@ reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterat
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_InputType>(),
         oneapi::dpl::__internal::__no_op());
     return ret_val;
+}
+
+template <class _ExecutionPolicy, class _ForwardIt, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
+auto
+reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _Events&&... __dependencies)
+{
+    using _Tp = typename std::iterator_traits<_ForwardIt>::value_type;
+    return reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, _Tp(0), ::std::plus<_Tp>(),
+                        ::std::forward<_Events>(__dependencies)...);
+}
+
+template <class _ExecutionPolicy, class _ForwardIt, class _T, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int, _T,
+                                                                                         _Events...>>
+auto
+reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init, _Events&&... __dependencies)
+{
+    return reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_T>(),
+                        ::std::forward<_Events>(__dependencies)...);
 }
 
 // [async.fill]
@@ -164,6 +203,18 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first,
                                                                      __last, __init, __binary_op, __unary_op);
+}
+
+template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
+auto
+transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
+                       _T __init, _Events&&... __dependencies)
+{
+    using __T1 = typename ::std::iterator_traits<_ForwardIt1>::value_type;
+    return transform_reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init,
+                                  ::std::plus<_T>(), ::std::multiplies<__T1>(),
+                                  ::std::forward<_Events>(__dependencies)...);
 }
 
 // [async.scan]
