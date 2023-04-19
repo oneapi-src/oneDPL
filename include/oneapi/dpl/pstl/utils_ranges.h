@@ -356,8 +356,7 @@ struct replicate_start_view_simple
 
     replicate_start_view_simple(_R __rng, _Size __replicate_count) : __r(__rng), __repl_count(__replicate_count)
     {
-        // empty base ranges are not allowed, as you cannot replicate an element that does not exist
-        assert(__repl_count >= 0 && __r.size() > 0);
+        assert(__repl_count >= 0);
     }
 
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
@@ -370,14 +369,14 @@ struct replicate_start_view_simple
     _Size
     size() const
     {
-        return __r.size() + __repl_count;
+        // if base range is empty, replication does not extend the valid size
+        return (__r.empty()) ? 0 : __r.size() + __repl_count;
     }
 
     bool
     empty() const
     {
-        // empty base ranges are not allowed, so replicate_start_view_simple is never empty
-        return false;
+        return size() == 0;
     }
 
     auto
