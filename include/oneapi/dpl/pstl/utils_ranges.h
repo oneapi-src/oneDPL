@@ -356,6 +356,7 @@ struct replicate_start_view_simple
 
     replicate_start_view_simple(_R __rng, _Size __replicate_count) : __r(__rng), __repl_count(__replicate_count)
     {
+        // empty base ranges are not allowed, as you cannot replicate an element that does not exist
         assert(__repl_count >= 0 && __r.size() > 0);
     }
 
@@ -375,7 +376,8 @@ struct replicate_start_view_simple
     bool
     empty() const
     {
-        return __r.size() == 0;
+        // empty base ranges are not allowed, so replicate_start_view_simple is never empty
+        return false;
     }
 
     auto
