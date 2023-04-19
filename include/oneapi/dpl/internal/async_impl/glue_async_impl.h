@@ -37,6 +37,7 @@ template <typename... _Ts>
 oneapi::dpl::__internal::__enable_if_convertible_to_events<void, _Ts...>
 wait_for_all(_Ts&&... __events)
 {
+    // TODO required to move this implementation into another sycl-specific header file, for example - into async_impl_hetero.h
     ::std::initializer_list<int> i = {0, (static_cast<sycl::event>(__events).wait_and_throw(), 0)...};
     (void)i;
 }
