@@ -37,9 +37,7 @@ main()
     q.fill<T>(v, 1, n).wait();
 
     auto f = oneapi::dpl::experimental::reduce_async(my_policy, v, v + n, T(0), std::plus());
-
-    T value = f.get();
-    value = value;
+    f.get();
 
     sycl::free(v, q);
 
