@@ -17,13 +17,14 @@
 #define _ONEDPL_GLUE_ASYNC_IMPL_H
 
 #ifdef _ONEDPL_BACKEND_SYCL
-#include "../async_extension_defs.h"
+#    include "../async_extension_defs.h"
 
-#if _ONEDPL_HETERO_BACKEND
-#    include "async_impl_hetero.h"
-#endif
+#    if _ONEDPL_HETERO_BACKEND
+#        include "async_impl_hetero.h"
+#    endif
 
-#include "async_impl.h"
+#    include "async_impl.h"
+#endif // _ONEDPL_BACKEND_SYCL
 
 namespace oneapi
 {
@@ -31,7 +32,7 @@ namespace dpl
 {
 namespace experimental
 {
-
+#ifdef _ONEDPL_BACKEND_SYCL
 // [async.transform]
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _UnaryOperation,
           class... _Events,
@@ -275,12 +276,12 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
                                                                    /*inclusive=*/::std::true_type());
 }
 
+#endif // _ONEDPL_BACKEND_SYCL
+
 } // namespace experimental
 
 } // namespace dpl
 
 } // namespace oneapi
-
-#endif // _ONEDPL_BACKEND_SYCL
 
 #endif // _ONEDPL_GLUE_ASYNC_IMPL_H
