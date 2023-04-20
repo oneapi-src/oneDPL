@@ -39,8 +39,7 @@ main()
     allocator alloc(q);
     std::vector<T, allocator> data(n, 1, alloc);
 
-    auto f = oneapi::dpl::experimental::reduce_async(TestUtils::make_device_policy(q), data.begin(), data.end(), T(0),
-                                                     std::plus());
+    auto f = oneapi::dpl::experimental::reduce_async(TestUtils::make_device_policy(q), data.begin(), data.end());
     f.wait();
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
