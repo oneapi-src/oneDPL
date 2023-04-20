@@ -29,8 +29,6 @@ main()
 
     constexpr std::size_t n = 100;
 
-    auto my_policy = TestUtils::make_device_policy<class Kernel1>(oneapi::dpl::execution::dpcpp_default);
-
     sycl::queue q = TestUtils::get_test_queue();
 
     using T = float;
@@ -38,7 +36,7 @@ main()
 
     q.fill<T>(v, 1, n).wait();
 
-    auto f = oneapi::dpl::experimental::reduce_async(my_policy, v, v + n, T(0), std::plus());
+    auto f = oneapi::dpl::experimental::reduce_async(TestUtils::make_device_policy(q), v, v + n, T(0), std::plus());
     f.wait();
 
     sycl::free(v, q);
