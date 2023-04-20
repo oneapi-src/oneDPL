@@ -5,9 +5,6 @@
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// This file incorporates work covered by the following copyright and permission
-// notice:
-//
 //===----------------------------------------------------------------------===//
 
 #include "support/test_config.h"
