@@ -20,6 +20,8 @@
 #    include _PSTL_TEST_HEADER(async)
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
+#include <vector>
+
 #include "support/utils.h"
 
 int
