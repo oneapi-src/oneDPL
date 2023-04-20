@@ -31,7 +31,7 @@ main()
 
     auto my_policy = TestUtils::make_device_policy<class Kernel1>(oneapi::dpl::execution::dpcpp_default);
 
-    auto q = sycl::queue{TestUtils::default_selector};
+    sycl::queue q = TestUtils::get_test_queue();
 
     using T = float;
     T* v = sycl::malloc_device<T>(n, q);
