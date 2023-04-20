@@ -250,8 +250,8 @@ auto
 __pattern_transform_scan_async(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
                                _UnaryOperation __unary_op, _BinaryOperation __binary_op, _Inclusive)
 {
-    using _Type = typename ::std::iterator_traits<_Iterator1>::value_type;
-    using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
+    using _ValueType = typename ::std::iterator_traits<_Iterator1>::value_type;
+    using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_ValueType>;
     using _InitType = unseq_backend::__no_init_value<_RepackedType>;
 
     return __pattern_transform_scan_base_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
