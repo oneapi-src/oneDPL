@@ -58,7 +58,9 @@
 #define _PSTL_SYCL_TEST_USM 1
 
 // Enable test when the DPC++ backend is available
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
+#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                          \
+     (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))) &&                                             \
+    (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
 #define TEST_DPCPP_BACKEND_PRESENT 1
 #else
 #define TEST_DPCPP_BACKEND_PRESENT 0
