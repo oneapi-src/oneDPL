@@ -27,19 +27,19 @@ main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
 
-    constexpr std::size_t n = 100;
-
     sycl::queue q = TestUtils::get_test_queue();
 
+    constexpr std::size_t n = 100;
+
     using T = float;
-    T* v = sycl::malloc_device<T>(n, q);
+    using allocator = sycl::usm_allocator<T, sycl::usm::alloc::shared>;
 
-    q.fill<T>(v, 1, n).wait();
+    allocator alloc(q);
+    std::vector<T, allocator> data(n, 1, alloc);
 
-    auto f = oneapi::dpl::experimental::reduce_async(TestUtils::make_device_policy(q), v, v + n, T(0), std::plus());
+    auto f = oneapi::dpl::experimental::reduce_async(TestUtils::make_device_policy(q), data.begin(), data.end(), T(0),
+                                                     std::plus());
     f.wait();
-
-    sycl::free(v, q);
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
