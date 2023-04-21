@@ -20,18 +20,6 @@
 
 #include <cstdint>
 
-template <typename T, int N>
-void
-printd(__ESIMD_NS::simd<T, N> x)
-{
-    for (int i = 0; i < N; i++)
-    {
-        uint32_t v = x[i];
-        __ESIMD_NS::esimd_printf(" %d", v);
-    }
-    esimd_printf("\n");
-}
-
 namespace oneapi::dpl::experimental::esimd::impl
 {
 template <typename T>
@@ -594,8 +582,8 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     bins = (keys >> (stage * RADIX_BITS)) & MASK;
     if (n == 0)
     { // without this, result will be wrong.
-        PRINTD(keys);
-        PRINTD(bins);
+        //PRINTD(keys);
+        //PRINTD(bins);
     }
 
     ResetBinCounters(slm_bin_hist_this_thread);
