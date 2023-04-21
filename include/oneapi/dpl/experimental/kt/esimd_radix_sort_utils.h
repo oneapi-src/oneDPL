@@ -214,5 +214,201 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
     return __res;
 }
 
+template <typename T, int VSize, int LANES, __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none,
+          __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline std::enable_if_t<(VSize <= 4), __ESIMD_NS::simd<T, VSize * LANES>>
+VectorLoad(const T* src, const __ESIMD_NS::simd<uint32_t, LANES> offset, __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    return __ESIMD_ENS::lsc_gather<T, VSize, __ESIMD_ENS::lsc_data_size::default_size, H1, H3, LANES>(src, offset,
+                                                                                                      mask);
 }
+
+template <typename T, int VSize, int LANES, __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none,
+          __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline std::enable_if_t<(VSize > 4), __ESIMD_NS::simd<T, VSize * LANES>>
+VectorLoad(const T* src, const __ESIMD_NS::simd<uint32_t, LANES> offset, __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    __ESIMD_NS::simd<T, VSize * LANES> result;
+    result.template select<4 * LANES, 1>(0) = VectorLoad<T, 4, LANES, H1, H3>(src, offset, mask);
+    result.template select<(VSize - 4) * LANES, 1>(4 * LANES) =
+        VectorLoad<T, VSize - 4, LANES, H1, H3>(src, offset + 4 * sizeof(T), mask);
+    return result;
+}
+
+template <typename T, int VSize, int LANES, int LaneStride = VSize,
+          __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none,
+          __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline __ESIMD_NS::simd<T, VSize * LANES>
+VectorLoad(const T* src, uint32_t offset, __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    return VectorLoad<T, VSize, LANES, H1, H3>(src, {offset, LaneStride * sizeof(T)}, mask);
+}
+
+template <typename T, int VSize, int LANES>
+inline std::enable_if_t<(VSize <= 4), __ESIMD_NS::simd<T, VSize * LANES>>
+VectorLoad(const __ESIMD_NS::simd<uint32_t, LANES> offset, __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    return __ESIMD_ENS::lsc_slm_gather<T, VSize, __ESIMD_ENS::lsc_data_size::default_size, LANES>(offset, mask);
+}
+
+template <typename T, int VSize, int LANES>
+inline std::enable_if_t<(VSize > 4), __ESIMD_NS::simd<T, VSize * LANES>>
+VectorLoad(const __ESIMD_NS::simd<uint32_t, LANES> offset, __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    __ESIMD_NS::simd<T, VSize * LANES> result;
+    result.template select<4 * LANES, 1>(0) = VectorLoad<T, 4, LANES>(offset, mask);
+    result.template select<(VSize - 4) * LANES, 1>(4 * LANES) =
+        VectorLoad<T, VSize - 4, LANES>(offset + 4 * sizeof(T), mask);
+    return result;
+}
+
+template <typename T, int VSize, int LANES, int LaneStride = VSize>
+inline __ESIMD_NS::simd<T, VSize * LANES>
+VectorLoad(uint32_t offset, __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    return VectorLoad<T, VSize, LANES>({offset, LaneStride * sizeof(T)}, mask);
+}
+
+template <typename T, int VSize, int LANES, __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none,
+          __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline std::enable_if_t<(VSize <= 4 && LANES <= 32), void>
+VectorStore(T* src, __ESIMD_NS::simd<uint32_t, LANES> offset, __ESIMD_NS::simd<T, VSize * LANES> data,
+            __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    return __ESIMD_ENS::lsc_scatter<T, VSize, __ESIMD_ENS::lsc_data_size::default_size, H1, H3, LANES>(src, offset,
+                                                                                                       data, mask);
+}
+
+template <typename T, int VSize, int LANES, __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none,
+          __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline std::enable_if_t<(LANES > 32), void>
+VectorStore(T* src, __ESIMD_NS::simd<uint32_t, LANES> offset, __ESIMD_NS::simd<T, VSize * LANES> data,
+            __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    VectorStore<T, VSize, 32>(src, offset.template select<32, 1>(0), data.template select<VSize * 32, 1>(0),
+                              mask.template select<32, 1>(0));
+    VectorStore<T, VSize, LANES - 32>(src, offset.template select<LANES - 32, 1>(32),
+                                      data.template select<VSize*(LANES - 32), 1>(32),
+                                      mask.template select<LANES - 32, 1>(32));
+}
+
+template <typename T, int VSize, int LANES, __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none,
+          __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline std::enable_if_t<(VSize > 4 && LANES <= 32), void>
+VectorStore(T* src, __ESIMD_NS::simd<uint32_t, LANES> offset, __ESIMD_NS::simd<T, VSize * LANES> data,
+            __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    VectorStore<T, 4, LANES>(src, offset, data.template select<4 * LANES, 1>(0), mask);
+    VectorStore<T, VSize - 4, LANES>(src, offset + 4 * sizeof(T),
+                                     data.template select<(VSize - 4) * LANES, 1>(4 * LANES), mask);
+}
+
+template <typename T, int VSize, int LANES, int LaneStride = VSize,
+          __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none,
+          __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline void
+VectorStore(T* src, uint32_t offset, __ESIMD_NS::simd<T, VSize * LANES> data, __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    // optimization needed here, hard for compiler to optimize the offset vector calculation
+    return VectorStore<T, VSize, LANES, H1, H3>(src, {offset, LaneStride * sizeof(T)}, data, mask);
+}
+
+template <typename T, int VSize, int LANES>
+inline std::enable_if_t<(VSize <= 4 && LANES <= 32), void>
+VectorStore(__ESIMD_NS::simd<uint32_t, LANES> offset, __ESIMD_NS::simd<T, VSize * LANES> data,
+            __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    __ESIMD_ENS::lsc_slm_scatter<T, VSize>(offset, data, mask);
+}
+
+template <typename T, int VSize, int LANES>
+inline std::enable_if_t<(LANES > 32), void>
+VectorStore(__ESIMD_NS::simd<uint32_t, LANES> offset, __ESIMD_NS::simd<T, VSize * LANES> data,
+            __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    VectorStore<T, VSize, 32>(offset.template select<32, 1>(0), data.template select<VSize * 32, 1>(0),
+                              mask.template select<32, 1>(0));
+    VectorStore<T, VSize, LANES - 32>(offset.template select<LANES - 32, 1>(32),
+                                      data.template select<VSize*(LANES - 32), 1>(32),
+                                      mask.template select<LANES - 32, 1>(32));
+}
+
+template <typename T, int VSize, int LANES>
+inline std::enable_if_t<(VSize > 4 && LANES <= 32), void>
+VectorStore(__ESIMD_NS::simd<uint32_t, LANES> offset, __ESIMD_NS::simd<T, VSize * LANES> data,
+            __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    VectorStore<T, 4, LANES>(offset, data.template select<4 * LANES, 1>(0), mask);
+    VectorStore<T, VSize - 4, LANES>(offset + 4 * sizeof(T), data.template select<(VSize - 4) * LANES, 1>(4 * LANES),
+                                     mask);
+}
+
+template <typename T, int VSize, int LANES, int LaneStride = VSize>
+inline void
+VectorStore(uint32_t offset, __ESIMD_NS::simd<T, VSize * LANES> data, __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    return VectorStore<T, VSize, LANES>({offset, LaneStride * sizeof(T)}, data, mask);
+}
+
+template <typename T, int N>
+inline std::enable_if_t<(N * sizeof(T) / sizeof(uint32_t) <= 64), __ESIMD_NS::simd<T, N>>
+BlockLoad(uint32_t slm_offset)
+{
+    __ESIMD_NS::simd<T, N> result;
+    result.template bit_cast_view<uint32_t>() =
+        __ESIMD_ENS::lsc_slm_block_load<uint32_t, N * sizeof(T) / sizeof(uint32_t)>(slm_offset);
+    return result;
+}
+
+template <typename T, int N>
+inline std::enable_if_t<(N * sizeof(T) / sizeof(uint32_t) > 64), __ESIMD_NS::simd<T, N>>
+BlockLoad(uint32_t slm_offset)
+{
+    __ESIMD_NS::simd<T, N> result;
+    constexpr uint32_t BLOCK_SIZE = 64 * sizeof(uint32_t) / sizeof(T);
+    result.template select<BLOCK_SIZE, 1>(0) = BlockLoad<T, BLOCK_SIZE>(slm_offset);
+    result.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE) =
+        BlockLoad<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T));
+    return result;
+}
+
+template <typename T, int N>
+inline std::enable_if_t<(N * sizeof(T) / sizeof(uint32_t) <= 64), void>
+BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
+{
+    __ESIMD_ENS::lsc_slm_block_store<uint32_t, N * sizeof(T) / sizeof(uint32_t)>(
+        slm_offset, data.template bit_cast_view<uint32_t>());
+}
+
+template <typename T, int N>
+inline std::enable_if_t<(N * sizeof(T) / sizeof(uint32_t) > 64), void>
+BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
+{
+    constexpr uint32_t BLOCK_SIZE = 64 * sizeof(uint32_t) / sizeof(T);
+    BlockStore<T, BLOCK_SIZE>(slm_offset, data.template select<BLOCK_SIZE, 1>(0));
+    BlockStore<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T),
+                                  data.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE));
+}
+
+template <typename T, int N, __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none,
+          __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline std::enable_if_t<(N * sizeof(T) <= 256), void>
+BlockStore(T* dst, __ESIMD_NS::simd<T, N> data)
+{
+    __ESIMD_ENS::lsc_block_store<uint32_t, N, __ESIMD_ENS::lsc_data_size::default_size, H1, H3>(
+        dst, data.template bit_cast_view<uint32_t>(), 1);
+}
+
+template <typename T, int N, __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none,
+          __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline std::enable_if_t<(N * sizeof(T) > 256), void>
+BlockStore(T* dst, __ESIMD_NS::simd<T, N> data)
+{
+    constexpr uint32_t BLOCK_SIZE = 64 * sizeof(uint32_t) / sizeof(T);
+    BlockStore<T, BLOCK_SIZE>(dst, data.template select<BLOCK_SIZE, 1>(0));
+    BlockStore<T, N - BLOCK_SIZE>(dst + BLOCK_SIZE, data.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE));
+}
+
+}; // namespace oneapi::dpl::experimental::esimd::impl::utils
+
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
