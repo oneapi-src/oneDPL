@@ -505,7 +505,8 @@ protected:
 template <typename KeyT, typename InputT, typename OutputT,
           uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE,
           bool IsAscending>
-radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, SG_PER_WG, PROCESS_SIZE>::radix_sort_onesweep_slm_reorder_kernel(
+radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER_WG, PROCESS_SIZE,
+                                       IsAscending>::radix_sort_onesweep_slm_reorder_kernel(
     uint32_t n, uint32_t stage, InputT* p_input, OutputT* p_output, uint8_t* p_global_buffer, uint32_t* p_job_queue)
     : n(n), stage(stage), p_input(p_input), p_output(p_output), p_global_buffer(p_global_buffer),
       job_queue(p_job_queue)
@@ -517,7 +518,8 @@ template <typename KeyT, typename InputT, typename OutputT,
           uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE,
           bool IsAscending>
 void
-radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, SG_PER_WG, PROCESS_SIZE>::operator()(sycl::nd_item<1> idx) const
+radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER_WG, PROCESS_SIZE,
+                                       IsAscending>::operator()(sycl::nd_item<1> idx) const
     SYCL_ESIMD_KERNEL
 {
     using namespace __ESIMD_NS;
