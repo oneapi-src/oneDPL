@@ -168,9 +168,11 @@ void inline global_wait(uint32_t *psync, uint32_t sync_id, uint32_t count, uint3
 
 ////////////////////////////////////////////////////////////////////////////////
 // KSATODO required to copy implementation into onesweep_kernel
-using radix_sort_key_t = uint32_t;  // -> typename KeyT
+//using radix_sort_key_t = uint32_t;  // -> typename KeyT
 
-template <uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE>
+template <typename KeyT, typename InputT, typename OutputT,
+          uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE,
+          bool IsAscending>
 class radix_sort_onesweep_slm_reorder_kernel
 {
     using bin_t = uint16_t;
@@ -179,10 +181,10 @@ class radix_sort_onesweep_slm_reorder_kernel
     using device_addr_t = uint32_t;
 
     static constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
-    static constexpr uint32_t NBITS = sizeof(radix_sort_key_t) * 8;
+    static constexpr uint32_t NBITS = sizeof(KeyT) * 8;
     static constexpr uint32_t STAGES = div_up(NBITS, RADIX_BITS);
     static constexpr bin_t MASK = BIN_COUNT - 1;
-    static constexpr uint32_t REORDER_SLM_SIZE = PROCESS_SIZE * sizeof(radix_sort_key_t) * SG_PER_WG; // reorder buffer
+    static constexpr uint32_t REORDER_SLM_SIZE = PROCESS_SIZE * sizeof(KeyT) * SG_PER_WG;             // reorder buffer
     static constexpr uint32_t BIN_HIST_SLM_SIZE = BIN_COUNT * sizeof(hist_t) * SG_PER_WG;             // bin hist working buffer
     static constexpr uint32_t SUBGROUP_LOOKUP_SIZE = BIN_COUNT * sizeof(hist_t) * SG_PER_WG;          // group offset lookup
     static constexpr uint32_t GLOBAL_LOOKUP_SIZE = BIN_COUNT * sizeof(global_hist_t);                 // global fix look up
@@ -192,7 +194,7 @@ class radix_sort_onesweep_slm_reorder_kernel
     // first stage, do subgroup ranks, need SG_PER_WG*BIN_COUNT*sizeof(hist_t)
     // then do rank roll up in workgroup, need SG_PER_WG*BIN_COUNT*sizeof(hist_t) + BIN_COUNT*sizeof(hist_t) + BIN_COUNT*sizeof(global_hist_t)
     // after all these is done, update ranks to workgroup ranks, need SUBGROUP_LOOKUP_SIZE
-    // then shuffle keys to workgroup order in SLM, need PROCESS_SIZE * sizeof(radix_sort_key_t) * SG_PER_WG
+    // then shuffle keys to workgroup order in SLM, need PROCESS_SIZE * sizeof(KeyT) * SG_PER_WG
     // then read reordered slm and look up global fix, need GLOBAL_LOOKUP_SIZE on top
     static constexpr uint32_t slm_bin_hist_start = 0;
     static constexpr uint32_t slm_lookup_workgroup = 0;
@@ -201,14 +203,15 @@ class radix_sort_onesweep_slm_reorder_kernel
 
     uint32_t n = 0;
     uint32_t stage = 0;
-    radix_sort_key_t* p_input = nullptr;
-    radix_sort_key_t* p_output = nullptr;
+    InputT* p_input = nullptr;
+    OutputT* p_output = nullptr;
     uint8_t* p_global_buffer = nullptr;
 
     struct dynamic_job_queue_t
     {
         uint32_t* queue = nullptr;
         uint32_t slm = 0;
+        dynamic_job_queue_t(uint32_t* queue) : queue(queue) {}
         dynamic_job_queue_t(uint32_t* queue, uint32_t slm) : queue(queue), slm(slm) {}
 
         inline uint32_t
@@ -265,9 +268,9 @@ class radix_sort_onesweep_slm_reorder_kernel
 
   public:
 
-    radix_sort_onesweep_slm_reorder_kernel(uint32_t n, uint32_t stage, radix_sort_key_t* p_input,
-                                           radix_sort_key_t* p_output, uint8_t* p_global_buffer,
-                                           uint32_t* p_job_queue /*, global_hist_t *p_lookup*/);
+    radix_sort_onesweep_slm_reorder_kernel(uint32_t n, uint32_t stage, InputT* p_input, OutputT* p_output,
+                                           uint8_t* p_global_buffer,
+                                           uint32_t* p_job_queue);
 
     void
     operator()(sycl::nd_item<1> idx) const SYCL_ESIMD_KERNEL;
@@ -276,8 +279,7 @@ protected:
 
     template <uint32_t CHUNK_SIZE>
     inline void
-    LoadKeys(uint32_t io_offset, __ESIMD_NS::simd<radix_sort_key_t, PROCESS_SIZE>& keys,
-             radix_sort_key_t default_key) const
+    LoadKeys(uint32_t io_offset, __ESIMD_NS::simd<KeyT, PROCESS_SIZE>& keys, KeyT default_key) const
     {
         using namespace __ESIMD_NS;
         using namespace __ESIMD_ENS;
@@ -289,7 +291,7 @@ protected:
             for (uint32_t s = 0; s < PROCESS_SIZE; s += CHUNK_SIZE)
             {
                 keys.template select<CHUNK_SIZE, 1>(s) =
-                    lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(radix_sort_key_t)));
+                    lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(KeyT)));
                 //keys.template select<CHUNK_SIZE, 1>(s) = block_load<T, CHUNK_SIZE>(p_input+io_offset+s); //will fail strangely.
             }
         }
@@ -301,8 +303,8 @@ protected:
             {
                 simd_mask<CHUNK_SIZE> m = (io_offset + lane_id + s) < n;
                 keys.template select<CHUNK_SIZE, 1>(s) =
-                    merge(lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(radix_sort_key_t))),
-                          simd<radix_sort_key_t, CHUNK_SIZE>(default_key), m);
+                    merge(lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(KeyT))),
+                          simd<KeyT, CHUNK_SIZE>(default_key), m);
             }
         }
     }
@@ -484,17 +486,20 @@ protected:
 };  // class radix_sort_onesweep_slm_reorder_kernel
 
 //----------------------------------------------------------------------------//
-template <uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE>
+template <typename KeyT, typename InputT, typename OutputT,
+          uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE,
+          bool IsAscending>
 radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, SG_PER_WG, PROCESS_SIZE>::radix_sort_onesweep_slm_reorder_kernel(
-    uint32_t n, uint32_t stage, radix_sort_key_t* p_input, radix_sort_key_t* p_output, uint8_t* p_global_buffer,
-    uint32_t* p_job_queue /*, global_hist_t *p_lookup*/)
+    uint32_t n, uint32_t stage, InputT* p_input, OutputT* p_output, uint8_t* p_global_buffer, uint32_t* p_job_queue)
     : n(n), stage(stage), p_input(p_input), p_output(p_output), p_global_buffer(p_global_buffer),
-      job_queue(p_job_queue, 0) /*, p_lookup(p_lookup)*/
+      job_queue(p_job_queue)
 {
 }
 
 //----------------------------------------------------------------------------//
-template <uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE>
+template <typename KeyT, typename InputT, typename OutputT,
+          uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE,
+          bool IsAscending>
 void
 radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, SG_PER_WG, PROCESS_SIZE>::operator()(sycl::nd_item<1> idx) const
     SYCL_ESIMD_KERNEL
@@ -523,12 +528,12 @@ radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, SG_PER_WG, PROCESS_SIZE>::ope
 
     simd<hist_t, BIN_COUNT> bin_offset;
     simd<hist_t, PROCESS_SIZE> ranks;
-    simd<radix_sort_key_t, PROCESS_SIZE> keys;
+    simd<KeyT, PROCESS_SIZE> keys;
     simd<bin_t, PROCESS_SIZE> bins;
     simd<device_addr_t, 16> lane_id(0, 1);
 
     device_addr_t io_offset = PROCESS_SIZE * (wg_id * wg_size + local_tid);
-    constexpr radix_sort_key_t default_key = -1;
+    constexpr KeyT default_key = -1;
 
     LoadKeys<16>(io_offset, keys, default_key);
     bins = (keys >> (stage * RADIX_BITS)) & MASK;
@@ -574,8 +579,8 @@ radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, SG_PER_WG, PROCESS_SIZE>::ope
             ranks + subgroup_lookup.template lookup<PROCESS_SIZE>(subgroup_offset, bins);
         barrier();
 
-        VectorStore<radix_sort_key_t, 1, PROCESS_SIZE>(
-            simd<uint32_t, PROCESS_SIZE>(wg_offset) * sizeof(radix_sort_key_t) + slm_reorder_start, keys);
+        VectorStore<KeyT, 1, PROCESS_SIZE>(simd<uint32_t, PROCESS_SIZE>(wg_offset) * sizeof(KeyT) + slm_reorder_start,
+                                           keys);
     }
     barrier();
     slm_lookup_t<hist_t> l(slm_lookup_global);
@@ -585,16 +590,14 @@ radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, SG_PER_WG, PROCESS_SIZE>::ope
     }
     barrier();
     {
-        keys = BlockLoad<radix_sort_key_t, PROCESS_SIZE>(slm_reorder_start +
-                                                         local_tid * PROCESS_SIZE * sizeof(radix_sort_key_t));
+        keys = BlockLoad<KeyT, PROCESS_SIZE>(slm_reorder_start + local_tid * PROCESS_SIZE * sizeof(KeyT));
         bins = (keys >> (stage * RADIX_BITS)) & MASK;
 
         simd<hist_t, PROCESS_SIZE> group_offset = create_simd<hist_t, PROCESS_SIZE>(local_tid * PROCESS_SIZE, 1);
 
         simd<device_addr_t, PROCESS_SIZE> global_offset = group_offset + l.template lookup<PROCESS_SIZE>(bins);
 
-        VectorStore<radix_sort_key_t, 1, PROCESS_SIZE>(p_output, global_offset * sizeof(radix_sort_key_t), keys,
-                                                       global_offset < n);
+        VectorStore<KeyT, 1, PROCESS_SIZE>(p_output, global_offset * sizeof(KeyT), keys, global_offset < n);
     }
 }
 
@@ -689,7 +692,9 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
     sycl::event
     operator()(_ExecutionPolicy&& __exec, _Range&& __rng, const _Output& __output, const _TmpData& __tmp_data,
-               ::std::uint32_t __sweep_tg_count, ::std::size_t __n, ::std::uint32_t __stage, const sycl::event& __e) const
+               ::std::uint32_t __sweep_tg_count, ::std::size_t __n, ::std::uint32_t* __p_job_queue,
+               ::std::uint32_t __stage,
+               const sycl::event& __e) const
     {
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
         ::std::uint32_t __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE * THREAD_PER_TG);
@@ -708,11 +713,20 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                         __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
                         {
                             // onesweep_kernel<KeyT,
-                            radix_sort_onesweep_slm_reorder_kernel<KeyT, 
-                                                                   decltype(__data), _Output,                              // 1) __data; 2) __output
-                                                                   RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
-                                    __nd_item, __n, __stage, __data, __output, __tmp_data) kernelImpl;
-                            kernelImpl();
+                            radix_sort_onesweep_slm_reorder_kernel<KeyT,               // typename KeyT
+                                                                   decltype(__data),   // typename InputT
+                                                                   _Output,            // typename OutputT
+                                                                   RADIX_BITS,         // uint32_t RADIX_BITS,
+                                                                   THREAD_PER_TG,      // uint32_t SG_PER_WG
+                                                                   PROCESS_SIZE,       // uint32_t PROCESS_SIZE
+                                                                   IsAscending>        // bool IsAscending
+                                   (/* uint32_t n                */ __n,
+                                    /* uint32_t stage            */ __stage,
+                                    /* InputT* p_input           */ __data,
+                                    /* OutputT* p_output,        */ __output,
+                                    /* uint8_t * p_global_buffer */ __tmp_data,
+                                    /* uint32_t * p_job_queue    */ __p_job_queue + __stage) kernelImpl;
+                            kernelImpl(__nd_item);
                         });
             });
         }
@@ -728,12 +742,21 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 __cgh.parallel_for<_Name...>(
                         __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
                         {
-                            // onesweep_kernel<KeyT,
-                            radix_sort_onesweep_slm_reorder_kernel<KeyT,
-                                                                   _Output, decltype(__data),                              // 1) __output; 2) __data
-                                                                   RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
-                                __nd_item, __n, __stage, __output, __data, __tmp_data) kernelImpl;
-                            kernelImpl();
+
+                            radix_sort_onesweep_slm_reorder_kernel<KeyT,               // typename KeyT
+                                                                   _Output,            // typename InputT
+                                                                   decltype(__data),   // typename OutputT
+                                                                   RADIX_BITS,         // uint32_t RADIX_BITS,
+                                                                   THREAD_PER_TG,      // uint32_t SG_PER_WG
+                                                                   PROCESS_SIZE,       // uint32_t PROCESS_SIZE
+                                                                   IsAscending>        // bool IsAscending
+                                   (/* uint32_t n                */ __n,
+                                    /* uint32_t stage            */ __stage,
+                                    /* InputT* p_input           */ __output,
+                                    /* OutputT* p_output,        */ __data,
+                                    /* uint8_t * p_global_buffer */ __tmp_data,
+                                    /* uint32_t * p_job_queue    */ __p_job_queue + __stage) kernelImpl;
+                            kernelImpl(__nd_item);
                         });
             });
         }
@@ -833,10 +856,22 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
         // + p_job_queue -> p_job_queue     (uint32_t*)
         // + stage -> __stage               (::std::uint32_t)
 
-        __e = __radix_sort_onesweep_submitter<
-            KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ SWEEP_PROCESSING_SIZE, IsAscending, _EsimRadixSort>()(
-                ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
+        __radix_sort_onesweep_submitter<KeyT,                       // typename KeyT
+                                        RADIX_BITS,                 // ::std::uint32_t RADIX_BITS
+                                        THREAD_PER_TG,              // ::std::uint32_t THREAD_PER_TG
+                                        SWEEP_PROCESSING_SIZE,      // ::std::uint32_t PROCESS_SIZE
+                                        IsAscending,                // bool IsAscending
+                                        _EsimRadixSort> submitter;  // typename... _Name
+        __e = submitter(
+                ::std::forward<_ExecutionPolicy>(__exec),   // _ExecutionPolicy&& __exec
+                ::std::forward<_Range>(__rng),              // _Range&& __rng
+                __output,                                   // const _Output& __output
+                tmp_buffer,                                 // const _TmpData& __tmp_data
+                sweep_tg_count,                             // ::std::uint32_t __sweep_tg_count
+                __n,                                        // ::std::size_t __n
+                p_job_queue,                                // ::std::uint32_t* __p_job_queue
+                __stage,                                    // ::std::uint32_t __stage
+                __e);                                       // const sycl::event& __e
     }
     __e.wait();
 }
