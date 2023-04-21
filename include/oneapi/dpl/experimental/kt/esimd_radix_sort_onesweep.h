@@ -486,7 +486,9 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 //     n, stage, p_input, p_output, tmp_buffer, p_job_queue + stage);
                 __cgh.parallel_for<_Name...>(
                         __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
-                            onesweep_kernel<KeyT, decltype(__data), _Output, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
+                            onesweep_kernel<KeyT, 
+                                            decltype(__data), _Output,                              // 1) __data; 2) __output
+                                            RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
                                 __nd_item, __n, __stage, __data, __output, __tmp_data);
                         });
             });
@@ -500,10 +502,11 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
 
                 // radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, THREAD_PER_TG, 256> K(
                 //     n, stage, p_output, p_input, tmp_buffer, p_job_queue + stage);
-
                 __cgh.parallel_for<_Name...>(
                         __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
-                            onesweep_kernel<KeyT, _Output, decltype(__data), RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
+                            onesweep_kernel<KeyT,
+                                            _Output, decltype(__data),                              // 1) __output; 2) __data
+                                            RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
                                 __nd_item, __n, __stage, __output, __data, __tmp_data);
                         });
             });
