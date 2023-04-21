@@ -66,7 +66,9 @@ namespace experimental{
 
     template<typename ...Args>
     selection_handle_t select(Args&&...) {
-      auto i = next_context_++ % num_contexts_;
+      int i=0;
+      if(next_context_==std::numeric_limits<universe_container_size_t>::max()) i = 0;
+      else i = next_context_++ % num_contexts_;
       auto &e = universe_[i];
       return selection_handle_t{e};
     }
