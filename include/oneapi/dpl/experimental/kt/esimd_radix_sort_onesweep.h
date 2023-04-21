@@ -239,7 +239,7 @@ class radix_sort_onesweep_slm_reorder_kernel
     static constexpr uint32_t slm_reorder_start = 0;
     static constexpr uint32_t slm_lookup_global = slm_reorder_start + REORDER_SLM_SIZE;
 
-    uint32_t n = 0;
+    ::std::size_t n = 0;
     uint32_t stage = 0;
     InputT* p_input = nullptr;
     OutputT* p_output = nullptr;
@@ -308,7 +308,7 @@ class radix_sort_onesweep_slm_reorder_kernel
 
   public:
 
-    radix_sort_onesweep_slm_reorder_kernel(uint32_t n, uint32_t stage, InputT* p_input, OutputT* p_output,
+    radix_sort_onesweep_slm_reorder_kernel(::std::size_t n, uint32_t stage, InputT* p_input, OutputT* p_output,
                                            uint8_t* p_global_buffer,
                                            uint32_t* p_job_queue);
 
@@ -544,7 +544,7 @@ template <typename KeyT, typename InputT, typename OutputT,
           bool IsAscending>
 radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER_WG, PROCESS_SIZE,
                                        IsAscending>::radix_sort_onesweep_slm_reorder_kernel(
-    uint32_t n, uint32_t stage, InputT* p_input, OutputT* p_output, uint8_t* p_global_buffer, uint32_t* p_job_queue)
+    ::std::size_t n, uint32_t stage, InputT* p_input, OutputT* p_output, uint8_t* p_global_buffer, uint32_t* p_job_queue)
     : n(n), stage(stage), p_input(p_input), p_output(p_output), p_global_buffer(p_global_buffer),
       job_queue(p_job_queue)
 {
@@ -786,7 +786,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                                                                        THREAD_PER_TG,      // uint32_t SG_PER_WG
                                                                        PROCESS_SIZE,       // uint32_t PROCESS_SIZE
                                                                        IsAscending>        // bool IsAscending
-                                    kernelImpl (/* uint32_t n                */ __n,
+                                    kernelImpl (/* ::std::size_t n           */ __n,
                                                 /* uint32_t stage            */ __stage,
                                                 /* InputT* p_input           */ __data,
                                                 /* OutputT* p_output,        */ __output,
@@ -803,7 +803,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                                                                        THREAD_PER_TG,      // uint32_t SG_PER_WG
                                                                        PROCESS_SIZE,       // uint32_t PROCESS_SIZE
                                                                        IsAscending>        // bool IsAscending
-                                    kernelImpl (/* uint32_t n                */ __n,
+                                    kernelImpl (/* ::std::size_t n           */ __n,
                                                 /* uint32_t stage            */ __stage,
                                                 /* InputT* p_input           */ __output,
                                                 /* OutputT* p_output,        */ __data,
