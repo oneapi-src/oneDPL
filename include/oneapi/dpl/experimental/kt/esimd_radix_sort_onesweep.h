@@ -153,6 +153,11 @@ void inline global_wait(uint32_t *psync, uint32_t sync_id, uint32_t count, uint3
     }
 }
 
+// onesweep
+// +->  __radix_sort_onesweep_submitter::operator()
+//          +-> submit()
+//                  +-> parallel_for()
+//                          +-> onesweep_kernel
 template <typename KeyT, typename InputT, typename OutputT, uint32_t RADIX_BITS, uint32_t THREAD_PER_TG, uint32_t PROCESS_SIZE, bool IsAscending>
 void onesweep_kernel(sycl::nd_item<1> idx, uint32_t __n, uint32_t stage, const InputT& input, const OutputT& __output, uint8_t *p_global_buffer) {
     using namespace sycl;
@@ -460,6 +465,11 @@ template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_
 struct __radix_sort_onesweep_submitter;
 
 // KSATODO It was renamed in Quolly's new version into radix_sort_onesweep_slm_reorder_kernel
+// onesweep
+// +->  __radix_sort_onesweep_submitter::operator()
+//          +-> submit()
+//                  +-> parallel_for()
+//                          +-> onesweep_kernel
 template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_TG, ::std::uint32_t PROCESS_SIZE,
           bool IsAscending, typename... _Name>
 struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending,
@@ -514,6 +524,11 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
     }
 };
 
+// onesweep
+// +->  __radix_sort_onesweep_submitter::operator()
+//          +-> submit()
+//                  +-> parallel_for()
+//                          +-> onesweep_kernel
 template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
           bool IsAscending, ::std::uint32_t PROCESS_SIZE>
 void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
