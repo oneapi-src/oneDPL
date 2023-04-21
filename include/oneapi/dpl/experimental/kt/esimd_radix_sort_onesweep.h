@@ -247,7 +247,8 @@ class radix_sort_onesweep_slm_reorder_kernel
             }
             return job_id[0];
         }
-    }/*; dynamic_job_queue_t*/ job_queue;
+    };
+    dynamic_job_queue_t job_queue;
 
     struct slm_lookup_t
     {
