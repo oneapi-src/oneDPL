@@ -11,6 +11,8 @@
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_ONESWEEP_H
 
 #include <ext/intel/esimd.hpp>
+#include <ext/intel/experimental/esimd/memory.hpp>
+
 #include "../../pstl/hetero/dpcpp/sycl_defs.h"
 #include "../../pstl/hetero/dpcpp/execution_sycl_defs.h"
 #include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
@@ -157,243 +159,447 @@ void inline global_wait(uint32_t *psync, uint32_t sync_id, uint32_t count, uint3
 // +->  __radix_sort_onesweep_submitter::operator()
 //          +-> submit()
 //                  +-> parallel_for()
-//                          +-> onesweep_kernel
-template <typename KeyT, typename InputT, typename OutputT, uint32_t RADIX_BITS, uint32_t THREAD_PER_TG,
-          uint32_t PROCESS_SIZE, bool IsAscending>
-void
-onesweep_kernel(sycl::nd_item<1> idx, uint32_t __n, uint32_t stage, const InputT& input, const OutputT& __output,
-                uint8_t* p_global_buffer)
-{
-    using namespace sycl;
-    using namespace __ESIMD_NS;
-    using namespace __ESIMD_ENS;
+//                          +-> radix_sort_onesweep_slm_reorder_kernel (onesweep_kernel)
+//      template <typename KeyT, typename InputT, typename OutputT, uint32_t RADIX_BITS, uint32_t THREAD_PER_TG,
+//                uint32_t PROCESS_SIZE, bool IsAscending>
+//      void
+//      onesweep_kernel(sycl::nd_item<1> idx, uint32_t __n, uint32_t stage, const InputT& input, const OutputT& __output,
+//                      uint8_t* p_global_buffer);
 
+////////////////////////////////////////////////////////////////////////////////
+// KSATODO required to copy implementation into onesweep_kernel
+using radix_sort_key_t = uint32_t;  // -> typename KeyT
+
+template <uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE>
+class radix_sort_onesweep_slm_reorder_kernel
+{
     using bin_t = uint16_t;
-    using hist_t = uint32_t;
+    using hist_t = uint16_t;
     using global_hist_t = uint32_t;
     using device_addr_t = uint32_t;
 
-    uint32_t tg_id = idx.get_group(0);
-    uint32_t tg_count = idx.get_group_range(0);
+    static constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
+    static constexpr uint32_t NBITS = sizeof(radix_sort_key_t) * 8;
+    static constexpr uint32_t STAGES = div_up(NBITS, RADIX_BITS);
+    static constexpr bin_t MASK = BIN_COUNT - 1;
+    static constexpr uint32_t REORDER_SLM_SIZE = PROCESS_SIZE * sizeof(radix_sort_key_t) * SG_PER_WG; // reorder buffer
+    static constexpr uint32_t BIN_HIST_SLM_SIZE = BIN_COUNT * sizeof(hist_t) * SG_PER_WG;             // bin hist working buffer
+    static constexpr uint32_t SUBGROUP_LOOKUP_SIZE = BIN_COUNT * sizeof(hist_t) * SG_PER_WG;          // group offset lookup
+    static constexpr uint32_t GLOBAL_LOOKUP_SIZE = BIN_COUNT * sizeof(global_hist_t);                 // global fix look up
+    static constexpr uint32_t INCOMING_OFFSET_SLM_SIZE = (BIN_COUNT + 1) * sizeof(hist_t);            // incoming offset buffer
 
-    uint32_t local_tid = idx.get_local_linear_id();
-    constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
-    constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
-    constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
-    constexpr uint32_t TG_PROCESS_SIZE = PROCESS_SIZE * THREAD_PER_TG;
-    constexpr bin_t MASK = BIN_COUNT - 1;
+    //slm allocation:
+    // first stage, do subgroup ranks, need SG_PER_WG*BIN_COUNT*sizeof(hist_t)
+    // then do rank roll up in workgroup, need SG_PER_WG*BIN_COUNT*sizeof(hist_t) + BIN_COUNT*sizeof(hist_t) + BIN_COUNT*sizeof(global_hist_t)
+    // after all these is done, update ranks to workgroup ranks, need SUBGROUP_LOOKUP_SIZE
+    // then shuffle keys to workgroup order in SLM, need PROCESS_SIZE * sizeof(radix_sort_key_t) * SG_PER_WG
+    // then read reordered slm and look up global fix, need GLOBAL_LOOKUP_SIZE on top
+    static constexpr uint32_t slm_bin_hist_start = 0;
+    static constexpr uint32_t slm_lookup_workgroup = 0;
+    static constexpr uint32_t slm_reorder_start = 0;
+    static constexpr uint32_t slm_lookup_global = slm_reorder_start + REORDER_SLM_SIZE;
 
-    constexpr uint32_t BIN_HIST_SLM_SIZE = BIN_COUNT * sizeof(hist_t) * THREAD_PER_TG;  // bin hist working buffer, 64K for DW hist
-    constexpr uint32_t INCOMING_OFFSET_SLM_SIZE = (BIN_COUNT+16)*sizeof(global_hist_t); // incoming offset buffer
-    constexpr uint32_t GLOBAL_SCAN_SIZE = (BIN_COUNT+16)*sizeof(global_hist_t);
+    uint32_t n = 0;
+    uint32_t stage = 0;
+    radix_sort_key_t* p_input = nullptr;
+    radix_sort_key_t* p_output = nullptr;
+    uint8_t* p_global_buffer = nullptr;
 
-    slm_init( BIN_HIST_SLM_SIZE + INCOMING_OFFSET_SLM_SIZE + GLOBAL_SCAN_SIZE);
-    uint32_t slm_bin_hist_start = 0;
-    uint32_t slm_incoming_start = slm_bin_hist_start + BIN_HIST_SLM_SIZE;
-    uint32_t slm_global_scan_start = slm_incoming_start + INCOMING_OFFSET_SLM_SIZE;
-
-
-    uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * BIN_COUNT * sizeof(hist_t);
-
-    size_t temp_io_size = __n * sizeof(KeyT);
-
-    global_hist_t *p_global_bin_start_buffer_allstages = reinterpret_cast<global_hist_t*>(p_global_buffer);
-    global_hist_t *p_global_bin_start_buffer = p_global_bin_start_buffer_allstages + BIN_COUNT * stage;
-    uint32_t *p_sync_buffer = reinterpret_cast<uint32_t*>(p_global_bin_start_buffer_allstages + BIN_COUNT * STAGES);
-
-    constexpr uint32_t SYNC_SEGMENT_COUNT = 64;
-    constexpr uint32_t SYNC_SEGMENT_SIZE_DW = 128;
-
-
-    simd<hist_t, BIN_COUNT> bin_offset;
-    simd<device_addr_t, 16> lane_id(0, 1);
-
-    device_addr_t io_offset = tg_id * TG_PROCESS_SIZE + PROCESS_SIZE * local_tid;
-
-    constexpr uint32_t BIN_GROUPS = 8;
-    constexpr uint32_t THREAD_PER_BIN_GROUP = THREAD_PER_TG / BIN_GROUPS;
-    constexpr uint32_t BIN_WIDTH = BIN_COUNT / BIN_GROUPS;
-    constexpr uint32_t BIN_WIDTH_UD = BIN_COUNT / BIN_GROUPS * sizeof(hist_t) / sizeof(uint32_t);
-    constexpr uint32_t BIN_HEIGHT = THREAD_PER_TG / THREAD_PER_BIN_GROUP;
-
+    struct dynamic_job_queue_t
     {
-        simd<KeyT, PROCESS_SIZE> keys;
-        simd<bin_t, PROCESS_SIZE> bins;
-        if (io_offset+PROCESS_SIZE < __n) {
-            utils::copy_from(input, io_offset, keys);
-        }
-        else if (io_offset >= __n) {
-            keys = -1;
-        }
-        else {
-            #pragma unroll
-            for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-                simd_mask<16> m = (io_offset+lane_id+s)<__n;
+        uint32_t* queue = nullptr;
+        uint32_t slm = 0;
+        dynamic_job_queue_t(uint32_t* queue, uint32_t slm) : queue(queue), slm(slm) {}
 
-                // simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
-                sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id)*sizeof(KeyT));
-                simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m);
+        inline uint32_t
+        get_job_id(auto g) const
+        {
+            using namespace __ESIMD_NS;
+            using namespace __ESIMD_ENS;
+            simd<uint32_t, 1> job_id;
+            if (g.get_local_linear_id() == 0)
+            {
+                job_id = lsc_atomic_update<atomic_op::inc, uint32_t, 1>(queue, 0, 1);
+                lsc_slm_scatter<uint32_t, 1, lsc_data_size::default_size, 1>(slm, job_id);
+            }
 
-                keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(-1), m);
+            // KSATOD what is the barrier() function? Where it's implemented?
+            barrier();
+            if (g.get_local_linear_id() != 0)
+            {
+                job_id = lsc_slm_gather<uint32_t, 1, lsc_data_size::default_size, 1>(slm);
+            }
+            return job_id[0];
+        }
+    }/*; dynamic_job_queue_t*/ job_queue;
+
+    struct slm_lookup_t
+    {
+        uint32_t slm = 0;
+        inline slm_lookup_t(uint32_t slm) : slm(slm) {}
+
+        template <int TABLE_SIZE>
+        inline void
+        setup(__ESIMD_NS::simd<T, TABLE_SIZE> source) SYCL_ESIMD_FUNCTION
+        {
+            // KSATODO BlockStore is implemented in C:\Work\drivers.gpu.compute.workloads\workloads\radix_sort_dpcpp_esimd\load_store.hpp
+            BlockStore<T, TABLE_SIZE>(slm, source);
+        }
+
+        template <int N>
+        inline auto
+        lookup(auto idx) SYCL_ESIMD_FUNCTION
+        {
+            // KSATODO VectorLoad is implemented in C:\Work\drivers.gpu.compute.workloads\workloads\radix_sort_dpcpp_esimd\load_store.hpp
+            return VectorLoad<T, 1, N>(slm + __ESIMD_NS::simd<uint32_t, N>(idx) * sizeof(T));
+        }
+
+        template <int N, int TABLE_SIZE>
+        inline auto
+        lookup(__ESIMD_NS::simd<T, TABLE_SIZE> source, auto idx) SYCL_ESIMD_FUNCTION
+        {
+            setup(source);
+            return lookup<N>(idx);
+        }
+    }; // struct slm_lookup_t
+
+  public:
+
+    radix_sort_onesweep_slm_reorder_kernel(uint32_t n, uint32_t stage, radix_sort_key_t* p_input,
+                                           radix_sort_key_t* p_output, uint8_t* p_global_buffer,
+                                           uint32_t* p_job_queue /*, global_hist_t *p_lookup*/);
+
+    void
+    operator()(sycl::nd_item<1> idx) const SYCL_ESIMD_KERNEL;
+
+protected:
+
+    template <uint32_t CHUNK_SIZE>
+    inline void
+    LoadKeys(uint32_t io_offset, __ESIMD_NS::simd<radix_sort_key_t, PROCESS_SIZE>& keys,
+             radix_sort_key_t default_key) const
+    {
+        using namespace __ESIMD_NS;
+        using namespace __ESIMD_ENS;
+        bool is_full_block = (io_offset + PROCESS_SIZE) <= n;
+        if (is_full_block)
+        {
+            simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);
+#pragma unroll
+            for (uint32_t s = 0; s < PROCESS_SIZE; s += CHUNK_SIZE)
+            {
+                keys.template select<CHUNK_SIZE, 1>(s) =
+                    lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(radix_sort_key_t)));
+                //keys.template select<CHUNK_SIZE, 1>(s) = block_load<T, CHUNK_SIZE>(p_input+io_offset+s); //will fail strangely.
             }
         }
-        // bins = (keys >> (stage * RADIX_BITS)) & MASK;
-        bins = oneapi::dpl::experimental::esimd::impl::utils::__get_bucket<MASK>(
-            oneapi::dpl::experimental::esimd::impl::utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
-
-        bin_offset = 0;
-
-        #pragma unroll
-        for (uint32_t s = 0; s<PROCESS_SIZE; s+=1) {
-            bin_offset[bins[s]] += 1;
+        else
+        {
+            simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);
+#pragma unroll
+            for (uint32_t s = 0; s < PROCESS_SIZE; s += CHUNK_SIZE)
+            {
+                simd_mask<CHUNK_SIZE> m = (io_offset + lane_id + s) < n;
+                keys.template select<CHUNK_SIZE, 1>(s) =
+                    merge(lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(radix_sort_key_t))),
+                          simd<radix_sort_key_t, CHUNK_SIZE>(default_key), m);
+            }
         }
     }
+
+    inline void
+    ResetBinCounters(uint32_t slm_bin_hist_this_thread) const
     {
+        BlockStore<hist_t, BIN_COUNT>(slm_bin_hist_this_thread, 0);
+    }
+
+    template <uint32_t BITS>
+    inline __ESIMD_NS::simd<uint32_t, 32>
+    match_bins(__ESIMD_NS::simd<uint32_t, 32> bins, uint32_t local_tid)
+    {
+        //instruction count is 5*BITS, so 40 for 8 bits.
+        //performance is about 2 u per bit for processing size 512 (will call this 16 times)
+        // per bits 5 inst * 16 segments * 4 stages = 320 instructions, * 8 threads = 2560, /1.6G = 1.6 us.
+        // 8 bits is 12.8 us
+        using namespace __ESIMD_NS;
+        fence<fence_mask::sw_barrier>();
+        simd<uint32_t, 32> matched_bins(0xffffffff);
+#pragma unroll
+        for (int i = 0; i < BITS; i++)
+        {
+            simd<uint32_t, 32> bit = (bins >> i) & 1; // and
+
+            // KSATOD what is the merge template function? Where it's implemented?
+            simd<uint32_t, 32> x = merge<uint32_t, 32>(0, -1, bit != 0); // sel
+            // KSATOD what is the pack_mask function? Where it's implemented?
+            uint32_t ones = pack_mask(bit != 0);      // mov
+            matched_bins = matched_bins & (x ^ ones); // bfn
+        }
+        fence<fence_mask::sw_barrier>();
+        return matched_bins;
+    }
+
+    inline auto
+    RankSLM(__ESIMD_NS::simd<bin_t, PROCESS_SIZE> bins, uint32_t slm_counter_offset, uint32_t local_tid) const
+    {
+        using namespace __ESIMD_NS;
+        using namespace __ESIMD_ENS;
+
+        constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
+        simd<uint32_t, PROCESS_SIZE> ranks;
+        BlockStore<hist_t, BIN_COUNT>(slm_counter_offset, 0);
+        simd<uint32_t, 32> remove_right_lanes, lane_id(0, 1);
+        remove_right_lanes = 0x7fffffff >> (31 - lane_id);
+#pragma unroll
+        for (uint32_t s = 0; s < PROCESS_SIZE; s += 32)
+        {
+            simd<uint32_t, 32> this_bins = bins.template select<32, 1>(s);
+            simd<uint32_t, 32> matched_bins = match_bins<RADIX_BITS>(this_bins, local_tid); // 40 insts
+            simd<uint32_t, 32> pre_rank, this_round_rank;
+            pre_rank = VectorLoad<hist_t, 1, 32>(slm_counter_offset + this_bins * sizeof(hist_t)); // 2 mad+load.slm
+            auto matched_left_lanes = matched_bins & remove_right_lanes;
+            this_round_rank = cbit(matched_left_lanes);
+            auto this_round_count = cbit(matched_bins);
+            auto rank_after = pre_rank + this_round_rank;
+            auto is_leader = this_round_rank == this_round_count - 1;
+            VectorStore<hist_t, 1, 32>(slm_counter_offset + this_bins * sizeof(hist_t), rank_after + 1, is_leader);
+            ranks.template select<32, 1>(s) = rank_after;
+            // if (local_tid==0) {
+            //     PRINTD(this_bins);
+            //     PRINTX(matched_bins);
+            //     PRINTD(rank);
+            //     PRINTD(this_round_count);
+            //     PRINTD(this_round_rank);
+            //     PRINTD(rank_after);
+            // }
+            // break;
+        }
+        return ranks;
+    }
+
+    inline void
+    UpdateGroupRank(uint32_t local_tid, uint32_t wg_id, __ESIMD_NS::simd<hist_t, BIN_COUNT>& subgroup_offset,
+                    __ESIMD_NS::simd<global_hist_t, BIN_COUNT>& global_fix, global_hist_t* p_global_bin_prev_group,
+                    global_hist_t* p_global_bin_this_group) const
+    {
+        using namespace __ESIMD_NS;
+        using namespace __ESIMD_ENS;
         /*
-        first write to slm,
-        then do column scan by group, each thread to 32c*8r,
-        then last row do exclusive scan as incoming offset
+        first do column scan by group, each thread do 32c, 
+        then last row do exclusive scan as group incoming offset
         then every thread add local sum with sum of previous group and incoming offset
         */
+        constexpr uint32_t HIST_STRIDE = sizeof(hist_t) * BIN_COUNT;
+        const uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * HIST_STRIDE;
+        const uint32_t slm_bin_hist_group_incoming = slm_bin_hist_start + SG_PER_WG * HIST_STRIDE;
+        const uint32_t slm_bin_hist_global_incoming = slm_bin_hist_group_incoming + HIST_STRIDE;
+        constexpr uint32_t GLOBAL_ACCUMULATED = 0x40000000;
+        constexpr uint32_t HIST_UPDATED = 0x80000000;
+        constexpr uint32_t GLOBAL_OFFSET_MASK = 0x3fffffff;
         {
-            // put local hist to slm
-            #pragma unroll
-            for (uint32_t s = 0; s<BIN_COUNT; s+=64) {
-                lsc_slm_block_store<uint32_t, 64>(slm_bin_hist_this_thread + s*sizeof(hist_t), bin_offset.template select<64, 1>(s).template bit_cast_view<uint32_t>());
-            }
+            // KSATOD what is the barrier() function? Where it's implemented?
             barrier();
-            // small group sum for local hist
-            constexpr uint32_t BIN_GROUPS = 8;
-            constexpr uint32_t THREAD_PER_BIN_GROUP = THREAD_PER_TG / BIN_GROUPS;
-            constexpr uint32_t BIN_WIDTH = BIN_COUNT / BIN_GROUPS;
-            constexpr uint32_t BIN_HEIGHT = THREAD_PER_TG / THREAD_PER_BIN_GROUP;
-            constexpr uint32_t HIST_STRIDE = BIN_COUNT * sizeof(hist_t);
-            uint32_t THREAD_GID = local_tid / THREAD_PER_BIN_GROUP;
-            uint32_t THREAD_LTID = local_tid % THREAD_PER_BIN_GROUP;
-            {
-                uint32_t slm_bin_hist_ingroup_offset = slm_bin_hist_start + THREAD_GID * BIN_WIDTH * sizeof(hist_t) + THREAD_LTID * BIN_HEIGHT * HIST_STRIDE;
-                utils::simd2d<hist_t, BIN_HEIGHT, BIN_WIDTH> thread_grf_hist;
-                #pragma unroll
-                for (uint32_t s = 0; s<BIN_HEIGHT; s++) {
-                    thread_grf_hist.row(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_ingroup_offset + s * HIST_STRIDE);
-                }
-                #pragma unroll
-                for (uint32_t s = 1; s<BIN_HEIGHT; s++) {
-                    thread_grf_hist.row(s) += thread_grf_hist.row(s-1);
-                }
-                #pragma unroll
-                for (uint32_t s = 1; s<BIN_HEIGHT; s++) {
-                    lsc_slm_block_store<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_ingroup_offset + s * HIST_STRIDE, thread_grf_hist.row(s).template bit_cast_view<uint32_t>());
-                }
-            }
+            constexpr uint32_t BIN_SUMMARY_GROUP_SIZE = 8;
+            constexpr uint32_t BIN_WIDTH = BIN_COUNT / BIN_SUMMARY_GROUP_SIZE;
 
-            barrier();
-            // thread group sum for groups
-            simd<global_hist_t, BIN_WIDTH> group_hist_sum;
-            if (THREAD_LTID == 0) {
-                uint32_t slm_bin_hist_group_summary_offset = slm_bin_hist_start + THREAD_GID * BIN_WIDTH * sizeof(hist_t) +  (BIN_HEIGHT-1) * HIST_STRIDE;
-                utils::simd2d<hist_t, THREAD_PER_BIN_GROUP, BIN_WIDTH> thread_grf_hist_summary;
-                #pragma unroll
-                for (uint32_t s = 0; s<THREAD_PER_BIN_GROUP; s++) {
-                    thread_grf_hist_summary.row(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_group_summary_offset + s * BIN_HEIGHT * HIST_STRIDE);
-                }
-                #pragma unroll
-                for (uint32_t s = 1; s<THREAD_PER_BIN_GROUP; s++) {
-                    thread_grf_hist_summary.row(s) += thread_grf_hist_summary.row(s-1);
-                }
-                #pragma unroll
-                for (uint32_t s = 1; s<THREAD_PER_BIN_GROUP-1; s++) {
-                    lsc_slm_block_store<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_group_summary_offset + s * BIN_HEIGHT * HIST_STRIDE, thread_grf_hist_summary.row(s).template bit_cast_view<uint32_t>());
-                }
-                group_hist_sum = thread_grf_hist_summary.row(THREAD_PER_BIN_GROUP-1);
-            }
-            // wait for previous TG pass over starting point
-            // atomic add starting point with group_hist_sum
-            // and pass to next
+            simd<hist_t, BIN_WIDTH> thread_grf_hist_summary;
+            if (local_tid < BIN_SUMMARY_GROUP_SIZE)
             {
-                //sync offset will be distributed to 64 banks to reduce latency
-                //for each tg, sync segment id is (tg_id % 64), sync target is ((tg_id+63) / 64) * BIN_GROUPS,
-                if (local_tid == 0) {
-                    uint32_t sync_segment_id = tg_id % SYNC_SEGMENT_COUNT;
-                    uint32_t sync_segment_target = ((tg_id + SYNC_SEGMENT_COUNT-1) / SYNC_SEGMENT_COUNT) * BIN_GROUPS;
-                    uint32_t sync_offset = sync_segment_id * SYNC_SEGMENT_SIZE_DW + stage;
-                    global_wait(p_sync_buffer, sync_offset, sync_segment_target, tg_id, local_tid);
+                uint32_t slm_bin_hist_summary_offset = slm_bin_hist_start + local_tid * BIN_WIDTH * sizeof(hist_t);
+                thread_grf_hist_summary = BlockLoad<hist_t, BIN_WIDTH>(slm_bin_hist_summary_offset);
+                slm_bin_hist_summary_offset += HIST_STRIDE;
+                for (uint32_t s = 1; s < SG_PER_WG; s++, slm_bin_hist_summary_offset += HIST_STRIDE)
+                {
+                    thread_grf_hist_summary += BlockLoad<hist_t, BIN_WIDTH>(slm_bin_hist_summary_offset);
+                    BlockStore(slm_bin_hist_summary_offset, thread_grf_hist_summary);
                 }
-                barrier();
-                if (THREAD_LTID == 0) {
-                    uint32_t pass_over_sync_segment_id = (tg_id + 1) % SYNC_SEGMENT_COUNT;
-                    uint32_t pass_over_sync_offset = pass_over_sync_segment_id * SYNC_SEGMENT_SIZE_DW + stage;
-                    simd<uint32_t, BIN_WIDTH> update_lanes(0, sizeof(global_hist_t));
-                    group_hist_sum = lsc_atomic_update<atomic_op::add, uint32_t, BIN_WIDTH>(p_global_bin_start_buffer+THREAD_GID*BIN_WIDTH, update_lanes, group_hist_sum, 1);
-                    lsc_slm_block_store<uint32_t, BIN_WIDTH>(slm_incoming_start + THREAD_GID * BIN_WIDTH * sizeof(global_hist_t), group_hist_sum);
-                    // lsc_atomic_update<atomic_op::inc, uint32_t, 1>(p_sync_buffer+pass_over_sync_offset, 0, 1);
-                    lsc_atomic_update<atomic_op::inc, uint32_t, 1>(p_sync_buffer+pass_over_sync_offset, simd<uint32_t, 1>(0), 1);
+                BlockStore(slm_bin_hist_group_incoming + local_tid * BIN_WIDTH * sizeof(hist_t),
+                           scan<hist_t, hist_t>(thread_grf_hist_summary));
+                if (wg_id != 0)
+                    lsc_block_store<uint32_t, BIN_WIDTH, lsc_data_size::default_size, cache_hint::uncached,
+                                    cache_hint::write_back>(p_global_bin_this_group + local_tid * BIN_WIDTH,
+                                                            thread_grf_hist_summary | HIST_UPDATED);
+            }
+            // KSATOD what is the barrier() function? Where it's implemented?
+            barrier();
+            if (local_tid == BIN_SUMMARY_GROUP_SIZE + 1)
+            {
+                // this thread to group scan
+                simd<hist_t, BIN_COUNT> grf_hist_summary;
+                simd<hist_t, BIN_COUNT + 1> grf_hist_summary_scan;
+                grf_hist_summary = BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming);
+                grf_hist_summary_scan[0] = 0;
+                grf_hist_summary_scan.template select<BIN_WIDTH, 1>(1) =
+                    grf_hist_summary.template select<BIN_WIDTH, 1>(0);
+#pragma unroll
+                for (uint32_t i = BIN_WIDTH; i < BIN_COUNT; i += BIN_WIDTH)
+                {
+                    grf_hist_summary_scan.template select<BIN_WIDTH, 1>(i + 1) =
+                        grf_hist_summary.template select<BIN_WIDTH, 1>(i) + grf_hist_summary_scan[i];
+                }
+                BlockStore<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming,
+                                              grf_hist_summary_scan.template select<BIN_COUNT, 1>());
+            }
+            else if (local_tid < BIN_SUMMARY_GROUP_SIZE)
+            {
+                // these threads to global sync and update
+                simd<global_hist_t, BIN_WIDTH> prev_group_hist_sum(0), prev_group_hist;
+                simd_mask<BIN_WIDTH> is_not_accumulated(1);
+                do
+                {
+                    do
+                    {
+                        prev_group_hist =
+                            lsc_block_load<global_hist_t, BIN_WIDTH, lsc_data_size::default_size, cache_hint::uncached,
+                                           cache_hint::cached>(p_global_bin_prev_group + local_tid * BIN_WIDTH);
+                        fence<fence_mask::sw_barrier>();
+                    } while (((prev_group_hist & HIST_UPDATED) == 0).any() && wg_id != 0);
+                    prev_group_hist_sum.merge(prev_group_hist_sum + prev_group_hist, is_not_accumulated);
+                    is_not_accumulated = (prev_group_hist_sum & GLOBAL_ACCUMULATED) == 0;
+                    p_global_bin_prev_group -= BIN_COUNT;
+                } while (is_not_accumulated.any() && wg_id != 0);
+                prev_group_hist_sum &= GLOBAL_OFFSET_MASK;
+                simd<global_hist_t, BIN_WIDTH> after_group_hist_sum = prev_group_hist_sum + thread_grf_hist_summary;
+                lsc_block_store<uint32_t, BIN_WIDTH, lsc_data_size::default_size, cache_hint::uncached,
+                                cache_hint::write_back>(p_global_bin_this_group + local_tid * BIN_WIDTH,
+                                                        after_group_hist_sum | HIST_UPDATED | GLOBAL_ACCUMULATED);
 
-                }
+                lsc_slm_block_store<uint32_t, BIN_WIDTH>(
+                    slm_bin_hist_global_incoming + local_tid * BIN_WIDTH * sizeof(global_hist_t), prev_group_hist_sum);
             }
-            // calculate each thread starting offset
+            // KSATOD what is the barrier() function? Where it's implemented?
             barrier();
-            {
-                #pragma unroll
-                for (uint32_t s = 0; s<BIN_COUNT; s+=64) {
-                    bin_offset.template select<64, 1>(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, 64>(slm_incoming_start + s*sizeof(hist_t));
-                }
-                if (local_tid>0) {
-                    #pragma unroll
-                    for (uint32_t s = 0; s<BIN_COUNT; s+=64) {
-                        simd<hist_t, 64> group_local_sum;
-                        group_local_sum.template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, 64>(slm_bin_hist_start + (local_tid-1)*HIST_STRIDE + s*sizeof(hist_t));
-                        bin_offset.template select<64, 1>(s) += group_local_sum;
-                    }
-                }
-                if ((local_tid > THREAD_PER_BIN_GROUP) && (local_tid % BIN_HEIGHT != 0)) {
-                    uint32_t prev_cum_rowid = (local_tid-1) / BIN_HEIGHT * BIN_HEIGHT - 1;
-                    #pragma unroll
-                    for (uint32_t s = 0; s<BIN_COUNT; s+=64) {
-                        simd<hist_t, 64> group_sum;
-                        group_sum.template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, 64>(slm_bin_hist_start + prev_cum_rowid*HIST_STRIDE + s*sizeof(hist_t));
-                        bin_offset.template select<64, 1>(s) += group_sum;
-                    }
-                }
-            }
         }
+        auto group_incoming = BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming);
+        global_fix = BlockLoad<global_hist_t, BIN_COUNT>(slm_bin_hist_global_incoming) - group_incoming;
+        if (local_tid > 0)
+        {
+            subgroup_offset =
+                group_incoming + BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_start + (local_tid - 1) * HIST_STRIDE);
+        }
+        else
+            subgroup_offset = group_incoming;
     }
+
+};  // class radix_sort_onesweep_slm_reorder_kernel
+
+//----------------------------------------------------------------------------//
+template <uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE>
+radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, SG_PER_WG, PROCESS_SIZE>::radix_sort_onesweep_slm_reorder_kernel(
+    uint32_t n, uint32_t stage, radix_sort_key_t* p_input, radix_sort_key_t* p_output, uint8_t* p_global_buffer,
+    uint32_t* p_job_queue /*, global_hist_t *p_lookup*/)
+    : n(n), stage(stage), p_input(p_input), p_output(p_output), p_global_buffer(p_global_buffer),
+      job_queue(p_job_queue, 0) /*, p_lookup(p_lookup)*/
+{
+}
+
+//----------------------------------------------------------------------------//
+template <uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE>
+void
+radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, SG_PER_WG, PROCESS_SIZE>::operator()(sycl::nd_item<1> idx) const
+    SYCL_ESIMD_KERNEL
+{
+    using namespace __ESIMD_NS;
+    using namespace __ESIMD_ENS;
+    slm_init(128 * 1024);
+
+    uint32_t local_tid = idx.get_local_linear_id();
+    // static job queue
+    uint32_t wg_id = idx.get_group(0);
+    uint32_t wg_size = idx.get_local_range(0);
+    uint32_t wg_count = idx.get_group_range(0);
+
+    assert(STAGES * RADIX_BITS == NBITS);
+
+    // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  PROCESS_SIZE = 256, BIN_COUNT = 256
+    // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
+    // change slm to reuse
+
+    uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * BIN_COUNT * sizeof(hist_t);
+    uint32_t slm_lookup_subgroup = slm_lookup_workgroup + local_tid * sizeof(hist_t) * BIN_COUNT;
+    //uint32_t slm_lookup_global = slm_lookup_start;
+
+    //global_hist_t * p_lookup_this = p_lookup+wg_
+
+    simd<hist_t, BIN_COUNT> bin_offset;
+    simd<hist_t, PROCESS_SIZE> ranks;
+    simd<radix_sort_key_t, PROCESS_SIZE> keys;
+    simd<bin_t, PROCESS_SIZE> bins;
+    simd<device_addr_t, 16> lane_id(0, 1);
+
+    device_addr_t io_offset = PROCESS_SIZE * (wg_id * wg_size + local_tid);
+    constexpr radix_sort_key_t default_key = -1;
+
+    LoadKeys<16>(io_offset, keys, default_key);
+    bins = (keys >> (stage * RADIX_BITS)) & MASK;
+    if (n == 0)
+    { // without this, result will be wrong.
+        PRINTD(keys);
+        PRINTD(bins);
+    }
+
+    ResetBinCounters(slm_bin_hist_this_thread);
+
+    fence<fence_mask::local_barrier>();
+
+    ranks = RankSLM(bins, slm_bin_hist_this_thread, local_tid);
+
+    // KSATOD what is the barrier() function? Where it's implemented?
+    barrier();
+
+    simd<hist_t, BIN_COUNT> subgroup_offset;
+    simd<global_hist_t, BIN_COUNT> global_fix;
+
+    //sync buffer is like below:
+    // uint32_t hist_stages[STAGES][BIN_COUNT];
+    // uint32_t sync_buffer[STAGES][wg_count][BIN_COUNT];
+    global_hist_t* p_global_bin_start_buffer_allstages = reinterpret_cast<global_hist_t*>(p_global_buffer);
+    global_hist_t* p_global_bin_start_buffer =
+        p_global_bin_start_buffer_allstages + BIN_COUNT * STAGES + BIN_COUNT * wg_count * stage;
+
+    global_hist_t* p_global_bin_this_group = p_global_bin_start_buffer + BIN_COUNT * wg_id;
+    global_hist_t* p_global_bin_prev_group = p_global_bin_start_buffer + BIN_COUNT * (wg_id - 1);
+    p_global_bin_prev_group = (0 == wg_id) ? (p_global_bin_start_buffer_allstages + BIN_COUNT * stage)
+                                           : (p_global_bin_this_group - BIN_COUNT);
+
+    UpdateGroupRank(local_tid, wg_id, subgroup_offset, global_fix, p_global_bin_prev_group, p_global_bin_this_group);
+
+    // KSATOD what is the barrier() function? Where it's implemented?
+    barrier();
     {
-        constexpr uint32_t BLOCK_SIZE = 32;
-        simd<device_addr_t, BLOCK_SIZE> write_addr;
-        simd<KeyT, BLOCK_SIZE> keys;
-        simd<bin_t, BLOCK_SIZE> bins;
-        // auto p_read = input + io_offset;
-        if (io_offset < __n) {
-            for (uint32_t i=0; i<PROCESS_SIZE; i+=BLOCK_SIZE) {
-                simd<device_addr_t, BLOCK_SIZE> lane_id_block(0, 1);
-                simd_mask<BLOCK_SIZE> m = (io_offset+lane_id_block+i)<__n;
+        //bins = (keys >> (stage * RADIX_BITS)) & MASK;
 
-                // simd<KeyT, BLOCK_SIZE> source = lsc_gather<KeyT, 1,
-                //         lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, BLOCK_SIZE>(p_read+i, lane_id_block*uint32_t(sizeof(KeyT)), m);
-                sycl::ext::intel::esimd::simd offset((io_offset + i + lane_id_block)*uint32_t(sizeof(KeyT)));
-                simd<KeyT, BLOCK_SIZE> source = lsc_gather<KeyT, 1,
-                        lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, BLOCK_SIZE>(input, offset, m);
+        slm_lookup_t<hist_t> subgroup_lookup(slm_lookup_subgroup);
+        simd<hist_t, PROCESS_SIZE> wg_offset =
+            ranks + subgroup_lookup.template lookup<PROCESS_SIZE>(subgroup_offset, bins);
+        barrier();
 
-                keys = merge(source, simd<KeyT, BLOCK_SIZE>(-1), m);
+        VectorStore<radix_sort_key_t, 1, PROCESS_SIZE>(
+            simd<uint32_t, PROCESS_SIZE>(wg_offset) * sizeof(radix_sort_key_t) + slm_reorder_start, keys);
+    }
+    barrier();
+    slm_lookup_t<hist_t> l(slm_lookup_global);
+    if (local_tid == 0)
+    {
+        l.template setup(global_fix);
+    }
+    barrier();
+    {
+        keys = BlockLoad<radix_sort_key_t, PROCESS_SIZE>(slm_reorder_start +
+                                                         local_tid * PROCESS_SIZE * sizeof(radix_sort_key_t));
+        bins = (keys >> (stage * RADIX_BITS)) & MASK;
 
-                // bins = (keys >> (stage * RADIX_BITS)) & MASK;
-                bins = oneapi::dpl::experimental::esimd::impl::utils::__get_bucket<MASK>(
-                    oneapi::dpl::experimental::esimd::impl::utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
+        simd<hist_t, PROCESS_SIZE> group_offset = create_simd<hist_t, PROCESS_SIZE>(local_tid * PROCESS_SIZE, 1);
 
-                #pragma unroll
-                for (uint32_t s = 0; s<BLOCK_SIZE; s+=1) {
-                    write_addr[s] = bin_offset[bins[s]];
-                    bin_offset[bins[s]] += 1;
-                }
-                lsc_scatter<KeyT, 1, lsc_data_size::default_size, cache_hint::write_back, cache_hint::write_back, BLOCK_SIZE>(
-                    __output,
-                    write_addr*sizeof(KeyT),
-                    keys, write_addr<__n);
-            }
-        }
+        simd<device_addr_t, PROCESS_SIZE> global_offset = group_offset + l.template lookup<PROCESS_SIZE>(bins);
+
+        VectorStore<radix_sort_key_t, 1, PROCESS_SIZE>(p_output, global_offset * sizeof(radix_sort_key_t), keys,
+                                                       global_offset < n);
     }
 }
+
+//----------------------------------------------------------------------------//
+
 
 //------------------------------------------------------------------------
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
@@ -473,7 +679,7 @@ struct __radix_sort_onesweep_submitter;
 // +->  __radix_sort_onesweep_submitter::operator()
 //          +-> submit()
 //                  +-> parallel_for()
-//                          +-> onesweep_kernel
+//                          +-> radix_sort_onesweep_slm_reorder_kernel (onesweep_kernel)
 template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_TG, ::std::uint32_t PROCESS_SIZE,
           bool IsAscending, typename... _Name>
 struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending,
@@ -499,11 +705,14 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 // radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, THREAD_PER_TG, 256> K(
                 //     n, stage, p_input, p_output, tmp_buffer, p_job_queue + stage);
                 __cgh.parallel_for<_Name...>(
-                        __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
-                            onesweep_kernel<KeyT, 
-                                            decltype(__data), _Output,                              // 1) __data; 2) __output
-                                            RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
-                                __nd_item, __n, __stage, __data, __output, __tmp_data);
+                        __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
+                        {
+                            // onesweep_kernel<KeyT,
+                            radix_sort_onesweep_slm_reorder_kernel<KeyT, 
+                                                                   decltype(__data), _Output,                              // 1) __data; 2) __output
+                                                                   RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
+                                    __nd_item, __n, __stage, __data, __output, __tmp_data) kernelImpl;
+                            kernelImpl();
                         });
             });
         }
@@ -517,11 +726,14 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 // radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, THREAD_PER_TG, 256> K(
                 //     n, stage, p_output, p_input, tmp_buffer, p_job_queue + stage);
                 __cgh.parallel_for<_Name...>(
-                        __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
-                            onesweep_kernel<KeyT,
-                                            _Output, decltype(__data),                              // 1) __output; 2) __data
-                                            RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
-                                __nd_item, __n, __stage, __output, __data, __tmp_data);
+                        __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
+                        {
+                            // onesweep_kernel<KeyT,
+                            radix_sort_onesweep_slm_reorder_kernel<KeyT,
+                                                                   _Output, decltype(__data),                              // 1) __output; 2) __data
+                                                                   RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>(
+                                __nd_item, __n, __stage, __output, __data, __tmp_data) kernelImpl;
+                            kernelImpl();
                         });
             });
         }
