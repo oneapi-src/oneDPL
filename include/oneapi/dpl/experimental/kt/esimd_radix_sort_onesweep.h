@@ -605,7 +605,12 @@ radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, SG_PER_WG, PROCESS_SIZE>::ope
     barrier();
     {
         keys = BlockLoad<KeyT, PROCESS_SIZE>(slm_reorder_start + local_tid * PROCESS_SIZE * sizeof(KeyT));
-        bins = (keys >> (stage * RADIX_BITS)) & MASK;
+        // original impl :
+        //      bins = (keys >> (stage * RADIX_BITS)) & MASK;
+        // our current impl :
+        bins = oneapi::dpl::experimental::esimd::impl::utils::__get_bucket<MASK>(
+            oneapi::dpl::experimental::esimd::impl::utils::__order_preserving_cast<IsAscending>(keys),
+            stage * RADIX_BITS);
 
         simd<hist_t, PROCESS_SIZE> group_offset = create_simd<hist_t, PROCESS_SIZE>(local_tid * PROCESS_SIZE, 1);
 
