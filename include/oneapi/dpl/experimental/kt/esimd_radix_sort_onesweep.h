@@ -743,12 +743,12 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                                                                        THREAD_PER_TG,      // uint32_t SG_PER_WG
                                                                        PROCESS_SIZE,       // uint32_t PROCESS_SIZE
                                                                        IsAscending>        // bool IsAscending
-                                        (/* uint32_t n                */ __n,
-                                         /* uint32_t stage            */ __stage,
-                                         /* InputT* p_input           */ __data,
-                                         /* OutputT* p_output,        */ __output,
-                                         /* uint8_t * p_global_buffer */ __tmp_data,
-                                         /* uint32_t * p_job_queue    */ __p_job_queue + __stage) kernelImpl;
+                                    kernelImpl (/* uint32_t n                */ __n,
+                                                /* uint32_t stage            */ __stage,
+                                                /* InputT* p_input           */ __data,
+                                                /* OutputT* p_output,        */ __output,
+                                                /* uint8_t * p_global_buffer */ __tmp_data,
+                                                /* uint32_t * p_job_queue    */ __p_job_queue + __stage);
                                 kernelImpl(__nd_item);
                             }
                             else
@@ -760,12 +760,12 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                                                                        THREAD_PER_TG,      // uint32_t SG_PER_WG
                                                                        PROCESS_SIZE,       // uint32_t PROCESS_SIZE
                                                                        IsAscending>        // bool IsAscending
-                                       (/* uint32_t n                */ __n,
-                                        /* uint32_t stage            */ __stage,
-                                        /* InputT* p_input           */ __output,
-                                        /* OutputT* p_output,        */ __data,
-                                        /* uint8_t * p_global_buffer */ __tmp_data,
-                                        /* uint32_t * p_job_queue    */ __p_job_queue + __stage) kernelImpl;
+                                    kernelImpl (/* uint32_t n                */ __n,
+                                                /* uint32_t stage            */ __stage,
+                                                /* InputT* p_input           */ __output,
+                                                /* OutputT* p_output,        */ __data,
+                                                /* uint8_t * p_global_buffer */ __tmp_data,
+                                                /* uint32_t * p_job_queue    */ __p_job_queue + __stage);
                                 kernelImpl(__nd_item);
                             }
                         });
