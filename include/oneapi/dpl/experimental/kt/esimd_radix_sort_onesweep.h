@@ -40,6 +40,14 @@ struct SyclFreeOnDestroy
     }
 };
 
+template <typename T1, typename T2>
+constexpr auto
+div_up(T1 a, T2 b)
+{
+    return (a + b - 1) / b;
+}
+
+
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t TG_COUNT, uint32_t THREAD_PER_TG, bool IsAscending>
 void
 global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer)
