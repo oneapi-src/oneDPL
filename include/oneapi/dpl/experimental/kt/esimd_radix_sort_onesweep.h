@@ -41,7 +41,9 @@ struct SyclFreeOnDestroy
 };
 
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t TG_COUNT, uint32_t THREAD_PER_TG, bool IsAscending>
-void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer) {
+void
+global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer)
+{
     using bin_t = uint16_t;
     using hist_t = uint32_t;
     using global_hist_t = uint32_t;
@@ -64,12 +66,14 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
 
     constexpr uint32_t SYNC_SEGMENT_COUNT = 64;
     constexpr uint32_t SYNC_SEGMENT_SIZE_DW = 128;
-    if (tid < SYNC_SEGMENT_COUNT) {
+    if (tid < SYNC_SEGMENT_COUNT)
+    {
         simd<uint32_t, SYNC_SEGMENT_SIZE_DW> sync_init = 0;
         sync_init.copy_to(p_sync_buffer + SYNC_SEGMENT_SIZE_DW * tid);
     }
 
-    if ((tid - local_tid) * PROCESS_SIZE > __n) {
+    if ((tid - local_tid) * PROCESS_SIZE > __n)
+    {
         //no work for this tg;
         return;
     }
@@ -89,15 +93,18 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
     constexpr bin_t MASK = BINCOUNT - 1;
 
     device_addr_t read_addr;
-    for (read_addr = tid * PROCESS_SIZE; read_addr < __n; read_addr += addr_step) {
-        if (read_addr+PROCESS_SIZE < __n) {
+    for (read_addr = tid * PROCESS_SIZE; read_addr < __n; read_addr += addr_step)
+    {
+        if (read_addr+PROCESS_SIZE < __n)
+        {
             utils::copy_from(input, read_addr, keys);
         }
         else
         {
             simd<uint32_t, 16> lane_id(0, 1);
             #pragma unroll
-            for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
+            for (uint32_t s = 0; s<PROCESS_SIZE; s+=16)
+            {
                 simd_mask<16> m = (s+lane_id)<(__n-read_addr);
 
                 // simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input+read_addr+s, lane_id*sizeof(KeyT), m);
@@ -124,7 +131,8 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
 
     //atomic add to the state counter in slm
     #pragma unroll
-    for (uint32_t s = 0; s < BINCOUNT * STAGES; s+=16) {
+    for (uint32_t s = 0; s < BINCOUNT * STAGES; s+=16)
+    {
         simd<uint32_t, 16> offset(0, sizeof(global_hist_t));
         lsc_slm_atomic_update<atomic_op::add, global_hist_t, 16>(s*sizeof(global_hist_t)+offset, state_hist_grf.template select<16, 1>(s), 1);
     }
@@ -141,17 +149,22 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
     }
 }
 
-void inline global_wait(uint32_t *psync, uint32_t sync_id, uint32_t count, uint32_t gid, uint32_t tid) {
+inline
+void
+global_wait(uint32_t *psync, uint32_t sync_id, uint32_t count, uint32_t gid, uint32_t tid)
+{
     using namespace __ESIMD_NS;
     using namespace __ESIMD_ENS;
     //assume initial is 1, do inc, then repeat load until count is met, then the first one atomic reduce by count to reset to 1, do not use store to 1, because second round might started.
     psync += sync_id;
     uint32_t current = -1;
     uint32_t try_count = 0;
-    while (current != count) {
+    while (current != count)
+    {
         // current=lsc_atomic_update<atomic_op::load, uint32_t, 1>(psync, 0, 1)[0];
-        current=lsc_atomic_update<atomic_op::load, uint32_t, 1>(psync, simd<uint32_t, 1>(0), 1)[0];
-        if (try_count++ > 5120) break;
+        current = lsc_atomic_update<atomic_op::load, uint32_t, 1>(psync, simd<uint32_t, 1>(0), 1)[0];
+        if (try_count++ > 5120)
+            break;
     }
 }
 
@@ -633,15 +646,16 @@ struct __radix_sort_onesweep_histogram_submitter<KeyT, RADIX_BITS, HW_TG_COUNT, 
     {
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
         sycl::nd_range<1> __nd_range(HW_TG_COUNT * THREAD_PER_TG, THREAD_PER_TG);
-        return __exec.queue().submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            auto __data = __rng.data();
-            __cgh.parallel_for<_Name...>(
-                    __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
-                        global_histogram<KeyT, decltype(__data), RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending>(
-                            __nd_item, __n, __data, __global_offset_data, __sync_data);
-                    });
-        });
+        return __exec.queue().submit([&](sycl::handler& __cgh)
+            {
+                oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+                auto __data = __rng.data();
+                __cgh.parallel_for<_Name...>(
+                        __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
+                            global_histogram<KeyT, decltype(__data), RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending>(
+                                __nd_item, __n, __data, __global_offset_data, __sync_data);
+                        });
+            });
     }
 };
 
@@ -659,17 +673,18 @@ struct __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT,
     {
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
         sycl::nd_range<1> __nd_range(STAGES * BINCOUNT, BINCOUNT);
-        return __exec.queue().submit([&](sycl::handler& __cgh) {
-            __cgh.depends_on(__e);
-            __cgh.parallel_for<_Name...>(
-                    __nd_range, [=](sycl::nd_item<1> __nd_item) {
+        return __exec.queue().submit([&](sycl::handler& __cgh)
+            {
+                __cgh.depends_on(__e);
+                __cgh.parallel_for<_Name...>(__nd_range, [=](sycl::nd_item<1> __nd_item)
+                    {
                         uint32_t __offset = __nd_item.get_global_id(0);
                         auto __g = __nd_item.get_group();
                         uint32_t __count = __global_offset_data[__offset];
                         uint32_t __presum = sycl::exclusive_scan_over_group(__g, __count, sycl::plus<::std::uint32_t>());
                         __global_offset_data[__offset] = __presum;
                     });
-        });
+            });
     }
 };
 
