@@ -286,16 +286,15 @@ class radix_sort_onesweep_slm_reorder_kernel
         inline void
         setup(__ESIMD_NS::simd<T, TABLE_SIZE> source) SYCL_ESIMD_FUNCTION
         {
-            // KSATODO BlockStore is implemented in C:\Work\drivers.gpu.compute.workloads\workloads\radix_sort_dpcpp_esimd\load_store.hpp
-            BlockStore<T, TABLE_SIZE>(slm, source);
+            oneapi::dpl::experimental::esimd::impl::utils::BlockStore<T, TABLE_SIZE>(slm, source);
         }
 
         template <int N, typename TIndex>
         inline auto
         lookup(TIndex idx) SYCL_ESIMD_FUNCTION
         {
-            // KSATODO VectorLoad is implemented in C:\Work\drivers.gpu.compute.workloads\workloads\radix_sort_dpcpp_esimd\load_store.hpp
-            return VectorLoad<T, 1, N>(slm + __ESIMD_NS::simd<uint32_t, N>(idx) * sizeof(T));
+            return oneapi::dpl::experimental::esimd::impl::utils::VectorLoad<T, 1, N>(
+                slm + __ESIMD_NS::simd<uint32_t, N>(idx) * sizeof(T));
         }
 
         template <int N, int TABLE_SIZE, typename TIndex>
@@ -353,7 +352,7 @@ protected:
     inline void
     ResetBinCounters(uint32_t slm_bin_hist_this_thread) const
     {
-        BlockStore<hist_t, BIN_COUNT>(slm_bin_hist_this_thread, 0);
+        oneapi::dpl::experimental::esimd::impl::utils::BlockStore<hist_t, BIN_COUNT>(slm_bin_hist_this_thread, 0);
     }
 
     template <uint32_t BITS>
@@ -390,7 +389,7 @@ protected:
 
         constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
         simd<uint32_t, PROCESS_SIZE> ranks;
-        BlockStore<hist_t, BIN_COUNT>(slm_counter_offset, 0);
+        oneapi::dpl::experimental::esimd::impl::utils::BlockStore<hist_t, BIN_COUNT>(slm_counter_offset, 0);
         simd<uint32_t, 32> remove_right_lanes, lane_id(0, 1);
         remove_right_lanes = 0x7fffffff >> (31 - lane_id);
 #pragma unroll
@@ -399,13 +398,15 @@ protected:
             simd<uint32_t, 32> this_bins = bins.template select<32, 1>(s);
             simd<uint32_t, 32> matched_bins = match_bins<RADIX_BITS>(this_bins, local_tid); // 40 insts
             simd<uint32_t, 32> pre_rank, this_round_rank;
-            pre_rank = VectorLoad<hist_t, 1, 32>(slm_counter_offset + this_bins * sizeof(hist_t)); // 2 mad+load.slm
+            pre_rank = oneapi::dpl::experimental::esimd::impl::utils::VectorLoad<hist_t, 1, 32>(
+                slm_counter_offset + this_bins * sizeof(hist_t)); // 2 mad+load.slm
             auto matched_left_lanes = matched_bins & remove_right_lanes;
             this_round_rank = cbit(matched_left_lanes);
             auto this_round_count = cbit(matched_bins);
             auto rank_after = pre_rank + this_round_rank;
             auto is_leader = this_round_rank == this_round_count - 1;
-            VectorStore<hist_t, 1, 32>(slm_counter_offset + this_bins * sizeof(hist_t), rank_after + 1, is_leader);
+            oneapi::dpl::experimental::esimd::impl::utils::VectorStore<hist_t, 1, 32>(
+                slm_counter_offset + this_bins * sizeof(hist_t), rank_after + 1, is_leader);
             ranks.template select<32, 1>(s) = rank_after;
             // if (local_tid==0) {
             //     PRINTD(this_bins);
@@ -449,14 +450,19 @@ protected:
             if (local_tid < BIN_SUMMARY_GROUP_SIZE)
             {
                 uint32_t slm_bin_hist_summary_offset = slm_bin_hist_start + local_tid * BIN_WIDTH * sizeof(hist_t);
-                thread_grf_hist_summary = BlockLoad<hist_t, BIN_WIDTH>(slm_bin_hist_summary_offset);
+                thread_grf_hist_summary = oneapi::dpl::experimental::esimd::impl::utils::BlockLoad<hist_t, BIN_WIDTH>(
+                    slm_bin_hist_summary_offset);
                 slm_bin_hist_summary_offset += HIST_STRIDE;
                 for (uint32_t s = 1; s < SG_PER_WG; s++, slm_bin_hist_summary_offset += HIST_STRIDE)
                 {
-                    thread_grf_hist_summary += BlockLoad<hist_t, BIN_WIDTH>(slm_bin_hist_summary_offset);
-                    BlockStore(slm_bin_hist_summary_offset, thread_grf_hist_summary);
+                    thread_grf_hist_summary +=
+                        oneapi::dpl::experimental::esimd::impl::utils::BlockLoad<hist_t, BIN_WIDTH>(
+                            slm_bin_hist_summary_offset);
+                    oneapi::dpl::experimental::esimd::impl::utils::BlockStore(slm_bin_hist_summary_offset,
+                                                                              thread_grf_hist_summary);
                 }
-                BlockStore(slm_bin_hist_group_incoming + local_tid * BIN_WIDTH * sizeof(hist_t),
+                oneapi::dpl::experimental::esimd::impl::utils::BlockStore(
+                    slm_bin_hist_group_incoming + local_tid * BIN_WIDTH * sizeof(hist_t),
                            scan<hist_t, hist_t>(thread_grf_hist_summary));
                 if (wg_id != 0)
                     lsc_block_store<uint32_t, BIN_WIDTH, lsc_data_size::default_size, cache_hint::uncached,
@@ -470,7 +476,8 @@ protected:
                 // this thread to group scan
                 simd<hist_t, BIN_COUNT> grf_hist_summary;
                 simd<hist_t, BIN_COUNT + 1> grf_hist_summary_scan;
-                grf_hist_summary = BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming);
+                grf_hist_summary = oneapi::dpl::experimental::esimd::impl::utils::BlockLoad<hist_t, BIN_COUNT>(
+                    slm_bin_hist_group_incoming);
                 grf_hist_summary_scan[0] = 0;
                 grf_hist_summary_scan.template select<BIN_WIDTH, 1>(1) =
                     grf_hist_summary.template select<BIN_WIDTH, 1>(0);
@@ -480,7 +487,8 @@ protected:
                     grf_hist_summary_scan.template select<BIN_WIDTH, 1>(i + 1) =
                         grf_hist_summary.template select<BIN_WIDTH, 1>(i) + grf_hist_summary_scan[i];
                 }
-                BlockStore<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming,
+                oneapi::dpl::experimental::esimd::impl::utils::BlockStore<hist_t, BIN_COUNT>(
+                    slm_bin_hist_group_incoming,
                                               grf_hist_summary_scan.template select<BIN_COUNT, 1>());
             }
             else if (local_tid < BIN_SUMMARY_GROUP_SIZE)
@@ -513,12 +521,16 @@ protected:
             // KSATOD what is the barrier() function? Where it's implemented?
             barrier();
         }
-        auto group_incoming = BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming);
-        global_fix = BlockLoad<global_hist_t, BIN_COUNT>(slm_bin_hist_global_incoming) - group_incoming;
+        auto group_incoming =
+            oneapi::dpl::experimental::esimd::impl::utils::BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming);
+        global_fix = oneapi::dpl::experimental::esimd::impl::utils::BlockLoad<global_hist_t, BIN_COUNT>(
+                         slm_bin_hist_global_incoming) -
+                     group_incoming;
         if (local_tid > 0)
         {
             subgroup_offset =
-                group_incoming + BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_start + (local_tid - 1) * HIST_STRIDE);
+                group_incoming + oneapi::dpl::experimental::esimd::impl::utils::BlockLoad<hist_t, BIN_COUNT>(
+                                     slm_bin_hist_start + (local_tid - 1) * HIST_STRIDE);
         }
         else
             subgroup_offset = group_incoming;
@@ -622,7 +634,8 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
             ranks + subgroup_lookup.template lookup<PROCESS_SIZE>(subgroup_offset, bins);
         barrier();
 
-        VectorStore<KeyT, 1, PROCESS_SIZE>(simd<uint32_t, PROCESS_SIZE>(wg_offset) * sizeof(KeyT) + slm_reorder_start,
+        oneapi::dpl::experimental::esimd::impl::utils::VectorStore<KeyT, 1, PROCESS_SIZE>(
+            simd<uint32_t, PROCESS_SIZE>(wg_offset) * sizeof(KeyT) + slm_reorder_start,
                                            keys);
     }
     barrier();
@@ -633,7 +646,8 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     }
     barrier();
     {
-        keys = BlockLoad<KeyT, PROCESS_SIZE>(slm_reorder_start + local_tid * PROCESS_SIZE * sizeof(KeyT));
+        keys = oneapi::dpl::experimental::esimd::impl::utils::BlockLoad<KeyT, PROCESS_SIZE>(
+            slm_reorder_start + local_tid * PROCESS_SIZE * sizeof(KeyT));
         // original impl :
         //      bins = (keys >> (stage * RADIX_BITS)) & MASK;
         // our current impl :
@@ -645,7 +659,8 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
 
         simd<device_addr_t, PROCESS_SIZE> global_offset = group_offset + l.template lookup<PROCESS_SIZE>(bins);
 
-        VectorStore<KeyT, 1, PROCESS_SIZE>(p_output, global_offset * sizeof(KeyT), keys, global_offset < n);
+        oneapi::dpl::experimental::esimd::impl::utils::VectorStore<KeyT, 1, PROCESS_SIZE>(
+            p_output, global_offset * sizeof(KeyT), keys, global_offset < n);
     }
 }
 
