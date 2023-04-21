@@ -251,6 +251,7 @@ class radix_sort_onesweep_slm_reorder_kernel
     };
     dynamic_job_queue_t job_queue;
 
+    template <typename T>
     struct slm_lookup_t
     {
         uint32_t slm = 0;
