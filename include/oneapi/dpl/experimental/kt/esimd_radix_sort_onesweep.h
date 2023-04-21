@@ -700,9 +700,8 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
         ::std::uint32_t __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE * THREAD_PER_TG);
         sycl::nd_range<1> __nd_range(__sweep_tg_count * THREAD_PER_TG, THREAD_PER_TG);
 
-        if((__stage & 1) == 0)
-        {
-            return __exec.queue().submit([&](sycl::handler& __cgh) {
+        return __exec.queue().submit([&](sycl::handler& __cgh)
+            {
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __data = __rng.data();
                 __cgh.depends_on(__e);
@@ -712,54 +711,43 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 __cgh.parallel_for<_Name...>(
                         __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
                         {
-                            // onesweep_kernel<KeyT,
-                            radix_sort_onesweep_slm_reorder_kernel<KeyT,               // typename KeyT
-                                                                   decltype(__data),   // typename InputT
-                                                                   _Output,            // typename OutputT
-                                                                   RADIX_BITS,         // uint32_t RADIX_BITS,
-                                                                   THREAD_PER_TG,      // uint32_t SG_PER_WG
-                                                                   PROCESS_SIZE,       // uint32_t PROCESS_SIZE
-                                                                   IsAscending>        // bool IsAscending
-                                   (/* uint32_t n                */ __n,
-                                    /* uint32_t stage            */ __stage,
-                                    /* InputT* p_input           */ __data,
-                                    /* OutputT* p_output,        */ __output,
-                                    /* uint8_t * p_global_buffer */ __tmp_data,
-                                    /* uint32_t * p_job_queue    */ __p_job_queue + __stage) kernelImpl;
-                            kernelImpl(__nd_item);
+                            if (__stage % 2 == 0)
+                            {
+                                // onesweep_kernel<KeyT,
+                                radix_sort_onesweep_slm_reorder_kernel<KeyT,               // typename KeyT
+                                                                       decltype(__data),   // typename InputT
+                                                                       _Output,            // typename OutputT
+                                                                       RADIX_BITS,         // uint32_t RADIX_BITS,
+                                                                       THREAD_PER_TG,      // uint32_t SG_PER_WG
+                                                                       PROCESS_SIZE,       // uint32_t PROCESS_SIZE
+                                                                       IsAscending>        // bool IsAscending
+                                        (/* uint32_t n                */ __n,
+                                         /* uint32_t stage            */ __stage,
+                                         /* InputT* p_input           */ __data,
+                                         /* OutputT* p_output,        */ __output,
+                                         /* uint8_t * p_global_buffer */ __tmp_data,
+                                         /* uint32_t * p_job_queue    */ __p_job_queue + __stage) kernelImpl;
+                                kernelImpl(__nd_item);
+                            }
+                            else
+                            {
+                                radix_sort_onesweep_slm_reorder_kernel<KeyT,               // typename KeyT
+                                                                       _Output,            // typename InputT
+                                                                       decltype(__data),   // typename OutputT
+                                                                       RADIX_BITS,         // uint32_t RADIX_BITS,
+                                                                       THREAD_PER_TG,      // uint32_t SG_PER_WG
+                                                                       PROCESS_SIZE,       // uint32_t PROCESS_SIZE
+                                                                       IsAscending>        // bool IsAscending
+                                       (/* uint32_t n                */ __n,
+                                        /* uint32_t stage            */ __stage,
+                                        /* InputT* p_input           */ __output,
+                                        /* OutputT* p_output,        */ __data,
+                                        /* uint8_t * p_global_buffer */ __tmp_data,
+                                        /* uint32_t * p_job_queue    */ __p_job_queue + __stage) kernelImpl;
+                                kernelImpl(__nd_item);
+                            }
                         });
             });
-        }
-        else
-        {
-            return __exec.queue().submit([&](sycl::handler& __cgh) {
-                oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-                auto __data = __rng.data();
-                __cgh.depends_on(__e);
-
-                // radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, THREAD_PER_TG, 256> K(
-                //     n, stage, p_output, p_input, tmp_buffer, p_job_queue + stage);
-                __cgh.parallel_for<_Name...>(
-                        __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
-                        {
-
-                            radix_sort_onesweep_slm_reorder_kernel<KeyT,               // typename KeyT
-                                                                   _Output,            // typename InputT
-                                                                   decltype(__data),   // typename OutputT
-                                                                   RADIX_BITS,         // uint32_t RADIX_BITS,
-                                                                   THREAD_PER_TG,      // uint32_t SG_PER_WG
-                                                                   PROCESS_SIZE,       // uint32_t PROCESS_SIZE
-                                                                   IsAscending>        // bool IsAscending
-                                   (/* uint32_t n                */ __n,
-                                    /* uint32_t stage            */ __stage,
-                                    /* InputT* p_input           */ __output,
-                                    /* OutputT* p_output,        */ __data,
-                                    /* uint8_t * p_global_buffer */ __tmp_data,
-                                    /* uint32_t * p_job_queue    */ __p_job_queue + __stage) kernelImpl;
-                            kernelImpl(__nd_item);
-                        });
-            });
-        }
     }
 };
 
