@@ -227,8 +227,9 @@ class radix_sort_onesweep_slm_reorder_kernel
         dynamic_job_queue_t(uint32_t* queue) : queue(queue) {}
         dynamic_job_queue_t(uint32_t* queue, uint32_t slm) : queue(queue), slm(slm) {}
 
+        template <typename TGroup>
         inline uint32_t
-        get_job_id(auto g) const
+        get_job_id(TGroup g) const
         {
             using namespace __ESIMD_NS;
             using namespace __ESIMD_ENS;
@@ -263,17 +264,17 @@ class radix_sort_onesweep_slm_reorder_kernel
             BlockStore<T, TABLE_SIZE>(slm, source);
         }
 
-        template <int N>
+        template <int N, typename TIndex>
         inline auto
-        lookup(auto idx) SYCL_ESIMD_FUNCTION
+        lookup(TIndex idx) SYCL_ESIMD_FUNCTION
         {
             // KSATODO VectorLoad is implemented in C:\Work\drivers.gpu.compute.workloads\workloads\radix_sort_dpcpp_esimd\load_store.hpp
             return VectorLoad<T, 1, N>(slm + __ESIMD_NS::simd<uint32_t, N>(idx) * sizeof(T));
         }
 
-        template <int N, int TABLE_SIZE>
+        template <int N, int TABLE_SIZE, typename TIndex>
         inline auto
-        lookup(__ESIMD_NS::simd<T, TABLE_SIZE> source, auto idx) SYCL_ESIMD_FUNCTION
+        lookup(__ESIMD_NS::simd<T, TABLE_SIZE> source, TIndex idx) SYCL_ESIMD_FUNCTION
         {
             setup(source);
             return lookup<N>(idx);
