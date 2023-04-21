@@ -20,6 +20,18 @@
 
 #include <cstdint>
 
+template <typename T, int N>
+void
+printd(__ESIMD_NS::simd<T, N> x)
+{
+    for (int i = 0; i < N; i++)
+    {
+        uint32_t v = x[i];
+        __ESIMD_NS::esimd_printf(" %d", v);
+    }
+    esimd_printf("\n");
+}
+
 namespace oneapi::dpl::experimental::esimd::impl
 {
 template <typename T>
