@@ -810,16 +810,11 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
                     _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
 {
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
-    using _Assigner = unseq_backend::__scan_assigner;
-    using _NoAssign = unseq_backend::__scan_no_assign;
-    using _MaskAssigner = unseq_backend::__mask_assigner<1>;
-    using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
     if (__first == __last)
         return ::std::make_pair(__output_first, _It1DifferenceType{0});
 
-    // temporary buffer to store boolean mask
-    ::std::size_t __n = __last - __first;
+    _It1DifferenceType __n = __last - __first;
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first, __last);
@@ -827,59 +822,10 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _IteratorOrTuple>();
     auto __buf2 = __keep2(__output_first, __output_first + __n);
 
-    ::std::size_t __num_copied{0};
+    auto __res = __par_backend_hetero::__parallel_scan_copy(
+        ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __create_mask_op, __copy_by_mask_op);
 
-    // Next power of 2 greater than or equal to __n
-    auto __n_uniform = __dpl_bit_ceil(__n);
-
-    // Pessimistically only use half of the memory to take into account memory used by compiled kernel
-    const ::std::size_t __max_slm_size =
-        __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
-    const auto __req_slm_size = sizeof(::std::uint16_t) * __n_uniform;
-
-    constexpr int __single_group_upper_limit = 16384;
-
-    if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size)
-    {
-        using _SizeBreakpoints =
-            ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
-
-        auto __res = __par_backend_hetero::__parallel_scan_copy(
-            ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __create_mask_op.__pred);
-        __num_copied = __res.get();
-    }
-    else
-    {
-        using _ReduceOp = ::std::plus<_It1DifferenceType>;
-
-        _Assigner __assign_op;
-        _ReduceOp __reduce_op;
-        _DataAcc __get_data_op;
-        _MaskAssigner __add_mask_op;
-
-        using _InitType = unseq_backend::__no_init_value<_It1DifferenceType>;
-
-        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
-
-        auto __res = __par_backend_hetero::__parallel_transform_scan(
-            ::std::forward<_ExecutionPolicy>(__exec),
-            oneapi::dpl::__ranges::make_zip_view(
-                __buf1.all_view(), oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
-                                       __mask_buf.get_buffer())),
-            __buf2.all_view(), __reduce_op, _InitType{},
-            // local scan
-            unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
-                                  _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
-                                                                           __add_mask_op, __create_mask_op},
-            // scan between groups
-            unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
-                                  _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
-                                                                  __get_data_op},
-            // global scan
-            __copy_by_mask_op);
-        __num_copied = __res.get();
-    }
-
+    ::std::size_t __num_copied = __res.get();
     return ::std::make_pair(__output_first + __n, __num_copied);
 }
 
@@ -889,15 +835,23 @@ __pattern_copy_if(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __la
                   _Predicate __pred, /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
-    using _ReduceOp = ::std::plus<_It1DifferenceType>;
 
-    unseq_backend::__create_mask<_Predicate, _It1DifferenceType> __create_mask_op{__pred};
-    unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign, /*inclusive*/ ::std::true_type, 1>
-        __copy_by_mask_op;
+    if (__first == __last)
+        return __result_first;
 
-    auto __result = __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first,
-                                        __create_mask_op, __copy_by_mask_op);
-    return __result_first + __result.second;
+    _It1DifferenceType __n = __last - __first;
+
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
+    auto __buf1 = __keep1(__first, __last);
+    auto __keep2 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
+    auto __buf2 = __keep2(__result_first, __result_first + __n);
+
+    auto __res = __par_backend_hetero::__parallel_copy_if(
+        ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __pred);
+
+    ::std::size_t __num_copied = __res.get();
+    return __result_first + __num_copied;
 }
 
 //------------------------------------------------------------------------
