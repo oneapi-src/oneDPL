@@ -463,7 +463,7 @@ protected:
                 }
                 oneapi::dpl::experimental::esimd::impl::utils::BlockStore(
                     slm_bin_hist_group_incoming + local_tid * BIN_WIDTH * sizeof(hist_t),
-                           scan<hist_t, hist_t>(thread_grf_hist_summary));
+                           utils::scan<hist_t, hist_t>(thread_grf_hist_summary));
                 if (wg_id != 0)
                     lsc_block_store<uint32_t, BIN_WIDTH, lsc_data_size::default_size, cache_hint::uncached,
                                     cache_hint::write_back>(p_global_bin_this_group + local_tid * BIN_WIDTH,
@@ -642,7 +642,7 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     slm_lookup_t<hist_t> l(slm_lookup_global);
     if (local_tid == 0)
     {
-        l.template setup(global_fix);
+        l.template setup<BIN_COUNT>(global_fix);
     }
     barrier();
     {
