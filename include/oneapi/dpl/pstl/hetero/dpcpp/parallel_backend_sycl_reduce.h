@@ -119,7 +119,7 @@ __parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, _Size __n, _Re
 }
 
 // Parallel_transform_reduce for a mid-sized arrays using two reduction steps.
-// First: __work_group_size * __iters_per_work_item1 elements are transformed and reduced to a single partial result by 
+// First: __work_group_size * __iters_per_work_item1 elements are transformed and reduced to a single partial result by
 // each work group.
 // Second: __work_group_size * __iters_per_work_item2 elements are reduced to the single result.
 template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item1, ::std::size_t __iters_per_work_item2,
@@ -293,7 +293,7 @@ struct __parallel_transform_reduce_impl
         sycl::event __reduce_event;
         do
         {
-            __reduce_event = __exec.queue().submit([&, __is_first, __offset_1, __offset_2, __n, __n_items, 
+            __reduce_event = __exec.queue().submit([&, __is_first, __offset_1, __offset_2, __n, __n_items,
                                                     __n_groups](sycl::handler& __cgh) {
                 __cgh.depends_on(__reduce_event);
 
@@ -352,7 +352,7 @@ struct __parallel_transform_reduce_impl
 // Each work group of size __work_group_size reduces the preliminary results of each work item in a group reduction
 // using SLM. 256 __work_group_size was empirically found best for typical devices.
 // A single-work group implementation is used for small arrays.
-// Mid-sized arrays use two tree reductions with independet __iters_per_work_item.
+// Mid-sized arrays use two tree reductions with independent __iters_per_work_item.
 // Big arrays are processed with a recursive tree reduction. __work_group_size * __iters_per_work_item elements are
 // reduced in each step.
 template <typename _Tp, typename _ReduceOp, typename _TransformOp, typename _ExecutionPolicy, typename _InitType,
