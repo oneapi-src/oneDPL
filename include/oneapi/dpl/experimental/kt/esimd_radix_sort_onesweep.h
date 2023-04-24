@@ -569,7 +569,7 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     uint32_t wg_size = idx.get_local_range(0);
     uint32_t wg_count = idx.get_group_range(0);
 
-    assert(STAGES * RADIX_BITS == NBITS);
+    static_assert(STAGES * RADIX_BITS == NBITS, "");
 
     // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  PROCESS_SIZE = 256, BIN_COUNT = 256
     // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
