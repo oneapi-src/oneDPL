@@ -357,7 +357,7 @@ protected:
 
     template <uint32_t BITS>
     inline __ESIMD_NS::simd<uint32_t, 32>
-    match_bins(__ESIMD_NS::simd<uint32_t, 32> bins, uint32_t local_tid)
+    match_bins(__ESIMD_NS::simd<uint32_t, 32> bins, uint32_t local_tid) const
     {
         //instruction count is 5*BITS, so 40 for 8 bits.
         //performance is about 2 u per bit for processing size 512 (will call this 16 times)
