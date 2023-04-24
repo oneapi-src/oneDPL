@@ -330,9 +330,15 @@ protected:
 #pragma unroll
             for (uint32_t s = 0; s < PROCESS_SIZE; s += CHUNK_SIZE)
             {
-                keys.template select<CHUNK_SIZE, 1>(s) =
-                    lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(KeyT)));
+                // commented code from source
                 //keys.template select<CHUNK_SIZE, 1>(s) = block_load<T, CHUNK_SIZE>(p_input+io_offset+s); //will fail strangely.
+
+                // current code from source with compile error introduced in our code:
+                //keys.template select<CHUNK_SIZE, 1>(s) = lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(KeyT)));
+
+                // our current implementation
+                sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(KeyT));
+                keys.template select<CHUNK_SIZE, 1>(s) = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(p_input, offset);
             }
         }
         else
