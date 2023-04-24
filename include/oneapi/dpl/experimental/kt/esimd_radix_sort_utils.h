@@ -22,6 +22,19 @@ namespace oneapi::dpl::experimental::esimd::impl::utils
 template <typename T>
 inline constexpr ::std::uint32_t size32 = sizeof(T);
 
+template <typename TWhatEver>
+struct is_sycl_accessor : ::std::false_type
+{
+};
+
+template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
+struct is_sycl_accessor<sycl::accessor<T, N, Mode, sycl::target::device, P>> : ::std::true_type
+{
+};
+
+template <typename... _Tp>
+inline constexpr bool is_sycl_accessor_v = is_sycl_accessor<_Tp...>::value;
+
 template <typename T, int N>
 void
 copy_from(const T* input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd<T, N>& values)
@@ -273,7 +286,7 @@ template <typename T, int VSize, int LANES,
     __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none, 
     __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
 inline std::enable_if_t<(VSize <= 4 && LANES <= 32), void>
-VectorStore(T* src,                                             // VectorStore:4    ptr, simd, simd, simd_mask
+VectorStore(T* src,
             __ESIMD_NS::simd<uint32_t, LANES> offset,
             __ESIMD_NS::simd<T, VSize * LANES> data,
             __ESIMD_NS::simd_mask<LANES> mask = 1)
@@ -281,11 +294,24 @@ VectorStore(T* src,                                             // VectorStore:4
     return __ESIMD_ENS::lsc_scatter<T, VSize, __ESIMD_ENS::lsc_data_size::default_size, H1, H3, LANES>(src, offset, data, mask);
 }
 
+template <typename T, int VSize, int LANES, typename AccessorTy,
+    __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none, 
+    __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline std::enable_if_t<(is_sycl_accessor_v<AccessorTy> && VSize <= 4 && LANES <= 32), void>
+VectorStore(AccessorTy acc,
+            __ESIMD_NS::simd<uint32_t, LANES> offset,
+            __ESIMD_NS::simd<T, VSize * LANES> data,
+            __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    return __ESIMD_ENS::lsc_scatter<T, VSize, __ESIMD_ENS::lsc_data_size::default_size, H1, H3, LANES>(acc, offset, data, mask);
+}
+
+
 template <typename T, int VSize, int LANES, 
     __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none, 
     __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
 inline std::enable_if_t<(LANES > 32), void>
-VectorStore(T* src,                                             // VectorStore:4    ptr, simd, simd, simd_mask
+VectorStore(T* src,
             __ESIMD_NS::simd<uint32_t, LANES> offset,
             __ESIMD_NS::simd<T, VSize * LANES> data,
             __ESIMD_NS::simd_mask<LANES> mask = 1)
@@ -294,11 +320,27 @@ VectorStore(T* src,                                             // VectorStore:4
     VectorStore<T, VSize, LANES - 32>(src, offset.template select<LANES - 32, 1>(32), data.template select<VSize * (LANES - 32), 1>(32), mask.template select<LANES-32, 1>(32));
 }
 
+template <typename T, int VSize, int LANES, typename AccessorTy,
+    __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none, 
+    __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline std::enable_if_t<(is_sycl_accessor_v<AccessorTy> && LANES > 32), void>
+VectorStore(AccessorTy acc,
+            __ESIMD_NS::simd<uint32_t, LANES> offset,
+            __ESIMD_NS::simd<T, VSize * LANES> data,
+            __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    VectorStore<T, VSize, 32>(acc, offset.template select<32, 1>(0), data.template select<VSize*32, 1>(0), mask.template select<32, 1>(0));
+    VectorStore<T, VSize, LANES - 32>(acc, offset.template select<LANES - 32, 1>(32),
+                                      data.template select<VSize*(LANES - 32), 1>(32),
+                                      mask.template select<LANES - 32, 1>(32));
+}
+
+
 template <typename T, int VSize, int LANES, 
     __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none, 
     __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
 inline std::enable_if_t<(VSize > 4 && LANES <= 32), void>
-VectorStore(T* src,                                             // VectorStore:4    ptr, simd, simd, simd_mask
+VectorStore(T* src,
             __ESIMD_NS::simd<uint32_t, LANES> offset,
             __ESIMD_NS::simd<T, VSize * LANES> data,
             __ESIMD_NS::simd_mask<LANES> mask = 1)
@@ -307,18 +349,47 @@ VectorStore(T* src,                                             // VectorStore:4
     VectorStore<T, VSize-4, LANES>(src, offset+4*sizeof(T), data.template select<(VSize-4)*LANES, 1>(4*LANES), mask);
 }
 
+template <typename T, int VSize, int LANES, typename AccessorTy,
+    __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none, 
+    __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline std::enable_if_t<(is_sycl_accessor_v<AccessorTy> && VSize > 4 && LANES <= 32), void>
+VectorStore(AccessorTy acc,
+            __ESIMD_NS::simd<uint32_t, LANES> offset,
+            __ESIMD_NS::simd<T, VSize * LANES> data,
+            __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    VectorStore<T, 4, LANES, AccessorTy>(acc, offset, data.template select<4 * LANES, 1>(0), mask);
+    VectorStore<T, VSize - 4, LANES, AccessorTy>(acc, offset + 4 * sizeof(T),
+                                                 data.template select<(VSize - 4) * LANES, 1>(4 * LANES), mask);
+}
+
+
 template <typename T, int VSize, int LANES, 
     int LaneStride = VSize, 
     __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none, 
     __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
 inline void
-VectorStore(T* src,                                             // VectorStore:4    ptr, uint32_t, simd, simd_mask
+VectorStore(T* src,
             uint32_t offset,
             __ESIMD_NS::simd<T, VSize * LANES> data,
             __ESIMD_NS::simd_mask<LANES> mask = 1)
 {
     // optimization needed here, hard for compiler to optimize the offset vector calculation
     return VectorStore<T, VSize, LANES, H1, H3>(src, {offset, LaneStride*sizeof(T)}, data, mask);
+}
+
+template <typename T, int VSize, int LANES, typename AccessorTy,
+          int LaneStride = VSize, 
+          __ESIMD_ENS::cache_hint H1 = __ESIMD_ENS::cache_hint::none, 
+          __ESIMD_ENS::cache_hint H3 = __ESIMD_ENS::cache_hint::none>
+inline std::enable_if_t<(is_sycl_accessor_v<AccessorTy>), void>
+VectorStore(AccessorTy acc,
+            uint32_t offset,
+            __ESIMD_NS::simd<T, VSize * LANES> data,
+            __ESIMD_NS::simd_mask<LANES> mask = 1)
+{
+    // optimization needed here, hard for compiler to optimize the offset vector calculation
+    return VectorStore<T, VSize, LANES, H1, H3>(acc, {offset, LaneStride*sizeof(T)}, data, mask);
 }
 
 template <typename T, int VSize, int LANES>

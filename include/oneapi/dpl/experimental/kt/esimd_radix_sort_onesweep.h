@@ -654,8 +654,13 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
 
         simd<device_addr_t, PROCESS_SIZE> global_offset = group_offset + l.template lookup<PROCESS_SIZE>(bins);
 
-        utils::VectorStore<KeyT, 1, PROCESS_SIZE>(
-            p_output, global_offset * sizeof(KeyT), keys, global_offset < n);
+        utils::VectorStore</* typename T */ KeyT,
+                            /* int VSize  */ 1,
+                            /* int LANES  */ PROCESS_SIZE>(
+            p_output,                       // sycl::accessor or unsigned int*
+            global_offset * sizeof(KeyT),   // sycl::_V1::ext::intel::esimd::simd<unsigned long, 416>
+            keys,                           // sycl::_V1::ext::intel::esimd::simd<unsigned int, 416>
+            global_offset < n);             // sycl::_V1::ext::intel::esimd::detail::simd_mask_impl<unsigned short, 416>
     }
 }
 
