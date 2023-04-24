@@ -237,9 +237,8 @@ struct reduce_over_group
     reduce_impl(const _NDItemId __item_id, const _Size __n, _AccLocal& __local_mem,
                 std::true_type /*has_known_identity*/) const
     {
-        auto __local_id = __item_id.get_local_id(0);
-        auto __global_idx = __item_id.get_global_id(0);
         auto __local_idx = __item_id.get_local_id(0);
+        auto __global_idx = __item_id.get_global_id(0);
         if (__global_idx >= __n)
         {
             // Fill the rest of local buffer with init elements so each of inclusive_scan method could correctly work

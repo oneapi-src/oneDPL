@@ -175,8 +175,19 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
         });
 
         __n = __n_groups;
+
+        // Lower the work group size of the second kernel to the next power of 2 if __n < __work_group_size.
+        auto __work_group_size2 = __work_group_size;
+        if constexpr (__iters_per_work_item2 == 1)
+        {
+            if (__n < __work_group_size)
+            {
+                __work_group_size2 = __n;
+                if ((__work_group_size2 & (__work_group_size2 - 1)) != 0)
+                    __work_group_size2 = oneapi::dpl::__internal::__dpl_bit_floor(__work_group_size2) << 1;
+            }
+        }
         __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item2);
-        __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
 
         sycl::buffer<_Tp> __res(sycl::range<1>(1));
 
@@ -185,10 +196,10 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
 
             auto __temp_acc = __temp.template get_access<sycl::access_mode::read>(__cgh);
             auto __res_acc = __res.template get_access<sycl::access_mode::write>(__cgh);
-            __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
+            __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size2), __cgh);
 
             __cgh.parallel_for<_LeafName...>(
-                sycl::nd_range<1>(sycl::range<1>(__work_group_size), sycl::range<1>(__work_group_size)),
+                sycl::nd_range<1>(sycl::range<1>(__work_group_size2), sycl::range<1>(__work_group_size2)),
                 [=](sycl::nd_item<1> __item_id) {
                     auto __local_idx = __item_id.get_local_id(0);
                     // 1. Initialization (transform part). Fill local memory
@@ -396,7 +407,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
                                                                     ::std::forward<_Ranges>(__rngs)...);
     }
 
-    // Use two step tree reduction.
+    // Use two-step tree reduction.
     // First step reduces __work_group_size * __iters_per_work_item1 elements.
     // Second step reduces __work_group_size * __iters_per_work_item2 elements.
     if (__n <= 2097152 && __work_group_size >= 256)
@@ -436,7 +447,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
                                                                       ::std::forward<_Ranges>(__rngs)...);
     }
 
-    // Else use a recursive tree reduction.
+    // Otherwise use a recursive tree reduction.
     return __parallel_transform_reduce_impl<_Tp, 32>::submit(::std::forward<_ExecutionPolicy>(__exec), __n,
                                                              __work_group_size, __reduce_op, __transform_op, __init,
                                                              ::std::forward<_Ranges>(__rngs)...);
