@@ -348,9 +348,17 @@ protected:
             for (uint32_t s = 0; s < PROCESS_SIZE; s += CHUNK_SIZE)
             {
                 simd_mask<CHUNK_SIZE> m = (io_offset + lane_id + s) < n;
-                keys.template select<CHUNK_SIZE, 1>(s) =
-                    merge(lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(KeyT))),
-                          simd<KeyT, CHUNK_SIZE>(default_key), m);
+
+                // current code from source with compile error introduced in our code:
+                //keys.template select<CHUNK_SIZE, 1>(s) = merge(lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(KeyT))), simd<KeyT, CHUNK_SIZE>(default_key), m);
+
+                // our current implementation
+                sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(KeyT));
+                keys.template select<CHUNK_SIZE, 1>(s) = 
+                    merge(
+                        lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(p_input, offset),
+                        simd<KeyT, CHUNK_SIZE>(default_key),
+                        m);
             }
         }
     }
