@@ -781,9 +781,9 @@ __pattern_transform_scan_multi_group(_ExecutionPolicy&& __exec, _InRng&& __in_rn
 }
 
 template<typename _SizeType>
-struct __invoke_single_group_scan_copy
+struct __invoke_single_group_copy_if
 {
-    // Specialization for devices that have a max work-group size of 1024
+    // Specialization for devices that have a max work-group size of at least 1024
     static constexpr ::std::uint16_t __targeted_wg_size = 1024;
 
     template <::std::uint16_t _Size, typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Pred>
@@ -794,10 +794,10 @@ struct __invoke_single_group_scan_copy
         constexpr ::std::uint16_t __num_elems_per_item = ::oneapi::dpl::__internal::__dpl_ceiling_div(_Size, __wg_size);
         const bool __is_full_group = __n == __wg_size;
 
-        using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
+        using _CustomName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
         using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_copy_single_wg_kernel<_CustomName>>;
-        using _InitType = unseq_backend::__no_init_value<uint16_t>;
-        using _ReduceOp = ::std::plus<uint16_t>;
+        using _InitType = unseq_backend::__no_init_value<::std::uint16_t>;
+        using _ReduceOp = ::std::plus<::std::uint16_t>;
         if (__is_full_group)
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<_SizeType, __num_elems_per_item, __wg_size, true, _SingleWGKernel>()(__exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, ::std::forward<_Pred>(__pred));
         else
@@ -849,23 +849,29 @@ template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename
 auto
 __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred)
 {
+	using _SingleGroupInvoker = __invoke_single_group_copy_if<_Size>;
+
     // Next power of 2 greater than or equal to __n
     auto __n_uniform = ::oneapi::dpl::__internal::__dpl_bit_ceil(static_cast<::std::make_unsigned_t<_Size>>(__n));
 
+	// The kernel stores n integers for the predicate and another n integers for the offsets
     // Pessimistically only use half of the memory to take into account memory used by compiled kernel
     const ::std::size_t __max_slm_size =
-        __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
+        __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 4;
     const auto __req_slm_size = sizeof(::std::uint16_t) * __n_uniform;
 
     constexpr int __single_group_upper_limit = 16384;
 
-    if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size)
+    ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+
+
+    if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size && __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
     {
         using _SizeBreakpoints =
             ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
 
         return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
-                __invoke_single_group_scan_copy<_Size>{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __pred);
+                _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __pred);
     }
     else
     {
