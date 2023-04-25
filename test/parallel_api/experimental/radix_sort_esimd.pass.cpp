@@ -65,8 +65,8 @@ void test_all_view(std::size_t size)
 
     std::vector<T> input(size);
     generate_data(input.data(), size);
-    std::vector<T> ref(input);
-    std::sort(std::begin(ref), std::end(ref));
+    std::vector<T> expected(input);
+    std::sort(std::begin(expected), std::end(expected));
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
@@ -74,7 +74,7 @@ void test_all_view(std::size_t size)
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, input, msg.c_str());
+    EXPECT_EQ_RANGES(expected, input, msg.c_str());
 }
 
 template<typename T>
@@ -84,10 +84,10 @@ void test_subrange_view(std::size_t size)
     auto policy = oneapi::dpl::execution::make_device_policy(q);
 
     T* input = sycl::malloc_shared<T>(size, q);
-    T* ref = sycl::malloc_host<T>(size, q);
-    generate_data(ref, size);
-    q.copy(ref, input, size).wait();
-    std::sort(ref, ref + size);
+    T* expected = sycl::malloc_host<T>(size, q);
+    generate_data(expected, size);
+    q.copy(expected, input, size).wait();
+    std::sort(expected, expected + size);
 
     oneapi::dpl::experimental::ranges::views::subrange view(input, input + size);
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, view);
@@ -96,10 +96,10 @@ void test_subrange_view(std::size_t size)
     q.copy(input, host_input, size).wait();
 
     std::string msg = "wrong results with views::subrange, n: " + std::to_string(size);
-    EXPECT_EQ_N(ref, input, size, msg.c_str());
+    EXPECT_EQ_N(expected, input, size, msg.c_str());
 
     sycl::free(input, q);
-    sycl::free(ref, q);
+    sycl::free(expected, q);
     sycl::free(host_input, q);
 }
 #endif // _ENABLE_RANGES_TESTING
@@ -110,20 +110,20 @@ void test_usm(std::size_t size)
     sycl::queue q{};
     auto policy = oneapi::dpl::execution::make_device_policy(q);
     T* input = sycl::malloc_shared<T>(size, q);
-    T* ref = sycl::malloc_host<T>(size, q);
-    generate_data(ref, size);
-    q.copy(ref, input, size).wait();
-    std::sort(ref, ref + size);
+    T* expected = sycl::malloc_host<T>(size, q);
+    generate_data(expected, size);
+    q.copy(expected, input, size).wait();
+    std::sort(expected, expected + size);
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, input, input + size);
 
     T* host_input = sycl::malloc_host<T>(size, q);
     q.copy(input, host_input, size).wait();
 
     std::string msg = "wrong results with USM, n: " + std::to_string(size);
-    EXPECT_EQ_N(ref, input, size, msg.c_str());
+    EXPECT_EQ_N(expected, input, size, msg.c_str());
 
     sycl::free(input, q);
-    sycl::free(ref, q);
+    sycl::free(expected, q);
     sycl::free(host_input, q);
 }
 
@@ -135,13 +135,13 @@ void test_sycl_iterators(std::size_t size)
 
     std::vector<T> input(size);
     generate_data(input.data(), size);
-    std::vector<T> ref(input);
-    std::sort(std::begin(ref), std::end(ref));
+    std::vector<T> expected(input);
+    std::sort(std::begin(expected), std::end(expected));
 
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::end(input));
 
     std::string msg = "wrong results with sycl_iterator, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, input, msg.c_str());
+    EXPECT_EQ_RANGES(expected, input, msg.c_str());
 }
 
 void test_small_sizes()
@@ -151,12 +151,12 @@ void test_small_sizes()
 
     std::vector<uint32_t> input = {5, 11, 0, 17, 0};
     generate_data(input.data(), input.size());
-    std::vector<uint32_t> ref(input);
+    std::vector<uint32_t> expected(input);
 
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
-    EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
+    EXPECT_EQ_RANGES(expected, input, "sort modified input data when size == 0");
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
-    EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
+    EXPECT_EQ_RANGES(expected, input, "sort modified input data when size == 1");
 }
 
 // TODO: add ascending and descending sorting orders
