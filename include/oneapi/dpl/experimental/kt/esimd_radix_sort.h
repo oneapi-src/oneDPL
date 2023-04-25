@@ -54,6 +54,8 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 
     if (__n <= 16384)
     {
+        std::cout << "\t\tradix_sort(_ExecutionPolicy&& __exec, _Range&& __rng) : __n <= 16384 - one_wg" << std::endl;
+
         // TODO: allow differnt sorting orders
         // TODO: allow diferent types
         // TODO: allow all RadixBits values (only 7 or 8 are currently supported)
@@ -62,6 +64,8 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
     }
     else if (__n <= 262144)
     {
+        std::cout << "\t\tradix_sort(_ExecutionPolicy&& __exec, _Range&& __rng) : __n <= 262144 - cooperative" << std::endl;
+
         // TODO: allow differnt sorting orders
         // TODO: allow diferent types
         oneapi::dpl::experimental::esimd::impl::cooperative<_ExecutionPolicy, _KeyT, _Range, RadixBits, IsAscending>(
@@ -69,6 +73,8 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
     }
     else
     {
+        std::cout << "\t\tradix_sort(_ExecutionPolicy&& __exec, _Range&& __rng) : __n > 262144 - onesweep" << std::endl;
+
         // TODO: allow differnt sorting orders
         // TODO: allow diferent types
         // TODO: avoid kernel duplication (generate the output storate with the same type as input storatge and use swap)
