@@ -14,8 +14,8 @@ Below is an example code that shows how to use ``oneapi::dpl::swap`` in SYCL dev
 
 .. code:: cpp
 
-  #include <sycl/sycl.hpp>
   #include <oneapi/dpl/utility>
+  #include <sycl/sycl.hpp>
   #include <iostream>
   constexpr sycl::access::mode sycl_read_write = sycl::access::mode::read_write;
   class KernelSwap;
@@ -444,11 +444,11 @@ C++ Standard API                      libstdc++  libc++     MSVC
 ``std::push_heap``                    Tested     Tested     Tested
 ------------------------------------- ---------- ---------- ----------
 ``std::pop_heap``                     Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
+------------------------------------- ---------- ---------- ----------
 ``std::generate``                     Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
+------------------------------------- ---------- ---------- ----------
 ``std::generate_n``                   Tested     Tested     Tested
------------------------------------- ---------- ---------- ----------
+------------------------------------- ---------- ---------- ----------
 ``std::transform``                    Tested     Tested     Tested
 ------------------------------------- ---------- ---------- ----------
 ``std::round``                        Tested     Tested     Tested

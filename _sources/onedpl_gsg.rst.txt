@@ -131,7 +131,7 @@ fit into the square *S*. Random number generation is performed in scalar manner 
 
     float estimated_pi;
     {
-        sycl::queue q(sycl::gpu_selector{});
+        sycl::queue q(sycl::gpu_selector_v);
         auto policy = oneapi::dpl::execution::make_device_policy(q);
 
         float sum = std::transform_reduce( policy,

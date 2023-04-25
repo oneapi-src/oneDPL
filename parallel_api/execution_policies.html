@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Execution Policies &#8212; oneDPL Documentation 2022.0.0 documentation</title>
+    <title>Execution Policies &#8212; oneDPL Documentation 2022.1.0 documentation</title>
     
     <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -96,7 +96,7 @@
       <img src="../_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
       
       
-      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.0.0 documentation</h1>
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.1.0 documentation</h1>
       
     </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -609,11 +609,11 @@ and <code class="docutils literal notranslate"><span class="pre">using</span> <s
 <span class="n">std</span><span class="o">::</span><span class="n">for_each</span><span class="p">(</span><span class="n">policy_a</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
 </pre></div>
 </div>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">policy_b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">device_policy</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">PolicyB</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="n">device</span><span class="p">{</span><span class="n">gpu_selector</span><span class="p">{}}};</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">policy_b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">device_policy</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">PolicyB</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="n">device</span><span class="p">{</span><span class="n">gpu_selector_v</span><span class="p">}};</span>
 <span class="n">std</span><span class="o">::</span><span class="n">for_each</span><span class="p">(</span><span class="n">policy_b</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
 </pre></div>
 </div>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">policy_c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">device_policy</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">PolicyС</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="n">cpu_selector</span><span class="p">{}};</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">policy_c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">device_policy</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">PolicyC</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="n">device</span><span class="p">{</span><span class="n">cpu_selector_v</span><span class="p">}};</span>
 <span class="n">std</span><span class="o">::</span><span class="n">for_each</span><span class="p">(</span><span class="n">policy_c</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
 </pre></div>
 </div>

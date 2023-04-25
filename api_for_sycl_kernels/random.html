@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Random Number Generators &#8212; oneDPL Documentation 2022.0.0 documentation</title>
+    <title>Random Number Generators &#8212; oneDPL Documentation 2022.1.0 documentation</title>
     
     <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -96,7 +96,7 @@
       <img src="../_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
       
       
-      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.0.0 documentation</h1>
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.1.0 documentation</h1>
       
     </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -616,13 +616,13 @@ are defined in the header <code class="docutils literal notranslate"><span class
 <section id="usage-model-of-onedpl-short-random-number-generation-functionality">
 <h2>Usage Model of oneDPL Random Number Generation Functionality<a class="headerlink" href="#usage-model-of-onedpl-short-random-number-generation-functionality" title="Permalink to this headline">¶</a></h2>
 <p>Random number generation is available for SYCL* device-side and host-side code. For example:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;vector&gt;</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/random&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sycl/sycl.hpp&gt;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/random&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;vector&gt;</span>
 
 <span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">queue</span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">default_selector</span><span class="p">{});</span>
+<span class="w">    </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">queue</span><span class="p">(</span><span class="n">sycl</span><span class="o">::</span><span class="n">default_selector_v</span><span class="p">);</span>
 
 <span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="kt">int64_t</span><span class="w"> </span><span class="n">nsamples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span>
 <span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">777</span><span class="p">;</span>
