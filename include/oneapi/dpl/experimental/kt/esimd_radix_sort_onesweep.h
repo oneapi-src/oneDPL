@@ -571,7 +571,11 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     constexpr KeyT default_key = -1;
 
     LoadKeys<16>(io_offset, keys, default_key);
-    bins = (keys >> (stage * RADIX_BITS)) & MASK;
+    // original impl :
+    //      bins = (keys >> (stage * RADIX_BITS)) & MASK;
+    // our current impl :
+    bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
+
     if (n == 0)
     { // without this, result will be wrong.
         //PRINTD(keys);
