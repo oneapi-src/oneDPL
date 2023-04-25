@@ -756,7 +756,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
     template <typename _ExecutionPolicy, typename _Range, typename _Output, typename _TmpData,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
     sycl::event
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Output __output, _TmpData __tmp_data,
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Output& __output, _TmpData& __tmp_data,
                ::std::uint32_t __sweep_tg_count, ::std::size_t __n, ::std::uint32_t* __p_job_queue,
                ::std::uint32_t __stage,
                const sycl::event& __e) const
@@ -922,8 +922,8 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
         __e = submitter(
                 ::std::forward<_ExecutionPolicy>(__exec),   // _ExecutionPolicy&& __exec
                 ::std::forward<_Range>(__rng),              // _Range&& __rng
-                __output,                                   // const _Output& __output
-                tmp_buffer,                                 // const _TmpData& __tmp_data
+                __output,                                   // _Output& __output
+                tmp_buffer,                                 // _TmpData& __tmp_data
                 sweep_tg_count,                             // ::std::uint32_t __sweep_tg_count
                 __n,                                        // ::std::size_t __n
                 p_job_queue,                                // ::std::uint32_t* __p_job_queue
