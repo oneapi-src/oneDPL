@@ -223,8 +223,8 @@ class radix_sort_onesweep_slm_reorder_kernel
     static constexpr uint32_t slm_reorder_start = 0;
     static constexpr uint32_t slm_lookup_global = slm_reorder_start + REORDER_SLM_SIZE;
 
-    ::std::size_t n = 0;
-    uint32_t stage = 0;
+    const ::std::size_t n = 0;
+    const uint32_t stage = 0;
     InputT   p_input;                       // instance of sycl::accessor or pointer to input data
     OutputT  p_output = nullptr;            // pointer to output data
     uint8_t* p_global_buffer = nullptr;
