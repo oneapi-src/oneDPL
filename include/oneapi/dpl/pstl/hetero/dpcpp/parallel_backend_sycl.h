@@ -207,7 +207,7 @@ class __scan_single_wg_kernel;
 template <typename... _Name>
 class __scan_single_wg_dynamic_kernel;
 
-template<typename... Name>
+template <typename... Name>
 class __scan_copy_single_wg_kernel;
 
 //------------------------------------------------------------------------
@@ -466,8 +466,8 @@ struct __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive,
                         __lacc[__idx] = __unary_op(__in_rng[__idx]);
                     }
 
-                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __lacc.get_pointer(),
-                                                              __bin_op, __init);
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n,
+                                                              __lacc.get_pointer(), __bin_op, __init);
 
                     for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
                     {
@@ -545,8 +545,8 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                         }
                     }
 
-                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n, __lacc.get_pointer(),
-                                                              __bin_op, __init);
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n,
+                                                              __lacc.get_pointer(), __bin_op, __init);
 
                     if constexpr (__can_use_subgroup_load_store)
                     {
@@ -587,7 +587,7 @@ struct __parallel_copy_if_static_single_group_submitter;
 template <typename _Size, ::std::uint16_t _ElemsPerItem, ::std::uint16_t _WGSize, bool _IsFullGroup,
           typename... _ScanKernelName>
 struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _WGSize, _IsFullGroup,
-                                                               __internal::__optional_kernel_name<_ScanKernelName...>>
+                                                        __internal::__optional_kernel_name<_ScanKernelName...>>
 {
     template <typename _Policy, typename _InRng, typename _OutRng, typename _InitType, typename _BinaryOperation,
               typename _UnaryOp>
@@ -604,7 +604,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
             oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
 
-            auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg*2}, __hdl);
+            auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg * 2}, __hdl);
             auto __res_acc = __res.template get_access<access_mode::write>(__hdl);
 
             __hdl.parallel_for<_ScanKernelName...>(
@@ -616,7 +616,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     const ::std::uint16_t __subgroup_id = __subgroup.get_group_id();
                     const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
-#if 1
+#if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
                     constexpr bool __can_use_subgroup_load_store = _IsFullGroup;
 #else
                     constexpr bool __can_use_subgroup_load_store = false;
@@ -641,8 +641,9 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                         }
                     }
 
-                    __scan_work_group<_ValueType, /* _Inclusive */ false>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __elems_per_wg, __lacc.get_pointer() + __elems_per_wg,
-                                                              __bin_op, __init);
+                    __scan_work_group<_ValueType, /* _Inclusive */ false>(
+                        __group, __lacc.get_pointer(), __lacc.get_pointer() + __elems_per_wg,
+                        __lacc.get_pointer() + __elems_per_wg, __bin_op, __init);
 
                     {
                         _ONEDPL_PRAGMA_UNROLL
@@ -665,14 +666,13 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     if (__item_id == 0)
                     {
                         // Add predicate of last element to account for the scan's exclusivity
-                        __res_acc[0] = __lacc[__elems_per_wg + __n - 1] + __lacc[__n-1];
+                        __res_acc[0] = __lacc[__elems_per_wg + __n - 1] + __lacc[__n - 1];
                     }
                 });
         });
         return __future(__event, __res);
     }
 };
-
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
@@ -780,7 +780,7 @@ __pattern_transform_scan_multi_group(_ExecutionPolicy&& __exec, _InRng&& __in_rn
         unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init});
 }
 
-template<typename _SizeType>
+template <typename _SizeType>
 struct __invoke_single_group_copy_if
 {
     // Specialization for devices that have a max work-group size of at least 1024
@@ -795,53 +795,62 @@ struct __invoke_single_group_copy_if
         const bool __is_full_group = __n == __wg_size;
 
         using _CustomName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
-        using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_copy_single_wg_kernel<_CustomName>>;
+        using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __scan_copy_single_wg_kernel<_CustomName>>;
         using _InitType = unseq_backend::__no_init_value<::std::uint16_t>;
         using _ReduceOp = ::std::plus<::std::uint16_t>;
         if (__is_full_group)
-            return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<_SizeType, __num_elems_per_item, __wg_size, true, _SingleWGKernel>()(__exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, ::std::forward<_Pred>(__pred));
+            return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
+                _SizeType, __num_elems_per_item, __wg_size, true, _SingleWGKernel>()(
+                __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
+                _ReduceOp{}, ::std::forward<_Pred>(__pred));
         else
-            return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<_SizeType, __num_elems_per_item, __wg_size, false, _SingleWGKernel>()(__exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{}, _ReduceOp{}, ::std::forward<_Pred>(__pred));
+            return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
+                _SizeType, __num_elems_per_item, __wg_size, false, _SingleWGKernel>()(
+                __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
+                _ReduceOp{}, ::std::forward<_Pred>(__pred));
     }
 };
 
-template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp, typename _CopyByMaskOp,
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
+          typename _CopyByMaskOp,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n,
-                        _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
+                     _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
 {
-	using _ReduceOp = ::std::plus<_Size>;
-	using _Assigner = unseq_backend::__scan_assigner;
-	using _NoAssign = unseq_backend::__scan_no_assign;
-	using _MaskAssigner = unseq_backend::__mask_assigner<1>;
-	using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
-	using _InitType = unseq_backend::__no_init_value<_Size>;
+    using _ReduceOp = ::std::plus<_Size>;
+    using _Assigner = unseq_backend::__scan_assigner;
+    using _NoAssign = unseq_backend::__scan_no_assign;
+    using _MaskAssigner = unseq_backend::__mask_assigner<1>;
+    using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
+    using _InitType = unseq_backend::__no_init_value<_Size>;
 
-	_Assigner __assign_op;
-	_ReduceOp __reduce_op;
-	_DataAcc __get_data_op;
-	_MaskAssigner __add_mask_op;
+    _Assigner __assign_op;
+    _ReduceOp __reduce_op;
+    _DataAcc __get_data_op;
+    _MaskAssigner __add_mask_op;
 
-	// temporary buffer to store boolean mask
-	oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
+    // temporary buffer to store boolean mask
+    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
 
-	return __parallel_transform_scan(
-		::std::forward<_ExecutionPolicy>(__exec),
-		oneapi::dpl::__ranges::make_zip_view(
-			::std::forward<_InRng>(__in_rng), oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
-								   __mask_buf.get_buffer())),
-		::std::forward<_OutRng>(__out_rng), __reduce_op, _InitType{},
-		// local scan
-		unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
-							  _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
-																	   __add_mask_op, __create_mask_op},
-		// scan between groups
-		unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
-							  _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
-															  __get_data_op},
-		// global scan
-		__copy_by_mask_op);
+    return __parallel_transform_scan(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::__ranges::make_zip_view(
+            ::std::forward<_InRng>(__in_rng),
+            oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
+                __mask_buf.get_buffer())),
+        ::std::forward<_OutRng>(__out_rng), __reduce_op, _InitType{},
+        // local scan
+        unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
+                              _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
+                                                                       __add_mask_op, __create_mask_op},
+        // scan between groups
+        unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
+                              _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
+                                                              __get_data_op},
+        // global scan
+        __copy_by_mask_op);
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred,
@@ -849,12 +858,12 @@ template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename
 auto
 __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred)
 {
-	using _SingleGroupInvoker = __invoke_single_group_copy_if<_Size>;
+    using _SingleGroupInvoker = __invoke_single_group_copy_if<_Size>;
 
     // Next power of 2 greater than or equal to __n
     auto __n_uniform = ::oneapi::dpl::__internal::__dpl_bit_ceil(static_cast<::std::make_unsigned_t<_Size>>(__n));
 
-	// The kernel stores n integers for the predicate and another n integers for the offsets
+    // The kernel stores n integers for the predicate and another n integers for the offsets
     // Pessimistically only use half of the memory to take into account memory used by compiled kernel
     const ::std::size_t __max_slm_size =
         __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 4;
@@ -864,25 +873,27 @@ __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out
 
     ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
-
-    if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size && __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
+    if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size &&
+        __max_wg_size >= _SingleGroupInvoker::__targeted_wg_size)
     {
         using _SizeBreakpoints =
             ::std::integer_sequence<::std::uint16_t, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384>;
 
         return __par_backend_hetero::__static_monotonic_dispatcher<_SizeBreakpoints>::__dispatch(
-                _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __pred);
+            _SingleGroupInvoker{}, __n, ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::forward<_InRng>(__in_rng),
+            ::std::forward<_OutRng>(__out_rng), __pred);
     }
     else
     {
-		using _ReduceOp = ::std::plus<_Size>;
+        using _ReduceOp = ::std::plus<_Size>;
 
-		unseq_backend::__create_mask<_Pred, _Size> __create_mask_op{__pred};
-		unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign, /*inclusive*/ ::std::true_type, 1>
-			__copy_by_mask_op;
+        unseq_backend::__create_mask<_Pred, _Size> __create_mask_op{__pred};
+        unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign, /*inclusive*/ ::std::true_type,
+                                      1>
+            __copy_by_mask_op;
 
-		return __parallel_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
-                                        __create_mask_op, __copy_by_mask_op);
+        return __parallel_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_InRng>(__in_rng),
+                                    ::std::forward<_OutRng>(__out_rng), __n, __create_mask_op, __copy_by_mask_op);
     }
 }
 
@@ -1751,9 +1762,11 @@ struct __is_radix_sort_usable_for_type
 };
 
 #if _USE_RADIX_SORT
-template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
+template <
+    typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
     __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
-    __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
+                      __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value,
+                  int> = 0>
 auto
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj)
 {
@@ -1762,10 +1775,11 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Pro
 }
 #endif
 
-template <
-    typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
-    __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
-    !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
+template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
+          __enable_if_t<
+              oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
+                  !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value,
+              int> = 0>
 auto
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj /*__proj*/)
 {
