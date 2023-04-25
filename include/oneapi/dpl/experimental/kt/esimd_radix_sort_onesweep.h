@@ -192,21 +192,6 @@ global_wait(uint32_t *psync, uint32_t sync_id, uint32_t count, uint32_t gid, uin
     }
 }
 
-// onesweep
-// +->  __radix_sort_onesweep_submitter::operator()
-//          +-> submit()
-//                  +-> parallel_for()
-//                          +-> radix_sort_onesweep_slm_reorder_kernel (onesweep_kernel)
-//      template <typename KeyT, typename InputT, typename OutputT, uint32_t RADIX_BITS, uint32_t THREAD_PER_TG,
-//                uint32_t PROCESS_SIZE, bool IsAscending>
-//      void
-//      onesweep_kernel(sycl::nd_item<1> idx, uint32_t __n, uint32_t stage, const InputT& input, const OutputT& __output,
-//                      uint8_t* p_global_buffer);
-
-////////////////////////////////////////////////////////////////////////////////
-// KSATODO required to copy implementation into onesweep_kernel
-//using radix_sort_key_t = uint32_t;  // -> typename KeyT
-
 template <typename KeyT, typename InputT, typename OutputT,
           uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE,
           bool IsAscending>
@@ -264,7 +249,6 @@ class radix_sort_onesweep_slm_reorder_kernel
                 lsc_slm_scatter<uint32_t, 1, lsc_data_size::default_size, 1>(slm, job_id);
             }
 
-            // KSATOD what is the barrier() function? Where it's implemented?
             barrier();
             if (g.get_local_linear_id() != 0)
             {
@@ -383,9 +367,7 @@ protected:
         {
             simd<uint32_t, 32> bit = (bins >> i) & 1; // and
 
-            // KSATOD what is the merge template function? Where it's implemented?
             simd<uint32_t, 32> x = merge<uint32_t, 32>(0, -1, bit != 0); // sel
-            // KSATOD what is the pack_mask function? Where it's implemented?
             uint32_t ones = pack_mask(bit != 0);      // mov
             matched_bins = matched_bins & (x ^ ones); // bfn
         }
@@ -451,7 +433,6 @@ protected:
         constexpr uint32_t HIST_UPDATED = 0x80000000;
         constexpr uint32_t GLOBAL_OFFSET_MASK = 0x3fffffff;
         {
-            // KSATOD what is the barrier() function? Where it's implemented?
             barrier();
             constexpr uint32_t BIN_SUMMARY_GROUP_SIZE = 8;
             constexpr uint32_t BIN_WIDTH = BIN_COUNT / BIN_SUMMARY_GROUP_SIZE;
@@ -474,7 +455,7 @@ protected:
                                     cache_hint::write_back>(p_global_bin_this_group + local_tid * BIN_WIDTH,
                                                             thread_grf_hist_summary | HIST_UPDATED);
             }
-            // KSATOD what is the barrier() function? Where it's implemented?
+
             barrier();
             if (local_tid == BIN_SUMMARY_GROUP_SIZE + 1)
             {
@@ -521,7 +502,7 @@ protected:
                 lsc_slm_block_store<uint32_t, BIN_WIDTH>(
                     slm_bin_hist_global_incoming + local_tid * BIN_WIDTH * sizeof(global_hist_t), prev_group_hist_sum);
             }
-            // KSATOD what is the barrier() function? Where it's implemented?
+
             barrier();
         }
         auto group_incoming = utils::BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming);
@@ -603,7 +584,6 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
 
     ranks = RankSLM(bins, slm_bin_hist_this_thread, local_tid);
 
-    // KSATOD what is the barrier() function? Where it's implemented?
     barrier();
 
     simd<hist_t, BIN_COUNT> subgroup_offset;
@@ -623,7 +603,6 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
 
     UpdateGroupRank(local_tid, wg_id, subgroup_offset, global_fix, p_global_bin_prev_group, p_global_bin_this_group);
 
-    // KSATOD what is the barrier() function? Where it's implemented?
     barrier();
     {
         //bins = (keys >> (stage * RADIX_BITS)) & MASK;
@@ -742,12 +721,6 @@ template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_
           bool IsAscending, typename _KernelName>
 struct __radix_sort_onesweep_submitter;
 
-// KSATODO It was renamed in Quolly's new version into radix_sort_onesweep_slm_reorder_kernel
-// onesweep
-// +->  __radix_sort_onesweep_submitter::operator()
-//          +-> submit()
-//                  +-> parallel_for()
-//                          +-> radix_sort_onesweep_slm_reorder_kernel (onesweep_kernel)
 template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_TG, ::std::uint32_t PROCESS_SIZE,
           bool IsAscending, typename... _Name>
 struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending,
@@ -820,11 +793,6 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
     }
 };
 
-// onesweep
-// +->  __radix_sort_onesweep_submitter::operator()
-//          +-> submit()
-//                  +-> parallel_for()
-//                          +-> onesweep_kernel
 template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
           bool IsAscending, ::std::uint32_t PROCESS_SIZE>
 void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
@@ -848,17 +816,12 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
     constexpr uint32_t HW_TG_COUNT = 64;
     constexpr uint32_t THREAD_PER_TG = 64;
-    constexpr uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE; // uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE;
+    constexpr uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE;
     const uint32_t sweep_tg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, THREAD_PER_TG*SWEEP_PROCESSING_SIZE);
     const uint32_t sweep_threads = sweep_tg_count * THREAD_PER_TG;
     constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
     constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
 
-    //assert((SWEEP_PROCESSING_SIZE == 256) || (SWEEP_PROCESSING_SIZE == 512) || (SWEEP_PROCESSING_SIZE == 1024) || (SWEEP_PROCESSING_SIZE == 1536));
-
-    //constexpr uint32_t SYNC_SEGMENT_COUNT = 64;
-    //constexpr uint32_t SYNC_SEGMENT_SIZE_DW = 128;
-    //constexpr uint32_t SYNC_BUFFER_SIZE = SYNC_SEGMENT_COUNT * SYNC_SEGMENT_SIZE_DW * sizeof(uint32_t); //bytes
     const uint32_t SYNC_BUFFER_SIZE = sweep_tg_count * BINCOUNT * STAGES * sizeof(global_hist_t); //bytes
     constexpr uint32_t GLOBAL_OFFSET_SIZE = BINCOUNT * STAGES * sizeof(global_hist_t);
     const uint32_t LOOKUP_BUFFER_SIZE = sweep_tg_count * BINCOUNT * sizeof(global_hist_t);
@@ -868,14 +831,12 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
                                     JOB_QUEUE_SIZE +     // dynamic job queue
                                     LOOKUP_BUFFER_SIZE;  // L1 lookup buffer
 
-    // KSATODO malloc_device may be unavailable on current device!
     uint8_t* tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, __exec.queue());
     SyclFreeOnDestroy tmp_buffer_free(__exec.queue(), tmp_buffer);
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
     auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
     auto p_job_queue = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE);
     auto p_lookup = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE + JOB_QUEUE_SIZE);
-    // KSATODO malloc_device may be unavailable on current device!
     auto __output = sycl::malloc_device<uint32_t>(__n, __exec.queue());
     SyclFreeOnDestroy __output_free(__exec.queue(), __output);
 
@@ -895,24 +856,6 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 
     for (::std::uint32_t __stage = 0; __stage < STAGES; __stage++)
     {
-        // KSATODO required to pass p_job_queue + stage
-        // KSATODO It was renamed in Quolly's new version into radix_sort_onesweep_slm_reorder_kernel
-
-        // radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, THREAD_PER_TG, 256> K(
-        //     n, stage, p_input, p_output, tmp_buffer, p_job_queue + stage);
-        // cgh.parallel_for<class onesweep_256>(Range, K);
-        // + RADIX_BITS                     (template param)
-        // + THREAD_PER_TG                  (constexpr uint32_t)
-        // + /*PROCESS_SIZE*/ 256, 384, 416
-        //     -> SWEEP_PROCESSING_SIZE     (constexpr uint32_t)
-        // + n -> __n                       (::std::size_t)
-        // + stage -> __stage               (::std::uint32_t)
-        // ? p_input
-        // ? p_output
-        // + tmp_buffer -> tmp_buffer       (uint8_t*)
-        // + p_job_queue -> p_job_queue     (uint32_t*)
-        // + stage -> __stage               (::std::uint32_t)
-
         __radix_sort_onesweep_submitter<KeyT,                       // typename KeyT
                                         RADIX_BITS,                 // ::std::uint32_t RADIX_BITS
                                         THREAD_PER_TG,              // ::std::uint32_t THREAD_PER_TG
