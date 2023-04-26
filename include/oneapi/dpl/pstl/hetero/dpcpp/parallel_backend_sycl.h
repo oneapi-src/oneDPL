@@ -597,6 +597,11 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
     {
         using _ValueType = uint16_t;
 
+        // This type is used as a workaround for when an internal tuple is assigned to ::std::tuple, such as
+        // with zip_iterator
+        using __tuple_type = typename ::oneapi::dpl::__internal::__get_tuple_type<
+            typename ::std::decay_t<decltype(__in_rng[0])>, typename ::std::decay_t<decltype(__out_rng[0])>>::__type;
+
         constexpr ::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
 
         sycl::buffer<_Size> __res(sycl::range<1>(1));
@@ -645,22 +650,20 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                         __group, __lacc.get_pointer(), __lacc.get_pointer() + __elems_per_wg,
                         __lacc.get_pointer() + __elems_per_wg, __bin_op, __init);
 
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
-                        _ONEDPL_PRAGMA_UNROLL
-                        for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
-                        {
-                            if (__lacc[__idx])
-                                __out_rng[__lacc[__idx + __elems_per_wg]] = __in_rng[__idx];
-                        }
+                        if (__lacc[__idx])
+                            __out_rng[__lacc[__idx + __elems_per_wg]] = static_cast<__tuple_type>(__in_rng[__idx]);
+                    }
 
-                        const ::std::uint16_t __residual = __n % _WGSize;
-                        const ::std::uint16_t __residual_start = __n - __residual;
-                        if (__item_id < __residual)
-                        {
-                            auto __idx = __residual_start + __item_id;
-                            if (__lacc[__idx])
-                                __out_rng[__lacc[__idx + __elems_per_wg]] = __in_rng[__idx];
-                        }
+                    const ::std::uint16_t __residual = __n % _WGSize;
+                    const ::std::uint16_t __residual_start = __n - __residual;
+                    if (__item_id < __residual)
+                    {
+                        auto __idx = __residual_start + __item_id;
+                        if (__lacc[__idx])
+                            __out_rng[__lacc[__idx + __elems_per_wg]] = static_cast<__tuple_type>(__in_rng[__idx]);
                     }
 
                     if (__item_id == 0)
