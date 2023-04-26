@@ -838,18 +838,19 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     uint8_t* tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, __exec.queue());
     SyclFreeOnDestroy tmp_buffer_free(__exec.queue(), tmp_buffer);
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
-    auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
-    auto p_job_queue = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE);
-    auto p_lookup = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE + JOB_QUEUE_SIZE);
+    auto p_sync_buffer   = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
+    auto p_job_queue     = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE);
+    auto p_lookup        = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE + JOB_QUEUE_SIZE);
+
     auto __output = sycl::malloc_device<uint32_t>(__n, __exec.queue());
     SyclFreeOnDestroy __output_free(__exec.queue(), __output);
+    __exec.queue().fill(__output, 0, __n).wait();
 
     //sycl::event __e_init = __exec.queue().memset(tmp_buffer, 0, temp_buffer_size);
     // KSATODO fixed error
     // https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.members.handler.copy
     //     void memset(void* ptr, int value, size_t numBytes) - Fills numBytes bytes of memory beginning at address ptr with value.
-    sycl::event __e_init = __exec.queue().fill(tmp_buffer, 0, temp_buffer_size);
-    __e_init.wait();
+    __exec.queue().fill(tmp_buffer, 0, temp_buffer_size).wait();
 
     sycl::event __e = __radix_sort_onesweep_histogram_submitter<
         KeyT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending, _EsimRadixSortHistogram>()(
