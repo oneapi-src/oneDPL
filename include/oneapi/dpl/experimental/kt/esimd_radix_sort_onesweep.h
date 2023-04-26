@@ -229,36 +229,6 @@ class radix_sort_onesweep_slm_reorder_kernel
     OutputT  p_output = nullptr;            // pointer to output data
     uint8_t* p_global_buffer = nullptr;
 
-    struct dynamic_job_queue_t
-    {
-        uint32_t* queue = nullptr;
-        uint32_t slm = 0;
-        dynamic_job_queue_t(uint32_t* queue) : queue(queue) {}
-        dynamic_job_queue_t(uint32_t* queue, uint32_t slm) : queue(queue), slm(slm) {}
-
-        template <typename TGroup>
-        inline uint32_t
-        get_job_id(TGroup g) const
-        {
-            using namespace __ESIMD_NS;
-            using namespace __ESIMD_ENS;
-            simd<uint32_t, 1> job_id;
-            if (g.get_local_linear_id() == 0)
-            {
-                job_id = lsc_atomic_update<atomic_op::inc, uint32_t, 1>(queue, 0, 1);
-                lsc_slm_scatter<uint32_t, 1, lsc_data_size::default_size, 1>(slm, job_id);
-            }
-
-            barrier();
-            if (g.get_local_linear_id() != 0)
-            {
-                job_id = lsc_slm_gather<uint32_t, 1, lsc_data_size::default_size, 1>(slm);
-            }
-            return job_id[0];
-        }
-    };
-    dynamic_job_queue_t job_queue;
-
     template <typename T>
     struct slm_lookup_t
     {
@@ -291,8 +261,7 @@ class radix_sort_onesweep_slm_reorder_kernel
   public:
 
     radix_sort_onesweep_slm_reorder_kernel(::std::size_t n, uint32_t stage, InputT p_input, OutputT p_output,
-                                           uint8_t* p_global_buffer,
-                                           uint32_t* p_job_queue);
+                                           uint8_t* p_global_buffer);
 
     void
     operator()(sycl::nd_item<1> idx) const SYCL_ESIMD_KERNEL;
@@ -524,9 +493,8 @@ template <typename KeyT, typename InputT, typename OutputT,
           bool IsAscending>
 radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER_WG, PROCESS_SIZE,
                                        IsAscending>::radix_sort_onesweep_slm_reorder_kernel(
-    ::std::size_t n, uint32_t stage, InputT p_input, OutputT p_output, uint8_t* p_global_buffer, uint32_t* p_job_queue)
-    : n(n), stage(stage), p_input(p_input), p_output(p_output), p_global_buffer(p_global_buffer),
-      job_queue(p_job_queue + stage)
+    ::std::size_t n, uint32_t stage, InputT p_input, OutputT p_output, uint8_t* p_global_buffer)
+    : n(n), stage(stage), p_input(p_input), p_output(p_output), p_global_buffer(p_global_buffer)
 {
 }
 
@@ -732,7 +700,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
     sycl::event
     operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Output& __output, _TmpData& __tmp_data,
-               ::std::uint32_t __sweep_tg_count, ::std::size_t __n, ::std::uint32_t* __p_job_queue,
+               ::std::uint32_t __sweep_tg_count, ::std::size_t __n,
                ::std::uint32_t __stage,
                const sycl::event& __e) const
     {
@@ -769,8 +737,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                                            /* uint32_t stage            */ __stage,
                                            /* InputT* p_input           */ __data,
                                            /* OutputT* p_output,        */ __output,
-                                           /* uint8_t * p_global_buffer */ __tmp_data,
-                                           /* uint32_t * p_job_queue    */ __p_job_queue);      // + __stage - this part moved into constructor impl
+                                           /* uint8_t * p_global_buffer */ __tmp_data);
                             kernelImpl(__nd_item);
                         }
                         else
@@ -786,8 +753,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                                            /* uint32_t stage            */ __stage,
                                            /* InputT* p_input           */ __output,
                                            /* OutputT* p_output,        */ __data,
-                                           /* uint8_t * p_global_buffer */ __tmp_data,
-                                           /* uint32_t * p_job_queue    */ __p_job_queue);      // + __stage - this part moved into constructor impl
+                                           /* uint8_t * p_global_buffer */ __tmp_data);
                                 kernelImpl(__nd_item);
                         }
                     });
@@ -837,7 +803,7 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     SyclFreeOnDestroy tmp_buffer_free(__exec.queue(), tmp_buffer);
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
     auto p_sync_buffer   = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
-    auto p_job_queue     = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE);
+    //auto p_job_queue     = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE);
     auto p_lookup        = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE + JOB_QUEUE_SIZE);
 
     auto __output = sycl::malloc_device<uint32_t>(__n, __exec.queue());
@@ -872,7 +838,6 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
                 tmp_buffer,                                 // _TmpData& __tmp_data
                 sweep_tg_count,                             // ::std::uint32_t __sweep_tg_count
                 __n,                                        // ::std::size_t __n
-                p_job_queue,                                // ::std::uint32_t* __p_job_queue
                 __stage,                                    // ::std::uint32_t __stage
                 __e);                                       // const sycl::event& __e
     }
