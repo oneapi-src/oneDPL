@@ -369,15 +369,6 @@ protected:
             auto is_leader = this_round_rank == this_round_count - 1;
             utils::VectorStore<hist_t, 1, 32>(slm_counter_offset + this_bins * sizeof(hist_t), rank_after + 1, is_leader);
             ranks.template select<32, 1>(s) = rank_after;
-            // if (local_tid==0) {
-            //     PRINTD(this_bins);
-            //     PRINTX(matched_bins);
-            //     PRINTD(rank);
-            //     PRINTD(this_round_count);
-            //     PRINTD(this_round_rank);
-            //     PRINTD(rank_after);
-            // }
-            // break;
         }
         return ranks;
     }
@@ -543,12 +534,6 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     //      bins = (keys >> (stage * RADIX_BITS)) & MASK;
     // our current impl :
     bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
-
-    if (n == 0)
-    { // without this, result will be wrong.
-        //PRINTD(keys);
-        //PRINTD(bins);
-    }
 
     ResetBinCounters(slm_bin_hist_this_thread);
 
