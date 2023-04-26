@@ -848,7 +848,7 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     // KSATODO fixed error
     // https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.members.handler.copy
     //     void memset(void* ptr, int value, size_t numBytes) - Fills numBytes bytes of memory beginning at address ptr with value.
-    sycl::event __e_init = __exec.queue().memset(tmp_buffer, 0, /* size_t numBytes */ temp_buffer_size * sizeof(uint8_t));
+    sycl::event __e_init = __exec.queue().fill(tmp_buffer, 0, temp_buffer_size);
     __e_init.wait();
 
     sycl::event __e = __radix_sort_onesweep_histogram_submitter<
