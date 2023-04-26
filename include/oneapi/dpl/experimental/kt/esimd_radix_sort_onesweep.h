@@ -679,16 +679,15 @@ struct __radix_sort_onesweep_histogram_submitter<KeyT, RADIX_BITS, HW_TG_COUNT, 
     {
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
         sycl::nd_range<1> __nd_range(HW_TG_COUNT * THREAD_PER_TG, THREAD_PER_TG);
-        return __exec.queue().submit([&](sycl::handler& __cgh)
-            {
-                oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-                auto __data = __rng.data();
-                __cgh.parallel_for<_Name...>(
-                        __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
-                            global_histogram<KeyT, decltype(__data), RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending>(
-                                __nd_item, __n, __data, __global_offset_data, __sync_data);
-                        });
-            });
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+            auto __data = __rng.data();
+            __cgh.parallel_for<_Name...>(
+                    __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
+                        global_histogram<KeyT, decltype(__data), RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending>(
+                            __nd_item, __n, __data, __global_offset_data, __sync_data);
+                    });
+        });
     }
 };
 
@@ -706,18 +705,17 @@ struct __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT,
     {
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
         sycl::nd_range<1> __nd_range(STAGES * BINCOUNT, BINCOUNT);
-        return __exec.queue().submit([&](sycl::handler& __cgh)
-            {
-                __cgh.depends_on(__e);
-                __cgh.parallel_for<_Name...>(__nd_range, [=](sycl::nd_item<1> __nd_item)
-                    {
+        return __exec.queue().submit([&](sycl::handler& __cgh) {
+            __cgh.depends_on(__e);
+            __cgh.parallel_for<_Name...>(
+                    __nd_range, [=](sycl::nd_item<1> __nd_item) {
                         uint32_t __offset = __nd_item.get_global_id(0);
                         auto __g = __nd_item.get_group();
                         uint32_t __count = __global_offset_data[__offset];
                         uint32_t __presum = sycl::exclusive_scan_over_group(__g, __count, sycl::plus<::std::uint32_t>());
                         __global_offset_data[__offset] = __presum;
                     });
-            });
+        });
     }
 };
 
