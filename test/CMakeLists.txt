@@ -57,6 +57,13 @@ add_custom_target(run-onedpl-tests
     DEPENDS build-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
+# Disable checked iterators on Windows
+# For details please see https://learn.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=msvc-170
+if (WIN32)
+    add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
+    message(STATUS "Disable checked iterators on Windows : #define _ITERATOR_DEBUG_LEVEL 0")
+endif()
+
 macro(onedpl_add_test test_source_file)
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
