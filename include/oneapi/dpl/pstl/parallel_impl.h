@@ -32,7 +32,7 @@ namespace __internal
 //-----------------------------------------------------------------------
 /** Return extremum value returned by brick f[i,j) for subranges [i,j) of [first,last)
 Each f[i,j) must return a value in [i,j). */
-template <class _ExecutionPolicy, class _Index, class _Brick, class _IsFirst>
+template <class        _ExecutionPolicy, class _Index, class _Brick, class _IsFirst>
 _Index
 __parallel_find(_ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick __f, _IsFirst)
 {
