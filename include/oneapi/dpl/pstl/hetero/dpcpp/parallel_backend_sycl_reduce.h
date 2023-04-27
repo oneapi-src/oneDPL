@@ -45,6 +45,46 @@ class __reduce_mid_leaf_kernel;
 template <typename... _Name>
 class __reduce_kernel;
 
+// Single work group kernel that transforms and reduces __n elements to the single result.
+template <typename _Tp, typename _NDItemId, typename _Size, typename _TransformPattern, typename _ReducePattern,
+          typename _InitType, typename _AccLocal, typename _Res, typename... _Acc>
+void
+__work_group_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Size __n_items,
+                           const _TransformPattern __transform_pattern, const _ReducePattern __reduce_pattern,
+                           const _InitType __init, _AccLocal& __local_mem, _Res& __res_acc, const _Acc&... __acc)
+{
+    auto __local_idx = __item_id.get_local_id(0);
+    // 1. Initialization (transform part). Fill local memory
+    __transform_pattern(__item_id, __n, /*global_offset*/ 0, __local_mem, __acc...);
+    __dpl_sycl::__group_barrier(__item_id);
+    // 2. Reduce within work group using local memory
+    _Tp __result = __reduce_pattern(__item_id, __n_items, __local_mem);
+    if (__local_idx == 0)
+    {
+        __reduce_pattern.apply_init(__init, __result);
+        __res_acc[0] = __result;
+    }
+}
+
+// Device kernel that transforms and reduces __n elements to the number of work groups preliminary results.
+template <typename _Tp, typename _NDItemId, typename _Size, typename _TransformPattern, typename _ReducePattern,
+          typename _InitType, typename _AccLocal, typename _Tmp, typename... _Acc>
+void
+__device_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Size __n_items,
+                       const _TransformPattern __transform_pattern, const _ReducePattern __reduce_pattern,
+                       const _InitType __init, _AccLocal& __local_mem, _Tmp& __temp_acc, const _Acc&... __acc)
+{
+    auto __local_idx = __item_id.get_local_id(0);
+    auto __group_idx = __item_id.get_group(0);
+    // 1. Initialization (transform part). Fill local memory
+    __transform_pattern(__item_id, __n, /*global_offset*/ 0, __local_mem, __acc...);
+    __dpl_sycl::__group_barrier(__item_id);
+    // 2. Reduce within work group using local memory
+    _Tp __result = __reduce_pattern(__item_id, __n_items, __local_mem);
+    if (__local_idx == 0)
+        __temp_acc[__group_idx] = __result;
+}
+
 //------------------------------------------------------------------------
 // parallel_transform_reduce - async patterns
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
@@ -82,17 +122,8 @@ struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_pe
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id) {
-                    auto __local_idx = __item_id.get_local_id(0);
-                    // 1. Initialization (transform part). Fill local memory
-                    __transform_pattern(__item_id, __n, /*global_offset*/ 0, __temp_local, __rngs...);
-                    __dpl_sycl::__group_barrier(__item_id);
-                    // 2. Reduce within work group using local memory
-                    _Tp __result = __reduce_pattern(__item_id, __n_items, __temp_local);
-                    if (__local_idx == 0)
-                    {
-                        __reduce_pattern.apply_init(__init, __result);
-                        __res_acc[0] = __result;
-                    }
+                    __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern, 
+                                                    __init, __temp_local, __res_acc, __rngs...);
                 });
         });
 
@@ -162,15 +193,8 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
             __cgh.parallel_for<_MainName...>(
                 sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id) {
-                    auto __local_idx = __item_id.get_local_id(0);
-                    auto __group_idx = __item_id.get_group(0);
-                    // 1. Initialization (transform part). Fill local memory
-                    __transform_pattern1(__item_id, __n, /*global_offset*/ 0, __temp_local, __rngs...);
-                    __dpl_sycl::__group_barrier(__item_id);
-                    // 2. Reduce within work group using local memory
-                    _Tp __result = __reduce_pattern(__item_id, __n_items, __temp_local);
-                    if (__local_idx == 0)
-                        __temp_acc[__group_idx] = __result;
+                    __device_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern1, __reduce_pattern, 
+                                                __init, __temp_local, __temp_acc, __rngs...);
                 });
         });
 
@@ -201,17 +225,8 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
             __cgh.parallel_for<_LeafName...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size2), sycl::range<1>(__work_group_size2)),
                 [=](sycl::nd_item<1> __item_id) {
-                    auto __local_idx = __item_id.get_local_id(0);
-                    // 1. Initialization (transform part). Fill local memory
-                    __transform_pattern2(__item_id, __n, /*global_offset*/ 0, __temp_local, __temp_acc);
-                    __dpl_sycl::__group_barrier(__item_id);
-                    // 2. Reduce within work group using local memory
-                    _Tp __result = __reduce_pattern(__item_id, __n_items, __temp_local);
-                    if (__local_idx == 0)
-                    {
-                        __reduce_pattern.apply_init(__init, __result);
-                        __res_acc[0] = __result;
-                    }
+                    __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern2, __reduce_pattern, 
+                                                    __init, __temp_local, __res_acc, __temp_acc);
                 });
         });
 
