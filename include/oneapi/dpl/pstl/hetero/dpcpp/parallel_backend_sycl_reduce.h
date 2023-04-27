@@ -122,7 +122,7 @@ struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_pe
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id) {
-                    __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern, 
+                    __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern,
                                                     __init, __temp_local, __res_acc, __rngs...);
                 });
         });
@@ -193,7 +193,7 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
             __cgh.parallel_for<_MainName...>(
                 sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id) {
-                    __device_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern1, __reduce_pattern, 
+                    __device_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern1, __reduce_pattern,
                                                 __init, __temp_local, __temp_acc, __rngs...);
                 });
         });
@@ -225,7 +225,7 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
             __cgh.parallel_for<_LeafName...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size2), sycl::range<1>(__work_group_size2)),
                 [=](sycl::nd_item<1> __item_id) {
-                    __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern2, __reduce_pattern, 
+                    __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern2, __reduce_pattern,
                                                     __init, __temp_local, __res_acc, __temp_acc);
                 });
         });
