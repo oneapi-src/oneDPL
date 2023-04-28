@@ -105,7 +105,33 @@ test_iterators_possibly_equal()
         EXPECT_FALSE(__iterators_possibly_equal(intData, &floatData), "wrong __iterators_possibly_equal result");
     }
 }
+
+class CustomIterator
+{
+public:
+
+    struct Tag { };
+
+    CustomIterator(Tag) {}
+
+    bool
+    operator==(const CustomIterator&) const
+    {
+        return true;
+    }
 };
+
+void
+test_custom_iterators_possibly_equal()
+{
+    CustomIterator it1(CustomIterator::Tag{});
+    CustomIterator it2(CustomIterator::Tag{});
+
+    EXPECT_TRUE(__iterators_possibly_equal(it1, it2),
+                "wrong __iterators_possibly_equal result for custom iterator which is not default constructible");
+}
+
+};  // namespace oneapi::dpl::__internal
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -116,6 +142,9 @@ main()
 
     // Check the correctness of oneapi::dpl::__internal::__iterators_possibly_equal
     oneapi::dpl::__internal::test_iterators_possibly_equal();
+
+    // Check the correctness of oneapi::dpl::__internal::__iterators_possibly_equal for custom iterators
+    oneapi::dpl::__internal::test_custom_iterators_possibly_equal();
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
