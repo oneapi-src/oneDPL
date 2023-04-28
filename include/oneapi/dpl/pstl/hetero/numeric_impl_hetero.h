@@ -160,8 +160,9 @@ struct __is_equality_comparable : std::false_type
 
 // All with implemented operator ==
 template <typename _Iterator1, typename _Iterator2>
-struct __is_equality_comparable<_Iterator1, _Iterator2,
-                                std::void_t<decltype(::std::decay_t<_Iterator1>{} == ::std::decay_t<_Iterator2>{})>>
+struct __is_equality_comparable<
+    _Iterator1, _Iterator2,
+    std::void_t<decltype(::std::declval<::std::decay_t<_Iterator1>>() == ::std::declval<::std::decay_t<_Iterator2>>())>>
     : std::true_type
 {
 };
