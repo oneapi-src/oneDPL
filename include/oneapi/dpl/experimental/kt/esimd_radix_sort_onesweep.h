@@ -521,14 +521,14 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     uint8_t *tmp_buffer = reinterpret_cast<uint8_t*>(sycl::malloc_device(temp_buffer_size, __exec.queue()));
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
     auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
-    auto __output = sycl::malloc_device<uint32_t>(__n, __exec.queue());
+    auto __output = sycl::malloc_device<KeyT>(__n, __exec.queue());
 
     sycl::event __e = __radix_sort_onesweep_histogram_submitter<
         KeyT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending, _EsimRadixSortHistogram>()(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), p_global_offset, p_sync_buffer, __n);
+            __exec, __rng, p_global_offset, p_sync_buffer, __n);
 
     __e = __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT, _EsimRadixSortScan>()(
-        ::std::forward<_ExecutionPolicy>(__exec), p_global_offset, __n, __e);
+        __exec, p_global_offset, __n, __e);
 
     for (::std::uint32_t __stage = 0; __stage < STAGES; __stage++)
     {
@@ -536,29 +536,25 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
         {
             __e = __radix_sort_onesweep_submitter<
                 KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 256, IsAscending, _EsimRadixSort>()(
-                    ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                    __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
+                    __exec, __rng, __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
         }
         else if (SWEEP_PROCESSING_SIZE == 512)
         {
             __e = __radix_sort_onesweep_submitter<
                 KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 512, IsAscending, _EsimRadixSort>()(
-                    ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                    __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
+                    __exec, __rng, __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
         }
         else if (SWEEP_PROCESSING_SIZE == 1024)
         {
             __e = __radix_sort_onesweep_submitter<
                 KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 1024, IsAscending, _EsimRadixSort>()(
-                    ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                    __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
+                    __exec, __rng, __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
         }
         else if (SWEEP_PROCESSING_SIZE == 1536)
         {
             __e = __radix_sort_onesweep_submitter<
                 KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 1536, IsAscending, _EsimRadixSort>()(
-                    ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                    __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
+                    __exec, __rng, __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
         }
     }
     __e.wait();
