@@ -45,17 +45,18 @@ copy_to(sycl::accessor<T, 1, Mode, sycl::target::device, P> output, ::std::uint3
 
 template <typename T, int N>
 sycl::ext::intel::esimd::simd<T, N>
-gather(const T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset)
+gather(const T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset,
+       sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    return sycl::ext::intel::esimd::gather(input + base_offset, offsets * size32<T>);
+    return sycl::ext::intel::esimd::gather(input + base_offset, offsets * size32<T>, mask);
 }
 
 template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
 sycl::ext::intel::esimd::simd<T, N>
-gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input,
-       sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset)
+gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+       ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    return sycl::ext::intel::esimd::gather<T>(input, offsets * size32<T>, base_offset * size32<T>);
+    return sycl::ext::intel::esimd::gather<T>(input, offsets * size32<T>, base_offset * size32<T>, mask);
 }
 
 template <typename T, int N>

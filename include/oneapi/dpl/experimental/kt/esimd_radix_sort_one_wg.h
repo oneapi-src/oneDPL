@@ -73,7 +73,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
     #pragma unroll
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
         simd_mask<16> m = (io_offset+lane_id+s)<n;
-        keys.template select<16, 1>(s) = merge(utils::gather<KeyT, 16>(input, lane_id, io_offset + s), simd<KeyT, 16>(-1), m);
+        keys.template select<16, 1>(s) = merge(utils::gather<KeyT, 16>(input, lane_id, io_offset + s, m), simd<KeyT, 16>(-1), m);
     }
 
     for (uint32_t stage=0; stage < STAGES; stage++) {
@@ -182,7 +182,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
     #pragma unroll
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
         utils::scatter<KeyT, 16>(input, write_addr.template select<16, 1>(s), keys.template select<16, 1>(s),
-                                 (local_tid * PROCESS_SIZE + lane_id + s) < n);
+                                 (io_offset + lane_id + s) < n);
     }
 }
 
@@ -256,7 +256,6 @@ void one_wg(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
         __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 64, IsAscending, _EsimRadixSortKernel>()(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, TG_COUNT);
     }
-
     else if (PROCESS_SIZE == 128)
     {
         __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 128, IsAscending, _EsimRadixSortKernel>()(
