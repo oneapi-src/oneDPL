@@ -43,7 +43,7 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay
 exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op)
 {
-    const auto n = ::std::distance(first1, last1);
+    const auto n = last1 - first1;
 
     // Check for empty and single element ranges
     if (n <= 0)
@@ -104,13 +104,13 @@ exclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
                                       InputIterator2 first2, OutputIterator result, T init, BinaryPredicate binary_pred,
                                       Operator binary_op, ::std::true_type /* has_known_identity*/)
 {
-    const auto n = ::std::distance(first1, last1);
+    const auto n = last1 - first1;
 
     // Check for empty element ranges
     if (n <= 0)
         return result;
 
-    typedef uint64_t CountType;
+    typedef ::std::uint64_t CountType;
 
     namespace __bknd = oneapi::dpl::__par_backend_hetero;
 
@@ -141,7 +141,7 @@ exclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
                                       Operator binary_op, ::std::false_type /* has_known_identity*/)
 {
 
-    const auto n = ::std::distance(first1, last1);
+    const auto n = last1 - first1;
     typedef typename ::std::iterator_traits<OutputIterator>::value_type OutputType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef unsigned int FlagType;
@@ -198,8 +198,8 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 {
     return internal::exclusive_scan_by_segment_impl_helper(
         ::std::forward<Policy>(policy), first1, last1, first2, result, init, binary_pred, binary_op,
-        typename unseq_backend::__has_known_identity<Operator,
-                                                  typename ::std::iterator_traits<InputIterator2>::value_type>::type{});
+        typename unseq_backend::__has_known_identity<
+            Operator, typename ::std::iterator_traits<InputIterator2>::value_type>::type{});
 }
 
 #endif

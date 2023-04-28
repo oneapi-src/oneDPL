@@ -41,7 +41,7 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay
 inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
 {
-    const auto n = ::std::distance(first1, last1);
+    const auto n = last1 - first1;
 
     // Check for empty and single element ranges
     if (n <= 0)
@@ -81,7 +81,7 @@ inclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
                                       BinaryOperator binary_op, ::std::true_type /* has_known_identity */)
 {
 
-    const auto n = ::std::distance(first1, last1);
+    const auto n = last1 - first1;
 
     // Check for empty element ranges
     if (n <= 0)
@@ -120,7 +120,7 @@ inclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef typename ::std::decay<Policy>::type policy_type;
 
-    const auto n = ::std::distance(first1, last1);
+    const auto n = last1 - first1;
 
     // Check for empty element ranges
     if (n <= 0)
@@ -155,8 +155,8 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 {
     return internal::inclusive_scan_by_segment_impl_helper(
         ::std::forward<Policy>(policy), first1, last1, first2, result, binary_pred, binary_op,
-        typename unseq_backend::__has_known_identity<BinaryOperator,
-                                                  typename ::std::iterator_traits<InputIterator2>::value_type>::type{});
+        typename unseq_backend::__has_known_identity<
+            BinaryOperator, typename ::std::iterator_traits<InputIterator2>::value_type>::type{});
 }
 
 #endif
