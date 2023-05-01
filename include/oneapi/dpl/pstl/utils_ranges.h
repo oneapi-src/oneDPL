@@ -352,7 +352,7 @@ template <typename _R, typename _Size>
 struct replicate_start_view_simple
 {
     using value_type = typename ::std::decay_t<_R>::value_type;
-    
+
     _R __r;
     _Size __repl_count;
 
