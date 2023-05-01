@@ -392,6 +392,15 @@ struct test_non_const
     }
 };
 
+struct NonConstCmp
+{
+    template<typename T, typename U>
+    bool operator()(T x, U y)
+    {
+        return x < y;
+    }
+};
+
 int
 main()
 {
@@ -420,6 +429,9 @@ main()
 
         test_sort<unsigned char>(
             [](unsigned char x, unsigned char y) { return x > y; }, // Reversed so accidental use of < will be detected.
+            [](size_t k, size_t val) { return (unsigned char)val; });
+
+        test_sort<unsigned char>(NonConstCmp{},
             [](size_t k, size_t val) { return (unsigned char)val; });
 
 #endif // !ONEDPL_FPGA_DEVICE
