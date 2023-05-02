@@ -83,6 +83,21 @@ struct __invoke_unary_op
     }
 };
 
+template <typename _Op, typename _Pred>
+struct __invoke_unary_op_if
+{
+    mutable _Op __op;
+    mutable _Pred __pred;
+
+    template <typename _Input, typename _Output>
+    void
+    operator()(_Input&& __x, _Output&& __y) const
+    {
+        if (__pred(__x))
+            __y = __op(::std::forward<_Input>(__x));
+    }
+};
+
 //! Unary operator that returns reference to its argument.
 struct __no_op
 {
@@ -288,6 +303,25 @@ class __transform_functor
         z = _M_pred(x, y);
     }
 };
+
+template <typename _Oper, typename _Pred>
+class __transform_if_functor
+{
+    _Oper _M_oper;
+    _Pred _M_pred;
+
+  public:
+    explicit __transform_if_functor(_Oper __op, _Pred __pred) : _M_oper(__op), _M_pred(__pred) {}
+
+    template <typename _Input1Type, typename _Input2Type, typename _OutputType>
+    void
+    operator()(const _Input1Type& x, const _Input2Type& y, _OutputType& z) const
+    {
+        if (_M_pred(x,y))
+            z = _M_oper(x, y);
+    }
+};
+
 
 template <typename _Tp, typename _Pred>
 class __replace_functor
