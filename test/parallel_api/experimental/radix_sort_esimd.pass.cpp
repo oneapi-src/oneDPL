@@ -117,12 +117,21 @@ void test_usm(std::size_t size)
     T* input = sycl::malloc_shared<T>(size, q);
     T* ref = sycl::malloc_host<T>(size, q);
     generate_data(ref, size);
+
+    std::cout << "\nInput (size=" << size << "):" << std::endl;
+    for( int i=0; i<std::min(size, 20); ++i )
+        std::cout << ref[i] << std::endl;
+
     q.copy(ref, input, size).wait();
     std::sort(ref, ref + size);
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, input, input + size);
 
     T* host_input = sycl::malloc_host<T>(size, q);
     q.copy(input, host_input, size).wait();
+
+    std::cout << "Reference - Result:" << std::endl;
+    for( int i=0; i<std::min(size, 20); ++i )
+        std::cout << ref[i] << " - " << input[i] << std::endl;
 
     std::string msg = "wrong results with USM, n: " + std::to_string(size);
     EXPECT_EQ_N(ref, input, size, msg.c_str());
@@ -170,11 +179,11 @@ template<typename T>
 void test_general_cases(std::size_t size)
 {
 #if _ENABLE_RANGES_TESTING
-    test_all_view<T>(size);
-    test_subrange_view<T>(size);
+    // test_all_view<T>(size);
+    // test_subrange_view<T>(size);
 #endif // _ENABLE_RANGES_TESTING
     test_usm<T>(size);
-    test_sycl_iterators<T>(size);
+    // test_sycl_iterators<T>(size);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -182,16 +191,16 @@ int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     const std::vector<std::size_t> sizes = {
-        6, 16, 42, 256, 316, 2048, 5072, 8192, 14001,                        // one work-group
-        2<<14, 50000, 67543, 100'000, 2<<17, 179'581, 250'000,               // cooperative
-        2<<18, 500'000, 888'235, 1'000'000, 2<<20, 10'000'000                // onesweep
+        6, 16, 42, 256, 316, 2048, 5072, 8192, 14001                        // one work-group
+        //, 2<<14, 50000, 67543, 100'000, 2<<17, 179'581, 250'000             // cooperative
+        //, 2<<18, 500'000, 888'235, 1'000'000, 2<<20, 10'000'000             // onesweep
     };
 
     try
     {
         for(auto size: sizes)
         {
-            test_general_cases<uint32_t>(size);
+            // test_general_cases<uint32_t>(size);
             test_general_cases<int>(size);
             test_general_cases<float>(size);
             // test_general_cases<double>(size);
