@@ -674,7 +674,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
         return __exec.queue().submit([&](sycl::handler& __cgh)
             {
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-                auto __data = __rng.data();
+                auto __rng_data = __rng.data();
                 __cgh.depends_on(__e);
                 __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
@@ -682,33 +682,33 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                         if (__stage % 2 == 0)
                         {
                             // onesweep_kernel<KeyT,
-                            radix_sort_onesweep_slm_reorder_kernel<KeyT,             // typename KeyT
-                                                                   decltype(__data), // typename InputT
-                                                                   _Output,          // typename OutputT
-                                                                   RADIX_BITS,       // uint32_t RADIX_BITS,
-                                                                   THREAD_PER_TG,    // uint32_t SG_PER_WG
-                                                                   PROCESS_SIZE,     // uint32_t PROCESS_SIZE
-                                                                   IsAscending>      // bool IsAscending
+                            radix_sort_onesweep_slm_reorder_kernel<KeyT,                 // typename KeyT
+                                                                   decltype(__rng_data), // typename InputT
+                                                                   _Output,              // typename OutputT
+                                                                   RADIX_BITS,           // uint32_t RADIX_BITS,
+                                                                   THREAD_PER_TG,        // uint32_t SG_PER_WG
+                                                                   PROCESS_SIZE,         // uint32_t PROCESS_SIZE
+                                                                   IsAscending>          // bool IsAscending
                                 kernelImpl(/* ::std::size_t n           */ __n,
                                            /* uint32_t stage            */ __stage,
-                                           /* InputT* p_input           */ __data,
+                                           /* InputT* p_input           */ __rng_data,
                                            /* OutputT* p_output,        */ __output,
                                            /* uint8_t * p_global_buffer */ __tmp_data);
                             kernelImpl(__nd_item);
                         }
                         else
                         {
-                            radix_sort_onesweep_slm_reorder_kernel<KeyT,             // typename KeyT
-                                                                   _Output,          // typename InputT
-                                                                   decltype(__data), // typename OutputT
-                                                                   RADIX_BITS,       // uint32_t RADIX_BITS,
-                                                                   THREAD_PER_TG,    // uint32_t SG_PER_WG
-                                                                   PROCESS_SIZE,     // uint32_t PROCESS_SIZE
-                                                                   IsAscending>      // bool IsAscending
+                            radix_sort_onesweep_slm_reorder_kernel<KeyT,                 // typename KeyT
+                                                                   _Output,              // typename InputT
+                                                                   decltype(__rng_data), // typename OutputT
+                                                                   RADIX_BITS,           // uint32_t RADIX_BITS,
+                                                                   THREAD_PER_TG,        // uint32_t SG_PER_WG
+                                                                   PROCESS_SIZE,         // uint32_t PROCESS_SIZE
+                                                                   IsAscending>          // bool IsAscending
                                 kernelImpl(/* ::std::size_t n           */ __n,
                                            /* uint32_t stage            */ __stage,
                                            /* InputT* p_input           */ __output,
-                                           /* OutputT* p_output,        */ __data,
+                                           /* OutputT* p_output,        */ __rng_data,
                                            /* uint8_t * p_global_buffer */ __tmp_data);
                                 kernelImpl(__nd_item);
                         }
@@ -717,8 +717,8 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
     }
 };
 
-template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
-          bool IsAscending, ::std::uint32_t PROCESS_SIZE>
+template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS /* = 8 */,
+          bool IsAscending /* = true */, ::std::uint32_t PROCESS_SIZE>
 void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 {
     static_assert(PROCESS_SIZE == 256 || PROCESS_SIZE == 384 || PROCESS_SIZE == 416,
@@ -746,9 +746,9 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
     constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
 
-    const uint32_t SYNC_BUFFER_SIZE = sweep_tg_count * BINCOUNT * STAGES * sizeof(global_hist_t); //bytes
-    constexpr uint32_t GLOBAL_OFFSET_SIZE = BINCOUNT * STAGES * sizeof(global_hist_t);
-    const uint32_t LOOKUP_BUFFER_SIZE = sweep_tg_count * BINCOUNT * sizeof(global_hist_t);
+    const     uint32_t SYNC_BUFFER_SIZE   = sizeof(global_hist_t) * BINCOUNT * STAGES * sweep_tg_count; //bytes
+    constexpr uint32_t GLOBAL_OFFSET_SIZE = sizeof(global_hist_t) * BINCOUNT * STAGES;
+    const     uint32_t LOOKUP_BUFFER_SIZE = sizeof(global_hist_t) * BINCOUNT * sweep_tg_count;
     constexpr uint32_t JOB_QUEUE_SIZE = 256;
     const size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
                                     SYNC_BUFFER_SIZE +   // sync buffer
@@ -786,8 +786,10 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
                                         THREAD_PER_TG,              // ::std::uint32_t THREAD_PER_TG
                                         SWEEP_PROCESSING_SIZE,      // ::std::uint32_t PROCESS_SIZE
                                         IsAscending,                // bool IsAscending
-                                        _EsimRadixSort> submitter;  // typename... _Name
-        __e = submitter(
+                                        _EsimRadixSort>             // typename... _Name
+            onesweep_submitter;
+
+        __e = onesweep_submitter(
                 ::std::forward<_ExecutionPolicy>(__exec),   // _ExecutionPolicy&& __exec
                 ::std::forward<_Range>(__rng),              // _Range&& __rng
                 __output,                                   // _Output& __output
