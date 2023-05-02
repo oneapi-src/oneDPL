@@ -591,12 +591,9 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
         simd<device_addr_t, PROCESS_SIZE> global_offset = group_offset + l.template lookup<PROCESS_SIZE>(bins);
 
         utils::VectorStore</* typename T */ KeyT,
-                            /* int VSize  */ 1,
-                            /* int LANES  */ PROCESS_SIZE>(
-            p_output,                       // sycl::accessor or unsigned int*
-            global_offset * sizeof(KeyT),   // sycl::_V1::ext::intel::esimd::simd<unsigned long, 416>
-            keys,                           // sycl::_V1::ext::intel::esimd::simd<unsigned int, 416>
-            global_offset < n);             // sycl::_V1::ext::intel::esimd::detail::simd_mask_impl<unsigned short, 416>
+                           /* int VSize  */ 1,
+                           /* int LANES  */ PROCESS_SIZE>(p_output, global_offset * sizeof(KeyT), keys,
+                                                          global_offset < n);
     }
 }
 
@@ -698,16 +695,9 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __data = __rng.data();
                 __cgh.depends_on(__e);
-
-                // radix_sort_onesweep_slm_reorder_kernel<RADIX_BITS, THREAD_PER_TG, 256> K(
-                //     n, stage, p_input, p_output, tmp_buffer, p_job_queue + stage);
                 __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
                     {
-                        // __data : sycl::accessor<unsigned int, 1, sycl::access::mode::read_write, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>
-                        // __output : unsigned int *&
-                        // __tmp_data : unsigned char *
-
                         if (__stage % 2 == 0)
                         {
                             // onesweep_kernel<KeyT,
