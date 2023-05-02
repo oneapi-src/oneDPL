@@ -112,6 +112,7 @@ void test_subrange_view(std::size_t size)
 template<typename T>
 void test_usm(std::size_t size)
 {
+    constexpr std::size_t out_limit = 20;
     sycl::queue q{};
     auto policy = oneapi::dpl::execution::make_device_policy(q);
     T* input = sycl::malloc_shared<T>(size, q);
@@ -119,7 +120,7 @@ void test_usm(std::size_t size)
     generate_data(ref, size);
 
     std::cout << "\nInput (size=" << size << "):" << std::endl;
-    for( int i=0; i<std::min(size, 20); ++i )
+    for( int i = 0; i < std::min(size, out_limit); ++i )
         std::cout << ref[i] << std::endl;
 
     q.copy(ref, input, size).wait();
@@ -130,7 +131,7 @@ void test_usm(std::size_t size)
     q.copy(input, host_input, size).wait();
 
     std::cout << "Reference - Result:" << std::endl;
-    for( int i=0; i<std::min(size, 20); ++i )
+    for( int i = 0; i < std::min(size, out_limit); ++i )
         std::cout << ref[i] << " - " << input[i] << std::endl;
 
     std::string msg = "wrong results with USM, n: " + std::to_string(size);
