@@ -20,6 +20,23 @@
 
 namespace oneapi::dpl::experimental::esimd::impl
 {
+template <typename T>
+struct SyclFreeOnDestroy
+{
+    sycl::queue __queue;
+    T* __buffer = nullptr;
+
+    SyclFreeOnDestroy(sycl::queue queue, T* buffer) : __queue(queue), __buffer(buffer)
+    {
+    }
+    ~SyclFreeOnDestroy()
+    {
+        if (nullptr != __buffer)
+        {
+            sycl::free(__buffer, __queue);
+        }
+    }
+};
 
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t TG_COUNT, uint32_t THREAD_PER_TG, bool IsAscending>
 void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer) {
@@ -490,6 +507,9 @@ template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint
           bool IsAscending, ::std::uint32_t PROCESS_SIZE>
 void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 {
+    static_assert(PROCESS_SIZE == 256 || PROCESS_SIZE == 384 || PROCESS_SIZE == 416,
+                  "We are able to setup PROCESS_SIZE only as 256, 384 or 416");
+
     using namespace sycl;
     using namespace __ESIMD_NS;
 
@@ -504,27 +524,41 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 
     using global_hist_t = uint32_t;
     constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
-    const uint32_t HW_TG_COUNT = 64;
+    constexpr uint32_t HW_TG_COUNT = 64;
     constexpr uint32_t THREAD_PER_TG = 64;
-    uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE;
+    constexpr uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE; // uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE;
     const uint32_t sweep_tg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, THREAD_PER_TG*SWEEP_PROCESSING_SIZE);
     const uint32_t sweep_threads = sweep_tg_count * THREAD_PER_TG;
     constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
     constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
 
-    assert((SWEEP_PROCESSING_SIZE == 256) || (SWEEP_PROCESSING_SIZE == 512) || (SWEEP_PROCESSING_SIZE == 1024) || (SWEEP_PROCESSING_SIZE == 1536));
+    //assert((SWEEP_PROCESSING_SIZE == 256) || (SWEEP_PROCESSING_SIZE == 512) || (SWEEP_PROCESSING_SIZE == 1024) || (SWEEP_PROCESSING_SIZE == 1536));
 
-    constexpr uint32_t SYNC_SEGMENT_COUNT = 64;
-    constexpr uint32_t SYNC_SEGMENT_SIZE_DW = 128;
-    constexpr uint32_t SYNC_BUFFER_SIZE = SYNC_SEGMENT_COUNT * SYNC_SEGMENT_SIZE_DW * sizeof(uint32_t); //bytes
+    //constexpr uint32_t SYNC_SEGMENT_COUNT = 64;
+    //constexpr uint32_t SYNC_SEGMENT_SIZE_DW = 128;
+    //constexpr uint32_t SYNC_BUFFER_SIZE = SYNC_SEGMENT_COUNT * SYNC_SEGMENT_SIZE_DW * sizeof(uint32_t); //bytes
+    const uint32_t SYNC_BUFFER_SIZE = sweep_tg_count * BINCOUNT * STAGES * sizeof(global_hist_t); //bytes
     constexpr uint32_t GLOBAL_OFFSET_SIZE = BINCOUNT * STAGES * sizeof(global_hist_t);
-    size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
-                              SYNC_BUFFER_SIZE;  // sync buffer
+    const uint32_t LOOKUP_BUFFER_SIZE = sweep_tg_count * BINCOUNT * sizeof(global_hist_t);
+    constexpr uint32_t JOB_QUEUE_SIZE = 256;
+    const size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
+                                    SYNC_BUFFER_SIZE +   // sync buffer
+                                    JOB_QUEUE_SIZE +     // dynamic job queue
+                                    LOOKUP_BUFFER_SIZE;  // L1 lookup buffer
 
-    uint8_t *tmp_buffer = reinterpret_cast<uint8_t*>(sycl::malloc_device(temp_buffer_size, __exec.queue()));
+    // KSATODO malloc_device may be unavailable on current device!
+    uint8_t* tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, __exec.queue());
+    SyclFreeOnDestroy tmp_buffer_free(__exec.queue(), tmp_buffer);
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
     auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
+    auto p_job_queue = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE);
+    auto p_lookup = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE + JOB_QUEUE_SIZE);
+    // KSATODO malloc_device may be unavailable on current device!
     auto __output = sycl::malloc_device<uint32_t>(__n, __exec.queue());
+    SyclFreeOnDestroy __output_free(__exec.queue(), __output);
+
+    sycl::event __e_init = __exec.queue().memset(tmp_buffer, 0, temp_buffer_size);
+    __e_init.wait();
 
     sycl::event __e = __radix_sort_onesweep_histogram_submitter<
         KeyT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending, _EsimRadixSortHistogram>()(
@@ -537,37 +571,30 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     {
         if (SWEEP_PROCESSING_SIZE == 256)
         {
+            // KSATODO required to pass p_job_queue + stage
             __e = __radix_sort_onesweep_submitter<
                 KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 256, IsAscending, _EsimRadixSort>()(
                     ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
                     __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
         }
-        else if (SWEEP_PROCESSING_SIZE == 512)
+        else if (SWEEP_PROCESSING_SIZE == 384)
         {
+            // KSATODO required to pass p_job_queue + stage
             __e = __radix_sort_onesweep_submitter<
-                KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 512, IsAscending, _EsimRadixSort>()(
+                KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 384, IsAscending, _EsimRadixSort>()(
                     ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
                     __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
         }
-        else if (SWEEP_PROCESSING_SIZE == 1024)
+        else if (SWEEP_PROCESSING_SIZE == 416)
         {
+            // KSATODO required to pass p_job_queue + stage
             __e = __radix_sort_onesweep_submitter<
-                KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 1024, IsAscending, _EsimRadixSort>()(
-                    ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                    __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
-        }
-        else if (SWEEP_PROCESSING_SIZE == 1536)
-        {
-            __e = __radix_sort_onesweep_submitter<
-                KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 1536, IsAscending, _EsimRadixSort>()(
+                KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 416, IsAscending, _EsimRadixSort>()(
                     ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
                     __output, tmp_buffer, sweep_tg_count, __n, __stage, __e);
         }
     }
     __e.wait();
-
-    sycl::free(tmp_buffer, __exec.queue());
-    sycl::free(__output, __exec.queue());
 }
 
 } // oneapi::dpl::experimental::esimd::impl
