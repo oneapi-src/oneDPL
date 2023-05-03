@@ -173,25 +173,6 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
     }
 }
 
-inline
-void
-global_wait(uint32_t *psync, uint32_t sync_id, uint32_t count, uint32_t gid, uint32_t tid)
-{
-    using namespace __ESIMD_NS;
-    using namespace __ESIMD_ENS;
-    //assume initial is 1, do inc, then repeat load until count is met, then the first one atomic reduce by count to reset to 1, do not use store to 1, because second round might started.
-    psync += sync_id;
-    uint32_t current = -1;
-    uint32_t try_count = 0;
-    while (current != count)
-    {
-        // current=lsc_atomic_update<atomic_op::load, uint32_t, 1>(psync, 0, 1)[0];
-        current = lsc_atomic_update<atomic_op::load, uint32_t, 1>(psync, simd<uint32_t, 1>(0), 1)[0];
-        if (try_count++ > 5120)
-            break;
-    }
-}
-
 template <typename KeyT, typename InputT, typename OutputT,
           uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE,
           bool IsAscending>
