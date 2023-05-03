@@ -317,11 +317,10 @@ class __transform_if_functor
     void
     operator()(const _Input1Type& x, const _Input2Type& y, _OutputType& z) const
     {
-        if (_M_pred(x,y))
+        if (_M_pred(x, y))
             z = _M_oper(x, y);
     }
 };
-
 
 template <typename _Tp, typename _Pred>
 class __replace_functor

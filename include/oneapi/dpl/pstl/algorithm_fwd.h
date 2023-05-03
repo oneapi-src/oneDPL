@@ -253,18 +253,19 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Ran
 // transform_if
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
-          typename _Function, class _IsVector, class _IsParallel>
+template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function,
+          class _IsVector, class _IsParallel>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 __pattern_walk2_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                        _ForwardIterator2 __first2, _Function __func, _IsVector __is_vector, _IsParallel __is_parallel) noexcept;
+                             _ForwardIterator2 __first2, _Function __func, _IsVector __is_vector,
+                             _IsParallel __is_parallel) noexcept;
 
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
           typename _Function, class _IsVector, class _IsParallel>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 __pattern_walk3_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                       _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __func,
-                       _IsVector __is_vector, _IsParallel __is_parallel) noexcept;
+                             _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __func,
+                             _IsVector __is_vector, _IsParallel __is_parallel) noexcept;
 
 //------------------------------------------------------------------------
 // equal
