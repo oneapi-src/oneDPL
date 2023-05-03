@@ -120,8 +120,8 @@ struct sycl_scan_by_segment_impl
 
         // We require 2 * sizeof(__val_type) * __wgroup_size of SLM for the work group segmented scan. We add
         // an additional sizeof(__val_type) * __wgroup_size requirement to ensure sufficient SLM for the group algorithms.
-        __wgroup_size = oneapi::dpl::__internal::__max_local_allocation_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                             3 * sizeof(__val_type), __wgroup_size);
+        __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(::std::forward<_ExecutionPolicy>(__exec),
+                                                                                3 * sizeof(__val_type), __wgroup_size);
 
 #    if _ONEDPL_COMPILE_KERNEL
         auto __kernel1 = __par_backend_hetero::__internal::__kernel_compiler<_SegScanKernel1>::__compile(
@@ -134,7 +134,7 @@ struct sycl_scan_by_segment_impl
              oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel2)});
 #    endif
 
-        ::std::size_t __n_groups = __par_backend_hetero::__ceiling_div(__n, __wgroup_size * __vals_per_item);
+        ::std::size_t __n_groups = __internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
         auto __partials =
             oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups)

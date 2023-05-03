@@ -110,8 +110,6 @@ exclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
     if (n <= 0)
         return result;
 
-    typedef ::std::uint64_t CountType;
-
     namespace __bknd = oneapi::dpl::__par_backend_hetero;
 
     auto keep_keys = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
