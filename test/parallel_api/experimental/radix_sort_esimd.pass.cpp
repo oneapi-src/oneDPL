@@ -121,7 +121,7 @@ void test_usm(std::size_t size)
 
     std::cout << "\nInput (size=" << size << "):" << std::endl;
     for( int i = 0; i < std::min(size, out_limit); ++i )
-        std::cout << ref[i] << std::endl;
+        std::cout << std::hex << ref[i] << std::endl;
 
     q.copy(ref, input, size).wait();
     std::sort(ref, ref + size);
@@ -132,7 +132,7 @@ void test_usm(std::size_t size)
 
     std::cout << "Reference - Result:" << std::endl;
     for( int i = 0; i < std::min(size, out_limit); ++i )
-        std::cout << ref[i] << " - " << input[i] << std::endl;
+        std::cout << std::hex << ref[i] << " - " << input[i] << std::endl;
 
     std::string msg = "wrong results with USM, n: " + std::to_string(size);
     EXPECT_EQ_N(ref, input, size, msg.c_str());
