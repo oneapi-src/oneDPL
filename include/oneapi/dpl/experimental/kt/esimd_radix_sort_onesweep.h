@@ -837,9 +837,6 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     // return (__number - 1) / __divisor + 1;
     // -> sweep_tg_count = 3 (?)
 
-    //                                  3 (?)            64
-    const uint32_t sweep_threads = sweep_tg_count * THREAD_PER_TG;  // 192
-
     constexpr uint32_t NBITS =  sizeof(KeyT) * 8;  // 32
     static_assert(NBITS == 32, "");
 
