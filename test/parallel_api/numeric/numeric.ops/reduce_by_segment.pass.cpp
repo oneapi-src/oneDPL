@@ -13,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <complex>
-
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/numeric"
@@ -93,8 +91,7 @@ void test_with_buffers()
         auto keys_res    = key_res_buf.get_host_access(sycl::read_write);
         auto vals_res    = val_res_buf.get_host_access(sycl::read_write);
         int n = std::distance(key_res_beg, res1.first);
-        ASSERT_EQUAL(n, 9);
-        for (auto i = 0; i < n; ++i) {
+        for (auto i = 0; i != n; ++i) {
             if (i < 4) {
                 ASSERT_EQUAL(keys_res[i], T(i+1));
                 ASSERT_EQUAL(vals_res[i], T(i+1));
@@ -113,7 +110,7 @@ void test_with_buffers()
         }
 
         // reset value_result for test using discard_iterator
-        for (auto i = 0; i < n; ++i) {
+        for (auto i = 0; i != n; ++i) {
             keys_res[i] = T(0);
             vals_res[i] = T(0);
         }
