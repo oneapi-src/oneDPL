@@ -571,10 +571,7 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
 
         simd<device_addr_t, PROCESS_SIZE> global_offset = group_offset + l.template lookup<PROCESS_SIZE>(bins);
 
-        utils::VectorStore</* typename T */ KeyT,
-                           /* int VSize  */ 1,
-                           /* int LANES  */ PROCESS_SIZE>(p_output, global_offset * sizeof(KeyT), keys,
-                                                          global_offset < n);
+        utils::VectorStore<KeyT, 1, PROCESS_SIZE>(p_output, global_offset * sizeof(KeyT), keys, global_offset < n);
     }
 }
 
@@ -781,23 +778,10 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 
     for (::std::uint32_t __stage = 0; __stage < STAGES; __stage++)
     {
-        __radix_sort_onesweep_submitter<KeyT,                       // typename KeyT
-                                        RADIX_BITS,                 // ::std::uint32_t RADIX_BITS
-                                        THREAD_PER_TG,              // ::std::uint32_t THREAD_PER_TG
-                                        SWEEP_PROCESSING_SIZE,      // ::std::uint32_t PROCESS_SIZE
-                                        IsAscending,                // bool IsAscending
-                                        _EsimRadixSort>             // typename... _Name
-            onesweep_submitter;
-
-        __e = onesweep_submitter(
-                ::std::forward<_ExecutionPolicy>(__exec),   // _ExecutionPolicy&& __exec
-                ::std::forward<_Range>(__rng),              // _Range&& __rng
-                __output,                                   // _Output& __output
-                tmp_buffer,                                 // _TmpData& __tmp_data
-                sweep_tg_count,                             // ::std::uint32_t __sweep_tg_count
-                __n,                                        // ::std::size_t __n
-                __stage,                                    // ::std::uint32_t __stage
-                __e);                                       // const sycl::event& __e
+        __e = __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, SWEEP_PROCESSING_SIZE, IsAscending,
+                                              _EsimRadixSort>()(::std::forward<_ExecutionPolicy>(__exec),
+                                                                ::std::forward<_Range>(__rng), __output, tmp_buffer,
+                                                                sweep_tg_count, __n, __stage, __e);
     }
     __e.wait();
 }
