@@ -499,8 +499,6 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     uint32_t slm_lookup_subgroup = slm_lookup_workgroup + local_tid * sizeof(hist_t) * BIN_COUNT;
     //uint32_t slm_lookup_global = slm_lookup_start;
 
-    //global_hist_t * p_lookup_this = p_lookup+wg_
-
     simd<hist_t, BIN_COUNT> bin_offset;
     simd<hist_t, PROCESS_SIZE> ranks;
     simd<KeyT, PROCESS_SIZE> keys;
@@ -745,12 +743,10 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 
     const     uint32_t SYNC_BUFFER_SIZE   = sizeof(global_hist_t) * BINCOUNT * STAGES * sweep_tg_count; //bytes
     constexpr uint32_t GLOBAL_OFFSET_SIZE = sizeof(global_hist_t) * BINCOUNT * STAGES;
-    const     uint32_t LOOKUP_BUFFER_SIZE = sizeof(global_hist_t) * BINCOUNT * sweep_tg_count;
     constexpr uint32_t JOB_QUEUE_SIZE = 256;
     const size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
                                     SYNC_BUFFER_SIZE +   // sync buffer
-                                    JOB_QUEUE_SIZE +     // dynamic job queue
-                                    LOOKUP_BUFFER_SIZE;  // L1 lookup buffer
+                                    JOB_QUEUE_SIZE;      // dynamic job queue
 
     auto queue = __exec.queue();
 
@@ -761,7 +757,6 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
     auto p_sync_buffer   = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
     //auto p_job_queue     = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE);
-    auto p_lookup        = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE + JOB_QUEUE_SIZE);
 
     auto __output = sycl::malloc_device<uint32_t>(__n, queue);
     SyclFreeOnDestroy __output_free(queue, __output);
