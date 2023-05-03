@@ -743,9 +743,9 @@ sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _Ran
     oneapi::dpl::__internal::__pattern_sort_by_key(
         ::std::forward<_ExecutionPolicy>(__exec), __keys_first, __keys_last, __values_first, __comp,
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator1,
-                                                              _RandomAccessIterator2>(__exec),
+            _RandomAccessIterator2>(__exec),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator1,
-                                                                _RandomAccessIterator2>(__exec));
+            _RandomAccessIterator2>(__exec));
 }
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2>
