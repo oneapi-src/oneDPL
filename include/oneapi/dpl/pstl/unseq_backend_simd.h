@@ -64,19 +64,6 @@ __simd_walk_3(_Iterator1 __first1, _DifferenceType __n, _Iterator2 __first2, _It
     return __first3 + __n;
 }
 
-template <class _Iterator1, class _DifferenceType, class _Iterator2, class _Iterator3, class _Function,
-          class _Predicate>
-_Iterator3
-__simd_mask_walk_2(_Iterator1 __first1, _DifferenceType __n, _Iterator2 __first2, _Iterator3 __first3, _Function __f,
-                   _Predicate __pred) noexcept
-{
-    _ONEDPL_PRAGMA_SIMD
-    for (_DifferenceType __i = 0; __i < __n; ++__i)
-        if (__pred(__first2[__i]))
-            __f(__first1[__i], __first3[__i]);
-    return __first3 + __n;
-}
-
 // TODO: check whether __simd_first() can be used here
 template <class _Index, class _DifferenceType, class _Pred>
 bool

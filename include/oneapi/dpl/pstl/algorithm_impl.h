@@ -299,27 +299,6 @@ __brick_walk2_n(_RandomAccessIterator1 __first1, _Size __n, _RandomAccessIterato
     return __unseq_backend::__simd_walk_2(__first1, __n, __first2, __f);
 }
 
-template <class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator3, class _Function, class _Predicate>
-_ForwardIterator3
-__brick_mask_walk2(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
-                   _ForwardIterator3 __first3, _Function __f, _Predicate __pred, /*vector=*/::std::false_type) noexcept
-{
-    for (; __first1 != __last1; ++__first1, ++__first2, ++__first3)
-        if (__pred(*__first2))
-            __f(*__first1, *__first3);
-    return __first3;
-}
-
-template <class _RandomAccessIterator1, class _RandomAccessIterator2, class _RandomAccessIterator3, class _Function,
-          class _Predicate>
-_RandomAccessIterator3
-__brick_mask_walk2(_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
-                   _RandomAccessIterator3 __first3, _Function __f, _Predicate __pred,
-                   /*vector=*/::std::true_type) noexcept
-{
-    return __unseq_backend::__simd_mask_walk_2(__first1, __last1 - __first1, __first2, __first3, __f, __pred);
-}
-
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 __pattern_walk2(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
