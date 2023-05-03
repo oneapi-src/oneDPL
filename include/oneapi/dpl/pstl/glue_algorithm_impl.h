@@ -365,9 +365,6 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result,
              _UnaryOperation __op, _UnaryPredicate __pred)
 {
-    typedef typename ::std::iterator_traits<_ForwardIterator1>::reference _ReferenceType1;
-    typedef typename ::std::iterator_traits<_ForwardIterator2>::reference _ReferenceType2;
-
     return oneapi::dpl::__internal::__pattern_walk2_transform_if(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
         oneapi::dpl::__internal::__invoke_unary_op_if<_UnaryOperation, _UnaryPredicate>{::std::move(__op),
@@ -384,10 +381,6 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
              _ForwardIterator2 __first2, _ForwardIterator3 __result, _BinaryOperation __op, _BinaryPredicate __pred)
 {
-    typedef typename ::std::iterator_traits<_ForwardIterator1>::reference _ReferenceType1;
-    typedef typename ::std::iterator_traits<_ForwardIterator2>::reference _ReferenceType2;
-    typedef typename ::std::iterator_traits<_ForwardIterator3>::reference _ReferenceType3;
-
     return oneapi::dpl::__internal::__pattern_walk3_transform_if(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
         oneapi::dpl::__internal::__transform_if_functor<
