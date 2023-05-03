@@ -22,6 +22,46 @@
 
 using namespace TestUtils;
 
+template <typename T1, typename T2>
+struct mutable_negate_first
+{
+    T1
+    operator()(const T1& a, const T2&) //explicitly not const
+    {
+        return -a;
+    }
+};
+
+template <typename T>
+struct mutable_negate
+{
+    T
+    operator()(const T& a) //explicitly not const
+    {
+        return -a;
+    }
+};
+
+template <typename T1, typename T2>
+struct mutable_check_mask_second
+{
+    bool
+    operator()(const T1&, const T2& b) //explicitly not const
+    {
+        return b == 1;
+    }
+};
+
+template <typename T>
+struct mutable_check_mod3_is_0
+{
+    bool
+    operator()(const T& a) //explicitly not const
+    {
+        return (a % 3) == 0;
+    }
+};
+
 struct test_transform_if_binary
 {
     template <typename It1, typename It2, typename Out, typename Size>
@@ -74,9 +114,11 @@ struct test_transform_if_binary
     operator()(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIterator2 mask,
                InputIterator2 /* mask_end */, OutputIterator result, OutputIterator result_end, Size n)
     {
+        using value_type1 = typename ::std::iterator_traits<InputIterator1>::value_type;
+        using value_type2 = typename ::std::iterator_traits<InputIterator2>::value_type;
         // call transform_if
-        oneapi::dpl::transform_if(exec, first, last, mask, result, [](const auto& a, const auto& b) { return -a; },
-                                  [](const auto& a, const auto& b) { return b == 1; });
+        oneapi::dpl::transform_if(exec, first, last, mask, result, mutable_negate_first<value_type1, value_type2>{},
+                                  mutable_check_mask_second<value_type1, value_type2>{});
 
         EXPECT_TRUE(check(first, last, mask, result, n), "transform_if binary wrong result");
         // reset output elements to 0
@@ -110,10 +152,10 @@ struct test_transform_if_unary
     operator()(Policy&& exec, InputIterator1 first, InputIterator1 last, OutputIterator result,
                OutputIterator result_end, Size n)
     {
+        using value_type1 = typename ::std::iterator_traits<InputIterator1>::value_type;
         // call transform_if
-        oneapi::dpl::transform_if(exec, first, last, result,
-                                  ::std::negate<typename ::std::iterator_traits<InputIterator1>::value_type>(),
-                                  [](const auto& a) { return a % 3 == 0; });
+        oneapi::dpl::transform_if(exec, first, last, result, mutable_negate<value_type1>{},
+                                  mutable_check_mod3_is_0<value_type1>{});
 
         EXPECT_TRUE(check(first, last, result, n), "transform_if unary wrong result");
         // reset output elements to 0

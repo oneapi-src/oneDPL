@@ -292,8 +292,8 @@ class __transform_functor
 template <typename __UnaryOper, typename __UnaryPred>
 class __transform_if_unary_functor
 {
-    __UnaryOper _M_oper;
-    __UnaryPred _M_pred;
+    mutable __UnaryOper _M_oper;
+    mutable __UnaryPred _M_pred;
 
   public:
     explicit __transform_if_unary_functor(__UnaryOper __op, __UnaryPred __pred) : _M_oper(__op), _M_pred(__pred) {}
@@ -310,8 +310,8 @@ class __transform_if_unary_functor
 template <typename __BinaryOper, typename __BinaryPred>
 class __transform_if_binary_functor
 {
-    __BinaryOper _M_oper;
-    __BinaryPred _M_pred;
+    mutable __BinaryOper _M_oper;
+    mutable __BinaryPred _M_pred;
 
   public:
     explicit __transform_if_binary_functor(__BinaryOper __op, __BinaryPred __pred) : _M_oper(__op), _M_pred(__pred) {}
