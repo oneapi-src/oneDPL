@@ -256,9 +256,9 @@ struct __walk2_transform_if_wrapper
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 __pattern_walk2_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                        _ForwardIterator2 __first2, _Function __func,
-                       /*vector=*/::std::true_type,
-                       /*parallel=*/::std::true_type)
+                             _ForwardIterator2 __first2, _Function __func,
+                             /*vector=*/::std::true_type,
+                             /*parallel=*/::std::true_type)
 {
     return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read,
                            __par_backend_hetero::access_mode::read_write>(
@@ -277,9 +277,9 @@ template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _Forwa
           typename _Function>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator3>
 __pattern_walk3_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                       _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __func,
-                       /*vector=*/::std::true_type,
-                       /*parallel=*/::std::true_type)
+                             _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __func,
+                             /*vector=*/::std::true_type,
+                             /*parallel=*/::std::true_type)
 {
     return __pattern_walk3<__par_backend_hetero::access_mode::read, __par_backend_hetero::access_mode::read,
                            __par_backend_hetero::access_mode::read_write>(

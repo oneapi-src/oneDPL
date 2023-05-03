@@ -566,8 +566,8 @@ template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _Forwa
           typename _Function, class _IsVector, class _IsParallel>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator3>
 __pattern_walk3_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                       _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __func,
-                       _IsVector __is_vector, _IsParallel __is_parallel) noexcept
+                             _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __func,
+                             _IsVector __is_vector, _IsParallel __is_parallel) noexcept
 {
     return __pattern_walk3(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __first3, __func,
                            __is_vector, __is_parallel);
