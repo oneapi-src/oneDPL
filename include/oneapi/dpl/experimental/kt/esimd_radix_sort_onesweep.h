@@ -738,13 +738,13 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     constexpr uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE;
     const uint32_t sweep_tg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, THREAD_PER_TG*SWEEP_PROCESSING_SIZE);
     const uint32_t sweep_threads = sweep_tg_count * THREAD_PER_TG;
-    constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
-    constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
+    constexpr uint32_t NBITS =  sizeof(KeyT) * 8;  // 32
+    constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS /* 32 */, RADIX_BITS /* 8 */);  // -> 4
 
-    const     uint32_t SYNC_BUFFER_SIZE   = sizeof(global_hist_t) * BINCOUNT * STAGES * sweep_tg_count; //bytes
-    constexpr uint32_t GLOBAL_OFFSET_SIZE = sizeof(global_hist_t) * BINCOUNT * STAGES;
+    const     uint32_t SYNC_BUFFER_SIZE   = sizeof(global_hist_t) /* 4 */ * BINCOUNT /* 256 */ * STAGES /* 4 */ * sweep_tg_count /* 1 */; //bytes       // -> 4 Kb
+    constexpr uint32_t GLOBAL_OFFSET_SIZE = sizeof(global_hist_t) /* 4 */ * BINCOUNT /* 256 */ * STAGES /* 4 */;                                        // -> 4 Kb
     const size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
-                                    SYNC_BUFFER_SIZE;    // sync buffer
+                                    SYNC_BUFFER_SIZE;    // sync buffer         // ~ 4 Kb
 
     auto queue = __exec.queue();
 
@@ -752,15 +752,16 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     SyclFreeOnDestroy tmp_buffer_free(queue, tmp_buffer);
     queue.memset(tmp_buffer, 0, temp_buffer_size).wait();
 
-    auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
-    auto p_sync_buffer   = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
+    auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);                         // GLOBAL_OFFSET_SIZE
+    auto p_sync_buffer   = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);    // SYNC_BUFFER_SIZE
 
     auto __output = sycl::malloc_device<uint32_t>(__n, queue);
     SyclFreeOnDestroy __output_free(queue, __output);
     queue.memset(__output, 0, __n).wait();
 
+    static_assert(GLOBAL_OFFSET_SIZE >= 128);
     sycl::event __e = __radix_sort_onesweep_histogram_submitter<
-        KeyT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending, _EsimRadixSortHistogram>()(
+        KeyT, RADIX_BITS, HW_TG_COUNT /* 64 */, THREAD_PER_TG  /* 64 */, IsAscending, _EsimRadixSortHistogram>()(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), p_global_offset, p_sync_buffer, __n);
 
     __e = __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT, _EsimRadixSortScan>()(
