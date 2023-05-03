@@ -82,7 +82,7 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
         // TODO: pass _ProcessSize according to __n
         // TODO: fix when compiled in -O0 mode: "esimd_radix_sort_one_wg.h : 54 : 5>: SLM init call is supported only in kernels"
         // TODO: how to choice correct size of work group from 256, 384, 416 ?
-        oneapi::dpl::experimental::esimd::impl::onesweep<_ExecutionPolicy, _KeyT, _Range, RadixBits, IsAscending, /*_ProcessSize*/ 256>(
+        oneapi::dpl::experimental::esimd::impl::onesweep<_ExecutionPolicy, _KeyT, _Range, RadixBits, IsAscending, /*_ProcessSize*/ 416>(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n);
     }
 }
