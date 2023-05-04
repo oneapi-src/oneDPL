@@ -797,8 +797,11 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);  // -> 4
     static_assert(STAGES == 4, "");
 
-    //                                                          4                 256        4
-    constexpr uint32_t GLOBAL_OFFSET_SIZE = 40 * 1024 * sizeof(global_hist_t) * BINCOUNT * STAGES;                  // -> 4 Kb
+    //                                                        4                 256        4
+    constexpr uint32_t GLOBAL_OFFSET_SIZE = 512 + 2 * sizeof(global_hist_t) * BINCOUNT * STAGES;                  // -> 4 Kb
+    // this requirement based on analysisof the global_histogram function
+    static_assert(GLOBAL_OFFSET_SIZE >= 8576, "");
+
     //                                              4                 256        4            3 (?)
     const     uint32_t SYNC_BUFFER_SIZE   = sizeof(global_hist_t) * BINCOUNT * STAGES * sweep_tg_count; //bytes     // -> 12 Kb
     const size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
