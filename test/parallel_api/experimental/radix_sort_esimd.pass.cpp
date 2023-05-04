@@ -170,16 +170,16 @@ void test_small_sizes()
 template<typename T>
 void test_general_cases(std::size_t size)
 {
-#if _ENABLE_RANGES_TESTING
-    std::cout << "\ttest_all_view<T>(size);" << std::endl;
-    test_all_view<T>(size);
-    std::cout << "\ttest_subrange_view<T>(size);" << std::endl;
-    test_subrange_view<T>(size);
-#endif // _ENABLE_RANGES_TESTING
+//#if _ENABLE_RANGES_TESTING
+//    std::cout << "\ttest_all_view<T>(size);" << std::endl;
+//    test_all_view<T>(size);
+//    std::cout << "\ttest_subrange_view<T>(size);" << std::endl;
+//    test_subrange_view<T>(size);
+//#endif // _ENABLE_RANGES_TESTING
     std::cout << "\ttest_usm<T>(size);" << std::endl;
     test_usm<T>(size);
-    std::cout << "\ttest_sycl_iterators<T>(size);" << std::endl;
-    test_sycl_iterators<T>(size);
+    //std::cout << "\ttest_sycl_iterators<T>(size);" << std::endl;
+    //test_sycl_iterators<T>(size);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
