@@ -131,7 +131,7 @@ inclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
     internal::__buffer<policy_type, FlagType> _mask(policy, n);
     {
         auto mask_buf = _mask.get_buffer();
-        auto mask = mask_buf.template get_access<sycl::access::mode::read_write>();
+        auto mask = mask_buf.get_host_access(sycl::read_write);
 
         mask[0] = initial_mask;
     }
