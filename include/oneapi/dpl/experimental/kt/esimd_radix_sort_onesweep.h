@@ -325,7 +325,7 @@ protected:
                 sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(KeyT));
                 keys.template select<CHUNK_SIZE, 1>(s) = 
                     merge(
-                        lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(p_input, offset),
+                        lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(p_input, offset, m),
                         simd<KeyT, CHUNK_SIZE>(default_key),
                         m);
             }
