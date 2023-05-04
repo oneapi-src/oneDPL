@@ -595,14 +595,14 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
     operator()(const _Policy& __policy, _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n, _InitType __init,
                _BinaryOperation __bin_op, _UnaryOp __unary_op)
     {
-        using _ValueType = uint16_t;
+        using _ValueType = ::std::uint16_t;
 
         // This type is used as a workaround for when an internal tuple is assigned to ::std::tuple, such as
         // with zip_iterator
         using __tuple_type = typename ::oneapi::dpl::__internal::__get_tuple_type<
             typename ::std::decay_t<decltype(__in_rng[0])>, typename ::std::decay_t<decltype(__out_rng[0])>>::__type;
 
-        constexpr ::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
+        constexpr ::std::uint32_t __elems_per_wg = _ElemsPerItem * _WGSize;
 
         sycl::buffer<_Size> __res(sycl::range<1>(1));
 
@@ -872,7 +872,7 @@ __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out
         __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 4;
     const auto __req_slm_size = sizeof(::std::uint16_t) * __n_uniform;
 
-    constexpr int __single_group_upper_limit = 16384;
+    constexpr ::std::uint16_t __single_group_upper_limit = 16384;
 
     ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
