@@ -78,8 +78,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
 
     for (uint32_t stage=0; stage < STAGES; stage++) {
         // bins = (keys >> (stage * RADIX_BITS)) & MASK;
-        bins = oneapi::dpl::experimental::esimd::impl::utils::__get_bucket<MASK>(
-            oneapi::dpl::experimental::esimd::impl::utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
+        bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
         bin_offset = 0;
         #pragma unroll
