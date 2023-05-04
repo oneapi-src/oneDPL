@@ -73,7 +73,7 @@ void test_all_view(std::size_t size)
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(input, ref, msg.c_str());
+    EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
 template<typename T>
@@ -95,7 +95,7 @@ void test_subrange_view(std::size_t size)
     q.copy(input, host_input, size).wait();
 
     std::string msg = "wrong results with views::subrange, n: " + std::to_string(size);
-    EXPECT_EQ_N(input, ref, size, msg.c_str());
+    EXPECT_EQ_N(ref, input, size, msg.c_str());
 
     sycl::free(input, q);
     sycl::free(ref, q);
@@ -119,7 +119,7 @@ void test_usm(std::size_t size)
     q.copy(input, host_input, size).wait();
 
     std::string msg = "wrong results with USM, n: " + std::to_string(size);
-    EXPECT_EQ_N(input, ref, size, msg.c_str());
+    EXPECT_EQ_N(ref, input, size, msg.c_str());
 
     sycl::free(input, q);
     sycl::free(ref, q);
@@ -140,7 +140,7 @@ void test_sycl_iterators(std::size_t size)
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::end(input));
 
     std::string msg = "wrong results with sycl_iterator, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(input, ref, msg.c_str());
+    EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
 void test_small_sizes()
@@ -153,9 +153,9 @@ void test_small_sizes()
     std::vector<uint32_t> ref(input);
 
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
-    EXPECT_EQ_RANGES(input, ref, "sort modified input data when size == 0");
+    EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
-    EXPECT_EQ_RANGES(input, ref, "sort modified input data when size == 1");
+    EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
 // TODO: add ascending and descending sorting orders
