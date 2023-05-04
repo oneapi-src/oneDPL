@@ -510,6 +510,9 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
 }
 
 //----------------------------------------------------------------------------//
+// RADIX_BITS = 8
+// SG_PER_WG = THREAD_PER_TG = 64
+// PROCESS_SIZE = 416
 template <typename KeyT, typename InputT, typename OutputT,
           uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE,
           bool IsAscending>
@@ -522,12 +525,14 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     using namespace __ESIMD_ENS;
     slm_init(128 * 1024);
 
+    // [0...64)
     uint32_t local_tid = idx.get_local_linear_id();
     // static job queue
     uint32_t wg_id = idx.get_group(0);
     uint32_t wg_size = idx.get_local_range(0);
     uint32_t wg_count = idx.get_group_range(0);
 
+    //              4          8           32
     static_assert(STAGES * RADIX_BITS == NBITS, "");
 
     // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  PROCESS_SIZE = 256, BIN_COUNT = 256
@@ -673,19 +678,24 @@ struct __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT,
     template <typename _ExecutionPolicy, typename _GlobalOffsetData,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
     sycl::event
-    operator()(_ExecutionPolicy&& __exec, _GlobalOffsetData& __global_offset_data, ::std::size_t __n, const sycl::event __e) const
+    operator()(_ExecutionPolicy&& __exec, _GlobalOffsetData& p_global_offset, ::std::size_t __n, const sycl::event __e) const
     {
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
+        //                             4        256        256
         sycl::nd_range<1> __nd_range(STAGES * BINCOUNT, BINCOUNT);
         return __exec.queue().submit([&](sycl::handler& __cgh) {
             __cgh.depends_on(__e);
             __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) {
+                        // [0...1024)
                         uint32_t __offset = __nd_item.get_global_id(0);
+                        // Return the constituent work-group, group representing the work-group's position within the overall nd-range.
                         auto __g = __nd_item.get_group();
-                        uint32_t __count = __global_offset_data[__offset];
+                        //                                 [0...1024)
+                        uint32_t __count = p_global_offset[__offset];
                         uint32_t __presum = sycl::exclusive_scan_over_group(__g, __count, sycl::plus<::std::uint32_t>());
-                        __global_offset_data[__offset] = __presum;
+                        //               [0...1024)
+                        p_global_offset[__offset] = __presum;
                     });
         });
     }
@@ -709,7 +719,15 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                const sycl::event& __e) const
     {
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
+
+        // PROCESS_SIZE = 416 <- SWEEP_PROCESSING_SIZE
+        // THREAD_PER_TG = 64
+        // __n == 79873 -> __groups = (79873 - 1) / (416 * 64) + 1
+        //                 __groups = 4 (~)
+        // return (__number - 1) / __divisor + 1;
         ::std::uint32_t __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE * THREAD_PER_TG);
+
+        //                                3                  64             64
         sycl::nd_range<1> __nd_range(__sweep_tg_count * THREAD_PER_TG, THREAD_PER_TG);
 
         return __exec.queue().submit([&](sycl::handler& __cgh)
