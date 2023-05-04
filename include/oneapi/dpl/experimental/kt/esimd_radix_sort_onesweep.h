@@ -20,6 +20,31 @@
 
 #include <cstdint>
 
+#define LOG_CALC_STATE 1
+
+#if LOG_CALC_STATE
+#include <iostream>
+#include <string>
+#endif
+
+#if LOG_CALC_STATE
+namespace
+{
+template <typename T>
+void
+print_buffer(std::ostream& os, const T* buffer, ::std::size_t buf_size, ::std::size_t lineLength = 80)
+{
+    for (::std::size_t i = 0; i < buf_size; ++i)
+    {
+        os << buffer[i] << ", ";
+
+        if (i > 0 && i % lineLength == 0)
+            os << ::std::endl;
+    }
+}
+};  // namespace
+#endif
+
 namespace oneapi::dpl::experimental::esimd::impl
 {
 template <typename T>
@@ -780,6 +805,9 @@ template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint
           bool IsAscending /* = true */, ::std::uint32_t PROCESS_SIZE>
 void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 {
+#if LOG_CALC_STATE
+    constexpr char tabStr[] = "\t\t\t\t";
+#endif
     static_assert(PROCESS_SIZE == 256 || PROCESS_SIZE == 384 || PROCESS_SIZE == 416,
                   "We are able to setup PROCESS_SIZE only as 256, 384 or 416");
 
@@ -821,15 +849,25 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     constexpr uint32_t GLOBAL_OFFSET_SIZE = 512 + 2 * sizeof(global_hist_t) * BINCOUNT * STAGES;                  // -> 4 Kb
     // this requirement based on analysisof the global_histogram function
     static_assert(GLOBAL_OFFSET_SIZE >= 8576, "");
+#if LOG_CALC_STATE
+    ::std::cout << tabStr << "GLOBAL_OFFSET_SIZE = " << GLOBAL_OFFSET_SIZE << ::std::endl;
+#endif
 
     //                                              4                 256        4            3 (?)
     const     uint32_t SYNC_BUFFER_SIZE   = sizeof(global_hist_t) * BINCOUNT * STAGES * sweep_tg_count; //bytes     // -> 12 Kb
+#if LOG_CALC_STATE
+    ::std::cout << tabStr << "SYNC_BUFFER_SIZE = " << SYNC_BUFFER_SIZE << ::std::endl;
+#endif
+
     const size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
                                     SYNC_BUFFER_SIZE;    // sync buffer         // ~ 4 Kb
 
     auto queue = __exec.queue();
 
     uint8_t* tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, queue);
+#if LOG_CALC_STATE
+    ::std::cout << tabStr << "uint8_t* tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, queue); : temp_buffer_size = " << temp_buffer_size << std::endl;
+#endif
     SyclFreeOnDestroy tmp_buffer_free(queue, tmp_buffer);
     queue.memset(tmp_buffer, 0, temp_buffer_size).wait();
 
@@ -837,6 +875,9 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     auto p_sync_buffer   = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);    // SYNC_BUFFER_SIZE
 
     auto __output = sycl::malloc_device<uint32_t>(__n, queue);
+#if LOG_CALC_STATE
+    ::std::cout << tabStr << "auto __output = sycl::malloc_device<uint32_t>(__n, queue); : __n = " << __n << std::endl;
+#endif
     SyclFreeOnDestroy __output_free(queue, __output);
     queue.memset(__output, 0, __n).wait();
 
@@ -845,8 +886,25 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
         KeyT, RADIX_BITS, HW_TG_COUNT /* 64 */, THREAD_PER_TG  /* 64 */, IsAscending, _EsimRadixSortHistogram>()(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), p_global_offset, p_sync_buffer, __n);
 
+#if LOG_CALC_STATE
+    ::std::cout << tabStr << "state after __radix_sort_onesweep_histogram_submitter call : " << std::endl;
+    ::std::cout << tabStr << "p_global_offset : " << std::endl;
+    print_buffer(::std::cout, p_global_offset, GLOBAL_OFFSET_SIZE);
+    ::std::cout << tabStr << "p_sync_buffer : " << std::endl;
+    print_buffer(::std::cout, p_sync_buffer, SYNC_BUFFER_SIZE);
+#endif
+
     __e = __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT, _EsimRadixSortScan>()(
         ::std::forward<_ExecutionPolicy>(__exec), p_global_offset, __n, __e);
+
+#if LOG_CALC_STATE
+    __e.wait();
+    ::std::cout << tabStr << "state after __radix_sort_onesweep_scan_submitter call : " << std::endl;
+    ::std::cout << tabStr << "p_global_offset : " << std::endl;
+    print_buffer(::std::cout, p_global_offset, GLOBAL_OFFSET_SIZE);
+    ::std::cout << tabStr << "p_sync_buffer : " << std::endl;
+    print_buffer(::std::cout, p_sync_buffer, SYNC_BUFFER_SIZE);
+#endif
 
     for (::std::uint32_t __stage = 0; __stage < STAGES; __stage++)
     {
@@ -854,6 +912,15 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
                                               _EsimRadixSort>()(::std::forward<_ExecutionPolicy>(__exec),
                                                                 ::std::forward<_Range>(__rng), __output, tmp_buffer,
                                                                 sweep_tg_count, __n, __stage, __e);
+
+#if LOG_CALC_STATE
+        __e.wait();
+        ::std::cout << tabStr << "state after __radix_sort_onesweep_submitter call : stage " << __stage << std::endl;
+        ::std::cout << tabStr << "__output : " << std::endl;
+        print_buffer(::std::cout, __output, __n);
+        ::std::cout << tabStr << "tmp_buffer : " << std::endl;
+        print_buffer(::std::cout, tmp_buffer, temp_buffer_size);
+#endif
     }
     __e.wait();
 }
