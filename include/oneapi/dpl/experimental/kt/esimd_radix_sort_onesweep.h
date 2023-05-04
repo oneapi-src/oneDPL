@@ -92,8 +92,7 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
         for (uint32_t stage = 0; stage < STAGES; stage++)
         {
             // bins = (keys >> (stage * RADIX_BITS)) & MASK;
-            bins = oneapi::dpl::experimental::esimd::impl::utils::__get_bucket<MASK>(
-                oneapi::dpl::experimental::esimd::impl::utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
+            bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
             #pragma unroll
             for (uint32_t s = 0; s < PROCESS_SIZE; s++)
@@ -212,8 +211,7 @@ void onesweep_kernel(sycl::nd_item<1> idx, uint32_t __n, uint32_t stage, const I
             }
         }
         // bins = (keys >> (stage * RADIX_BITS)) & MASK;
-        bins = oneapi::dpl::experimental::esimd::impl::utils::__get_bucket<MASK>(
-            oneapi::dpl::experimental::esimd::impl::utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
+        bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
         bin_offset = 0;
 
@@ -352,8 +350,7 @@ void onesweep_kernel(sycl::nd_item<1> idx, uint32_t __n, uint32_t stage, const I
                 keys = merge(source, simd<KeyT, BLOCK_SIZE>(-1), m);
 
                 // bins = (keys >> (stage * RADIX_BITS)) & MASK;
-                bins = oneapi::dpl::experimental::esimd::impl::utils::__get_bucket<MASK>(
-                    oneapi::dpl::experimental::esimd::impl::utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
+                bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
                 #pragma unroll
                 for (uint32_t s = 0; s<BLOCK_SIZE; s+=1) {
