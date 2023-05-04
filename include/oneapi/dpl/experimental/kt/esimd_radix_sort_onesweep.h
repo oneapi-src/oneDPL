@@ -65,10 +65,16 @@ create_simd(T initial, T step)
 }
 
 
-template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t TG_COUNT, uint32_t THREAD_PER_TG, bool IsAscending>
+template <typename KeyT, typename InputT, uint32_t RADIX_BITS /* 8 */, uint32_t TG_COUNT /* 64 */,
+          uint32_t THREAD_PER_TG /* 64 */,
+          bool IsAscending>
 void
-global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer)
+global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t* p_global_offset, uint32_t* p_sync_buffer)
 {
+    static_assert(RADIX_BITS    == 8,  "");
+    static_assert(TG_COUNT      == 64, "");
+    static_assert(THREAD_PER_TG == 64, "");
+
     using bin_t = uint16_t;
     using hist_t = uint32_t;
     using global_hist_t = uint32_t;
@@ -80,21 +86,41 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
     using device_addr_t = uint32_t;
 
     slm_init(16384);
-    constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
-    constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
-    constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
-    constexpr uint32_t PROCESS_SIZE = 128;
-    constexpr uint32_t addr_step = TG_COUNT * THREAD_PER_TG * PROCESS_SIZE;
+    constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;                                                  // 256
+    static_assert(BINCOUNT == 256, "");
 
-    uint32_t local_tid = idx.get_local_linear_id();
-    uint32_t tid = idx.get_global_linear_id();
+    constexpr uint32_t NBITS = sizeof(KeyT) * 8;                                                    // 32
+    static_assert(NBITS == 32, "");
+
+    constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);      // 4
+    static_assert(STAGES == 4, "");
+
+    constexpr uint32_t PROCESS_SIZE = 128;
+    constexpr uint32_t addr_step = TG_COUNT * THREAD_PER_TG * PROCESS_SIZE;                         // 64 * 64 * 128 = 524'288
+
+    //                                4096 = 64 * 64                64
+    //sycl::nd_range<1> __nd_range(HW_TG_COUNT * THREAD_PER_TG, THREAD_PER_TG);
+    // -> as described at https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#sec:multi-dim-linearization
+    //    local_tid = [0...64)
+    const uint32_t local_tid = idx.get_local_linear_id();
+
+    //    tid  = [0...4096)
+    const uint32_t tid = idx.get_global_linear_id();
 
     constexpr uint32_t SYNC_SEGMENT_COUNT = 64;
     constexpr uint32_t SYNC_SEGMENT_SIZE_DW = 128;
+
+    //  [0...4096)    64
     if (tid < SYNC_SEGMENT_COUNT)
     {
-        simd<uint32_t, SYNC_SEGMENT_SIZE_DW> sync_init = 0;
+        //                   128
+        simd<uint32_t, SYNC_SEGMENT_SIZE_DW> sync_init = 0;                     // sizeof(sync_init) == 512
+        static_assert(sizeof(sync_init) == 128 * sizeof(uint32_t), "");
+
+        //                                       128             [0...4096) -> [0...64) see if above
         sync_init.copy_to(p_sync_buffer + SYNC_SEGMENT_SIZE_DW * tid);
+
+        // this ^ mean that p_sync_buffer should have at least 8576 bytes !!!
     }
 
     if ((tid - local_tid) * PROCESS_SIZE > __n)
@@ -165,11 +191,22 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
 
     {
         // bin count 256, 4 stages, 1K uint32_t, by 64 threads, happen to by 16-wide each thread. will not work for other config.
-        constexpr uint32_t BUFFER_SIZE = STAGES * BINCOUNT;
-        constexpr uint32_t THREAD_SIZE = BUFFER_SIZE / THREAD_PER_TG;
-        simd<global_hist_t, THREAD_SIZE> group_hist = slm_block_load<global_hist_t, THREAD_SIZE>(local_tid*THREAD_SIZE*sizeof(global_hist_t));
+        constexpr uint32_t BUFFER_SIZE = STAGES * BINCOUNT;                                         // 1024
+        static_assert(BUFFER_SIZE == 1024, "");
+
+        constexpr uint32_t THREAD_SIZE = BUFFER_SIZE / THREAD_PER_TG;                               // 16
+        static_assert(THREAD_SIZE == 16, "");
+
+        static_assert(sizeof(global_hist_t) == 4, "");
+
+        //    uint32_t         16                                                                [0...64)        16                  4
+        simd<global_hist_t, THREAD_SIZE> group_hist = slm_block_load<global_hist_t, THREAD_SIZE>(local_tid * THREAD_SIZE * sizeof(global_hist_t));
+        //    uint32_t         16
         simd<uint32_t, THREAD_SIZE> offset(0, 4);
-        lsc_atomic_update<atomic_op::add>(p_global_offset + local_tid*THREAD_SIZE, offset, group_hist, simd_mask<THREAD_SIZE>(1));
+
+        // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__lsc.html#ga0c96c71c1e8f8055a857a0c36aeebec2
+        //                                                  [0...64)        16                                         16
+        lsc_atomic_update<atomic_op::add>(p_global_offset + local_tid * THREAD_SIZE, offset, group_hist, simd_mask<THREAD_SIZE>(1));
     }
 }
 
@@ -600,18 +637,25 @@ struct __radix_sort_onesweep_histogram_submitter<KeyT, RADIX_BITS, HW_TG_COUNT, 
     template <typename _ExecutionPolicy, typename _Range, typename _GlobalOffsetData, typename _SyncData,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
     sycl::event
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, const _GlobalOffsetData& __global_offset_data, const _SyncData& __sync_data,
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, const _GlobalOffsetData& __p_global_offset, const _SyncData& __p_sync_buffer,
                ::std::size_t __n) const
     {
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
+
+        static_assert(HW_TG_COUNT == 64, "");
+        static_assert(THREAD_PER_TG == 64, "");
+
+        //                              4096 = 64 * 64                64
+        //                           <global size>                <local size>
         sycl::nd_range<1> __nd_range(HW_TG_COUNT * THREAD_PER_TG, THREAD_PER_TG);
         return __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __data = __rng.data();
             __cgh.parallel_for<_Name...>(
-                    __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
+                    __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
+                    {
                         global_histogram<KeyT, decltype(__data), RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending>(
-                            __nd_item, __n, __data, __global_offset_data, __sync_data);
+                            __nd_item, __n, __data, __p_global_offset, __p_sync_buffer);
                     });
         });
     }
@@ -732,17 +776,31 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
             __esimd_radix_sort_onesweep<_CustomName>>;
 
     using global_hist_t = uint32_t;
-    constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
+    constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;                  // -> 256
+    static_assert(BINCOUNT == 256);
     constexpr uint32_t HW_TG_COUNT = 64;
     constexpr uint32_t THREAD_PER_TG = 64;
-    constexpr uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE;
-    const uint32_t sweep_tg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, THREAD_PER_TG*SWEEP_PROCESSING_SIZE);
-    const uint32_t sweep_threads = sweep_tg_count * THREAD_PER_TG;
-    constexpr uint32_t NBITS =  sizeof(KeyT) * 8;  // 32
-    constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS /* 32 */, RADIX_BITS /* 8 */);  // -> 4
+    constexpr uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE;        // 416
+    static_assert(SWEEP_PROCESSING_SIZE == 416, "");
+    //                                                                        79873       64               416
+    const uint32_t sweep_tg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, THREAD_PER_TG * SWEEP_PROCESSING_SIZE);
+    // return (__number - 1) / __divisor + 1;
+    // -> sweep_tg_count = 3 (?)
 
-    constexpr uint32_t GLOBAL_OFFSET_SIZE = 40 * 1024 * sizeof(global_hist_t) /* 4 */ * BINCOUNT /* 256 */ * STAGES /* 4 */;                                        // -> 4 Kb
-    const     uint32_t SYNC_BUFFER_SIZE   = sizeof(global_hist_t) /* 4 */ * BINCOUNT /* 256 */ * STAGES /* 4 */ * sweep_tg_count /* 1 */; //bytes       // -> 4 Kb
+    //                                  3 (?)            64
+    const uint32_t sweep_threads = sweep_tg_count * THREAD_PER_TG;  // 192
+
+    constexpr uint32_t NBITS =  sizeof(KeyT) * 8;  // 32
+    static_assert(NBITS == 32, "");
+
+    //                                                                      32        8         
+    constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);  // -> 4
+    static_assert(STAGES == 4, "");
+
+    //                                                          4                 256        4
+    constexpr uint32_t GLOBAL_OFFSET_SIZE = 40 * 1024 * sizeof(global_hist_t) * BINCOUNT * STAGES;                  // -> 4 Kb
+    //                                              4                 256        4            3 (?)
+    const     uint32_t SYNC_BUFFER_SIZE   = sizeof(global_hist_t) * BINCOUNT * STAGES * sweep_tg_count; //bytes     // -> 12 Kb
     const size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
                                     SYNC_BUFFER_SIZE;    // sync buffer         // ~ 4 Kb
 
