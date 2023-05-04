@@ -97,6 +97,7 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
 
     constexpr uint32_t PROCESS_SIZE = 128;
     constexpr uint32_t addr_step = TG_COUNT * THREAD_PER_TG * PROCESS_SIZE;                         // 64 * 64 * 128 = 524'288
+    static_assert(addr_step == 524'288, "");
 
     //                                4096 = 64 * 64                64
     //sycl::nd_range<1> __nd_range(HW_TG_COUNT * THREAD_PER_TG, THREAD_PER_TG);
@@ -201,8 +202,9 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
 
         //    uint32_t         16                                                                [0...64)        16                  4
         simd<global_hist_t, THREAD_SIZE> group_hist = slm_block_load<global_hist_t, THREAD_SIZE>(local_tid * THREAD_SIZE * sizeof(global_hist_t));
+        // https://intel.github.io/llvm-docs/doxygen/classsycl_1_1__V1_1_1ext_1_1intel_1_1esimd_1_1detail_1_1simd__obj__impl.html#a02053a36597cfbecc1926d457f18e95a
         //    uint32_t         16
-        simd<uint32_t, THREAD_SIZE> offset(0, 4);
+        simd<uint32_t, THREAD_SIZE> offset(0, 4);           // 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60.
 
         // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__lsc.html#ga0c96c71c1e8f8055a857a0c36aeebec2
         //                                                  [0...64)        16                                         16
