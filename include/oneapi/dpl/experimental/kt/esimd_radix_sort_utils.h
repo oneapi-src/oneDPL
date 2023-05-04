@@ -54,17 +54,18 @@ copy_to(sycl::accessor<T, 1, Mode, sycl::target::device, P> output, ::std::uint3
 
 template <typename T, int N>
 sycl::ext::intel::esimd::simd<T, N>
-gather(const T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset)
+gather(const T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset,
+       sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    return sycl::ext::intel::esimd::gather(input + base_offset, offsets * size32<T>);
+    return sycl::ext::intel::esimd::gather(input + base_offset, offsets * size32<T>, mask);
 }
 
 template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
 sycl::ext::intel::esimd::simd<T, N>
-gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input,
-       sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset)
+gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+       ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    return sycl::ext::intel::esimd::gather<T>(input, offsets * size32<T>, base_offset * size32<T>);
+    return sycl::ext::intel::esimd::gather<T>(input, offsets * size32<T>, base_offset * size32<T>, mask);
 }
 
 template <typename T, int N>
@@ -156,13 +157,13 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_UInt, _N> __src)
 }
 
 template <bool __is_ascending, typename _Int, int _N,
-          std::enable_if_t<::std::is_integral_v<_Int>&& ::std::is_signed_v<_Int>, int> = 0>
+          std::enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
 sycl::ext::intel::esimd::simd<::std::make_unsigned_t<_Int>, _N>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_Int, _N> __src)
 {
     using _UInt = ::std::make_unsigned_t<_Int>;
     // mask: 100..0 for ascending, 011..1 for descending
-    constexpr _UInt __mask = (__is_ascending) ? 1 << ::std::numeric_limits<_Int>::digits : ~_UInt(0) >> 1;
+    constexpr _UInt __mask = (__is_ascending) ? _UInt(1) << ::std::numeric_limits<_Int>::digits : ~_UInt(0) >> 1;
     return __src.template bit_cast_view<_UInt>() ^ __mask;
 }
 
@@ -171,7 +172,7 @@ template <bool __is_ascending, typename _Float, int _N,
 sycl::ext::intel::esimd::simd<::std::uint32_t, _N>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
 {
-    auto __uint32_src = __src.template bit_cast_view<::std::uint32_t>();
+    sycl::ext::intel::esimd::simd<::std::uint32_t, _N> __uint32_src = __src.template bit_cast_view<::std::uint32_t>();
     sycl::ext::intel::esimd::simd<::std::uint32_t, _N> __mask;
     sycl::ext::intel::esimd::simd_mask<_N> __sign_bit_m = (__uint32_src >> 31 == 0);
     if constexpr (__is_ascending)
@@ -184,10 +185,9 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
     {
         __mask = sycl::ext::intel::esimd::merge(
             sycl::ext::intel::esimd::simd<::std::uint32_t, _N>(0x7FFFFFFFu),
-            sycl::ext::intel::esimd::simd<::std::uint32_t, _N>(static_cast<::std::uint32_t>(0)), __sign_bit_m);
+            sycl::ext::intel::esimd::simd<::std::uint32_t, _N>(::std::uint32_t(0)), __sign_bit_m);
     }
-    sycl::ext::intel::esimd::simd<::std::uint32_t, _N> __res = __uint32_src ^ __mask;
-    return __res;
+    return __uint32_src ^ __mask;
 }
 
 template <bool __is_ascending, typename _Float, int _N,
@@ -195,7 +195,7 @@ template <bool __is_ascending, typename _Float, int _N,
 sycl::ext::intel::esimd::simd<::std::uint64_t, _N>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
 {
-    auto __uint64_src = __src.template bit_cast_view<::std::uint64_t>();
+    sycl::ext::intel::esimd::simd<::std::uint64_t, _N> __uint64_src = __src.template bit_cast_view<::std::uint64_t>();
     sycl::ext::intel::esimd::simd<::std::uint64_t, _N> __mask;
     sycl::ext::intel::esimd::simd_mask<_N> __sign_bit_m = (__uint64_src >> 63 == 0);
     if constexpr (__is_ascending)
@@ -208,10 +208,9 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
     {
         __mask = sycl::ext::intel::esimd::merge(
             sycl::ext::intel::esimd::simd<::std::uint64_t, _N>(0x7FFFFFFFFFFFFFFFu),
-            sycl::ext::intel::esimd::simd<::std::uint64_t, _N>(static_cast<::std::uint64_t>(0)), __sign_bit_m);
+            sycl::ext::intel::esimd::simd<::std::uint64_t, _N>(::std::uint64_t(0)), __sign_bit_m);
     }
-    sycl::ext::intel::esimd::simd<::std::uint64_t, _N> __res = __uint64_src ^ __mask;
-    return __res;
+    return __uint64_src ^ __mask;
 }
 
 }
