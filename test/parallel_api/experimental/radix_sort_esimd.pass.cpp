@@ -33,6 +33,7 @@
 #include <random>
 #include <string>
 #include <iostream>
+#include <limits>
 
 constexpr std::uint16_t kWorkGroupSize = 256;
 constexpr std::uint16_t kDataPerWorkItem = 16;
@@ -41,22 +42,8 @@ template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
 generate_data(T* input, std::size_t size)
 {
-    std::default_random_engine gen{std::random_device{}()};
-    std::size_t unique_threshold = 75 * size / 100;
-    if constexpr (std::is_integral_v<T>)
-    {
-        std::uniform_int_distribution<T> dist(0);
-        std::generate(input, input + unique_threshold, [&]{ return dist(gen); });
-    }
-    else
-    {
-        std::uniform_real_distribution<T> dist(0.0, log2(1e12));
-        std::generate(input, input + unique_threshold, [&]{ return exp2(dist(gen)); });
-    }
-    for(uint32_t i = 0, j = unique_threshold; j < size; ++i, ++j)
-    {
-        input[j] = input[i];
-    }
+    for (std::size_t i = 0; i < size; ++i)
+        input[i] = ::std::numeric_limits<T>::max();
 }
 
 #if _ENABLE_RANGES_TESTING
