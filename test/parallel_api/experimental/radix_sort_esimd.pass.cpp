@@ -1,15 +1,9 @@
 // -*- C++ -*-
 //===-- rasix_sort_esimd.pass.cpp -----------------------------------------===//
 //
-// Copyright (C) Intel Corporation
+// Copyright (C) 2023 Intel Corporation
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-// This file incorporates work covered by the following copyright and permission
-// notice:
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
 
@@ -45,19 +39,20 @@ typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
 generate_data(T* input, std::size_t size)
 {
     std::default_random_engine gen{std::random_device{}()};
+    std::size_t unique_threshold = 75 * size / 100;
     if constexpr (std::is_integral_v<T>)
     {
-        std::uniform_int_distribution<T> dist(0, size);
-        std::generate(input, input + size, [&]{ return dist(gen); });
-        // for(uint32_t i = 0; i < size; ++i)
-        // {
-        //     input[i] = i % 256;
-        // }
+        std::uniform_int_distribution<T> dist(0);
+        std::generate(input, input + unique_threshold, [&]{ return dist(gen); });
     }
     else
     {
-        std::uniform_real_distribution<T> dist(0.0, 100.0);
-        std::generate(input, input + size, [&]{ return dist(gen); });
+        std::uniform_real_distribution<T> dist(0.0, log2(1e12));
+        std::generate(input, input + unique_threshold, [&]{ return exp2(dist(gen)); });
+    }
+    for(uint32_t i = 0, j = unique_threshold; j < size; ++i, ++j)
+    {
+        input[j] = input[i];
     }
 }
 
@@ -79,7 +74,7 @@ void test_all_view(std::size_t size)
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(input, ref, msg.c_str());
+    EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
 template<typename T>
@@ -101,7 +96,7 @@ void test_subrange_view(std::size_t size)
     q.copy(input, host_input, size).wait();
 
     std::string msg = "wrong results with views::subrange, n: " + std::to_string(size);
-    EXPECT_EQ_N(input, ref, size, msg.c_str());
+    EXPECT_EQ_N(ref, input, size, msg.c_str());
 
     sycl::free(input, q);
     sycl::free(ref, q);
@@ -125,7 +120,7 @@ void test_usm(std::size_t size)
     q.copy(input, host_input, size).wait();
 
     std::string msg = "wrong results with USM, n: " + std::to_string(size);
-    EXPECT_EQ_N(input, ref, size, msg.c_str());
+    EXPECT_EQ_N(ref, input, size, msg.c_str());
 
     sycl::free(input, q);
     sycl::free(ref, q);
@@ -146,7 +141,7 @@ void test_sycl_iterators(std::size_t size)
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::end(input));
 
     std::string msg = "wrong results with sycl_iterator, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(input, ref, msg.c_str());
+    EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
 void test_small_sizes()
@@ -159,9 +154,9 @@ void test_small_sizes()
     std::vector<uint32_t> ref(input);
 
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
-    EXPECT_EQ_RANGES(input, ref, "sort modified input data when size == 0");
+    EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
-    EXPECT_EQ_RANGES(input, ref, "sort modified input data when size == 1");
+    EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
 // TODO: add ascending and descending sorting orders
