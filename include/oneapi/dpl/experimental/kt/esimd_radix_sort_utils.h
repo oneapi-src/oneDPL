@@ -1,3 +1,12 @@
+// -*- C++ -*-
+//===-- esimd_radix_sort_utils.h -----------------------------------===//
+//
+// Copyright (C) 2023 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===---------------------------------------------------------------===//
+
 #ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
 
