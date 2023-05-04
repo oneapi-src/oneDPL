@@ -18,10 +18,10 @@ New Features
 Fixes Issues
 ------------
 - Fixed ``Device name missing`` error occurring with the following cmake options: ``ONEDPL_USE_AOT_COMPILATION=ON``, ``ONEDPL_DEVICE_BACKEND=GPU`` or not specified and ``CMAKE_BUILD_TYPE`` is not specified.
-- Fixed an error that caused segmentation faults in transform_reduce, minmax_element, and related algorithms when ran on the CPU. 
-- Fixed a compilation error in transform_reduce, minmax_element, and related algorithms on FPGAs.
+- Fixed an error that caused segmentation faults in ``transform_reduce``, ``minmax_element``, and related algorithms when ran on the CPU. 
+- Fixed a compilation error in ``transform_reduce``, ``minmax_element``, and related algorithms on FPGAs.
 - Fixed an issue with oneDPL permutation iterator. 
-- Fixed an issue with 64bit integer types with DPC++ policy.
+- Fixed an issue with 64-bit integer types with DPC++ policy.
 
 New in 2022.1.0
 ===============
