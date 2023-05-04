@@ -741,8 +741,8 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     constexpr uint32_t NBITS =  sizeof(KeyT) * 8;  // 32
     constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS /* 32 */, RADIX_BITS /* 8 */);  // -> 4
 
-    const     uint32_t SYNC_BUFFER_SIZE   = sizeof(global_hist_t) /* 4 */ * BINCOUNT /* 256 */ * STAGES /* 4 */ * sweep_tg_count /* 1 */; //bytes       // -> 4 Kb
-    constexpr uint32_t GLOBAL_OFFSET_SIZE = sizeof(global_hist_t) /* 4 */ * BINCOUNT /* 256 */ * STAGES /* 4 */;                                        // -> 4 Kb
+    constexpr uint32_t GLOBAL_OFFSET_SIZE = 40 * 1024 * sizeof(global_hist_t) /* 4 */ * BINCOUNT /* 256 */ * STAGES /* 4 */;                                        // -> 4 Kb
+    const     uint32_t SYNC_BUFFER_SIZE   = 40 * 1024 * sizeof(global_hist_t) /* 4 */ * BINCOUNT /* 256 */ * STAGES /* 4 */ * sweep_tg_count /* 1 */; //bytes       // -> 4 Kb
     const size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
                                     SYNC_BUFFER_SIZE;    // sync buffer         // ~ 4 Kb
 
