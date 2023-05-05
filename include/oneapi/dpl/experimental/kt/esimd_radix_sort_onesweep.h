@@ -555,7 +555,6 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
 
     uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * BIN_COUNT * sizeof(hist_t);
     uint32_t slm_lookup_subgroup = slm_lookup_workgroup + local_tid * sizeof(hist_t) * BIN_COUNT;
-    //uint32_t slm_lookup_global = slm_lookup_start;
 
     simd<hist_t, PROCESS_SIZE> ranks;
     simd<KeyT, PROCESS_SIZE> keys;
