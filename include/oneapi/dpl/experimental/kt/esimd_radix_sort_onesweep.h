@@ -568,7 +568,6 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     uint32_t slm_lookup_subgroup = slm_lookup_workgroup + local_tid * sizeof(hist_t) * BIN_COUNT;
     //uint32_t slm_lookup_global = slm_lookup_start;
 
-    simd<hist_t, BIN_COUNT> bin_offset;
     simd<hist_t, PROCESS_SIZE> ranks;
     simd<KeyT, PROCESS_SIZE> keys;
     simd<bin_t, PROCESS_SIZE> bins;
@@ -751,6 +750,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
         //                 __groups = 4 (~)
         // return (__number - 1) / __divisor + 1;
         ::std::uint32_t __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE * THREAD_PER_TG);
+        assert(__n != 79873 || __groups == 4);
 
         //                                3                  64             64
         sycl::nd_range<1> __nd_range(__sweep_tg_count * THREAD_PER_TG, THREAD_PER_TG);
