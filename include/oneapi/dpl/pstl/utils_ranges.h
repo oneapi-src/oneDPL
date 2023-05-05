@@ -281,10 +281,7 @@ struct take_view_simple
     _R __r;
     _Size __n;
 
-    take_view_simple(_R __rng, _Size __size) : __r(__rng), __n(::std::min(__size, _Size(__r.size())))
-    {
-        assert(__n >= 0);
-    }
+    take_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size) { assert(__n >= 0); }
 
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
@@ -296,7 +293,7 @@ struct take_view_simple
     _Size
     size() const
     {
-        return __n;
+        return ::std::min(_Size(__r.size()), __n);
     }
 
     bool
@@ -321,10 +318,7 @@ struct drop_view_simple
     _R __r;
     _Size __n;
 
-    drop_view_simple(_R __rng, _Size __size) : __r(__rng), __n(::std::min(__size, _Size(__r.size())))
-    {
-        assert(__n >= 0);
-    }
+    drop_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size) { assert(__n >= 0); }
 
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
@@ -336,7 +330,7 @@ struct drop_view_simple
     _Size
     size() const
     {
-        return __r.size() - __n;
+        return __r.size() - ::std::min(_Size(__r.size()), __n);
     }
 
     bool
