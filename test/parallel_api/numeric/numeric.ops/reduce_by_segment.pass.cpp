@@ -266,6 +266,7 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
     }
 };
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <sycl::usm::alloc alloc_type, typename KernelName, typename T>
 void
 test_flag_pred()
@@ -334,6 +335,7 @@ test_flag_pred()
     expected_value = T(10);
     EXPECT_EQ(val_res_head_on_host[2], expected_value, "reduce_by_segment: wrong value");
 }
+#endif
 
 template <typename _Tp>
 struct UserBinaryPredicate
