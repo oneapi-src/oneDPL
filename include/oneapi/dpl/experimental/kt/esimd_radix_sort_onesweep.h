@@ -79,13 +79,6 @@ struct SyclFreeOnDestroy
     }
 };
 
-template <typename T1, typename T2>
-constexpr auto
-div_up(T1 a, T2 b)
-{
-    return (a + b - 1) / b;
-}
-
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS /* 8 */, uint32_t TG_COUNT /* 64 */,
           uint32_t THREAD_PER_TG /* 64 */,
           bool IsAscending>
@@ -245,7 +238,7 @@ class radix_sort_onesweep_slm_reorder_kernel
 
     static constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
     static constexpr uint32_t NBITS = sizeof(KeyT) * 8;
-    static constexpr uint32_t STAGES = div_up(NBITS, RADIX_BITS);
+    static constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
     static constexpr bin_t MASK = BIN_COUNT - 1;
     static constexpr uint32_t REORDER_SLM_SIZE = PROCESS_SIZE * sizeof(KeyT) * SG_PER_WG;             // reorder buffer
     static constexpr uint32_t BIN_HIST_SLM_SIZE = BIN_COUNT * sizeof(hist_t) * SG_PER_WG;             // bin hist working buffer
