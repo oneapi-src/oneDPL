@@ -42,6 +42,20 @@ print_buffer(std::ostream& os, const T* buffer, ::std::size_t buf_size, ::std::s
             os << ::std::endl;
     }
 }
+
+template <typename T>
+void
+print_buffer_in_kernel(const T* buffer, ::std::size_t buf_size, ::std::size_t lineLength = 80)
+{
+    for (::std::size_t i = 0; i < buf_size; ++i)
+    {
+        sycl::ext::oneapi::experimental::printf("0x%d, ", buffer[i]);
+
+        if (i > 0 && i % lineLength == 0)
+            sycl::ext::oneapi::experimental::printf("\n");
+    }
+}
+
 };  // namespace
 #endif
 
@@ -763,6 +777,13 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
                     {
+#if LOG_CALC_STATE
+                        sycl::ext::oneapi::experimental::printf(
+                            "\t\t\t\t\t__radix_sort_onesweep_submitter::operator() :"
+                            "__stage = %d",
+                            __stage);
+#endif
+
                         if (__stage % 2 == 0)
                         {
                             // onesweep_kernel<KeyT,
@@ -796,6 +817,12 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                                            /* uint8_t * p_global_buffer */ __tmp_data);
                                 kernelImpl(__nd_item);
                         }
+
+#if LOG_CALC_STATE
+                        sycl::ext::oneapi::experimental::printf(
+                            "\t\t\t\t\t\tAfter radix_sort_onesweep_slm_reorder_kernel call: __output\n");
+                        print_buffer_in_kernel(__output, __n);
+#endif
                     });
             });
     }
