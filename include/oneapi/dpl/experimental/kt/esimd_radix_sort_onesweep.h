@@ -56,6 +56,20 @@ print_buffer_in_kernel(const T* buffer, ::std::size_t buf_size, ::std::size_t li
     }
 }
 
+template <typename TSimd, typename TSize>
+void
+print_simd(const char* msg, const TSimd data, const TSize size)
+{
+    sycl::ext::oneapi::experimental::printf("%s (size = %d) : ", msg, size);
+    for (TSize i = 0; i < size; ++i)
+    {
+        if (i > 0)
+            sycl::ext::oneapi::experimental::printf(", %d", data[i]);
+        else
+            sycl::ext::oneapi::experimental::printf("%d", data[i]);
+    }
+}
+
 };  // namespace
 #endif
 
@@ -560,6 +574,10 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     simd<KeyT, PROCESS_SIZE> keys;
     simd<bin_t, PROCESS_SIZE> bins;
     simd<device_addr_t, 16> lane_id(0, 1);
+
+#if LOG_CALC_STATE
+    //print_simd("bins", bins, PROCESS_SIZE);
+#endif
 
     device_addr_t io_offset = PROCESS_SIZE * (wg_id * wg_size + local_tid);
     constexpr KeyT default_key = -1;
