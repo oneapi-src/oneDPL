@@ -30,9 +30,11 @@
 #    include "hetero/dpcpp/sycl_iterator.h"
 #endif
 
-#if _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
+#if __has_include(<bit>)
 #    include <bit>
-#else
+#endif
+
+#if !(__cpp_lib_bit_cast >= 201806L)
 #    ifndef __has_builtin
 #        define __has_builtin(__x) 0
 #    endif
@@ -587,7 +589,7 @@ template <typename _Dst, typename _Src>
     sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
 __dpl_bit_cast(const _Src& __src) noexcept
 {
-#if __cpp_lib_bit_cast >= 201806L || _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
+#if __cpp_lib_bit_cast >= 201806L
     return ::std::bit_cast<_Dst>(__src);
 #elif _ONEDPL_BACKEND_SYCL && _ONEDPL_LIBSYCL_VERSION >= 50300
     return sycl::bit_cast<_Dst>(__src);
@@ -607,7 +609,7 @@ __dpl_bit_floor(_T __x) noexcept
 {
     if (__x == 0)
         return 0;
-#if __cpp_lib_int_pow2 >= 202002L || _ONEDPL___cplusplus >= 202002L && __has_include(<bit>)
+#if __cpp_lib_int_pow2 >= 202002L
     return ::std::bit_floor(__x);
 #elif _ONEDPL_BACKEND_SYCL
     // Use the count-leading-zeros function
