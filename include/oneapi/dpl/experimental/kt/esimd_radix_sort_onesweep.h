@@ -86,24 +86,6 @@ div_up(T1 a, T2 b)
     return (a + b - 1) / b;
 }
 
-template <typename T, int N>
-inline std::enable_if_t<(N > 16) && (N % 16 == 0), __ESIMD_NS::simd<T, N>>
-create_simd(T initial, T step)
-{
-    using namespace __ESIMD_NS;
-    using namespace __ESIMD_ENS;
-    simd<T, N> ret;
-    ret.template select<16, 1>(0) = simd<T, 16>(0, 1) * step + initial;
-    fence<fence_mask::sw_barrier>();
-#pragma unroll
-    for (int pos = 16; pos < N; pos += 16)
-    {
-        ret.template select<16, 1>(pos) = ret.template select<16, 1>(0) + pos * step;
-    }
-    return ret;
-}
-
-
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS /* 8 */, uint32_t TG_COUNT /* 64 */,
           uint32_t THREAD_PER_TG /* 64 */,
           bool IsAscending>
@@ -647,7 +629,7 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
         // our current impl :
         bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
-        simd<hist_t, PROCESS_SIZE> group_offset = create_simd<hist_t, PROCESS_SIZE>(local_tid * PROCESS_SIZE, 1);
+        simd<hist_t, PROCESS_SIZE> group_offset = utils::create_simd<hist_t, PROCESS_SIZE>(local_tid * PROCESS_SIZE, 1);
 
         simd<device_addr_t, PROCESS_SIZE> global_offset = group_offset + l.template lookup<PROCESS_SIZE>(bins);
 
