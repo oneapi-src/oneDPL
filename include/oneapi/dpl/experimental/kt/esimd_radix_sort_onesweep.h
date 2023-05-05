@@ -260,7 +260,7 @@ class radix_sort_onesweep_slm_reorder_kernel
     const ::std::size_t n = 0;
     const uint32_t stage = 0;
     InputT   p_input;                       // instance of sycl::accessor or pointer to input data
-    OutputT  p_output = nullptr;            // pointer to output data
+    OutputT  p_output;                      // pointer to output data
     uint8_t* p_global_buffer = nullptr;
 
     template <typename T>
