@@ -58,7 +58,7 @@ else()
             set(CMAKE_CXX20_STANDARD_COMPILE_OPTION "-std=c++20")
             set(CMAKE_CXX_STANDARD_COMPUTED_DEFAULT 14)
             set(INTELLLVM_WIN_STD_IGNORE_FIX TRUE)
-            message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} is not supported by CMake (https://gitlab.kitware.com/cmake/cmake/-/issues/24314). A workaround is provided but may have limitations. We recommend using CMAKE_CXX_COMPILER=icx or icx-cl on Windows.")
+            message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} is not supported by CMake (https://gitlab.kitware.com/cmake/cmake/-/issues/24314) at this time and may encounter issues. We recommend using CMAKE_CXX_COMPILER=icx on Windows.")
         endif()
     endif()
 
