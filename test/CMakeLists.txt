@@ -75,7 +75,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     #    https://learn.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=msvc-170
     #    https://learn.microsoft.com/en-us/cpp/build/reference/md-mt-ld-use-run-time-library?view=msvc-170
     #    https://stackoverflow.com/questions/51494506/replacing-md-with-mt-in-cmake-is-not-possible-in-release-mode
-    if (WIN32 AND DEFINED ${_build_type_in_lower} AND ${_build_type_in_lower} STREQUAL "debug")
+    if (WIN32 AND DEFINED _build_type_in_lower AND ${_build_type_in_lower} STREQUAL "debug")
         if (${switch_off_checked_iterators})
             target_compile_definitions(${_test_name} PRIVATE _ITERATOR_DEBUG_LEVEL=0)
             target_compile_options(${_test_name} PRIVATE "/MD$<$<CONFIG:Debug>:>")
