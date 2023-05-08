@@ -59,7 +59,10 @@ add_custom_target(run-onedpl-tests
 
 macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
-    string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
+    set(_build_type_in_lower "unknown")
+    if (CMAKE_BUILD_TYPE)
+        string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
+    endif()
 
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
@@ -75,11 +78,9 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     #    https://learn.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=msvc-170
     #    https://learn.microsoft.com/en-us/cpp/build/reference/md-mt-ld-use-run-time-library?view=msvc-170
     #    https://stackoverflow.com/questions/51494506/replacing-md-with-mt-in-cmake-is-not-possible-in-release-mode
-    if (WIN32 AND DEFINED _build_type_in_lower AND ${_build_type_in_lower} STREQUAL "debug")
-        if (${switch_off_checked_iterators})
-            target_compile_definitions(${_test_name} PRIVATE _ITERATOR_DEBUG_LEVEL=0)
-            target_compile_options(${_test_name} PRIVATE "/MD$<$<CONFIG:Debug>:>")
-        endif()
+    if (WIN32 AND ${_build_type_in_lower} STREQUAL "debug" AND ${switch_off_checked_iterators})
+        target_compile_definitions(${_test_name} PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+        target_compile_options(${_test_name} PRIVATE "/MD$<$<CONFIG:Debug>:>")
     endif()
 
     # oneDPL test harness may initialize a C++ iterator using iterator with different type
