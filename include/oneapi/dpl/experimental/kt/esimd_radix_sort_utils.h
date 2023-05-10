@@ -129,11 +129,11 @@ scan(sycl::ext::intel::esimd::simd<T, 16> src)
 }
 
 // get bits value (bucket) in a certain radix position
-template <::std::uint32_t __radix_mask, typename _T, int _N>
-sycl::ext::intel::esimd::simd<_T, _N>
+template <::std::uint16_t __radix_mask, typename _T, int _N>
+sycl::ext::intel::esimd::simd<::std::uint16_t, _N>
 __get_bucket(sycl::ext::intel::esimd::simd<_T, _N> __value, ::std::uint32_t __radix_offset)
 {
-    return (__value >> __radix_offset) & sycl::ext::intel::esimd::simd<_T, _N>(__radix_mask);
+    return sycl::ext::intel::esimd::simd<::std::uint16_t, _N>(__value >> __radix_offset) & __radix_mask;
 }
 
 template <bool __is_ascending, int _N>
