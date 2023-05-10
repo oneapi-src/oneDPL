@@ -194,7 +194,7 @@ int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     const std::vector<std::size_t> sizes = {
-        6, 16, 42, 256, 316, 2048, 5072, 8192, 14001                        // one work-group
+        16, 6, 42, 256, 316, 2048, 5072, 8192, 14001                        // one work-group
         //, 2<<14, 50000, 67543, 100'000, 2<<17, 179'581, 250'000             // cooperative
         //, 2<<18, 500'000, 888'235, 1'000'000, 2<<20, 10'000'000             // onesweep
     };
@@ -203,9 +203,9 @@ int main()
     {
         for(auto size: sizes)
         {
-            test_general_cases<uint32_t>(size);
+            // test_general_cases<uint32_t>(size);
             // test_general_cases<int>(size);
-            // test_general_cases<float>(size);
+            test_general_cases<float>(size);
             // test_general_cases<double>(size);
         }
         test_small_sizes();
