@@ -866,11 +866,12 @@ __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out
     // Next power of 2 greater than or equal to __n
     auto __n_uniform = ::oneapi::dpl::__internal::__dpl_bit_ceil(static_cast<::std::make_unsigned_t<_Size>>(__n));
 
-    // The kernel stores n integers for the predicate and another n integers for the offsets
     // Pessimistically only use half of the memory to take into account memory used by compiled kernel
     const ::std::size_t __max_slm_size =
-        __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 4;
-    const auto __req_slm_size = sizeof(::std::uint16_t) * __n_uniform;
+        __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
+
+    // The kernel stores n integers for the predicate and another n integers for the offsets
+    const auto __req_slm_size = sizeof(::std::uint16_t) * __n_uniform * 2;
 
     constexpr ::std::uint16_t __single_group_upper_limit = 16384;
 
