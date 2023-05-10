@@ -521,7 +521,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
 #if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
-                    constexpr bool __can_use_subgroup_load_store = _IsFullGroup;
+                    constexpr bool __can_use_subgroup_load_store = _IsFullGroup && dpl::__internal::has_begin<::std::decay_t<_InRng>>::value;
 #else
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
@@ -622,7 +622,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
 #if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
-                    constexpr bool __can_use_subgroup_load_store = _IsFullGroup;
+                    constexpr bool __can_use_subgroup_load_store = _IsFullGroup && dpl::__internal::has_begin<::std::decay_t<_InRng>>::value;
 #else
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
