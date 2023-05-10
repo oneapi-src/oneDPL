@@ -10,6 +10,12 @@
 #ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
 
+#if __has_include(<sycl/sycl.hpp>)
+#include <sycl/sycl.hpp>
+#else
+#include <CL/sycl.hpp>
+#endif
+
 #include <ext/intel/esimd.hpp>
 #include <cstdint>
 #include <type_traits>
@@ -135,6 +141,10 @@ __get_bucket(sycl::ext::intel::esimd::simd<_T, _N> __value, ::std::uint32_t __ra
 {
     return sycl::ext::intel::esimd::simd<::std::uint16_t, _N>(__value >> __radix_offset) & __radix_mask;
 }
+
+template <typename T, bool __is_ascending>
+inline constexpr T __sort_identity =
+    __is_ascending? ::std::numeric_limits<T>::max() : ::std::numeric_limits<T>::lowest();
 
 template <bool __is_ascending, int _N>
 sycl::ext::intel::esimd::simd<bool, _N>
