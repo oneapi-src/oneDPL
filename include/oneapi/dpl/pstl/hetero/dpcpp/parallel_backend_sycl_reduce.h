@@ -141,8 +141,7 @@ __parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, _Size __n, _Re
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __reduce_small_kernel<::std::integral_constant<::std::uint16_t, __work_group_size>,
-                              ::std::integral_constant<::std::size_t, __iters_per_work_item>, _CustomName>>;
+        __reduce_small_kernel<::std::integral_constant<::std::size_t, __iters_per_work_item>, _CustomName>>;
 
     return __parallel_transform_reduce_small_submitter<__work_group_size, __iters_per_work_item, _Tp, _ReduceKernel>()(
         ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
@@ -179,8 +178,8 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
                 __reduce_op, _NoOpFunctor{}};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
-        _Size __size_per_work_group =
-            __iters_per_work_item1 * __work_group_size; // number of buffer elements processed within workgroup
+        // number of buffer elements processed within workgroup
+        constexpr _Size __size_per_work_group = __iters_per_work_item1 * __work_group_size; 
         _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item1);
 
@@ -245,11 +244,9 @@ __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _Redu
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
     using _ReduceMainKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __reduce_mid_main_kernel<::std::integral_constant<::std::uint16_t, __work_group_size>,
-                                 ::std::integral_constant<::std::uint16_t, __iters_per_work_item1>, _CustomName>>;
+        __reduce_mid_main_kernel<::std::integral_constant<::std::uint16_t, __iters_per_work_item1>, _CustomName>>;
     using _ReduceLeafKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __reduce_mid_leaf_kernel<::std::integral_constant<::std::uint16_t, __work_group_size>,
-                                 ::std::integral_constant<::std::uint16_t, __iters_per_work_item2>, _CustomName>>;
+        __reduce_mid_leaf_kernel<::std::integral_constant<::std::uint16_t, __iters_per_work_item2>, _CustomName>>;
 
     return __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_work_item1, __iters_per_work_item2,
                                                      _Tp, _ReduceMainKernel, _ReduceLeafKernel>()(
