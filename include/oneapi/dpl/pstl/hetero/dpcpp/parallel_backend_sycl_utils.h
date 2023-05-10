@@ -573,6 +573,19 @@ class __future : private std::tuple<_Args...>
     }
 };
 
+
+// Invoke a callable and pass a compile-time integer based on a provided run-time integer.
+// The compile-time integer that will be provided to the callable is defined as the smallest
+// value in the integer_sequence not less than the run-time integer. For example:
+//
+//   __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, 2, 4, 8, 16>::__dispatch(f, 3);
+//
+// will call f<4>(), since 4 is the smallest value in the sequence not less than 3.
+//
+// If there are no values in the sequence less than the run-time integer, the last value in
+// the sequence will be used.
+//
+// Note that the integers provided in the integer_sequence must be monotonically increasing
 template <typename>
 class __static_monotonic_dispatcher;
 
