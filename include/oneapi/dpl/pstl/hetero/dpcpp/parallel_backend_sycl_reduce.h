@@ -179,7 +179,7 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
         // number of buffer elements processed within workgroup
-        constexpr _Size __size_per_work_group = __iters_per_work_item1 * __work_group_size; 
+        constexpr _Size __size_per_work_group = __iters_per_work_item1 * __work_group_size;
         _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item1);
 
