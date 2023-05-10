@@ -33,6 +33,8 @@
 #include <random>
 #include <string>
 #include <iostream>
+#include <cmath>
+#include <limits>
 
 template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
