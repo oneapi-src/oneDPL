@@ -23,8 +23,13 @@
 #define LOG_CALC_STATE 1
 
 #if LOG_CALC_STATE
+#define LOG_CALC_STATE_IN_KERNEL 1
+#endif
+
+#if LOG_CALC_STATE
 #include <iostream>
 #include <string>
+#include <iomanip>
 #endif
 
 #if LOG_CALC_STATE
@@ -32,42 +37,66 @@ namespace
 {
 template <typename T>
 void
-print_buffer(std::ostream& os, const T* buffer, ::std::size_t buf_size, ::std::size_t lineLength = 80)
+print_buffer(std::ostream& os, const char* tabStr, const T* buffer, ::std::size_t buf_size, ::std::size_t lineLength = 40)
 {
+    os << tabStr << "\t";
     for (::std::size_t i = 0; i < buf_size; ++i)
     {
-        os << buffer[i] << ", ";
-
         if (i > 0 && i % lineLength == 0)
-            os << ::std::endl;
+            os << ::std::endl << tabStr << "\t";
+
+        os << "0x" << ::std::hex << buffer[i] << ::std::dec;
+
+        if (i + 1 < buf_size)
+            os << ", ";
     }
+
+    if (buf_size > 0)
+        os << ::std::endl;
 }
+
+#if LOG_CALC_STATE_IN_KERNEL
+
+#ifdef __SYCL_DEVICE_ONLY__
+#   define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
+#else
+#   define __SYCL_CONSTANT_AS
+#endif
+
+static const __SYCL_CONSTANT_AS char print_t5 [] = "\t\t\t\t\t";
+static const __SYCL_CONSTANT_AS char print_str[] = "%s ";
+static const __SYCL_CONSTANT_AS char print_int[] = "%d, ";
+static const __SYCL_CONSTANT_AS char print_eol[] = "\n";
+static const __SYCL_CONSTANT_AS char fmt[] = "printf from Kernel code\n";
 
 template <typename T>
 void
-print_buffer_in_kernel(const T* buffer, ::std::size_t buf_size, ::std::size_t lineLength = 80)
+print_buffer_in_kernel(const T* buffer, ::std::size_t buf_size, ::std::size_t lineLength = 40)
 {
     for (::std::size_t i = 0; i < buf_size; ++i)
     {
-        sycl::ext::oneapi::experimental::printf("0x%d, ", buffer[i]);
+        sycl::ext::oneapi::experimental::printf(print_int, buffer[i]);
 
         if (i > 0 && i % lineLength == 0)
-            sycl::ext::oneapi::experimental::printf("\n");
+            sycl::ext::oneapi::experimental::printf(print_eol);
     }
+
+    if (buf_size > 0)
+        sycl::ext::oneapi::experimental::printf(print_eol);
 }
+#endif
 
 template <typename TSimd, typename TSize>
 void
 print_simd(const char* msg, const TSimd data, const TSize size)
 {
-    sycl::ext::oneapi::experimental::printf("%s (size = %d) : ", msg, size);
+    sycl::ext::oneapi::experimental::printf(print_str, msg);
+    sycl::ext::oneapi::experimental::printf(" (size = %d) : ", size);
     for (TSize i = 0; i < size; ++i)
     {
-        if (i > 0)
-            sycl::ext::oneapi::experimental::printf(", %d", data[i]);
-        else
-            sycl::ext::oneapi::experimental::printf("%d", data[i]);
+        sycl::ext::oneapi::experimental::printf(print_int, data[i]);
     }
+    sycl::ext::oneapi::experimental::printf(print_eol);
 }
 
 };  // namespace
@@ -271,8 +300,8 @@ class radix_sort_onesweep_slm_reorder_kernel
     static constexpr uint32_t slm_reorder_start = 0;
     static constexpr uint32_t slm_lookup_global = slm_reorder_start + REORDER_SLM_SIZE;
 
-    const ::std::size_t n = 0;
-    const uint32_t stage = 0;
+    const ::std::size_t __source_data_size = 0; // 79873
+    const uint32_t __stage_state = 0;
     InputT   p_input;                       // instance of sycl::accessor or pointer to input data
     OutputT  p_output;                      // pointer to output data
     uint8_t* p_global_buffer = nullptr;
@@ -316,17 +345,22 @@ class radix_sort_onesweep_slm_reorder_kernel
 
 protected:
 
+    //                    16
     template <uint32_t CHUNK_SIZE>
-    inline void
+    inline void                                                                    // -1
     LoadKeys(uint32_t io_offset, __ESIMD_NS::simd<KeyT, PROCESS_SIZE>& keys, KeyT default_key) const
     {
+        static_assert(CHUNK_SIZE == 16, "");
+
         using namespace __ESIMD_NS;
         using namespace __ESIMD_ENS;
-        bool is_full_block = (io_offset + PROCESS_SIZE) <= n;
+        //                                  128
+        bool is_full_block = (io_offset + PROCESS_SIZE) <= __source_data_size;
         if (is_full_block)
         {
             simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);
 #pragma unroll
+            //                         128                   16
             for (uint32_t s = 0; s < PROCESS_SIZE; s += CHUNK_SIZE)
             {
                 // commented code from source
@@ -336,27 +370,36 @@ protected:
                 //keys.template select<CHUNK_SIZE, 1>(s) = lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(KeyT)));
 
                 // our current implementation
+                //                                                [0...7]
                 sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(KeyT));
-                keys.template select<CHUNK_SIZE, 1>(s) = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(p_input, offset);
+                //                     16
+                keys.template select<CHUNK_SIZE, 1>(s) = 
+                    lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(p_input, offset);
             }
         }
         else
         {
-            simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);
+            //               16
+            simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);   // : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 #pragma unroll
+            //                         128                   16
             for (uint32_t s = 0; s < PROCESS_SIZE; s += CHUNK_SIZE)
             {
-                simd_mask<CHUNK_SIZE> m = (io_offset + lane_id + s) < n;
+                //          16                                   [0...7]     79873
+                simd_mask<CHUNK_SIZE> m = (io_offset + lane_id + s) < __source_data_size;
 
                 // current code from source with compile error introduced in our code:
                 //keys.template select<CHUNK_SIZE, 1>(s) = merge(lsc_gather(p_input + io_offset + s, lane_id * uint32_t(sizeof(KeyT))), simd<KeyT, CHUNK_SIZE>(default_key), m);
 
                 // our current implementation
-                sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(KeyT));
+                //                                                [0...7]    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+                sycl::ext::intel::esimd::simd offset((io_offset + s        + lane_id) * sizeof(KeyT));
+                //                     16
                 keys.template select<CHUNK_SIZE, 1>(s) = 
                     merge(
                         lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(p_input, offset, m),
-                        simd<KeyT, CHUNK_SIZE>(default_key),
+                        //           16             -1
+                        simd<KeyT, CHUNK_SIZE>(default_key),     // [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
                         m);
             }
         }
@@ -533,7 +576,8 @@ template <typename KeyT, typename InputT, typename OutputT,
 radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER_WG, PROCESS_SIZE,
                                        IsAscending>::radix_sort_onesweep_slm_reorder_kernel(
     ::std::size_t n, uint32_t stage, InputT p_input, OutputT p_output, uint8_t* p_global_buffer)
-    : n(n), stage(stage), p_input(p_input), p_output(p_output), p_global_buffer(p_global_buffer)
+    : __source_data_size(n), __stage_state(stage), p_input(p_input), p_output(p_output),
+      p_global_buffer(p_global_buffer)
 {
 }
 
@@ -575,8 +619,8 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     simd<bin_t, PROCESS_SIZE> bins;
     simd<device_addr_t, 16> lane_id(0, 1);
 
-#if LOG_CALC_STATE
-    //print_simd("bins", bins, PROCESS_SIZE);
+#if LOG_CALC_STATE_IN_KERNEL
+    print_simd("bins", bins, PROCESS_SIZE);
 #endif
 
     device_addr_t io_offset = PROCESS_SIZE * (wg_id * wg_size + local_tid);
@@ -586,7 +630,8 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     // original impl :
     //      bins = (keys >> (stage * RADIX_BITS)) & MASK;
     // our current impl :
-    bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
+    //                                                                                    [0, 1, 2, 3]      8
+    bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), __stage_state * RADIX_BITS);
 
     ResetBinCounters(slm_bin_hist_this_thread);
 
@@ -604,11 +649,14 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     // uint32_t sync_buffer[STAGES][wg_count][BIN_COUNT];
     global_hist_t* p_global_bin_start_buffer_allstages = reinterpret_cast<global_hist_t*>(p_global_buffer);
     global_hist_t* p_global_bin_start_buffer =
-        p_global_bin_start_buffer_allstages + BIN_COUNT * STAGES + BIN_COUNT * wg_count * stage;
+        //                                      256         4        256                    [0, 1, 2, 3]
+        p_global_bin_start_buffer_allstages + BIN_COUNT * STAGES + BIN_COUNT * wg_count * __stage_state;
 
     global_hist_t* p_global_bin_this_group = p_global_bin_start_buffer + BIN_COUNT * wg_id;
     global_hist_t* p_global_bin_prev_group = p_global_bin_start_buffer + BIN_COUNT * (wg_id - 1);
-    p_global_bin_prev_group = (0 == wg_id) ? (p_global_bin_start_buffer_allstages + BIN_COUNT * stage)
+    //                                                                                256         [0, 1, 2, 3]
+    p_global_bin_prev_group = (0 == wg_id) ? (p_global_bin_start_buffer_allstages + BIN_COUNT * __stage_state)
+    //                                                                    256
                                            : (p_global_bin_this_group - BIN_COUNT);
 
     UpdateGroupRank(local_tid, wg_id, subgroup_offset, global_fix, p_global_bin_prev_group, p_global_bin_this_group);
@@ -637,13 +685,14 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
         // original impl :
         //      bins = (keys >> (stage * RADIX_BITS)) & MASK;
         // our current impl :
-        bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
+        //                                                                                  [0, 1, 2, 3]         8
+        bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), __stage_state * RADIX_BITS);
 
         simd<hist_t, PROCESS_SIZE> group_offset = utils::create_simd<hist_t, PROCESS_SIZE>(local_tid * PROCESS_SIZE, 1);
 
         simd<device_addr_t, PROCESS_SIZE> global_offset = group_offset + l.template lookup<PROCESS_SIZE>(bins);
 
-        utils::VectorStore<KeyT, 1, PROCESS_SIZE>(p_output, global_offset * sizeof(KeyT), keys, global_offset < n);
+        utils::VectorStore<KeyT, 1, PROCESS_SIZE>(p_output, global_offset * sizeof(KeyT), keys, global_offset < __source_data_size);
     }
 }
 
@@ -769,12 +818,13 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
                     {
-#if LOG_CALC_STATE
-                        sycl::ext::oneapi::experimental::printf(
-                            "\t\t\t\t\t__radix_sort_onesweep_submitter::operator() :"
-                            "__stage = %d",
-                            __stage);
-#endif
+#if LOG_CALC_STATE_IN_KERNEL
+                        sycl::ext::oneapi::experimental::printf(fmt);
+                        sycl::ext::oneapi::experimental::printf(print_t5);
+                        sycl::ext::oneapi::experimental::printf(print_str, "__radix_sort_onesweep_submitter::operator() : __stage = ");
+                        sycl::ext::oneapi::experimental::printf(print_int, __stage);
+                        sycl::ext::oneapi::experimental::printf(print_eol);
+#endif // LOG_CALC_STATE_IN_KERNEL
 
                         if (__stage % 2 == 0)
                         {
@@ -810,11 +860,11 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                                 kernelImpl(__nd_item);
                         }
 
-#if LOG_CALC_STATE
+#if LOG_CALC_STATE_IN_KERNEL
                         sycl::ext::oneapi::experimental::printf(
                             "\t\t\t\t\t\tAfter radix_sort_onesweep_slm_reorder_kernel call: __output\n");
                         print_buffer_in_kernel(__output, __n);
-#endif
+#endif // LOG_CALC_STATE_IN_KERNEL
                     });
             });
     }
@@ -880,7 +930,13 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 
     auto queue = __exec.queue();
 
-    uint8_t* tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, queue);
+    uint8_t* tmp_buffer =
+#if LOG_CALC_STATE
+        sycl::malloc_shared<uint8_t>(temp_buffer_size, queue);
+#else
+        sycl::malloc_device<uint8_t>(temp_buffer_size, queue);
+#endif
+
 #if LOG_CALC_STATE
     ::std::cout << tabStr << "uint8_t* tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, queue); : temp_buffer_size = " << temp_buffer_size << std::endl;
 #endif
@@ -890,7 +946,13 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);                         // GLOBAL_OFFSET_SIZE
     auto p_sync_buffer   = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);    // SYNC_BUFFER_SIZE
 
-    auto __output = sycl::malloc_device<uint32_t>(__n, queue);
+    auto __output = 
+#if LOG_CALC_STATE
+        sycl::malloc_shared<uint32_t>(__n, queue);
+#else
+        sycl::malloc_device<uint32_t>(__n, queue);
+#endif
+
 #if LOG_CALC_STATE
     ::std::cout << tabStr << "auto __output = sycl::malloc_device<uint32_t>(__n, queue); : __n = " << __n << std::endl;
 #endif
@@ -904,22 +966,25 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 
 #if LOG_CALC_STATE
     ::std::cout << tabStr << "state after __radix_sort_onesweep_histogram_submitter call : " << std::endl;
-    ::std::cout << tabStr << "p_global_offset : " << std::endl;
-    print_buffer(::std::cout, p_global_offset, GLOBAL_OFFSET_SIZE);
-    ::std::cout << tabStr << "p_sync_buffer : " << std::endl;
-    print_buffer(::std::cout, p_sync_buffer, SYNC_BUFFER_SIZE);
+    ::std::cout << tabStr << "p_global_offset : " << GLOBAL_OFFSET_SIZE << std::endl;
+    print_buffer(::std::cout, tabStr, reinterpret_cast<uint8_t*>(p_global_offset), GLOBAL_OFFSET_SIZE);
+    ::std::cout << tabStr << "p_sync_buffer : " << SYNC_BUFFER_SIZE << std::endl;
+    print_buffer(::std::cout, tabStr, reinterpret_cast<uint8_t*>(p_sync_buffer), SYNC_BUFFER_SIZE);
 #endif
 
+#if LOG_CALC_STATE
+    ::std::cout << tabStr << "call __radix_sort_onesweep_scan_submitter " << std::endl;
+#endif
     __e = __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT, _EsimRadixSortScan>()(
         ::std::forward<_ExecutionPolicy>(__exec), p_global_offset, __n, __e);
 
 #if LOG_CALC_STATE
     __e.wait();
     ::std::cout << tabStr << "state after __radix_sort_onesweep_scan_submitter call : " << std::endl;
-    ::std::cout << tabStr << "p_global_offset : " << std::endl;
-    print_buffer(::std::cout, p_global_offset, GLOBAL_OFFSET_SIZE);
-    ::std::cout << tabStr << "p_sync_buffer : " << std::endl;
-    print_buffer(::std::cout, p_sync_buffer, SYNC_BUFFER_SIZE);
+    ::std::cout << tabStr << "p_global_offset : " << GLOBAL_OFFSET_SIZE << std::endl;
+    print_buffer(::std::cout, tabStr, reinterpret_cast<uint8_t*>(p_global_offset), GLOBAL_OFFSET_SIZE);
+    ::std::cout << tabStr << "p_sync_buffer : " << SYNC_BUFFER_SIZE << std::endl;
+    print_buffer(::std::cout, tabStr, reinterpret_cast<uint8_t*>(p_sync_buffer), SYNC_BUFFER_SIZE);
 #endif
 
     for (::std::uint32_t __stage = 0; __stage < STAGES; __stage++)
@@ -931,11 +996,11 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 
 #if LOG_CALC_STATE
         __e.wait();
-        ::std::cout << tabStr << "state after __radix_sort_onesweep_submitter call : stage " << __stage << std::endl;
+        ::std::cout << tabStr << "state after __radix_sort_onesweep_submitter call : __stage = " << __stage << std::endl;
         ::std::cout << tabStr << "__output : " << std::endl;
-        print_buffer(::std::cout, __output, __n);
+        print_buffer(::std::cout, tabStr, __output, __n, 20);
         ::std::cout << tabStr << "tmp_buffer : " << std::endl;
-        print_buffer(::std::cout, tmp_buffer, temp_buffer_size);
+        print_buffer(::std::cout, tabStr, tmp_buffer, temp_buffer_size);
 #endif
     }
     __e.wait();
