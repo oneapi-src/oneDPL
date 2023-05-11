@@ -51,11 +51,11 @@ template <typename _Tp, typename _NDItemId, typename _Size, typename _TransformP
 void
 __work_group_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Size __n_items,
                            const _TransformPattern __transform_pattern, const _ReducePattern __reduce_pattern,
-                           const _InitType __init, _AccLocal& __local_mem, _Res& __res_acc, const _Acc&... __acc)
+                           const _InitType __init, const _AccLocal& __local_mem, _Res& __res_acc, const _Acc&... __acc)
 {
     auto __local_idx = __item_id.get_local_id(0);
     // 1. Initialization (transform part). Fill local memory
-    __transform_pattern(__item_id, __n, /*global_offset*/ 0, __local_mem, __acc...);
+    __transform_pattern(__item_id, __n, /*global_offset*/ (_Size)0, __local_mem, __acc...);
     __dpl_sycl::__group_barrier(__item_id);
     // 2. Reduce within work group using local memory
     _Tp __result = __reduce_pattern(__item_id, __n_items, __local_mem);
@@ -72,12 +72,12 @@ template <typename _Tp, typename _NDItemId, typename _Size, typename _TransformP
 void
 __device_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Size __n_items,
                        const _TransformPattern __transform_pattern, const _ReducePattern __reduce_pattern,
-                       const _InitType __init, _AccLocal& __local_mem, _Tmp& __temp_acc, const _Acc&... __acc)
+                       const _InitType __init, const _AccLocal& __local_mem, _Tmp& __temp_acc, const _Acc&... __acc)
 {
     auto __local_idx = __item_id.get_local_id(0);
     auto __group_idx = __item_id.get_group(0);
     // 1. Initialization (transform part). Fill local memory
-    __transform_pattern(__item_id, __n, /*global_offset*/ 0, __local_mem, __acc...);
+    __transform_pattern(__item_id, __n, /*global_offset*/ (_Size)0, __local_mem, __acc...);
     __dpl_sycl::__group_barrier(__item_id);
     // 2. Reduce within work group using local memory
     _Tp __result = __reduce_pattern(__item_id, __n_items, __local_mem);
@@ -92,10 +92,10 @@ __device_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Size _
 
 // Parallel_transform_reduce for a small arrays using a single work group.
 // Transforms and reduces __work_group_size * __iters_per_work_item elements.
-template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item, typename _Tp, typename _KernelName>
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _Tp, typename _KernelName>
 struct __parallel_transform_reduce_small_submitter;
 
-template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item, typename _Tp, typename... _Name>
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _Tp, typename... _Name>
 struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_per_work_item, _Tp,
                                                    __internal::__optional_kernel_name<_Name...>>
 {
@@ -131,7 +131,7 @@ struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_pe
     }
 }; // struct __parallel_transform_reduce_small_submitter
 
-template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item, typename _Tp, typename _ReduceOp,
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _Tp, typename _ReduceOp,
           typename _TransformOp, typename _ExecutionPolicy, typename _Size, typename _InitType,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
@@ -152,11 +152,11 @@ __parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, _Size __n, _Re
 // First: __work_group_size * __iters_per_work_item1 elements are transformed and reduced to a single partial result by
 // each work group.
 // Second: __work_group_size * __iters_per_work_item2 elements are reduced to the single result.
-template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item1, ::std::size_t __iters_per_work_item2,
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1, ::std::uint8_t __iters_per_work_item2,
           typename _Tp, typename _MainName, typename _LeafName>
 struct __parallel_transform_reduce_mid_submitter;
 
-template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item1, ::std::size_t __iters_per_work_item2,
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1, ::std::uint8_t __iters_per_work_item2,
           typename _Tp, typename... _MainName, typename... _LeafName>
 struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_work_item1, __iters_per_work_item2, _Tp,
                                                  __internal::__optional_kernel_name<_MainName...>,
@@ -233,7 +233,7 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
     }
 }; // struct __parallel_transform_reduce_mid_submitter
 
-template <::std::uint16_t __work_group_size, ::std::size_t __iters_per_work_item1, ::std::size_t __iters_per_work_item2,
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1, ::std::uint8_t __iters_per_work_item2,
           typename _Tp, typename _ReduceOp, typename _TransformOp, typename _ExecutionPolicy, typename _Size,
           typename _InitType, oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
           typename... _Ranges>
@@ -255,7 +255,7 @@ __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _Redu
 }
 
 // General implementation using a tree reduction
-template <typename _Tp, ::std::size_t __iters_per_work_item>
+template <typename _Tp, ::std::uint8_t __iters_per_work_item>
 struct __parallel_transform_reduce_impl
 {
     template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
@@ -327,7 +327,7 @@ struct __parallel_transform_reduce_impl
                         auto __group_idx = __item_id.get_group(0);
                         // 1. Initialization (transform part). Fill local memory
                         if (__is_first)
-                            __transform_pattern1(__item_id, __n, /*global_offset*/ 0, __temp_local, __rngs...);
+                            __transform_pattern1(__item_id, __n, /*global_offset*/ (_Size)0, __temp_local, __rngs...);
                         else
                             __transform_pattern2(__item_id, __n, __offset_2, __temp_local, __temp_acc);
                         __dpl_sycl::__group_barrier(__item_id);

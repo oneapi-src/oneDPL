@@ -186,7 +186,7 @@ struct __init_processing
 
 // Load elements consecutively from global memory, transform them, and apply a local reduction. Each local result is
 // stored in local memory.
-template <typename _ExecutionPolicy, ::std::size_t __iters_per_work_item, typename _Operation1, typename _Operation2>
+template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2>
 struct transform_reduce
 {
     _Operation1 __binary_op;
@@ -194,7 +194,7 @@ struct transform_reduce
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     void
-    operator()(const _NDItemId __item_id, const _Size __n, const ::std::size_t __global_offset, _AccLocal& __local_mem,
+    operator()(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, const _AccLocal& __local_mem,
                const _Acc&... __acc) const
     {
         auto __global_idx = __item_id.get_global_id(0);
@@ -234,7 +234,7 @@ struct reduce_over_group
     // Reduce on local memory with subgroups
     template <typename _NDItemId, typename _Size, typename _AccLocal>
     _Tp
-    reduce_impl(const _NDItemId __item_id, const _Size __n, _AccLocal& __local_mem,
+    reduce_impl(const _NDItemId __item_id, const _Size __n, const _AccLocal& __local_mem,
                 std::true_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
@@ -250,7 +250,7 @@ struct reduce_over_group
 
     template <typename _NDItemId, typename _Size, typename _AccLocal>
     _Tp
-    reduce_impl(const _NDItemId __item_id, const _Size __n, _AccLocal& __local_mem,
+    reduce_impl(const _NDItemId __item_id, const _Size __n, const _AccLocal& __local_mem,
                 std::false_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
@@ -271,7 +271,7 @@ struct reduce_over_group
 
     template <typename _NDItemId, typename _Size, typename _AccLocal>
     _Tp
-    operator()(const _NDItemId __item_id, const _Size __n, _AccLocal& __local_mem) const
+    operator()(const _NDItemId __item_id, const _Size __n, const _AccLocal& __local_mem) const
     {
         return reduce_impl(__item_id, __n, __local_mem, __has_known_identity<_BinaryOperation1, _Tp>{});
     }
