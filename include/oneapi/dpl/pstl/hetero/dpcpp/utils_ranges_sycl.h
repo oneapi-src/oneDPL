@@ -130,7 +130,7 @@ inline constexpr all_view_fn<sycl::access::mode::read, __dpl_sycl::__target_devi
 inline constexpr all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t>
     all_write;
 
-inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target::host_buffer,
+inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__host_target,
                              sycl::access::placeholder::false_t>
     host_all;
 } // namespace views

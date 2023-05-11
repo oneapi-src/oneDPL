@@ -234,6 +234,13 @@ constexpr __target __target_device =
     __target::global_buffer;
 #endif
 
+constexpr __target __host_target =
+#if _ONEDPL_LIBSYCL_VERSION >= 60200
+    __target::host_task;
+#else
+    __target::host_buffer;
+#endif
+
 template <typename _DataT>
 using __buffer_allocator =
 #if _ONEDPL_LIBSYCL_VERSION >= 60000
