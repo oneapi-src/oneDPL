@@ -13,7 +13,17 @@
 ##===----------------------------------------------------------------------===##
 
 cmake_minimum_required(VERSION 3.4.3)
+
+# oneDPL is a subproject only when PARENT_DIRECTORY is defined
+get_directory_property(_onedpl_is_subproject PARENT_DIRECTORY)
+
+include(CMakeDependentOption)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
+option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
+option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
+cmake_dependent_option(ONEDPL_TEST_WIN_ICX_FIXES "Enable icx workarounds for Windows" ON "CMAKE_HOST_WIN32;NOT _onedpl_is_subproject" OFF)
 
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/oneapi/dpl/pstl/onedpl_config.h
     _onedpl_version_info
@@ -22,36 +32,22 @@ string(REGEX REPLACE ".*#define ONEDPL_VERSION_MAJOR ([0-9]+).*" "\\1" _onedpl_v
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_MINOR ([0-9]+).*" "\\1" _onedpl_ver_minor "${_onedpl_version_info}")
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_ver_patch "${_onedpl_version_info}")
 
-# CMAKE_CXX_COMPILER and CMAKE_CXX_COMPILER_VERSION cannot be used because
-# CMake 3.19 and older will detect IntelLLVM compiler as CLang with CLang-specific version, see https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
-if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx|icx)(.exe)?$")
-    set(INTEL_LLVM_COMPILER TRUE)
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE INTEL_LLVM_COMPILER_VERSION_RAW)
-    string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" INTEL_LLVM_COMPILER_VERSION ${INTEL_LLVM_COMPILER_VERSION_RAW})
-    if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|icx-cl|icx)(.exe)?$")
-        set(INTEL_LLVM_COMPILER_MSVC_LIKE TRUE)
-        set(MSVC TRUE)
-    else()
-        set(INTEL_LLVM_COMPILER_GNU_LIKE TRUE)
-    endif()
+if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|icx-cl|icx)(.exe)?$")
+    set(INTEL_LLVM_COMPILER_MSVC_LIKE TRUE)
+elseif(CMAKE_CXX_COMPILER MATCHES ".*(dpcpp|icpx)(.exe)?$")
+    set(INTEL_LLVM_COMPILER_GNU_LIKE TRUE)
 endif()
 
-if (WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
-    set(CMAKE_CXX_FLAGS_DEBUG_INIT "-O0")
-    set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "-O2 -DNDEBUG")
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "/debug")
-    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO_INIT "/debug")
-
-    #CMake does not properly handle IntelLLVM compilers with GNU-like front ends after 3.19,
-    if (NOT ${CMAKE_VERSION} VERSION_LESS "3.20")
-        message(WARNING "${CMAKE_CXX_COMPILER} requires a workaround to allow proper usage with CMake ${CMAKE_VERSION} on Windows. We recommend using CMAKE_CXX_COMPILER=icx or icx-cl on Windows.")
-        set(CMAKE_CXX_COMPILER_ID "IntelLLVM GNU-Like Workaround" CACHE STRING "Switch compiler identification" FORCE)
-        set(CMAKE_CXX_COMPILER_VERSION "${INTEL_LLVM_COMPILER_VERSION}" CACHE STRING "Switch compiler version" FORCE)
-        # Explicitly setting the c++17 standard compile option so that "target_compile_features()" check functions properly for this workaround
-        set(CMAKE_CXX_COMPILE_FEATURES cxx_std_17)
-        set(CMAKE_CXX17_COMPILE_FEATURES cxx_std_17)
-        set(CMAKE_CXX17_STANDARD_COMPILE_OPTION "-std=c++17")
+if (CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_GNU_LIKE))
+    if (_onedpl_is_subproject)
+        # If oneDPL is a subproject, warn if workarounds are not included
+        if (NOT oneDPLWindowsIntelLLVM_FOUND)
+            message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} requires some workarounds to function properly with CMake. Please see \"Using oneDPL package on Windows\" in oneDPL/cmake/README.md for more details.")
+        endif()
+    elseif(ONEDPL_TEST_WIN_ICX_FIXES)
+        #if oneDPL is not a subproject, automatically include workarounds
+        list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+        find_package(oneDPLWindowsIntelLLVM)
     endif()
 endif()
 
@@ -63,9 +59,6 @@ if (FIND_GXX_EXE)
     execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
 endif()
 
-option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
-option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
-option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
@@ -323,7 +316,6 @@ target_include_directories(oneDPL
 ###############################################################################
 # Setup tests
 ###############################################################################
-get_directory_property(_onedpl_is_subproject PARENT_DIRECTORY)
 if (NOT _onedpl_is_subproject)
     enable_testing()
     add_subdirectory(test)
@@ -337,3 +329,4 @@ install(CODE "set(SKIP_HEADERS_SUBDIR TRUE)")
 install(SCRIPT cmake/scripts/generate_config.cmake)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(DIRECTORY licensing DESTINATION ${CMAKE_INSTALL_DOCDIR})
+install(FILES cmake/oneDPLWindowsIntelLLVMApply.cmake cmake/oneDPLWindowsIntelLLVMConfig.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/oneDPL/)

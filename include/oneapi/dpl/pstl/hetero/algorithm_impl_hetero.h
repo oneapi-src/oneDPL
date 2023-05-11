@@ -16,6 +16,7 @@
 #ifndef _ONEDPL_ALGORITHM_IMPL_HETERO_H
 #define _ONEDPL_ALGORITHM_IMPL_HETERO_H
 
+#include "../../functional"
 #include "../algorithm_fwd.h"
 
 #include "../parallel_backend.h"
@@ -1173,10 +1174,10 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
 //------------------------------------------------------------------------
 // sort
 //------------------------------------------------------------------------
-template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
-__pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
-               /*vector=*/::std::true_type, /*parallel=*/::std::true_type, /*is_move_constructible=*/::std::true_type)
+template <typename _ExecutionPolicy, typename _Iterator, typename _Compare, typename _Proj>
+void
+__stable_sort_with_projection(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
+                              _Proj __proj)
 {
     if (__last - __first < 2)
         return;
@@ -1184,8 +1185,17 @@ __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp)
-        .wait();
+    __par_backend_hetero::__parallel_stable_sort(
+        ::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp, __proj).wait();
+}
+
+template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+__pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
+               /*vector=*/::std::true_type, /*parallel=*/::std::true_type, /*is_move_constructible=*/::std::true_type)
+{
+    __stable_sort_with_projection(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
+                                  oneapi::dpl::identity{});
 }
 
 //------------------------------------------------------------------------
@@ -1196,15 +1206,26 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, v
 __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                       /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
-    if (__last - __first < 2)
-        return;
-
-    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
-    auto __buf = __keep(__first, __last);
-
-    __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp)
-        .wait();
+    __stable_sort_with_projection(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
+                                  oneapi::dpl::identity{});
 }
+
+template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Compare>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+__pattern_sort_by_key(_ExecutionPolicy&& __exec, _Iterator1 __keys_first, _Iterator1 __keys_last,
+                      _Iterator2 __values_first, _Compare __comp, /*vector=*/::std::true_type,
+                      /*parallel=*/::std::true_type)
+{
+    static_assert(::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator1>::value_type>
+        && ::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator2>::value_type>,
+        "The keys and values should be move constructible in case of parallel execution.");
+
+    auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
+    auto __end = __beg + (__keys_last - __keys_first);
+    __stable_sort_with_projection(::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __comp,
+        [](const auto& __a) { return ::std::get<0>(__a); });
+}
+
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _UnaryPredicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>

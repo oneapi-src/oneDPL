@@ -110,6 +110,9 @@ template <typename _Compare>
 struct __identity_reduce_fn
 {
     _Compare __comp;
+
+    // Assumes (a_index < b_index), Reduction algorithm must preserve
+    // relative ordering of arguments to the binary operation.
     template <typename _ReduceValueType>
     _ReduceValueType
     operator()(_ReduceValueType __a, _ReduceValueType __b) const
@@ -117,15 +120,16 @@ struct __identity_reduce_fn
         using ::std::get;
         auto __chosen_for_min = __a;
         auto __chosen_for_max = __b;
-        // if b "<" a or if b "==" a and b_index < a_index
-        if (__comp(get<2>(__b), get<2>(__a)) || (!__comp(get<2>(__a), get<2>(__b)) && get<0>(__b) < get<0>(__a)))
+
+        assert(get<0>(__a) < get<0>(__b));
+        assert(get<1>(__a) < get<1>(__b));
+
+        if (__comp(get<2>(__b), get<2>(__a)))
             __chosen_for_min = __b;
-        // if a ">" b or if a "==" b and a_index > b_index
-        if (__comp(get<3>(__b), get<3>(__a)) || (!__comp(get<3>(__a), get<3>(__b)) && get<1>(__b) < get<1>(__a)))
+        if (__comp(get<3>(__b), get<3>(__a)))
             __chosen_for_max = __a;
         auto __result = _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
                                          get<3>(__chosen_for_max)};
-
         return __result;
     }
 };

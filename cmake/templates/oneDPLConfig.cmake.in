@@ -18,6 +18,16 @@ get_filename_component(_onedpl_root "${_onedpl_root}/../../../" ABSOLUTE)
 @HANDLE_HEADERS_PATH@
 if (EXISTS "${_onedpl_headers}")
     if (NOT TARGET oneDPL)
+        if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|icx-cl|icx)(.exe)?$")
+            set(INTEL_LLVM_COMPILER_MSVC_LIKE TRUE)
+        elseif(CMAKE_CXX_COMPILER MATCHES ".*(dpcpp|icpx)(.exe)?$")
+            set(INTEL_LLVM_COMPILER_GNU_LIKE TRUE)
+        endif()
+
+        if ((NOT oneDPLWindowsIntelLLVM_FOUND) AND CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_GNU_LIKE))
+            message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} requires some workarounds to function properly with CMake. We recommend using 'find_package(oneDPLWindowsIntelLLVM)' before your 'project()' call to apply these workarounds.")
+        endif()
+
         include(CheckCXXCompilerFlag)
 
         add_library(oneDPL INTERFACE IMPORTED)

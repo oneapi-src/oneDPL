@@ -57,7 +57,13 @@ add_custom_target(run-onedpl-tests
     DEPENDS build-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
-macro(onedpl_add_test test_source_file)
+macro(onedpl_add_test test_source_file switch_off_checked_iterators)
+
+    set(_build_type_in_lower "unknown")
+    if (CMAKE_BUILD_TYPE)
+        string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
+    endif()
+
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
 
@@ -65,6 +71,16 @@ macro(onedpl_add_test test_source_file)
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
     if (MSVC)
         target_compile_options(${_test_name} PRIVATE /bigobj)
+    endif()
+
+    # Disable checked iterators on Windows for debug mode
+    # For details please see
+    #    https://learn.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=msvc-170
+    #    https://learn.microsoft.com/en-us/cpp/build/reference/md-mt-ld-use-run-time-library?view=msvc-170
+    #    https://stackoverflow.com/questions/51494506/replacing-md-with-mt-in-cmake-is-not-possible-in-release-mode
+    if (WIN32 AND ${_build_type_in_lower} STREQUAL "debug" AND ${switch_off_checked_iterators})
+        target_compile_definitions(${_test_name} PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+        target_compile_options(${_test_name} PRIVATE "/MD$<$<CONFIG:Debug>:>")
     endif()
 
     # oneDPL test harness may initialize a C++ iterator using iterator with different type
@@ -79,7 +95,6 @@ macro(onedpl_add_test test_source_file)
 
     add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
 
-    string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
     if (DEFINED ${_test_name}_timeout_${_build_type_in_lower})
         message(STATUS
         "Timeout for ${_test_name} is set to ${${_test_name}_timeout_${_build_type_in_lower}}, "
@@ -128,13 +143,20 @@ macro(onedpl_add_test test_source_file)
     add_dependencies(build-onedpl-tests ${_test_name})
 endmacro()
 
-set(_skip_regex_for_not_dpcpp "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics)")
+set(_regexp_dpcpp_backend_required "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics)")
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
-    if (_file MATCHES "${_skip_regex_for_not_dpcpp}" AND NOT ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
-        message(STATUS "Skip test ${_file} as it requires DPC++ backend")
-        continue()
+
+    if (_file MATCHES "${_regexp_dpcpp_backend_required}")
+        if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
+            # Switch off checked iterators
+            onedpl_add_test(${_file} true)
+        else()
+            message(STATUS "Skip test ${_file} as it requires DPC++ backend")
+        endif()
+    else()
+        # Do not switch off checked iterators
+        onedpl_add_test(${_file} false)
     endif()
 
-        onedpl_add_test(${_file})
 endforeach()

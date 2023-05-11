@@ -92,21 +92,25 @@ struct sycl_iterator
     difference_type
     operator-(const sycl_iterator& it) const
     {
+        assert(buffer == it.get_buffer());
         return idx - it.idx;
     }
     bool
     operator==(const sycl_iterator& it) const
     {
+        assert(buffer == it.get_buffer());
         return *this - it == 0;
     }
     bool
     operator!=(const sycl_iterator& it) const
     {
+        assert(buffer == it.get_buffer());
         return !(*this == it);
     }
     bool
     operator<(const sycl_iterator& it) const
     {
+        assert(buffer == it.get_buffer());
         return *this - it < 0;
     }
 
