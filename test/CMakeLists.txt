@@ -144,6 +144,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 endmacro()
 
 set(_regexp_dpcpp_backend_required "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics)")
+set(_regexp_switch_off_checked_it  "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics|test/parallel_api/algorithm/alg.sorting/alg.min.max|test/parallel_api/ranges|test/xpu_api/random/device_tests|test/xpu_api/random/interface_tests|test/xpu_api/random/statistics_tests)")
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
 
@@ -155,8 +156,13 @@ foreach (_file IN LISTS UNIT_TESTS)
             message(STATUS "Skip test ${_file} as it requires DPC++ backend")
         endif()
     else()
-        # Do not switch off checked iterators
-        onedpl_add_test(${_file} false)
+        if (_file MATCHES "${_regexp_switch_off_checked_it}")
+            # Switch off checked iterators
+            onedpl_add_test(${_file} true)
+        else()
+            # Do not switch off checked iterators
+            onedpl_add_test(${_file} false)
+        endif()
     endif()
 
 endforeach()
