@@ -152,12 +152,12 @@ __parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, _Size __n, _Re
 // First: __work_group_size * __iters_per_work_item1 elements are transformed and reduced to a single partial result by
 // each work group.
 // Second: __work_group_size * __iters_per_work_item2 elements are reduced to the single result.
-template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1, ::std::uint8_t __iters_per_work_item2,
-          typename _Tp, typename _MainName, typename _LeafName>
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1,
+          ::std::uint8_t __iters_per_work_item2, typename _Tp, typename _MainName, typename _LeafName>
 struct __parallel_transform_reduce_mid_submitter;
 
-template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1, ::std::uint8_t __iters_per_work_item2,
-          typename _Tp, typename... _MainName, typename... _LeafName>
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1,
+          ::std::uint8_t __iters_per_work_item2, typename _Tp, typename... _MainName, typename... _LeafName>
 struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_work_item1, __iters_per_work_item2, _Tp,
                                                  __internal::__optional_kernel_name<_MainName...>,
                                                  __internal::__optional_kernel_name<_LeafName...>>
@@ -233,10 +233,10 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
     }
 }; // struct __parallel_transform_reduce_mid_submitter
 
-template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1, ::std::uint8_t __iters_per_work_item2,
-          typename _Tp, typename _ReduceOp, typename _TransformOp, typename _ExecutionPolicy, typename _Size,
-          typename _InitType, oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
-          typename... _Ranges>
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1,
+          ::std::uint8_t __iters_per_work_item2, typename _Tp, typename _ReduceOp, typename _TransformOp,
+          typename _ExecutionPolicy, typename _Size, typename _InitType,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
 __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _ReduceOp __reduce_op,
                                      _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
