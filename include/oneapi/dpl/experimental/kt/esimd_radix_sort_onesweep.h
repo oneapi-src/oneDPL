@@ -237,7 +237,7 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
 
                 // simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input+read_addr+s, lane_id*sizeof(KeyT), m);
                 sycl::ext::intel::esimd::simd offset((read_addr + s + lane_id)*sizeof(KeyT));
-                simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m);
+                simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::none, cache_hint::none, 16>(input, offset, m);
 
                 keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(-1), m);
             }
@@ -402,7 +402,7 @@ protected:
                 sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(KeyT));
                 //                     16
                 keys.template select<CHUNK_SIZE, 1>(s) = 
-                    lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(p_input, offset);
+                    lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::none, cache_hint::none, 16>(p_input, offset);
             }
         }
         else
@@ -425,7 +425,7 @@ protected:
                 //                     16
                 keys.template select<CHUNK_SIZE, 1>(s) = 
                     merge(
-                        lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(p_input, offset, m),
+                        lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::none, cache_hint::none, 16>(p_input, offset, m),
                         //           16             -1
                         simd<KeyT, CHUNK_SIZE>(default_key),     // [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
                         m);
