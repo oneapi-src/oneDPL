@@ -289,14 +289,14 @@ class __transform_functor
     }
 };
 
-template <typename __UnaryOper, typename __UnaryPred>
+template <typename _UnaryOper, typename _UnaryPred>
 class __transform_if_unary_functor
 {
-    mutable __UnaryOper _M_oper;
-    mutable __UnaryPred _M_pred;
+    mutable _UnaryOper _M_oper;
+    mutable _UnaryPred _M_pred;
 
   public:
-    explicit __transform_if_unary_functor(__UnaryOper __op, __UnaryPred __pred) : _M_oper(__op), _M_pred(__pred) {}
+    explicit __transform_if_unary_functor(_UnaryOper __op, _UnaryPred __pred) : _M_oper(__op), _M_pred(__pred) {}
 
     template <typename _Input1Type, typename _OutputType>
     void
@@ -307,14 +307,14 @@ class __transform_if_unary_functor
     }
 };
 
-template <typename __BinaryOper, typename __BinaryPred>
+template <typename _BinaryOper, typename _BinaryPred>
 class __transform_if_binary_functor
 {
-    mutable __BinaryOper _M_oper;
-    mutable __BinaryPred _M_pred;
+    mutable _BinaryOper _M_oper;
+    mutable _BinaryPred _M_pred;
 
   public:
-    explicit __transform_if_binary_functor(__BinaryOper __op, __BinaryPred __pred) : _M_oper(__op), _M_pred(__pred) {}
+    explicit __transform_if_binary_functor(_BinaryOper __op, _BinaryPred __pred) : _M_oper(__op), _M_pred(__pred) {}
 
     template <typename _Input1Type, typename _Input2Type, typename _OutputType>
     void
