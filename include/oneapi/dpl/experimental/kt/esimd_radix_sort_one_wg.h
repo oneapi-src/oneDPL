@@ -178,7 +178,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
     #pragma unroll
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
         utils::scatter<KeyT, 16>(input, write_addr.template select<16, 1>(s), keys.template select<16, 1>(s),
-                                 (io_offset + lane_id + s) < n);
+                                 write_addr.template select<16, 1>(s) < n);
     }
 }
 
