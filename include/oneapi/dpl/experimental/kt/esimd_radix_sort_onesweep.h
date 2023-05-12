@@ -199,7 +199,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     OutputT output;
     uint8_t *p_global_buffer;
 
-    radix_sort_onesweep_slm_reorder_kernel(uint32_t n, uint32_t stage, InputT input, OutputT output, uint8_t *p_global_buffer, uint32_t *p_job_queue/*, global_hist_t *p_lookup*/):
+    radix_sort_onesweep_slm_reorder_kernel(uint32_t n, uint32_t stage, InputT input, OutputT output, uint8_t *p_global_buffer/*, global_hist_t *p_lookup*/):
         n(n), stage(stage), input(input), output(output), p_global_buffer(p_global_buffer)/*, p_lookup(p_lookup)*/ {}
 
     template <uint32_t CHUNK_SIZE>
@@ -518,7 +518,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
     template <typename _ExecutionPolicy, typename _Range, typename _Output, typename _TmpData,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
     sycl::event
-    operator()(_ExecutionPolicy&& __exec, _Range& __rng, _Output& __output, const _TmpData& __tmp_data, ::std::uint32_t* __p_job_queue,
+    operator()(_ExecutionPolicy&& __exec, _Range& __rng, _Output& __output, const _TmpData& __tmp_data,
                ::std::uint32_t __sweep_tg_count, ::std::size_t __n, ::std::uint32_t __stage, const sycl::event& __e) const
     {
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
@@ -532,7 +532,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 auto __data = __rng.data();
                 __cgh.depends_on(__e);
                 radix_sort_onesweep_slm_reorder_kernel<KeyT, decltype(__data), _Output, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE>
-                    K(__n, __stage, __data, __output, __tmp_data, __p_job_queue + __stage);
+                    K(__n, __stage, __data, __output, __tmp_data);
                 __cgh.parallel_for<_Name...>(__nd_range, K);
             });
         }
@@ -543,7 +543,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 auto __data = __rng.data();
                 __cgh.depends_on(__e);
                 radix_sort_onesweep_slm_reorder_kernel<KeyT, _Output, decltype(__data), RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE>
-                    K(__n, __stage, __output, __data, __tmp_data, __p_job_queue + __stage);
+                    K(__n, __stage, __output, __data, __tmp_data);
                 __cgh.parallel_for<_Name...>(__nd_range, K);
             });
         }
@@ -591,17 +591,14 @@ onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     const uint32_t SYNC_BUFFER_SIZE = sweep_tg_count * BINCOUNT * STAGES * sizeof(global_hist_t); //bytes
     constexpr uint32_t GLOBAL_OFFSET_SIZE = BINCOUNT * STAGES * sizeof(global_hist_t);
     const uint32_t LOOKUP_BUFFER_SIZE = sweep_tg_count * BINCOUNT * sizeof(global_hist_t);
-    constexpr uint32_t JOB_QUEUE_SIZE = 256;
     size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
                               SYNC_BUFFER_SIZE +   // sync buffer
-                              JOB_QUEUE_SIZE +     // dynamic job queue
                               LOOKUP_BUFFER_SIZE;  // L1 lookup buffer
 
     uint8_t *tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, __exec.queue());
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
     auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
-    auto p_job_queue = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE);
-    auto p_lookup =  reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE + JOB_QUEUE_SIZE);
+    auto p_lookup =  reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE);
     auto p_output = sycl::malloc_device<uint32_t>(__n, __exec.queue());
     auto e_init = __exec.queue().memset(tmp_buffer, 0, temp_buffer_size);
 
@@ -616,7 +613,7 @@ onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
         event_chain = __radix_sort_onesweep_submitter<
                 KeyT, RADIX_BITS, THREAD_PER_TG, SWEEP_PROCESSING_SIZE, IsAscending, _EsimRadixSort>()(
                     ::std::forward<_ExecutionPolicy>(__exec), __rng,
-                    p_output, tmp_buffer, p_job_queue, sweep_tg_count, __n, stage, event_chain);
+                    p_output, tmp_buffer, sweep_tg_count, __n, stage, event_chain);
     }
     event_chain.wait();
 
