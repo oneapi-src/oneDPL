@@ -2,7 +2,7 @@ Get Started with the |onedpl_long|
 ##################################
 
 |onedpl_long| (|onedpl_short|) works with the
-`Intel® oneAPI DPC++/C++ Compiler <https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html>`_
+`Intel® oneAPI DPC++/C++ Compiler <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/current/overview.html>`_
 to provide high-productivity APIs to developers, which can minimize SYCL*
 programming efforts across devices for high performance parallel applications.
 
@@ -14,8 +14,8 @@ programming efforts across devices for high performance parallel applications.
 
 
 For general information about |onedpl_short|, visit the `oneDPL GitHub* repository <https://github.com/oneapi-src/oneDPL>`_,
-or visit the `Intel® oneAPI DPC++ Library Guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_
-and the `Intel® oneAPI DPC++ Library main page <https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/dpc-library.html>`_.
+or visit the `Intel® oneAPI DPC++ Library Guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_
+and the `Intel® oneAPI DPC++ Library main page <https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-library.html>`_.
 
 Quick Start
 ===========
@@ -24,7 +24,7 @@ Installation
 ------------
 
 Visit the |onedpl_short| `Release Notes
-<https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html>`_
+<https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-dpcpp-library-release-notes.html>`_
 page for:
 
 * Where to Find the Release
@@ -33,7 +33,7 @@ page for:
 * Fixed Issues
 * Known Issues and Limitations
 
-Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://software.intel.com/en-us/oneapi/base-kit>`_
+Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html>`_
 to use |onedpl_short|.
 
 To use Parallel API, include the corresponding header files in your source code.
@@ -165,13 +165,13 @@ Find More
 
    * - Resource Link
      - Description
-   * - `Intel® oneAPI DPC++ Library Guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_
+   * - `Intel® oneAPI DPC++ Library Guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_
      - Refer to the |onedpl_short| guide for  more in depth information.
-   * - `System Requirements <https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-system-requirements.html>`_
+   * - `System Requirements <https://www.intel.com/content/www/us/en/developer/articles/system-requirements/intel-oneapi-dpcpp-system-requirements.html>`_
      - Check system requirements before you install |onedpl_short|.
-   * - `Intel® oneAPI DPC++ Library Release Notes <https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html>`_
+   * - `Intel® oneAPI DPC++ Library Release Notes <https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-dpcpp-library-release-notes.html>`_
      - Check the release notes to learn about updates in the latest release.
    * - `oneDPL Samples <https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL>`_
      - Learn how to use |onedpl_short| with samples.
-   * - `Layers for Yocto* Project <https://www.intel.com/content/www/us/en/develop/documentation/get-started-with-intel-oneapi-iot-linux/top/adding-oneapi-components-to-yocto-project-builds.html>`_
+   * - `Layers for Yocto* Project <https://www.intel.com/content/www/us/en/docs/oneapi-iot-toolkit/get-started-guide-linux/current/adding-oneapi-components-to-yocto-project-builds.html>`_
      - Add oneAPI components to a Yocto project build using the meta-intel layers.
