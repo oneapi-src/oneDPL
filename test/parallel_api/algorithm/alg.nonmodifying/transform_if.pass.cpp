@@ -64,102 +64,63 @@ struct mutable_check_mod3_is_0
 
 struct test_transform_if_binary
 {
-    template <typename It1, typename It2, typename Out, typename Size>
-    bool
-    check(It1 first, It1 last, It2 mask, Out result, Size n)
-    {
-        int i = 0;
-        int j = n - 1;
-
-        for (; first != last; ++first, ++mask, ++result, ++i, --j)
-        {
-            if (n % 2 == 0)
-            { // even # of elements in output sequence
-                if (*mask == 1)
-                {
-                    if (i % 2 == 0 && *result != -(3 * i))
-                    { // forward iterator case
-                        return false;
-                    }
-                    else if (i % 2 == 1 && *result != -(3 * j))
-                    { // reverse iterator case
-                        return false;
-                    }
-                }
-                else if (*mask == 0 && *result != 0)
-                {
-                    return false;
-                }
-            }
-            else
-            { // odd # of elements in output sequence
-                if (*mask == 1)
-                {
-                    if (i % 2 == 0 && (*result != -(3 * i) && *result != -(3 * j)))
-                    {
-                        return false;
-                    }
-                }
-                else if (*mask == 0 && *result != 0)
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename Size>
     void
     operator()(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIterator2 mask,
-               InputIterator2 /* mask_end */, OutputIterator result, OutputIterator result_end, Size n)
+               InputIterator2 /*mask_end*/, OutputIterator result_begin, OutputIterator result_end, Size n)
     {
-        using value_type1 = typename ::std::iterator_traits<InputIterator1>::value_type;
-        using value_type2 = typename ::std::iterator_traits<InputIterator2>::value_type;
+        using in_value_type1 = typename ::std::iterator_traits<InputIterator1>::value_type;
+        using in_value_type2 = typename ::std::iterator_traits<InputIterator2>::value_type;
+        using out_value_type = typename ::std::iterator_traits<OutputIterator>::value_type;
         // call transform_if
-        oneapi::dpl::transform_if(exec, first, last, mask, result, mutable_negate_first<value_type1, value_type2>{},
-                                  mutable_check_mask_second<value_type1, value_type2>{});
+        oneapi::dpl::transform_if(exec, first, last, mask, result_begin,
+                                  mutable_negate_first<in_value_type1, in_value_type2>{},
+                                  mutable_check_mask_second<in_value_type1, in_value_type2>{});
 
-        EXPECT_TRUE(check(first, last, mask, result, n), "transform_if binary wrong result");
+        //calculate expected
+        std::vector<out_value_type> expected(n);
+        auto in_iter = first;
+        auto mask_iter = mask;
+        auto expected_iter = expected.begin();
+        for (; in_iter != last; in_iter++, mask_iter++, expected_iter++)
+        {
+            *expected_iter = *mask_iter == 1 ? -(*in_iter) : 0;
+        }
+
+        EXPECT_EQ_N(expected.begin(), result_begin, n, "wrong effect from transform_if binary");
+
         // reset output elements to 0
-        ::std::fill(result, result_end, 0);
+        ::std::fill(result_begin, result_end, 0);
     }
 };
 
 struct test_transform_if_unary
 {
-    template <typename It1, typename Out, typename Size>
-    bool
-    check(It1 first, It1 last, Out result, Size n)
-    {
-
-        for (; first != last; ++first, ++result)
-        {
-            if (*first % 3 == 0 && *result != -(*first))
-            {
-                return false;
-            }
-            else if (*first % 3 != 0 && *result != 0)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
     template <typename Policy, typename InputIterator1, typename OutputIterator, typename Size>
     void
-    operator()(Policy&& exec, InputIterator1 first, InputIterator1 last, OutputIterator result,
+    operator()(Policy&& exec, InputIterator1 first, InputIterator1 last, OutputIterator result_begin,
                OutputIterator result_end, Size n)
     {
-        using value_type1 = typename ::std::iterator_traits<InputIterator1>::value_type;
-        // call transform_if
-        oneapi::dpl::transform_if(exec, first, last, result, mutable_negate<value_type1>{},
-                                  mutable_check_mod3_is_0<value_type1>{});
+        using in_value_type = typename ::std::iterator_traits<InputIterator1>::value_type;
+        using out_value_type = typename ::std::iterator_traits<OutputIterator>::value_type;
 
-        EXPECT_TRUE(check(first, last, result, n), "transform_if unary wrong result");
+        // call transform_if
+        oneapi::dpl::transform_if(exec, first, last, result_begin, mutable_negate<in_value_type>{},
+                                  mutable_check_mod3_is_0<in_value_type>{});
+
+        //calculate expected
+        std::vector<out_value_type> expected(n);
+        auto expected_iter = expected.begin();
+        auto in_iter = first;
+        for (; in_iter != last; in_iter++, expected_iter++)
+        {
+            *expected_iter = *in_iter % 3 == 0 ? -(*in_iter) : 0;
+        }
+
+        EXPECT_EQ_N(expected.begin(), result_begin, n, "wrong effect from transform_if unary");
+
         // reset output elements to 0
-        ::std::fill(result, result_end, 0);
+        ::std::fill(result_begin, result_end, 0);
     }
 };
 
