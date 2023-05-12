@@ -188,7 +188,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     // after all these is done, update ranks to workgroup ranks, need SUBGROUP_LOOKUP_SIZE
     // then shuffle keys to workgroup order in SLM, need PROCESS_SIZE * sizeof(KeyT) * SG_PER_WG
     // then read reordered slm and look up global fix, need GLOBAL_LOOKUP_SIZE on top
-    static constexpr uint32_t slm_lookup_global = REORDER_SLM_SIZE;
 
     uint32_t n;
     uint32_t stage;
@@ -413,7 +412,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
             utils::VectorStore<KeyT, 1, PROCESS_SIZE>(simd<uint32_t, PROCESS_SIZE>(wg_offset)*sizeof(KeyT), keys);
         }
         barrier();
-        slm_lookup_t<global_hist_t> l(slm_lookup_global);
+        slm_lookup_t<global_hist_t> l(REORDER_SLM_SIZE);
         if (local_tid == 0) {
             l.template setup(global_fix);
         }
