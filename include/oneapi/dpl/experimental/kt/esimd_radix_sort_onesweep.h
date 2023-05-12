@@ -926,19 +926,21 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __rng_data = __rng.data();
                 __cgh.depends_on(__e);
-                __cgh.parallel_for<_Name...>(
-                    __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
-                    {
+
+                if (__stage % 2 == 0)
+                {
+                    __cgh.parallel_for<_Name...>(
+                        __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
+                        {
 #if LOG_CALC_STATE_IN_KERNEL
-                        sycl::ext::oneapi::experimental::printf(fmt);
-                        sycl::ext::oneapi::experimental::printf(print_t5);
-                        sycl::ext::oneapi::experimental::printf(print_str, "__radix_sort_onesweep_submitter::operator() : __stage = ");
-                        sycl::ext::oneapi::experimental::printf(print_int, __stage);
-                        sycl::ext::oneapi::experimental::printf(print_eol);
+                            sycl::ext::oneapi::experimental::printf(fmt);
+                            sycl::ext::oneapi::experimental::printf(print_t5);
+                            sycl::ext::oneapi::experimental::printf(
+                                print_str, "__radix_sort_onesweep_submitter::operator() : __stage = ");
+                            sycl::ext::oneapi::experimental::printf(print_int, __stage);
+                            sycl::ext::oneapi::experimental::printf(print_eol);
 #endif // LOG_CALC_STATE_IN_KERNEL
 
-                        if (__stage % 2 == 0)
-                        {
                             // onesweep_kernel<KeyT,
                             radix_sort_onesweep_slm_reorder_kernel<KeyT,                 // typename KeyT
                                                                    decltype(__rng_data), // typename InputT
@@ -953,9 +955,29 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                                            /* OutputT* p_output,        */ __output,
                                            /* uint8_t * p_global_buffer */ __tmp_data);
                             kernelImpl(__nd_item);
-                        }
-                        else
+                        });
+
+#if LOG_CALC_STATE_IN_KERNEL
+                    sycl::ext::oneapi::experimental::printf(
+                        "\t\t\t\t\t\tAfter radix_sort_onesweep_slm_reorder_kernel call: __output\n");
+                    print_buffer_in_kernel(__output, __n);
+#endif // LOG_CALC_STATE_IN_KERNEL
+
+                }
+                else
+                {
+                    __cgh.parallel_for<_Name...>(
+                        __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]]
                         {
+#if LOG_CALC_STATE_IN_KERNEL
+                            sycl::ext::oneapi::experimental::printf(fmt);
+                            sycl::ext::oneapi::experimental::printf(print_t5);
+                            sycl::ext::oneapi::experimental::printf(print_str, "__radix_sort_onesweep_submitter::operator() : __stage = ");
+                            sycl::ext::oneapi::experimental::printf(print_int, __stage);
+                            sycl::ext::oneapi::experimental::printf(print_eol);
+#endif // LOG_CALC_STATE_IN_KERNEL
+
+                            // onesweep_kernel<KeyT,
                             radix_sort_onesweep_slm_reorder_kernel<KeyT,                 // typename KeyT
                                                                    _Output,              // typename InputT
                                                                    decltype(__rng_data), // typename OutputT
@@ -969,14 +991,14 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                                            /* OutputT* p_output,        */ __rng_data,
                                            /* uint8_t * p_global_buffer */ __tmp_data);
                                 kernelImpl(__nd_item);
-                        }
+                        });
 
 #if LOG_CALC_STATE_IN_KERNEL
-                        sycl::ext::oneapi::experimental::printf(
-                            "\t\t\t\t\t\tAfter radix_sort_onesweep_slm_reorder_kernel call: __output\n");
-                        print_buffer_in_kernel(__output, __n);
+                    sycl::ext::oneapi::experimental::printf(
+                        "\t\t\t\t\t\tAfter radix_sort_onesweep_slm_reorder_kernel call: __output\n");
+                    print_buffer_in_kernel(__output, __n);
 #endif // LOG_CALC_STATE_IN_KERNEL
-                    });
+                }
             });
     }
 };
