@@ -188,7 +188,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     // after all these is done, update ranks to workgroup ranks, need SUBGROUP_LOOKUP_SIZE
     // then shuffle keys to workgroup order in SLM, need PROCESS_SIZE * sizeof(KeyT) * SG_PER_WG
     // then read reordered slm and look up global fix, need GLOBAL_LOOKUP_SIZE on top
-    static constexpr uint32_t slm_lookup_workgroup = 0;
     static constexpr uint32_t slm_reorder_start = 0;
     static constexpr uint32_t slm_lookup_global = slm_reorder_start + REORDER_SLM_SIZE;
 
@@ -364,7 +363,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         // change slm to reuse
 
         uint32_t slm_bin_hist_this_thread = local_tid * BIN_COUNT * sizeof(hist_t);
-        uint32_t slm_lookup_subgroup = slm_lookup_workgroup+local_tid*sizeof(hist_t)*BIN_COUNT;
+        uint32_t slm_lookup_subgroup = local_tid*sizeof(hist_t)*BIN_COUNT;
 
         simd<hist_t, BIN_COUNT> bin_offset;
         simd<hist_t, PROCESS_SIZE> ranks;
