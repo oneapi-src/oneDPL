@@ -33,6 +33,8 @@
 #include <random>
 #include <string>
 #include <iostream>
+#include <cmath>
+#include <limits>
 
 template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
@@ -181,15 +183,20 @@ void test_general_cases(std::size_t size)
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    const std::vector<std::size_t> sizes = {
-        6, 16, 42, 256, 316, 2048, 5072, 8192, 14001,                        // one work-group
-        2<<14, 50000, 67543, 100'000, 2<<17, 179'581, 250'000                // cooperative
-    };
-    const std::vector<std::size_t> onesweep_sizes = {2<<18, 500'000, 888'235, 1'000'000, 2<<20, 10'000'000};
+    const std::vector<std::size_t> onewg_sizes = { 6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14 };
+    const std::vector<std::size_t> coop_sizes = { (1<<14)+1, 50000, 67543, 100'000, 1<<17, 179'581, 250'000, 1<<18 };
+    const std::vector<std::size_t> onesweep_sizes = { (1<<18)+1, 500'000, 888'235, 1'000'000, 1<<20, 10'000'000 };
 
     try
     {
-        for(auto size: sizes)
+        for(auto size: onewg_sizes)
+        {
+            test_general_cases<uint32_t>(size);
+            test_general_cases<int>(size);
+            test_general_cases<float>(size);
+            // test_general_cases<double>(size);
+        }
+        for(auto size: coop_sizes)
         {
             test_general_cases<uint32_t>(size);
             // test_general_cases<int>(size);
