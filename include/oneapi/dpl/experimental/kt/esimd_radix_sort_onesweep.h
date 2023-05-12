@@ -1058,8 +1058,15 @@ void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     ::std::cout << tabStr << "SYNC_BUFFER_SIZE = " << SYNC_BUFFER_SIZE << ::std::endl;
 #endif
 
-    const size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset
-                                    SYNC_BUFFER_SIZE;    // sync buffer         // ~ 4 Kb
+    //    3072 (?)                           3 (?)         256              4
+    const uint32_t LOOKUP_BUFFER_SIZE = sweep_tg_count * BINCOUNT * sizeof(global_hist_t);
+#if LOG_CALC_STATE
+    ::std::cout << tabStr << "LOOKUP_BUFFER_SIZE = " << LOOKUP_BUFFER_SIZE << ::std::endl;
+#endif
+
+    size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + // global offset                     //
+                              SYNC_BUFFER_SIZE +   // sync buffer                       //  + ATTENTION: for correct work required all three values!!!
+                              LOOKUP_BUFFER_SIZE;  // L1 lookup buffer                  //
 
     auto queue = __exec.queue();
 
