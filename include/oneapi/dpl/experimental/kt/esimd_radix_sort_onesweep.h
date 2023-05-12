@@ -188,10 +188,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     // after all these is done, update ranks to workgroup ranks, need SUBGROUP_LOOKUP_SIZE
     // then shuffle keys to workgroup order in SLM, need PROCESS_SIZE * sizeof(KeyT) * SG_PER_WG
     // then read reordered slm and look up global fix, need GLOBAL_LOOKUP_SIZE on top
-    static constexpr uint32_t slm_bin_hist_start = 0;
-    static constexpr uint32_t slm_lookup_workgroup = 0;
-    static constexpr uint32_t slm_reorder_start = 0;
-    static constexpr uint32_t slm_lookup_global = slm_reorder_start + REORDER_SLM_SIZE;
 
     uint32_t n;
     uint32_t stage;
@@ -281,8 +277,8 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         then every thread add local sum with sum of previous group and incoming offset
         */
         constexpr uint32_t HIST_STRIDE = sizeof(hist_t)*BIN_COUNT;
-        const uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid*HIST_STRIDE;
-        const uint32_t slm_bin_hist_group_incoming = slm_bin_hist_start + SG_PER_WG * HIST_STRIDE;
+        const uint32_t slm_bin_hist_this_thread = local_tid*HIST_STRIDE;
+        const uint32_t slm_bin_hist_group_incoming = SG_PER_WG * HIST_STRIDE;
         const uint32_t slm_bin_hist_global_incoming = slm_bin_hist_group_incoming + HIST_STRIDE;
         constexpr uint32_t GLOBAL_ACCUMULATED = 0x40000000;
         constexpr uint32_t HIST_UPDATED = 0x80000000;
@@ -294,7 +290,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
 
             simd<hist_t, BIN_WIDTH> thread_grf_hist_summary;
             if (local_tid < BIN_SUMMARY_GROUP_SIZE) {
-                uint32_t slm_bin_hist_summary_offset = slm_bin_hist_start + local_tid * BIN_WIDTH * sizeof(hist_t);
+                uint32_t slm_bin_hist_summary_offset = local_tid * BIN_WIDTH * sizeof(hist_t);
                 thread_grf_hist_summary = utils::BlockLoad<hist_t, BIN_WIDTH>(slm_bin_hist_summary_offset);
                 slm_bin_hist_summary_offset += HIST_STRIDE;
                 for (uint32_t s = 1; s<SG_PER_WG; s++, slm_bin_hist_summary_offset += HIST_STRIDE) {
@@ -342,7 +338,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         auto group_incoming = utils::BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming);
         global_fix = utils::BlockLoad<global_hist_t, BIN_COUNT>(slm_bin_hist_global_incoming) - group_incoming;
         if (local_tid>0) {
-            subgroup_offset = group_incoming + utils::BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_start + (local_tid-1)*HIST_STRIDE);
+            subgroup_offset = group_incoming + utils::BlockLoad<hist_t, BIN_COUNT>((local_tid-1)*HIST_STRIDE);
         }
         else
             subgroup_offset = group_incoming;
@@ -364,8 +360,8 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
         // change slm to reuse
 
-        uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * BIN_COUNT * sizeof(hist_t);
-        uint32_t slm_lookup_subgroup = slm_lookup_workgroup+local_tid*sizeof(hist_t)*BIN_COUNT;
+        uint32_t slm_bin_hist_this_thread = local_tid * BIN_COUNT * sizeof(hist_t);
+        uint32_t slm_lookup_subgroup = local_tid*sizeof(hist_t)*BIN_COUNT;
 
         simd<hist_t, BIN_COUNT> bin_offset;
         simd<hist_t, PROCESS_SIZE> ranks;
@@ -413,16 +409,16 @@ struct radix_sort_onesweep_slm_reorder_kernel {
             simd<hist_t, PROCESS_SIZE> wg_offset = ranks + subgroup_lookup.template lookup<PROCESS_SIZE>(subgroup_offset, bins);
             barrier();
 
-            utils::VectorStore<KeyT, 1, PROCESS_SIZE>(simd<uint32_t, PROCESS_SIZE>(wg_offset)*sizeof(KeyT) + slm_reorder_start, keys);
+            utils::VectorStore<KeyT, 1, PROCESS_SIZE>(simd<uint32_t, PROCESS_SIZE>(wg_offset)*sizeof(KeyT), keys);
         }
         barrier();
-        slm_lookup_t<global_hist_t> l(slm_lookup_global);
+        slm_lookup_t<global_hist_t> l(REORDER_SLM_SIZE);
         if (local_tid == 0) {
             l.template setup(global_fix);
         }
         barrier();
         {
-            keys = utils::BlockLoad<KeyT, PROCESS_SIZE>(slm_reorder_start + local_tid * PROCESS_SIZE * sizeof(KeyT));
+            keys = utils::BlockLoad<KeyT, PROCESS_SIZE>(local_tid * PROCESS_SIZE * sizeof(KeyT));
 
             // bins = (keys >> (stage * RADIX_BITS)) & MASK;
             bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast</*IsAscending*/ true>(keys), stage * RADIX_BITS);
