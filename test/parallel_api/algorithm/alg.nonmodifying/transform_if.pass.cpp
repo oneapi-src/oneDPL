@@ -177,15 +177,19 @@ test()
 
             invoke_on_all_policies<0>()(test_transform_if_binary(), in1.begin(), in1.end(), in2.begin(), in2.end(),
                                         out.begin(), out.end(), n);
+#if !ONEDPL_FPGA_DEVICE
             invoke_on_all_policies<1>()(test_transform_if_binary(), in1.cbegin(), in1.cend(), in2.cbegin(), in2.cend(),
                                         out.begin(), out.end(), n);
+#endif
         }
         {
             Sequence<In1> in1(n, [=](size_t k) { return k; });
             Sequence<Out> out(n, [=](size_t) { return 0; });
 
             invoke_on_all_policies<0>()(test_transform_if_unary(), in1.begin(), in1.end(), out.begin(), out.end(), n);
+#if !ONEDPL_FPGA_DEVICE
             invoke_on_all_policies<1>()(test_transform_if_unary(), in1.cbegin(), in1.cend(), out.begin(), out.end(), n);
+#endif
         }
     }
 }
