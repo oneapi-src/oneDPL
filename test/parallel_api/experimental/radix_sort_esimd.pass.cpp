@@ -28,6 +28,8 @@
 #include <CL/sycl.hpp>
 #endif
 
+#include "support/sycl_alloc_utils.h"
+
 #include <vector>
 #include <algorithm>
 #include <random>
@@ -90,48 +92,44 @@ void test_subrange_view(std::size_t size)
     sycl::queue q{};
     auto policy = oneapi::dpl::execution::make_device_policy(q);
 
-    T* input = sycl::malloc_shared<T>(size, q);
-    T* ref = sycl::malloc_host<T>(size, q);
-    generate_data(ref, size);
-    q.copy(ref, input, size).wait();
-    std::sort(ref, ref + size);
+    std::vector<T> expected(size);
+    generate_data(expected.data(), size);
 
-    oneapi::dpl::experimental::ranges::views::subrange view(input, input + size);
+    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> dt_input(q, expected.begin(), expected.end());
+
+    std::sort(expected.begin(), expected.end());
+
+    oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
     oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, view);
 
-    T* host_input = sycl::malloc_host<T>(size, q);
-    q.copy(input, host_input, size).wait();
+    std::vector<T> actual(size);
+    dt_input.retrieve_data(actual.begin());
 
     std::string msg = "wrong results with views::subrange, n: " + std::to_string(size);
-    EXPECT_EQ_N(ref, input, size, msg.c_str());
-
-    sycl::free(input, q);
-    sycl::free(ref, q);
-    sycl::free(host_input, q);
+    EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
 }
 #endif // _ENABLE_RANGES_TESTING
 
-template<typename T>
+template<typename T, sycl::usm::alloc _alloc_type>
 void test_usm(std::size_t size)
 {
     sycl::queue q{};
     auto policy = oneapi::dpl::execution::make_device_policy(q);
-    T* input = sycl::malloc_shared<T>(size, q);
-    T* ref = sycl::malloc_host<T>(size, q);
-    generate_data(ref, size);
-    q.copy(ref, input, size).wait();
-    std::sort(ref, ref + size);
-    oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, input, input + size);
 
-    T* host_input = sycl::malloc_host<T>(size, q);
-    q.copy(input, host_input, size).wait();
+    std::vector<T> expected(size);
+    generate_data(expected.data(), size);
+
+    TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
+
+    std::sort(expected.begin(), expected.end());
+
+    oneapi::dpl::experimental::esimd::radix_sort<256, 16>(policy, dt_input.get_data(), dt_input.get_data() + size);
+
+    std::vector<T> actual(size);
+    dt_input.retrieve_data(actual.begin());
 
     std::string msg = "wrong results with USM, n: " + std::to_string(size);
-    EXPECT_EQ_N(ref, input, size, msg.c_str());
-
-    sycl::free(input, q);
-    sycl::free(ref, q);
-    sycl::free(host_input, q);
+    EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
 }
 
 template<typename T>
@@ -175,7 +173,8 @@ void test_general_cases(std::size_t size)
     test_all_view<T>(size);
     test_subrange_view<T>(size);
 #endif // _ENABLE_RANGES_TESTING
-    test_usm<T>(size);
+    test_usm<T, sycl::usm::alloc::shared>(size);
+    test_usm<T, sycl::usm::alloc::device>(size);
     test_sycl_iterators<T>(size);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -205,7 +204,8 @@ int main()
         }
         for(auto size: onesweep_sizes)
         {
-            test_usm<uint32_t>(size);
+            test_usm<uint32_t, sycl::usm::alloc::shared>(size);
+            test_usm<uint32_t, sycl::usm::alloc::device>(size);
         }
         test_small_sizes();
     }
