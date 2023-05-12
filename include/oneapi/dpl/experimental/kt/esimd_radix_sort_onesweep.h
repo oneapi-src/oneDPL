@@ -143,27 +143,6 @@ inline __ESIMD_NS::simd<uint32_t, 32> match_bins(__ESIMD_NS::simd<uint32_t, 32> 
     return matched_bins;
 }
 
-struct dynamic_job_queue_t {
-    uint32_t *queue;
-    uint32_t slm;
-    dynamic_job_queue_t(uint32_t *queue, uint32_t slm):queue(queue), slm(slm) {}
-    template<typename Q>
-    inline uint32_t get_job_id(Q g) const {
-        using namespace __ESIMD_NS;
-        using namespace __ESIMD_ENS;
-        simd<uint32_t, 1> job_id;
-        if (g.get_local_linear_id()==0) {
-            job_id = lsc_atomic_update<atomic_op::inc, uint32_t, 1>(queue, 0, 1);
-            lsc_slm_scatter<uint32_t, 1, lsc_data_size::default_size, 1>(slm, job_id);
-        }
-        barrier();
-        if (g.get_local_linear_id()!=0) {
-            job_id = lsc_slm_gather<uint32_t, 1, lsc_data_size::default_size, 1>(slm);
-        }
-        return job_id[0];
-    }
-};
-
 template <typename T>
 struct slm_lookup_t {
     uint32_t slm;
@@ -219,9 +198,9 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     InputT input;
     OutputT output;
     uint8_t *p_global_buffer;
-    dynamic_job_queue_t job_queue;
+
     radix_sort_onesweep_slm_reorder_kernel(uint32_t n, uint32_t stage, InputT input, OutputT output, uint8_t *p_global_buffer, uint32_t *p_job_queue/*, global_hist_t *p_lookup*/):
-        n(n), stage(stage), input(input), output(output), p_global_buffer(p_global_buffer), job_queue(p_job_queue, 0)/*, p_lookup(p_lookup)*/ {}
+        n(n), stage(stage), input(input), output(output), p_global_buffer(p_global_buffer)/*, p_lookup(p_lookup)*/ {}
 
     template <uint32_t CHUNK_SIZE>
     inline void LoadKeys(uint32_t io_offset, __ESIMD_NS::simd<KeyT, PROCESS_SIZE> &keys, KeyT default_key) const {
