@@ -86,7 +86,7 @@ void test_all_view(std::size_t size)
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
-template <typename T>
+template<typename T>
 void test_subrange_view(std::size_t size)
 {
     sycl::queue q{};
@@ -110,7 +110,7 @@ void test_subrange_view(std::size_t size)
 }
 #endif // _ENABLE_RANGES_TESTING
 
-template <typename T, sycl::usm::alloc _alloc_type>
+template<typename T, sycl::usm::alloc _alloc_type>
 void test_usm(std::size_t size)
 {
     sycl::queue q{};
