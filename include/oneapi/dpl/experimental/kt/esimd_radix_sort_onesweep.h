@@ -188,8 +188,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     // after all these is done, update ranks to workgroup ranks, need SUBGROUP_LOOKUP_SIZE
     // then shuffle keys to workgroup order in SLM, need PROCESS_SIZE * sizeof(KeyT) * SG_PER_WG
     // then read reordered slm and look up global fix, need GLOBAL_LOOKUP_SIZE on top
-    static constexpr uint32_t slm_reorder_start = 0;
-    static constexpr uint32_t slm_lookup_global = slm_reorder_start + REORDER_SLM_SIZE;
+    static constexpr uint32_t slm_lookup_global = REORDER_SLM_SIZE;
 
     uint32_t n;
     uint32_t stage;
@@ -411,7 +410,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
             simd<hist_t, PROCESS_SIZE> wg_offset = ranks + subgroup_lookup.template lookup<PROCESS_SIZE>(subgroup_offset, bins);
             barrier();
 
-            utils::VectorStore<KeyT, 1, PROCESS_SIZE>(simd<uint32_t, PROCESS_SIZE>(wg_offset)*sizeof(KeyT) + slm_reorder_start, keys);
+            utils::VectorStore<KeyT, 1, PROCESS_SIZE>(simd<uint32_t, PROCESS_SIZE>(wg_offset)*sizeof(KeyT), keys);
         }
         barrier();
         slm_lookup_t<global_hist_t> l(slm_lookup_global);
@@ -420,7 +419,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         }
         barrier();
         {
-            keys = utils::BlockLoad<KeyT, PROCESS_SIZE>(slm_reorder_start + local_tid * PROCESS_SIZE * sizeof(KeyT));
+            keys = utils::BlockLoad<KeyT, PROCESS_SIZE>(local_tid * PROCESS_SIZE * sizeof(KeyT));
 
             // bins = (keys >> (stage * RADIX_BITS)) & MASK;
             bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast</*IsAscending*/ true>(keys), stage * RADIX_BITS);
