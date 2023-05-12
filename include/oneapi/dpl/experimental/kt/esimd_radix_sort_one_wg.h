@@ -41,9 +41,10 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
     constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
     constexpr uint32_t MAX_THREAD_PER_TG = 64;
     constexpr bin_t MASK = BIN_COUNT - 1;
+    constexpr uint32_t HIST_STRIDE = sizeof(hist_t) * BIN_COUNT;
 
     constexpr uint32_t REORDER_SLM_SIZE = PROCESS_SIZE * sizeof(KeyT) * MAX_THREAD_PER_TG; // reorder buffer
-    constexpr uint32_t BIN_HIST_SLM_SIZE = BIN_COUNT * sizeof(hist_t) * MAX_THREAD_PER_TG;             // bin hist working buffer
+    constexpr uint32_t BIN_HIST_SLM_SIZE = HIST_STRIDE * MAX_THREAD_PER_TG;             // bin hist working buffer
     constexpr uint32_t INCOMING_OFFSET_SLM_SIZE = (BIN_COUNT+1)*sizeof(hist_t);                // incoming offset buffer
 
     // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  PROCESS_SIZE = 256, BIN_COUNT = 256
@@ -53,8 +54,8 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
     uint32_t slm_bin_hist_start = 0;
     uint32_t slm_incoming_offset = slm_bin_hist_start + BIN_HIST_SLM_SIZE;
 
-    uint32_t slm_reorder = slm_reorder_start + local_tid * PROCESS_SIZE * sizeof(KeyT);
-    uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * BIN_COUNT * sizeof(hist_t);
+    uint32_t slm_reorder_this_thread = slm_reorder_start + local_tid * PROCESS_SIZE * sizeof(KeyT);
+    uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * HIST_STRIDE;
 
     simd<hist_t, BIN_COUNT> bin_offset;
     simd<device_addr_t, PROCESS_SIZE> write_addr;
@@ -67,7 +68,8 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
     #pragma unroll
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
         simd_mask<16> m = (io_offset+lane_id+s)<n;
-        keys.template select<16, 1>(s) = merge(utils::gather<KeyT, 16>(input, lane_id, io_offset + s, m), simd<KeyT, 16>(-1), m);
+        keys.template select<16, 1>(s) = merge(utils::gather<KeyT, 16>(input, lane_id, io_offset + s, m),
+                                               simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
     }
 
     for (uint32_t stage=0; stage < STAGES; stage++) {
@@ -89,7 +91,6 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
         */
         {
             barrier();
-            constexpr uint32_t HIST_STRIDE = sizeof(hist_t)*BIN_COUNT;
             #pragma unroll
             for (uint32_t s = 0; s<BIN_COUNT; s+=128) {
                 lsc_slm_block_store<uint32_t, 64>(slm_bin_hist_this_thread + s*sizeof(hist_t), bin_offset.template select<128, 1>(s).template bit_cast_view<uint32_t>());
@@ -169,14 +170,14 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
             barrier();
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=64){
-                keys.template select<64, 1>(s) = lsc_slm_block_load<KeyT, 64>(slm_reorder+s*sizeof(KeyT));
+                keys.template select<64, 1>(s) = lsc_slm_block_load<KeyT, 64>(slm_reorder_this_thread+s*sizeof(KeyT));
             }
         }
     }
     #pragma unroll
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
         utils::scatter<KeyT, 16>(input, write_addr.template select<16, 1>(s), keys.template select<16, 1>(s),
-                                 (io_offset + lane_id + s) < n);
+                                 write_addr.template select<16, 1>(s) < n);
     }
 }
 
@@ -218,7 +219,6 @@ void one_wg(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
     using namespace sycl;
     using namespace __ESIMD_NS;
 
-    constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
     constexpr uint32_t MAX_TG_COUNT = 64;
     constexpr uint32_t MIN_TG_COUNT = 8;
     uint32_t PROCESS_SIZE = 64;
