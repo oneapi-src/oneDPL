@@ -31,9 +31,9 @@ jobs:
         run: |
           FILES=$(git diff --diff-filter=d --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep ^include | grep -v nanorange\.hpp\$ || true)
           CLANG_FORMAT_DIFF_PATH=$(which clang-format-diff)
-          echo $FILES | xargs -n1 -t -r git diff -U0 --no-color --relative ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | python3 $CLANG_FORMAT_DIFF_PATH -i -p1 -style file
+          echo $FILES | xargs -n1 -t -r git diff -U0 --no-color --relative ${{ github.event.pull_request.base.sha }}  | python3 $CLANG_FORMAT_DIFF_PATH -i -p1 -style file
       - name: Creating diff
-        run: git diff > clang-format.diff
+        run: git diff ${{ github.event.pull_request.head.sha }} > clang-format.diff
       - name: Checking if diff is empty
         run: if [ -s clang-format.diff ]; then cat clang-format.diff; exit 1; fi
       - if: failure()
