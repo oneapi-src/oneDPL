@@ -17,6 +17,8 @@
 #include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include <cstdint>
 
+#include "esimd_radix_sort_utils.h"
+
 namespace oneapi::dpl::experimental::esimd::impl
 {
 
@@ -119,7 +121,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, uin
         simd<KeyT, 16> source = lsc_gather<KeyT, 1,
                 // lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
                 lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(input, sycl::ext::intel::esimd::simd<KeyT, 16>((lane_id + io_offset+s)*uint32_t(sizeof(KeyT))), m);
-        keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(-1), m);
+        keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
     }
 
     for (uint32_t stage=0; stage < STAGES; stage++) {
@@ -363,13 +365,13 @@ void cooperative(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
     {
         __e = __radix_sort_cooperative_submitter<
             KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 128, IsAscending, _EsimRadixSort>()(
-                ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, p_sync);
+                __exec, ::std::forward<_Range>(__rng), __n, p_sync);
     }
     else if (__n <= 256 * THREAD_PER_TG * MAX_GROUPS)
     {
         __e = __radix_sort_cooperative_submitter<
             KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 256, IsAscending, _EsimRadixSort>()(
-                ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, p_sync);
+                __exec, ::std::forward<_Range>(__rng), __n, p_sync);
     }
     __e.wait();
     sycl::free(p_sync, __exec.queue());
