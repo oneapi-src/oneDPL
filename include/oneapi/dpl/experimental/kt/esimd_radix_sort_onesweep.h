@@ -573,7 +573,16 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
 
 template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
           bool IsAscending, ::std::uint32_t PROCESS_SIZE>
-void onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
+std::enable_if_t<!::std::is_unsigned_v<KeyT>, void>
+onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
+{
+    // TODO: remove this when the implementation below can compile for other data types
+}
+
+template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
+          bool IsAscending, ::std::uint32_t PROCESS_SIZE>
+std::enable_if_t<::std::is_unsigned_v<KeyT>, void>
+onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 {
     using namespace sycl;
     using namespace __ESIMD_NS;
