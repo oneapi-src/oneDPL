@@ -307,12 +307,17 @@ class radix_sort_onesweep_slm_reorder_kernel
     using device_addr_t = uint32_t;
 
     static constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
+    static_assert(BIN_COUNT == 256, "");
+    //                           512           256          2
+    static constexpr uint32_t HIST_STRIDE = BIN_COUNT * sizeof(hist_t);
+    static_assert(HIST_STRIDE == 512, "");
+
     static constexpr uint32_t NBITS = sizeof(KeyT) * 8;
     static constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
     static constexpr bin_t MASK = BIN_COUNT - 1;
     static constexpr uint32_t REORDER_SLM_SIZE = PROCESS_SIZE * sizeof(KeyT) * SG_PER_WG;             // reorder buffer
-    static constexpr uint32_t BIN_HIST_SLM_SIZE = BIN_COUNT * sizeof(hist_t) * SG_PER_WG;             // bin hist working buffer
-    static constexpr uint32_t SUBGROUP_LOOKUP_SIZE = BIN_COUNT * sizeof(hist_t) * SG_PER_WG;          // group offset lookup
+    static constexpr uint32_t BIN_HIST_SLM_SIZE = HIST_STRIDE * SG_PER_WG;                            // bin hist working buffer
+    static constexpr uint32_t SUBGROUP_LOOKUP_SIZE = HIST_STRIDE * SG_PER_WG;                         // group offset lookup
     static constexpr uint32_t GLOBAL_LOOKUP_SIZE = BIN_COUNT * sizeof(global_hist_t);                 // global fix look up
     static constexpr uint32_t INCOMING_OFFSET_SLM_SIZE = (BIN_COUNT + 1) * sizeof(hist_t);            // incoming offset buffer
 
@@ -518,10 +523,6 @@ protected:
         then last row do exclusive scan as group incoming offset
         then every thread add local sum with sum of previous group and incoming offset
         */
-        //                    512           2               256
-        constexpr uint32_t HIST_STRIDE = sizeof(hist_t) * BIN_COUNT;
-        static_assert(BIN_COUNT == 256, "");
-        static_assert(HIST_STRIDE == 512, "");
         //                                                             [0...64)       512
         const uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * HIST_STRIDE;
         //                                                                               512
@@ -698,12 +699,11 @@ radix_sort_onesweep_slm_reorder_kernel<KeyT, InputT, OutputT, RADIX_BITS, SG_PER
     // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
     // change slm to reuse
 
-    //                                    0                    [0...64)    256         2
-    uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * BIN_COUNT * sizeof(hist_t); // [0...32768)
-    static_assert(sizeof(hist_t) == 2, "");
+    //                                    0                  [0...64)    512
+    uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * HIST_STRIDE; // [0...32768)
 
-    //                               0                     [0...64)     2                256
-    uint32_t slm_lookup_subgroup = slm_lookup_workgroup + local_tid * sizeof(hist_t) * BIN_COUNT;
+    //                               0                     [0...64)   512
+    uint32_t slm_lookup_subgroup = slm_lookup_workgroup + local_tid * HIST_STRIDE;
 
     //             416
     simd<hist_t, PROCESS_SIZE> ranks;
