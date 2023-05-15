@@ -38,6 +38,9 @@
 #include <cmath>
 #include <limits>
 
+constexpr ::std::uint16_t kWorkGroupSize = 256;
+constexpr ::std::uint16_t kDataPerWorkItem = 16;
+
 template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
 generate_data(T* input, std::size_t size)
@@ -79,7 +82,7 @@ void test_all_view(std::size_t size)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, view);
+        oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, view);
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
@@ -100,7 +103,7 @@ void test_subrange_view(std::size_t size)
     std::sort(expected.begin(), expected.end());
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, view);
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, view);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -123,7 +126,7 @@ void test_usm(std::size_t size)
 
     std::sort(expected.begin(), expected.end());
 
-    oneapi::dpl::experimental::esimd::radix_sort<256, 16>(policy, dt_input.get_data(), dt_input.get_data() + size);
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, dt_input.get_data(), dt_input.get_data() + size);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -143,7 +146,7 @@ void test_sycl_iterators(std::size_t size)
     std::vector<T> ref(input);
     std::sort(std::begin(ref), std::end(ref));
 
-    oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::end(input));
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, oneapi::dpl::begin(input), oneapi::dpl::end(input));
 
     std::string msg = "wrong results with sycl_iterator, n: " + std::to_string(size);
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
@@ -158,9 +161,9 @@ void test_small_sizes()
     generate_data(input.data(), input.size());
     std::vector<uint32_t> ref(input);
 
-    oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
-    oneapi::dpl::experimental::esimd::radix_sort<256,16>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
