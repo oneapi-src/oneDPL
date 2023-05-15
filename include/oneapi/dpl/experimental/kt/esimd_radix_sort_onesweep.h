@@ -579,7 +579,6 @@ onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     constexpr uint32_t THREAD_PER_TG = 64;
     constexpr uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE;
     const uint32_t sweep_tg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, THREAD_PER_TG*SWEEP_PROCESSING_SIZE);
-    const uint32_t sweep_threads = sweep_tg_count * THREAD_PER_TG;
     constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
     constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
 
