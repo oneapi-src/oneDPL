@@ -74,12 +74,21 @@ void print_data(const Container1& expected, const Container2& actual, std::size_
     if (expected.size() <= first) return;
     if (n==0 || expected.size() < first+n)
         n = expected.size() - first;
-    std::cout << std::hex;
+
+    if constexpr (std::is_floating_point_v<typename Container1::value_type>)
+        std::cout << std::hexfloat;
+    else
+        std::cout << std::hex;
+    
     for (std::size_t i=first; i < first+n; ++i)
     {
         std::cout << actual[i] << " --- " << expected[i] << std::endl;
     }
-    std::cout << std::dec << std::endl;
+
+    if constexpr (std::is_floating_point_v<typename Container1::value_type>)
+        std::cout << std::defaultfloat << std::endl;
+    else
+        std::cout << std::dec << std::endl;
 }
 
 #if _ENABLE_RANGES_TESTING
