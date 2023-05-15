@@ -288,7 +288,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                 lsc_scatter<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::write_back, 16>(
                     __tmpbuf,
                     write_addr.template select<16, 1>(s)*sizeof(KeyT),
-                    keys.template select<16, 1>(s), write_addr.template select<16, 1>(s)<n);
+                    keys.template select<16, 1>(s));
             }
             lsc_fence<lsc_memory_kind::untyped_global, lsc_fence_op::evict, lsc_scope::gpu>();
             barrier();
@@ -296,12 +296,10 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
             barrier();
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-                simd_mask<16> m = (io_offset+lane_id+s)<n;
-                simd<KeyT, 16> reordered = lsc_gather<KeyT, 1,
+                keys.template select<16, 1>(s) = lsc_gather<KeyT, 1,
                         lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(
                             // __tmpbuf+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
-                            __tmpbuf, sycl::ext::intel::esimd::simd<KeyT, 16>((lane_id + io_offset+s)*uint32_t(sizeof(KeyT))), m);
-                keys.template select<16, 1>(s) = merge(reordered, simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
+                            __tmpbuf, sycl::ext::intel::esimd::simd<KeyT, 16>((lane_id + io_offset+s)*uint32_t(sizeof(KeyT))));
             }
         }
     }
@@ -369,7 +367,7 @@ void cooperative(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
 
     auto p_sync = static_cast<::std::uint32_t*>(sycl::malloc_device(1024 + (__groups+2) * BIN_COUNT * sizeof(::std::uint32_t), __exec.queue()));
     // to correctly sort floating point values, a buffer to store data plus extra identity values is needed
-    auto __tmpbuf = sycl::malloc_device<KeyT*>(__groups * __group_block_size, __exec.queue());
+    KeyT* __tmpbuf = sycl::malloc_device<KeyT>(__groups * __group_block_size, __exec.queue());
 
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
