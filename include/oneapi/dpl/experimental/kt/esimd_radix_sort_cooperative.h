@@ -325,10 +325,9 @@ struct __radix_sort_cooperative_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCE
     template <typename _ExecutionPolicy, typename _Range, typename _SyncData,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
     sycl::event
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n, const _SyncData& __sync_data) const
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n, ::std::uint32_t __groups, const _SyncData& __sync_data) const
     {
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
-        ::std::uint32_t __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE * THREAD_PER_TG);
         sycl::nd_range<1> __nd_range{THREAD_PER_TG * __groups, THREAD_PER_TG};
 
         return __exec.queue().submit([&](sycl::handler& __cgh) {
@@ -348,11 +347,20 @@ void cooperative(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
     using namespace sycl;
     using namespace __ESIMD_NS;
 
-    constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
-    constexpr uint32_t THREAD_PER_TG = 64;
-    uint32_t MAX_GROUPS = 56; //TODO: get from sycl api
+    constexpr ::std::uint32_t BIN_COUNT = 1 << RADIX_BITS;
+    constexpr ::std::uint32_t THREAD_PER_TG = 64;
 
-    auto p_sync = static_cast<uint32_t*>(sycl::malloc_device(1024 + (MAX_GROUPS+2) * BIN_COUNT * sizeof(uint32_t), __exec.queue()));
+    ::std::uint32_t MAX_GROUPS = 56; //TODO: get from sycl api
+    ::std::uint32_t __group_block_size = 128 * THREAD_PER_TG;
+    ::std::uint32_t __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __group_block_size);
+    if (__groups > MAX_GROUPS)
+    {
+        __group_block_size *= 2;
+        __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __group_block_size);
+    }
+    assert(__groups <= MAX_GROUPS);
+
+    auto p_sync = static_cast<::std::uint32_t*>(sycl::malloc_device(1024 + (__groups+2) * BIN_COUNT * sizeof(::std::uint32_t), __exec.queue()));
 
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
@@ -360,17 +368,17 @@ void cooperative(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
             __esimd_radix_sort_cooperative<_CustomName>>;
 
     sycl::event __e;
-    if (__n <= 128 * THREAD_PER_TG * MAX_GROUPS)
+    if (__group_block_size == 128 * THREAD_PER_TG)
     {
         __e = __radix_sort_cooperative_submitter<
             KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 128, IsAscending, _EsimRadixSort>()(
-                __exec, ::std::forward<_Range>(__rng), __n, p_sync);
+                __exec, ::std::forward<_Range>(__rng), __n, __groups, p_sync);
     }
-    else if (__n <= 256 * THREAD_PER_TG * MAX_GROUPS)
+    else // __group_block_size == 256 * THREAD_PER_TG
     {
         __e = __radix_sort_cooperative_submitter<
             KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 256, IsAscending, _EsimRadixSort>()(
-                __exec, ::std::forward<_Range>(__rng), __n, p_sync);
+                __exec, ::std::forward<_Range>(__rng), __n, __groups, p_sync);
     }
     __e.wait();
     sycl::free(p_sync, __exec.queue());
