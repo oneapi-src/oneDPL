@@ -165,7 +165,7 @@ struct slm_lookup_t {
     }
 };
 
-template <typename KeyT, typename InputT, typename OutputT, uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE>
+template <typename KeyT, typename InputT, typename OutputT, uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE, bool IsAscending>
 struct radix_sort_onesweep_slm_reorder_kernel {
     using bin_t = uint16_t;
     using hist_t = uint16_t;
@@ -527,7 +527,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __data = __rng.data();
                 __cgh.depends_on(__e);
-                radix_sort_onesweep_slm_reorder_kernel<KeyT, decltype(__data), _Output, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE>
+                radix_sort_onesweep_slm_reorder_kernel<KeyT, decltype(__data), _Output, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>
                     K(__n, __stage, __data, __output, __tmp_data);
                 __cgh.parallel_for<_Name...>(__nd_range, K);
             });
@@ -538,7 +538,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __data = __rng.data();
                 __cgh.depends_on(__e);
-                radix_sort_onesweep_slm_reorder_kernel<KeyT, _Output, decltype(__data), RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE>
+                radix_sort_onesweep_slm_reorder_kernel<KeyT, _Output, decltype(__data), RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>
                     K(__n, __stage, __output, __data, __tmp_data);
                 __cgh.parallel_for<_Name...>(__nd_range, K);
             });
