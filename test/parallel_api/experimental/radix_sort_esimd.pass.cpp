@@ -68,6 +68,20 @@ generate_data(T* input, std::size_t size)
     }
 }
 
+template<typename Container1, typename Container2>
+void print_data(const Container1& expected, const Container2& actual, std::size_t first, std::size_t n = 0)
+{
+    if (expected.size() <= first) return;
+    if (n==0 || expected.size() < first+n)
+        n = expected.size() - first;
+    std::cout << std::hex;
+    for (std::size_t i=first; i < first+n; ++i)
+    {
+        std::cout << actual[i] << " --- " << expected[i] << std::endl;
+    }
+    std::cout << std::dec << std::endl;
+}
+
 #if _ENABLE_RANGES_TESTING
 template<typename T>
 void test_all_view(std::size_t size)
