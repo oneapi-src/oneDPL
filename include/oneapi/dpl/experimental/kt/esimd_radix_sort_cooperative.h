@@ -119,7 +119,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
         simd_mask<16> m = (io_offset+lane_id+s)<n;
         simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>
                 // (input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
-                (input, sycl::ext::intel::esimd::simd<KeyT, 16>((lane_id + io_offset+s)*uint32_t(sizeof(KeyT))), m);
+                (input, (lane_id + io_offset + s)*uint32_t(sizeof(KeyT)), m);
         keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
     }
 
@@ -299,7 +299,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                 keys.template select<16, 1>(s) = lsc_gather<KeyT, 1,
                         lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(
                             // __tmpbuf+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
-                            __tmpbuf, sycl::ext::intel::esimd::simd<KeyT, 16>((lane_id + io_offset+s)*uint32_t(sizeof(KeyT))));
+                            __tmpbuf, (lane_id + io_offset + s)*uint32_t(sizeof(KeyT)));
             }
         }
     }
