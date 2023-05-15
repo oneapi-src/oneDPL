@@ -575,7 +575,7 @@ class __future : private std::tuple<_Args...>
 };
 
 // value in the integer_sequence not less than the run-time integer. For example:
-// will call f<4>(), since 4 is the smallest value in the sequence not less than 3.
+__has_usm_host_allocations(sycl::queue __queue)
 
 // A contract for a future class for reduce: <execution policy, sycl::event, USM host memory for the reduced value>
 // Note that the integers provided in the integer_sequence must be monotonically increasing
