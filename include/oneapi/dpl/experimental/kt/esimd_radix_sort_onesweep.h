@@ -370,7 +370,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         simd<device_addr_t, 16> lane_id(0, 1);
 
         device_addr_t io_offset = PROCESS_SIZE * (wg_id*wg_size+local_tid);
-        constexpr KeyT default_key = -1;
+        constexpr KeyT default_key = utils::__sort_identity<KeyT, IsAscending>;
 
         LoadKeys<16>(io_offset, keys, default_key);
 
