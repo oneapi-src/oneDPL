@@ -268,8 +268,9 @@ using __local_accessor =
     sycl::accessor<DataT, Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
 #endif
 
-template<typename _Buf>
-auto __get_host_access(_Buf&& __buf)
+template <typename _Buf>
+auto
+__get_host_access(_Buf&& __buf)
 {
 #if _ONEDPL_LIBSYCL_VERSION >= 60200
     return ::std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
