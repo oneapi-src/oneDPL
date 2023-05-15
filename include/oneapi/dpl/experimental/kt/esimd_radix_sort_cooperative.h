@@ -90,12 +90,12 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
     uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * BIN_COUNT * sizeof(hist_t);
 
     uint32_t global_sync_buffer_size = 1024; //1K uint32_t for sync buffer
-    uint32_t global_bin_start_buffer_size = BIN_COUNT * sizeof(global_hist_t)+16;
-    uint32_t global_bin_hist_size = tg_count * BIN_COUNT * sizeof(global_hist_t);
+    uint32_t global_bin_start_buffer_size = (BIN_COUNT+1) * sizeof(global_hist_t) / sizeof(uint32_t);
+    // uint32_t global_bin_hist_size = tg_count * BIN_COUNT * sizeof(global_hist_t) / sizeof(uint32_t);
     uint32_t *p_sync_buffer = p_global_buffer;
     uint32_t *p_global_bin_start_buffer = p_sync_buffer + global_sync_buffer_size;
     uint32_t *p_global_bin_hist = p_global_bin_start_buffer + global_bin_start_buffer_size;
-    uint32_t *p_global_bin_hist_tg = p_global_bin_hist + tg_id * BIN_COUNT * sizeof(global_hist_t)/sizeof(uint32_t);
+    uint32_t *p_global_bin_hist_tg = p_global_bin_hist + tg_id * BIN_COUNT * sizeof(global_hist_t) / sizeof(uint32_t);
 
     simd<hist_t, BIN_COUNT> bin_offset;
     simd<device_addr_t, PROCESS_SIZE> write_addr;
@@ -365,7 +365,7 @@ void cooperative(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
     }
     assert(__groups <= MAX_GROUPS);
 
-    auto p_sync = static_cast<::std::uint32_t*>(sycl::malloc_device(1024 + (__groups+2) * BIN_COUNT * sizeof(::std::uint32_t), __exec.queue()));
+    auto p_sync = sycl::malloc_device<::std::uint32_t>(1024 + (__groups+2) * BIN_COUNT, __exec.queue());
     // to correctly sort floating point values, a buffer to store data plus extra identity values is needed
     KeyT* __tmpbuf = sycl::malloc_device<KeyT>(__groups * __group_block_size, __exec.queue());
 
