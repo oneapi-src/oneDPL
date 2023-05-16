@@ -767,12 +767,12 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
             // TODO: convert to ordered type once at the first iteration and convert back at the last one
             if (__radix_iter % 2 == 0)
                 __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/true>::submit(
-                    ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter,
-                    ::std::forward<_Range>(__in_rng), __out_rng, __tmp_buf, __event, __proj);
+                    __exec, __segments, __radix_iter,
+                    __in_rng, __out_rng, __tmp_buf, __event, __proj);
             else //swap __in_rng and __out_rng
                 __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>::submit(
-                    ::std::forward<_ExecutionPolicy>(__exec), __segments, __radix_iter, __out_rng,
-                    ::std::forward<_Range>(__in_rng), __tmp_buf, __event, __proj);
+                    __exec, __segments, __radix_iter, __out_rng,
+                    __in_rng, __tmp_buf, __event, __proj);
         }
     }
 
