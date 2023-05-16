@@ -56,13 +56,16 @@ using __value_t = decltype(oneapi::dpl::__internal::get_value_type<_R>(0));
 template <typename _Proj, typename _R>
 using __key_t = ::std::remove_cv_t<::std::remove_reference_t<::std::invoke_result_t<_Proj&, __value_t<_R>>>>;
 
-template <class T, class = decltype(std::declval<T&>().begin())>
-std::true_type has_begin_impl(int);
-template <class T>
-std::false_type has_begin_impl(...);
+template <class T, class = void>
+struct range_has_raw_ptr_iterator : ::std::false_type
+{
+};
 
 template <class T>
-struct has_begin : decltype(has_begin_impl<T>(0)) {};
+struct range_has_raw_ptr_iterator<T, ::std::void_t<decltype(::std::declval<T&>().begin())>>
+  : ::std::is_pointer<decltype(::std::declval<T&>().begin())>
+{
+};
 
 } //namespace __internal
 
