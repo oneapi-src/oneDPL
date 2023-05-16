@@ -168,10 +168,12 @@ void test_sycl_iterators(std::size_t size)
     generate_data(input.data(), size);
     std::vector<T> ref(input);
     std::sort(std::begin(ref), std::end(ref));
+    {
+        sycl::buffer<T> buf(input.data(), input.size());
+        oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
+    }
 
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, oneapi::dpl::begin(input), oneapi::dpl::end(input));
-
-    std::string msg = "wrong results with sycl_iterator, n: " + std::to_string(size);
+    std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
