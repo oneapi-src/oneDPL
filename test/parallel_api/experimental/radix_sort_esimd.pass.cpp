@@ -68,6 +68,29 @@ generate_data(T* input, std::size_t size)
     }
 }
 
+template<typename Container1, typename Container2>
+void print_data(const Container1& expected, const Container2& actual, std::size_t first, std::size_t n = 0)
+{
+    if (expected.size() <= first) return;
+    if (n==0 || expected.size() < first+n)
+        n = expected.size() - first;
+
+    if constexpr (std::is_floating_point_v<typename Container1::value_type>)
+        std::cout << std::hexfloat;
+    else
+        std::cout << std::hex;
+    
+    for (std::size_t i=first; i < first+n; ++i)
+    {
+        std::cout << actual[i] << " --- " << expected[i] << std::endl;
+    }
+
+    if constexpr (std::is_floating_point_v<typename Container1::value_type>)
+        std::cout << std::defaultfloat << std::endl;
+    else
+        std::cout << std::dec << std::endl;
+}
+
 #if _ENABLE_RANGES_TESTING
 template<typename T>
 void test_all_view(std::size_t size)
@@ -145,10 +168,12 @@ void test_sycl_iterators(std::size_t size)
     generate_data(input.data(), size);
     std::vector<T> ref(input);
     std::sort(std::begin(ref), std::end(ref));
+    {
+        sycl::buffer<T> buf(input.data(), input.size());
+        oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
+    }
 
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, oneapi::dpl::begin(input), oneapi::dpl::end(input));
-
-    std::string msg = "wrong results with sycl_iterator, n: " + std::to_string(size);
+    std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
@@ -201,8 +226,8 @@ int main()
         for(auto size: coop_sizes)
         {
             test_general_cases<uint32_t>(size);
-            // test_general_cases<int>(size);
-            // test_general_cases<float>(size);
+            test_general_cases<int>(size);
+            test_general_cases<float>(size);
             // test_general_cases<double>(size);
         }
         for(auto size: onesweep_sizes)
