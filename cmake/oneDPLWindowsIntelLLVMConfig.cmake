@@ -21,7 +21,7 @@ if (DEFINED CMAKE_PROJECT_NAME AND (NOT DEFINED oneDPLWindowsIntelLLVM_DIR))
     set(REASON_FAILURE "oneDPLWindowsIntelLLVM package must be included before the project() call!")
 else()
 
-    # CMAKE_CXX_COMPILER_ID and CMAKE_CXX_COMPILER_VERSION_ID cannot be used because
+    # CMAKE_CXX_COMPILER_ID and CMAKE_CXX_COMPILER_VERSION cannot be used because
     # CMake 3.19 and older will detect IntelLLVM compiler as CLang with CLang-specific version, see https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
     if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx|icx)(.exe)?$")
         set(INTEL_LLVM_COMPILER TRUE)
