@@ -232,8 +232,8 @@ __pattern_search(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
     using _TagType = oneapi::dpl::__par_backend_hetero::__parallel_find_forward_tag<_Range1>;
 
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<
-            oneapi::dpl::__par_backend_hetero::__find_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<oneapi::dpl::__par_backend_hetero::__find_policy_wrapper>
+            (::std::forward<_ExecutionPolicy>(__exec)),
         _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
 }
 
@@ -407,9 +407,8 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
     auto __copy_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
 
-    auto __copy_last_id =
-        __pattern_copy_if(__exec, __rng, __copy_rng,
-                          __not_pred<_Predicate>{__pred}, oneapi::dpl::__internal::__pstl_assign());
+    auto __copy_last_id = __pattern_copy_if(__exec, __rng, __copy_rng, __not_pred<_Predicate>{__pred},
+                                            oneapi::dpl::__internal::__pstl_assign());
     auto __copy_rng_truncated = __copy_rng | oneapi::dpl::experimental::ranges::views::take(__copy_last_id);
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec),
@@ -455,8 +454,7 @@ __pattern_unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __p
 
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
     auto res_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
-    auto res = __pattern_unique_copy(__exec, __rng, res_rng,
-                                     __pred, oneapi::dpl::__internal::__pstl_assign());
+    auto res = __pattern_unique_copy(__exec, __rng, res_rng, __pred, oneapi::dpl::__internal::__pstl_assign());
 
     __pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __brick_copy<_ExecutionPolicy>{}, res_rng,
                      ::std::forward<_Range>(__rng));
@@ -662,8 +660,8 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
             __copy_range, ::std::forward<_Range1>(__keys), ::std::forward<_Range3>(__out_keys));
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_values_wrapper>(
-                ::std::forward<_ExecutionPolicy>(__exec)),
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_values_wrapper>
+                (::std::forward<_ExecutionPolicy>(__exec)),
             __copy_range, ::std::forward<_Range2>(__values), ::std::forward<_Range4>(__out_values));
 
         return 1;
@@ -702,21 +700,18 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
     // evenly divisible by wg size (ensures segments are not long), or has a key not equal to the
     // adjacent element (marks end of real segments)
     // TODO: replace wgroup size with segment size based on platform specifics.
-    auto __intermediate_result_end =
-        __pattern_copy_if(oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__assign_key1_wrapper>(__exec),
-                          __view1, __view2,
-                          [__n, __binary_pred, __wgroup_size](const auto& __a) {
-                              // The size of key range for the (i-1) view is one less, so for the 0th index we do
-                              // not check the keys for (i-1), but we still need to get its key value as it is the
-                              // start of a segment
-                              const auto index = ::std::get<0>(__a);
-                              if (index == 0)
-                                  return true;
-
-                              return ::std::get<0>(__a) % __wgroup_size == 0 ||              // segment size
-                                     !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
-                          },
-                          unseq_backend::__brick_assign_key_position{});
+    auto __intermediate_result_end = __pattern_copy_if(
+        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__assign_key1_wrapper>(__exec), __view1, __view2,
+        [__n, __binary_pred, __wgroup_size](const auto& __a) {
+            // The size of key range for the (i-1) view is one less, so for the 0th index we do not check the keys
+            // for (i-1), but we still need to get its key value as it is the start of a segment
+            const auto index = ::std::get<0>(__a);
+            if (index == 0)
+                return true;
+            return index % __wgroup_size == 0                                 // segment size
+                   || !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); // key comparison
+        },
+        unseq_backend::__brick_assign_key_position{});
 
     //reduce by segment
     oneapi::dpl::__par_backend_hetero::__parallel_for(
@@ -748,20 +743,16 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 
     // element is copied if it is the 0th element (marks beginning of first segment), or has a key not equal to
     // the adjacent element (end of a segment). Artificial segments based on wg size are not created.
-    auto __result_end =
-        __pattern_copy_if(oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__assign_key2_wrapper>(__exec),
-                          __view3, __view4,
-                          [__binary_pred](const auto& __a) {
-                              // The size of key range for the (i-1) view is one less, so for the 0th index we do
-                              // not check the keys for (i-1), but we still need to get its key value as it is the
-                              // start of a segment
-                              const auto index = ::std::get<0>(__a);
-                              if (index == 0)
-                                  return true;
-
-                              return !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); //keys comparison
-                          },
-                          unseq_backend::__brick_assign_key_position{});
+    auto __result_end = __pattern_copy_if(
+        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__assign_key2_wrapper>(__exec), __view3, __view4,
+        [__binary_pred](const auto& __a) {
+            // The size of key range for the (i-1) view is one less, so for the 0th index we do not check the keys
+            // for (i-1), but we still need to get its key value as it is the start of a segment
+            if (::std::get<0>(__a) == 0)
+                return true;
+            return !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); // keys comparison
+        },
+        unseq_backend::__brick_assign_key_position{});
 
     //reduce by segment
     oneapi::dpl::__par_backend_hetero::__parallel_for(
