@@ -17,6 +17,8 @@
 #include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include <cstdint>
 
+#include "esimd_radix_sort_utils.h"
+
 namespace oneapi::dpl::experimental::esimd::impl
 {
 
@@ -56,7 +58,7 @@ void inline global_sync(uint32_t *psync, uint32_t sync_id, uint32_t count, uint3
 }
 
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t THREAD_PER_TG, uint32_t PROCESS_SIZE, bool IsAscending>
-void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, uint32_t *p_global_buffer) {
+void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, KeyT* __tmpbuf, uint32_t *p_global_buffer) {
     using namespace sycl;
     using namespace __ESIMD_NS;
     using namespace __ESIMD_ENS;
@@ -73,7 +75,6 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, uin
     constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
     constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
     constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
-    constexpr uint32_t TG_PROCESS_SIZE = PROCESS_SIZE * THREAD_PER_TG;
     constexpr bin_t MASK = BIN_COUNT - 1;
 
     constexpr uint32_t BIN_HIST_SLM_SIZE = BIN_COUNT * sizeof(hist_t) * THREAD_PER_TG;  // bin hist working buffer, 64K for DW hist
@@ -89,12 +90,12 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, uin
     uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * BIN_COUNT * sizeof(hist_t);
 
     uint32_t global_sync_buffer_size = 1024; //1K uint32_t for sync buffer
-    uint32_t global_bin_start_buffer_size = BIN_COUNT * sizeof(global_hist_t)+16;
-    uint32_t global_bin_hist_size = tg_count * BIN_COUNT * sizeof(global_hist_t);
+    uint32_t global_bin_start_buffer_size = (BIN_COUNT+1) * sizeof(global_hist_t) / sizeof(uint32_t);
+    // uint32_t global_bin_hist_size = tg_count * BIN_COUNT * sizeof(global_hist_t) / sizeof(uint32_t);
     uint32_t *p_sync_buffer = p_global_buffer;
     uint32_t *p_global_bin_start_buffer = p_sync_buffer + global_sync_buffer_size;
     uint32_t *p_global_bin_hist = p_global_bin_start_buffer + global_bin_start_buffer_size;
-    uint32_t *p_global_bin_hist_tg = p_global_bin_hist + tg_id * BIN_COUNT * sizeof(global_hist_t)/sizeof(uint32_t);
+    uint32_t *p_global_bin_hist_tg = p_global_bin_hist + tg_id * BIN_COUNT * sizeof(global_hist_t) / sizeof(uint32_t);
 
     simd<hist_t, BIN_COUNT> bin_offset;
     simd<device_addr_t, PROCESS_SIZE> write_addr;
@@ -102,7 +103,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, uin
     simd<bin_t, PROCESS_SIZE> bins;
     simd<device_addr_t, 16> lane_id(0, 1);
 
-    device_addr_t io_offset = tg_id * TG_PROCESS_SIZE + PROCESS_SIZE * local_tid;
+    device_addr_t io_offset = PROCESS_SIZE * (tg_id * THREAD_PER_TG + local_tid);
 
     constexpr uint32_t BIN_GROUPS = 8;
     constexpr uint32_t THREAD_PER_BIN_GROUP = THREAD_PER_TG / BIN_GROUPS;
@@ -116,10 +117,10 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, uin
     #pragma unroll
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
         simd_mask<16> m = (io_offset+lane_id+s)<n;
-        simd<KeyT, 16> source = lsc_gather<KeyT, 1,
-                // lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
-                lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(input, sycl::ext::intel::esimd::simd<KeyT, 16>((lane_id + io_offset+s)*uint32_t(sizeof(KeyT))), m);
-        keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(-1), m);
+        simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>
+                // (input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
+                (input, (lane_id + io_offset + s)*uint32_t(sizeof(KeyT)), m);
+        keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
     }
 
     for (uint32_t stage=0; stage < STAGES; stage++) {
@@ -281,28 +282,33 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, uin
             write_addr.template select<16, 1>(s) += bin_offset.template iselect(bins_uw);
         }
 
-        #pragma unroll
-        for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-            lsc_scatter<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::write_back, 16>(
-                input,
-                write_addr.template select<16, 1>(s)*sizeof(KeyT),
-                keys.template select<16, 1>(s), write_addr.template select<16, 1>(s)<n);
-        }
         if (stage != STAGES - 1) {
+            #pragma unroll
+            for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
+                lsc_scatter<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::write_back, 16>(
+                    __tmpbuf,
+                    write_addr.template select<16, 1>(s)*sizeof(KeyT),
+                    keys.template select<16, 1>(s));
+            }
             lsc_fence<lsc_memory_kind::untyped_global, lsc_fence_op::evict, lsc_scope::gpu>();
             barrier();
             if (local_tid == 0) {global_sync(p_sync_buffer, stage*4+2, tg_count, tg_id, local_tid);}
             barrier();
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-                simd_mask<16> m = (io_offset+lane_id+s)<n;
-                simd<KeyT, 16> reordered = lsc_gather<KeyT, 1,
+                keys.template select<16, 1>(s) = lsc_gather<KeyT, 1,
                         lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(
-                            // input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
-                            input, sycl::ext::intel::esimd::simd<KeyT, 16>((lane_id + io_offset+s)*uint32_t(sizeof(KeyT))), m);
-                keys.template select<16, 1>(s) = merge(reordered, simd<KeyT, 16>(-1), m);
+                            // __tmpbuf+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
+                            __tmpbuf, (lane_id + io_offset + s)*uint32_t(sizeof(KeyT)));
             }
         }
+    }
+    #pragma unroll
+    for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
+        lsc_scatter<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::write_back, 16>(
+            input,
+            write_addr.template select<16, 1>(s)*sizeof(KeyT),
+            keys.template select<16, 1>(s), write_addr.template select<16, 1>(s)<n);
     }
 }
 
@@ -324,10 +330,9 @@ struct __radix_sort_cooperative_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCE
     template <typename _ExecutionPolicy, typename _Range, typename _SyncData,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
     sycl::event
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n, const _SyncData& __sync_data) const
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n, ::std::uint32_t __groups, KeyT* __tmpbuf, const _SyncData& __sync_data) const
     {
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
-        ::std::uint32_t __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE * THREAD_PER_TG);
         sycl::nd_range<1> __nd_range{THREAD_PER_TG * __groups, THREAD_PER_TG};
 
         return __exec.queue().submit([&](sycl::handler& __cgh) {
@@ -336,7 +341,7 @@ struct __radix_sort_cooperative_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCE
             __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
                         cooperative_kernel<KeyT, decltype(__data), RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending> (
-                            __nd_item, __n, __data, __sync_data);
+                            __nd_item, __n, __data, __tmpbuf, __sync_data);
                     });
         });
     }
@@ -347,11 +352,22 @@ void cooperative(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
     using namespace sycl;
     using namespace __ESIMD_NS;
 
-    constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
-    constexpr uint32_t THREAD_PER_TG = 64;
-    uint32_t MAX_GROUPS = 56; //TODO: get from sycl api
+    constexpr ::std::uint32_t BIN_COUNT = 1 << RADIX_BITS;
+    constexpr ::std::uint32_t THREAD_PER_TG = 64;
 
-    auto p_sync = static_cast<uint32_t*>(sycl::malloc_device(1024 + (MAX_GROUPS+2) * BIN_COUNT * sizeof(uint32_t), __exec.queue()));
+    ::std::uint32_t MAX_GROUPS = 56; //TODO: get from sycl api
+    ::std::uint32_t __group_block_size = 128 * THREAD_PER_TG;
+    ::std::uint32_t __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __group_block_size);
+    if (__groups > MAX_GROUPS)
+    {
+        __group_block_size *= 2;
+        __groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __group_block_size);
+    }
+    assert(__groups <= MAX_GROUPS);
+
+    auto p_sync = sycl::malloc_device<::std::uint32_t>(1024 + (__groups+2) * BIN_COUNT, __exec.queue());
+    // to correctly sort floating point values, a buffer to store data plus extra identity values is needed
+    KeyT* __tmpbuf = sycl::malloc_device<KeyT>(__groups * __group_block_size, __exec.queue());
 
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
@@ -359,19 +375,20 @@ void cooperative(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
             __esimd_radix_sort_cooperative<_CustomName>>;
 
     sycl::event __e;
-    if (__n <= 128 * THREAD_PER_TG * MAX_GROUPS)
+    if (__group_block_size == 128 * THREAD_PER_TG)
     {
         __e = __radix_sort_cooperative_submitter<
             KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 128, IsAscending, _EsimRadixSort>()(
-                ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, p_sync);
+                __exec, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf, p_sync);
     }
-    else if (__n <= 256 * THREAD_PER_TG * MAX_GROUPS)
+    else // __group_block_size == 256 * THREAD_PER_TG
     {
         __e = __radix_sort_cooperative_submitter<
             KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 256, IsAscending, _EsimRadixSort>()(
-                ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, p_sync);
+                __exec, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf, p_sync);
     }
     __e.wait();
+    sycl::free(__tmpbuf, __exec.queue());
     sycl::free(p_sync, __exec.queue());
 }
 
