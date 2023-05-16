@@ -63,8 +63,8 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
         //T vals[n1] = { 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, ...};
 
         assert(init == 0 || init == 1);
-        int segment_length = 1;
-        auto expected_segment_sum = init;
+        T segment_length = 1;
+        T expected_segment_sum = init;
         auto current_key = host_keys[0];
         typename std::decay<decltype(val_res[0])>::type current_sum = 0;
         for (int i = 0; i != n; ++i)
@@ -78,7 +78,8 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
                 current_key = host_keys[i];
                 if (current_key == 1) {
                     ++segment_length;
-                    expected_segment_sum = init == 1 ? segment_length * (segment_length + 1) / 2 : segment_length * (segment_length - 1) / 2;
+                    expected_segment_sum = (init == 1) ? segment_length * (segment_length + 1) / 2
+                                                       : segment_length * (segment_length - 1) / 2;
                 }
             }
         }
