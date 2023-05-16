@@ -21,7 +21,7 @@ if (DEFINED CMAKE_PROJECT_NAME AND (NOT DEFINED oneDPLWindowsIntelLLVM_DIR))
     set(REASON_FAILURE "oneDPLWindowsIntelLLVM package must be included before the project() call!")
 else()
 
-    # CMAKE_CXX_COMPILER and CMAKE_CXX_COMPILER_VERSION cannot be used because
+    # CMAKE_CXX_COMPILER_ID and CMAKE_CXX_COMPILER_VERSION cannot be used because
     # CMake 3.19 and older will detect IntelLLVM compiler as CLang with CLang-specific version, see https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
     if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx|icx)(.exe)?$")
         set(INTEL_LLVM_COMPILER TRUE)
@@ -77,7 +77,7 @@ else()
 
     # The following are planned workarounds to be applied after project() by oneDPL CMake files
     if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER_MSVC_LIKE)
-        # Fix std compiler options for icx, icx-cl 
+        # Fix std compiler options for icx, icx-cl
         # Adapted from fix in CMake 3.26: https://github.com/Kitware/CMake/commit/42ca6416afeabd445bc6c19749e68604c9c2d733
         if (${CMAKE_VERSION} VERSION_LESS "3.26")
             set(INTELLLVM_MSVC_WIN_STDOPTION_FIX TRUE)
@@ -105,7 +105,7 @@ else()
     endif()
 endif()
 
-find_package_handle_standard_args(oneDPLWindowsIntelLLVM 
+find_package_handle_standard_args(oneDPLWindowsIntelLLVM
     FOUND_VAR oneDPLWindowsIntelLLVM_FOUND
     REQUIRED_VARS INTEL_LLVM_COMPILER
     REASON_FAILURE_MESSAGE "${REASON_FAILURE}")
