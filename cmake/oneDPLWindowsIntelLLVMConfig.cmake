@@ -12,7 +12,7 @@
 #
 ##===----------------------------------------------------------------------===##
 
-if(CMAKE_HOST_WIN32)
+if (CMAKE_HOST_WIN32)
     if (CMAKE_VERSION VERSION_LESS 3.20)
         set(REASON_FAILURE "oneDPLWindowsIntelLLVM requires CMake 3.20 or later on Windows.")
         set(oneDPLWindowsIntelLLVM_FOUND FALSE)
