@@ -241,6 +241,23 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
     __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
         ::std::forward<_ExecutionPolicy>(__exec), sizeof(__key_type) + 2 * sizeof(__val_type), __wgroup_size);
 
+#    if _ONEDPL_COMPILE_KERNEL
+    auto __kernel1 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel1>::__compile(
+        ::std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel2 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel2>::__compile(
+        ::std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel3 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel3>::__compile(
+        ::std::forward<_ExecutionPolicy>(__exec));
+    auto __kernel4 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel4>::__compile(
+        ::std::forward<_ExecutionPolicy>(__exec));
+    __wgroup_size = ::std::min(
+        {__wgroup_size,
+         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel1),
+         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel2),
+         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel3),
+         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel4)});
+#    endif
+
     ::std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
     // intermediate reductions within a workgroup
@@ -261,23 +278,6 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
     auto __seg_ends_scanned = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(
                                   ::std::forward<_ExecutionPolicy>(__exec), __n_groups)
                                   .get_buffer();
-
-#    if _ONEDPL_COMPILE_KERNEL
-    auto __kernel1 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel1>::__compile(
-        ::std::forward<_ExecutionPolicy>(__exec));
-    auto __kernel2 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel2>::__compile(
-        ::std::forward<_ExecutionPolicy>(__exec));
-    auto __kernel3 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel3>::__compile(
-        ::std::forward<_ExecutionPolicy>(__exec));
-    auto __kernel4 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel4>::__compile(
-        ::std::forward<_ExecutionPolicy>(__exec));
-    __wgroup_size = ::std::min(
-        {__wgroup_size,
-         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel1),
-         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel2),
-         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel3),
-         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel4)});
-#    endif
 
     // 1. Count the segment ends in each workgroup
     auto __seg_end_identification = __exec.queue().submit([&](sycl::handler& __cgh) {
