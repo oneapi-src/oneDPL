@@ -135,7 +135,7 @@ inline __ESIMD_NS::simd<uint32_t, 32> match_bins(__ESIMD_NS::simd<uint32_t, 32> 
     #pragma unroll
     for (int i = 0; i<BITS; i++) {
         simd<uint32_t, 32> bit = (bins >> i) & 1;// and
-        simd<uint32_t, 32> x = merge<uint32_t, 32>(0, -1, bit!=0); // sel
+        simd<uint32_t, 32> x = __ESIMD_NS::merge<uint32_t, 32>(0, -1, bit!=0); // sel
         uint32_t ones = pack_mask(bit!=0);// mov
         matched_bins = matched_bins & (x ^ ones); // bfn
     }
