@@ -590,7 +590,7 @@ onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     uint8_t *tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, __exec.queue());
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
     auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
-    auto p_output = sycl::malloc_device<uint32_t>(__n, __exec.queue());
+    auto p_output = sycl::malloc_device<KeyT>(__n, __exec.queue());
     auto e_init = __exec.queue().memset(tmp_buffer, 0, temp_buffer_size);
 
     sycl::event event_chain = __radix_sort_onesweep_histogram_submitter<
