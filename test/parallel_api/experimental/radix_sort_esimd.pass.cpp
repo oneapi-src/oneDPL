@@ -234,6 +234,9 @@ int main()
         {
             test_usm<uint32_t, sycl::usm::alloc::shared>(size);
             test_usm<uint32_t, sycl::usm::alloc::device>(size);
+
+            test_usm<int, sycl::usm::alloc::shared>(size);
+            test_usm<int, sycl::usm::alloc::device>(size);
         }
         test_small_sizes();
     }
