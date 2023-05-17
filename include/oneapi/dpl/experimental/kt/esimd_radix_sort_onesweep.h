@@ -87,7 +87,7 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
                 sycl::ext::intel::esimd::simd offset((read_addr + s + lane_id)*sizeof(KeyT));
                 simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m);
 
-                keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(-1), m);
+                keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
             }
         }
         #pragma unroll
@@ -165,7 +165,7 @@ struct slm_lookup_t {
     }
 };
 
-template <typename KeyT, typename InputT, typename OutputT, uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE>
+template <typename KeyT, typename InputT, typename OutputT, uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE, bool IsAscending>
 struct radix_sort_onesweep_slm_reorder_kernel {
     using bin_t = uint16_t;
     using hist_t = uint16_t;
@@ -370,7 +370,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         simd<device_addr_t, 16> lane_id(0, 1);
 
         device_addr_t io_offset = PROCESS_SIZE * (wg_id*wg_size+local_tid);
-        constexpr KeyT default_key = -1;
+        constexpr KeyT default_key = utils::__sort_identity<KeyT, IsAscending>;
 
         LoadKeys<16>(io_offset, keys, default_key);
 
@@ -527,7 +527,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __data = __rng.data();
                 __cgh.depends_on(__e);
-                radix_sort_onesweep_slm_reorder_kernel<KeyT, decltype(__data), _Output, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE>
+                radix_sort_onesweep_slm_reorder_kernel<KeyT, decltype(__data), _Output, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>
                     K(__n, __stage, __data, __output, __tmp_data);
                 __cgh.parallel_for<_Name...>(__nd_range, K);
             });
@@ -538,7 +538,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __data = __rng.data();
                 __cgh.depends_on(__e);
-                radix_sort_onesweep_slm_reorder_kernel<KeyT, _Output, decltype(__data), RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE>
+                radix_sort_onesweep_slm_reorder_kernel<KeyT, _Output, decltype(__data), RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending>
                     K(__n, __stage, __output, __data, __tmp_data);
                 __cgh.parallel_for<_Name...>(__nd_range, K);
             });
@@ -548,7 +548,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
 
 template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
           bool IsAscending, ::std::uint32_t PROCESS_SIZE>
-std::enable_if_t<!::std::is_unsigned_v<KeyT>, void>
+std::enable_if_t<!::std::is_integral_v<KeyT>, void>
 onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 {
     // TODO: remove this when the implementation below can compile for other data types
@@ -556,7 +556,7 @@ onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 
 template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
           bool IsAscending, ::std::uint32_t PROCESS_SIZE>
-std::enable_if_t<::std::is_unsigned_v<KeyT>, void>
+std::enable_if_t<::std::is_integral_v<KeyT>, void>
 onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 {
     using namespace sycl;
@@ -590,7 +590,7 @@ onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     uint8_t *tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, __exec.queue());
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
     auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
-    auto p_output = sycl::malloc_device<uint32_t>(__n, __exec.queue());
+    auto p_output = sycl::malloc_device<KeyT>(__n, __exec.queue());
     auto e_init = __exec.queue().memset(tmp_buffer, 0, temp_buffer_size);
 
     sycl::event event_chain = __radix_sort_onesweep_histogram_submitter<
