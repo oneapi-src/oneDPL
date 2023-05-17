@@ -213,6 +213,7 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_siz
                 __reduce_op, __transform_op};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
+        const bool __use_usm = __use_USM_host_allocations(__exec.queue());
         __storage __res_container = __storage<_ExecutionPolicy, _Tp>(__exec, __use_usm, 1);
         const _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
@@ -370,6 +371,7 @@ struct __parallel_transform_reduce_impl
 
         // Create temporary global buffers to store temporary values
         sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
+        const bool __use_usm = __use_USM_host_allocations(__exec.queue());
         // __is_first == true. Reduce over each work_group
         // __is_first == false. Reduce between work groups
         bool __is_first = true;

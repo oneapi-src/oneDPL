@@ -585,8 +585,9 @@ class __future : private std::tuple<_Args...>
     }
 };
 
-// value in the integer_sequence not less than the run-time integer. For example:
+// Only use USM host allocations on Intel GPUs. Other devices show significant slowdowns.
 __has_usm_host_allocations(sycl::queue __queue)
+    if (!__device.has(sycl::aspect::usm_host_allocations))
 
 // A contract for a future class for reduce: <execution policy, sycl::event, USM host memory for the reduced value>
 // Note that the integers provided in the integer_sequence must be monotonically increasing
