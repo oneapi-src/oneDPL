@@ -49,8 +49,21 @@ generate_data(T* input, std::size_t size)
     std::size_t unique_threshold = 75 * size / 100;
     if constexpr (std::is_integral_v<T>)
     {
-        std::uniform_int_distribution<T> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
-        std::generate(input, input + unique_threshold, [&]{ return dist(gen); });
+        if constexpr (std::is_unsigned_v<T>)
+        {
+            std::uniform_int_distribution<T> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
+            std::generate(input, input + unique_threshold, [&]{ return dist(gen); });
+        }
+        else
+        {
+            T init = size / 2;
+            for (std::size_t i = 0; i < size; ++i)
+            {
+                *input = init - i;
+                ++input;
+            }
+            return;
+        }
     }
     else
     {
