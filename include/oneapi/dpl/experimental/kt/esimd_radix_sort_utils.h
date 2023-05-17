@@ -141,7 +141,7 @@ inline __ESIMD_NS::simd<RT, 64> scan(__ESIMD_NS::simd<T, 64> src, const T init=0
 }
 
 // get bits value (bucket) in a certain radix position
-template <::std::uint16_t __radix_mask, typename _T, int _N, std::enable_if_t<::std::is_unsigned_v<_T>, int> = 0>
+template <::std::uint16_t __radix_mask, typename _T, int _N, std::enable_if_t<::std::is_unsigned_v<_T>, int> = 0>   // TODO replace int to void_t
 sycl::ext::intel::esimd::simd<::std::uint16_t, _N>
 __get_bucket(sycl::ext::intel::esimd::simd<_T, _N> __value, ::std::uint32_t __radix_offset)
 {
@@ -162,7 +162,7 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<bool, _N> __src)
         return !__src;
 }
 
-template <bool __is_ascending, typename _UInt, int _N, std::enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
+template <bool __is_ascending, typename _UInt, int _N, std::enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>      // TODO replace int to void_t
 sycl::ext::intel::esimd::simd<_UInt, _N>
 __order_preserving_cast(sycl::ext::intel::esimd::simd<_UInt, _N> __src)
 {
