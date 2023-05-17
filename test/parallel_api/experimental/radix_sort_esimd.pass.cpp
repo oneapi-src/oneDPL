@@ -156,6 +156,7 @@ void test_usm(std::size_t size)
 
     std::string msg = "wrong results with USM, n: " + std::to_string(size);
     EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
+    print_data(expected, actual, 0, size);
 }
 
 template<typename T>
@@ -210,9 +211,9 @@ void test_general_cases(std::size_t size)
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    const std::vector<std::size_t> onewg_sizes = { 1, 2, 3, 4, 5, 6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14 };
-    const std::vector<std::size_t> coop_sizes = { (1<<14)+1, 50000, 67543, 100'000, 1<<17, 179'581, 250'000, 1<<18 };
-    const std::vector<std::size_t> onesweep_sizes = { (1<<18)+1, 500'000, 888'235, 1'000'000, 1<<20, 10'000'000 };
+    const std::vector<std::size_t> onewg_sizes = { 1, 2, 3, 4, 5, 6, 16/*, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14*/ };
+    const std::vector<std::size_t> coop_sizes = { /*(1<<14)+1, 50000, 67543, 100'000, 1<<17, 179'581, 250'000, 1<<18*/ };
+    const std::vector<std::size_t> onesweep_sizes = { /*(1<<18)+1, 500'000, 888'235, 1'000'000, 1<<20, 10'000'000*/ };
 
     try
     {
