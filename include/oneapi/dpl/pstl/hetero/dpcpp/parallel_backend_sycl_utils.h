@@ -509,6 +509,17 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
+    using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
+                                        sycl::access::placeholder::false_t>;
+    _ExecutionPolicy m_exec;
+    __storage(_ExecutionPolicy& __exec, bool __usm, ::std::size_t __n) : m_usm(__usm)
+                __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__n),
+                __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
+    }
+    __storage(const __storage& __s) : m_usm(__s.m_usm), m_usm_buf(__s.m_usm_buf), m_sycl_buf(__s.m_sycl_buf)
+    {
+            acc.m_acc = sycl::accessor(*m_sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+            __cgh.require(acc.m_acc);
 //A contract for future class: <sycl::event or other event, a value or sycl::buffers...>
 //Impl details: inheretance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
