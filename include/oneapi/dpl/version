@@ -12,7 +12,7 @@
 
 #include "oneapi/dpl/internal/common_config.h"
 
-#if _ONEDPL___cplusplus >= 202002L 
+#if _ONEDPL___cplusplus >= 202002L
 #    include <version> // The standard C++20 header
 #endif
 
