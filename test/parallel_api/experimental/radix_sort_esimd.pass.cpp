@@ -158,6 +158,11 @@ void test_usm(std::size_t size)
     std::vector<T> expected(size);
     generate_data(expected.data(), size);
 
+    std::cout << "\t\tsource data: ";
+    for (T item : expected)
+        std::cout << item << ", ";
+    std::cout << std::endl;
+
     TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
 
     std::sort(expected.begin(), expected.end());

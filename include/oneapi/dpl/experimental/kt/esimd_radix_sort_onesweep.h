@@ -18,6 +18,29 @@
 
 #include <cstdint>
 
+template <typename T, int N>
+void printx(__ESIMD_NS::simd<T, N> x) {
+    for (int i = 0; i < N; i++) {
+        uint32_t v = x[i];
+        sycl::_V1::ext::oneapi::experimental::printf(" %x", v);
+    }
+    sycl::_V1::ext::oneapi::experimental::printf("\n");
+}
+
+template <typename T, int N>
+void printd(__ESIMD_NS::simd<T, N> x) {
+    for (int i = 0; i < N; i++) {
+        uint32_t v = x[i];
+        sycl::_V1::ext::oneapi::experimental::printf(" %d", v);
+    }
+    sycl::_V1::ext::oneapi::experimental::printf("\n");
+}
+#define PRINTSD(x) do {sycl::_V1::ext::oneapi::experimental::printf(#x ": "); sycl::_V1::ext::oneapi::experimental::printf(" %d", x);} while (0)
+#define PRINTSX(x) do {sycl::_V1::ext::oneapi::experimental::printf(#x ": "); sycl::_V1::ext::oneapi::experimental::printf(" %x", x);} while (0)
+
+#define PRINTD(x) do {sycl::_V1::ext::oneapi::experimental::printf(#x ": "); printd(x);} while (0)
+#define PRINTX(x) do {sycl::_V1::ext::oneapi::experimental::printf(#x ": "); printx(x);} while (0)
+
 namespace oneapi::dpl::experimental::esimd::impl
 {
 
@@ -374,6 +397,8 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         constexpr KeyT default_key = utils::__sort_identity<KeyT, IsAscending>;
 
         LoadKeys<16>(io_offset, keys, default_key);
+
+        PRINTSD(keys);
 
         // bins = (keys >> (stage * RADIX_BITS)) & MASK;
         bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast</*IsAscending*/ true>(keys), stage * RADIX_BITS);
