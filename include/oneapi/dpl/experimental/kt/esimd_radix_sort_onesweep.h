@@ -593,8 +593,8 @@ onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 
     using global_hist_t = uint32_t;
     constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
-    constexpr uint32_t HW_TG_COUNT = 64;
-    constexpr uint32_t THREAD_PER_TG = 64;
+    constexpr uint32_t HW_TG_COUNT = 1;//64;
+    constexpr uint32_t THREAD_PER_TG = 1;//64;
     constexpr uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE;
     const uint32_t sweep_tg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, THREAD_PER_TG*SWEEP_PROCESSING_SIZE);
     constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
