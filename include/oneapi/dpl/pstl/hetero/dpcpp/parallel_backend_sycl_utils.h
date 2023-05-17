@@ -620,17 +620,62 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
             sycl::free(*__my_res.get(), __my_exec.queue());
         return __my_event;
     void
+// A contract for a future class for reduce: <execution policy, sycl::event, USM host memory for the reduced value>
+template <typename _ExecutionPolicy, typename _Event, typename _Res>
+class __reduce_future
+{
+    _ExecutionPolicy __my_exec;
+    _Event __my_event;
+
+    struct ResDeleter
+    {
+        sycl::queue __queue;
+        ResDeleter(sycl::queue __q) : __queue(::std::move(__q)) {}
+
+        void
+        operator()(_Res* __res)
+        {
+            ::sycl::free(__res, __queue);
+        }
+    };
+
+    ::std::unique_ptr<sycl::buffer<_Res>> __res_buf;
+
+    using ResPointer = ::std::unique_ptr<_Res, ResDeleter>;
+    ResPointer __res_ptr;
+
+  public:
+    __reduce_future(_ExecutionPolicy&& __exec, _Event&& __e, ::std::unique_ptr<sycl::buffer<_Res>>&& __buf, _Res* __res)
+        : __my_exec(::std::forward<_ExecutionPolicy>(__exec)), __my_event(::std::forward<_Event>(__e)),
+          __res_buf(::std::move(__buf)), __res_ptr(__res, __my_exec.queue())
+    {
+    }
+
+    auto
+    event() const
+    {
+        return __my_event;
+    }
+    operator _Event() const { return event(); }
+    void
+    wait()
+    {
 #if !ONEDPL_ALLOW_DEFERRED_WAITING
         __my_event.wait_and_throw();
 #endif
-                return __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _Xs...>>::__dispatch(
                     ::std::forward<_F>(__f), __x, ::std::forward<_Args>(args)...);
-        using _Tp = typename ::std::remove_pointer<_Res>::type;
-        _Tp __local_val = __my_res[0];
-        sycl::free(__my_res, __my_exec.queue());
         __my_event.wait_and_throw();
+        if (!__res_ptr)
+        {
+            //according to a contract, returned value is one-element sycl::buffer
             return __res_buf->get_host_access(sycl::read_only)[0];
-        return *__my_res.get();
+        }
+        else
+        {
+        }
+    }
+};
+
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
