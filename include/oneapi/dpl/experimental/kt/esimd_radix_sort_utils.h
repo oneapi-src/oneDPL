@@ -294,7 +294,7 @@ VectorStore(T* src,
             __ESIMD_NS::simd<T, VSize * LANES> data,
             __ESIMD_NS::simd_mask<LANES> mask = 1)
 {
-    return __ESIMD_ENS::lsc_scatter<T, VSize, __ESIMD_ENS::lsc_data_size::default_size, H1, H3, LANES>(src, offset, data, mask);
+    __ESIMD_ENS::lsc_scatter<T, VSize, __ESIMD_ENS::lsc_data_size::default_size, H1, H3, LANES>(src, offset, data, mask);
 }
 
 template <typename T, int VSize, int LANES, typename AccessorTy,
@@ -306,7 +306,7 @@ VectorStore(AccessorTy acc,
             __ESIMD_NS::simd<T, VSize * LANES> data,
             __ESIMD_NS::simd_mask<LANES> mask = 1)
 {
-    return __ESIMD_ENS::lsc_scatter<T, VSize, __ESIMD_ENS::lsc_data_size::default_size, H1, H3, LANES>(acc, offset, data, mask);
+    __ESIMD_ENS::lsc_scatter<T, VSize, __ESIMD_ENS::lsc_data_size::default_size, H1, H3, LANES>(acc, offset, data, mask);
 }
 
 
@@ -378,7 +378,7 @@ VectorStore(T* src,
             __ESIMD_NS::simd_mask<LANES> mask = 1)
 {
     // optimization needed here, hard for compiler to optimize the offset vector calculation
-    return VectorStore<T, VSize, LANES, H1, H3>(src, {offset, LaneStride*sizeof(T)}, data, mask);
+    VectorStore<T, VSize, LANES, H1, H3>(src, {offset, LaneStride*sizeof(T)}, data, mask);
 }
 
 template <typename T, int VSize, int LANES, typename AccessorTy,
@@ -392,7 +392,7 @@ VectorStore(AccessorTy acc,
             __ESIMD_NS::simd_mask<LANES> mask = 1)
 {
     // optimization needed here, hard for compiler to optimize the offset vector calculation
-    return VectorStore<T, VSize, LANES, H1, H3>(acc, {offset, LaneStride*sizeof(T)}, data, mask);
+    VectorStore<T, VSize, LANES, H1, H3>(acc, {offset, LaneStride*sizeof(T)}, data, mask);
 }
 
 template <typename T, int VSize, int LANES>
