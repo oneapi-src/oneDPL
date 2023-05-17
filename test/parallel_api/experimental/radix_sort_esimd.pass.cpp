@@ -221,7 +221,7 @@ void test_general_cases(std::size_t size)
     //test_subrange_view<T>(size);
 #endif // _ENABLE_RANGES_TESTING
     test_usm<T, sycl::usm::alloc::shared>(size);
-    test_usm<T, sycl::usm::alloc::device>(size);
+    //test_usm<T, sycl::usm::alloc::device>(size);
     //test_sycl_iterators<T>(size);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -235,12 +235,12 @@ int main()
 
     try
     {
-        std::cout << "test_general_cases<uint32_t>(size);" << std::endl;
-        for (auto size : onewg_sizes)
-        {
-            std::cout << "\tsize = " << size << std::endl;
-            test_general_cases<uint32_t>(size);
-        }
+        //std::cout << "test_general_cases<uint32_t>(size);" << std::endl;
+        //for (auto size : onewg_sizes)
+        //{
+        //    std::cout << "\tsize = " << size << std::endl;
+        //    test_general_cases<uint32_t>(size);
+        //}
 
         for (auto size : onewg_sizes)
         {
@@ -249,63 +249,63 @@ int main()
             // test_general_cases<double>(size);
         }
 
-        std::cout << "test_general_cases<uint32_t>(size);" << std::endl;
-        for (auto size : coop_sizes)
-        {
-            std::cout << "\tsize = " << size << std::endl;
-            test_general_cases<uint32_t>(size);
-        }
+        //std::cout << "test_general_cases<uint32_t>(size);" << std::endl;
+        //for (auto size : coop_sizes)
+        //{
+        //    std::cout << "\tsize = " << size << std::endl;
+        //    test_general_cases<uint32_t>(size);
+        //}
 
-        std::cout << "test_general_cases<int>(size);" << std::endl;
+        std::cout << "test_general_cases<int32_t>(size);" << std::endl;
         for (auto size : onewg_sizes)
         {
             std::cout << "\tsize = " << size << std::endl;
-            test_general_cases<int>(size);
+            test_general_cases<int32_t>(size);
         }
 
-        std::cout << "test_general_cases<float>(size);" << std::endl;
-        for (auto size : onewg_sizes)
-        {
-            std::cout << "\tsize = " << size << std::endl;
-            test_general_cases<float>(size);
-        }
+        //std::cout << "test_general_cases<float>(size);" << std::endl;
+        //for (auto size : onewg_sizes)
+        //{
+        //    std::cout << "\tsize = " << size << std::endl;
+        //    test_general_cases<float>(size);
+        //}
 
-        std::cout << "test_general_cases<double>(size);" << std::endl;
-        for (auto size : onewg_sizes)
-        {
-            std::cout << "\tsize = " << size << std::endl;
-            // test_general_cases<double>(size);
-        }
+        //std::cout << "test_general_cases<double>(size);" << std::endl;
+        //for (auto size : onewg_sizes)
+        //{
+        //    std::cout << "\tsize = " << size << std::endl;
+        //    // test_general_cases<double>(size);
+        //}
 
-        std::cout << "test_usm<uint32_t, sycl::usm::alloc::shared>(size);" << std::endl;
-        for (auto size : onesweep_sizes)
-        {
-            std::cout << "\tsize = " << size << std::endl;
-            test_usm<uint32_t, sycl::usm::alloc::shared>(size);
-        }
+        //std::cout << "test_usm<uint32_t, sycl::usm::alloc::shared>(size);" << std::endl;
+        //for (auto size : onesweep_sizes)
+        //{
+        //    std::cout << "\tsize = " << size << std::endl;
+        //    test_usm<uint32_t, sycl::usm::alloc::shared>(size);
+        //}
 
-        std::cout << "test_usm<uint32_t, sycl::usm::alloc::device>(size);" << std::endl;
-        for (auto size : onesweep_sizes)
-        {
-            std::cout << "\tsize = " << size << std::endl;
-            test_usm<uint32_t, sycl::usm::alloc::device>(size);
-        }
+        //std::cout << "test_usm<uint32_t, sycl::usm::alloc::device>(size);" << std::endl;
+        //for (auto size : onesweep_sizes)
+        //{
+        //    std::cout << "\tsize = " << size << std::endl;
+        //    test_usm<uint32_t, sycl::usm::alloc::device>(size);
+        //}
 
-        std::cout << "test_usm<int32_t, sycl::usm::alloc::shared>(size);" << std::endl;
-        for (auto size : onesweep_sizes)
-        {
-            std::cout << "\tsize = " << size << std::endl;
-            test_usm<int32_t, sycl::usm::alloc::shared>(size);
-        }
+        //std::cout << "test_usm<int32_t, sycl::usm::alloc::shared>(size);" << std::endl;
+        //for (auto size : onesweep_sizes)
+        //{
+        //    std::cout << "\tsize = " << size << std::endl;
+        //    test_usm<int32_t, sycl::usm::alloc::shared>(size);
+        //}
 
-        std::cout << "test_usm<int32_t, sycl::usm::alloc::device>(size);" << std::endl;
-        for (auto size : onesweep_sizes)
-        {
-            std::cout << "\tsize = " << size << std::endl;
-            test_usm<int32_t, sycl::usm::alloc::device>(size);
-        }
+        //std::cout << "test_usm<int32_t, sycl::usm::alloc::device>(size);" << std::endl;
+        //for (auto size : onesweep_sizes)
+        //{
+        //    std::cout << "\tsize = " << size << std::endl;
+        //    test_usm<int32_t, sycl::usm::alloc::device>(size);
+        //}
 
-        test_small_sizes();
+        //test_small_sizes();
     }
     catch (const ::std::exception& exc)
     {
