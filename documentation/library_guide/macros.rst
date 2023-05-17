@@ -32,6 +32,10 @@ Feature Macros
 Use these macros to test presence of specific |onedpl_short| functionality.
 
 ================================== ===============================================
+Macro                              Macro values and the functionality
+================================== ===============================================
+``ONEDPL_HAS_RANDOM_NUMBERS``      ``202210L`` for pseudo-random number generators and distributions,
+                                   as defined in |onedpl_short| version 2022.2 or later
 ================================== ===============================================
 
 Additional Macros
