@@ -627,7 +627,7 @@ __dpl_bit_floor(_T __x) noexcept
 
 // The max power of 2 not smaller than the given value, same as C++20 std::bit_ceil
 template <typename _T>
-::std::enable_if_t<::std::is_integral_v<_T>&& ::std::is_unsigned_v<_T>, _T>
+::std::enable_if_t<::std::is_integral_v<_T> && ::std::is_unsigned_v<_T>, _T>
 __dpl_bit_ceil(_T __x) noexcept
 {
     return ((__x & (__x - 1)) != 0) ? __dpl_bit_floor(__x) << 1 : __x;

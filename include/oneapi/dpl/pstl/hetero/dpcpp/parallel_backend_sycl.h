@@ -609,6 +609,9 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
         auto __event = __policy.queue().submit([&](sycl::handler& __hdl) {
             oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
 
+            // Local memory is split into two parts. The first half stores the result of applying the
+            // predicate on each element of the input range. The second half stores the index of the output
+            // range to copy elements of the input range.
             auto __lacc = __dpl_sycl::__local_accessor<_ValueType>(sycl::range<1>{__elems_per_wg * 2}, __hdl);
             auto __res_acc = __res.template get_access<access_mode::write>(__hdl);
 

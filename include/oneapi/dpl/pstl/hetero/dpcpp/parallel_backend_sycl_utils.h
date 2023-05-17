@@ -593,8 +593,8 @@ template <::std::uint16_t _X, ::std::uint16_t... _Xs>
 class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X, _Xs...>>
 {
     template <::std::uint16_t... _Vals>
-    using _Head = typename std::conditional_t<
-        sizeof...(_Vals) != 0, std::tuple_element<0, std::tuple<::std::integral_constant<::std::uint32_t, _Vals>...>>,
+    using _Head = typename ::std::conditional_t<
+        sizeof...(_Vals) != 0, ::std::tuple_element<0, ::std::tuple<::std::integral_constant<::std::uint32_t, _Vals>...>>,
         ::std::integral_constant<::std::uint32_t, ::std::numeric_limits<::std::uint32_t>::max()>>::type;
 
     static_assert(_X < _Head<_Xs...>::value, "Sequence must be monotonically increasing");
