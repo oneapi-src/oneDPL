@@ -211,7 +211,23 @@ __joint_inclusive_scan(_Args&&... __args)
 }
 
 #if _ONEDPL_FPGA_DEVICE
-#    if _ONEDPL_LIBSYCL_VERSION >= 50300
+#    if _ONEDPL_LIBSYCL_VERSION >= 60100
+struct __fpga_emulator_selector
+{
+    int operator()(const sycl::device& d) const
+    {
+        return sycl::ext::intel::fpga_emulator_selector_v(d);
+    }
+};
+
+struct __fpga_selector
+{
+    int operator()(const sycl::device& d) const
+    {
+        return sycl::ext::intel::fpga_selector_v(d);
+    }
+};
+#    elif _ONEDPL_LIBSYCL_VERSION >= 50300
 using __fpga_emulator_selector = sycl::ext::intel::fpga_emulator_selector;
 using __fpga_selector = sycl::ext::intel::fpga_selector;
 #    else
