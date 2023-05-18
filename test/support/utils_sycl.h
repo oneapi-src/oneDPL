@@ -134,7 +134,7 @@ make_new_policy(_Policy&& __policy)
 #endif     // ONEDPL_FPGA_DEVICE
 
 // create the queue with custom asynchronous exceptions handler
-static auto my_queue = sycl::queue(default_selector, async_handler);
+inline auto my_queue = sycl::queue(default_selector, async_handler);
 
 inline
 sycl::queue get_test_queue()
