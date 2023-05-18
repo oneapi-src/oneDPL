@@ -370,14 +370,8 @@ inline void DoNotOptimize(Tp const& value) {
 #  define TEST_HAS_NO_LOCALIZATION
 #endif
 
-#if TEST_STD_VER <= 17 || !defined(__cpp_char8_t)
+#if TEST_STD_VER <= 17 || !defined(__cpp_char8_t) || !defined(__cpp_lib_char8_t)
 #  define TEST_HAS_NO_CHAR8_T
-#endif
-
-#if TEST_STD_VER > 17 && defined(__cpp_char8_t) && defined(__cpp_lib_char8_t)
-#   define _ENABLE_CHAR8_T 1
-#else
-#   define _ENABLE_CHAR8_T 0
 #endif
 
 #if defined(_LIBCPP_HAS_NO_THREADS)

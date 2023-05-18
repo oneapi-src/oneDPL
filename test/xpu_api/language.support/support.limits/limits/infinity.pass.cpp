@@ -50,7 +50,7 @@ ONEDPL_TEST_NUM_MAIN
     test<signed char>(0);
     test<unsigned char>(0);
     test<wchar_t>(0);
-#if _ENABLE_CHAR8_T
+#ifndef TEST_HAS_NO_CHAR8_T
     test<char8_t>(0);
 #endif
 #ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
