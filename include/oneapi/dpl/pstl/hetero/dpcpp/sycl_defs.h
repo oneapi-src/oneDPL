@@ -211,12 +211,34 @@ __joint_inclusive_scan(_Args&&... __args)
 }
 
 #if _ONEDPL_FPGA_DEVICE
-#    if _ONEDPL_LIBSYCL_VERSION >= 50300
-using __fpga_emulator_selector = sycl::ext::intel::fpga_emulator_selector;
-using __fpga_selector = sycl::ext::intel::fpga_selector;
+#    if _ONEDPL_LIBSYCL_VERSION >= 60100
+inline auto __fpga_emulator_selector()
+{
+    return sycl::ext::intel::fpga_emulator_selector_v;
+}
+inline auto __fpga_selector()
+{
+    return sycl::ext::intel::fpga_selector_v;
+}
+
+#    elif _ONEDPL_LIBSYCL_VERSION >= 50300
+inline auto __fpga_emulator_selector()
+{
+    return sycl::ext::intel::fpga_emulator_selector{};
+}
+inline auto __fpga_selector()
+{
+    return sycl::ext::intel::fpga_selector{};
+}
 #    else
-using __fpga_emulator_selector = sycl::INTEL::fpga_emulator_selector;
-using __fpga_selector = sycl::INTEL::fpga_selector;
+inline auto __fpga_emulator_selector()
+{
+    return sycl::INTEL::fpga_emulator_selector{};
+}
+inline auto __fpga_selector()
+{
+    return sycl::INTEL::fpga_selector{};
+}
 #    endif
 #endif // _ONEDPL_FPGA_DEVICE
 
