@@ -119,7 +119,7 @@ void test_all_view(std::size_t size)
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
-template<typename T>
+template<typename T, sycl::usm::alloc _alloc_type>
 void test_subrange_view(std::size_t size)
 {
     sycl::queue q = TestUtils::get_test_queue();
@@ -128,7 +128,7 @@ void test_subrange_view(std::size_t size)
     std::vector<T> expected(size);
     generate_data(expected.data(), size);
 
-    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> dt_input(q, expected.begin(), expected.end());
+    TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
 
     std::sort(expected.begin(), expected.end(), Compare<Order>{});
 
@@ -141,6 +141,15 @@ void test_subrange_view(std::size_t size)
     std::string msg = "wrong results with views::subrange, n: " + std::to_string(size);
     EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
 }
+
+template <typename T>
+void
+test_subrange_view(std::size_t size)
+{
+    test_subrange_view<T, sycl::usm::alloc::shared>(size);
+    test_subrange_view<T, sycl::usm::alloc::device>(size);
+}
+
 #endif // _ENABLE_RANGES_TESTING
 
 template<typename T, sycl::usm::alloc _alloc_type>
@@ -163,6 +172,14 @@ void test_usm(std::size_t size)
 
     std::string msg = "wrong results with USM, n: " + std::to_string(size);
     EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
+}
+
+template <typename T>
+void
+test_usm(std::size_t size)
+{
+    test_usm<T, sycl::usm::alloc::shared>(size);
+    test_usm<T, sycl::usm::alloc::device>(size);
 }
 
 template<typename T>
@@ -208,8 +225,7 @@ void test_general_cases(std::size_t size)
     test_all_view<T>(size);
     test_subrange_view<T>(size);
 #endif // _ENABLE_RANGES_TESTING
-    test_usm<T, sycl::usm::alloc::shared>(size);
-    test_usm<T, sycl::usm::alloc::device>(size);
+    test_usm<T>(size);
     test_sycl_iterators<T>(size);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -239,14 +255,9 @@ int main()
         }
         for(auto size: onesweep_sizes)
         {
-            test_usm<uint32_t, sycl::usm::alloc::shared>(size);
-            test_usm<uint32_t, sycl::usm::alloc::device>(size);
-
-            test_usm<int, sycl::usm::alloc::shared>(size);
-            test_usm<int, sycl::usm::alloc::device>(size);
-            
-            test_usm<float, sycl::usm::alloc::shared>(size);
-            test_usm<float, sycl::usm::alloc::device>(size);
+            test_usm<uint32_t>(size);
+            test_usm<int>(size);
+            test_usm<float>(size);
         }
         test_small_sizes();
     }
