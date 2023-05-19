@@ -359,7 +359,8 @@ struct __parallel_transform_reduce_impl
     }
 }; // struct __parallel_transform_reduce_impl
 
-// General version of parallel_transform_reduce. Processes elements in order to enable non-commutative algorithms.
+// General version of parallel_transform_reduce.
+// The binary operator must be associative but commutativity is not required since the elements are processed in order.
 // Each work item transforms and reduces __iters_per_work_item elements from global memory and stores the result in SLM.
 // 32 __iters_per_work_item was empirically found best for typical devices.
 // Each work group of size __work_group_size reduces the preliminary results of each work item in a group reduction
