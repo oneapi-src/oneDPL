@@ -767,6 +767,54 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     return __future(__event, __tmp_buf, __val_buf);
 }
 
+template <bool __is_ascending, typename _Range, typename _ExecutionPolicy, typename _Proj>
+auto
+__parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj)
+{
+    const ::std::size_t __n = __in_rng.size();
+    assert(__n > 1);
+
+    // types
+    using _DecExecutionPolicy = __decay_t<_ExecutionPolicy>;
+    using _ValueT = oneapi::dpl::__internal::__value_t<_Range>;
+    using _KeyT = oneapi::dpl::__internal::__key_t<_Proj, _Range>;
+
+    // radix bits represent number of processed bits in each value during one iteration
+    constexpr ::std::uint32_t __radix_bits = 4;
+
+    const auto __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+
+    constexpr ::std::uint32_t __radix_iters = __get_buckets_in_type<_KeyT>(__radix_bits);
+    const ::std::uint32_t __radix_states = 1 << __radix_bits;
+
+    const ::std::size_t __wg_size = __max_wg_size;
+    const ::std::size_t __segments = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wg_size);
+
+    // additional __radix_states elements are used for getting local offsets from count values
+    const ::std::size_t __tmp_buf_size = __segments * __radix_states + __radix_states;
+    // memory for storing count and offset values
+    sycl::buffer<::std::uint32_t, 1> __tmp_buf = sycl::buffer<::std::uint32_t, 1>(sycl::range<1>(__tmp_buf_size));
+
+    // memory for storing values sorted for an iteration
+    __internal::__buffer<_DecExecutionPolicy, _ValueT> __out_buffer_holder{__exec, __n};
+    sycl::buffer<_ValueT, 1> __val_buf = __out_buffer_holder.get_buffer();
+    auto __out_rng =
+        oneapi::dpl::__ranges::all_view<_ValueT, __par_backend_hetero::access_mode::read_write>(__val_buf);
+
+    sycl::event __event{};
+
+    // Starting MDS method for most radix*2 bits - called two LSD iterations by correcponding high bits mask.
+    // Two iterations approach also is important to have result in the original source array, not temporary buffer.
+    __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/true>::submit(
+                __exec, __segments, __radix_iters - 2, __in_rng, __out_rng, __tmp_buf, __event, __proj);
+    __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>::submit(
+                __exec, __segments, __radix_iters - 1, __out_rng, __in_rng, __tmp_buf, __event, __proj);
+
+    //TODO:
+
+    return __future(__event, __tmp_buf, __val_buf);
+}
+
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
