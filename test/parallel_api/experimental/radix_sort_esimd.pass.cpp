@@ -41,6 +41,13 @@
 constexpr ::std::uint16_t kWorkGroupSize = 256;
 constexpr ::std::uint16_t kDataPerWorkItem = 16;
 
+constexpr bool Ascending = true;
+constexpr bool Order = Ascending;
+template <bool = Ascending>
+using Compare = std::less<void>;
+template <>
+using Compare<!Ascending> = std::greater<void>;
+
 template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
 generate_data(T* input, std::size_t size)
@@ -101,11 +108,11 @@ void test_all_view(std::size_t size)
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
-    std::sort(std::begin(ref), std::end(ref));
+    std::sort(std::begin(ref), std::end(ref), Compare<Order>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, view);
+        oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, view);
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
@@ -123,10 +130,10 @@ void test_subrange_view(std::size_t size)
 
     TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> dt_input(q, expected.begin(), expected.end());
 
-    std::sort(expected.begin(), expected.end());
+    std::sort(expected.begin(), expected.end(), Compare<Order>{});
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, view);
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, view);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -147,9 +154,9 @@ void test_usm(std::size_t size)
 
     TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
 
-    std::sort(expected.begin(), expected.end());
+    std::sort(expected.begin(), expected.end(), Compare<Order>{});
 
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, dt_input.get_data(), dt_input.get_data() + size);
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, dt_input.get_data(), dt_input.get_data() + size);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -167,10 +174,10 @@ void test_sycl_iterators(std::size_t size)
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
-    std::sort(std::begin(ref), std::end(ref));
+    std::sort(std::begin(ref), std::end(ref), Compare<Order>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
+        oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
     }
 
     std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
@@ -186,9 +193,9 @@ void test_small_sizes()
     generate_data(input.data(), input.size());
     std::vector<uint32_t> ref(input);
 
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
