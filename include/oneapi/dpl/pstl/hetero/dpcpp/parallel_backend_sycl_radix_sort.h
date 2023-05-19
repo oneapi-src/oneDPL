@@ -767,21 +767,86 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     return __future(__event, __tmp_buf, __val_buf);
 }
 
-template<typename _Range>
+template<::std::uint32_t __radix, typename _Range>
 void
 __calc_hist(sycl::queue q, _Range&& __in_rng, ::std::uint32_t* hist/*, uint32_t* __mask = 0xFF00*/)
 {
-    using _ValueT = oneapi::dpl::__internal::__value_t<_Range>;
-
     const ::std::size_t __n = __in_rng.size();
-    assert(__n > 1);
+    //assert(__n > 1);
+
+#if 1
+    using _ValueT = oneapi::dpl::__internal::__value_t<_Range>;
 
     for(uint32_t i = 0; i < __n; ++i)
     {
         for(uint32_t bin = 0; bin < 256; ++bin)
-            if(((__in_rng[i] >> 8) & 0xFF) == bin)
+        {
+            auto val = __in_rng[i];
+
+            /*shift 24 for 32bits and 8 for 16bits numbers*/
+            auto shift = sizeof(_ValueT) * ::std::numeric_limits<unsigned char>::digits - __radix*2;
+            if(((__in_rng[i] >> shift) & 0xFF) == bin)
+            {
                 ++hist[bin];
+            }
+        }
     }
+#else
+      constexpr int blockSize = 2;//256;
+  constexpr int NUM_BINS = 256;
+
+  std::vector<unsigned long> hist(NUM_BINS, 0);
+
+  sycl::buffer<unsigned long, 1> mbuf(input.data(), N);
+  sycl::buffer<unsigned long, 1> hbuf(hist.data(), NUM_BINS);
+
+  auto e = q.submit([&](auto &h) {
+    sycl::accessor macc(mbuf, h, sycl::read_only);
+    auto hacc = hbuf.get_access<sycl::access::mode::atomic>(h);
+    h.parallel_for(
+        //sycl::nd_range(sycl::range{N / blockSize}, sycl::range{64}),
+        sycl::nd_range(sycl::range{N / blockSize}, sycl::range{16),
+        [=](sycl::nd_item<1> it) [[intel::reqd_sub_group_size(16)]] {
+          int group = it.get_group()[0];
+          int gSize = it.get_local_range()[0];
+          sycl::ext::oneapi::sub_group sg = it.get_sub_group();
+          int sgSize = sg.get_local_range()[0];
+          int sgGroup = sg.get_group_id()[0];
+
+          unsigned int
+              histogram[NUM_BINS / 16]; // histogram bins take too much storage
+                                        // to be promoted to registers
+          for (int k = 0; k < NUM_BINS / 16; k++) {
+            histogram[k] = 0;
+          }
+          for (int k = 0; k < blockSize; k++) {
+            unsigned long x =
+                sg.load(macc.get_pointer() + group * gSize * blockSize +
+                        sgGroup * sgSize * blockSize + sgSize * k);
+// subgroup size is 16
+#pragma unroll
+            for (int j = 0; j < 16; j++) {
+              unsigned long y = sycl::group_broadcast(sg, x, j);
+#pragma unroll
+              for (int i = 0; i < 8; i++) {
+                unsigned int c = y & 0xFF;
+                // (c & 0xF) is the workitem in which the bin resides
+                // (c >> 4) is the bin index
+                if (sg.get_local_id()[0] == (c & 0xF)) {
+                  histogram[c >> 4] += 1;
+                }
+                y = y >> 8;
+              }
+            }
+          }
+
+          for (int k = 0; k < NUM_BINS / 16; k++) {
+            hacc[16 * k + sg.get_local_id()[0]].fetch_add(histogram[k]);
+          }
+        });
+  });
+#endif
+
 }
 
 template <bool __is_ascending, typename _Range, typename _ExecutionPolicy, typename _Proj>
@@ -827,24 +892,56 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
     __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>::submit(
                 __exec, __segments, __radix_iters - 1, __out_rng, __in_rng, __tmp_buf, __event, __proj);
 
+    __event.wait();
+
     //calc a hist by most radix*2 bits:
     constexpr int NUM_BINS = 256;
     uint32_t* g_bins = sycl::malloc_shared<uint32_t>(NUM_BINS, __exec.queue());
     for (uint16_t __i = 0; __i < NUM_BINS; ++__i)
         g_bins[__i] = 0;
 
-
-    __calc_hist(__exec.queue(), __in_rng, g_bins/*, uint32_t* __mask = 0xFF00*/);
-
+    //TODO: set sycl event dependencies
     __exec.queue().wait();
 
-    std::cout <<  "hist1: ";
-    for(int i = 0; i < NUM_BINS; ++i)
+    __calc_hist<__radix_bits>(__exec.queue(), __in_rng, g_bins/*, uint32_t* __mask = 0xFF00*/);
+
+    //TODO: set sycl event dependencies
+    //__exec.queue().wait();
+
+    //std::cout <<  "hist1: ";
+    //for(int i = 0; i < NUM_BINS; ++i)
+    //{
+      //  std::cout << g_bins[i] << " ";
+    //}
+    //std::cout << std::endl;
+
+    using _RadixSortKernel = typename __decay_t<_ExecutionPolicy>::kernel_name;
+
+    constexpr auto __wg_size_one_wg = 64;
+    uint32_t base_idx = 0;
+    for (uint16_t __i = 0; __i < NUM_BINS; ++__i)
     {
-        //auto bin_val = g_bins[i];
-        std::cout << g_bins[i] << " ";
+        //sorting each non-trivial sub-range
+        if(g_bins[__i] > 1)
+        {
+            //cutting the sub-ranges based on the calculated statistic (histogram)
+            auto __size = g_bins[__i];
+            auto __src = oneapi::dpl::__ranges::drop_view_simple(__in_rng, base_idx);
+            auto __src1 = oneapi::dpl::__ranges::take_view_simple(__src, __size);
+
+            //TODO: check if size > 32K call __parallel_radix_sort_iteration '__radix_iters - 2' times
+            assert(__size <= 32768);
+
+            //sumbit a local sorting
+            __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size_one_wg * 4, 16, __radix_bits, __is_ascending>{}(
+                __exec.queue(), __src1, __proj, 0, __radix_iters - 2);
+
+           base_idx += __size;
+        }
     }
-    std::cout << std::endl;
+    //TODO: use sycl::event::wait(const std::vector<event>& eventList);
+    //TODO: extend 'future' type by an event list;
+    __exec.queue().wait();
 
     sycl::free(g_bins, __exec.queue());
     //TODO"

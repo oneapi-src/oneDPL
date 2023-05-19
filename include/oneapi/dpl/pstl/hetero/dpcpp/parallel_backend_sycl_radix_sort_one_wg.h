@@ -34,7 +34,7 @@ struct __subgroup_radix_sort
 {
     template <typename _RangeIn, typename _Proj>
     auto
-    operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, uint16_t __start_bit = 0)
+    operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, uint16_t __start_bit = 0, uint16_t __n_iter = 0)
     {
         using __wg_size_t = ::std::integral_constant<::std::uint16_t, __wg_size>;
         using __block_size_t = ::std::integral_constant<::std::uint16_t, __block_size>;
@@ -50,10 +50,10 @@ struct __subgroup_radix_sort
         //check SLM size
         if (__check_slm_size<_KeyT>(__q, __src.size()))
             return __one_group_submitter<_SortKernelLoc>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                           std::true_type{} /*SLM*/, __start_bit);
+                                                           std::true_type{} /*SLM*/, __start_bit, __n_iter);
         else
             return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                            std::false_type{} /*No SLM*/, __start_bit);
+                                                            std::false_type{} /*No SLM*/, __start_bit, __n_iter);
     }
 
   private:
@@ -130,7 +130,7 @@ struct __subgroup_radix_sort
     {
         template <typename _RangeIn, typename _Proj, typename _SLM_tag>
         auto
-        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag, uint16_t __start_bit)
+        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag, uint16_t __start_bit, uint16_t __n_iter)
         {
             uint16_t __n = __src.size();
             assert(__n <= __block_size * __wg_size);
@@ -153,7 +153,8 @@ struct __subgroup_radix_sort
                         union __storage { _ValT __v[__block_size]; __storage(){} } __values;
                         uint16_t __wi = __it.get_local_linear_id();
                         uint16_t __begin_bit = __start_bit;
-                        constexpr uint16_t __end_bit = sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
+                        uint16_t __end_bit = __n_iter > 0 ?
+                            __radix * __n_iter : sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
 
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
