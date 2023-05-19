@@ -38,15 +38,15 @@
 #include <cmath>
 #include <limits>
 
+constexpr bool Ascending = true;
+template <bool = Ascending>
+struct Compare : public std::less<void> {};
+template <>
+struct Compare<!Ascending> : public std::greater<void> {};
+
 constexpr ::std::uint16_t kWorkGroupSize = 256;
 constexpr ::std::uint16_t kDataPerWorkItem = 16;
-
-constexpr bool Ascending = true;
 constexpr bool Order = Ascending;
-template <bool = Ascending>
-using Compare = std::less<void>;
-template <>
-using Compare<!Ascending> = std::greater<void>;
 
 template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
