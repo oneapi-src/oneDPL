@@ -1550,8 +1550,13 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare, typenam
 auto
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj)
 {
+#if 0
     return __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
+#else
+    return __parallel_radix_sort_msd_lsd<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
+#endif
 }
 #endif
 

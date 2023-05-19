@@ -767,6 +767,23 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     return __future(__event, __tmp_buf, __val_buf);
 }
 
+template<typename _Range>
+void
+__calc_hist(sycl::queue q, _Range&& __in_rng, ::std::uint32_t* hist/*, uint32_t* __mask = 0xFF00*/)
+{
+    using _ValueT = oneapi::dpl::__internal::__value_t<_Range>;
+
+    const ::std::size_t __n = __in_rng.size();
+    assert(__n > 1);
+
+    for(uint32_t i = 0; i < __n; ++i)
+    {
+        for(uint32_t bin = 0; bin < 256; ++bin)
+            if(((__in_rng[i] >> 8) & 0xFF) == bin)
+                ++hist[bin];
+    }
+}
+
 template <bool __is_ascending, typename _Range, typename _ExecutionPolicy, typename _Proj>
 auto
 __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj)
@@ -810,8 +827,27 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
     __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>::submit(
                 __exec, __segments, __radix_iters - 1, __out_rng, __in_rng, __tmp_buf, __event, __proj);
 
-    //TODO:
+    //calc a hist by most radix*2 bits:
+    constexpr int NUM_BINS = 256;
+    uint32_t* g_bins = sycl::malloc_shared<uint32_t>(NUM_BINS, __exec.queue());
+    for (uint16_t __i = 0; __i < NUM_BINS; ++__i)
+        g_bins[__i] = 0;
 
+
+    __calc_hist(__exec.queue(), __in_rng, g_bins/*, uint32_t* __mask = 0xFF00*/);
+
+    __exec.queue().wait();
+
+    std::cout <<  "hist1: ";
+    for(int i = 0; i < NUM_BINS; ++i)
+    {
+        //auto bin_val = g_bins[i];
+        std::cout << g_bins[i] << " ";
+    }
+    std::cout << std::endl;
+
+    sycl::free(g_bins, __exec.queue());
+    //TODO"
     return __future(__event, __tmp_buf, __val_buf);
 }
 
