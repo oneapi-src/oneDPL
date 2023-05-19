@@ -11,7 +11,17 @@
 # See https://llvm.org/LICENSE.txt for license information.
 #
 ##===----------------------------------------------------------------------===##
-cmake_minimum_required(VERSION 3.15.0)
+
+if (CMAKE_HOST_WIN32)
+    if (CMAKE_VERSION VERSION_LESS 3.20)
+        set(REASON_FAILURE "oneDPLWindowsIntelLLVM requires CMake 3.20 or later on Windows.")
+        set(oneDPLWindowsIntelLLVM_FOUND FALSE)
+        return()
+    else()
+        # Requires version 3.20 for baseline support of icx, icx-cl
+        cmake_minimum_required(VERSION 3.20)
+    endif()
+endif()
 
 include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
 

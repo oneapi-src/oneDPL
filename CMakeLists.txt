@@ -12,7 +12,13 @@
 #
 ##===----------------------------------------------------------------------===##
 
-cmake_minimum_required(VERSION 3.4.3)
+if (CMAKE_HOST_WIN32)
+    # Requires version 3.20 for baseline support of icx, icx-cl
+    cmake_minimum_required(VERSION 3.20)
+else()
+    # Requires version 3.11 for use of icpc with c++17 requirement
+    cmake_minimum_required(VERSION 3.11)
+endif()
 
 # oneDPL is a subproject only when PARENT_DIRECTORY is defined
 get_directory_property(_onedpl_is_subproject PARENT_DIRECTORY)
