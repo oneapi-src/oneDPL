@@ -64,7 +64,7 @@ if (EXISTS "${_onedpl_headers}")
 
             # Some compilers may fail if _openmp_flag is not in CMAKE_REQUIRED_LIBRARIES.
             set(_onedpl_saved_required_libs ${CMAKE_REQUIRED_LIBRARIES})
-            set(CMAKE_REQUIRED_LIBRARIES ${_openmp_option})
+            set(CMAKE_REQUIRED_LIBRARIES ${_openmp_flag})
             check_cxx_compiler_flag(${_openmp_flag} _openmp_option)
             set(CMAKE_REQUIRED_LIBRARIES ${_onedpl_saved_required_libs})
             unset(_onedpl_saved_required_libs)
