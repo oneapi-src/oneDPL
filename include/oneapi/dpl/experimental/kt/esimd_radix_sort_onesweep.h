@@ -375,7 +375,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         LoadKeys<16>(io_offset, keys, default_key);
 
         // bins = (keys >> (stage * RADIX_BITS)) & MASK;
-        bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast</*IsAscending*/ true>(keys), stage * RADIX_BITS);
+        bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
         ResetBinCounters(slm_bin_hist_this_thread);
 
@@ -403,7 +403,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         {
 
             //bins = (keys >> (stage * RADIX_BITS)) & MASK;
-            bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast</*IsAscending*/ true>(keys), stage * RADIX_BITS);
+            bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
             slm_lookup_t<hist_t> subgroup_lookup(slm_lookup_subgroup);
             simd<hist_t, PROCESS_SIZE> wg_offset = ranks + subgroup_lookup.template lookup<PROCESS_SIZE>(subgroup_offset, bins);
@@ -421,7 +421,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
             keys = utils::BlockLoad<KeyT, PROCESS_SIZE>(local_tid * PROCESS_SIZE * sizeof(KeyT));
 
             // bins = (keys >> (stage * RADIX_BITS)) & MASK;
-            bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast</*IsAscending*/ true>(keys), stage * RADIX_BITS);
+            bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
             simd<hist_t, PROCESS_SIZE> group_offset = utils::create_simd<hist_t, PROCESS_SIZE>(local_tid*PROCESS_SIZE, 1);
 
