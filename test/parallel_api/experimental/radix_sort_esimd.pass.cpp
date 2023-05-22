@@ -244,6 +244,9 @@ int main()
 
             test_usm<int, sycl::usm::alloc::shared>(size);
             test_usm<int, sycl::usm::alloc::device>(size);
+            
+            test_usm<float, sycl::usm::alloc::shared>(size);
+            test_usm<float, sycl::usm::alloc::device>(size);
         }
         test_small_sizes();
     }
