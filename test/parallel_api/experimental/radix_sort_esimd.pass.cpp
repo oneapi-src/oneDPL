@@ -86,7 +86,7 @@ void print_data(const Container1& expected, const Container2& actual, std::size_
         std::cout << std::hexfloat;
     else
         std::cout << std::hex;
-    
+
     for (std::size_t i=first; i < first+n; ++i)
     {
         std::cout << actual[i] << " --- " << expected[i] << std::endl;
