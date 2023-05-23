@@ -39,6 +39,7 @@
 #include <limits>
 
 constexpr bool Ascending = true;
+constexpr bool Descending = !Ascending;
 template <bool = Ascending>
 struct Compare : public std::less<void> {};
 template <>
