@@ -49,7 +49,7 @@ struct Compare<!Ascending> : public std::greater<void> {};
 
 constexpr ::std::uint16_t kWorkGroupSize = 256;
 constexpr ::std::uint16_t kDataPerWorkItem = 16;
-constexpr bool Order = Descending;
+constexpr bool Order = Ascending;
 
 #ifdef LOG_TEST_INFO
 struct TypeInfo
