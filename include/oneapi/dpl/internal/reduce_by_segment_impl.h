@@ -261,23 +261,22 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
     ::std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
     // intermediate reductions within a workgroup
-    auto __partials = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(
-                          ::std::forward<_ExecutionPolicy>(__exec), __n_groups)
-                          .get_buffer();
+    auto __partials =
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __val_type>(__exec, __n_groups)
+            .get_buffer();
 
-    auto __end_idx = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(
-                         ::std::forward<_ExecutionPolicy>(__exec), 1)
-                         .get_buffer();
+    auto __end_idx =
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(__exec, 1).get_buffer();
 
     // the number of segment ends found in each work group
-    auto __seg_ends = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(
-                          ::std::forward<_ExecutionPolicy>(__exec), __n_groups)
-                          .get_buffer();
+    auto __seg_ends =
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(__exec, __n_groups)
+            .get_buffer();
 
     // buffer that stores an exclusive scan of the results
-    auto __seg_ends_scanned = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(
-                                  ::std::forward<_ExecutionPolicy>(__exec), __n_groups)
-                                  .get_buffer();
+    auto __seg_ends_scanned =
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, __diff_type>(__exec, __n_groups)
+            .get_buffer();
 
     // 1. Count the segment ends in each workgroup
     auto __seg_end_identification = __exec.queue().submit([&](sycl::handler& __cgh) {
