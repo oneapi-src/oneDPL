@@ -44,9 +44,51 @@ struct Compare : public std::less<void> {};
 template <>
 struct Compare<!Ascending> : public std::greater<void> {};
 
+//#define LOG_TEST_INFO
+
 constexpr ::std::uint16_t kWorkGroupSize = 256;
 constexpr ::std::uint16_t kDataPerWorkItem = 16;
 constexpr bool Order = Ascending;
+
+#ifdef LOG_TEST_INFO
+struct TypeInfo
+{
+    template <typename T>
+    const std::string& name()
+    {
+        static const std::string kTypeName = "unknown type name";
+        return kTypeName;
+    }
+
+    template <>
+    const std::string& name<uint32_t>()
+    {
+        static const std::string kTypeName = "uint32_t";
+        return kTypeName;
+    }
+
+    template <>
+    const std::string& name<int>()
+    {
+        static const std::string kTypeName = "int";
+        return kTypeName;
+    }
+
+    template <>
+    const std::string& name<float>()
+    {
+        static const std::string kTypeName = "float";
+        return kTypeName;
+    }
+
+    template <>
+    const std::string& name<double>()
+    {
+        static const std::string kTypeName = "double";
+        return kTypeName;
+    }
+};
+#endif // LOG_TEST_INFO
 
 template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
@@ -146,7 +188,18 @@ template <typename T>
 void
 test_subrange_view(std::size_t size)
 {
+#ifdef LOG_TEST_INFO
+    std::cout << "\ttest_subrange_view(std::size_t size) : " << TypeInfo().name<T>() << std::endl;
+#endif
+
+#ifdef LOG_TEST_INFO
+    std::cout << "\t\ttest_subrange_view<T, sycl::usm::alloc::shared>(" << size << ");" << std::endl;
+#endif
     test_subrange_view<T, sycl::usm::alloc::shared>(size);
+
+#ifdef LOG_TEST_INFO
+    std::cout << "\t\ttest_subrange_view<T, sycl::usm::alloc::device>(" << size << ");" << std::endl;
+#endif
     test_subrange_view<T, sycl::usm::alloc::device>(size);
 }
 
@@ -178,13 +231,28 @@ template <typename T>
 void
 test_usm(std::size_t size)
 {
+#ifdef LOG_TEST_INFO
+    std::cout << "\ttest_usm(std::size_t size) : " << TypeInfo().name<T>() << std::endl;
+#endif
+
+#ifdef LOG_TEST_INFO
+    std::cout << "\t\ttest_usm<T, sycl::usm::alloc::shared>(" << size << ");" << std::endl;
+#endif
     test_usm<T, sycl::usm::alloc::shared>(size);
+
+#ifdef LOG_TEST_INFO
+    std::cout << "\t\ttest_usm<T, sycl::usm::alloc::device>(" << size << ");" << std::endl;
+#endif
     test_usm<T, sycl::usm::alloc::device>(size);
 }
 
 template<typename T>
 void test_sycl_iterators(std::size_t size)
 {
+#ifdef LOG_TEST_INFO
+    std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
+#endif
+
     sycl::queue q = TestUtils::get_test_queue();
     auto policy = oneapi::dpl::execution::make_device_policy(q);
 
