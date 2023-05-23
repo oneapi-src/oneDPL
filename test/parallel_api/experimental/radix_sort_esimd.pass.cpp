@@ -45,7 +45,7 @@ struct Compare : public std::less<void> {};
 template <>
 struct Compare<!Ascending> : public std::greater<void> {};
 
-//#define LOG_TEST_INFO
+#define LOG_TEST_INFO
 
 constexpr ::std::uint16_t kWorkGroupSize = 256;
 constexpr ::std::uint16_t kDataPerWorkItem = 16;
