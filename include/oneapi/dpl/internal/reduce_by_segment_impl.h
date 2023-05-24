@@ -24,11 +24,11 @@
 #include "by_segment_extension_defs.h"
 #include "../pstl/utils.h"
 #if _ONEDPL_BACKEND_SYCL
-#    include "../pstl/utils_ranges.h"
-#    include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
-#    include "../pstl/ranges_defs.h"
-#    include "../pstl/glue_algorithm_ranges_defs.h"
-#    include "../pstl/glue_algorithm_ranges_impl.h"
+#include "../pstl/utils_ranges.h"
+#include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
+#include "../pstl/ranges_defs.h"
+#include "../pstl/glue_algorithm_ranges_defs.h"
+#include "../pstl/glue_algorithm_ranges_impl.h"
 #endif
 
 namespace oneapi
@@ -44,8 +44,8 @@ namespace internal
 // is merged, this can be removed
 template <typename _NdItem, typename _LocalAcc, typename _IdxType, typename _ValueType, typename _BinaryOp>
 inline _ValueType
-wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, _IdxType __delta_local_id,
-                  _ValueType __accumulator, _BinaryOp __binary_op, ::std::size_t __wgroup_size)
+__wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, _IdxType __delta_local_id,
+                    _ValueType __accumulator, _BinaryOp __binary_op, ::std::size_t __wgroup_size)
 {
     _IdxType __first = 0;
     __local_acc[__local_id] = __accumulator;
@@ -193,24 +193,22 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
           typename _BinaryPredicate, typename _BinaryOperator>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range3>>
-sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
-                       _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
-                       ::std::false_type /* has_known_identity */)
+__sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
+                         _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
+                         ::std::false_type /* has_known_identity */)
 {
-    typedef uint64_t CountType;
-    CountType N = oneapi::dpl::experimental::ranges::reduce_by_segment(
+    return oneapi::dpl::experimental::ranges::reduce_by_segment(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__keys), ::std::forward<_Range2>(__values),
         ::std::forward<_Range3>(__out_keys), ::std::forward<_Range4>(__out_values), __binary_pred, __binary_op);
-    return N;
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
           typename _BinaryPredicate, typename _BinaryOperator>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range3>>
-sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
-                       _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
-                       ::std::true_type /* has_known_identity */)
+__sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
+                         _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
+                         ::std::true_type /* has_known_identity */)
 {
     using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
@@ -241,7 +239,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
     __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
         ::std::forward<_ExecutionPolicy>(__exec), sizeof(__key_type) + 2 * sizeof(__val_type), __wgroup_size);
 
-#    if _ONEDPL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
     auto __kernel1 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel1>::__compile(
         ::std::forward<_ExecutionPolicy>(__exec));
     auto __kernel2 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel2>::__compile(
@@ -256,7 +254,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
          oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel2),
          oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel3),
          oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel4)});
-#    endif
+#endif
 
     ::std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
@@ -282,14 +280,14 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
     auto __seg_end_identification = __exec.queue().submit([&](sycl::handler& __cgh) {
         oneapi::dpl::__ranges::__require_access(__cgh, __keys);
         auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::write>(__cgh);
-#    if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
         __cgh.use_kernel_bundle(__kernel1.get_kernel_bundle());
-#    endif
+#endif
         __cgh.parallel_for<_SegReduceKernel1>(
             sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](
-#    if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                                                                               __kernel1,
-#    endif
+#endif
                                                                               sycl::nd_item<1> __item) {
                 auto __group = __item.get_group();
                 ::std::size_t __group_id = __group.get_group_id(0);
@@ -320,13 +318,13 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
         __cgh.depends_on(__seg_end_identification);
         auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::read>(__cgh);
         auto __seg_ends_scan_acc = __seg_ends_scanned.template get_access<sycl::access_mode::read_write>(__cgh);
-#    if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
         __cgh.use_kernel_bundle(__kernel2.get_kernel_bundle());
-#    endif
+#endif
         __cgh.parallel_for<_SegReduceKernel2>(
-#    if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
             __kernel2,
-#    endif
+#endif
             sycl::nd_range<1>{__wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                 auto __beg = __seg_ends_acc.get_pointer();
                 auto __out_beg = __seg_ends_scan_acc.get_pointer();
@@ -343,13 +341,13 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
         auto __partials_acc = __partials.template get_access<sycl::access_mode::read_write>(__cgh);
         auto __seg_ends_scan_acc = __seg_ends_scanned.template get_access<sycl::access_mode::read>(__cgh);
         __dpl_sycl::__local_accessor<__val_type> __loc_acc(2 * __wgroup_size, __cgh);
-#    if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
         __cgh.use_kernel_bundle(__kernel3.get_kernel_bundle());
-#    endif
+#endif
         __cgh.parallel_for<_SegReduceKernel3>(
-#    if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESEN
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESEN
             __kernel3,
-#    endif
+#endif
             sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                 ::std::array<__val_type, __vals_per_item> __loc_partials;
 
@@ -391,7 +389,7 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
                 ::std::size_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
                     __group, __max_end, __dpl_sycl::__maximum<decltype(__max_end)>());
 
-                __val_type __carry_in = oneapi::dpl::internal::wg_segmented_scan(
+                __val_type __carry_in = oneapi::dpl::internal::__wg_segmented_scan(
                     __item, __loc_acc, __local_id, __local_id - __closest_seg_id, __accumulator, __binary_op,
                     __wgroup_size);
 
@@ -464,13 +462,13 @@ sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __
             __dpl_sycl::__local_accessor<__diff_type> __loc_seg_ends_acc(__wgroup_size, __cgh);
 
             __cgh.depends_on(__wg_reduce);
-#    if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel4.get_kernel_bundle());
-#    endif
+#endif
             __cgh.parallel_for<_SegReduceKernel4>(
-#    if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                 __kernel4,
-#    endif
+#endif
                 sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                     auto __group = __item.get_group();
                     ::std::int64_t __group_id = __group.get_group_id(0);
@@ -593,7 +591,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     //          keys_result   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 } -- result1
     //          values_result = { 1, 2, 3, 4, 2, 6, 2, 6, 0 } -- result2
 
-    typedef uint64_t CountType;
+    using _CountType = ::std::uint64_t;
 
     namespace __bknd = __par_backend_hetero;
 
@@ -616,11 +614,11 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
                                                   typename ::std::iterator_traits<InputIterator2>::value_type>::type;
 
     // number of unique keys
-    CountType N = sycl_reduce_by_segment(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
-                                         key_output_buf.all_view(), value_output_buf.all_view(), binary_pred, binary_op,
-                                         has_known_identity{});
+    _CountType __n = __sycl_reduce_by_segment(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
+                                              key_output_buf.all_view(), value_output_buf.all_view(), binary_pred,
+                                              binary_op, has_known_identity{});
 
-    return ::std::make_pair(result1 + N, result2 + N);
+    return ::std::make_pair(result1 + __n, result2 + __n);
 }
 #endif
 } // namespace internal
