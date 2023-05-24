@@ -21,15 +21,14 @@
 
 #if _ONEDPL_BACKEND_SYCL
 
-#    include <oneapi/dpl/pstl/algorithm_fwd.h>
-#    include <oneapi/dpl/pstl/parallel_backend.h>
-#    include <oneapi/dpl/pstl/hetero/utils_hetero.h>
+#include <oneapi/dpl/pstl/algorithm_fwd.h>
+#include <oneapi/dpl/pstl/parallel_backend.h>
+#include <oneapi/dpl/pstl/hetero/utils_hetero.h>
 
-#    include <oneapi/dpl/pstl/hetero/dpcpp/utils_ranges_sycl.h>
-#    include <oneapi/dpl/pstl/hetero/dpcpp/unseq_backend_sycl.h>
-#    include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
+#include <oneapi/dpl/pstl/hetero/dpcpp/utils_ranges_sycl.h>
+#include <oneapi/dpl/pstl/hetero/dpcpp/unseq_backend_sycl.h>
+#include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
 
-#    include <array>
 
 namespace oneapi
 {
@@ -96,8 +95,8 @@ struct sycl_scan_by_segment_impl
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
               typename _BinaryPredicate, typename _BinaryOperator, typename _T>
     void
-    sycl_scan_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
-                         _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, _T __init, _T __identity)
+    operator()(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
+               _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, _T __init, _T __identity)
     {
         using _Policy = ::std::decay_t<_ExecutionPolicy>;
         using _CustomName = typename _Policy::kernel_name;
@@ -123,7 +122,7 @@ struct sycl_scan_by_segment_impl
         __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
             ::std::forward<_ExecutionPolicy>(__exec), 3 * sizeof(__val_type), __wgroup_size);
 
-#    if _ONEDPL_COMPILE_KERNEL
+#if _ONEDPL_COMPILE_KERNEL
         auto __kernel1 = __par_backend_hetero::__internal::__kernel_compiler<_SegScanKernel1>::__compile(
             ::std::forward<_ExecutionPolicy>(__exec));
         auto __kernel2 = __par_backend_hetero::__internal::__kernel_compiler<_SegScanKernel2>::__compile(
@@ -132,7 +131,7 @@ struct sycl_scan_by_segment_impl
             {__wgroup_size,
              oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel1),
              oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel2)});
-#    endif
+#endif
 
         ::std::size_t __n_groups = __internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
@@ -154,13 +153,13 @@ struct sycl_scan_by_segment_impl
 
             __dpl_sycl::__local_accessor<__val_type> __loc_acc(2 * __wgroup_size, __cgh);
 
-#    if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__kernel1.get_kernel_bundle());
-#    endif
+#endif
             __cgh.parallel_for<_SegScanKernel1>(
-#    if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                 __kernel1,
-#    endif
+#endif
                 sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                     __val_type __accumulator = __identity;
 
@@ -258,13 +257,13 @@ struct sycl_scan_by_segment_impl
                 __dpl_sycl::__local_accessor<__val_type> __loc_partials_acc(__wgroup_size, __cgh);
 
                 __dpl_sycl::__local_accessor<bool> __loc_seg_ends_acc(__wgroup_size, __cgh);
-#    if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel2.get_kernel_bundle());
-#    endif
+#endif
                 __cgh.parallel_for<_SegScanKernel2>(
-#    if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                     __kernel2,
-#    endif
+#endif
                     sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                         auto __group = __item.get_group();
                         ::std::size_t __group_id = __item.get_group(0);
@@ -356,18 +355,7 @@ struct sycl_scan_by_segment_impl
             })
             .wait();
     }
-
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
-              typename _BinaryPredicate, typename _BinaryOperator, typename T>
-    void
-    operator()(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
-               _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, T __init, T __identity)
-    {
-        sycl_scan_by_segment(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__keys),
-                             ::std::forward<_Range2>(__values), ::std::forward<_Range3>(__out_values), __binary_pred,
-                             __binary_op, __init, __identity);
-    }
-}; // namespace internal
+};
 
 } // namespace internal
 } // namespace dpl

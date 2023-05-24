@@ -91,27 +91,28 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
-        ::std::string failure_msg = "wrong effect from inclusive_scan_by_segment with types [";
-        failure_msg += typeid(KeyT).name();
-        failure_msg += ";";
-        failure_msg += typeid(ValT).name();
-        failure_msg += "], ";
-        failure_msg += "n=" + ::std::to_string(n) + ", ";
+        ::std::ostringstream failure_msg;
+        failure_msg << "wrong effect from inclusive_scan_by_segment with types [";
+        failure_msg << typeid(KeyT).name();
+        failure_msg << ";";
+        failure_msg << typeid(ValT).name();
+        failure_msg << "], ";
+        failure_msg << "n=" << ::std::to_string(n) << ", ";
         if (::std::is_same<BinaryPredicateCheck, oneapi::dpl::__internal::__pstl_equal>::value)
         {
-            failure_msg += "Default Pred, ";
+            failure_msg << "Default Pred, ";
         }
         else
         {
-            failure_msg += "Custom Pred, ";
+            failure_msg << "Custom Pred, ";
         }
         if (::std::is_same<BinaryOperationCheck, oneapi::dpl::__internal::__pstl_plus>::value)
         {
-            failure_msg += "Default Op";
+            failure_msg << "Default Op";
         }
         else
         {
-            failure_msg += "Custom Op";
+            failure_msg << "Custom Op";
         }
 
         ::std::vector<ValT> expected_val_res(n);
@@ -125,7 +126,7 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         display_param("expected result: ", expected_val_res.data(), n);
 #endif // DUMP_CHECK_RESULTS
 
-        EXPECT_EQ_N(expected_val_res.data(), val_res, n, failure_msg.c_str());
+        EXPECT_EQ_N(expected_val_res.data(), val_res, n, failure_msg.str().c_str());
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -229,7 +230,7 @@ struct UserBinaryPredicate
     bool
     operator()(const _Tp& __x, const _Tp& __y) const
     {
-        using KeyT = ::std::decay_t<decltype(__y)>;
+        using KeyT = ::std::decay_t<_Tp>;
         return __y != KeyT(1);
     }
 };

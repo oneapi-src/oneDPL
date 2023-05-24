@@ -121,7 +121,7 @@ exclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
     auto buf_view = key_buf.all_view();
     using iter_value_t = typename ::std::iterator_traits<InputIterator2>::value_type;
 
-    iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
+    constexpr iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
 
     sycl_scan_by_segment_impl<scan_type::exclusive> scan;
 
