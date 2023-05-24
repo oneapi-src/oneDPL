@@ -244,10 +244,13 @@ __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, const
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
+    using __iters_per_work_item1_t = ::std::integral_constant<::std::uint8_t, __iters_per_work_item1>;
+    using __iters_per_work_item2_t = ::std::integral_constant<::std::uint8_t, __iters_per_work_item2>;
+
     using _ReduceMainKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __reduce_mid_main_kernel<::std::integral_constant<::std::uint8_t, __iters_per_work_item1>, _CustomName>>;
+        __reduce_mid_main_kernel<__iters_per_work_item1_t, __iters_per_work_item2_t, _CustomName>>;
     using _ReduceLeafKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __reduce_mid_leaf_kernel<::std::integral_constant<::std::uint8_t, __iters_per_work_item2>, _CustomName>>;
+        __reduce_mid_leaf_kernel<__iters_per_work_item1_t, __iters_per_work_item2_t, _CustomName>>;
 
     return __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_work_item1, __iters_per_work_item2,
                                                      _Tp, _ReduceMainKernel, _ReduceLeafKernel>()(
