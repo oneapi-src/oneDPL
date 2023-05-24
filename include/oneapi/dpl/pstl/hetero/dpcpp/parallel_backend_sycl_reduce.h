@@ -105,7 +105,7 @@ struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_pe
               typename... _Ranges>
     auto
     operator()(_ExecutionPolicy&& __exec, const _Size __n, const _ReduceOp& __reduce_op,
-               const _TransformOp& __transform_op, const _InitType& __init, const _Ranges&&... __rngs) const
+               const _TransformOp& __transform_op, const _InitType& __init, _Ranges&&... __rngs) const
     {
         auto __transform_pattern =
             unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _TransformOp>{
