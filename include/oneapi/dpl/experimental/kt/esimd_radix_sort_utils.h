@@ -66,12 +66,51 @@ gather(const T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets
     return sycl::ext::intel::esimd::gather(input + base_offset, offsets * size32<T>, mask);
 }
 
-template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
+template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, std::enable_if_t<sizeof(T) <= 4, int> = 0>
 sycl::ext::intel::esimd::simd<T, N>
-gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
-       ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> acc,
+       sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+       ::std::uint32_t base_offset,
+       sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    return sycl::ext::intel::esimd::gather<T>(input, offsets * size32<T>, base_offset * size32<T>, mask);
+    // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory.html#ga32c45e430fa87969f25402fa029a21d3
+    // template <typename T, int N, typename AccessorTy, typename Toffset>
+    // __ESIMD_API
+    // std::enable_if_t<(sizeof(T) <= 4) && (N == 1 || N == 8 || N == 16 || N == 32) && !std::is_pointer<AccessorTy>::value && std::is_integral_v<Toffset>, simd<T, N>>
+    // sycl::_V1::ext::intel::esimd::gather(AccessorTy acc,
+    //                                      simd<Toffset, N> offsets,
+    //                                      uint32_t glob_offset = 0,
+    //                                      simd_mask<N> mask = 1)
+    return sycl::ext::intel::esimd::gather<T>(acc, offsets * size32<T>, base_offset * size32<T>, mask);
+}
+
+template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, std::enable_if_t<sizeof(T) == 2 * sizeof(uint32_t), int> = 0>
+sycl::ext::intel::esimd::simd<T, N>
+gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> acc,
+       sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+       ::std::uint32_t base_offset,
+       sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+{
+    // TODO is it correct?
+    using uint32Acc = sycl::accessor<uint32_t, 1, Mode, sycl::target::device, P>;
+
+    uint32Acc*                        __p_uint32_acc = reinterpret_cast<uint32Acc*>(&acc);
+    __ESIMD_NS::simd<uint32_t, 2 * N> __uint32_offsets;
+    __ESIMD_NS::simd_mask<2 * N>      __uint32_mask(0);
+
+    // TODO required to implement this through simd/mask operations
+    // simd select stride
+    for (size_t src_index = 0; src_index < N; ++src_index)
+    {
+        __uint32_offsets[2 * src_index    ] = offsets[src_index];
+        __uint32_offsets[2 * src_index + 1] = offsets[src_index] + sizeof(uint32_t);
+
+        __uint32_mask[2 * src_index    ] = mask[src_index];
+        __uint32_mask[2 * src_index + 1] = mask[src_index];
+    }
+
+    sycl::ext::intel::esimd::simd<uint32_t, 2 * N> __uint32__result = utils::gather(*__p_uint32_acc, __uint32_offsets, base_offset, __uint32_mask);
+    return __uint32__result.template bit_cast_view<T>();
 }
 
 template <typename T, int N>
