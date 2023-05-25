@@ -61,6 +61,20 @@ struct TypeInfo
     }
 
     template <>
+    const std::string& name<int16_t>()
+    {
+        static const std::string kTypeName = "int16_t";
+        return kTypeName;
+    }
+
+    template <>
+    const std::string& name<uint16_t>()
+    {
+        static const std::string kTypeName = "uint16_t";
+        return kTypeName;
+    }
+
+    template <>
     const std::string& name<uint32_t>()
     {
         static const std::string kTypeName = "uint32_t";
@@ -296,6 +310,8 @@ int main()
         {
             test_general_cases<uint32_t>(size);
             test_general_cases<int>(size);
+            test_general_cases<int16_t>(size);
+            test_general_cases<uint16_t>(size);
             test_general_cases<float>(size);
             // test_general_cases<double>(size);
         }
@@ -303,6 +319,8 @@ int main()
         {
             test_general_cases<uint32_t>(size);
             test_general_cases<int>(size);
+            test_general_cases<int16_t>(size);
+            test_general_cases<uint16_t>(size);
             test_general_cases<float>(size);
             // test_general_cases<double>(size);
         }
@@ -310,6 +328,8 @@ int main()
         {
             test_usm<uint32_t>(size);
             test_usm<int>(size);
+            test_usm<int16_t>(size);
+            test_usm<uint16_t>(size);
             test_usm<float>(size);
         }
         test_small_sizes();
