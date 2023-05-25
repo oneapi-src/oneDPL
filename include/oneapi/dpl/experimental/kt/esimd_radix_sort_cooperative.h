@@ -91,7 +91,6 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
 
     uint32_t global_sync_buffer_size = 1024; //1K uint32_t for sync buffer
     uint32_t global_bin_start_buffer_size = (BIN_COUNT+1) * sizeof(global_hist_t) / sizeof(uint32_t);
-    // uint32_t global_bin_hist_size = tg_count * BIN_COUNT * sizeof(global_hist_t) / sizeof(uint32_t);
     uint32_t *p_sync_buffer = p_global_buffer;
     uint32_t *p_global_bin_start_buffer = p_sync_buffer + global_sync_buffer_size;
     uint32_t *p_global_bin_hist = p_global_bin_start_buffer + global_bin_start_buffer_size;
@@ -118,7 +117,6 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
         simd_mask<16> m = (io_offset+lane_id+s)<n;
         simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>
-                // (input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
                 (input, (lane_id + io_offset + s)*uint32_t(sizeof(KeyT)), m);
         keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
     }
@@ -298,7 +296,6 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
                 keys.template select<16, 1>(s) = lsc_gather<KeyT, 1,
                         lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(
-                            // __tmpbuf+io_offset+s, lane_id*uint32_t(sizeof(KeyT)), m);
                             __tmpbuf, (lane_id + io_offset + s)*uint32_t(sizeof(KeyT)));
             }
         }
