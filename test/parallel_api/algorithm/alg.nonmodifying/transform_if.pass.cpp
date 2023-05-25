@@ -125,7 +125,36 @@ struct test_transform_if_unary
     }
 };
 
-template <typename In1, typename In2, typename Out>
+struct test_transform_if_unary_inplace
+{
+    template <typename Policy, typename InputIterator1, typename OutputIterator, typename Size>
+    void
+    operator()(Policy&& exec, InputIterator1 first, InputIterator1 last, OutputIterator result_begin,
+               OutputIterator result_end, Size n)
+    {
+        using in_value_type = typename ::std::iterator_traits<InputIterator1>::value_type;
+
+        // Start with a fresh input to the inplace test
+        std::copy(first, last, result_begin);
+
+        // call transform_if inplace
+        oneapi::dpl::transform_if(exec, result_begin, result_end, result_begin, mutable_negate<in_value_type>{},
+                                  mutable_check_mod3_is_0<in_value_type>{});
+
+        //calculate expected
+        std::vector<in_value_type> expected(n);
+        auto expected_iter = expected.begin();
+        auto in_iter = first;
+        for (; in_iter != last; in_iter++, expected_iter++)
+        {
+            *expected_iter = *in_iter % 3 == 0 ? -(*in_iter) : *in_iter;
+        }
+
+        EXPECT_EQ_N(expected.begin(), result_begin, n, "wrong effect from transform_if inplace unary");
+    }
+};
+
+template <typename _Type>
 void
 test()
 {
@@ -133,10 +162,10 @@ test()
     for (size_t n = 1; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         {
-            Sequence<In1> in1(n, [=](size_t k) { return (3 * k); });
-            Sequence<In2> in2(n, [=](size_t k) { return k % 2 == 0 ? 1 : 0; });
+            Sequence<_Type> in1(n, [=](size_t k) { return (3 * k); });
+            Sequence<_Type> in2(n, [=](size_t k) { return k % 2 == 0 ? 1 : 0; });
 
-            Sequence<Out> out(n, [=](size_t) { return init_val; });
+            Sequence<_Type> out(n, [=](size_t) { return init_val; });
 
             invoke_on_all_policies<0>()(test_transform_if_binary(), in1.begin(), in1.end(), in2.begin(), in2.end(),
                                         out.begin(), out.end(), n, init_val);
@@ -146,8 +175,8 @@ test()
 #endif
         }
         {
-            Sequence<In1> in1(n, [=](size_t k) { return k; });
-            Sequence<Out> out(n, [=](size_t) { return init_val; });
+            Sequence<_Type> in1(n, [=](size_t k) { return k; });
+            Sequence<_Type> out(n, [=](size_t) { return init_val; });
 
             invoke_on_all_policies<0>()(test_transform_if_unary(), in1.begin(), in1.end(), out.begin(), out.end(), n,
                                         init_val);
@@ -159,11 +188,31 @@ test()
     }
 }
 
+template <typename _Type>
+void
+test_inplace()
+{
+    const ::std::int64_t init_val = 999;
+    for (size_t n = 1; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    {
+        {
+            Sequence<_Type> in1(n, [=](size_t k) { return k; });
+            Sequence<_Type> out(n, [=](size_t) { return 0; });
+
+            invoke_on_all_policies<0>()(test_transform_if_unary_inplace(), in1.begin(), in1.end(), out.begin(),
+                                        out.end(), n);
+        }
+    }
+}
+
 int
 main()
 {
-    test<::std::int32_t, ::std::int32_t, ::std::int32_t>();
-    test<::std::int64_t, ::std::int64_t, ::std::int64_t>();
+    test<::std::int32_t>();
+    test<::std::int64_t>();
+
+    test_inplace<::std::int32_t>();
+    test_inplace<::std::int64_t>();
 
     return done();
 }
