@@ -168,10 +168,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
                     keys.template select<16, 1>(s));
             }
             barrier();
-            #pragma unroll
-            for (uint32_t s = 0; s<PROCESS_SIZE; s+=64){
-                keys.template select<64, 1>(s) = lsc_slm_block_load<KeyT, 64>(slm_reorder_this_thread+s*sizeof(KeyT));
-            }
+            keys = utils::BlockLoad<KeyT, PROCESS_SIZE>(slm_reorder_this_thread);
         }
     }
     #pragma unroll
