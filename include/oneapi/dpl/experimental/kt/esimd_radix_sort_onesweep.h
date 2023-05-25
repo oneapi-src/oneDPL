@@ -21,6 +21,12 @@
 namespace oneapi::dpl::experimental::esimd::impl
 {
 // float, 32bit
+/**
+ * We are unable to use :std::numeric_limits<T>::max() and ::std::numeric_limits<T>::lowest() functions
+ * for the float type like they are used in __sort_identity
+ * because they are not setup NaN bit: we will have mix from real keys and identity keys
+ * and sorting algorithm will work with errors.
+ */
 template <typename T, bool __is_ascending, std::enable_if_t<std::is_same<T, float>::value && sizeof(T) == sizeof(::std::uint32_t), int> = 0>
 constexpr T
 __full_sort_identity()
@@ -53,6 +59,12 @@ __full_sort_identity()
 }
 
 // float, 64bit
+/**
+ * We are unable to use :std::numeric_limits<T>::max() and ::std::numeric_limits<T>::lowest() functions
+ * for the float type like they are used in __sort_identity
+ * because they are not setup NaN bit: we will have mix from real keys and identity keys
+ * and sorting algorithm will work with errors.
+ */
 template <typename T, bool __is_ascending, std::enable_if_t<std::is_same<T, float>::value && sizeof(T) == sizeof(::std::uint64_t), int> = 0>
 constexpr T
 __full_sort_identity()
