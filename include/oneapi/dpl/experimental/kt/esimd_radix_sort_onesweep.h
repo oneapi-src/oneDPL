@@ -82,8 +82,6 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
                 simd_mask<16> m = (s+lane_id)<(__n-read_addr);
 
-                // simd<KeyT, 16> source = lsc_gather<KeyT, 1,
-                //         lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(p_input+read_addr+s, lane_id*sizeof(KeyT), m);
                 sycl::ext::intel::esimd::simd offset((read_addr + s + lane_id)*sizeof(KeyT));
                 simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m);
 
@@ -93,7 +91,6 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
         #pragma unroll
         for (uint32_t stage = 0; stage < STAGES; stage++)
         {
-            // bins = (keys >> (stage * RADIX_BITS)) & MASK;
             bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
             #pragma unroll
@@ -207,8 +204,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
             simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=CHUNK_SIZE) {
-                // keys.template select<CHUNK_SIZE, 1>(s) = lsc_gather(p_input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)));
-                // keys.template select<CHUNK_SIZE, 1>(s) = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(p_input+io_offset+s, lane_id*uint32_t(sizeof(KeyT)));
                 sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(KeyT));
                 keys.template select<CHUNK_SIZE, 1>(s) = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset);
             }
@@ -219,7 +214,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=CHUNK_SIZE) {
                 simd_mask<CHUNK_SIZE> m = (io_offset+lane_id+s)<n;
-                // keys.template select<CHUNK_SIZE, 1>(s) = merge(lsc_gather(p_input+io_offset+s, lane_id*uint32_t(sizeof(KeyT))), simd<KeyT, CHUNK_SIZE>(default_key), m);
 
                 sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(KeyT));
                 keys.template select<CHUNK_SIZE, 1>(s) =
@@ -374,7 +368,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
 
         LoadKeys<16>(io_offset, keys, default_key);
 
-        // bins = (keys >> (stage * RADIX_BITS)) & MASK;
         bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
         ResetBinCounters(slm_bin_hist_this_thread);
@@ -388,9 +381,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         simd<hist_t, BIN_COUNT> subgroup_offset;
         simd<global_hist_t, BIN_COUNT> global_fix;
 
-        //sync buffer is like below:
-        // uint32_t hist_stages[STAGES][BIN_COUNT];
-        // uint32_t sync_buffer[STAGES][wg_count][BIN_COUNT];
         global_hist_t *p_global_bin_start_buffer_allstages = reinterpret_cast<global_hist_t*>(p_global_buffer);
         global_hist_t *p_global_bin_start_buffer = p_global_bin_start_buffer_allstages + BIN_COUNT * STAGES + BIN_COUNT * wg_count * stage;
 
@@ -401,8 +391,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         UpdateGroupRank(local_tid, wg_id, subgroup_offset, global_fix, p_global_bin_prev_group, p_global_bin_this_group);
         barrier();
         {
-
-            //bins = (keys >> (stage * RADIX_BITS)) & MASK;
             bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
             slm_lookup_t<hist_t> subgroup_lookup(slm_lookup_subgroup);
@@ -420,7 +408,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         {
             keys = utils::BlockLoad<KeyT, PROCESS_SIZE>(local_tid * PROCESS_SIZE * sizeof(KeyT));
 
-            // bins = (keys >> (stage * RADIX_BITS)) & MASK;
             bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
             simd<hist_t, PROCESS_SIZE> group_offset = utils::create_simd<hist_t, PROCESS_SIZE>(local_tid*PROCESS_SIZE, 1);
@@ -429,7 +416,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
 
             utils::VectorStore<KeyT, 1, PROCESS_SIZE>(output, global_offset * sizeof(KeyT), keys, global_offset<n);
         }
-
     }
 };
 
