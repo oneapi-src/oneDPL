@@ -138,10 +138,7 @@ __pattern_swap(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
 // walk3
 //------------------------------------------------------------------------
 
-template <__par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
-          __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::read,
-          __par_backend_hetero::access_mode __acc_mode3 = __par_backend_hetero::access_mode::write,
-          typename _ForceCopyDirectForHostIter3 = ::std::false_type, typename _ExecutionPolicy,
+template <typename _ForceCopyDirectForHostIter3 = ::std::false_type, typename _ExecutionPolicy,
           typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3, typename _Function>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator3>
 __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
@@ -152,12 +149,14 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     if (__n <= 0)
         return __first3;
 
-    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>();
+    auto __keep1 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>();
     auto __buf1 = __keep1(__first1, __last1);
-    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
+    auto __keep2 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
-    auto __keep3 =
-        oneapi::dpl::__ranges::__get_sycl_range<__acc_mode3, _ForwardIterator3, _ForceCopyDirectForHostIter3>();
+    auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator3,
+                                                           _ForceCopyDirectForHostIter3>();
     auto __buf3 = __keep3(__first3, __first3 + __n);
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
@@ -290,9 +289,7 @@ __pattern_walk3_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __firs
     // For output host iterators, force a copy to the device prior to the kernel despite not requiring read
     // accessor mode because initial values for the output range must be preserved for elements where the predicate is
     // false on copy back.
-    return __pattern_walk3<__par_backend_hetero::access_mode::read, __par_backend_hetero::access_mode::read,
-                           __par_backend_hetero::access_mode::write,
-                           /*_ForceCopyDirectForHostIter3=*/::std::true_type>(
+    return __pattern_walk3</*_ForceCopyDirectForHostIter3=*/::std::true_type>(
         __par_backend_hetero::make_wrapped_policy<__walk3_transform_if_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
         __first1, __last1, __first2, __first3, __func,
