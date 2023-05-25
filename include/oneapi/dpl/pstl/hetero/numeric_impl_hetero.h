@@ -197,13 +197,12 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         auto __buf2 = __keep2(__first_tmp, __last_tmp);
 
         // Run main algorithm and save data into temporary buffer
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__exec, __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init, __binary_op,
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__policy, __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init, __binary_op,
                                            _Inclusive{}).wait();
-
 
         // Move data from temporary buffer into results
         oneapi::dpl::__internal::__pattern_walk2_brick(
-            ::std::forward<_NewExecutionPolicy>(__policy), __first_tmp, __last_tmp, __result,
+            ::std::move(__policy), __first_tmp, __last_tmp, __result,
             oneapi::dpl::__internal::__brick_move<_NewExecutionPolicy>{}, ::std::true_type{});
 
         //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer

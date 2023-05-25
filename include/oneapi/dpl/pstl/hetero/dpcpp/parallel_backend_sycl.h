@@ -348,7 +348,6 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                                  __iters_per_witem, __init);
                 });
         });
-
         // 2. Scan for the entire group of values scanned from each workgroup (runs on a single workgroup)
         if (__n_groups > 1)
         {

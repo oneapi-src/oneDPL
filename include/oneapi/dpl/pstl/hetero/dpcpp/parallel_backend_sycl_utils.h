@@ -173,6 +173,13 @@ make_wrapped_policy(_Policy&& __policy)
         ::std::forward<_Policy>(__policy));
 }
 
+template <template <typename> class _NewKernelName, typename _Policy,
+          oneapi::dpl::__internal::__enable_if_host_execution_policy<_Policy, int> = 0>
+_Policy make_wrapped_policy(_Policy&& __policy)
+{
+    return __policy;
+}
+
 #if _ONEDPL_FPGA_DEVICE
 template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
