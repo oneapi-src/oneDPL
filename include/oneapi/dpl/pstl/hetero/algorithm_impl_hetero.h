@@ -263,7 +263,7 @@ __pattern_walk2_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __firs
                              /*parallel=*/::std::true_type)
 {
     // For output host iterators, force a copy to the device prior to the kernel despite not requiring read
-    // accessor mode because inital values for the output range must be preserved for elements where the predicate is
+    // accessor mode because initial values for the output range must be preserved for elements where the predicate is
     // false on copy back.
     return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read,
                            __par_backend_hetero::access_mode::write,
@@ -288,7 +288,7 @@ __pattern_walk3_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __firs
                              /*parallel=*/::std::true_type)
 {
     // For output host iterators, force a copy to the device prior to the kernel despite not requiring read
-    // accessor mode because inital values for the output range must be preserved for elements where the predicate is
+    // accessor mode because initial values for the output range must be preserved for elements where the predicate is
     // false on copy back.
     return __pattern_walk3<__par_backend_hetero::access_mode::read, __par_backend_hetero::access_mode::read,
                            __par_backend_hetero::access_mode::write,

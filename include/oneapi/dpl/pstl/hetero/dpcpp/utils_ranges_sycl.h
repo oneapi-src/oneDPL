@@ -548,7 +548,7 @@ struct __get_sycl_range
         // There are some cases which don't require read accessor but still need to copy_direct like transform_if where
         // only part of the output range is written to and initial values must be preserved.
         using copy_direct_tag = ::std::integral_constant<bool, AccMode == sycl::access::mode::read_write ||
-                                                                   AccMode == sycl::access::mode::read  ||
+                                                                   AccMode == sycl::access::mode::read ||
                                                                    _ForceCopyDirectForHostIter::value>;
         using copy_back_tag = ::std::integral_constant<bool, AccMode == sycl::access::mode::read_write ||
                                                                  AccMode == sycl::access::mode::write>;
