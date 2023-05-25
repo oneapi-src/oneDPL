@@ -61,6 +61,13 @@ struct TypeInfo
     }
 
     template <>
+    const std::string& name<int16_t>()
+    {
+        static const std::string kTypeName = "int16_t";
+        return kTypeName;
+    }
+
+    template <>
     const std::string& name<uint32_t>()
     {
         static const std::string kTypeName = "uint32_t";
