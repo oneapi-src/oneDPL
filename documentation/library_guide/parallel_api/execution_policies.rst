@@ -4,7 +4,7 @@ Execution Policies
 The implementation supports the device execution policies used to run the massive parallel
 computational model for heterogeneous systems. The policies are specified in
 the |onedpl_long| (|onedpl_short|) section of the `oneAPI Specification
-<https://spec.oneapi.com/versions/latest/elements/oneDPL/source/pstl.html#dpc-execution-policy>`_.
+<https://spec.oneapi.io/versions/latest/elements/oneDPL/source/parallel_api.html#dpc-execution-policy>`_.
 
 For any of the implemented algorithms, pass one of the execution policy objects as the first
 argument in a call to specify the desired execution behavior. The policies have
@@ -175,10 +175,10 @@ Use it to create customized policy objects or pass directly when invoking an alg
 
    Specifying the unroll factor for a policy enables loop unrolling in the implementation of
    your algorithms. The default value is 1.
-   To find out how to choose a more precise value, refer to the `unroll Pragma <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top/fpga-optimization-flags-attributes-pragmas-and-extensions/loop-directives/unroll-pragma.html>`_
-   and `Loop Analysis <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top/analyze-your-design/analyze-the-fpga-early-image/review-the-report-html-file/loop-analysis.html>`_ chapters of
+   To find out how to choose a more precise value, refer to the `unroll Pragma <https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/optimization-guide/current/unroll-pragma.html>`_
+   and `Loop Analysis <https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/optimization-guide/current/loop-analysis.html>`_ chapters of
    the `Intel® oneAPI DPC++ FPGA Optimization Guide
-   <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top.html>`_.
+   <https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/optimization-guide/current/overview.html>`_.
 
 The ``make_fpga_policy`` function templates simplify ``fpga_policy`` creation.
 

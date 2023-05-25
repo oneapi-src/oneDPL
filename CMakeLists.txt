@@ -12,7 +12,13 @@
 #
 ##===----------------------------------------------------------------------===##
 
-cmake_minimum_required(VERSION 3.4.3)
+if (CMAKE_HOST_WIN32)
+    # Requires version 3.20 for baseline support of icx, icx-cl
+    cmake_minimum_required(VERSION 3.20)
+else()
+    # Requires version 3.11 for use of icpc with c++17 requirement
+    cmake_minimum_required(VERSION 3.11)
+endif()
 
 # oneDPL is a subproject only when PARENT_DIRECTORY is defined
 get_directory_property(_onedpl_is_subproject PARENT_DIRECTORY)
@@ -21,7 +27,7 @@ include(CMakeDependentOption)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
-option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
+option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation" OFF)
 option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
 cmake_dependent_option(ONEDPL_TEST_WIN_ICX_FIXES "Enable icx workarounds for Windows" ON "CMAKE_HOST_WIN32;NOT _onedpl_is_subproject" OFF)
 
@@ -32,13 +38,17 @@ string(REGEX REPLACE ".*#define ONEDPL_VERSION_MAJOR ([0-9]+).*" "\\1" _onedpl_v
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_MINOR ([0-9]+).*" "\\1" _onedpl_ver_minor "${_onedpl_version_info}")
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_ver_patch "${_onedpl_version_info}")
 
-if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|icx-cl|icx)(.exe)?$")
-    set(INTEL_LLVM_COMPILER_MSVC_LIKE TRUE)
-elseif(CMAKE_CXX_COMPILER MATCHES ".*(dpcpp|icpx)(.exe)?$")
-    set(INTEL_LLVM_COMPILER_GNU_LIKE TRUE)
+# CMAKE_CXX_COMPILER_ID and CMAKE_CXX_COMPILER_VERSION cannot be used because
+# CMake 3.19 and older will detect IntelLLVM compiler as CLang with CLang-specific version, see https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
+if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx|icx)(.exe)?$")
+    set(INTEL_LLVM_COMPILER TRUE)
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE INTEL_LLVM_COMPILER_VERSION_RAW)
+    string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" INTEL_LLVM_COMPILER_VERSION ${INTEL_LLVM_COMPILER_VERSION_RAW})
+else()
+    set(INTEL_LLVM_COMPILER FALSE)
 endif()
 
-if (CMAKE_HOST_WIN32 AND (INTEL_LLVM_COMPILER_MSVC_LIKE OR INTEL_LLVM_COMPILER_GNU_LIKE))
+if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER)
     if (_onedpl_is_subproject)
         # If oneDPL is a subproject, warn if workarounds are not included
         if (NOT oneDPLWindowsIntelLLVM_FOUND)

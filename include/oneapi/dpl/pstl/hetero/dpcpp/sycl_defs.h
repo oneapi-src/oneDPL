@@ -256,6 +256,13 @@ constexpr __target __target_device =
     __target::global_buffer;
 #endif
 
+constexpr __target __host_target =
+#if _ONEDPL_LIBSYCL_VERSION >= 60200
+    __target::host_task;
+#else
+    __target::host_buffer;
+#endif
+
 template <typename _DataT>
 using __buffer_allocator =
 #if _ONEDPL_LIBSYCL_VERSION >= 60000
@@ -282,6 +289,17 @@ using __local_accessor =
 #else
     sycl::accessor<DataT, Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
 #endif
+
+template <typename _Buf>
+auto
+__get_host_access(_Buf&& __buf)
+{
+#if _ONEDPL_LIBSYCL_VERSION >= 60200
+    return ::std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
+#else
+    return ::std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
+#endif
+}
 
 } // namespace __dpl_sycl
 

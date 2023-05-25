@@ -946,8 +946,7 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __la
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec,
                                                                                                 __last - __first);
     auto __copy_first = __buf.get();
-    auto __copy_last = __pattern_copy_if(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __copy_first,
-                                         __not_pred<_Predicate>{__pred},
+    auto __copy_last = __pattern_copy_if(__exec, __first, __last, __copy_first, __not_pred<_Predicate>{__pred},
                                          /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
 
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
@@ -969,9 +968,8 @@ __pattern_unique(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
     oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec,
                                                                                                 __last - __first);
     auto __copy_first = __buf.get();
-    auto __copy_last =
-        __pattern_unique_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __copy_first, __pred,
-                              /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
+    auto __copy_last = __pattern_unique_copy(__exec, __first, __last, __copy_first, __pred,
+                                             /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
 
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
     return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
@@ -1157,8 +1155,7 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
     auto __copy_first = __buf.get();
     auto __copy_last = __copy_first + __n;
 
-    __pattern_merge(::std::forward<_ExecutionPolicy>(__exec),
-                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+    __pattern_merge(__exec, __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
                     __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
                     __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
                     __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
@@ -1223,7 +1220,7 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _Iterator1 __keys_first, _Itera
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
     __stable_sort_with_projection(::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __comp,
-        [](const auto& __a) { return ::std::get<0>(__a); });
+                                  [](const auto& __a) { return ::std::get<0>(__a); });
 }
 
 
@@ -1249,14 +1246,13 @@ __pattern_stable_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterat
     auto __true_result = __true_buf.get();
     auto __false_result = __false_buf.get();
 
-    auto copy_result = __pattern_partition_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                                __true_result, __false_result, __pred,
+    auto copy_result = __pattern_partition_copy(__exec, __first, __last, __true_result, __false_result, __pred,
                                                 /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
     auto true_count = copy_result.first - __true_result;
 
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
     __pattern_walk2</*_IsSync=*/::std::false_type>(
-        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec),
         __true_result, copy_result.first, __first, __brick_move<_ExecutionPolicy>{}, ::std::true_type{},
         ::std::true_type{});
     __pattern_walk2(
@@ -1439,8 +1435,8 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
         // If our output buffer is larger than the input buffer, simply copy elements to the output and use
         // full sort on them.
         auto __out_end = __pattern_walk2</*_IsSync=*/::std::false_type>(
-            __par_backend_hetero::make_wrapped_policy<__initial_copy_1>(::std::forward<_ExecutionPolicy>(__exec)),
-            __first, __last, __out_first, __brick_copy<_ExecutionPolicy>{}, ::std::true_type{}, ::std::true_type{});
+            __par_backend_hetero::make_wrapped_policy<__initial_copy_1>(__exec), __first, __last, __out_first,
+            __brick_copy<_ExecutionPolicy>{}, ::std::true_type{}, ::std::true_type{});
 
         // Use reqular sort as partial_sort isn't required to be stable
         __pattern_sort(
@@ -1459,13 +1455,13 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
 
         auto __buf_first = __buf.get();
         auto __buf_last = __pattern_walk2</*_IsSync=*/::std::false_type>(
-            __par_backend_hetero::make_wrapped_policy<__initial_copy_2>(::std::forward<_ExecutionPolicy>(__exec)),
-            __first, __last, __buf_first, __brick_copy<_ExecutionPolicy>{}, ::std::true_type{}, ::std::true_type{});
+            __par_backend_hetero::make_wrapped_policy<__initial_copy_2>(__exec), __first, __last, __buf_first,
+            __brick_copy<_ExecutionPolicy>{}, ::std::true_type{}, ::std::true_type{});
 
         auto __buf_mid = __buf_first + __out_size;
 
         __par_backend_hetero::__parallel_partial_sort(
-            __par_backend_hetero::make_wrapped_policy<__partial_sort_2>(::std::forward<_ExecutionPolicy>(__exec)),
+            __par_backend_hetero::make_wrapped_policy<__partial_sort_2>(__exec),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_first),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_mid),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_last), __comp);
@@ -1781,10 +1777,9 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forw
     auto __buf = __diff.get();
 
     //1. Calc difference {2} \ {1}
-    const auto __n_diff = oneapi::dpl::__internal::__pattern_hetero_set_op(::std::forward<_ExecutionPolicy>(__exec),
-                                                                           __first2, __last2, __first1, __last1, __buf,
-                                                                           __comp, unseq_backend::_DifferenceTag()) -
-                          __buf;
+    const auto __n_diff = oneapi::dpl::__internal::__pattern_hetero_set_op(__exec,__first2, __last2, __first1, __last1,
+                                                                           __buf,__comp, unseq_backend::_DifferenceTag()
+                                                                          ) - __buf;
     //2. Merge {1} and the difference
     return oneapi::dpl::__internal::__pattern_merge(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_union_copy_case_2>(
@@ -1863,16 +1858,14 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
     //1. Calc difference {1} \ {2}
     const auto __n_diff_1 =
         oneapi::dpl::__internal::__pattern_hetero_set_op(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_1>(
-                ::std::forward<_ExecutionPolicy>(__exec)),
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_1>(__exec),
             __first1, __last1, __first2, __last2, __buf_1, __comp, unseq_backend::_DifferenceTag()) -
         __buf_1;
 
     //2. Calc difference {2} \ {1}
     const auto __n_diff_2 =
         oneapi::dpl::__internal::__pattern_hetero_set_op(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_2>(
-                ::std::forward<_ExecutionPolicy>(__exec)),
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_2>(__exec),
             __first2, __last2, __first1, __last1, __buf_2, __comp, unseq_backend::_DifferenceTag()) -
         __buf_2;
 

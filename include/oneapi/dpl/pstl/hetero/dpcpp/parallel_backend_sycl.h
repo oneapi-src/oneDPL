@@ -311,14 +311,11 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
 
 #if _ONEDPL_COMPILE_KERNEL
         //Actually there is one kernel_bundle for the all kernels of the pattern.
-        auto __kernels = __internal::__kernel_compiler<_LocalScanKernel, _GroupScanKernel>::__compile(
-            ::std::forward<_ExecutionPolicy>(__exec));
+        auto __kernels = __internal::__kernel_compiler<_LocalScanKernel, _GroupScanKernel>::__compile(__exec);
         auto __kernel_1 = __kernels[0];
         auto __kernel_2 = __kernels[1];
-        auto __wgroup_size_kernel_1 =
-            oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_1);
-        auto __wgroup_size_kernel_2 =
-            oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel_2);
+        auto __wgroup_size_kernel_1 = oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_1);
+        auto __wgroup_size_kernel_2 = oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel_2);
         __wgroup_size = ::std::min({__wgroup_size, __wgroup_size_kernel_1, __wgroup_size_kernel_2});
 #endif
 
@@ -866,11 +863,10 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
     assert(__rng_n > 0);
 
     // TODO: find a way to generalize getting of reliable work-group size
-    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
+    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 #if _ONEDPL_COMPILE_KERNEL
-    auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(::std::forward<_ExecutionPolicy>(__exec));
-    __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(
-                                                  ::std::forward<_ExecutionPolicy>(__exec), __kernel));
+    auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(__exec);
+    __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
 #endif
     auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
 
