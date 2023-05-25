@@ -261,14 +261,19 @@ void test_sycl_iterators(std::size_t size)
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
+template <typename T>
 void test_small_sizes()
 {
+#ifdef LOG_TEST_INFO
+    std::cout << "\t\ttest_small_sizes<" << TypeInfo().name<T>() << ">();" << std::endl;
+#endif
+
     sycl::queue q = TestUtils::get_test_queue();
     auto policy = oneapi::dpl::execution::make_device_policy(q);
 
-    std::vector<uint32_t> input = {5, 11, 0, 17, 0};
+    std::vector<T> input = {5, 11, 0, 17, 0};
     generate_data(input.data(), input.size());
-    std::vector<uint32_t> ref(input);
+    std::vector<T> ref(input);
 
     oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
@@ -322,7 +327,9 @@ int main()
             test_usm<int16_t>(size);
             test_usm<float>(size);
         }
-        test_small_sizes();
+        test_small_sizes<uint32_t>();
+        test_small_sizes<int>();
+        test_small_sizes<int16_t>();
     }
     catch (const ::std::exception& exc)
     {
