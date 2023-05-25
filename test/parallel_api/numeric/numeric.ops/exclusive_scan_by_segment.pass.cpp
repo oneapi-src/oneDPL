@@ -88,8 +88,6 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         if (n < 1)
             return;
 
-        int segment_length = 1;
-        auto expected_segment_sum = init;
         using key_type = typename ::std::decay_t<decltype(host_keys[0])>;
         key_type current_key = key_type(999); //not one of the input keys
 
