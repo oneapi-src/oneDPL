@@ -310,6 +310,7 @@ int main()
         {
             test_usm<uint32_t>(size);
             test_usm<int>(size);
+            test_usm<int16_t>(size);
             test_usm<float>(size);
         }
         test_small_sizes();
