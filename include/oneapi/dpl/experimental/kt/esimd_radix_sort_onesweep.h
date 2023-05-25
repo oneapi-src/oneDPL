@@ -20,13 +20,17 @@
 
 namespace oneapi::dpl::experimental::esimd::impl
 {
-// float, 32bit
-/**
- * We are unable to use :std::numeric_limits<T>::max() and ::std::numeric_limits<T>::lowest() functions
- * for the float type like they are used in __sort_identity
- * because they are not setup NaN bit: we will have mix from real keys and identity keys
- * and sorting algorithm will work with errors.
- */
+
+// std::numeric_limits<T>::max and std::numeric_limits<T>::lowest cannot be used as an idenentity for
+// performing radix sort of floating point numbers.
+// They do not set the smallest exponent bit (i.e. the max is 7F7FFFFF for 32bit float),
+// thus such an identity is not guaranteed to be put at the end of the sorted sequence after each radix sort stage,
+// e.g. 00FF0000 numbers will be pushed out by 7F7FFFFF identities when sorting 16-23 bits.
+//
+// TODO: productization:
+// - make it is as a specialization of __sort_identity once it is verified to working with other implementations
+// - use HEX representation to be aligned with other methods handling bits
+// - remove the static asserts or move them into a higher level replacing with std::numeric_limits<T>::is_iec559
 template <typename T, bool __is_ascending, std::enable_if_t<std::is_same<T, float>::value && sizeof(T) == sizeof(::std::uint32_t), int> = 0>
 constexpr T
 __full_sort_identity()
@@ -58,13 +62,6 @@ __full_sort_identity()
     }
 }
 
-// float, 64bit
-/**
- * We are unable to use :std::numeric_limits<T>::max() and ::std::numeric_limits<T>::lowest() functions
- * for the float type like they are used in __sort_identity
- * because they are not setup NaN bit: we will have mix from real keys and identity keys
- * and sorting algorithm will work with errors.
- */
 template <typename T, bool __is_ascending, std::enable_if_t<std::is_same<T, float>::value && sizeof(T) == sizeof(::std::uint64_t), int> = 0>
 constexpr T
 __full_sort_identity()
