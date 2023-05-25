@@ -67,7 +67,8 @@ struct test_transform_if_binary
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename Size>
     void
     operator()(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIterator2 mask,
-               InputIterator2 /*mask_end*/, OutputIterator result_begin, OutputIterator result_end, Size n)
+               InputIterator2 /*mask_end*/, OutputIterator result_begin, OutputIterator result_end, Size n,
+               ::std::int64_t init_val)
     {
         using in_value_type1 = typename ::std::iterator_traits<InputIterator1>::value_type;
         using in_value_type2 = typename ::std::iterator_traits<InputIterator2>::value_type;
@@ -84,13 +85,13 @@ struct test_transform_if_binary
         auto expected_iter = expected.begin();
         for (; in_iter != last; in_iter++, mask_iter++, expected_iter++)
         {
-            *expected_iter = *mask_iter == 1 ? -(*in_iter) : 0;
+            *expected_iter = *mask_iter == 1 ? -(*in_iter) : out_value_type(init_val);
         }
 
         EXPECT_EQ_N(expected.begin(), result_begin, n, "wrong effect from transform_if binary");
 
-        // reset output elements to 0
-        ::std::fill(result_begin, result_end, 0);
+        // reset output elements to init value as output_range value is passed through where predicate is false
+        ::std::fill(result_begin, result_end, out_value_type(init_val));
     }
 };
 
@@ -99,7 +100,7 @@ struct test_transform_if_unary
     template <typename Policy, typename InputIterator1, typename OutputIterator, typename Size>
     void
     operator()(Policy&& exec, InputIterator1 first, InputIterator1 last, OutputIterator result_begin,
-               OutputIterator result_end, Size n)
+               OutputIterator result_end, Size n, ::std::int64_t init_val)
     {
         using in_value_type = typename ::std::iterator_traits<InputIterator1>::value_type;
         using out_value_type = typename ::std::iterator_traits<OutputIterator>::value_type;
@@ -114,13 +115,13 @@ struct test_transform_if_unary
         auto in_iter = first;
         for (; in_iter != last; in_iter++, expected_iter++)
         {
-            *expected_iter = *in_iter % 3 == 0 ? -(*in_iter) : 0;
+            *expected_iter = *in_iter % 3 == 0 ? -(*in_iter) : out_value_type(init_val);
         }
 
         EXPECT_EQ_N(expected.begin(), result_begin, n, "wrong effect from transform_if unary");
 
-        // reset output elements to 0
-        ::std::fill(result_begin, result_end, 0);
+        // reset output elements to init value as output_range value is passed through where predicate is false
+        ::std::fill(result_begin, result_end, out_value_type(init_val));
     }
 };
 
@@ -128,28 +129,31 @@ template <typename In1, typename In2, typename Out>
 void
 test()
 {
+    const ::std::int64_t init_val = 999;
     for (size_t n = 1; n <= 100000; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         {
             Sequence<In1> in1(n, [=](size_t k) { return (3 * k); });
             Sequence<In2> in2(n, [=](size_t k) { return k % 2 == 0 ? 1 : 0; });
 
-            Sequence<Out> out(n, [=](size_t) { return 0; });
+            Sequence<Out> out(n, [=](size_t) { return init_val; });
 
             invoke_on_all_policies<0>()(test_transform_if_binary(), in1.begin(), in1.end(), in2.begin(), in2.end(),
-                                        out.begin(), out.end(), n);
+                                        out.begin(), out.end(), n, init_val);
 #if !ONEDPL_FPGA_DEVICE
             invoke_on_all_policies<1>()(test_transform_if_binary(), in1.cbegin(), in1.cend(), in2.cbegin(), in2.cend(),
-                                        out.begin(), out.end(), n);
+                                        out.begin(), out.end(), n, init_val);
 #endif
         }
         {
             Sequence<In1> in1(n, [=](size_t k) { return k; });
-            Sequence<Out> out(n, [=](size_t) { return 0; });
+            Sequence<Out> out(n, [=](size_t) { return init_val; });
 
-            invoke_on_all_policies<0>()(test_transform_if_unary(), in1.begin(), in1.end(), out.begin(), out.end(), n);
+            invoke_on_all_policies<0>()(test_transform_if_unary(), in1.begin(), in1.end(), out.begin(), out.end(), n,
+                                        init_val);
 #if !ONEDPL_FPGA_DEVICE
-            invoke_on_all_policies<1>()(test_transform_if_unary(), in1.cbegin(), in1.cend(), out.begin(), out.end(), n);
+            invoke_on_all_policies<1>()(test_transform_if_unary(), in1.cbegin(), in1.cend(), out.begin(), out.end(), n,
+                                        init_val);
 #endif
         }
     }
