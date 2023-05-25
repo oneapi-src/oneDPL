@@ -105,17 +105,14 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     oneapi::dpl::__par_backend::__buffer<policy_type, FlagType> _scanned_tail_flags(n);
 
     // Compute the sum of the segments. scanned_tail_flags values are not used.
-    auto policy1 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<Reduce1>(policy);
-
-    inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
+    inclusive_scan(policy, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
                    make_zip_iterator(_scanned_values.get(), _scanned_tail_flags.get()),
                    internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op));
 
     // for example: _scanned_values     = { 1, 2, 3, 4, 1, 2, 3, 6, 1, 2, 3, 6, 0 }
 
     // Compute the indices each segment sum should be written
-    auto policy2 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<Reduce2>(policy);
-    oneapi::dpl::exclusive_scan(policy2, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
+    oneapi::dpl::exclusive_scan(policy, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
                                 ::std::plus<CountType>());
 
     // for example: _scanned_tail_flags = { 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8 }
@@ -127,8 +124,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     CountType N = scanned_tail_flags[n - 1] + 1;
 
     // scatter the keys and accumulated values
-    auto policy3 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<Reduce3>(policy);
-    oneapi::dpl::for_each(policy3, make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1),
+    oneapi::dpl::for_each(policy, make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1),
                           make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1) + n,
                           internal::scatter_and_accumulate_fun<OutputIterator1, OutputIterator2>(result1, result2));
 
