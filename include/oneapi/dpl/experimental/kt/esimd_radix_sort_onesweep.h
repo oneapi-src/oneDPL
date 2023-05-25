@@ -158,7 +158,7 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
                 sycl::ext::intel::esimd::simd offset((read_addr + s + lane_id)*sizeof(KeyT));
                 simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m);
 
-                keys.template select<16, 1>(s) =merge(source, simd<KeyT, 16>(__full_sort_identity<KeyT, IsAscending>()), m);
+                keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(__full_sort_identity<KeyT, IsAscending>()), m);
             }
         }
         #pragma unroll
