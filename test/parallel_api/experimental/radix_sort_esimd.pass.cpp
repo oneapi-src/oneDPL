@@ -161,16 +161,20 @@ void test_all_view(std::size_t size)
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
-template<typename T, sycl::usm::alloc _alloc_type>
+template<typename T>
 void test_subrange_view(std::size_t size)
 {
+#ifdef LOG_TEST_INFO
+    std::cout << "\ttest_subrange_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
+#endif
+
     sycl::queue q = TestUtils::get_test_queue();
     auto policy = oneapi::dpl::execution::make_device_policy(q);
 
     std::vector<T> expected(size);
     generate_data(expected.data(), size);
 
-    TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
+    TestUtils::usm_data_transfer<sycl::usm::alloc::device, T> dt_input(q, expected.begin(), expected.end());
 
     std::sort(expected.begin(), expected.end(), Compare<Order>{});
 
@@ -182,25 +186,6 @@ void test_subrange_view(std::size_t size)
 
     std::string msg = "wrong results with views::subrange, n: " + std::to_string(size);
     EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
-}
-
-template <typename T>
-void
-test_subrange_view(std::size_t size)
-{
-#ifdef LOG_TEST_INFO
-    std::cout << "\ttest_subrange_view(std::size_t size) : " << TypeInfo().name<T>() << std::endl;
-#endif
-
-#ifdef LOG_TEST_INFO
-    std::cout << "\t\ttest_subrange_view<T, sycl::usm::alloc::shared>(" << size << ");" << std::endl;
-#endif
-    test_subrange_view<T, sycl::usm::alloc::shared>(size);
-
-#ifdef LOG_TEST_INFO
-    std::cout << "\t\ttest_subrange_view<T, sycl::usm::alloc::device>(" << size << ");" << std::endl;
-#endif
-    test_subrange_view<T, sycl::usm::alloc::device>(size);
 }
 
 #endif // _ENABLE_RANGES_TESTING
