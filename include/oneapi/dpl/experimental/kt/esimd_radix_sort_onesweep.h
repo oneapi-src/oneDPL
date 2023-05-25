@@ -21,6 +21,88 @@
 namespace oneapi::dpl::experimental::esimd::impl
 {
 
+// std::numeric_limits<T>::max and std::numeric_limits<T>::lowest cannot be used as an idenentity for
+// performing radix sort of floating point numbers.
+// They do not set the smallest exponent bit (i.e. the max is 7F7FFFFF for 32bit float),
+// thus such an identity is not guaranteed to be put at the end of the sorted sequence after each radix sort stage,
+// e.g. 00FF0000 numbers will be pushed out by 7F7FFFFF identities when sorting 16-23 bits.
+//
+// TODO: productization:
+// - make it is as a specialization of __sort_identity once it is verified to working with other implementations
+// - use HEX representation to be aligned with other methods handling bits
+// - remove the static asserts or move them into a higher level replacing with std::numeric_limits<T>::is_iec559
+template <typename T, bool __is_ascending, std::enable_if_t<std::is_same<T, float>::value && sizeof(T) == sizeof(::std::uint32_t), int> = 0>
+constexpr T
+__full_sort_identity()
+{
+    static_assert(std::is_same<T, float>::value, "");
+
+    //                                                                    sign bit
+    //                                                                      |      NaN bit
+    //                                                                      |        |
+    //                                                                      V        V
+    static_assert(::std::numeric_limits<T>::max()    == sycl::bit_cast<T>(0b01111111'01111111'11111111'11111111), "");
+    static_assert(::std::numeric_limits<T>::lowest() == sycl::bit_cast<T>(0b11111111'01111111'11111111'11111111), "");
+
+    if constexpr (__is_ascending)
+    {
+        //                       clear sign bit
+        //                         |      setup NaN bit
+        //                         |        |
+        //                         V        V
+        return sycl::bit_cast<T>(0b01111111'11111111'11111111'11111111);
+    }
+    else
+    {
+        //                       setup sign bit
+        //                         |      setup NaN bit
+        //                         |        |
+        //                         V        V
+        return sycl::bit_cast<T>(0b11111111'11111111'11111111'11111111);
+    }
+}
+
+template <typename T, bool __is_ascending, std::enable_if_t<std::is_same<T, float>::value && sizeof(T) == sizeof(::std::uint64_t), int> = 0>
+constexpr T
+__full_sort_identity()
+{
+    static_assert(std::is_same<T, float>::value, "");
+
+    //                                                                    sign bit
+    //                                                                      |      NaN bit
+    //                                                                      |        |
+    //                                                                      V        V
+    static_assert(::std::numeric_limits<T>::max()    == sycl::bit_cast<T>(0b01111111'01111111'11111111'11111111'11111111'11111111'11111111'11111111), "");
+    static_assert(::std::numeric_limits<T>::lowest() == sycl::bit_cast<T>(0b11111111'01111111'11111111'11111111'11111111'11111111'11111111'11111111), "");
+
+    if constexpr (__is_ascending)
+    {
+        //                       clear sign bit
+        //                         |      setup NaN bit
+        //                         |        |
+        //                         V        V
+        return sycl::bit_cast<T>(0b01111111'11111111'11111111'11111111'11111111'11111111'11111111'11111111);
+    }
+    else
+    {
+        //                       setup sign bit
+        //                         |      setup NaN bit
+        //                         |        |
+        //                         V        V
+        return sycl::bit_cast<T>(0b11111111'11111111'11111111'11111111'11111111'11111111'11111111'11111111);
+    }
+}
+
+// non-float
+template <typename T, bool __is_ascending, std::enable_if_t<!std::is_same<T, float>::value, int> = 0>
+constexpr T
+__full_sort_identity()
+{
+    static_assert(!std::is_same<T, float>::value, "");
+
+    return utils::__sort_identity<T, __is_ascending>;
+}
+
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t TG_COUNT, uint32_t THREAD_PER_TG, bool IsAscending>
 void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer) {
     using bin_t = uint16_t;
@@ -85,7 +167,7 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
                 sycl::ext::intel::esimd::simd offset((read_addr + s + lane_id)*sizeof(KeyT));
                 simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m);
 
-                keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
+                keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(__full_sort_identity<KeyT, IsAscending>()), m);
             }
         }
         #pragma unroll
@@ -364,7 +446,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         simd<device_addr_t, 16> lane_id(0, 1);
 
         device_addr_t io_offset = PROCESS_SIZE * (wg_id*wg_size+local_tid);
-        constexpr KeyT default_key = utils::__sort_identity<KeyT, IsAscending>;
+        constexpr KeyT default_key = __full_sort_identity<KeyT, IsAscending>();
 
         LoadKeys<16>(io_offset, keys, default_key);
 
@@ -534,15 +616,7 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
 
 template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
           bool IsAscending, ::std::uint32_t PROCESS_SIZE>
-std::enable_if_t<!::std::is_integral_v<KeyT>, void>
-onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
-{
-    // TODO: remove this when the implementation below can compile for other data types
-}
-
-template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
-          bool IsAscending, ::std::uint32_t PROCESS_SIZE>
-std::enable_if_t<::std::is_integral_v<KeyT>, void>
+void
 onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
 {
     using namespace sycl;
