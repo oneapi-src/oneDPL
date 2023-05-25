@@ -303,6 +303,7 @@ int main()
         {
             test_general_cases<uint32_t>(size);
             test_general_cases<int>(size);
+            test_general_cases<int16_t>(size);
             test_general_cases<float>(size);
             // test_general_cases<double>(size);
         }
@@ -310,6 +311,7 @@ int main()
         {
             test_general_cases<uint32_t>(size);
             test_general_cases<int>(size);
+            test_general_cases<int16_t>(size);
             test_general_cases<float>(size);
             // test_general_cases<double>(size);
         }
