@@ -50,9 +50,8 @@ template <typename _Tp, typename _NDItemId, typename _Size, typename _TransformP
           typename _InitType, typename _AccLocal, typename _Res, typename... _Acc>
 void
 __work_group_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Size __n_items,
-                           _TransformPattern __transform_pattern, _ReducePattern __reduce_pattern,
-                           _InitType __init, const _AccLocal& __local_mem, const _Res& __res_acc,
-                           const _Acc&... __acc)
+                           _TransformPattern __transform_pattern, _ReducePattern __reduce_pattern, _InitType __init,
+                           const _AccLocal& __local_mem, const _Res& __res_acc, const _Acc&... __acc)
 {
     auto __local_idx = __item_id.get_local_id(0);
     // 1. Initialization (transform part). Fill local memory
@@ -104,8 +103,8 @@ struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_pe
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
               typename... _Ranges>
     auto
-    operator()(_ExecutionPolicy&& __exec, const _Size __n, _ReduceOp __reduce_op,
-               _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs) const
+    operator()(_ExecutionPolicy&& __exec, const _Size __n, _ReduceOp __reduce_op, _TransformOp __transform_op,
+               _InitType __init, _Ranges&&... __rngs) const
     {
         auto __transform_pattern =
             unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _TransformOp>{
