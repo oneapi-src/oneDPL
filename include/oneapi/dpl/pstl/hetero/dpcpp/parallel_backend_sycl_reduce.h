@@ -50,8 +50,8 @@ template <typename _Tp, typename _NDItemId, typename _Size, typename _TransformP
           typename _InitType, typename _AccLocal, typename _Res, typename... _Acc>
 void
 __work_group_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Size __n_items,
-                           const _TransformPattern& __transform_pattern, const _ReducePattern& __reduce_pattern,
-                           const _InitType& __init, const _AccLocal& __local_mem, const _Res& __res_acc,
+                           _TransformPattern __transform_pattern, _ReducePattern __reduce_pattern,
+                           _InitType __init, const _AccLocal& __local_mem, const _Res& __res_acc,
                            const _Acc&... __acc)
 {
     auto __local_idx = __item_id.get_local_id(0);
@@ -72,7 +72,7 @@ template <typename _Tp, typename _NDItemId, typename _Size, typename _TransformP
           typename _AccLocal, typename _Tmp, typename... _Acc>
 void
 __device_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Size __n_items,
-                       const _TransformPattern& __transform_pattern, const _ReducePattern& __reduce_pattern,
+                       _TransformPattern __transform_pattern, _ReducePattern __reduce_pattern,
                        const _AccLocal& __local_mem, const _Tmp& __temp_acc, const _Acc&... __acc)
 {
     auto __local_idx = __item_id.get_local_id(0);
@@ -104,8 +104,8 @@ struct __parallel_transform_reduce_small_submitter<__work_group_size, __iters_pe
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
               typename... _Ranges>
     auto
-    operator()(_ExecutionPolicy&& __exec, const _Size __n, const _ReduceOp& __reduce_op,
-               const _TransformOp& __transform_op, const _InitType& __init, _Ranges&&... __rngs) const
+    operator()(_ExecutionPolicy&& __exec, const _Size __n, _ReduceOp __reduce_op,
+               _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs) const
     {
         auto __transform_pattern =
             unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _TransformOp>{
@@ -136,8 +136,8 @@ template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_ite
           typename _TransformOp, typename _ExecutionPolicy, typename _Size, typename _InitType,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
-__parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, const _Size __n, const _ReduceOp& __reduce_op,
-                                       const _TransformOp& __transform_op, const _InitType& __init, _Ranges&&... __rngs)
+__parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, const _Size __n, _ReduceOp __reduce_op,
+                                       _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
@@ -164,8 +164,8 @@ struct __parallel_transform_reduce_device_kernel_submitter<__work_group_size, __
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
               typename... _Ranges>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Size __n, const _ReduceOp& __reduce_op, const _TransformOp& __transform_op,
-               const _InitType& __init, sycl::buffer<_Tp>& __temp, _Ranges&&... __rngs) const
+    operator()(_ExecutionPolicy&& __exec, _Size __n, _ReduceOp __reduce_op, _TransformOp __transform_op,
+               _InitType __init, sycl::buffer<_Tp>& __temp, _Ranges&&... __rngs) const
     {
         auto __transform_pattern =
             unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _TransformOp>{
@@ -205,8 +205,8 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<__work_group_size
     template <typename _ExecutionPolicy, typename _ReduceOp, typename _TransformOp, typename _Size, typename _InitType,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
     auto
-    operator()(_ExecutionPolicy&& __exec, sycl::event& __reduce_event, _Size __n, const _ReduceOp& __reduce_op,
-               const _TransformOp& __transform_op, const _InitType& __init, sycl::buffer<_Tp>& __temp) const
+    operator()(_ExecutionPolicy&& __exec, sycl::event& __reduce_event, _Size __n, _ReduceOp __reduce_op,
+               _TransformOp __transform_op, _InitType __init, sycl::buffer<_Tp>& __temp) const
     {
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
         auto __transform_pattern =
@@ -253,8 +253,8 @@ template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_ite
           typename _ExecutionPolicy, typename _Size, typename _InitType,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
-__parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, const _ReduceOp& __reduce_op,
-                                     const _TransformOp& __transform_op, const _InitType& __init, _Ranges&&... __rngs)
+__parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _ReduceOp __reduce_op,
+                                     _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
@@ -291,8 +291,8 @@ struct __parallel_transform_reduce_impl
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
               typename... _Ranges>
     static auto
-    submit(_ExecutionPolicy&& __exec, _Size __n, ::std::uint16_t __work_group_size, const _ReduceOp& __reduce_op,
-           const _TransformOp& __transform_op, const _InitType& __init, _Ranges&&... __rngs)
+    submit(_ExecutionPolicy&& __exec, _Size __n, ::std::uint16_t __work_group_size, _ReduceOp __reduce_op,
+           _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
     {
         using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
         using _CustomName = typename _Policy::kernel_name;
@@ -400,8 +400,8 @@ struct __parallel_transform_reduce_impl
 template <typename _Tp, typename _ReduceOp, typename _TransformOp, typename _ExecutionPolicy, typename _InitType,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
-__parallel_transform_reduce(_ExecutionPolicy&& __exec, const _ReduceOp& __reduce_op, const _TransformOp& __transform_op,
-                            const _InitType& __init, _Ranges&&... __rngs)
+__parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _TransformOp __transform_op,
+                            _InitType __init, _Ranges&&... __rngs)
 {
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     assert(__n > 0);
