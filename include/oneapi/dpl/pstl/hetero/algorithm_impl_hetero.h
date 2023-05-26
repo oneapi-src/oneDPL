@@ -260,6 +260,8 @@ __pattern_walk2_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __firs
                              /*vector=*/::std::true_type,
                              /*parallel=*/::std::true_type)
 {
+    // Require `read_write` access mode for output sequence to force a copy in for host iterators to capture incoming
+    // values of the output sequence for elements where the predicate is false.
     return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read,
                            __par_backend_hetero::access_mode::read_write>(
         __par_backend_hetero::make_wrapped_policy<__walk2_transform_if_wrapper>(
@@ -281,6 +283,8 @@ __pattern_walk3_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __firs
                              /*vector=*/::std::true_type,
                              /*parallel=*/::std::true_type)
 {
+    // Require `read_write` access mode for output sequence to force a copy in for host iterators to capture incoming
+    // values of the output sequence for elements where the predicate is false.
     return __pattern_walk3<__par_backend_hetero::access_mode::read, __par_backend_hetero::access_mode::read,
                            __par_backend_hetero::access_mode::read_write>(
         __par_backend_hetero::make_wrapped_policy<__walk3_transform_if_wrapper>(
