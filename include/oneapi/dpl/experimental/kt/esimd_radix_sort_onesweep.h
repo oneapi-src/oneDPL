@@ -93,12 +93,34 @@ __full_sort_identity()
     }
 }
 
+template <typename T, bool __is_ascending,
+          std::enable_if_t<std::is_same<T, double>::value && sizeof(double) == sizeof(uint32_t), int> = 0>
+constexpr T
+__full_sort_identity()
+{
+    static_assert(std::is_same<T, double>::value, "");
+
+    return sycl::bit_cast<T>(utils::__sort_identity<uint32_t, __is_ascending>);
+}
+
+template <typename T, bool __is_ascending,
+          std::enable_if_t<std::is_same<T, double>::value && sizeof(double) == sizeof(uint64_t), int> = 0>
+constexpr T
+__full_sort_identity()
+{
+    static_assert(std::is_same<T, double>::value, "");
+
+    return sycl::bit_cast<T>(utils::__sort_identity<uint64_t, __is_ascending>);
+}
+
 // non-float
-template <typename T, bool __is_ascending, std::enable_if_t<!std::is_same<T, float>::value, int> = 0>
+template <typename T, bool __is_ascending,
+          std::enable_if_t<!std::is_same<T, float>::value && !std::is_same<T, double>::value, int> = 0>
 constexpr T
 __full_sort_identity()
 {
     static_assert(!std::is_same<T, float>::value, "");
+    static_assert(!std::is_same<T, double>::value, "");
 
     return utils::__sort_identity<T, __is_ascending>;
 }
