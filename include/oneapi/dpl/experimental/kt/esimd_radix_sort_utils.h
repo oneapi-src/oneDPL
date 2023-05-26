@@ -77,17 +77,59 @@ gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, sycl::ext::int
 template <typename T, int N>
 void
 scatter(T* output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
-        sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+        sycl::ext::intel::esimd::simd<T, N> values,
+        sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
     sycl::ext::intel::esimd::scatter(output, offsets * size32<T>, values, mask);
 }
 
-template<typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
+template<typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, std::enable_if_t<sizeof(T) <= 4, int> = 0>
 void
-scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
-        sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> acc,
+        sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+        sycl::ext::intel::esimd::simd<T, N> values,
+        sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    sycl::ext::intel::esimd::scatter(output, offsets * size32<T>, values, /*global_offset*/ 0, mask);
+    // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory.html#ga851442aaf354eebfda03800487bb1091
+    // template<typename T , int N, typename AccessorTy , typename Toffset >
+    // __ESIMD_API
+    // std::enable_if_t<(sizeof(T) <= 4) && (N == 1 || N == 8 || N == 16 || N == 32) && !std::is_pointer<AccessorTy>::value && std::is_integral_v<Toffset>>
+    // sycl::_V1::ext::intel::esimd::scatter(AccessorTy acc,
+    //                                       simd<Toffset, N> offsets,
+    //                                       simd<T, N> vals,
+    //                                       uint32_t glob_offset = 0,
+    //                                       simd_mask<N> mask = 1);
+
+    sycl::ext::intel::esimd::scatter(acc, offsets * size32<T>, values, /*global_offset*/ 0, mask);
+}
+
+template<typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, std::enable_if_t<sizeof(T) == 2 * sizeof(uint32_t), int> = 0>
+void
+scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> acc,
+        sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+        sycl::ext::intel::esimd::simd<T, N> values,
+        sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+{
+    // TODO is it correct?
+    using uint32Acc = sycl::accessor<uint32_t, 1, Mode, sycl::target::device, P>;
+
+    uint32Acc*                                            __p_uint32_acc = reinterpret_cast<uint32Acc*>(&acc);
+    sycl::ext::intel::esimd::simd<::std::uint32_t, 2 * N> __uint32_vals = values.template bit_cast_view<::std::uint32_t>();
+    __ESIMD_NS::simd<uint32_t, 2 * N>                     __uint32_offsets;
+    __ESIMD_NS::simd_mask<2 * N>                          __uint32_mask(0);
+
+    // TODO required to implement this through simd/mask operations
+    // simd select stride
+    for (size_t src_index = 0; src_index < N; ++src_index)
+    {
+        __uint32_offsets[2 * src_index    ] = offsets[src_index];
+        __uint32_offsets[2 * src_index + 1] = offsets[src_index] + sizeof(uint32_t);
+
+        __uint32_mask[2 * src_index    ] = mask[src_index];
+        __uint32_mask[2 * src_index + 1] = mask[src_index];
+    }
+
+    utils::scatter(*__p_uint32_acc, __uint32_offsets, __uint32_vals, __uint32_mask);
 }
 
 template <typename T, uint32_t R, uint32_t C>
