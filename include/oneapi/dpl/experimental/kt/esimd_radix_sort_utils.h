@@ -436,6 +436,80 @@ VectorStore(uint32_t offset,
     return VectorStore<T, VSize, LANES>({offset, LaneStride*sizeof(T)}, data, mask);
 }
 
+template<typename T , int N>
+inline std::enable_if_t<(N == 1 || N == 8 || N == 16 || N == 32) && (sizeof(T) <= 4)>
+slm_scatter(__ESIMD_NS::simd<uint32_t, N> offsets,
+            __ESIMD_NS::simd<T, N> vals,
+            __ESIMD_NS::simd_mask<N> mask = 1)
+{
+    // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__slm.html#gac6d34e476b1addadb3f27648d62322a4
+    //template<typename T , int N>
+    //__ESIMD_API std::enable_if_t<(N == 1 || N == 8 || N == 16 || N == 32) && (sizeof(T) <= 4)>
+    //sycl::_V1::ext::intel::esimd::slm_scatter(
+    //    simd<uint32_t, N> offsets,
+    //    simd<T, N> vals,
+    //    simd_mask<N> mask = 1);
+    __ESIMD_NS::slm_scatter<T, N>(offsets, vals, mask);
+}
+
+template <typename T, int N>
+inline std::enable_if_t<(N == 1 || N == 8 || N == 16 || N == 32) && (sizeof(T) == 2 * sizeof(uint32_t))>
+slm_scatter(__ESIMD_NS::simd<uint32_t, N> offsets,
+            __ESIMD_NS::simd<T, N>        vals,
+            __ESIMD_NS::simd_mask<N>      mask = 1)
+{
+    // offsets, simd<uint32_t, N>:
+    // +----------------------------------------------------------+-----------------------------------------------------------+-----+----------------------------------------------------------+
+    // |                             o0                           |                             o1                            | ... |                             oN                           |
+    // +----------------------------------------------------------+-----------------------------------------------------------+-----+----------------------------------------------------------+
+    //                                                                                          |
+    // __uint32_offsets, __ESIMD_NS::simd<uint32_t, 2 * N>:                                     V
+    // +-----------------------------+----------------------------+-----------------------------+-----------------------------+-----+-----------------------------+----------------------------+
+    // |                o0           |   o0 + sizeof(uint32_t)    |                o1           |   o1 + sizeof(uint32_t)     | ... |                oN           |   oN + sizeof(uint32_t)    |
+    // +-----------------------------+----------------------------+-----------------------------+-----------------------------+-----+-----------------------------+----------------------------+
+
+
+    // vals, double, 8 bytes:
+    // +----------------------------------------------------------+-----------------------------------------------------------+-----+----------------------------------------------------------+
+    // |                             d0                           |                             d1                            | ... |                             dN                           |
+    // +----------------------------------------------------------+-----------------------------------------------------------+-----+----------------------------------------------------------+
+    //                                                                                          |
+    // __uint32_vals, uint32_t, 4 bytes:                                                        V
+    // +-----------------------------+----------------------------+-----------------------------+-----------------------------+-----+-----------------------------+----------------------------+
+    // | uint32_t(d0, first 4 bytes) | uint32_t(d0, last 4 bytes) | uint32_t(d1, first 4 bytes) | uint32_t(d1, last 4 bytes)  | ... | uint32_t(dN, first 4 bytes) | uint32_t(dN, last 4 bytes) |
+    // +-----------------------------+----------------------------+-----------------------------+-----------------------------+-----+-----------------------------+----------------------------+
+
+    // mask, simd_mask<N>:
+    // +----------------------------------------------------------+-----------------------------------------------------------+-----+----------------------------------------------------------+
+    // |                             m0                           |                             m1                            | ... |                             mN                           |
+    // +----------------------------------------------------------+-----------------------------------------------------------+-----+----------------------------------------------------------+
+    //                                                                                          |
+    // __uint32_mask, simd_mask<2 * N>:                                                         V
+    // +-----------------------------+----------------------------+-----------------------------+-----------------------------+-----+-----------------------------+----------------------------+
+    // |             m0              |             m0             |             m1              |             m1              | ... |             mN              |             mN             |
+    // +-----------------------------+----------------------------+-----------------------------+-----------------------------+-----+-----------------------------+----------------------------+
+
+    // https://intel.github.io/llvm-docs/doxygen/classsycl_1_1__V1_1_1ext_1_1intel_1_1esimd_1_1detail_1_1simd__obj__impl.html#ad1eaca7ca43fcf87a29a9714b93d8109
+    // bit_cast_view
+    sycl::ext::intel::esimd::simd<::std::uint32_t, 2 * N> __uint32_vals = vals.template bit_cast_view<::std::uint32_t>();
+
+    __ESIMD_NS::simd<uint32_t, 2 * N> __uint32_offsets;
+    __ESIMD_NS::simd_mask<2 * N>      __uint32_mask(0);
+
+    // TODO required to implement this through simd/mask operations
+    // simd select stride
+    for (size_t src_index = 0; src_index < N; ++src_index)
+    {
+        __uint32_offsets[2 * src_index    ] = offsets[src_index];
+        __uint32_offsets[2 * src_index + 1] = offsets[src_index] + sizeof(uint32_t);
+
+        __uint32_mask[2 * src_index    ] = mask[src_index];
+        __uint32_mask[2 * src_index + 1] = mask[src_index];
+    }
+
+    utils::slm_scatter<uint32_t, 2 * N>(__uint32_offsets, __uint32_vals, __uint32_mask);
+}
+
 template <typename T, int N>
 inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)<=64), __ESIMD_NS::simd<T, N> > BlockLoad(uint32_t slm_offset)
 {
