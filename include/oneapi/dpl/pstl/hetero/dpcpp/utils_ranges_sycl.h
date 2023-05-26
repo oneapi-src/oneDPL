@@ -345,7 +345,7 @@ struct __buffer_holder
 // TODO: add optional template parameter: no_init to match sycl property::no_init.  This can be used to allow accessors
 // in `write` or `read_write` mode to not copy in data prior to a kernel where it is not required.  This will also allow
 // us to align with the SYCL spec on how we treat host_iterators.  We currently only copy in when `read` or `read_write`
-// access mode is specified, not for `write`.  If we add a `no_init` property, we can explicitly use it where 
+// access mode is specified, not for `write`.  If we add a `no_init` property, we can explicitly use it where
 // it applies, and operate under the same rules as SYCL with copying host_iterators.
 template <sycl::access::mode AccMode, typename _Iterator>
 struct __get_sycl_range
