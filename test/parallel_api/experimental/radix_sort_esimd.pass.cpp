@@ -38,19 +38,25 @@
 #include <cmath>
 #include <limits>
 
-constexpr bool Ascending = true;
-template <bool = Ascending>
-struct Compare : public std::less<void> {};
-template <>
-struct Compare<!Ascending> : public std::greater<void> {};
+#ifndef LOG_TEST_INFO
+#define LOG_TEST_INFO 0
+#endif
 
-//#define LOG_TEST_INFO
+#ifndef TEST_ALL_INPUTS
+#define TEST_ALL_INPUTS 0
+#endif
+
+template <typename T, bool Order>
+struct Compare : public std::less<T> {};
+
+template <typename T>
+struct Compare<T, false> : public std::greater<T> {};
+
 
 constexpr ::std::uint16_t kWorkGroupSize = 256;
 constexpr ::std::uint16_t kDataPerWorkItem = 16;
-constexpr bool Order = Ascending;
 
-#ifdef LOG_TEST_INFO
+#if LOG_TEST_INFO
 struct TypeInfo
 {
     template <typename T>
@@ -155,10 +161,10 @@ void print_data(const Container1& expected, const Container2& actual, std::size_
 }
 
 #if _ENABLE_RANGES_TESTING
-template<typename T>
+template<typename T, bool Order>
 void test_all_view(std::size_t size)
 {
-#ifdef LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #endif
 
@@ -168,7 +174,7 @@ void test_all_view(std::size_t size)
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
-    std::sort(std::begin(ref), std::end(ref), Compare<Order>{});
+    std::sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
@@ -179,10 +185,10 @@ void test_all_view(std::size_t size)
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
-template<typename T>
+template<typename T, bool Order>
 void test_subrange_view(std::size_t size)
 {
-#ifdef LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\ttest_subrange_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #endif
 
@@ -194,7 +200,7 @@ void test_subrange_view(std::size_t size)
 
     TestUtils::usm_data_transfer<sycl::usm::alloc::device, T> dt_input(q, expected.begin(), expected.end());
 
-    std::sort(expected.begin(), expected.end(), Compare<Order>{});
+    std::sort(expected.begin(), expected.end(), Compare<T, Order>{});
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
     oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, view);
@@ -208,7 +214,7 @@ void test_subrange_view(std::size_t size)
 
 #endif // _ENABLE_RANGES_TESTING
 
-template<typename T, sycl::usm::alloc _alloc_type>
+template<typename T, sycl::usm::alloc _alloc_type, bool Order>
 void test_usm(std::size_t size)
 {
     sycl::queue q = TestUtils::get_test_queue();
@@ -219,7 +225,7 @@ void test_usm(std::size_t size)
 
     TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
 
-    std::sort(expected.begin(), expected.end(), Compare<Order>{});
+    std::sort(expected.begin(), expected.end(), Compare<T, Order>{});
 
     oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, dt_input.get_data(), dt_input.get_data() + size);
 
@@ -230,29 +236,29 @@ void test_usm(std::size_t size)
     EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
 }
 
-template <typename T>
+template <typename T, bool Order>
 void
 test_usm(std::size_t size)
 {
-#ifdef LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\ttest_usm(std::size_t size) : " << TypeInfo().name<T>() << std::endl;
 #endif
 
-#ifdef LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<T, sycl::usm::alloc::shared>(" << size << ");" << std::endl;
 #endif
-    test_usm<T, sycl::usm::alloc::shared>(size);
+    test_usm<T, sycl::usm::alloc::shared, Order>(size);
 
-#ifdef LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<T, sycl::usm::alloc::device>(" << size << ");" << std::endl;
 #endif
-    test_usm<T, sycl::usm::alloc::device>(size);
+    test_usm<T, sycl::usm::alloc::device, Order>(size);
 }
 
-template<typename T>
+template<typename T, bool Order>
 void test_sycl_iterators(std::size_t size)
 {
-#ifdef LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
 #endif
 
@@ -262,7 +268,7 @@ void test_sycl_iterators(std::size_t size)
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
-    std::sort(std::begin(ref), std::end(ref), Compare<Order>{});
+    std::sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
@@ -278,65 +284,94 @@ void test_small_sizes()
     auto policy = oneapi::dpl::execution::make_device_policy(q);
 
     std::vector<uint32_t> input = {5, 11, 0, 17, 0};
-    generate_data(input.data(), input.size());
     std::vector<uint32_t> ref(input);
 
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,/*Order*/true>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,/*Order*/true>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
-// TODO: add ascending and descending sorting orders
-// TODO: provide exit code to indicate wrong results
-template<typename T>
+template <typename T>
 void test_general_cases(std::size_t size)
 {
 #if _ENABLE_RANGES_TESTING
-    test_all_view<T>(size);
-    test_subrange_view<T>(size);
+    test_all_view<T, true>(size);
+    test_all_view<T, false>(size);
+    test_subrange_view<T, true>(size);
+    test_subrange_view<T, false>(size);
 #endif // _ENABLE_RANGES_TESTING
-    test_usm<T>(size);
-    test_sycl_iterators<T>(size);
+    test_usm<T, true>(size);
+    test_usm<T, false>(size);
+    test_sycl_iterators<T, true>(size);
+    test_sycl_iterators<T, false>(size);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    const std::vector<std::size_t> onewg_sizes = { 6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14 };
-    const std::vector<std::size_t> coop_sizes = { (1<<14)+1, 50000, 67543, 100'000, 1<<17, 179'581, 250'000, 1<<18 };
-    const std::vector<std::size_t> onesweep_sizes = { (1<<18)+1, 500'000, 888'235, 1'000'000, 1<<20, 10'000'000 };
+    const std::vector<std::size_t> sizes = {
+        6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14,
+        (1<<14)+1, 50000, 67543, 100'000, 1<<17, 179'581, 250'000, 1<<18,
+        (1<<18)+1, 500'000, 888'235, 1'000'000, 1<<20, 10'000'000
+    };
 
     try
     {
+#if TEST_ALL_INPUTS
+        const std::vector<std::size_t> onewg_sizes   {std::begin(sizes),      std::begin(sizes) + 10};
+        const std::vector<std::size_t> coop_sizes    {std::begin(sizes) + 10, std::begin(sizes) + 18};
+        const std::vector<std::size_t> onesweep_sizes{std::begin(sizes) + 18, std::end(sizes)};
+
         for(auto size: onewg_sizes)
         {
-            test_general_cases<uint32_t>(size);
-            test_general_cases<int>(size);
-            test_general_cases<int16_t>(size);
+            test_general_cases<int16_t>( size);
             test_general_cases<uint16_t>(size);
+            test_general_cases<int>(size);
+            test_general_cases<uint32_t>(size);
             test_general_cases<float>(size);
             // test_general_cases<double>(size);
         }
         for(auto size: coop_sizes)
         {
-            test_general_cases<uint32_t>(size);
-            test_general_cases<int>(size);
             test_general_cases<int16_t>(size);
             test_general_cases<uint16_t>(size);
+            test_general_cases<int>(size);
+            test_general_cases<uint32_t>(size);
             test_general_cases<float>(size);
             // test_general_cases<double>(size);
         }
         for(auto size: onesweep_sizes)
         {
-            test_usm<uint32_t>(size);
-            test_usm<int>(size);
-            test_usm<int16_t>(size);
-            test_usm<uint16_t>(size);
-            test_usm<float>(size);
+            test_usm<int16_t,  true>(size);
+            test_usm<uint16_t, true>(size);
+            test_usm<int,      true>(size);
+            test_usm<uint32_t, true>(size);
+            test_usm<float,    true>(size);
+            test_usm<int16_t,  false>(size);
+            test_usm<uint16_t, false>(size);
+            test_usm<int,      false>(size);
+            test_usm<uint32_t, false>(size);
+            test_usm<float,    false>(size);
         }
         test_small_sizes();
+#else
+        for(auto size: sizes)
+        {
+            test_usm<int16_t,  sycl::usm::alloc::shared, true>(size);
+            test_usm<uint16_t, sycl::usm::alloc::shared, true>(size);
+            test_usm<int,      sycl::usm::alloc::shared, true>(size);
+            test_usm<uint32_t, sycl::usm::alloc::shared, true>(size);
+            test_usm<float,    sycl::usm::alloc::shared, true>(size);
+
+            test_usm<int16_t,  sycl::usm::alloc::shared, false>(size);
+            test_usm<uint16_t, sycl::usm::alloc::shared, false>(size);
+            test_usm<int,      sycl::usm::alloc::shared, false>(size);
+            test_usm<uint32_t, sycl::usm::alloc::shared, false>(size);
+            test_usm<float,    sycl::usm::alloc::shared, false>(size);
+        }
+#endif // TEST_ALL_INPUTS
     }
     catch (const ::std::exception& exc)
     {
