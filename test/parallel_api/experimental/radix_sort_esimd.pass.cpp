@@ -158,6 +158,10 @@ void print_data(const Container1& expected, const Container2& actual, std::size_
 template<typename T>
 void test_all_view(std::size_t size)
 {
+#ifdef LOG_TEST_INFO
+    std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
+#endif
+
     sycl::queue q = TestUtils::get_test_queue();
     auto policy = oneapi::dpl::execution::make_device_policy(q);
 
