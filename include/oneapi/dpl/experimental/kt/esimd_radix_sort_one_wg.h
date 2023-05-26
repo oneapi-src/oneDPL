@@ -161,9 +161,11 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
         }
 
         if (stage != STAGES - 1) {
+            // simd<device_addr_t, PROCESS_SIZE> write_addr;
+            // uint32_t slm_reorder_start = 0;
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-                slm_scatter<KeyT, 16>(
+                utils::slm_scatter<KeyT, 16>(
                     write_addr.template select<16, 1>(s)*sizeof(KeyT) + slm_reorder_start,
                     keys.template select<16, 1>(s));
             }
