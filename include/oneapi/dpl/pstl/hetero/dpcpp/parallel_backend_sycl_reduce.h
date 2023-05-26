@@ -248,9 +248,9 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<__work_group_size
     }
 }; // struct __parallel_transform_reduce_work_group_kernel_submitter
 
-template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1,
-          ::std::uint8_t __iters_per_work_item2, typename _Tp, typename _ReduceOp, typename _TransformOp,
-          typename _ExecutionPolicy, typename _Size, typename _InitType,
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item_device_kernel,
+          ::std::uint8_t __iters_per_work_item_work_group_kernel, typename _Tp, typename _ReduceOp,
+          typename _TransformOp, typename _ExecutionPolicy, typename _Size, typename _InitType,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
 __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _ReduceOp __reduce_op,
@@ -259,27 +259,27 @@ __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _Redu
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
 
-    // The same value for __iters_per_work_item1 is currently used. Include __iters_per_work_item1 in case this changes
-    // in the future.
+    // The same value for __iters_per_work_item_device_kernel is currently used. Include
+    // __iters_per_work_item_device_kernel in case this changes in the future.
     using _ReduceDeviceKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__reduce_mid_device_kernel<_CustomName>>;
-    using _ReduceWorkGroupKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __reduce_mid_work_group_kernel<::std::integral_constant<::std::uint8_t, __iters_per_work_item2>, _CustomName>>;
+    using _ReduceWorkGroupKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__reduce_mid_work_group_kernel<
+            ::std::integral_constant<::std::uint8_t, __iters_per_work_item_work_group_kernel>, _CustomName>>;
 
     // number of buffer elements processed within workgroup
-    constexpr _Size __size_per_work_group = __iters_per_work_item1 * __work_group_size;
+    constexpr _Size __size_per_work_group = __iters_per_work_item_device_kernel * __work_group_size;
     const _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
     sycl::buffer<_Tp> __temp{sycl::range<1>(__n_groups)};
 
     sycl::event __reduce_event =
-        __parallel_transform_reduce_device_kernel_submitter<__work_group_size, __iters_per_work_item1, _Tp,
+        __parallel_transform_reduce_device_kernel_submitter<__work_group_size, __iters_per_work_item_device_kernel, _Tp,
                                                             _ReduceDeviceKernel>()(
-            ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init, __temp,
-            ::std::forward<_Ranges>(__rngs)...);
+            __exec, __n, __reduce_op, __transform_op, __init, __temp, ::std::forward<_Ranges>(__rngs)...);
 
     __n = __n_groups; // Number of preliminary results from the device kernel.
-    return __parallel_transform_reduce_work_group_kernel_submitter<__work_group_size, __iters_per_work_item2, _Tp,
-                                                                   _ReduceWorkGroupKernel>()(
+    return __parallel_transform_reduce_work_group_kernel_submitter<
+        __work_group_size, __iters_per_work_item_work_group_kernel, _Tp, _ReduceWorkGroupKernel>()(
         ::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __n, __reduce_op, __transform_op, __init, __temp);
 }
 
@@ -452,8 +452,8 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
         }
 
         // Use two-step tree reduction.
-        // First step reduces __work_group_size * __iters_per_work_item1 elements.
-        // Second step reduces __work_group_size * __iters_per_work_item2 elements.
+        // First step reduces __work_group_size * __iters_per_work_item_device_kernel elements.
+        // Second step reduces __work_group_size * __iters_per_work_item_work_group_kernel elements.
         else if (__n <= 2097152)
         {
             return __parallel_transform_reduce_mid_impl<256, 32, 1, _Tp>(::std::forward<_ExecutionPolicy>(__exec), __n,
