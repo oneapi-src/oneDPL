@@ -37,10 +37,10 @@ template <typename... _Name>
 class __reduce_small_kernel;
 
 template <typename... _Name>
-class __reduce_mid_main_kernel;
+class __reduce_mid_device_kernel;
 
 template <typename... _Name>
-class __reduce_mid_leaf_kernel;
+class __reduce_mid_work_group_kernel;
 
 template <typename... _Name>
 class __reduce_kernel;
@@ -149,60 +149,74 @@ __parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, const _Size __
         ::std::forward<_Ranges>(__rngs)...);
 }
 
-// Parallel_transform_reduce for mid-sized arrays using two reduction steps.
-// First: __work_group_size * __iters_per_work_item1 elements are transformed and reduced to a single partial result by
-// each work group.
-// Second: __work_group_size * __iters_per_work_item2 elements are reduced to the single result.
-template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1,
-          ::std::uint8_t __iters_per_work_item2, typename _Tp, typename _MainName, typename _LeafName>
-struct __parallel_transform_reduce_mid_submitter;
+// Submits the first kernel of the parallel_transform_reduce for mid-sized arrays.
+// Uses multiple work groups that each reduce __work_group_size * __iters_per_work_item items and store the preliminary
+// results in __temp.
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _Tp, typename _KernelName>
+struct __parallel_transform_reduce_device_kernel_submitter;
 
-template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1,
-          ::std::uint8_t __iters_per_work_item2, typename _Tp, typename... _MainName, typename... _LeafName>
-struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_work_item1, __iters_per_work_item2, _Tp,
-                                                 __internal::__optional_kernel_name<_MainName...>,
-                                                 __internal::__optional_kernel_name<_LeafName...>>
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _Tp,
+          typename... _KernelName>
+struct __parallel_transform_reduce_device_kernel_submitter<__work_group_size, __iters_per_work_item, _Tp,
+                                                           __internal::__optional_kernel_name<_KernelName...>>
 {
     template <typename _ExecutionPolicy, typename _ReduceOp, typename _TransformOp, typename _Size, typename _InitType,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
               typename... _Ranges>
     auto
     operator()(_ExecutionPolicy&& __exec, _Size __n, const _ReduceOp& __reduce_op, const _TransformOp& __transform_op,
-               const _InitType& __init, _Ranges&&... __rngs) const
+               const _InitType& __init, sycl::buffer<_Tp>& __temp, _Ranges&&... __rngs) const
     {
-        using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
-        auto __transform_pattern1 =
-            unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item1, _ReduceOp, _TransformOp>{
+        auto __transform_pattern =
+            unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _TransformOp>{
                 __reduce_op, __transform_op};
-        auto __transform_pattern2 =
-            unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item2, _ReduceOp, _NoOpFunctor>{
-                __reduce_op, _NoOpFunctor{}};
         auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
         // number of buffer elements processed within workgroup
-        constexpr _Size __size_per_work_group = __iters_per_work_item1 * __work_group_size;
+        constexpr _Size __size_per_work_group = __iters_per_work_item * __work_group_size;
         const _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
-        _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item1);
+        _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
-        sycl::buffer<_Tp> __temp{sycl::range<1>(__n_groups)};
-
-        sycl::event __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
+        return __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
             sycl::accessor __temp_acc{__temp, __cgh, sycl::write_only, __dpl_sycl::__no_init{}};
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
-            __cgh.parallel_for<_MainName...>(
+            __cgh.parallel_for<_KernelName...>(
                 sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id) {
-                    __device_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern1, __reduce_pattern,
+                    __device_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern,
                                                 __temp_local, __temp_acc, __rngs...);
                 });
         });
+    }
+}; // struct __parallel_transform_reduce_device_kernel_submitter
 
-        __n = __n_groups;
+// Submits the second kernel of the parallel_transform_reduce for mid-sized arrays.
+// Uses a single work groups to reduce __n preliminary results stored in __temp and returns a future object with the
+// result buffer.
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _Tp, typename _KernelName>
+struct __parallel_transform_reduce_work_group_kernel_submitter;
+
+template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _Tp,
+          typename... _KernelName>
+struct __parallel_transform_reduce_work_group_kernel_submitter<__work_group_size, __iters_per_work_item, _Tp,
+                                                               __internal::__optional_kernel_name<_KernelName...>>
+{
+    template <typename _ExecutionPolicy, typename _ReduceOp, typename _TransformOp, typename _Size, typename _InitType,
+              oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+    auto
+    operator()(_ExecutionPolicy&& __exec, sycl::event& __reduce_event, _Size __n, const _ReduceOp& __reduce_op,
+               const _TransformOp& __transform_op, const _InitType& __init, sycl::buffer<_Tp>& __temp) const
+    {
+        using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
+        auto __transform_pattern =
+            unseq_backend::transform_reduce<_ExecutionPolicy, __iters_per_work_item, _ReduceOp, _NoOpFunctor>{
+                __reduce_op, _NoOpFunctor{}};
+        auto __reduce_pattern = unseq_backend::reduce_over_group<_ExecutionPolicy, _ReduceOp, _Tp>{__reduce_op};
 
         // Lower the work group size of the second kernel to the next power of 2 if __n < __work_group_size.
         auto __work_group_size2 = __work_group_size;
-        if constexpr (__iters_per_work_item2 == 1)
+        if constexpr (__iters_per_work_item == 1)
         {
             if (__n < __work_group_size)
             {
@@ -211,7 +225,7 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
                     __work_group_size2 = oneapi::dpl::__internal::__dpl_bit_floor(__work_group_size2) << 1;
             }
         }
-        __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item2);
+        const _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
         sycl::buffer<_Tp> __res(sycl::range<1>(1));
 
@@ -222,17 +236,17 @@ struct __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_
             sycl::accessor __res_acc{__res, __cgh, sycl::write_only, __dpl_sycl::__no_init{}};
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size2), __cgh);
 
-            __cgh.parallel_for<_LeafName...>(
+            __cgh.parallel_for<_KernelName...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size2), sycl::range<1>(__work_group_size2)),
                 [=](sycl::nd_item<1> __item_id) {
-                    __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern2, __reduce_pattern,
+                    __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern,
                                                     __init, __temp_local, __res_acc, __temp_acc);
                 });
         });
 
         return __future(__reduce_event, __res);
     }
-}; // struct __parallel_transform_reduce_mid_submitter
+}; // struct __parallel_transform_reduce_work_group_kernel_submitter
 
 template <::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item1,
           ::std::uint8_t __iters_per_work_item2, typename _Tp, typename _ReduceOp, typename _TransformOp,
@@ -244,18 +258,29 @@ __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, const
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using __iters_per_work_item1_t = ::std::integral_constant<::std::uint8_t, __iters_per_work_item1>;
-    using __iters_per_work_item2_t = ::std::integral_constant<::std::uint8_t, __iters_per_work_item2>;
 
-    using _ReduceMainKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __reduce_mid_main_kernel<__iters_per_work_item1_t, __iters_per_work_item2_t, _CustomName>>;
-    using _ReduceLeafKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __reduce_mid_leaf_kernel<__iters_per_work_item1_t, __iters_per_work_item2_t, _CustomName>>;
+    // The same value for __iters_per_work_item1 is currently used. Include __iters_per_work_item1 in case this changes
+    // in the future.
+    using _ReduceDeviceKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__reduce_mid_device_kernel<_CustomName>>;
+    using _ReduceWorkGroupKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __reduce_mid_work_group_kernel<::std::integral_constant<::std::uint8_t, __iters_per_work_item2>, _CustomName>>;
 
-    return __parallel_transform_reduce_mid_submitter<__work_group_size, __iters_per_work_item1, __iters_per_work_item2,
-                                                     _Tp, _ReduceMainKernel, _ReduceLeafKernel>()(
-        ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-        ::std::forward<_Ranges>(__rngs)...);
+    // number of buffer elements processed within workgroup
+    constexpr _Size __size_per_work_group = __iters_per_work_item1 * __work_group_size;
+    const _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
+    sycl::buffer<_Tp> __temp{sycl::range<1>(__n_groups)};
+
+    sycl::event __reduce_event =
+        __parallel_transform_reduce_device_kernel_submitter<__work_group_size, __iters_per_work_item1, _Tp,
+                                                            _ReduceDeviceKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init, __temp,
+            ::std::forward<_Ranges>(__rngs)...);
+
+    __n = __n_groups; // Number of preliminary results from the device kernel.
+    return __parallel_transform_reduce_work_group_kernel_submitter<__work_group_size, __iters_per_work_item2, _Tp,
+                                                                   _ReduceWorkGroupKernel>()(
+        ::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __n, __reduce_op, __transform_op, __init, __temp);
 }
 
 // General implementation using a tree reduction
