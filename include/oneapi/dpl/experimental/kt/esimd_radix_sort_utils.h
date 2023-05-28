@@ -179,7 +179,7 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Int, _N> __src)
 {
     using _UInt = ::std::make_unsigned_t<_Int>;
     // mask: 100..0 for ascending, 011..1 for descending
-    constexpr _UInt __mask = (__is_ascending) ? _UInt(1) << ::std::numeric_limits<_Int>::digits 
+    constexpr _UInt __mask = (__is_ascending) ? _UInt(1) << ::std::numeric_limits<_Int>::digits
                                               : ::std::numeric_limits<_UInt>::max() >> 1;
     return __src.template bit_cast_view<_UInt>() ^ __mask;
 }
@@ -321,7 +321,9 @@ VectorStore(T* dest,
             __ESIMD_NS::simd_mask<LANES> mask = 1)
 {
     VectorStore<T, VSize, 32>(dest, offset.template select<32, 1>(0), data.template select<VSize*32, 1>(0), mask.template select<32, 1>(0));
-    VectorStore<T, VSize, LANES - 32>(dest, offset.template select<LANES - 32, 1>(32), data.template select<VSize * (LANES - 32), 1>(32), mask.template select<LANES-32, 1>(32));
+    VectorStore<T, VSize, LANES - 32>(dest, offset.template select<LANES - 32, 1>(32),
+                                      data.template select<VSize * (LANES - 32), 1>(32),
+                                      mask.template select<LANES - 32, 1>(32));
 }
 
 template <typename T, int VSize, int LANES, typename AccessorTy,
@@ -335,7 +337,7 @@ VectorStore(AccessorTy acc,
 {
     VectorStore<T, VSize, 32>(acc, offset.template select<32, 1>(0), data.template select<VSize*32, 1>(0), mask.template select<32, 1>(0));
     VectorStore<T, VSize, LANES - 32>(acc, offset.template select<LANES - 32, 1>(32),
-                                      data.template select<VSize*(LANES - 32), 1>(32),
+                                      data.template select<VSize * (LANES - 32), 1>(32),
                                       mask.template select<LANES - 32, 1>(32));
 }
 
