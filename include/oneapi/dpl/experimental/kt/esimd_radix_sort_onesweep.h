@@ -125,13 +125,6 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
     uint32_t local_tid = idx.get_local_linear_id();
     uint32_t tid = idx.get_global_linear_id();
 
-    constexpr uint32_t SYNC_SEGMENT_COUNT = 64;
-    constexpr uint32_t SYNC_SEGMENT_SIZE_DW = 128;
-    if (tid < SYNC_SEGMENT_COUNT) {
-        simd<uint32_t, SYNC_SEGMENT_SIZE_DW> sync_init = 0;
-        sync_init.copy_to(p_sync_buffer + SYNC_SEGMENT_SIZE_DW * tid);
-    }
-
     if ((tid - local_tid) * PROCESS_SIZE > __n) {
         //no work for this tg;
         return;
