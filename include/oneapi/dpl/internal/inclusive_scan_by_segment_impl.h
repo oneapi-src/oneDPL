@@ -100,7 +100,7 @@ inclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
 
     iter_value_t identity = unseq_backend::__known_identity<BinaryOperator, iter_value_t>;
 
-    sycl_scan_by_segment_impl<scan_type::inclusive> scan;
+    __sycl_scan_by_segment_impl</*__is_inclusive=*/true> scan;
 
     scan(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(), value_output_buf.all_view(),
          binary_pred, binary_op, identity, identity);

@@ -45,16 +45,18 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 
         ::std::srand(42);
         Size segment_length = 1;
-        for (Size i = 0; i != n;)
+        Size j = 0;
+        for (Size i = 0; i != n; ++i)
         {
-            for (Size j = 0; j != 4 * segment_length && i != n; ++j)
+            host_keys[i] = j / segment_length + 1;
+            host_vals[i] = rand() % 5;
+            host_val_res[i] = 0;
+            ++j;
+            if (j == 4 * segment_length)
             {
-                host_keys[i] = j / segment_length + 1;
-                host_vals[i] = rand() % 5;
-                host_val_res[i] = 0;
-                ++i;
+                ++segment_length;
+                j = 0;
             }
-            ++segment_length;
         }
     }
 

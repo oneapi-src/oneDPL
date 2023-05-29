@@ -123,7 +123,7 @@ exclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
 
     constexpr iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
 
-    sycl_scan_by_segment_impl<scan_type::exclusive> scan;
+    __sycl_scan_by_segment_impl</*__is_inclusive=*/false> scan;
 
     scan(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(), value_output_buf.all_view(),
          binary_pred, binary_op, init, identity);
@@ -190,7 +190,7 @@ exclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
           typename BinaryPredicate, typename Operator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<::std::decay_t<Policy>, OutputIterator>
 exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op)
 {

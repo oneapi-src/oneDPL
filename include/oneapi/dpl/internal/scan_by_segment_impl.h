@@ -32,6 +32,11 @@
 
 #if _ONEDPL_BACKEND_SYCL
 
+#include <type_traits>
+#include <cstdint>
+#include <utility>
+#include <algorithm>
+
 #include <oneapi/dpl/pstl/algorithm_fwd.h>
 #include <oneapi/dpl/pstl/parallel_backend.h>
 #include <oneapi/dpl/pstl/hetero/utils_hetero.h>
@@ -81,26 +86,20 @@ wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, _I
     return (__local_id ? __local_acc[__first + __local_id - 1] : __identity);
 }
 
-enum class scan_type
-{
-    inclusive,
-    exclusive
-};
+template <bool __is_inclusive, typename... Name>
+class __seg_scan_wg_kernel;
 
-template <scan_type __scan_type, typename... Name>
-class __sycl_segmented_scan_kernel1;
+template <bool __is_inclusive, typename... Name>
+class __seg_scan_prefix_kernel;
 
-template <scan_type __scan_type, typename... Name>
-class __sycl_segmented_scan_kernel2;
-
-template <scan_type __scan_type>
-struct sycl_scan_by_segment_impl
+template <bool __is_inclusive>
+struct __sycl_scan_by_segment_impl
 {
     template <typename... _Name>
-    using _KernelName1 = __sycl_segmented_scan_kernel1<__scan_type, _Name...>;
+    using _SegScanWgPhase = __seg_scan_wg_kernel<__is_inclusive, _Name...>;
 
     template <typename... _Name>
-    using _KernelName2 = __sycl_segmented_scan_kernel2<__scan_type, _Name...>;
+    using _SegScanPrefixPhase = __seg_scan_prefix_kernel<__is_inclusive, _Name...>;
 
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
               typename _BinaryPredicate, typename _BinaryOperator, typename _T>
@@ -111,10 +110,10 @@ struct sycl_scan_by_segment_impl
         using _Policy = ::std::decay_t<_ExecutionPolicy>;
         using _CustomName = typename _Policy::kernel_name;
 
-        using _SegScanKernel1 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-            _KernelName1, _CustomName, _Range1, _Range2, _Range3, _BinaryPredicate, _BinaryOperator>;
-        using _SegScanKernel2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-            _KernelName2, _CustomName, _Range1, _Range2, _Range3, _BinaryPredicate, _BinaryOperator>;
+        using _SegScanWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            _SegScanWgPhase, _CustomName, _Range1, _Range2, _Range3, _BinaryPredicate, _BinaryOperator>;
+        using _SegScanPrefixKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+            _SegScanPrefixPhase, _CustomName, _Range1, _Range2, _Range3, _BinaryPredicate, _BinaryOperator>;
 
         using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
         using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
@@ -133,14 +132,16 @@ struct sycl_scan_by_segment_impl
             ::std::forward<_ExecutionPolicy>(__exec), 3 * sizeof(__val_type), __wgroup_size);
 
 #if _ONEDPL_COMPILE_KERNEL
-        auto __kernel1 = __par_backend_hetero::__internal::__kernel_compiler<_SegScanKernel1>::__compile(
+        auto __seg_scan_wg_kernel = __par_backend_hetero::__internal::__kernel_compiler<_SegScanWgKernel>::__compile(
             ::std::forward<_ExecutionPolicy>(__exec));
-        auto __kernel2 = __par_backend_hetero::__internal::__kernel_compiler<_SegScanKernel2>::__compile(
-            ::std::forward<_ExecutionPolicy>(__exec));
-        __wgroup_size = ::std::min(
-            {__wgroup_size,
-             oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel1),
-             oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel2)});
+        auto __seg_scan_prefix_kernel =
+            __par_backend_hetero::__internal::__kernel_compiler<_SegScanPrefixKernel>::__compile(
+                ::std::forward<_ExecutionPolicy>(__exec));
+        __wgroup_size = ::std::min({__wgroup_size,
+                                    oneapi::dpl::__internal::__kernel_work_group_size(
+                                        ::std::forward<_ExecutionPolicy>(__exec), __seg_scan_wg_kernel),
+                                    oneapi::dpl::__internal::__kernel_work_group_size(
+                                        ::std::forward<_ExecutionPolicy>(__exec), __seg_scan_prefix_kernel)});
 #endif
 
         ::std::size_t __n_groups = __internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
@@ -164,11 +165,11 @@ struct sycl_scan_by_segment_impl
             __dpl_sycl::__local_accessor<__val_type> __loc_acc(2 * __wgroup_size, __cgh);
 
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__kernel1.get_kernel_bundle());
+            __cgh.use_kernel_bundle(__seg_scan_wg_kernel.get_kernel_bundle());
 #endif
-            __cgh.parallel_for<_SegScanKernel1>(
+            __cgh.parallel_for<_SegScanWgKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel1,
+                __seg_scan_wg_kernel,
 #endif
                 sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                     __val_type __accumulator = __identity;
@@ -189,13 +190,13 @@ struct sycl_scan_by_segment_impl
                         __accumulator = __init;
                     }
 
-                    constexpr ::std::int64_t NO_SEGMENT_BREAK = -1;
+                    constexpr ::std::int32_t __no_segment_break = ~0;
                     // signed to allow flag for no segment break found
-                    ::std::int64_t __max_end = NO_SEGMENT_BREAK;
+                    ::std::int32_t __max_end = __no_segment_break;
 
                     for (::std::size_t __i = __start; __i < __end; ++__i)
                     {
-                        if constexpr (__scan_type == scan_type::inclusive)
+                        if constexpr (__is_inclusive)
                         {
                             __accumulator = __binary_op(__accumulator, __values[__i]);
                             __out_values[__i] = __accumulator;
@@ -216,13 +217,13 @@ struct sycl_scan_by_segment_impl
                     }
 
                     // 1b. Perform a work group scan to find the carry in value to apply to each item.
-                    ::std::int64_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
+                    ::std::int32_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
                         __group, __max_end, __dpl_sycl::__maximum<decltype(__max_end)>());
 
-                    bool __group_has_segment_break = (__closest_seg_id != NO_SEGMENT_BREAK);
+                    bool __group_has_segment_break = (__closest_seg_id != __no_segment_break);
 
                     //get rid of no segment end found flag
-                    __closest_seg_id = ::std::max(::std::int64_t(0), __closest_seg_id);
+                    __closest_seg_id = ::std::max(::std::int32_t(0), __closest_seg_id);
                     __val_type __carry_in =
                         wg_segmented_scan(__item, __loc_acc, __local_id, __local_id - __closest_seg_id, __accumulator,
                                           __identity, __binary_op, __wgroup_size); // need to use exclusive scan delta
@@ -242,7 +243,7 @@ struct sycl_scan_by_segment_impl
 
                         __seg_ends_acc[__group_id] = __group_has_segment_break;
 
-                        if (__max_end == NO_SEGMENT_BREAK)
+                        if (__max_end == __no_segment_break)
                         {
                             __partials_acc[__group_id] = __binary_op(__carry_in, __accumulator);
                         }
@@ -268,11 +269,11 @@ struct sycl_scan_by_segment_impl
 
                 __dpl_sycl::__local_accessor<bool> __loc_seg_ends_acc(__wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-                __cgh.use_kernel_bundle(__kernel2.get_kernel_bundle());
+                __cgh.use_kernel_bundle(__seg_scan_prefix_kernel.get_kernel_bundle());
 #endif
-                __cgh.parallel_for<_SegScanKernel2>(
+                __cgh.parallel_for<_SegScanPrefixKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                    __kernel2,
+                    __seg_scan_prefix_kernel,
 #endif
                     sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                         auto __group = __item.get_group();
@@ -292,7 +293,7 @@ struct sycl_scan_by_segment_impl
                             bool __ag_exists = __start < __n;
                             // local reductions followed by a downsweep
                             // TODO: Generalize this value
-                            constexpr ::std::int64_t __vals_to_explore = 16;
+                            constexpr ::std::int32_t __vals_to_explore = 16;
                             bool __last_it = false;
                             __loc_seg_ends_acc[__local_id] = false;
                             __loc_partials_acc[__local_id] = __identity;
