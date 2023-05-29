@@ -42,10 +42,16 @@
 #ifndef _ONEDPL_REDUCE_BY_SEGMENT_IMPL_H
 #define _ONEDPL_REDUCE_BY_SEGMENT_IMPL_H
 
+#include <cstdint>
+#include <type_traits>
+#include <utility>
+#include <algorithm>
+
 #include "../pstl/iterator_impl.h"
 #include "function.h"
 #include "by_segment_extension_defs.h"
 #include "../pstl/utils.h"
+
 #if _ONEDPL_BACKEND_SYCL
 #include "../pstl/utils_ranges.h"
 #include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
@@ -192,24 +198,24 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 #if _ONEDPL_BACKEND_SYCL
 
 template <typename... Name>
-class __sycl_segmented_reduce_kernel1;
+class __seg_reduce_count_kernel;
 template <typename... Name>
-class __sycl_segmented_reduce_kernel2;
+class __seg_reduce_offset_kernel;
 template <typename... Name>
-class __sycl_segmented_reduce_kernel3;
+class __seg_reduce_wg_kernel;
 template <typename... Name>
-class __sycl_segmented_reduce_kernel4;
+class __seg_reduce_prefix_kernel;
 
 namespace
 {
 template <typename... _Name>
-using _KernelName1 = __sycl_segmented_reduce_kernel1<_Name...>;
+using _SegReduceCountPhase = __seg_reduce_count_kernel<_Name...>;
 template <typename... _Name>
-using _KernelName2 = __sycl_segmented_reduce_kernel2<_Name...>;
+using _SegReduceOffsetPhase = __seg_reduce_offset_kernel<_Name...>;
 template <typename... _Name>
-using _KernelName3 = __sycl_segmented_reduce_kernel3<_Name...>;
+using _SegReduceWgPhase = __seg_reduce_wg_kernel<_Name...>;
 template <typename... _Name>
-using _KernelName4 = __sycl_segmented_reduce_kernel4<_Name...>;
+using _SegReducePrefixPhase = __seg_reduce_prefix_kernel<_Name...>;
 } // namespace
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
@@ -236,14 +242,14 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
     using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
 
-    using _SegReduceKernel1 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-        _KernelName1, _CustomName, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate, _BinaryOperator>;
-    using _SegReduceKernel2 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-        _KernelName2, _CustomName, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate, _BinaryOperator>;
-    using _SegReduceKernel3 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-        _KernelName3, _CustomName, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate, _BinaryOperator>;
-    using _SegReduceKernel4 = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
-        _KernelName4, _CustomName, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate, _BinaryOperator>;
+    using _SegReduceCountKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        _SegReduceCountPhase, _CustomName, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate, _BinaryOperator>;
+    using _SegReduceOffsetKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        _SegReduceOffsetPhase, _CustomName, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate, _BinaryOperator>;
+    using _SegReduceWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        _SegReduceWgPhase, _CustomName, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate, _BinaryOperator>;
+    using _SegReducePrefixKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
+        _SegReducePrefixPhase, _CustomName, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate, _BinaryOperator>;
 
     using __diff_type = oneapi::dpl::__internal::__difference_t<_Range3>;
     using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
@@ -263,20 +269,27 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
         ::std::forward<_ExecutionPolicy>(__exec), sizeof(__key_type) + 2 * sizeof(__val_type), __wgroup_size);
 
 #if _ONEDPL_COMPILE_KERNEL
-    auto __kernel1 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel1>::__compile(
+    auto __seg_reduce_count_kernel =
+        __par_backend_hetero::__internal::__kernel_compiler<_SegReduceCountKernel>::__compile(
+            ::std::forward<_ExecutionPolicy>(__exec));
+    auto __seg_reduce_offset_kernel =
+        __par_backend_hetero::__internal::__kernel_compiler<_SegReduceOffsetKernel>::__compile(
+            ::std::forward<_ExecutionPolicy>(__exec));
+    auto __seg_reduce_wg_kernel = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceWgKernel>::__compile(
         ::std::forward<_ExecutionPolicy>(__exec));
-    auto __kernel2 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel2>::__compile(
-        ::std::forward<_ExecutionPolicy>(__exec));
-    auto __kernel3 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel3>::__compile(
-        ::std::forward<_ExecutionPolicy>(__exec));
-    auto __kernel4 = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceKernel4>::__compile(
-        ::std::forward<_ExecutionPolicy>(__exec));
-    __wgroup_size = ::std::min(
-        {__wgroup_size,
-         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel1),
-         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel2),
-         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel3),
-         oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec), __kernel4)});
+    auto __seg_reduce_prefix_kernel =
+        __par_backend_hetero::__internal::__kernel_compiler<_SegReducePrefixKernel>::__compile(
+            ::std::forward<_ExecutionPolicy>(__exec));
+    __wgroup_size =
+        ::std::min({__wgroup_size,
+                    oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec),
+                                                                      __seg_reduce_count_kernel),
+                    oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec),
+                                                                      __seg_reduce_offset_kernel),
+                    oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec),
+                                                                      __seg_reduce_wg_kernel),
+                    oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec),
+                                                                      __seg_reduce_prefix_kernel)});
 #endif
 
     ::std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
@@ -304,12 +317,12 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
         oneapi::dpl::__ranges::__require_access(__cgh, __keys);
         auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::write>(__cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __cgh.use_kernel_bundle(__kernel1.get_kernel_bundle());
+        __cgh.use_kernel_bundle(__seg_reduce_count_kernel.get_kernel_bundle());
 #endif
-        __cgh.parallel_for<_SegReduceKernel1>(
+        __cgh.parallel_for<_SegReduceCountKernel>(
             sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                                                                              __kernel1,
+                                                                              __seg_reduce_count_kernel,
 #endif
                                                                               sycl::nd_item<1> __item) {
                 auto __group = __item.get_group();
@@ -342,11 +355,11 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
         auto __seg_ends_acc = __seg_ends.template get_access<sycl::access_mode::read>(__cgh);
         auto __seg_ends_scan_acc = __seg_ends_scanned.template get_access<sycl::access_mode::read_write>(__cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __cgh.use_kernel_bundle(__kernel2.get_kernel_bundle());
+        __cgh.use_kernel_bundle(__seg_reduce_offset_kernel.get_kernel_bundle());
 #endif
-        __cgh.parallel_for<_SegReduceKernel2>(
+        __cgh.parallel_for<_SegReduceOffsetKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-            __kernel2,
+            __seg_reduce_offset_kernel,
 #endif
             sycl::nd_range<1>{__wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                 auto __beg = __seg_ends_acc.get_pointer();
@@ -365,11 +378,11 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
         auto __seg_ends_scan_acc = __seg_ends_scanned.template get_access<sycl::access_mode::read>(__cgh);
         __dpl_sycl::__local_accessor<__val_type> __loc_acc(2 * __wgroup_size, __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-        __cgh.use_kernel_bundle(__kernel3.get_kernel_bundle());
+        __cgh.use_kernel_bundle(__seg_reduce_wg_kernel.get_kernel_bundle());
 #endif
-        __cgh.parallel_for<_SegReduceKernel3>(
+        __cgh.parallel_for<_SegReduceWgKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-            __kernel3,
+            __seg_reduce_wg_kernel,
 #endif
             sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                 ::std::array<__val_type, __vals_per_item> __loc_partials;
@@ -486,11 +499,11 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 
             __cgh.depends_on(__wg_reduce);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
-            __cgh.use_kernel_bundle(__kernel4.get_kernel_bundle());
+            __cgh.use_kernel_bundle(__seg_reduce_prefix_kernel.get_kernel_bundle());
 #endif
-            __cgh.parallel_for<_SegReduceKernel4>(
+            __cgh.parallel_for<_SegReducePrefixKernel>(
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
-                __kernel4,
+                __seg_reduce_prefix_kernel,
 #endif
                 sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                     auto __group = __item.get_group();
