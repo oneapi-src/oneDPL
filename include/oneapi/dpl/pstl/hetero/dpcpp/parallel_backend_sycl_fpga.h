@@ -122,24 +122,25 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2
     using __kernel_name = typename _Policy::kernel_name;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-        ::std::move(__device_policy), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init,
-        __binary_op, _Inclusive{});
+        ::std::move(__device_policy), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng), __n,
+        __unary_op, __init, __binary_op, _Inclusive{});
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
           typename _LocalScan, typename _GroupScan, typename _GlobalScan,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
 auto
-__parallel_transform_scan_multi_group(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
-                          _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
+__parallel_transform_scan_multi_group(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
+                                      _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
+                                      _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     // workaround until we implement more performant version for patterns
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_multi_group(
-        std::move(__device_policy), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2), __binary_op, __init,
-        __local_scan, __group_scan, __global_scan);
+        std::move(__device_policy), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2), __binary_op,
+        __init, __local_scan, __group_scan, __global_scan);
 }
 
 //------------------------------------------------------------------------

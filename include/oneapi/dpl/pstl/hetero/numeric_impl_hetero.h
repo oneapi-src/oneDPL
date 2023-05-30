@@ -97,7 +97,6 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
 template <typename T>
 struct ExecutionPolicyWrapper;
 
-
 // TODO In C++20 we may try to use std::equality_comparable
 template <typename _Iterator1, typename _Iterator2, typename = void>
 struct __is_equality_comparable : std::false_type
@@ -174,8 +173,10 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
         auto __buf2 = __keep2(__result, __result + __n);
 
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init, __binary_op,
-                                           _Inclusive{}).wait();
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(::std::forward<_ExecutionPolicy>(__exec),
+                                                                     __buf1.all_view(), __buf2.all_view(), __n,
+                                                                     __unary_op, __init, __binary_op, _Inclusive{})
+            .wait();
     }
     else
     {
@@ -197,13 +198,14 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         auto __buf2 = __keep2(__first_tmp, __last_tmp);
 
         // Run main algorithm and save data into temporary buffer
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__policy, __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init, __binary_op,
-                                           _Inclusive{}).wait();
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__policy, __buf1.all_view(), __buf2.all_view(),
+                                                                     __n, __unary_op, __init, __binary_op, _Inclusive{})
+            .wait();
 
         // Move data from temporary buffer into results
-        oneapi::dpl::__internal::__pattern_walk2_brick(
-            ::std::move(__policy), __first_tmp, __last_tmp, __result,
-            oneapi::dpl::__internal::__brick_move<_NewExecutionPolicy>{}, ::std::true_type{});
+        oneapi::dpl::__internal::__pattern_walk2_brick(::std::move(__policy), __first_tmp, __last_tmp, __result,
+                                                       oneapi::dpl::__internal::__brick_move<_NewExecutionPolicy>{},
+                                                       ::std::true_type{});
 
         //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
     }

@@ -559,8 +559,8 @@ template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename
           typename _BinaryOperation, typename _Inclusive>
 auto
 __parallel_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng,
-                                      ::std::size_t __n, _UnaryOperation __unary_op, _InitType __init,
-                                      _BinaryOperation __binary_op, _Inclusive)
+                                       ::std::size_t __n, _UnaryOperation __unary_op, _InitType __init,
+                                       _BinaryOperation __binary_op, _Inclusive)
 {
     using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
 
@@ -586,7 +586,8 @@ __parallel_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_
                         __scan_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
                                                 /* _IsFullGroup= */ std::true_type, _Inclusive, _CustomName>>>()(
-                    ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
+                    ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
+                    std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
             else
                 return __parallel_transform_scan_static_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
@@ -595,7 +596,8 @@ __parallel_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_
                         __scan_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
                                                 /* _IsFullGroup= */ ::std::false_type, _Inclusive, _CustomName>>>()(
-                    ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
+                    ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng),
+                    std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
         };
         if (__n <= 16)
             return __single_group_scan_f(std::integral_constant<::std::uint16_t, 16>{});
@@ -626,7 +628,8 @@ __parallel_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_
             __par_backend_hetero::__scan_single_wg_dynamic_kernel<_CustomName>>;
 
         return __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive::value, _DynamicGroupScanKernel>()(
-            __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op, __max_wg_size);
+            __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, __init, __binary_op,
+            __unary_op, __max_wg_size);
     }
 }
 
@@ -634,8 +637,9 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
           typename _LocalScan, typename _GroupScan, typename _GlobalScan,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
-__parallel_transform_scan_multi_group(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
-                          _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
+__parallel_transform_scan_multi_group(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng,
+                                      _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
+                                      _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
@@ -644,17 +648,16 @@ __parallel_transform_scan_multi_group(_ExecutionPolicy&& __exec, _Range1&& __rng
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_propagate_kernel<_CustomName>>;
 
     return __parallel_scan_submitter<_CustomName, _PropagateKernel>()(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng),
         __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation,
-          typename _InitType, typename _BinaryOperation, typename _Inclusive,
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
+          typename _BinaryOperation, typename _Inclusive,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng, ::std::size_t __n,
-                                   _UnaryOperation __unary_op, _InitType __init,
-                                   _BinaryOperation __binary_op, _Inclusive)
+                          _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
 {
     using _Type = typename _InitType::__value_type;
 
@@ -676,8 +679,8 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2
         if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size)
         {
             return __parallel_transform_scan_single_group(
-                std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op,
-                _Inclusive{});
+                std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
+                ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
         }
     }
 
@@ -691,20 +694,22 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2
     _NoAssign __no_assign_op;
     _NoOpFunctor __get_data_op;
 
-    return __future(__parallel_transform_scan_multi_group(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng), __binary_op, __init,
-        // local scan
-        unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
-                              _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,
-                                                       __get_data_op},
-        // scan between groups
-        unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
-                              _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
-            __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
-        // global scan
-        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init}).event());
+    return __future(
+        __parallel_transform_scan_multi_group(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
+            ::std::forward<_Range2>(__out_rng), __binary_op, __init,
+            // local scan
+            unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
+                                  _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op,
+                                                           __assign_op, __get_data_op},
+            // scan between groups
+            unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
+                                  _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
+                __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
+            // global scan
+            unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
+            .event());
 }
-
 
 //------------------------------------------------------------------------
 // find_or tags

@@ -196,7 +196,7 @@ __pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __firs
                                     _BinaryOperation __binary_op, _Inclusive)
 {
     assert(__first < __last);
-    
+
     auto __n = __last - __first;
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first, __last);
@@ -204,7 +204,8 @@ __pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __firs
     auto __buf2 = __keep2(__result, __result + __n);
 
     auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init, __binary_op, _Inclusive{});
+        ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init,
+        __binary_op, _Inclusive{});
     return __res.__make_future(__result + __n);
 }
 
