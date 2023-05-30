@@ -52,6 +52,8 @@ struct Compare : public std::less<T> {};
 template <typename T>
 struct Compare<T, false> : public std::greater<T> {};
 
+constexpr bool kAscending = true;
+constexpr bool kDescending = false;
 
 constexpr ::std::uint16_t kWorkGroupSize = 256;
 constexpr ::std::uint16_t kDataPerWorkItem = 16;
@@ -106,6 +108,42 @@ struct TypeInfo
     {
         static const std::string kTypeName = "double";
         return kTypeName;
+    }
+};
+struct USMAllocPresentation
+{
+    template <typename T>
+    const std::string& name()
+    {
+        static const std::string kUSMAllocTypeName = "unknown";
+        return kUSMAllocTypeName;
+    }
+
+    template <>
+    const std::string& name<sycl::usm::alloc::host>()
+    {
+        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::host";
+        return kUSMAllocTypeName;
+    }
+
+    const std::string& name<sycl::usm::alloc::device>()
+    {
+        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::device";
+        return kUSMAllocTypeName;
+    }
+
+    template <>
+    const std::string& name<sycl::usm::alloc::shared>()
+    {
+        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::shared";
+        return kUSMAllocTypeName;
+    }
+
+    template <>
+    const std::string& name<sycl::usm::alloc::unknown>()
+    {
+        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::unknown";
+        return kUSMAllocTypeName;
     }
 };
 #endif // LOG_TEST_INFO
@@ -189,7 +227,7 @@ template<typename T, bool Order>
 void test_subrange_view(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_subrange_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
+    std::cout << "\ttest_subrange_view<T, " << Order << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -217,6 +255,10 @@ void test_subrange_view(std::size_t size)
 template<typename T, sycl::usm::alloc _alloc_type, bool Order>
 void test_usm(std::size_t size)
 {
+#if LOG_TEST_INFO
+    std::cout << "\t\ttest_usm<T, " << USMAllocPresentation()::name<_alloc_type>() << ", " << Order << ">(" << size << ");" << std::endl;
+#endif
+
     sycl::queue q = TestUtils::get_test_queue();
     auto policy = oneapi::dpl::execution::make_device_policy(q);
 
@@ -241,17 +283,10 @@ void
 test_usm(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_usm(std::size_t size) : " << TypeInfo().name<T>() << std::endl;
+    std::cout << "\ttest_usm<T, " << Order << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #endif
 
-#if LOG_TEST_INFO
-    std::cout << "\t\ttest_usm<T, sycl::usm::alloc::shared>(" << size << ");" << std::endl;
-#endif
     test_usm<T, sycl::usm::alloc::shared, Order>(size);
-
-#if LOG_TEST_INFO
-    std::cout << "\t\ttest_usm<T, sycl::usm::alloc::device>(" << size << ");" << std::endl;
-#endif
     test_usm<T, sycl::usm::alloc::device, Order>(size);
 }
 
@@ -280,15 +315,19 @@ void test_sycl_iterators(std::size_t size)
 
 void test_small_sizes()
 {
+#if LOG_TEST_INFO
+    std::cout << "\t\ttest_small_sizes();" << std::endl;
+#endif
+
     sycl::queue q = TestUtils::get_test_queue();
     auto policy = oneapi::dpl::execution::make_device_policy(q);
 
     std::vector<uint32_t> input = {5, 11, 0, 17, 0};
     std::vector<uint32_t> ref(input);
 
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,/*Order*/true>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,kAscending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,/*Order*/true>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,kAscending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
@@ -296,15 +335,15 @@ template <typename T>
 void test_general_cases(std::size_t size)
 {
 #if _ENABLE_RANGES_TESTING
-    test_all_view<T, true>(size);
-    test_all_view<T, false>(size);
-    test_subrange_view<T, true>(size);
-    test_subrange_view<T, false>(size);
+    test_all_view<T, kAscending>(size);
+    test_all_view<T, kDescending>(size);
+    test_subrange_view<T, kAscending>(size);
+    test_subrange_view<T, kDescending>(size);
 #endif // _ENABLE_RANGES_TESTING
-    test_usm<T, true>(size);
-    test_usm<T, false>(size);
-    test_sycl_iterators<T, true>(size);
-    test_sycl_iterators<T, false>(size);
+    test_usm<T, kAscending>(size);
+    test_usm<T, kDescending>(size);
+    test_sycl_iterators<T, kAscending>(size);
+    test_sycl_iterators<T, kDescending>(size);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -326,50 +365,51 @@ int main()
 
         for(auto size: onewg_sizes)
         {
-            test_general_cases<int16_t>( size);
+            test_general_cases<int16_t >(size);
             test_general_cases<uint16_t>(size);
-            test_general_cases<int>(size);
+            test_general_cases<int     >(size);
             test_general_cases<uint32_t>(size);
-            test_general_cases<float>(size);
-            // test_general_cases<double>(size);
+            test_general_cases<float   >(size);
+            //test_general_cases<double  >(size);
         }
         for(auto size: coop_sizes)
         {
-            test_general_cases<int16_t>(size);
+            test_general_cases<int16_t >(size);
             test_general_cases<uint16_t>(size);
-            test_general_cases<int>(size);
+            test_general_cases<int     >(size);
             test_general_cases<uint32_t>(size);
-            test_general_cases<float>(size);
-            // test_general_cases<double>(size);
+            test_general_cases<float   >(size);
+            //test_general_cases<double  >(size);
         }
         for(auto size: onesweep_sizes)
         {
-            test_usm<int16_t,  true>(size);
-            test_usm<uint16_t, true>(size);
-            test_usm<int,      true>(size);
-            test_usm<uint32_t, true>(size);
-            test_usm<float,    true>(size);
-            test_usm<int16_t,  false>(size);
-            test_usm<uint16_t, false>(size);
-            test_usm<int,      false>(size);
-            test_usm<uint32_t, false>(size);
-            test_usm<float,    false>(size);
+            test_usm<int16_t,  kAscending>(size);
+            test_usm<uint16_t, kAscending>(size);
+            test_usm<int,      kAscending>(size);
+            test_usm<uint32_t, kAscending>(size);
+            test_usm<float,    kAscending>(size);
+
+            test_usm<int16_t,  kDescending>(size);
+            test_usm<uint16_t, kDescending>(size);
+            test_usm<int,      kDescending>(size);
+            test_usm<uint32_t, kDescending>(size);
+            test_usm<float,    kDescending>(size);
         }
         test_small_sizes();
 #else
         for(auto size: sizes)
         {
-            test_usm<int16_t,  sycl::usm::alloc::shared, true>(size);
-            test_usm<uint16_t, sycl::usm::alloc::shared, true>(size);
-            test_usm<int,      sycl::usm::alloc::shared, true>(size);
-            test_usm<uint32_t, sycl::usm::alloc::shared, true>(size);
-            test_usm<float,    sycl::usm::alloc::shared, true>(size);
+            test_usm<int16_t,  sycl::usm::alloc::shared, kAscending>(size);
+            test_usm<uint16_t, sycl::usm::alloc::shared, kAscending>(size);
+            test_usm<int,      sycl::usm::alloc::shared, kAscending>(size);
+            test_usm<uint32_t, sycl::usm::alloc::shared, kAscending>(size);
+            test_usm<float,    sycl::usm::alloc::shared, kAscending>(size);
 
-            test_usm<int16_t,  sycl::usm::alloc::shared, false>(size);
-            test_usm<uint16_t, sycl::usm::alloc::shared, false>(size);
-            test_usm<int,      sycl::usm::alloc::shared, false>(size);
-            test_usm<uint32_t, sycl::usm::alloc::shared, false>(size);
-            test_usm<float,    sycl::usm::alloc::shared, false>(size);
+            test_usm<int16_t,  sycl::usm::alloc::shared, kDescending>(size);
+            test_usm<uint16_t, sycl::usm::alloc::shared, kDescending>(size);
+            test_usm<int,      sycl::usm::alloc::shared, kDescending>(size);
+            test_usm<uint32_t, sycl::usm::alloc::shared, kDescending>(size);
+            test_usm<float,    sycl::usm::alloc::shared, kDescending>(size);
         }
 #endif // TEST_ALL_INPUTS
     }
