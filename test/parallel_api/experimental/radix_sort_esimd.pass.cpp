@@ -371,7 +371,7 @@ int main()
             test_general_cases<int     >(size);
             test_general_cases<uint32_t>(size);
             test_general_cases<float   >(size);
-            //test_general_cases<double  >(size);
+            test_general_cases<double  >(size);
         }
         for(auto size: coop_sizes)
         {
@@ -380,7 +380,7 @@ int main()
             test_general_cases<int     >(size);
             test_general_cases<uint32_t>(size);
             test_general_cases<float   >(size);
-            //test_general_cases<double  >(size);
+            test_general_cases<double  >(size);
         }
         for(auto size: onesweep_sizes)
         {
@@ -389,12 +389,14 @@ int main()
             test_usm<int,      kAscending>(size);
             test_usm<uint32_t, kAscending>(size);
             test_usm<float,    kAscending>(size);
+            test_usm<double,   kAscending>(size);
 
             test_usm<int16_t,  kDescending>(size);
             test_usm<uint16_t, kDescending>(size);
             test_usm<int,      kDescending>(size);
             test_usm<uint32_t, kDescending>(size);
             test_usm<float,    kDescending>(size);
+            test_usm<double,   kDescending>(size);
         }
         test_small_sizes();
 #else
@@ -405,12 +407,14 @@ int main()
             test_usm<int,      sycl::usm::alloc::shared, kAscending>(size);
             test_usm<uint32_t, sycl::usm::alloc::shared, kAscending>(size);
             test_usm<float,    sycl::usm::alloc::shared, kAscending>(size);
+            test_usm<double,   sycl::usm::alloc::shared, kAscending>(size);
 
             test_usm<int16_t,  sycl::usm::alloc::shared, kDescending>(size);
             test_usm<uint16_t, sycl::usm::alloc::shared, kDescending>(size);
             test_usm<int,      sycl::usm::alloc::shared, kDescending>(size);
             test_usm<uint32_t, sycl::usm::alloc::shared, kDescending>(size);
             test_usm<float,    sycl::usm::alloc::shared, kDescending>(size);
+            test_usm<double,   sycl::usm::alloc::shared, kDescending>(size);
         }
 #endif // TEST_ALL_INPUTS
     }
