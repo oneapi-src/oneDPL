@@ -315,6 +315,10 @@ void test_sycl_iterators(std::size_t size)
 
 void test_small_sizes()
 {
+#if LOG_TEST_INFO
+    std::cout << "\t\ttest_small_sizes();" << std::endl;
+#endif
+
     sycl::queue q = TestUtils::get_test_queue();
     auto policy = oneapi::dpl::execution::make_device_policy(q);
 
