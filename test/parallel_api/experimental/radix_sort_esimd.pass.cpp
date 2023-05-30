@@ -112,7 +112,7 @@ struct TypeInfo
 };
 struct USMAllocPresentation
 {
-    template <typename T>
+    template <sycl::usm::alloc>
     const std::string& name()
     {
         static const std::string kUSMAllocTypeName = "unknown";
@@ -126,6 +126,7 @@ struct USMAllocPresentation
         return kUSMAllocTypeName;
     }
 
+    template <>
     const std::string& name<sycl::usm::alloc::device>()
     {
         static const std::string kUSMAllocTypeName = "sycl::usm::alloc::device";
@@ -256,7 +257,7 @@ template<typename T, sycl::usm::alloc _alloc_type, bool Order>
 void test_usm(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest_usm<T, " << USMAllocPresentation()::name<_alloc_type>() << ", " << Order << ">(" << size << ");" << std::endl;
+    std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ", " << Order << ">("<< size << ");" << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
