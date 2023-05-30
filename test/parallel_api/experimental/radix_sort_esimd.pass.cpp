@@ -52,6 +52,8 @@ struct Compare : public std::less<T> {};
 template <typename T>
 struct Compare<T, false> : public std::greater<T> {};
 
+constexpr bool kAscending = true;
+constexpr bool kDescending = false;
 
 constexpr ::std::uint16_t kWorkGroupSize = 256;
 constexpr ::std::uint16_t kDataPerWorkItem = 16;
@@ -319,9 +321,9 @@ void test_small_sizes()
     std::vector<uint32_t> input = {5, 11, 0, 17, 0};
     std::vector<uint32_t> ref(input);
 
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,/*Order*/true>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,kAscending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,/*Order*/true>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,kAscending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
@@ -329,15 +331,15 @@ template <typename T>
 void test_general_cases(std::size_t size)
 {
 #if _ENABLE_RANGES_TESTING
-    test_all_view<T, true>(size);
-    test_all_view<T, false>(size);
-    test_subrange_view<T, true>(size);
-    test_subrange_view<T, false>(size);
+    test_all_view<T, kAscending>(size);
+    test_all_view<T, kDescending>(size);
+    test_subrange_view<T, kAscending>(size);
+    test_subrange_view<T, kDescending>(size);
 #endif // _ENABLE_RANGES_TESTING
-    test_usm<T, true>(size);
-    test_usm<T, false>(size);
-    test_sycl_iterators<T, true>(size);
-    test_sycl_iterators<T, false>(size);
+    test_usm<T, kAscending>(size);
+    test_usm<T, kDescending>(size);
+    test_sycl_iterators<T, kAscending>(size);
+    test_sycl_iterators<T, kDescending>(size);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -377,32 +379,33 @@ int main()
         }
         for(auto size: onesweep_sizes)
         {
-            test_usm<int16_t,  true>(size);
-            test_usm<uint16_t, true>(size);
-            test_usm<int,      true>(size);
-            test_usm<uint32_t, true>(size);
-            test_usm<float,    true>(size);
-            test_usm<int16_t,  false>(size);
-            test_usm<uint16_t, false>(size);
-            test_usm<int,      false>(size);
-            test_usm<uint32_t, false>(size);
-            test_usm<float,    false>(size);
+            test_usm<int16_t,  kAscending>(size);
+            test_usm<uint16_t, kAscending>(size);
+            test_usm<int,      kAscending>(size);
+            test_usm<uint32_t, kAscending>(size);
+            test_usm<float,    kAscending>(size);
+
+            test_usm<int16_t,  kDescending>(size);
+            test_usm<uint16_t, kDescending>(size);
+            test_usm<int,      kDescending>(size);
+            test_usm<uint32_t, kDescending>(size);
+            test_usm<float,    kDescending>(size);
         }
         test_small_sizes();
 #else
         for(auto size: sizes)
         {
-            test_usm<int16_t,  sycl::usm::alloc::shared, true>(size);
-            test_usm<uint16_t, sycl::usm::alloc::shared, true>(size);
-            test_usm<int,      sycl::usm::alloc::shared, true>(size);
-            test_usm<uint32_t, sycl::usm::alloc::shared, true>(size);
-            test_usm<float,    sycl::usm::alloc::shared, true>(size);
+            test_usm<int16_t,  sycl::usm::alloc::shared, kAscending>(size);
+            test_usm<uint16_t, sycl::usm::alloc::shared, kAscending>(size);
+            test_usm<int,      sycl::usm::alloc::shared, kAscending>(size);
+            test_usm<uint32_t, sycl::usm::alloc::shared, kAscending>(size);
+            test_usm<float,    sycl::usm::alloc::shared, kAscending>(size);
 
-            test_usm<int16_t,  sycl::usm::alloc::shared, false>(size);
-            test_usm<uint16_t, sycl::usm::alloc::shared, false>(size);
-            test_usm<int,      sycl::usm::alloc::shared, false>(size);
-            test_usm<uint32_t, sycl::usm::alloc::shared, false>(size);
-            test_usm<float,    sycl::usm::alloc::shared, false>(size);
+            test_usm<int16_t,  sycl::usm::alloc::shared, kDescending>(size);
+            test_usm<uint16_t, sycl::usm::alloc::shared, kDescending>(size);
+            test_usm<int,      sycl::usm::alloc::shared, kDescending>(size);
+            test_usm<uint32_t, sycl::usm::alloc::shared, kDescending>(size);
+            test_usm<float,    sycl::usm::alloc::shared, kDescending>(size);
         }
 #endif // TEST_ALL_INPUTS
     }
