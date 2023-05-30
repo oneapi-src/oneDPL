@@ -108,6 +108,42 @@ struct TypeInfo
         return kTypeName;
     }
 };
+struct USMAllocPresentation
+{
+    template <typename T>
+    const std::string& name()
+    {
+        static const std::string kUSMAllocTypeName = "unknown";
+        return kUSMAllocTypeName;
+    }
+
+    template <>
+    const std::string& name<sycl::usm::alloc::host>()
+    {
+        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::host";
+        return kUSMAllocTypeName;
+    }
+
+    const std::string& name<sycl::usm::alloc::device>()
+    {
+        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::device";
+        return kUSMAllocTypeName;
+    }
+
+    template <>
+    const std::string& name<sycl::usm::alloc::shared>()
+    {
+        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::shared";
+        return kUSMAllocTypeName;
+    }
+
+    template <>
+    const std::string& name<sycl::usm::alloc::unknown>()
+    {
+        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::unknown";
+        return kUSMAllocTypeName;
+    }
+};
 #endif // LOG_TEST_INFO
 
 template <typename T>
@@ -217,6 +253,10 @@ void test_subrange_view(std::size_t size)
 template<typename T, sycl::usm::alloc _alloc_type, bool Order>
 void test_usm(std::size_t size)
 {
+#if LOG_TEST_INFO
+    std::cout << "\t\ttest_usm<T, " << USMAllocPresentation()::name<_alloc_type>() << ", " << Order << ">(" << size << ");" << std::endl;
+#endif
+
     sycl::queue q = TestUtils::get_test_queue();
     auto policy = oneapi::dpl::execution::make_device_policy(q);
 
@@ -241,17 +281,10 @@ void
 test_usm(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_usm(std::size_t size) : " << TypeInfo().name<T>() << std::endl;
+    std::cout << "\ttest_usm<T, " << Order << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #endif
 
-#if LOG_TEST_INFO
-    std::cout << "\t\ttest_usm<T, sycl::usm::alloc::shared>(" << size << ");" << std::endl;
-#endif
     test_usm<T, sycl::usm::alloc::shared, Order>(size);
-
-#if LOG_TEST_INFO
-    std::cout << "\t\ttest_usm<T, sycl::usm::alloc::device>(" << size << ");" << std::endl;
-#endif
     test_usm<T, sycl::usm::alloc::device, Order>(size);
 }
 
