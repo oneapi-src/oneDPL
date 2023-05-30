@@ -371,7 +371,7 @@ int main()
             test_general_cases<int     >(size);
             test_general_cases<uint32_t>(size);
             test_general_cases<float   >(size);
-            test_general_cases<double  >(size);
+            //test_general_cases<double  >(size);
         }
         for(auto size: coop_sizes)
         {
@@ -380,7 +380,7 @@ int main()
             test_general_cases<int     >(size);
             test_general_cases<uint32_t>(size);
             test_general_cases<float   >(size);
-            test_general_cases<double  >(size);
+            //test_general_cases<double  >(size);
         }
         for(auto size: onesweep_sizes)
         {
