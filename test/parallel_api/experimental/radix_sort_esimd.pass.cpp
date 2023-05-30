@@ -225,7 +225,7 @@ template<typename T, bool Order>
 void test_subrange_view(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_subrange_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
+    std::cout << "\ttest_subrange_view<T, " << Order << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
