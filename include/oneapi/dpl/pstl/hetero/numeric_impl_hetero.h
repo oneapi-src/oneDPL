@@ -174,7 +174,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
         auto __buf2 = __keep2(__result, __result + __n);
 
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__exec, __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init, __binary_op,
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init, __binary_op,
                                            _Inclusive{}).wait();
     }
     else

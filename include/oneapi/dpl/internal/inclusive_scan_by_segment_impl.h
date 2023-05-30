@@ -65,7 +65,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
               oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
 
-    inclusive_scan(policy, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
+    inclusive_scan(::std::forward<Policy>(policy), make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
                    make_zip_iterator(result, _mask.get()),
                    internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op));
 
@@ -103,7 +103,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
               oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     auto policy1 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<InclusiveScan1>(policy);
-    transform_inclusive_scan(policy1, make_zip_iterator(first2, _mask.get()),
+    transform_inclusive_scan(::std::move(policy1), make_zip_iterator(first2, _mask.get()),
                              make_zip_iterator(first2, _mask.get()) + n, make_zip_iterator(result, _mask.get()),
                              internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op),
                              oneapi::dpl::__internal::__no_op());

@@ -586,7 +586,7 @@ __parallel_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_
                         __scan_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
                                                 /* _IsFullGroup= */ std::true_type, _Inclusive, _CustomName>>>()(
-                    __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
+                    ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
             else
                 return __parallel_transform_scan_static_single_group_submitter<
                     _Inclusive::value, __num_elems_per_item, __wg_size,
@@ -595,7 +595,7 @@ __parallel_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_
                         __scan_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
                                                 /* _IsFullGroup= */ ::std::false_type, _Inclusive, _CustomName>>>()(
-                    __exec, std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
+                    ::std::forward<_ExecutionPolicy>(__exec), std::forward<_InRng>(__in_rng), std::forward<_OutRng>(__out_rng), __n, __init, __binary_op, __unary_op);
         };
         if (__n <= 16)
             return __single_group_scan_f(std::integral_constant<::std::uint16_t, 16>{});

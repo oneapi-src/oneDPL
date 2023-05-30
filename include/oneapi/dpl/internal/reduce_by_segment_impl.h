@@ -124,7 +124,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     CountType N = scanned_tail_flags[n - 1] + 1;
 
     // scatter the keys and accumulated values
-    oneapi::dpl::for_each(policy, make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1),
+    oneapi::dpl::for_each(::std::forward<Policy>(policy), make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1),
                           make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1) + n,
                           internal::scatter_and_accumulate_fun<OutputIterator1, OutputIterator2>(result1, result2));
 
