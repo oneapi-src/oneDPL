@@ -285,28 +285,34 @@ elseif(ONEDPL_BACKEND MATCHES "^(serial)$")
     message(STATUS "Compilation for the host due to serial backend")
 
 elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
-    if(UNIX)
-        set(_openmp_flag "-fopenmp")
+
+    foreach(_openmp_flag -fopenmp /Qopenmp -qopenmp -openmp)
+        #set(_cmake_required_libraries ${CMAKE_REQUIRED_LIBRARIES})
+        #set(CMAKE_REQUIRED_LIBRARIES _openmp_flag)
+
+        string(MAKE_C_IDENTIFIER ${_openmp_flag} FLAG_DISPLAY_NAME)
+        check_cxx_compiler_flag(${_openmp_flag} ${FLAG_DISPLAY_NAME}_option)
+        #set(CMAKE_REQUIRED_LIBRARIES ${_cmake_required_libraries})
+
+        if (${FLAG_DISPLAY_NAME}_option)
+            target_compile_options(oneDPL INTERFACE ${_openmp_flag})
+            target_link_libraries(oneDPL INTERFACE ${_openmp_flag})
+            set(_openmp_enabled_flag ${_openmp_flag})
+            target_compile_definitions(oneDPL INTERFACE
+                ONEDPL_USE_TBB_BACKEND=0
+                ONEDPL_USE_DPCPP_BACKEND=0
+                ONEDPL_USE_OPENMP_BACKEND=1
+                )
+            break()
+        endif()
+    endforeach()
+
+    if (_openmp_enabled_flag)
+        message(STATUS "Compilation for the host due to OpenMP backend by passing ${_openmp_enabled_flag} to compiler")
     else()
-        set(_openmp_flag "-Qopenmp")
-    endif()
-    set(_cmake_required_libraries ${CMAKE_REQUIRED_LIBRARIES})
-    set(CMAKE_REQUIRED_LIBRARIES ${_openmp_flag})
-    check_cxx_compiler_flag(${_openmp_flag} _openmp_option)
-    if (_openmp_option)
-        target_compile_options(oneDPL INTERFACE ${_openmp_flag})
-        target_link_libraries(oneDPL INTERFACE ${_openmp_flag})
-        target_compile_definitions(oneDPL INTERFACE
-            ONEDPL_USE_TBB_BACKEND=0
-            ONEDPL_USE_DPCPP_BACKEND=0
-            ONEDPL_USE_OPENMP_BACKEND=1
-            )
-        message(STATUS "Compilation for the host due to OpenMP backend")
-    else()
-        message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support ${_openmp_flag} option.\n"
+        message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support any known OpenMP option.\n"
             "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
     endif()
-    set(CMAKE_REQUIRED_LIBRARIES ${_cmake_required_libraries})
 
 else()
     message(STATUS "Using Parallel Policies, but not oneTBB/DPC++")
