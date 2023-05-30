@@ -438,6 +438,11 @@ main()
         test_sort<40, std::int32_t>([](std::int32_t x, std::int32_t y)
                                     { return x > y; }, // Reversed so accidental use of < will be detected.
                                     [](size_t k, size_t val) { return std::int32_t(val) * (k % 2 ? 1 : -1); });
+
+        test_sort<50, std::int16_t>(
+            std::greater<std::int16_t>(),
+            [](size_t k, size_t val) {
+            return std::int16_t(val) * (k % 2 ? 1 : -1); });
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
