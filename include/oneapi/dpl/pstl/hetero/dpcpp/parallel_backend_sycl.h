@@ -638,8 +638,8 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng,
-                                      _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
-                                      _GroupScan __group_scan, _GlobalScan __global_scan)
+                               _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
+                               _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
