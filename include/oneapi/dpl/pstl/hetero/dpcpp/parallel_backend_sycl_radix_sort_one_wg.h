@@ -55,6 +55,21 @@ struct __subgroup_radix_sort
             return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
                                                             std::false_type{} /*No SLM*/, __start_bit, __n_iter);
     }
+    template <typename _Ranges, typename _Proj>
+    auto
+    operator()(sycl::queue __q, _Ranges&& __src, _Proj __proj, uint16_t __start_bit = 0, uint16_t __n_iter = 0)
+    {
+        using __wg_size_t = ::std::integral_constant<::std::uint16_t, __wg_size>;
+        using __block_size_t = ::std::integral_constant<::std::uint16_t, __block_size>;
+        using __call_t = ::std::integral_constant<::std::uint16_t, 2>;
+
+        using _SortKernelLoc = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_t>>;
+
+        __one_group_submitter<_SortKernelLoc>()(__q, ::std::forward<_Ranges>(__src), __proj,
+                                                           std::true_type{} /*SLM*/, __start_bit, __n_iter);
+    }
+
 
   private:
     template <typename _KeyT, typename>
@@ -128,12 +143,12 @@ struct __subgroup_radix_sort
     template <typename... _Name>
     struct __one_group_submitter<__internal::__optional_kernel_name<_Name...>>
     {
-        template <typename _RangeIn, typename _Proj, typename _SLM_tag>
+        template <typename _RangeIn, typename _Proj, typename _SLM_tag, typename _RangeIdx, typename _RangeSize>
         auto
-        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag, uint16_t __start_bit, uint16_t __n_iter)
+        operator()(sycl::queue __q, _RangeIn&& __data, _Proj __proj, _SLM_tag, uint16_t __start_bit, uint16_t __n_iter, _RangeIdx* __r_idx = NULL, _RangeSize* __r_sz = NULL)
         {
-            uint16_t __n = __src.size();
-            assert(__n <= __block_size * __wg_size);
+            //uint16_t __n = __data.size();
+            uint16_t __wg_count = __r_idx ? __r_idx->size() : 1;
 
             using _ValT = oneapi::dpl::__internal::__value_t<_RangeIn>;
             using _KeyT = oneapi::dpl::__internal::__key_t<_Proj, _RangeIn>;
@@ -141,15 +156,29 @@ struct __subgroup_radix_sort
             _TempBuf<_ValT, _SLM_tag> __buf_val(__block_size * __wg_size);
             _TempBuf<uint32_t, _SLM_tag> __buf_count(__counter_buf_sz);
 
-            sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
+            sycl::nd_range __range{sycl::range{__wg_count * __wg_size}, sycl::range{__wg_size}};
             return __q.submit([&](sycl::handler& __cgh) {
-                oneapi::dpl::__ranges::__require_access(__cgh, __src);
+                oneapi::dpl::__ranges::__require_access(__cgh, __data);
+                if(__r_idx)
+                    oneapi::dpl::__ranges::__require_access(__cgh, *__r_idx);
+                if(__r_sz)
+                    oneapi::dpl::__ranges::__require_access(__cgh, *__r_sz);
 
                 auto __exchange_lacc = __buf_val.get_acc(__cgh);
                 auto __counter_lacc = __buf_count.get_acc(__cgh);
 
                 __cgh.parallel_for<_Name...>(
                     __range, ([=](sycl::nd_item<1> __it)[[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]] {
+
+                        uint16_t __wg = __it.get_group().get_group_linear_id();
+                        uint16_t __n = __r_sz ? __r_sz[__wg] : __data.size();
+                        uint16_t __base_idx = __r_idx ? __r_idx[__wg] : 0;
+
+                        assert(__n <= __block_size * __wg_size);
+
+                        auto __tmp_view = oneapi::dpl::__ranges::drop_view_simple(__data, __base_idx);
+                        auto __src = oneapi::dpl::__ranges::take_view_simple(__tmp_view, __n);
+
                         union __storage { _ValT __v[__block_size]; __storage(){} } __values;
                         uint16_t __wi = __it.get_local_linear_id();
                         uint16_t __begin_bit = __start_bit;
