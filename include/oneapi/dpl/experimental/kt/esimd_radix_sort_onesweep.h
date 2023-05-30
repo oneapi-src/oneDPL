@@ -634,7 +634,7 @@ onesweep(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n)
     auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
 
     // memory for storing values sorted for an iteration
-    auto p_output = sycl::malloc_shared<KeyT>(__n, __exec.queue());
+    auto p_output = sycl::malloc_device<KeyT>(__n, __exec.queue());
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, decltype(p_output)>();
     auto __out_rng = __keep(p_output, p_output + __n).all_view();
 
