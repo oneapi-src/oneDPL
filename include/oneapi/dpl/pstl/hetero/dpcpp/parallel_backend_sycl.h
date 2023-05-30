@@ -637,7 +637,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
           typename _LocalScan, typename _GroupScan, typename _GlobalScan,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
-__parallel_transform_scan_multi_group(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng,
+__parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng,
                                       _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
                                       _GroupScan __group_scan, _GlobalScan __global_scan)
 {
@@ -695,7 +695,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2
     _NoOpFunctor __get_data_op;
 
     return __future(
-        __parallel_transform_scan_multi_group(
+        __parallel_transform_scan_base(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
             ::std::forward<_Range2>(__out_rng), __binary_op, __init,
             // local scan

@@ -353,7 +353,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng
                                                                                                   __rng1.size());
 
     auto __res =
-        __par_backend_hetero::__parallel_transform_scan_multi_group(
+        __par_backend_hetero::__parallel_transform_scan_base(
             ::std::forward<_ExecutionPolicy>(__exec),
             oneapi::dpl::__ranges::zip_view(
                 __rng1, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
