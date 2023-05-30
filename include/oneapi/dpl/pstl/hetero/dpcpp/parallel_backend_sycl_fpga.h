@@ -122,7 +122,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2
     using __kernel_name = typename _Policy::kernel_name;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-        __device_policy, ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init,
+        ::std::move(__device_policy), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init,
         __binary_op, _Inclusive{});
 }
 
@@ -138,7 +138,8 @@ __parallel_transform_scan_multi_group(_ExecutionPolicy&& __exec, _Range1&& __rng
     using __kernel_name = typename _Policy::kernel_name;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_multi_group(
-        __device_policy, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2), __binary_op, __init, __local_scan, __group_scan, __global_scan);
+        std::move(__device_policy), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2), __binary_op, __init,
+        __local_scan, __group_scan, __global_scan);
 }
 
 //------------------------------------------------------------------------
