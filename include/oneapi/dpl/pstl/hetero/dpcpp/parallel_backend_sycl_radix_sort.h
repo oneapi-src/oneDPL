@@ -767,19 +767,19 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     return __future(__event, __tmp_buf, __val_buf);
 }
 
-template<::std::uint32_t __radix, typename _Range, typename ItHist>
+template<::std::uint32_t __radix, typename _Range, typename Hist>
 void
-__calc_hist(sycl::queue q, _Range&& __in_rng, ItHist hist/*, uint32_t* __mask = 0xFF00*/)
+__calc_hist(sycl::queue q, _Range&& __in_rng, Hist* hist/*, uint32_t* __mask = 0xFF00*/)
 {
     const ::std::size_t __n = __in_rng.size();
     const ::std::size_t __num_bins = 256;
     assert(__n > 1);
 
-#if 1
     using _ValueT = oneapi::dpl::__internal::__value_t<_Range>;
     /*shift 24 for 32bits and 8 for 16bits numbers*/
     auto shift = sizeof(_ValueT) * ::std::numeric_limits<unsigned char>::digits - __radix*2;
 
+#if 0
     for(uint32_t i = 0; i < __n; ++i)
     {
         auto val = __in_rng[i];
@@ -795,54 +795,60 @@ __calc_hist(sycl::queue q, _Range&& __in_rng, ItHist hist/*, uint32_t* __mask = 
     assert(total == __n);
 #endif
 #else
-  constexpr int blockSize = 2;//256;
+  constexpr int blockSize = 256;
   constexpr int NUM_BINS = 256;
+  constexpr int wg_size = 64;
+  constexpr int sz_per_wg = blockSize*wg_size;
+  constexpr int bins_per_wi = NUM_BINS / wg_size;
+
+  static_assert(bins_per_wi*wg_size == NUM_BINS, "wrong wg size");
+
+  const auto wg_count = (__n - 1) / sz_per_wg + 1;
+
+  using __local_atomic_type = 
+    sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::work_group, sycl::access::address_space::local_space>;
+  using __atomic_type = 
+    sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::work_group, sycl::access::address_space::global_space>;
 
   auto e = q.submit([&](auto &h) {
+    //sycl::accessor<uint32_t, 1, sycl::access_mode::atomic, sycl::target::local> local_hist(256, h);
+    sycl::local_accessor<uint32_t, 1> local_hist(256, h);
     h.parallel_for(
-        //sycl::nd_range(sycl::range{N / blockSize}, sycl::range{64}),
-        sycl::nd_range(sycl::range{__n / blockSize}, sycl::range{16}),
+        sycl::nd_range(sycl::range{wg_count * wg_size}, sycl::range{wg_size}),
         [=](sycl::nd_item<1> it) [[intel::reqd_sub_group_size(16)]] {
+          int wi = it.get_local_linear_id();
           int group = it.get_group()[0];
-          int gSize = it.get_local_range()[0];
-          sycl::ext::oneapi::sub_group sg = it.get_sub_group();
-          int sgSize = sg.get_local_range()[0];
-          int sgGroup = sg.get_group_id()[0];
 
-          unsigned int
-              histogram[NUM_BINS / 16]; // histogram bins take too much storage
-                                        // to be promoted to registers
-          for (int k = 0; k < NUM_BINS / 16; k++) {
-            histogram[k] = 0;
-          }
-          for (int k = 0; k < blockSize; k++) {
-            unsigned long x =
-                sg.load(&__in_rng[0] + group * gSize * blockSize +
-                        sgGroup * sgSize * blockSize + sgSize * k);
-// subgroup size is 16
-#pragma unroll
-            for (int j = 0; j < 16; j++) {
-              unsigned long y = sycl::group_broadcast(sg, x, j);
-#pragma unroll
-              for (int i = 0; i < 8; i++) {
-                unsigned int c = y & 0xFF;
-                // (c & 0xF) is the workitem in which the bin resides
-                // (c >> 4) is the bin index
-                if (sg.get_local_id()[0] == (c & 0xF)) {
-                  histogram[c >> 4] += 1;
-                }
-                y = y >> 8;
-              }
-            }
-          }
-
-          for (int k = 0; k < NUM_BINS / 16; k++)
+          //set zero value to the bins
+          for(int i = 0; i < bins_per_wi; ++i)
           {
-              sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::work_group, sycl::access::address_space::global_space> __b(hist[16 * k + sg.get_local_id()[0]]);
-               __b.fetch_add(histogram[k]);
+              int idx_bin = wi*bins_per_wi + i;
+              local_hist[idx_bin] = 0;
+          }
+          it.barrier(sycl::access::fence_space::local_space);
+
+          for (int k = 0; k < blockSize; k++)
+          {
+                auto __idx = group*sz_per_wg + wi*blockSize + k;
+                if(__idx < __n)
+                {
+                    uint16_t bin = ((__in_rng[__idx] >> shift) & 0xFF);
+                    __local_atomic_type __b(local_hist[bin]);
+                    ++__b;
+                }
+          }
+          it.barrier(sycl::access::fence_space::local_space);
+
+          //store a local bin to the global bin
+          for(int i = 0; i < bins_per_wi; ++i)
+          {
+              int idx_bin = wi*bins_per_wi + i;
+              __atomic_type __b(hist[idx_bin]);
+              __b += local_hist[idx_bin];
           }
         });
   });
+  e.wait();
 #endif
 
 }
@@ -894,8 +900,8 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
 
     //calc a hist by most radix*2 bits:
     constexpr int NUM_BINS = 256;
-    //uint32_t* g_bins = sycl::malloc_shared<uint32_t>(NUM_BINS, __exec.queue());
-    std::vector<int> g_bins(NUM_BINS);
+    uint32_t* g_bins = sycl::malloc_shared<uint32_t>(NUM_BINS, __exec.queue());
+    //std::vector<int> g_bins(NUM_BINS);
     for (uint16_t __i = 0; __i < NUM_BINS; ++__i)
         g_bins[__i] = 0;
 
@@ -904,17 +910,24 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
 
     //std::cout << "before __calc_hist" <<std::endl;
 
-    __calc_hist<__radix_bits>(__exec.queue(), __in_rng, &g_bins[0]/*, uint32_t* __mask = 0xFF00*/);
+    __calc_hist<__radix_bits>(__exec.queue(), __in_rng, &g_bins[0]/*, uint16_t* __mask = 0xFF00*/);
+
+    uint16_t* g_dense_bins = sycl::malloc_shared<uint16_t>(NUM_BINS, __exec.queue());
+    auto __n_dense_bins = std::copy_if(g_bins, g_bins + NUM_BINS, g_dense_bins, [](auto a) { return a > 0;}) - g_dense_bins;
+
+    std::cout <<  "__n_dense_bins: " << __n_dense_bins << std::endl;
+    uint16_t* g_idx = sycl::malloc_shared<uint16_t>(__n_dense_bins, __exec.queue());
+    std::exclusive_scan(g_dense_bins, g_dense_bins + __n_dense_bins, g_idx, 0);
 
     //std::cout << "__calc_hist done" <<std::endl;
     //TODO: set sycl event dependencies
     //__exec.queue().wait();
 
     //std::cout <<  "hist1: ";
-    //for(int i = 0; i < NUM_BINS; ++i)
-    //{
-      //  std::cout << g_bins[i] << " ";
-    //}
+    for(int i = 0; i < NUM_BINS; ++i)
+    {
+        std::cout << g_bins[i] << " ";
+    }
     //std::cout << std::endl;
 
     using _RadixSortKernel = typename __decay_t<_ExecutionPolicy>::kernel_name;
@@ -923,6 +936,11 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
     std::vector<__subrange_type> ranges;
 
     constexpr auto __wg_size_one_wg = 64;
+#if 0
+    //sumbit a local sorting
+    __subgroup_radix_sort<_RadixSortKernel, __wg_size_one_wg * 16, 32, __radix_bits, __is_ascending>{}.run(
+                    __exec.queue(), __in_rng, __proj, 0, __radix_iters - 2, g_dense_bins, g_idx, __n_dense_bins);
+#else
     uint32_t base_idx = 0;
     for (uint16_t __i = 0; __i < NUM_BINS; ++__i)
     {
@@ -959,11 +977,13 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
            base_idx += __size;
         }
     }
+#endif
     //TODO: use sycl::event::wait(const std::vector<event>& eventList);
     //TODO: extend 'future' type by an event list;
     __exec.queue().wait();
 
-    //sycl::free(g_bins, __exec.queue());
+    //sycl::free(g_idx, __exec.queue());
+    sycl::free(g_bins, __exec.queue());
     //TODO"
     return __future(__event, __tmp_buf, __val_buf);
 }
