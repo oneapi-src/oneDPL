@@ -68,7 +68,7 @@ namespace internal
 template <typename _NdItem, typename _LocalAcc, typename _IdxType, typename _ValueType, typename _BinaryOp>
 inline _ValueType
 __wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, _IdxType __delta_local_id,
-                  _ValueType __accumulator, _ValueType __identity, _BinaryOp __binary_op, ::std::size_t __wgroup_size)
+                    _ValueType __accumulator, _ValueType __identity, _BinaryOp __binary_op, ::std::size_t __wgroup_size)
 {
     _IdxType __first = 0;
     __local_acc[__local_id] = __accumulator;
@@ -374,8 +374,7 @@ template <typename Policy, typename InputIterator1, typename InputIterator2, typ
           typename BinaryPredicate, typename Operator, typename Inclusive>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
 __scan_by_segment_impl_common(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                              OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op,
-                              Inclusive)
+                              OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op, Inclusive)
 {
     const auto n = ::std::distance(first1, last1);
 
@@ -397,8 +396,8 @@ __scan_by_segment_impl_common(Policy&& policy, InputIterator1 first1, InputItera
     constexpr iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
 
     __sycl_scan_by_segment_impl<Inclusive::value>()(::std::forward<Policy>(policy), key_buf.all_view(),
-                                                    value_buf.all_view(), value_output_buf.all_view(),
-                                                    binary_pred, binary_op, init, identity);
+                                                    value_buf.all_view(), value_output_buf.all_view(), binary_pred,
+                                                    binary_op, init, identity);
     return result + n;
 }
 
