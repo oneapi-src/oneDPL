@@ -34,6 +34,7 @@
 
 #include <type_traits>
 #include <cstddef>
+#include <cstdint>
 #include <utility>
 #include <algorithm>
 
