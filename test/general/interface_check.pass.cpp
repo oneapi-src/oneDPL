@@ -26,22 +26,6 @@
 #include <vector>
 #include "support/test_config.h"
 
-template <typename Policy, typename NewName>
-struct rebind_policy { using type = Policy; };
-
-#if TEST_DPCPP_BACKEND_PRESENT
-template <typename KernelName, typename NewName>
-struct rebind_policy<oneapi::dpl::execution::device_policy<KernelName>, NewName>
-{ using type = oneapi::dpl::execution::device_policy<NewName>; };
-
-#if ONEDPL_FPGA_DEVICE
-template <unsigned int factor, typename KernelName, typename NewName>
-struct rebind_policy<oneapi::dpl::execution::fpga_policy<factor, KernelName>, NewName>
-{  using type = oneapi::dpl::execution::fpga_policy<factor, NewName>; };
-#endif
-#endif
-
-
 using oneapi::dpl::counting_iterator;
 using oneapi::dpl::discard_iterator;
 using oneapi::dpl::make_zip_iterator;
