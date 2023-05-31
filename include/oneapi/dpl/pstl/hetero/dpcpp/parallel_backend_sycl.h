@@ -500,7 +500,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
 
 #if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
                     constexpr bool __can_use_subgroup_load_store =
-                        _IsFullGroup && dpl::__internal::range_has_raw_ptr_iterator<::std::decay_t<_InRng>>::value;
+                        _IsFullGroup && dpl::__internal::__range_has_raw_ptr_iterator<::std::decay_t<_InRng>>::value;
 #else
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
@@ -605,7 +605,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 
 #if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
                     constexpr bool __can_use_subgroup_load_store =
-                        _IsFullGroup && dpl::__internal::range_has_raw_ptr_iterator<::std::decay_t<_InRng>>::value;
+                        _IsFullGroup && dpl::__internal::__range_has_raw_ptr_iterator<::std::decay_t<_InRng>>::value;
 #else
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
