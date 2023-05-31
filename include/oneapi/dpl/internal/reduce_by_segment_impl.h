@@ -46,6 +46,7 @@
 #include <type_traits>
 #include <utility>
 #include <algorithm>
+#include <array>
 
 #include "../pstl/iterator_impl.h"
 #include "function.h"
@@ -114,7 +115,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
                        BinaryOperator binary_op)
 {
     // The algorithm reduces values in [first2, first2 + (last1-first1)) where the associated
-    // keys for the values are equal to the adjacent key.
+    // keys for the values are equal to the adjacent key. This function's implementation is a derivative work
+    // and responsible for the second copyright notice in this header.
     //
     // Example: keys          = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 } -- [first1, last1)
     //          values        = { 1, 2, 3, 4, 1, 1, 3, 3, 1, 1, 3, 3, 0 } -- [first2, first2+n)
@@ -425,6 +427,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                 ::std::size_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
                     __group, __max_end, __dpl_sycl::__maximum<decltype(__max_end)>());
 
+                // __wg_segmented_scan is a derivative work and responsible for the third header copyright
                 __val_type __carry_in = oneapi::dpl::internal::__wg_segmented_scan(
                     __item, __loc_acc, __local_id, __local_id - __closest_seg_id, __accumulator, __binary_op,
                     __wgroup_size);

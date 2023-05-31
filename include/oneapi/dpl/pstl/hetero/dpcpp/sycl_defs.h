@@ -215,9 +215,9 @@ constexpr auto
 __none_of_group(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::none_of_group(std::forward<_Args>(__args)...);
+    return sycl::none_of_group(::std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::none_of(std::forward<_Args>(__args)...);
+    return sycl::ONEAPI::none_of(::std::forward<_Args>(__args)...);
 #endif
 }
 
