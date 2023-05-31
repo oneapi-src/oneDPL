@@ -31,7 +31,7 @@ namespace oneapi::dpl::experimental::esimd::impl
 // - make it is as a specialization of __sort_identity once it is verified to working with other implementations
 // - use HEX representation to be aligned with other methods handling bits
 // - remove the static asserts or move them into a higher level replacing with std::numeric_limits<T>::is_iec559
-template <typename T, bool __is_ascending, std::enable_if_t<std::is_same<T, float>::value && sizeof(T) == sizeof(::std::uint32_t), int> = 0>
+template <typename T, bool __is_ascending, std::enable_if_t<std::is_same<T, float>::value && sizeof(T) == sizeof(::std::int32_t), int> = 0>
 constexpr T
 __full_sort_identity()
 {
@@ -94,23 +94,23 @@ __full_sort_identity()
 }
 
 template <typename T, bool __is_ascending,
-          std::enable_if_t<std::is_same<T, double>::value && sizeof(double) == sizeof(uint32_t), int> = 0>
+          std::enable_if_t<std::is_same<T, double>::value && sizeof(double) == sizeof(::std::int32_t), int> = 0>
 constexpr T
 __full_sort_identity()
 {
     static_assert(std::is_same<T, double>::value, "");
 
-    return sycl::bit_cast<T>(utils::__sort_identity<uint32_t, __is_ascending>);
+    return sycl::bit_cast<T>(utils::__sort_identity<::std::int32_t, __is_ascending>);
 }
 
 template <typename T, bool __is_ascending,
-          std::enable_if_t<std::is_same<T, double>::value && sizeof(double) == sizeof(uint64_t), int> = 0>
+          std::enable_if_t<std::is_same<T, double>::value && sizeof(double) == sizeof(::std::int64_t), int> = 0>
 constexpr T
 __full_sort_identity()
 {
     static_assert(std::is_same<T, double>::value, "");
 
-    return sycl::bit_cast<T>(utils::__sort_identity<uint64_t, __is_ascending>);
+    return sycl::bit_cast<T>(utils::__sort_identity<::std::int64_t, __is_ascending>);
 }
 
 // non-float
