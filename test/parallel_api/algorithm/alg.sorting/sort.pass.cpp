@@ -353,7 +353,7 @@ test_default_name_gen(Convert convert, size_t n)
 #endif //TEST_DPCPP_BACKEND_PRESENT
 
 
-template <typename T, typename Compare, typename Convert>
+template <::std::size_t CallNumber, typename T, typename Compare, typename Convert>
 void
 test_sort(Compare compare, Convert convert)
 {
@@ -366,12 +366,12 @@ test_sort(Compare compare, Convert convert)
         TestUtils::Sequence<T> expected(in);
         TestUtils::Sequence<T> tmp(in);
 #ifdef _PSTL_TEST_WITHOUT_PREDICATE
-        TestUtils::invoke_on_all_policies<0>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
-                                               expected.end(), in.begin(), in.end(), in.size());
+        TestUtils::invoke_on_all_policies<CallNumber>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
+                                                        expected.end(), in.begin(), in.end(), in.size());
 #endif // _PSTL_TEST_WITHOUT_PREDICATE
 #ifdef _PSTL_TEST_WITH_PREDICATE
-        TestUtils::invoke_on_all_policies<1>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
-                                               expected.end(), in.begin(), in.end(), in.size(), compare);
+        TestUtils::invoke_on_all_policies<CallNumber + 1>()(test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(),
+                                                            expected.end(), in.begin(), in.end(), in.size(), compare);
 #endif // _PSTL_TEST_WITH_PREDICATE
     }
 }
@@ -419,25 +419,30 @@ main()
 
 #if !TEST_DPCPP_BACKEND_PRESENT
         // ParanoidKey has atomic increment in ctors. It's not allowed in kernel
-        test_sort<ParanoidKey>(KeyCompare(TestUtils::OddTag()),
-                               [](size_t k, size_t val) { return ParanoidKey(k, val, TestUtils::OddTag()); });
+        test_sort<0, ParanoidKey>(KeyCompare(TestUtils::OddTag()),
+                                  [](size_t k, size_t val) { return ParanoidKey(k, val, TestUtils::OddTag()); });
 #endif // !TEST_DPCPP_BACKEND_PRESENT
 
 #if !ONEDPL_FPGA_DEVICE
-        test_sort<TestUtils::float32_t>([](TestUtils::float32_t x, TestUtils::float32_t y) { return x < y; },
-                                        [](size_t k, size_t val) { return TestUtils::float32_t(val) * (k % 2 ? 1 : -1); });
+        test_sort<10, TestUtils::float32_t>([](TestUtils::float32_t x, TestUtils::float32_t y) { return x < y; },
+                                            [](size_t k, size_t val)
+                                            { return TestUtils::float32_t(val) * (k % 2 ? 1 : -1); });
 
-        test_sort<unsigned char>(
-            [](unsigned char x, unsigned char y) { return x > y; }, // Reversed so accidental use of < will be detected.
-            [](size_t k, size_t val) { return (unsigned char)val; });
+        test_sort<20, unsigned char>([](unsigned char x, unsigned char y)
+                                     { return x > y; }, // Reversed so accidental use of < will be detected.
+                                     [](size_t k, size_t val) { return (unsigned char)val; });
 
-        test_sort<unsigned char>(NonConstCmp{},
-            [](size_t k, size_t val) { return (unsigned char)val; });
+        test_sort<30, unsigned char>(NonConstCmp{}, [](size_t k, size_t val) { return (unsigned char)val; });
 
 #endif // !ONEDPL_FPGA_DEVICE
-        test_sort<std::int32_t>(
-            [](std::int32_t x, std::int32_t y) { return x > y; }, // Reversed so accidental use of < will be detected.
-            [](size_t k, size_t val) { return std::int32_t(val) * (k % 2 ? 1 : -1); });
+        test_sort<40, std::int32_t>([](std::int32_t x, std::int32_t y)
+                                    { return x > y; }, // Reversed so accidental use of < will be detected.
+                                    [](size_t k, size_t val) { return std::int32_t(val) * (k % 2 ? 1 : -1); });
+
+        test_sort<50, std::int16_t>(
+            std::greater<std::int16_t>(),
+            [](size_t k, size_t val) {
+            return std::int16_t(val) * (k % 2 ? 1 : -1); });
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT

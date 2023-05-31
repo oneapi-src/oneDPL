@@ -288,12 +288,34 @@ __joint_none_of(_Args&&... __args)
 }
 
 #if _ONEDPL_FPGA_DEVICE
-#    if _ONEDPL_LIBSYCL_VERSION >= 50300
-using __fpga_emulator_selector = sycl::ext::intel::fpga_emulator_selector;
-using __fpga_selector = sycl::ext::intel::fpga_selector;
+#    if _ONEDPL_LIBSYCL_VERSION >= 60100
+inline auto __fpga_emulator_selector()
+{
+    return sycl::ext::intel::fpga_emulator_selector_v;
+}
+inline auto __fpga_selector()
+{
+    return sycl::ext::intel::fpga_selector_v;
+}
+
+#    elif _ONEDPL_LIBSYCL_VERSION >= 50300
+inline auto __fpga_emulator_selector()
+{
+    return sycl::ext::intel::fpga_emulator_selector{};
+}
+inline auto __fpga_selector()
+{
+    return sycl::ext::intel::fpga_selector{};
+}
 #    else
-using __fpga_emulator_selector = sycl::INTEL::fpga_emulator_selector;
-using __fpga_selector = sycl::INTEL::fpga_selector;
+inline auto __fpga_emulator_selector()
+{
+    return sycl::INTEL::fpga_emulator_selector{};
+}
+inline auto __fpga_selector()
+{
+    return sycl::INTEL::fpga_selector{};
+}
 #    endif
 #endif // _ONEDPL_FPGA_DEVICE
 
@@ -309,6 +331,13 @@ constexpr __target __target_device =
     __target::device;
 #else
     __target::global_buffer;
+#endif
+
+constexpr __target __host_target =
+#if _ONEDPL_LIBSYCL_VERSION >= 60200
+    __target::host_task;
+#else
+    __target::host_buffer;
 #endif
 
 template <typename _DataT>
@@ -337,6 +366,17 @@ using __local_accessor =
 #else
     sycl::accessor<DataT, Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
 #endif
+
+template <typename _Buf>
+auto
+__get_host_access(_Buf&& __buf)
+{
+#if _ONEDPL_LIBSYCL_VERSION >= 60200
+    return ::std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
+#else
+    return ::std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
+#endif
+}
 
 } // namespace __dpl_sycl
 

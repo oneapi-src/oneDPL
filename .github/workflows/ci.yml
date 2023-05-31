@@ -162,6 +162,7 @@ jobs:
           export PATH=$CONDA/lib:$PATH
           export CPATH=$CONDA/include:$CPATH
           export OCL_ICD_FILENAMES=$CONDA/lib/libintelocl.so
+          echo "::warning::Compiler: $(cmake --version)"
           if [[ "${{ matrix.cxx_compiler }}" == "icpx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx-cl" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp-cl" ]]; then
             echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
           fi
@@ -200,7 +201,7 @@ jobs:
             backend: tbb
             device_type: HOST
           - os: windows-2019
-            cxx_compiler: icpx
+            cxx_compiler: icx
             std: 17
             build_type: release
             backend: dpcpp
@@ -222,6 +223,7 @@ jobs:
         shell: cmd
         run: |
           call %CONDA%/condabin/conda.bat activate base
+          powershell $output = cmake --version; Write-Host ::warning::CMake: $output
           if "${{ matrix.backend }}" == "dpcpp" (
             set ninja_targets="build-onedpl-sycl_iterator-tests"
             set ctest_flags=-R sycl_iterator_.*\.pass
@@ -279,6 +281,7 @@ jobs:
         run: |
           set -x
           source /opt/intel/oneapi/setvars.sh
+          echo "::warning::Compiler: $(cmake --version)"
           if [[ "${{ matrix.cxx_compiler }}" == "icpc" ]]; then
             echo "::warning::Compiler: $(icpc --version)"
           fi
