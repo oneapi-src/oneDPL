@@ -92,7 +92,6 @@ pattern_exclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputI
 }
 
 #if _ONEDPL_BACKEND_SYCL
-
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
           typename BinaryPredicate, typename Operator>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>

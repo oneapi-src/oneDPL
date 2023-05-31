@@ -20,7 +20,6 @@
 
 #include "support/test_config.h"
 #include "support/utils.h"
-#include "support/utils_functors.h"
 #include "support/scan_serial_impl.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT

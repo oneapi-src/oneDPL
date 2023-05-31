@@ -66,7 +66,7 @@ namespace internal
 // -----------------------------
 // __wg_segmented_scan is a derivative work and the reason for the additional copyright notice.
 template <typename _NdItem, typename _LocalAcc, typename _IdxType, typename _ValueType, typename _BinaryOp>
-inline _ValueType
+_ValueType
 __wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, _IdxType __delta_local_id,
                     _ValueType __accumulator, _ValueType __identity, _BinaryOp __binary_op, ::std::size_t __wgroup_size)
 {
