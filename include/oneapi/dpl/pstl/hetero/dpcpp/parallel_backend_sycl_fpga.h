@@ -143,6 +143,37 @@ __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Ran
         __init, __local_scan, __group_scan, __global_scan);
 }
 
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
+auto
+__parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred)
+{
+    // workaround until we implement more performant version for patterns
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using __kernel_name = typename _Policy::kernel_name;
+    auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
+    return oneapi::dpl::__par_backend_hetero::__parallel_copy_if(
+        ::std::move(__device_policy), ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
+        __pred);
+}
+
+
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
+          typename _CopyByMaskOp,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
+auto
+__parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n,
+                     _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
+{
+    // workaround until we implement more performant version for patterns
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using __kernel_name = typename _Policy::kernel_name;
+    auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
+    return oneapi::dpl::__par_backend_hetero::__parallel_scan_copy(
+        ::std::move(__device_policy), ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
+        __create_mask_op, __copy_by_mask_op);
+}
+
 //------------------------------------------------------------------------
 // __parallel_find_or
 //-----------------------------------------------------------------------
