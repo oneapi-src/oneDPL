@@ -328,8 +328,8 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 #endif
                                                                               sycl::nd_item<1> __item) {
                 auto __group = __item.get_group();
-                ::std::size_t __group_id = __group.get_group_id(0);
-                ::std::size_t __local_id = __group.get_local_id(0);
+                ::std::size_t __group_id = __item.get_group(0);
+                ::std::size_t __local_id = __item.get_local_id(0);
                 ::std::size_t __global_id = __item.get_global_id(0);
 
                 ::std::size_t __start = __global_id * __vals_per_item;
@@ -390,8 +390,8 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                 ::std::array<__val_type, __vals_per_item> __loc_partials;
 
                 auto __group = __item.get_group();
-                ::std::size_t __group_id = __group.get_group_id(0);
-                ::std::size_t __local_id = __group.get_local_id(0);
+                ::std::size_t __group_id = __item.get_group(0);
+                ::std::size_t __local_id = __item.get_local_id(0);
                 ::std::size_t __global_id = __item.get_global_id(0);
 
                 // 2a. Lookup the number of prior segs
@@ -510,9 +510,9 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 #endif
                 sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                     auto __group = __item.get_group();
-                    ::std::int64_t __group_id = __group.get_group_id(0);
-                    ::std::size_t __global_id = __item.get_global_id();
-                    ::std::size_t __local_id = __item.get_local_id();
+                    ::std::int64_t __group_id = __item.get_group(0);
+                    ::std::size_t __global_id = __item.get_global_id(0);
+                    ::std::size_t __local_id = __item.get_local_id(0);
 
                     ::std::size_t __start = __global_id * __vals_per_item;
                     ::std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
