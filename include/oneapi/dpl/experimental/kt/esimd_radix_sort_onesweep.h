@@ -37,60 +37,16 @@ __full_sort_identity()
 {
     static_assert(std::is_same<T, float>::value, "");
 
-    //                                                                    sign bit
-    //                                                                      |      NaN bit
-    //                                                                      |        |
-    //                                                                      V        V
-    static_assert(::std::numeric_limits<T>::max()    == sycl::bit_cast<T>(0b01111111'01111111'11111111'11111111), "");
-    static_assert(::std::numeric_limits<T>::lowest() == sycl::bit_cast<T>(0b11111111'01111111'11111111'11111111), "");
-
-    if constexpr (__is_ascending)
-    {
-        //                       clear sign bit
-        //                         |      setup NaN bit
-        //                         |        |
-        //                         V        V
-        return sycl::bit_cast<T>(0b01111111'11111111'11111111'11111111);
-    }
-    else
-    {
-        //                       setup sign bit
-        //                         |      setup NaN bit
-        //                         |        |
-        //                         V        V
-        return sycl::bit_cast<T>(0b11111111'11111111'11111111'11111111);
-    }
+    return sycl::bit_cast<T>(utils::__sort_identity<::std::int32_t, __is_ascending>);
 }
 
-template <typename T, bool __is_ascending, std::enable_if_t<std::is_same<T, float>::value && sizeof(T) == sizeof(::std::uint64_t), int> = 0>
+template <typename T, bool __is_ascending, std::enable_if_t<std::is_same<T, float>::value && sizeof(T) == sizeof(::std::int64_t), int> = 0>
 constexpr T
 __full_sort_identity()
 {
     static_assert(std::is_same<T, float>::value, "");
 
-    //                                                                    sign bit
-    //                                                                      |      NaN bit
-    //                                                                      |        |
-    //                                                                      V        V
-    static_assert(::std::numeric_limits<T>::max()    == sycl::bit_cast<T>(0b01111111'01111111'11111111'11111111'11111111'11111111'11111111'11111111), "");
-    static_assert(::std::numeric_limits<T>::lowest() == sycl::bit_cast<T>(0b11111111'01111111'11111111'11111111'11111111'11111111'11111111'11111111), "");
-
-    if constexpr (__is_ascending)
-    {
-        //                       clear sign bit
-        //                         |      setup NaN bit
-        //                         |        |
-        //                         V        V
-        return sycl::bit_cast<T>(0b01111111'11111111'11111111'11111111'11111111'11111111'11111111'11111111);
-    }
-    else
-    {
-        //                       setup sign bit
-        //                         |      setup NaN bit
-        //                         |        |
-        //                         V        V
-        return sycl::bit_cast<T>(0b11111111'11111111'11111111'11111111'11111111'11111111'11111111'11111111);
-    }
+    return sycl::bit_cast<T>(utils::__sort_identity<::std::int64_t, __is_ascending>);
 }
 
 template <typename T, bool __is_ascending,
