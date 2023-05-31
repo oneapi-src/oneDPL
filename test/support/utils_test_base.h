@@ -374,6 +374,16 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
+#define DEFINE_TEST_2(TestClassName, TemplateParams1, TemplateParams2)                     \
+    template <typename TestValueType, typename TemplateParams1, typename TemplateParams2>  \
+    struct TestClassName : TestUtils::test_base<TestValueType>
+#else
+#define DEFINE_TEST_2(TestClassName, TemplateParams1, TemplateParams2)                      \
+    template <typename TemplateParams1, typename TemplateParams2>                           \
+    struct TestClassName
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+#if TEST_DPCPP_BACKEND_PRESENT
 #define DEFINE_TEST_CONSTRUCTOR(TestClassName)                                                                    \
     TestClassName(test_base_data<TestValueType>& _test_base_data)                                                 \
         : TestUtils::test_base<TestValueType>(_test_base_data)                                                    \
