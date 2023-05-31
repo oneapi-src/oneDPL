@@ -12,10 +12,11 @@
 
 #include <iterator>
 
-template <typename ViewKeys, typename ViewVals, typename ResKeys, typename ResVals, typename Size,
-          typename BinaryPredicate, typename BinaryOperation>
+template <typename RandAccessItKeysIn, typename RandAccessItValsIn, typename RandAccessItKeysOut,
+          typename RandAccessItValsOut, typename Size, typename BinaryPredicate, typename BinaryOperation>
 Size
-reduce_by_segment_serial(ViewKeys keys, ViewVals vals, ResKeys& res_keys, ResVals& res_vals, Size n,
+reduce_by_segment_serial(RandAccessItKeysIn keys, RandAccessItValsIn vals,
+                         RandAccessItKeysOut res_keys, RandAccessItValsOut res_vals, Size n,
                          BinaryPredicate binary_pred, BinaryOperation binary_op)
 {
     if (n < 1)

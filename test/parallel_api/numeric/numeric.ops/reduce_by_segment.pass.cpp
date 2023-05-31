@@ -131,7 +131,8 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         ::std::vector<ValT> expected_val_res(n);
 
         ::std::size_t num_segments =
-            reduce_by_segment_serial(host_keys, host_vals, expected_key_res, expected_val_res, n, pred, op);
+            reduce_by_segment_serial(host_keys, host_vals, ::std::begin(expected_key_res),
+                ::std::begin(expected_val_res), n, pred, op);
 
 #ifdef DUMP_CHECK_RESULTS
         ::std::cout << "check_values(n = " << n << ", segments = " << num_keys << ") : " << ::std::endl;
