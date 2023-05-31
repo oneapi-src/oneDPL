@@ -128,7 +128,7 @@ gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> acc,
     //          sycl::ext::intel::esimd::simd<uint32_t, N> offsets,     // s the zero-based offsets in bytes.
     //          sycl::ext::intel::esimd::simd_mask<N> pred = 1)         // is predicates.
 
-    return sycl::_V1::ext::intel::experimental::esimd::lsc_gather(acc, offsets + base_offset, mask);
+    return sycl::_V1::ext::intel::experimental::esimd::lsc_gather(acc, offsets /*+ base_offset*/, mask);
 }
 
 template <typename T, int N>
