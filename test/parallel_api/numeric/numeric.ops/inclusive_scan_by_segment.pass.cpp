@@ -94,13 +94,9 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
         ::std::ostringstream failure_msg;
-        failure_msg << "wrong effect from inclusive_scan_by_segment with types [";
-        failure_msg << typeid(KeyT).name();
-        failure_msg << ";";
-        failure_msg << typeid(ValT).name();
-        failure_msg << "], ";
+        failure_msg << "wrong effect from inclusive_scan_by_segment for ";
         failure_msg << "n=" << ::std::to_string(n) << ", ";
-        if (::std::is_same<BinaryPredicateCheck, oneapi::dpl::__internal::__pstl_equal>::value)
+        if constexpr (::std::is_same<BinaryPredicateCheck, oneapi::dpl::__internal::__pstl_equal>::value)
         {
             failure_msg << "Default Pred, ";
         }
@@ -108,7 +104,7 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         {
             failure_msg << "Custom Pred, ";
         }
-        if (::std::is_same<BinaryOperationCheck, oneapi::dpl::__internal::__pstl_plus>::value)
+        if constexpr (::std::is_same<BinaryOperationCheck, oneapi::dpl::__internal::__pstl_plus>::value)
         {
             failure_msg << "Default Op";
         }
