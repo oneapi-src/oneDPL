@@ -171,7 +171,7 @@ exclusive_scan_by_segment_impl_helper(Policy&& policy, InputIterator1 first1, In
     transform(::std::move(policy1), first2, last2 - 1, _flags.get() + 1, _temp.get() + 1,
               internal::replace_if_fun<OutputType, ::std::negate<FlagType>>(::std::negate<FlagType>(), init));
 #    else
-    replace_copy_if(::std::move(policy1, first2, last2 - 1, _flags.get() + 1, _temp.get() + 1, ::std::negate<FlagType>(), init);
+    replace_copy_if(::std::move(policy1), first2, last2 - 1, _flags.get() + 1, _temp.get() + 1, ::std::negate<FlagType>(), init);
 #    endif
 
     auto policy2 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<ExclusiveScan2>(policy);

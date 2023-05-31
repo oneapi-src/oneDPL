@@ -46,11 +46,11 @@ exclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator re
     return result;
 }
 
-template <typename ViewKeys, typename ViewVals, typename Res, typename Size, typename T, typename BinaryPredicate,
-          typename BinaryOperation>
+template <typename RandAccessItKeysIn, typename RandAccessItValsIn, typename RandAccessItValsOut, typename Size,
+          typename T, typename BinaryPredicate, typename BinaryOperation>
 void
-exclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, T init, BinaryPredicate binary_pred,
-                                 BinaryOperation binary_op)
+exclusive_scan_by_segment_serial(RandAccessItKeysIn keys, RandAccessItValsIn vals, RandAccessItValsOut res, Size n,
+                                 T init, BinaryPredicate binary_pred, BinaryOperation binary_op)
 {
     T current = init;
     res[0] = current;
@@ -100,11 +100,11 @@ inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator re
     return inclusive_scan_serial(first, last, result, ::std::plus<input_type>());
 }
 
-template <typename ViewKeys, typename ViewVals, typename Res, typename Size, typename BinaryPredicate,
-          typename BinaryOperation>
+template <typename RandAccessItKeysIn, typename RandAccessItValsIn, typename RandAccessItValsOut,
+          typename Size, typename BinaryPredicate, typename BinaryOperation>
 void
-inclusive_scan_by_segment_serial(ViewKeys keys, ViewVals vals, Res& res, Size n, BinaryPredicate binary_pred,
-                                 BinaryOperation binary_op)
+inclusive_scan_by_segment_serial(RandAccessItKeysIn keys, RandAccessItValsIn vals, RandAccessItValsOut res,
+                                 Size n, BinaryPredicate binary_pred, BinaryOperation binary_op)
 {
     for (Size i = 0; i < n; ++i)
         if (i == 0 || !binary_pred(keys[i - 1], keys[i]))

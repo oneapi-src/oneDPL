@@ -122,7 +122,8 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         }
 
         ::std::vector<value_type> expected_val_res(n);
-        exclusive_scan_by_segment_serial(host_keys, host_vals, expected_val_res, n, init, pred, op);
+        exclusive_scan_by_segment_serial(host_keys, host_vals, ::std::begin(expected_val_res), n,
+            init, pred, op);
 
 #ifdef DUMP_CHECK_RESULTS
         ::std::cout << "check_values(n = " << n << "), init = " << init << ":" << ::std::endl;

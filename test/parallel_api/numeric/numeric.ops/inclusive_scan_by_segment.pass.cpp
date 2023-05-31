@@ -118,7 +118,8 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         }
 
         ::std::vector<ValT> expected_val_res(n);
-        inclusive_scan_by_segment_serial(host_keys, host_vals, expected_val_res, n, pred, op);
+        inclusive_scan_by_segment_serial(host_keys, host_vals, ::std::begin(expected_val_res),
+            n, pred, op);
 
 #ifdef DUMP_CHECK_RESULTS
         ::std::cout << "check_values(n = " << n << ") : " << ::std::endl;
