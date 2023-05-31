@@ -167,26 +167,32 @@ scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> acc,
         sycl::ext::intel::esimd::simd<T, N> values,
         sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    // TODO is it correct?
-    using uint32Acc = sycl::accessor<uint32_t, 1, Mode, sycl::target::device, P>;
+    // scatter
+    // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory.html#ga851442aaf354eebfda03800487bb1091
+    // template<typename T , int N, typename AccessorTy , typename Toffset >
+    // __ESIMD_API std::enable_if_t<(sizeof(T) <= 4) && (N == 1 || N == 8 || N == 16 || N == 32) &&
+    //                              !std::is_pointer<AccessorTy>::value && std::is_integral_v<Toffset>>
+    // sycl::_V1::ext::intel::esimd::scatter(
+    //      AccessorTy acc,                 // The accessor to scatter to.
+    //      simd<Toffset, N> offsets,       // Per-element offsets in bytes.
+    //      simd<T, N> vals,                // Values to write.
+    //      uint32_t glob_offset = 0,       // Offset in bytes added to each individual element's offset to compute actual memory access offset for that element.
+    //      simd_mask<N> mask = 1)          // Memory access mask. Elements with zero corresponding mask's predicate are not accessed.
 
-    uint32Acc*                                            __p_uint32_acc = reinterpret_cast<uint32Acc*>(&acc);
-    sycl::ext::intel::esimd::simd<::std::uint32_t, 2 * N> __uint32_vals = values.template bit_cast_view<::std::uint32_t>();
-    __ESIMD_NS::simd<uint32_t, 2 * N>                     __uint32_offsets;
-    __ESIMD_NS::simd_mask<2 * N>                          __uint32_mask(0);
+    // lcs_scatter
+    // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__lsc.html#gaf594e1ffb683161e3339e852874f9db3
+    // template<typename T , int NElts = 1, lsc_data_size DS = lsc_data_size::default_size,
+    //          cache_hint L1H = cache_hint::none,
+    //          cache_hint L3H = cache_hint::none,
+    //          int N, typename AccessorTy >
+    // __ESIMD_API std::enable_if_t<!std::is_pointer<AccessorTy>::value>
+    // sycl::_V1::ext::intel::experimental::esimd::lsc_scatter(
+    //      AccessorTy acc,                                     // is the SYCL accessor.
+    //      sycl::ext::intel::esimd::simd<uint32_t, N> offsets, // is the zero-based offsets in bytes.
+    //      sycl::ext::intel::esimd::simd<T, N * NElts> vals,   // is values to store.
+    //      sycl::ext::intel::esimd::simd_mask<N> pred = 1)     // is predicates.
 
-    // TODO required to implement this through simd/mask operations
-    // simd select stride
-    for (size_t src_index = 0; src_index < N; ++src_index)
-    {
-        __uint32_offsets[2 * src_index    ] = offsets[src_index];
-        __uint32_offsets[2 * src_index + 1] = offsets[src_index] + sizeof(uint32_t);
-
-        __uint32_mask[2 * src_index    ] = mask[src_index];
-        __uint32_mask[2 * src_index + 1] = mask[src_index];
-    }
-
-    utils::scatter(*__p_uint32_acc, __uint32_offsets, __uint32_vals, __uint32_mask);
+    sycl::_V1::ext::intel::experimental::esimd::lsc_scatter(acc, offsets, values, mask);
 }
 
 template <typename T, uint32_t R, uint32_t C>
@@ -610,7 +616,8 @@ slm_scatter(__ESIMD_NS::simd<uint32_t, N> offsets,
 }
 
 template <typename T, int N>
-inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)<=64), __ESIMD_NS::simd<T, N> > BlockLoad(uint32_t slm_offset)
+inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)<=64), __ESIMD_NS::simd<T, N> >
+BlockLoad(uint32_t slm_offset)
 {
     __ESIMD_NS::simd<T, N> result;
     result.template bit_cast_view<uint32_t>() = __ESIMD_ENS::lsc_slm_block_load<uint32_t, N*sizeof(T)/sizeof(uint32_t)>(slm_offset);
@@ -618,7 +625,8 @@ inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)<=64), __ESIMD_NS::simd<T,
 }
 
 template <typename T, int N>
-inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)>64), __ESIMD_NS::simd<T, N> > BlockLoad(uint32_t slm_offset)
+inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)>64), __ESIMD_NS::simd<T, N> >
+BlockLoad(uint32_t slm_offset)
 {
     __ESIMD_NS::simd<T, N> result;
     constexpr uint32_t BLOCK_SIZE = 64*sizeof(uint32_t)/sizeof(T);
@@ -628,13 +636,15 @@ inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)>64), __ESIMD_NS::simd<T, 
 }
 
 template <typename T, int N>
-inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)<=64), void> BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
+inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)<=64), void>
+BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
 {
     __ESIMD_ENS::lsc_slm_block_store<uint32_t, N*sizeof(T)/sizeof(uint32_t)>(slm_offset, data.template bit_cast_view<uint32_t>());
 }
 
 template <typename T, int N>
-inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)>64), void> BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
+inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)>64), void>
+BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
 {
     constexpr uint32_t BLOCK_SIZE = 64*sizeof(uint32_t)/sizeof(T);
     BlockStore<T, BLOCK_SIZE>(slm_offset, data.template select<BLOCK_SIZE, 1>(0));
@@ -644,7 +654,8 @@ inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)>64), void> BlockStore(uin
 template <typename T, int N,
     __ESIMD_ENS::cache_hint H1=__ESIMD_ENS::cache_hint::none,
     __ESIMD_ENS::cache_hint H3=__ESIMD_ENS::cache_hint::none>
-inline std::enable_if_t< (N*sizeof(T)<=256), void> BlockStore(T* dst, __ESIMD_NS::simd<T, N> data)
+inline std::enable_if_t< (N*sizeof(T)<=256), void>
+BlockStore(T* dst, __ESIMD_NS::simd<T, N> data)
 {
     __ESIMD_ENS::lsc_block_store<uint32_t, N, __ESIMD_ENS::lsc_data_size::default_size, H1, H3>(dst, data.template bit_cast_view<uint32_t>(), 1);
 }
@@ -652,7 +663,8 @@ inline std::enable_if_t< (N*sizeof(T)<=256), void> BlockStore(T* dst, __ESIMD_NS
 template <typename T, int N,
     __ESIMD_ENS::cache_hint H1=__ESIMD_ENS::cache_hint::none,
     __ESIMD_ENS::cache_hint H3=__ESIMD_ENS::cache_hint::none>
-inline std::enable_if_t< (N*sizeof(T)>256), void> BlockStore(T* dst, __ESIMD_NS::simd<T, N> data)
+inline std::enable_if_t< (N*sizeof(T)>256), void>
+BlockStore(T* dst, __ESIMD_NS::simd<T, N> data)
 {
     constexpr uint32_t BLOCK_SIZE = 64*sizeof(uint32_t)/sizeof(T);
     BlockStore<T, BLOCK_SIZE>(dst, data.template select<BLOCK_SIZE, 1>(0));
