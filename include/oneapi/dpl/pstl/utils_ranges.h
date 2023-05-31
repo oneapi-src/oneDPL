@@ -255,6 +255,8 @@ struct reverse_view_simple
 
     _R __r;
 
+    reverse_view_simple(_R __rng) : __r(__rng) {}
+
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
     auto operator[](Idx __i) const -> decltype(__r[__i])
@@ -281,7 +283,8 @@ struct reverse_view_simple
     }
 };
 
-//It is kind of pseudo-view for take_view support.
+//It is kind of pseudo-view for take_view support. We assume that the underlying range will not shrink
+//after creation of the view to favor performance.
 template <typename _R, typename _Size>
 struct take_view_simple
 {
@@ -290,7 +293,7 @@ struct take_view_simple
     _R __r;
     _Size __n;
 
-    take_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size) { assert(__n >= 0 && __n < __r.size()); }
+    take_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size) { assert(__n >= 0 && __n <= __r.size()); }
 
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
@@ -318,7 +321,8 @@ struct take_view_simple
     }
 };
 
-//It is kind of pseudo-view for drop_view support.
+//It is kind of pseudo-view for drop_view support. We assume that the underlying range will not shrink
+//after creation of the view to favor performance.
 template <typename _R, typename _Size>
 struct drop_view_simple
 {
@@ -327,7 +331,7 @@ struct drop_view_simple
     _R __r;
     _Size __n;
 
-    drop_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size) { assert(__n >= 0 && __n < __r.size()); }
+    drop_view_simple(_R __rng, _Size __size) : __r(__rng), __n(__size) { assert(__n >= 0 && __n <= __r.size()); }
 
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
@@ -340,6 +344,48 @@ struct drop_view_simple
     size() const
     {
         return __r.size() - __n;
+    }
+
+    bool
+    empty() const
+    {
+        return size() == 0;
+    }
+
+    auto
+    base() const -> decltype(__r)
+    {
+        return __r;
+    }
+};
+
+//replicate_start_view_simple inserts replicates of the first element m times, then continues with the range as normal.
+// For counting iterator range {0,1,2,3,4,5,...}, and __replicate_count = 3, the result is {0,0,0,0,1,2,3,4,5,...}
+template <typename _R, typename _Size>
+struct replicate_start_view_simple
+{
+    using value_type = typename ::std::decay_t<_R>::value_type;
+
+    _R __r;
+    _Size __repl_count;
+
+    replicate_start_view_simple(_R __rng, _Size __replicate_count) : __r(__rng), __repl_count(__replicate_count)
+    {
+        assert(__repl_count >= 0);
+    }
+
+    //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
+    template <typename Idx>
+    auto operator[](Idx __i) const -> decltype(__r[__i])
+    {
+        return (__i < __repl_count) ? __r[0] : __r[__i - __repl_count];
+    }
+
+    _Size
+    size() const
+    {
+        // if base range is empty, replication does not extend the valid size
+        return (__r.empty()) ? 0 : __r.size() + __repl_count;
     }
 
     bool

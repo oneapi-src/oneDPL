@@ -40,11 +40,7 @@ Macro                              Description
                                    are executed with unsequenced policies.
                                    For further details about the pragma,
                                    see the `vector page in the Intel® oneAPI DPC++/C++ Compiler Developer Guide and Reference
-                                   <https://software.intel.com/
-                                   content/www/us/en/develop/documentation/
-                                   oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/
-                                   compiler-reference/pragmas/
-                                   intel-specific-pragma-reference/vector.html>`_.
+                                   <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/current/vector.html>`_.
                                    If the macro evaluates to a non-zero value,
                                    the use of ``#pragma vector nontemporal`` is enabled.
                                    By default, the macro is not defined.
