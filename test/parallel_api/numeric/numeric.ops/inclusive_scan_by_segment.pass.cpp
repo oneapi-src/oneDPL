@@ -20,6 +20,7 @@
 
 #include "support/test_config.h"
 #include "support/utils.h"
+#include "support/utils_functors.h"
 #include "support/scan_serial_impl.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -90,28 +91,7 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         if (n < 1)
             return;
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
-
-        ::std::ostringstream failure_msg;
-        failure_msg << "wrong effect from inclusive_scan_by_segment for ";
-        failure_msg << "n=" << ::std::to_string(n) << ", ";
-        if constexpr (::std::is_same<BinaryPredicateCheck, oneapi::dpl::__internal::__pstl_equal>::value)
-        {
-            failure_msg << "Default Pred, ";
-        }
-        else
-        {
-            failure_msg << "Custom Pred, ";
-        }
-        if constexpr (::std::is_same<BinaryOperationCheck, oneapi::dpl::__internal::__pstl_plus>::value)
-        {
-            failure_msg << "Default Op";
-        }
-        else
-        {
-            failure_msg << "Custom Op";
-        }
 
         ::std::vector<ValT> expected_val_res(n);
         inclusive_scan_by_segment_serial(host_keys, host_vals, ::std::begin(expected_val_res),
@@ -125,7 +105,7 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         display_param("expected result: ", expected_val_res.data(), n);
 #endif // DUMP_CHECK_RESULTS
 
-        EXPECT_EQ_N(expected_val_res.data(), val_res, n, failure_msg.str().c_str());
+        EXPECT_EQ_N(expected_val_res.data(), val_res, n, "Wrong effect from inclusive_scan_by_segment");
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -223,49 +203,13 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
     }
 };
 
-template <typename _Tp>
-struct UserBinaryPredicate
-{
-    bool
-    operator()(const _Tp& __x, const _Tp& __y) const
-    {
-        using KeyT = ::std::decay_t<_Tp>;
-        return __y != KeyT(1);
-    }
-};
-
-template <typename _Tp>
-struct UserBinaryOperation
-{
-    _Tp
-    operator()(const _Tp& __x, const _Tp& __y) const
-    {
-        return (__x < __y) ? __y : __x;
-    }
-};
-
-template <typename _Tp>
-struct UserBinaryOperation<::std::complex<_Tp>>
-{
-    auto
-    complex_abs(const ::std::complex<_Tp>& __x) const
-    {
-        return ::std::sqrt(__x.real() * __x.real() + __x.imag() * __x.imag());
-    }
-    ::std::complex<_Tp>
-    operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
-    {
-        return (complex_abs(__x) < complex_abs(__y)) ? __y : __x;
-    }
-};
-
 int
 main()
 {
     {
         using ValueType = ::std::uint64_t;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = UserBinaryOperation<ValueType>;
+        using BinaryOperation = MaxFunctor<ValueType>;
 
 #if TEST_DPCPP_BACKEND_PRESENT
         // Run tests for USM shared memory
@@ -286,7 +230,7 @@ main()
     {
         using ValueType = ::std::complex<float>;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = UserBinaryOperation<ValueType>;
+        using BinaryOperation = MaxFunctor<ValueType>;
 
 #if TEST_DPCPP_BACKEND_PRESENT
         // Run tests for USM shared memory

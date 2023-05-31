@@ -191,8 +191,8 @@ struct __sycl_scan_by_segment_impl
                     {
                         __accumulator = __init;
                     }
-
-                    constexpr ::std::int32_t __no_segment_break = ~0;
+                    // TODO: We should use a more meaningful name through enum instead of -1
+                    constexpr ::std::int32_t __no_segment_break = -1;
                     // signed to allow flag for no segment break found
                     ::std::int32_t __max_end = __no_segment_break;
 
@@ -306,7 +306,7 @@ struct __sycl_scan_by_segment_impl
                                 __val_type __local_collector = __identity;
                                 // Parallel exploration phase
                                 for (::std::int32_t __j = __i;
-                                     __j > __dpl_sycl::__maximum<::std::int64_t>{}(-1L, __i - __vals_to_explore); --__j)
+                                     __j > __dpl_sycl::__maximum<::std::int32_t>{}(-1L, __i - __vals_to_explore); --__j)
                                 {
                                     __local_collector = __binary_op(__partials_acc[__j], __local_collector);
                                     if (__seg_ends_acc[__j] || __j == 0)
@@ -371,11 +371,11 @@ struct __sycl_scan_by_segment_impl
 };
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
-          typename BinaryPredicate, typename Operator, typename IsInclusive>
+          typename BinaryPredicate, typename Operator, typename Inclusive>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
-__sycl_scan_by_segment_impl_invoker(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                                    OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op,
-                                    IsInclusive is_inclusive_scan)
+__scan_by_segment_impl_common(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+                              OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op,
+                              Inclusive)
 {
     const auto n = ::std::distance(first1, last1);
 
@@ -396,19 +396,9 @@ __sycl_scan_by_segment_impl_invoker(Policy&& policy, InputIterator1 first1, Inpu
 
     constexpr iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
 
-    if (is_inclusive_scan)
-    {
-        __sycl_scan_by_segment_impl</*__is_inclusive=*/true>()(::std::forward<Policy>(policy), key_buf.all_view(),
-                                                               value_buf.all_view(), value_output_buf.all_view(),
-                                                               binary_pred, binary_op, init, identity);
-    }
-    else
-    {
-        __sycl_scan_by_segment_impl</*__is_inclusive=*/false>()(::std::forward<Policy>(policy), key_buf.all_view(),
-                                                                value_buf.all_view(), value_output_buf.all_view(),
-                                                                binary_pred, binary_op, init, identity);
-    }
-
+    __sycl_scan_by_segment_impl<Inclusive::value>()(::std::forward<Policy>(policy), key_buf.all_view(),
+                                                    value_buf.all_view(), value_output_buf.all_view(),
+                                                    binary_pred, binary_op, init, identity);
     return result + n;
 }
 
