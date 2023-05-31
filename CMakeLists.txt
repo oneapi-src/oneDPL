@@ -285,7 +285,7 @@ elseif(ONEDPL_BACKEND MATCHES "^(serial)$")
     message(STATUS "Compilation for the host due to serial backend")
 
 elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
-    find_package(OpenMP REQUIRED)
+    find_package(OpenMP)
     if (OpenMP_CXX_FOUND)
         message(STATUS "Compilation for the host due to OpenMP backend.")
         target_link_libraries(oneDPL INTERFACE OpenMP::OpenMP_CXX)
