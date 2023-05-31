@@ -573,7 +573,6 @@ class __future : private std::tuple<_Args...>
     }
 };
 
-
 // Invoke a callable and pass a compile-time integer based on a provided run-time integer.
 // The compile-time integer that will be provided to the callable is defined as the smallest
 // value in the integer_sequence not less than the run-time integer. For example:
@@ -594,7 +593,8 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
 {
     template <::std::uint16_t... _Vals>
     using _Head = typename ::std::conditional_t<
-        sizeof...(_Vals) != 0, ::std::tuple_element<0, ::std::tuple<::std::integral_constant<::std::uint32_t, _Vals>...>>,
+        sizeof...(_Vals) != 0,
+        ::std::tuple_element<0, ::std::tuple<::std::integral_constant<::std::uint32_t, _Vals>...>>,
         ::std::integral_constant<::std::uint32_t, ::std::numeric_limits<::std::uint32_t>::max()>>::type;
 
     static_assert(_X < _Head<_Xs...>::value, "Sequence must be monotonically increasing");

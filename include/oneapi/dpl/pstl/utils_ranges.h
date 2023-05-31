@@ -63,7 +63,7 @@ struct range_has_raw_ptr_iterator : ::std::false_type
 
 template <class T>
 struct range_has_raw_ptr_iterator<T, ::std::void_t<decltype(::std::declval<T&>().begin())>>
-  : ::std::is_pointer<decltype(::std::declval<T&>().begin())>
+    : ::std::is_pointer<decltype(::std::declval<T&>().begin())>
 {
 };
 

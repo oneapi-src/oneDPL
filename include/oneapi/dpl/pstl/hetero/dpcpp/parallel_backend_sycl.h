@@ -499,7 +499,8 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
 #if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
-                    constexpr bool __can_use_subgroup_load_store = _IsFullGroup && dpl::__internal::range_has_raw_ptr_iterator<::std::decay_t<_InRng>>::value;
+                    constexpr bool __can_use_subgroup_load_store =
+                        _IsFullGroup && dpl::__internal::range_has_raw_ptr_iterator<::std::decay_t<_InRng>>::value;
 #else
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
@@ -603,7 +604,8 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     const ::std::uint16_t __subgroup_size = __subgroup.get_local_linear_range();
 
 #if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
-                    constexpr bool __can_use_subgroup_load_store = _IsFullGroup && dpl::__internal::range_has_raw_ptr_iterator<::std::decay_t<_InRng>>::value;
+                    constexpr bool __can_use_subgroup_load_store =
+                        _IsFullGroup && dpl::__internal::range_has_raw_ptr_iterator<::std::decay_t<_InRng>>::value;
 #else
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
@@ -922,8 +924,8 @@ __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out
     {
         using _ReduceOp = ::std::plus<_Size>;
         using CreateOp = unseq_backend::__create_mask<_Pred, _Size>;
-        using CopyOp = unseq_backend::__copy_by_mask<
-            _ReduceOp, oneapi::dpl::__internal::__pstl_assign, /*inclusive*/ ::std::true_type, 1>;
+        using CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign,
+                                                     /*inclusive*/ ::std::true_type, 1>;
 
         return __parallel_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_InRng>(__in_rng),
                                     ::std::forward<_OutRng>(__out_rng), __n, CreateOp{__pred}, CopyOp{});
