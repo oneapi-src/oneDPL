@@ -91,26 +91,44 @@ gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> acc,
        ::std::uint32_t base_offset,
        sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    // TODO is it correct?
-    using uint32Acc = sycl::accessor<uint32_t, 1, Mode, sycl::target::device, P>;
+    // gather
+    // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory.html#ga32c45e430fa87969f25402fa029a21d3
+    //      template<typename T , int N, typename AccessorTy , typename Toffset >
+    //      __ESIMD_API std::enable_if_t<(sizeof(T) <= 4) && (N == 1 || N == 8 || N == 16 || N == 32) &&
+    //                                   !std::is_pointer<AccessorTy>::value && std::is_integral_v<Toffset>, simd<T, N>>
+    //      sycl::_V1::ext::intel::esimd::gather(
+    //          AccessorTy acc,             // The accessor to gather from.
+    //          simd<Toffset, N> offsets,   // Per-element offsets in bytes.
+    //          uint32_t glob_offset = 0,   // Offset in bytes added to each individual element's offset to compute actual memory access offset for that element.
+    //          simd_mask<N> mask = 1)      // Memory access mask. Elements with zero corresponding mask's predicate are not accessed, their values in the resulting vector are undefined.
 
-    uint32Acc*                        __p_uint32_acc = reinterpret_cast<uint32Acc*>(&acc);
-    __ESIMD_NS::simd<uint32_t, 2 * N> __uint32_offsets;
-    __ESIMD_NS::simd_mask<2 * N>      __uint32_mask(0);
+    // lsc_gather
+    // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__lsc.html#gaa68ad3ecb1dfed6a9acac97df5b8b30d
+    //      template<typename T , int NElts = 1, lsc_data_size DS = lsc_data_size::default_size,
+    //               cache_hint L1H = cache_hint::none,
+    //               cache_hint L3H = cache_hint::none,
+    //               int N, typename AccessorTy >
+    //      __ESIMD_API std::enable_if_t<!std::is_pointer_v<AccessorTy>, sycl::ext::intel::esimd::simd<T, N * NElts>>
+    //      sycl::_V1::ext::intel::experimental::esimd::lsc_gather(
+    //          AccessorTy acc,                                         // is the SYCL accessor.
+    //          sycl::ext::intel::esimd::simd<uint32_t, N> offsets,     // is the zero-based offsets in bytes.
+    //          sycl::ext::intel::esimd::simd_mask<N> pred,             // is predicates.
+    //          sycl::ext::intel::esimd::simd<T, N * NElts> old_values) // contains the vector which elements are copied to the returned result when the corresponding element of pred is 0.
 
-    // TODO required to implement this through simd/mask operations
-    // simd select stride
-    for (size_t src_index = 0; src_index < N; ++src_index)
-    {
-        __uint32_offsets[2 * src_index    ] = offsets[src_index];
-        __uint32_offsets[2 * src_index + 1] = offsets[src_index] + sizeof(uint32_t);
+    //
+    // lsc_gather
+    // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__lsc.html#gaca847de10e306818fca7bcec9b446bef
+    //      template<typename T , int NElts = 1, lsc_data_size DS = lsc_data_size::default_size,
+    //               cache_hint L1H = cache_hint::none,
+    //               cache_hint L3H = cache_hint::none,
+    //                int N, typename AccessorTy >
+    //      __ESIMD_API std::enable_if_t<!std::is_pointer_v<AccessorTy>, sycl::ext::intel::esimd::simd<T, N * NElts>>
+    //      sycl::_V1::ext::intel::experimental::esimd::lsc_gather(
+    //          AccessorTy acc,                                         // is the SYCL accessor.
+    //          sycl::ext::intel::esimd::simd<uint32_t, N> offsets,     // s the zero-based offsets in bytes.
+    //          sycl::ext::intel::esimd::simd_mask<N> pred = 1)         // is predicates.
 
-        __uint32_mask[2 * src_index    ] = mask[src_index];
-        __uint32_mask[2 * src_index + 1] = mask[src_index];
-    }
-
-    sycl::ext::intel::esimd::simd<uint32_t, 2 * N> __uint32__result = utils::gather(*__p_uint32_acc, __uint32_offsets, base_offset, __uint32_mask);
-    return __uint32__result.template bit_cast_view<T>();
+    return sycl::_V1::ext::intel::experimental::esimd::lsc_gather(acc, offsets + base_offset, mask);
 }
 
 template <typename T, int N>
