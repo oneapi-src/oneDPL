@@ -33,7 +33,7 @@
 #if _ONEDPL_BACKEND_SYCL
 
 #include <type_traits>
-#include <cstdint>
+#include <cstddef>
 #include <utility>
 #include <algorithm>
 
@@ -368,6 +368,48 @@ struct __sycl_scan_by_segment_impl
             .wait();
     }
 };
+
+template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
+          typename BinaryPredicate, typename Operator, typename IsInclusive>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
+__sycl_scan_by_segment_impl_invoker(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+                                    OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op,
+                                    IsInclusive is_inclusive_scan)
+{
+    const auto n = ::std::distance(first1, last1);
+
+    // Check for empty element ranges
+    if (n <= 0)
+        return result;
+
+    namespace __bknd = oneapi::dpl::__par_backend_hetero;
+
+    auto keep_keys = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
+    auto key_buf = keep_keys(first1, last1);
+    auto keep_values = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator2>();
+    auto value_buf = keep_values(first2, first2 + n);
+    auto keep_value_outputs = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator>();
+    auto value_output_buf = keep_value_outputs(result, result + n);
+    auto buf_view = key_buf.all_view();
+    using iter_value_t = typename ::std::iterator_traits<InputIterator2>::value_type;
+
+    constexpr iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
+
+    if (is_inclusive_scan)
+    {
+        __sycl_scan_by_segment_impl</*__is_inclusive=*/true>()(::std::forward<Policy>(policy), key_buf.all_view(),
+                                                               value_buf.all_view(), value_output_buf.all_view(),
+                                                               binary_pred, binary_op, init, identity);
+    }
+    else
+    {
+        __sycl_scan_by_segment_impl</*__is_inclusive=*/false>()(::std::forward<Policy>(policy), key_buf.all_view(),
+                                                                value_buf.all_view(), value_output_buf.all_view(),
+                                                                binary_pred, binary_op, init, identity);
+    }
+
+    return result + n;
+}
 
 } // namespace internal
 } // namespace dpl
