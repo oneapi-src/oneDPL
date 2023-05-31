@@ -23,6 +23,7 @@
 #include "function.h"
 #include "by_segment_extension_defs.h"
 #include "../pstl/utils.h"
+#include "scan_by_segment_impl.h"
 
 namespace oneapi
 {
@@ -39,8 +40,8 @@ class ExclusiveScan2;
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
           typename BinaryPredicate, typename Operator>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
-exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                               OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op)
+pattern_exclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+                                  OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op)
 {
     const auto n = ::std::distance(first1, last1);
 
@@ -95,14 +96,22 @@ template <typename Policy, typename InputIterator1, typename InputIterator2, typ
           typename BinaryPredicate, typename Operator>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
 exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                               OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op)
+                               OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op,
+                               ::std::true_type /* has_known_identity*/)
 {
+    return internal::__scan_by_segment_impl_common(::std::forward<Policy>(policy), first1, last1, first2, result, init,
+                                                   binary_pred, binary_op, ::std::false_type{});
+}
+
+template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
+          typename BinaryPredicate, typename Operator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
+exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+                               OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op,
+                               ::std::false_type /* has_known_identity*/)
+{
+
     const auto n = ::std::distance(first1, last1);
-
-    // Check for empty element ranges
-    if (n <= 0)
-        return result;
-
     typedef typename ::std::iterator_traits<OutputIterator>::value_type OutputType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef unsigned int FlagType;
@@ -138,7 +147,8 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     transform(::std::move(policy1), first2, last2 - 1, _flags.get() + 1, _temp.get() + 1,
               internal::replace_if_fun<OutputType, ::std::negate<FlagType>>(::std::negate<FlagType>(), init));
 #    else
-    replace_copy_if(::std::move(policy1, first2, last2 - 1, _flags.get() + 1, _temp.get() + 1, ::std::negate<FlagType>(), init);
+    replace_copy_if(::std::move(policy1), first2, last2 - 1, _flags.get() + 1, _temp.get() + 1,
+                    ::std::negate<FlagType>(), init);
 #    endif
 
     auto policy2 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<ExclusiveScan2>(policy);
@@ -148,9 +158,21 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
                              make_zip_iterator(_temp.get(), _flags.get()) + n, make_zip_iterator(result, _flags.get()),
                              internal::segmented_scan_fun<ValueType, FlagType, Operator>(binary_op),
                              oneapi::dpl::__internal::__no_op(), ::std::make_tuple(init, FlagType(1)));
-
     return result + n;
 }
+
+template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
+          typename BinaryPredicate, typename Operator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<::std::decay_t<Policy>, OutputIterator>
+pattern_exclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+                                  OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op)
+{
+    return internal::exclusive_scan_by_segment_impl(
+        ::std::forward<Policy>(policy), first1, last1, first2, result, init, binary_pred, binary_op,
+        typename unseq_backend::__has_known_identity<
+            Operator, typename ::std::iterator_traits<InputIterator2>::value_type>::type{});
+}
+
 #endif
 } // namespace internal
 
@@ -160,8 +182,8 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 exclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                           OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op)
 {
-    return internal::exclusive_scan_by_segment_impl(::std::forward<Policy>(policy), first1, last1, first2, result, init,
-                                                    binary_pred, binary_op);
+    return internal::pattern_exclusive_scan_by_segment(::std::forward<Policy>(policy), first1, last1, first2, result,
+                                                       init, binary_pred, binary_op);
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
