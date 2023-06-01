@@ -100,33 +100,6 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
-        ::std::string failure_msg = "from reduce_by_segment with types [";
-        failure_msg += typeid(KeyT).name();
-        failure_msg += ";";
-        failure_msg += typeid(ValT).name();
-        failure_msg += "], ";
-        failure_msg += "n=" + ::std::to_string(n) + ", ";
-        if (::std::is_same<BinaryPredicateCheck, oneapi::dpl::__internal::__pstl_equal>::value)
-        {
-            failure_msg += "Default Pred, ";
-        }
-        else
-        {
-            failure_msg += "Custom Pred, ";
-        }
-        if (::std::is_same<BinaryOperationCheck, oneapi::dpl::__internal::__pstl_plus>::value)
-        {
-            failure_msg += "Default Op";
-        }
-        else
-        {
-            failure_msg += "Custom Op";
-        }
-        ::std::string num_keys_failure_msg = "wrong key size " + failure_msg;
-        ::std::string num_vals_failure_msg = "wrong values size " + failure_msg;
-        ::std::string key_failure_msg = "wrong keys " + failure_msg;
-        ::std::string val_failure_msg = "wrong values " + failure_msg;
-
         ::std::vector<KeyT> expected_key_res(n);
         ::std::vector<ValT> expected_val_res(n);
 
@@ -144,10 +117,10 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         display_param("expected values: ", expected_val_res.data(), num_segments);
 #endif // DUMP_CHECK_RESULTS
 
-        EXPECT_EQ(num_segments, num_keys, num_keys_failure_msg.c_str());
-        EXPECT_EQ(num_segments, num_vals, num_vals_failure_msg.c_str());
-        EXPECT_EQ_N(expected_key_res.data(), key_res, num_keys, key_failure_msg.c_str());
-        EXPECT_EQ_N(expected_val_res.data(), val_res, num_vals, val_failure_msg.c_str());
+        EXPECT_EQ(num_segments, num_keys, "wrong key size from reduce_by_segment");
+        EXPECT_EQ(num_segments, num_vals, "wrong val size from reduce_by_segment");
+        EXPECT_EQ_N(expected_key_res.data(), key_res, num_keys, "incorrect keys from reduce_by_segment");
+        EXPECT_EQ_N(expected_val_res.data(), val_res, num_vals, "incorrect vals from reduce_by_segment");
     }
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -339,44 +312,13 @@ test_flag_pred()
 }
 #endif
 
-template <typename _Tp>
-struct UserBinaryPredicate
-{
-    bool
-    operator()(const _Tp& __x, const _Tp& __y) const
-    {
-        using KeyT = ::std::decay_t<decltype(__y)>;
-        return __y != KeyT(1);
-    }
-};
-
-template <typename _Tp>
-struct UserBinaryOperation
-{
-    _Tp
-    operator()(const _Tp& __x, const _Tp& __y) const
-    {
-        return (__x < __y) ? __y : __x;
-    }
-};
-
-template <typename _Tp>
-struct UserBinaryOperation<::std::complex<_Tp>>
-{
-    ::std::complex<_Tp>
-    operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
-    {
-        return (::std::abs(__x) < ::std::abs(__y)) ? ::std::abs(__y) : std::abs(__x);
-    }
-};
-
 int
 main()
 {
     {
         using ValueType = ::std::uint64_t;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = UserBinaryOperation<ValueType>;
+        using BinaryOperation = MaxFunctor<ValueType>;
 
 #if TEST_DPCPP_BACKEND_PRESENT
         // Run tests for USM shared memory
@@ -397,7 +339,7 @@ main()
     {
         using ValueType = ::std::complex<float>;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = UserBinaryOperation<ValueType>;
+        using BinaryOperation = MaxAbsFunctor<ValueType>;
 
 #if TEST_DPCPP_BACKEND_PRESENT
         // Run tests for USM shared memory

@@ -59,6 +59,7 @@
 #include "../pstl/ranges_defs.h"
 #include "../pstl/glue_algorithm_ranges_defs.h"
 #include "../pstl/glue_algorithm_ranges_impl.h"
+#include "scan_by_segment_impl.h"
 #endif
 
 namespace oneapi
@@ -67,35 +68,6 @@ namespace dpl
 {
 namespace internal
 {
-
-#if _ONEDPL_BACKEND_SYCL
-// TODO: Remove prior to merge. This function is intended to live in scan_by_segment_impl.h which is not currently in the main branch
-// and is instead temporarily placed here to allow for development in a branch separate from mmichel11/by_segment_sycl_rewrites. Once PR #608
-// is merged, this can be removed
-template <typename _NdItem, typename _LocalAcc, typename _IdxType, typename _ValueType, typename _BinaryOp>
-inline _ValueType
-__wg_segmented_scan(_NdItem __item, _LocalAcc __local_acc, _IdxType __local_id, _IdxType __delta_local_id,
-                    _ValueType __accumulator, _BinaryOp __binary_op, ::std::size_t __wgroup_size)
-{
-    _IdxType __first = 0;
-    __local_acc[__local_id] = __accumulator;
-
-    __dpl_sycl::__group_barrier(__item);
-
-    for (::std::size_t __i = 1; __i < __wgroup_size; __i += __i)
-    {
-        if (__delta_local_id >= __i)
-            __accumulator = __binary_op(__local_acc[__first + __local_id - __i], __accumulator);
-
-        __first = __wgroup_size - __first;
-        __local_acc[__first + __local_id] = __accumulator;
-
-        __dpl_sycl::__group_barrier(__item);
-    }
-
-    return (__local_id ? __local_acc[__first + __local_id - 1] : 0);
-}
-#endif
 
 template <typename Name>
 class Reduce1;
@@ -402,8 +374,9 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 
                 ::std::size_t __max_end = 0;
                 ::std::size_t __item_segments = 0;
+                auto __identity = __dpl_sycl::__known_identity<_BinaryOperator, __val_type>::value;
 
-                __val_type __accumulator = __dpl_sycl::__known_identity<_BinaryOperator, __val_type>::value;
+                __val_type __accumulator = __identity;
                 for (::std::size_t __i = __start; __i < __end; ++__i)
                 {
                     __accumulator = __binary_op(__accumulator, __values[__i]);
@@ -412,7 +385,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                         __loc_partials[__i - __start] = __accumulator;
                         ++__item_segments;
                         __max_end = __local_id;
-                        __accumulator = __dpl_sycl::__known_identity<_BinaryOperator, __val_type>::value;
+                        __accumulator = __identity;
                     }
                 }
 
@@ -427,8 +400,8 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 
                 // __wg_segmented_scan is a derivative work and responsible for the third header copyright
                 __val_type __carry_in = oneapi::dpl::internal::__wg_segmented_scan(
-                    __item, __loc_acc, __local_id, __local_id - __closest_seg_id, __accumulator, __binary_op,
-                    __wgroup_size);
+                    __item, __loc_acc, __local_id, __local_id - __closest_seg_id, __accumulator, __identity,
+                    __binary_op, __wgroup_size);
 
                 // 2e. Update local partial reductions in first segment and write to global memory.
                 bool __apply_aggs = true;

@@ -735,6 +735,25 @@ struct MaxFunctor<::std::complex<_Tp>>
     }
 };
 
+template <typename _Tp>
+struct MaxAbsFunctor;
+
+// A modification of the functor we use in reduce_by_segment
+template <typename _Tp>
+struct MaxAbsFunctor<::std::complex<_Tp>>
+{
+    auto
+    complex_abs(const ::std::complex<_Tp>& __x) const
+    {
+        return ::std::sqrt(__x.real() * __x.real() + __x.imag() * __x.imag());
+    }
+    ::std::complex<_Tp>
+    operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
+    {
+        return (complex_abs(__x) < complex_abs(__y)) ? complex_abs(__y) : complex_abs(__x);
+    }
+};
+
 } /* namespace TestUtils */
 
 #endif // _UTILS_H
