@@ -1,19 +1,19 @@
-Dynamic Selection API
-#####################
+Dynamic Device Selection API
+############################
 
-|onedpl_long| (|onedpl_short|) provides an experimental feature that provides dynamic selection of the execution resources
-to use for computations. Without dynamic selectio, |onedpl_short| developers must directly choose which device to target 
+|onedpl_long| (|onedpl_short|) provides an experimental feature that provides dynamic device selection of the execution resources
+to use for computations. Without dynamic device selection, |onedpl_short| developers must directly choose which device to target 
 by creating a dpcpp policy that is tied to a specific SYCL queue. Likewise, for most of the oneAPI performance libraries, 
 developers also provides a specific queue through the library interface to select the device to use. 
 
-The dynamic selection API in |onedpl_short| is intended to support two general use cases. The first case is to provide 
+The dynamic device selection API in |onedpl_short| is intended to support two general use cases. The first case is to provide 
 load balancing across similar devices, such as across identical GPUs. The second case is to select an appropriate resource 
 when given disparate devices, such as CPUs and GPUs. In these cases, performance portability is a concern but there are many 
 cases, such as embarrassingly parallel problems, where overall application throughput is improved even if some compute 
-is sent to devices that do not offer the best possible performance for the compute. 
+is sent to devices that do not offer the best possible performance for the compute.
 
-Dynamic Selection Terminology
------------------------------
+Dynamic Device Selection Terminology
+------------------------------------
 
 .. csv-table::
     :header: "Term", "Description"
@@ -28,7 +28,7 @@ Dynamic Selection Terminology
 User-Facing APIs
 ----------------
 
-The main header for dynamic selection features is ``dynamic_selection``. Including this header file brings in all of the algorithms, scoring policies, 
+The main header for dynamic device selection features is ``dynamic_selection``. Including this header file brings in all of the algorithms, scoring policies, 
 schedulers and property support.
 
 .. code:: cpp
@@ -67,7 +67,7 @@ Concepts for User-Facing APIs (expository only)
 Functions
 +++++++++
 
-The following functions are part of the dynamic selection API and are in the ``oneapi::dpl::experimental``
+The following functions are part of the dynamic device selection API and are in the ``oneapi::dpl::experimental``
 namespace:
 
 * ``invoke``
@@ -124,11 +124,11 @@ include the function that will later be submitted.  For example, a round-robin p
 that will be executed in order to select the next Execution Resource in the round-robin order.  
 
 ``invoke_async``: In addition to the usual arguments for ``invoke_async`` this overload also receives a SelectionHandle. 
-Dynamic selection is skipped and instead the Execution Resource and PropertyHandle in the provided SelectionHandle is used. 
+Dynamic device selection is skipped and instead the Execution Resource and PropertyHandle in the provided SelectionHandle is used. 
 This API is useful for developers that do not want to do manual property reporting -- the implementation takes care of 
 reporting necessary events back through the PropertyHandle.
 
-``invoke``: In addition to the usual arguments for ``invoke`` this overload also receives a SelectionHandle. Dynamic selection 
+``invoke``: In addition to the usual arguments for ``invoke`` this overload also receives a SelectionHandle. Dynamic device selection 
 is skipped and instead the Execution Resource and PropertyHandle in the provided SelectionHandle is used. This API is 
 useful for developers that do not want to do manual telemetry -- the implementation takes care of reporting necessary events 
 back through the PropertyHandle. The SyncType object returned by ``invoke`` is guaranteed to be complete at the time it 
@@ -177,7 +177,7 @@ in the list to complete.
       }
     }
 
-``query``: Receives an object on which to query a property, the property id and optionally an additional argument. 
+``query``: Receives an object on which to query a property, the property id and optionally an additional argument.
 For example, ``dpl::experimental::property::universe_size`` can be queried on a Policy with no additional arguments.  
 
 ``report``: Reports the value of a property to the Handle, which models PropertyHandle. Some properties represent 
@@ -230,14 +230,4 @@ Properties
     "universe_size", "universe_size_t", "Policy", "No", "The number of devices in a policy's universe."
     "task_completion", "task_completion_t", "Policy", "Yes", "Used to communicate to Policy that a task is complete." 
 
-++++++++++++++++++++++++++++++
-Custom Schedulers and Policies
-++++++++++++++++++++++++++++++
-
-TBD
-
-Examples
---------
-
-TBD
 
