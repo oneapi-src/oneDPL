@@ -74,28 +74,15 @@ if (EXISTS "${_onedpl_headers}")
         endif()
 
         if (NOT ONEDPL_PAR_BACKEND OR ONEDPL_PAR_BACKEND STREQUAL "openmp")  # Handle OpenMP backend
-            if (UNIX)
-                set(_openmp_flag "-fopenmp")
-            else()
-                set(_openmp_flag "-Qopenmp")
-            endif()
-
-            # Some compilers may fail if _openmp_flag is not in CMAKE_REQUIRED_LIBRARIES.
-            set(_onedpl_saved_required_libs ${CMAKE_REQUIRED_LIBRARIES})
-            set(CMAKE_REQUIRED_LIBRARIES ${_openmp_option})
-            check_cxx_compiler_flag(${_openmp_flag} _openmp_option)
-            set(CMAKE_REQUIRED_LIBRARIES ${_onedpl_saved_required_libs})
-            unset(_onedpl_saved_required_libs)
-
-            if (NOT _openmp_option AND ONEDPL_PAR_BACKEND STREQUAL "openmp")  # If OpenMP backend is requested explicitly, but not supported.
+            find_package(OpenMP)
+            if (NOT OpenMP_CXX_FOUND AND ONEDPL_PAR_BACKEND STREQUAL "openmp")  # If OpenMP backend is requested explicitly, but not supported.
                 message(STATUS "oneDPL: ONEDPL_PAR_BACKEND=${ONEDPL_PAR_BACKEND} requested, but not supported")
                 set(oneDPL_FOUND FALSE)
                 return()
-            elseif (_openmp_option)
+            elseif (OpenMP_CXX_FOUND)
                 set(ONEDPL_PAR_BACKEND openmp)
                 message(STATUS "oneDPL: ONEDPL_PAR_BACKEND=${ONEDPL_PAR_BACKEND}, disable oneTBB backend")
-                set_target_properties(oneDPL PROPERTIES INTERFACE_COMPILE_OPTIONS ${_openmp_flag})
-                set_target_properties(oneDPL PROPERTIES INTERFACE_LINK_LIBRARIES ${_openmp_flag})
+                set_target_properties(oneDPL PROPERTIES INTERFACE_LINK_LIBRARIES OpenMP::OpenMP_CXX)
                 set_property(TARGET oneDPL APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS ONEDPL_USE_TBB_BACKEND=0 ONEDPL_USE_OPENMP_BACKEND=1)
             endif()
         endif()
