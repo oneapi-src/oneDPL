@@ -831,18 +831,26 @@ struct __invoke_single_group_copy_if
         const bool __is_full_group = __n == __wg_size;
 
         using _CustomName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
-        using _SingleWGKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __scan_copy_single_wg_kernel<_CustomName>>;
         using _InitType = unseq_backend::__no_init_value<::std::uint16_t>;
         using _ReduceOp = ::std::plus<::std::uint16_t>;
         if (__is_full_group)
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
-                _SizeType, __num_elems_per_item, __wg_size, true, _SingleWGKernel>()(
+                _SizeType, __num_elems_per_item, __wg_size, true,
+                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                    __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
+                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                /* _IsFullGroup= */ std::true_type, _CustomName>>
+                >()(
                 __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
                 _ReduceOp{}, ::std::forward<_Pred>(__pred));
         else
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
-                _SizeType, __num_elems_per_item, __wg_size, false, _SingleWGKernel>()(
+                _SizeType, __num_elems_per_item, __wg_size, false,
+                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                    __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
+                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                /* _IsFullGroup= */ std::false_type, _CustomName>>
+                >()(
                 __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
                 _ReduceOp{}, ::std::forward<_Pred>(__pred));
     }
