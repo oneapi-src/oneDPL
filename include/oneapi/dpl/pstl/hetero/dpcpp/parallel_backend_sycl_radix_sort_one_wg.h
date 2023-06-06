@@ -150,7 +150,10 @@ struct __subgroup_radix_sort
         {
             //uint16_t __n = __data.size();
             uint16_t __wg_count = __r_idx ? __n_ranges : 1;
+            //
             std::cout << "__wg_count : " << __wg_count << std::endl;
+            //std::cout << "__wg_size : " << __wg_size << std::endl;
+            //std::cout << "__block_size : " << __block_size << std::endl;
 
             using _ValT = oneapi::dpl::__internal::__value_t<_RangeIn>;
             using _KeyT = oneapi::dpl::__internal::__key_t<_Proj, _RangeIn>;
@@ -169,7 +172,7 @@ struct __subgroup_radix_sort
                 auto __exchange_lacc = __buf_val.get_acc(__cgh);
                 auto __counter_lacc = __buf_count.get_acc(__cgh);
 
-                 //sycl::stream str(8192, 1024, __cgh);
+                 sycl::stream str(8192, 1024, __cgh);
                 __cgh.parallel_for<_Name...>(
                     __range, ([=](sycl::nd_item<1> __it)[[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]] {
 

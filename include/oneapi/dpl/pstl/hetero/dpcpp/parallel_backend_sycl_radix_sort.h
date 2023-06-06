@@ -769,6 +769,81 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
 
 template<::std::uint32_t __radix, typename _Range, typename Hist>
 void
+__radix_256_iter(sycl::queue q, _Range&& __in_rng, Hist* hist, std::size_t __iter)
+{
+    const ::std::size_t __n = __in_rng.size();
+    const ::std::size_t __num_bins = 256;
+    assert(__n > 1);
+
+    using _ValueT = oneapi::dpl::__internal::__value_t<_Range>;
+    /*shift 24 for 32bits and 8 for 16bits numbers*/
+    auto shift = 8*__iter;
+
+  constexpr int blockSize = 256;
+  constexpr int NUM_BINS = 256;
+  constexpr int wg_size = 64;
+  constexpr int sz_per_wg = blockSize*wg_size;
+  constexpr int bins_per_wi = NUM_BINS / wg_size;
+
+  static_assert(bins_per_wi*wg_size == NUM_BINS, "wrong wg size");
+
+  const auto wg_count = (__n - 1) / sz_per_wg + 1;
+
+  using __local_atomic_type = 
+    sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::work_group, sycl::access::address_space::local_space>;
+  using __atomic_type = 
+    sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::work_group, sycl::access::address_space::global_space>;
+
+  auto e = q.submit([&](auto &h) {
+    //sycl::accessor<uint32_t, 1, sycl::access_mode::atomic, sycl::target::local> local_hist(256, h);
+    sycl::local_accessor<uint32_t, 1> local_hist(256, h);
+    h.parallel_for(
+        sycl::nd_range(sycl::range{wg_count * wg_size}, sycl::range{wg_size}),
+        [=](sycl::nd_item<1> it) [[intel::reqd_sub_group_size(16)]] {
+          int wi = it.get_local_linear_id();
+          int group = it.get_group()[0];
+
+          //set zero value to the bins
+          for(int i = 0; i < bins_per_wi; ++i)
+          {
+              int idx_bin = wi*bins_per_wi + i;
+              local_hist[idx_bin] = 0;
+          }
+          it.barrier(sycl::access::fence_space::local_space);
+
+          for (int k = 0; k < blockSize; k++)
+          {
+                auto __idx = group*sz_per_wg + wi*blockSize + k;
+                if(__idx < __n)
+                {
+                    uint16_t bin = ((__in_rng[__idx] >> shift) & 0xFF);
+                    __local_atomic_type __b(local_hist[bin]);
+                    ++__b;
+                }
+          }
+          it.barrier(sycl::access::fence_space::local_space);
+
+          //uint32_t base_scan = 0;
+          //store a local bin to the global bin
+          for(int i = 0; i < bins_per_wi; ++i)
+          {
+              int idx_bin = wi*bins_per_wi + i;
+              __atomic_type __b(hist[idx_bin]);
+                auto val = local_hist[idx_bin];
+              __b += val;
+               //scan += val;
+          }
+          //uint32_t __s = __dpl_sycl::__exclusive_scan_over_group(
+            //                            it.get_group(), base_scan, __dpl_sycl::__plus<uint32_t>());
+          //__s += 
+        });
+  });
+  e.wait();
+
+}
+
+template<::std::uint32_t __radix, typename _Range, typename Hist>
+void
 __calc_hist(sycl::queue q, _Range&& __in_rng, Hist* hist/*, uint32_t* __mask = 0xFF00*/)
 {
     const ::std::size_t __n = __in_rng.size();
@@ -915,7 +990,7 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
     uint16_t* g_dense_bins = sycl::malloc_shared<uint16_t>(NUM_BINS, __exec.queue());
     auto __n_dense_bins = std::copy_if(g_bins, g_bins + NUM_BINS, g_dense_bins, [](auto a) { return a > 0;}) - g_dense_bins;
 
-    std::cout <<  "__n_dense_bins: " << __n_dense_bins << std::endl;
+    //std::cout <<  "__n_dense_bins: " << __n_dense_bins << std::endl;
     uint16_t* g_idx = sycl::malloc_shared<uint16_t>(__n_dense_bins, __exec.queue());
     std::exclusive_scan(g_dense_bins, g_dense_bins + __n_dense_bins, g_idx, 0);
 
@@ -923,12 +998,14 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
     //TODO: set sycl event dependencies
     //__exec.queue().wait();
 
-    //std::cout <<  "hist1: ";
+#if 0
+    std::cout <<  "hist1: ";
     for(int i = 0; i < NUM_BINS; ++i)
     {
         std::cout << g_bins[i] << " ";
     }
-    //std::cout << std::endl;
+    std::cout << std::endl;
+#endif
 
     using _RadixSortKernel = typename __decay_t<_ExecutionPolicy>::kernel_name;
 
@@ -937,9 +1014,12 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
 
     constexpr auto __wg_size_one_wg = 64;
 #if 0
+    std::cout << "__n_dense_bins: " << __n_dense_bins << std::endl;
+    //std::cout << "g_dense_bins[0]: " << g_dense_bins[0] << std::endl;
+    //std::cout << "g_idx[0]: " << g_idx[0] << std::endl;
     //sumbit a local sorting
-    __subgroup_radix_sort<_RadixSortKernel, __wg_size_one_wg * 16, 32, __radix_bits, __is_ascending>{}.run(
-                    __exec.queue(), __in_rng, __proj, 0, __radix_iters - 2, g_dense_bins, g_idx, __n_dense_bins);
+    __subgroup_radix_sort<_RadixSortKernel, __wg_size_one_wg, 32, __radix_bits, __is_ascending>{}.run(
+                    __exec.queue(), __in_rng, __proj, 0, __radix_iters - 2, g_idx, g_dense_bins, __n_dense_bins);
 #else
     uint32_t base_idx = 0;
     for (uint16_t __i = 0; __i < NUM_BINS; ++__i)
