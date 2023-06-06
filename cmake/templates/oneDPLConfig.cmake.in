@@ -29,7 +29,6 @@ else()
     # Requires version 3.11 for use of icpc with c++17 requirement
     cmake_minimum_required(VERSION 3.11)
 endif()
-
 # Installation path: <onedpl_root>/lib/cmake/oneDPL/
 get_filename_component(_onedpl_root "${CMAKE_CURRENT_LIST_DIR}" REALPATH)
 get_filename_component(_onedpl_root "${_onedpl_root}/../../../" ABSOLUTE)
@@ -82,7 +81,8 @@ if (EXISTS "${_onedpl_headers}")
             elseif (OpenMP_CXX_FOUND)
                 set(ONEDPL_PAR_BACKEND openmp)
                 message(STATUS "oneDPL: ONEDPL_PAR_BACKEND=${ONEDPL_PAR_BACKEND}, disable oneTBB backend")
-                # TODO: remove this workaround to force fopenmp / Qopenmp when correctness issues are resolved
+                # Due to minor correctness issues with -fiopenmp / -Qiopenmp, we are using -fopenmp / -Qopenmp until they are corrected.
+                # Once correctness issues are resolved, we will limit this workaround to affected versions of specific compilers.
                 if (OpenMP_CXX_FLAGS MATCHES "^-fiopenmp$")
                     message(STATUS "oneDPL: Using -fopenmp for openMP")
                     set_target_properties(oneDPL PROPERTIES INTERFACE_COMPILE_OPTIONS -fopenmp)
