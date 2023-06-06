@@ -288,6 +288,7 @@ elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
     find_package(OpenMP)
     if (OpenMP_CXX_FOUND)
         message(STATUS "Compilation for the host due to OpenMP backend.")
+        # TODO: remove this workaround to force fopenmp / Qopenmp when correctness issues are resolved
         if (OpenMP_CXX_FLAGS MATCHES "^-fiopenmp$")
             message(STATUS "Using -fopenmp for openMP")
             target_compile_options(oneDPL INTERFACE -fopenmp)

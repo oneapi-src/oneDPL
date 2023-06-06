@@ -82,6 +82,7 @@ if (EXISTS "${_onedpl_headers}")
             elseif (OpenMP_CXX_FOUND)
                 set(ONEDPL_PAR_BACKEND openmp)
                 message(STATUS "oneDPL: ONEDPL_PAR_BACKEND=${ONEDPL_PAR_BACKEND}, disable oneTBB backend")
+                # TODO: remove this workaround to force fopenmp / Qopenmp when correctness issues are resolved
                 if (OpenMP_CXX_FLAGS MATCHES "^-fiopenmp$")
                     message(STATUS "oneDPL: Using -fopenmp for openMP")
                     set_target_properties(oneDPL PROPERTIES INTERFACE_COMPILE_OPTIONS -fopenmp)
