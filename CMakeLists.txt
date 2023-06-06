@@ -288,7 +288,20 @@ elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
     find_package(OpenMP)
     if (OpenMP_CXX_FOUND)
         message(STATUS "Compilation for the host due to OpenMP backend.")
-        target_link_libraries(oneDPL INTERFACE OpenMP::OpenMP_CXX)
+        # Due to minor correctness issues with -fiopenmp / -Qiopenmp, we are using -fopenmp / -Qopenmp until they are corrected.
+        # Once correctness issues are resolved, we will limit this workaround to affected versions of specific compilers.
+        if (OpenMP_CXX_FLAGS MATCHES ".*-fiopenmp.*")
+            set(_openmp_flag -fopenmp)
+        elseif (OpenMP_CXX_FLAGS MATCHES ".*[-/]Qiopenmp.*")
+            set(_openmp_flag /Qopenmp)
+        endif()
+        if (_openmp_flag)
+            message(STATUS "Using ${_openmp_flag} for openMP")
+            target_compile_options(oneDPL INTERFACE ${_openmp_flag})
+            target_link_libraries(oneDPL INTERFACE ${_openmp_flag})
+        else()
+            target_link_libraries(oneDPL INTERFACE OpenMP::OpenMP_CXX)
+        endif()
         target_compile_definitions(oneDPL INTERFACE
             ONEDPL_USE_TBB_BACKEND=0
             ONEDPL_USE_DPCPP_BACKEND=0
