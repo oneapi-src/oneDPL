@@ -29,7 +29,7 @@ class __radix_sort_one_wg_kernel;
 
 template <typename _KernelNameBase, uint16_t __wg_size = 256 /*work group size*/, uint16_t __block_size = 16,
           ::std::uint32_t __radix = 4, bool __is_asc = true,
-          uint16_t __req_sub_group_size = (__block_size < 4 ? 32 : 16)>
+          uint16_t __req_sub_group_size = /*(__block_size < 4 ? 32 : 16)*/32>
 struct __subgroup_radix_sort
 {
     template <typename _RangeIn, typename _Proj>
@@ -58,7 +58,7 @@ struct __subgroup_radix_sort
     template <typename _Ranges, typename _Proj>
     auto
     run(sycl::queue __q, _Ranges&& __src, _Proj __proj, uint16_t __start_bit = 0, uint16_t __n_iter = 0,
-        uint16_t* __r_idx = NULL, uint16_t* __r_sz = NULL, uint16_t __n_ranges = 0)
+        uint32_t* __r_idx = NULL, uint32_t* __r_sz = NULL, uint16_t __n_ranges = 0)
     {
         using __wg_size_t = ::std::integral_constant<::std::uint16_t, __wg_size>;
         using __block_size_t = ::std::integral_constant<::std::uint16_t, __block_size>;
@@ -79,10 +79,10 @@ struct __subgroup_radix_sort
     template <typename _KeyT>
     class _TempBuf<_KeyT, std::true_type /*shared local memory buffer*/>
     {
-        uint16_t __buf_size;
+        uint32_t __buf_size;
 
       public:
-        _TempBuf(uint16_t __n) : __buf_size(__n) {}
+        _TempBuf(uint32_t __n) : __buf_size(__n) {}
         auto
         get_acc(sycl::handler& __cgh)
         {
@@ -96,7 +96,7 @@ struct __subgroup_radix_sort
         sycl::buffer<_KeyT> __buf;
 
       public:
-        _TempBuf(uint16_t __n) : __buf(__n) {}
+        _TempBuf(uint32_t __n) : __buf(__n) {}
         auto
         get_acc(sycl::handler& __cgh)
         {
@@ -146,14 +146,9 @@ struct __subgroup_radix_sort
     {
         template <typename _RangeIn, typename _Proj, typename _SLM_tag>
         auto
-        operator()(sycl::queue __q, _RangeIn&& __data, _Proj __proj, _SLM_tag, uint16_t __start_bit, uint16_t __n_iter, uint16_t* __r_idx = NULL, uint16_t* __r_sz = NULL, uint16_t __n_ranges = 0)
+        operator()(sycl::queue __q, _RangeIn&& __data, _Proj __proj, _SLM_tag, uint16_t __start_bit, uint16_t __n_iter, uint32_t* __r_idx = NULL, uint32_t* __r_sz = NULL, uint16_t __n_ranges = 0)
         {
-            //uint16_t __n = __data.size();
             uint16_t __wg_count = __r_idx ? __n_ranges : 1;
-            //
-            std::cout << "__wg_count : " << __wg_count << std::endl;
-            //std::cout << "__wg_size : " << __wg_size << std::endl;
-            //std::cout << "__block_size : " << __block_size << std::endl;
 
             using _ValT = oneapi::dpl::__internal::__value_t<_RangeIn>;
             using _KeyT = oneapi::dpl::__internal::__key_t<_Proj, _RangeIn>;
@@ -172,17 +167,12 @@ struct __subgroup_radix_sort
                 auto __exchange_lacc = __buf_val.get_acc(__cgh);
                 auto __counter_lacc = __buf_count.get_acc(__cgh);
 
-                 sycl::stream str(8192, 1024, __cgh);
                 __cgh.parallel_for<_Name...>(
                     __range, ([=](sycl::nd_item<1> __it)[[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]] {
 
                         uint16_t __wg = __it.get_group().get_group_linear_id();
-                        //str << "__wg: " << __wg << sycl::endl;
-                        uint16_t __n = __r_sz ? __r_sz[__wg] : __data.size();
-                        //str << "__n: " << __n << sycl::endl;
-                        uint16_t __base_idx = __r_idx ? __r_idx[__wg] : 0;
-                        //str << "__base_idx: " << __base_idx << sycl::endl;
-
+                        uint32_t __n = __r_sz ? __r_sz[__wg] : __data.size();
+                        uint32_t __base_idx = __r_idx ? __r_idx[__wg] : 0;
 
                         assert(__n <= __block_size * __wg_size);
 
