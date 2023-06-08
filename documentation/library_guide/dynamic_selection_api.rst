@@ -1,16 +1,97 @@
 Dynamic Device Selection API
 ############################
 
-|onedpl_long| (|onedpl_short|) provides an experimental feature that provides dynamic device selection of the execution resources
-to use for computations. Without dynamic device selection, |onedpl_short| developers must directly choose which device to target 
-by creating a dpcpp policy that is tied to a specific SYCL queue. Likewise, for most of the oneAPI performance libraries, 
-developers also provides a specific queue through the library interface to select the device to use. 
+What is Dynamic Device Selection?
+---------------------------------
+
+Dynamic device selection ia an experimental feature in oneDPL that selects an 
+*execution resource* based on a chosen *selection policy*. When used with
+the experimental ``invoke`` or ``invoke_async`` functions, the selected execution 
+resource is passed to the developer-provieded callable object (for example a lambda).
+By default, the execution resources used in oneDPL are SYCL queues.  
+
+A basic example
+---------------
+
+In this section, an example is provided that uses using dynamic device
+selection to selects SYCL queues. The example code creates a 
+selection policy, ``round_robin_policy``, object ``p``. It then queries ``p``
+to discover how many devices are available on the platform. The  
+``round_robin_policy`` simply rotates through the devices on the platform. 
+In the example's for-loop, ``p`` is passed as the first argument to the 
+``experimental::invoke`` function. The second argument is a lambda expression 
+that receives the selected ``sycl::queue``. The lamba body prints out whether 
+the selected queue is a cpu, a gpu or something else. The number of iterations 
+of the for-loop is twice the number of devices on the platform, so we expect
+that it will received a SYCL queue for each available device twice. 
+
+.. code:: cpp
+
+  #include <iostream>
+  #include <sycl/sycl.hpp>
+  #include <oneapi/dpl/dynamic_selection>
+  using namespace oneapi::dpl;
+
+  int main() {
+    // choose a policy
+    experimental::round_robin_policy p;
+
+    auto N = experimental::property::query(p, 
+                                          experimental::property::universe_size);
+    std::cout << "By default there are " << N 
+              << " queues in the universe" << std::endl;
+
+    for (int i = 0; i < 2*N; ++i) {
+      // call experimental::invoke with policy p.
+      // It invokes the lambda with a selected q.
+      experimental::invoke(p, [=](sycl::queue q) {
+        if (q.get_device().is_cpu()) {
+          std::cout << "selection #" << i << " is a cpu" << std::endl;
+        } else if (q.get_device().is_gpu()) {
+          std::cout << "selection #" << i << " is a gpu" << std::endl;
+        } else {
+          std::cout << "selection #" << i << " is something else" << std::endl;
+        }   
+
+        // you must return a sycl event
+        return sycl::event{};
+      }); 
+    }
+    return 0;
+  }
+
+This code was compiled and then run on a test platform that contains four devices: an OpenCL FPGA emulator
+device, an OpenCL CPU device, an OpenCL integrated GPU device, and a level-zero GPU device.  The output
+for the run is shown below and shows that each device was rotated through twice:
+
+.. code:: cpp
+  
+  By default there are 4 queues in the universe
+  selection #0 is something else
+  selection #1 is a cpu
+  selection #2 is a gpu
+  selection #3 is a gpu
+  selection #4 is something else
+  selection #5 is a cpu
+  selection #6 is a gpu
+  selection #7 is a gpu
+
+The Value of Dynamic Device Selection
+-------------------------------------
 
 The dynamic device selection API in |onedpl_short| is intended to support two general use cases. The first case is to provide 
 load balancing across similar devices, such as across identical GPUs. The second case is to select an appropriate resource 
 when given disparate devices, such as CPUs and GPUs. In these cases, performance portability is a concern but there are many 
 cases, such as embarrassingly parallel problems, where overall application throughput is improved even if some compute 
 is sent to devices that do not offer the best possible performance for the compute.
+
+The power of dynamic device selection comes from its selection policies. At the time of this early access study, there
+are only two simple policies available a static policy and a round-robin policy.
+
+Without dynamic device selection, |onedpl_short| developers must directly choose which device to target 
+by creating a dpcpp policy that is tied to a specific SYCL queue. Likewise, for most of the oneAPI performance 
+libraries, developers also provides a specific queue through the library interface to select the device to use. 
+When using Dynamic Device Selection, the decision of what queue to use is left to the selection policy.
 
 Dynamic Device Selection Terminology
 ------------------------------------
@@ -28,40 +109,12 @@ Dynamic Device Selection Terminology
 User-Facing APIs
 ----------------
 
-The main header for dynamic device selection features is ``dynamic_selection``. Including this header file brings in all of the algorithms, scoring policies, 
-schedulers and property support.
+The main header for dynamic device selection features is ``dynamic_selection``. Including this header file 
+brings in all of the algorithms, scoring policies, schedulers and property support.
 
 .. code:: cpp
 
     #include <oneapi/dpl/dynamic_selection>
-
-+++++++++++++++++++++++++++++++++++++++++++++++
-Concepts for User-Facing APIs (expository only)
-+++++++++++++++++++++++++++++++++++++++++++++++
-
-.. code:: cpp
-
-    template<typename T>
-    concept SyncType = std::regular<T>
-    && requires (T s) {
-        T::native_sync_t;
-        native(s) -> T::native_sync_t;
-        wait(s) -> void;
-    };
-
-    template<typename T>
-    concept PropertyHandle = std::regular<T> 
-                             && is_constexpr_bool<T::should_report_task_completion>
-    && requires (T ph) {
-        dpl::experimental::property::report(ph, dpl::experimental::property::task_completion) -> void;
-    };
-
-    template<typename T>
-    concept SelectionHandle = std::regular<T> && PropertyHandle<T::property_handle_t>
-    && requires (T s) {
-        native(s) -> T::native_resource_t;
-        property_handle(s) -> T::property_handle_t;
-    };
 
 +++++++++
 Functions
