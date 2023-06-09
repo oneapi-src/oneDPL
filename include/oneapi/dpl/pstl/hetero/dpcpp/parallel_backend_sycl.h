@@ -223,6 +223,7 @@ struct __parallel_for_submitter;
 template <typename... _Name>
 struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
 {
+#if 0
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
     auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
@@ -240,6 +241,59 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
         });
         return __future(__event);
     }
+#else
+    // TODO: Probably make this a device only strategy since we will optimize for this. Host / CPU
+    // policy can use basic range kernel.
+    template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+    auto
+    operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
+    {
+        assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
+        _PRINT_INFO_IN_DEBUG_MODE(__exec);
+        // TODO: Generalize this val, and perform an param sweep experiment to find best.
+        constexpr ::uint16_t __vals_per_witem = 16;
+        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+        ::std::size_t __ngroups = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __vals_per_witem * __wgroup_size);
+        auto __event = __exec.queue().submit(
+            [&__rngs..., &__brick, __count, __vals_per_witem, __wgroup_size, __ngroups](sycl::handler& __cgh) {
+                //get an access to data under SYCL buffer:
+                oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+
+                __cgh.parallel_for<_Name...>(
+                    sycl::nd_range</*dim=*/1>(__ngroups * __wgroup_size, __wgroup_size),
+                    [=](sycl::nd_item</*dim=*/1> __item_id) {
+                        auto __stride = __item_id.get_sub_group().get_local_range();
+                        auto __sg_local_id = __item_id.get_sub_group().get_local_id();
+                        auto __sg_id = __item_id.get_sub_group().get_group_id();
+                        auto __local_id = __item_id.get_local_id(0);
+                        auto __group_id = __item_id.get_group(0);
+                        auto __start_idx = __vals_per_witem * (__group_id * __wgroup_size + __sg_id * __stride);
+                        bool __is_full_sg = (__start_idx + __vals_per_witem * __stride) < __count;
+
+                        if (__is_full_sg)
+                        {
+                            _ONEDPL_PRAGMA_UNROLL
+                            for (::std::size_t __offset = 0; __offset < __vals_per_witem; ++__offset)
+                            {
+                                auto __idx = __start_idx + __offset * __stride + __sg_local_id;
+                                __brick(__idx, __rngs...);
+                            }
+                        }
+                        else
+                        {
+                            _ONEDPL_PRAGMA_UNROLL
+                            for (::std::size_t __offset = 0; __offset < __vals_per_witem; ++__offset)
+                            {
+                                auto __idx = __start_idx + __offset * __stride + __sg_local_id;
+                                if (__idx < __count)
+                                    __brick(__idx, __rngs...);
+                            }
+                        }
+                    });
+            });
+        return __future(__event);
+    }
+#endif
 };
 
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
