@@ -210,6 +210,9 @@ class __scan_single_wg_dynamic_kernel;
 template <typename... Name>
 class __scan_copy_single_wg_kernel;
 
+template <typename _IsGPU, typename... Name>
+class __parallel_for_kernel;
+
 //------------------------------------------------------------------------
 // parallel_for - async pattern
 //------------------------------------------------------------------------
@@ -217,13 +220,12 @@ class __scan_copy_single_wg_kernel;
 // Use the trick with incomplete type and partial specialization to deduce the kernel name
 // as the parameter pack that can be empty (for unnamed kernels) or contain exactly one
 // type (for explicitly specified name by the user)
-template <typename _KernelName>
+template <typename _IsGPU, typename _KernelName>
 struct __parallel_for_submitter;
 
 template <typename... _Name>
-struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
+struct __parallel_for_submitter</*_IsGPU=*/::std::false_type, __internal::__optional_kernel_name<_Name...>>
 {
-#if 0
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
     auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
@@ -241,17 +243,19 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
         });
         return __future(__event);
     }
-#else
-    // TODO: Probably make this a device only strategy since we will optimize for this. Host / CPU
-    // policy can use basic range kernel.
+};
+
+template <typename... _Name>
+struct __parallel_for_submitter</*_IsGPU=*/::std::true_type, __internal::__optional_kernel_name<_Name...>>
+{
+    // GPU specialization with strided access memory pattern
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
     auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
         assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
-        // TODO: Generalize this val, and perform an param sweep experiment to find best.
-        constexpr ::uint16_t __vals_per_witem = 16;
+        constexpr ::uint16_t __vals_per_witem = 8;
         ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
         ::std::size_t __ngroups = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __vals_per_witem * __wgroup_size);
         auto __event = __exec.queue().submit(
@@ -293,7 +297,6 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
             });
         return __future(__event);
     }
-#endif
 };
 
 //General version of parallel_for, one additional parameter - __count of iterations of loop __cgh.parallel_for,
@@ -305,10 +308,19 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
-    return __parallel_for_submitter<_ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                                  ::std::forward<_Ranges>(__rngs)...);
+    if (__exec.queue().get_device().is_gpu())
+    {
+        using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_for_kernel<::std::true_type, _CustomName>>;
+        return __parallel_for_submitter<::std::true_type, _ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                                                          ::std::forward<_Ranges>(__rngs)...);
+    }
+    else
+    {
+        using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_for_kernel<::std::false_type, _CustomName>>;
+        return __parallel_for_submitter<::std::false_type, _ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                                                           ::std::forward<_Ranges>(__rngs)...);
+    }
 }
 
 //------------------------------------------------------------------------
