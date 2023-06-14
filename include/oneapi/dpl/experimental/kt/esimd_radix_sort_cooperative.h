@@ -22,19 +22,24 @@
 namespace oneapi::dpl::experimental::esimd::impl
 {
 
+template <uint32_t STAGES>
 void inline init_global_sync(uint32_t * psync, uint32_t tg_id) {
     using namespace __ESIMD_NS;
     using namespace __ESIMD_ENS;
-    simd<uint32_t, 16> lane_id(0, 4);
-    simd<uint32_t, 16> old_value = lsc_atomic_update<atomic_op::load, uint32_t, 16>(psync, lane_id, 1);
+
+    constexpr uint32_t SYNC_BUFFER_PER_STAGE = 4;
+    constexpr uint32_t SYNC_BUFFER_SIZE = SYNC_BUFFER_PER_STAGE * STAGES;
+    
+    simd<uint32_t, SYNC_BUFFER_SIZE> lane_id(0, 4);
+    simd<uint32_t, SYNC_BUFFER_SIZE> old_value = lsc_atomic_update<atomic_op::load, uint32_t, SYNC_BUFFER_SIZE>(psync, lane_id, 1);
     if (tg_id == 0) {
         if (!(old_value==1).all()) {
-            lsc_atomic_update<atomic_op::store, uint32_t, 16>(psync, lane_id, 1, 1);
+            lsc_atomic_update<atomic_op::store, uint32_t, SYNC_BUFFER_SIZE>(psync, lane_id, 1, 1);
         }
     } else {
         uint32_t try_count = 0;
         while (!(old_value==1).all()) {
-            old_value = lsc_atomic_update<atomic_op::load, uint32_t, 16>(psync, lane_id, 1);
+            old_value = lsc_atomic_update<atomic_op::load, uint32_t, SYNC_BUFFER_SIZE>(psync, lane_id, 1);
             if (try_count++ > 10240) break;
         }
     }
@@ -110,7 +115,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
     constexpr uint32_t BIN_WIDTH_UD = BIN_COUNT / BIN_GROUPS * sizeof(hist_t) / sizeof(uint32_t);
     constexpr uint32_t BIN_HEIGHT = THREAD_PER_TG / THREAD_PER_BIN_GROUP;
 
-    if (local_tid == 0) init_global_sync(p_sync_buffer, tg_id);
+    if (local_tid == 0) init_global_sync<STAGES>(p_sync_buffer, tg_id);
     barrier();
 
     #pragma unroll
