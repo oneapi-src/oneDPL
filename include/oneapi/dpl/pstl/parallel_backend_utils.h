@@ -171,10 +171,12 @@ __set_union_construct(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _Fo
     return __cc_range(__first2, __last2, __result);
 }
 
-template <typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator, typename _Compare>
+template <typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator, typename _Compare,
+          typename _SelectCopy>
 _OutputIterator
 __set_intersection_construct(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
-                             _ForwardIterator2 __last2, _OutputIterator __result, _Compare __comp)
+                             _ForwardIterator2 __last2, _OutputIterator __result, _Compare __comp,
+                             _SelectCopy __select_copy)
 {
     using _Tp = typename ::std::iterator_traits<_OutputIterator>::value_type;
 
@@ -186,7 +188,7 @@ __set_intersection_construct(_ForwardIterator1 __first1, _ForwardIterator1 __las
         {
             if (!__comp(*__first2, *__first1))
             {
-                ::new (::std::addressof(*__result)) _Tp(*__first1);
+                ::new (::std::addressof(*__result)) _Tp(*__select_copy(__first1, __first2));
                 ++__result;
                 ++__first1;
             }

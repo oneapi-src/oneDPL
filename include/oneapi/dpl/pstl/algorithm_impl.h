@@ -3550,7 +3550,7 @@ __pattern_set_intersection(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& _
                 [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
                    _RandomAccessIterator2 __last2, _T* __result, _Compare __comp) {
                     return oneapi::dpl::__utils::__set_intersection_construct(__first1, __last1, __first2, __last2,
-                                                                              __result, __comp);
+                                                                              __result, __comp, [](auto&& a, auto&& b) { return std::forward<decltype(a)>(a); }); //copy first to output
                 });
         });
     }
@@ -3566,7 +3566,7 @@ __pattern_set_intersection(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& _
                 [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
                    _RandomAccessIterator2 __last2, _T* __result, _Compare __comp) {
                     return oneapi::dpl::__utils::__set_intersection_construct(__first2, __last2, __first1, __last1,
-                                                                              __result, __comp);
+                                                                              __result, __comp, [](auto&& a, auto&& b) { return std::forward<decltype(b)>(b); }); //copy second to output                                                                              
                 });
             return __result;
         });
