@@ -7,419 +7,195 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/test_config.h"
+#include <ext/intel/esimd.hpp>
 
-#if TEST_DPCPP_BACKEND_PRESENT
-
-#include <oneapi/dpl/experimental/kernel_templates>
-#include <oneapi/dpl/execution>
-#include <oneapi/dpl/algorithm>
-#if _ENABLE_RANGES_TESTING
-#include <oneapi/dpl/ranges>
-#endif
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-#include "support/utils.h"
-
-#if TEST_DPCPP_BACKEND_PRESENT
-#if __has_include(<sycl/sycl.hpp>)
 #include <sycl/sycl.hpp>
-#else
-#include <CL/sycl.hpp>
-#endif
 
-#include "support/sycl_alloc_utils.h"
-
-#include <vector>
-#include <algorithm>
-#include <random>
-#include <string>
 #include <iostream>
-#include <cmath>
-#include <limits>
 
-#ifndef LOG_TEST_INFO
-#define LOG_TEST_INFO 0
+//#define REPRODUCE_ERROR_1 1
+//#define REPRODUCE_ERROR_2 1
+
+// rounded up result of (__number / __divisor)
+template <typename _T1, typename _T2>
+constexpr auto
+__dpl_ceiling_div(_T1 __number, _T2 __divisor)
+{
+    return (__number - 1) / __divisor + 1;
+}
+
+// get bits value (bucket) in a certain radix position
+template <::std::uint16_t __radix_mask, typename _T, int _N>
+sycl::ext::intel::esimd::simd<::std::uint16_t, _N>
+__get_bucket(sycl::ext::intel::esimd::simd<_T, _N> __value, ::std::uint32_t __radix_offset)
+{
+    return sycl::ext::intel::esimd::simd<::std::uint16_t, _N>(__value >> __radix_offset) & __radix_mask;
+}
+
+template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t TG_COUNT, uint32_t THREAD_PER_TG, bool IsAscending>
+void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer)
+{
+    using bin_t = uint16_t;
+    using hist_t = uint32_t;
+    using global_hist_t = uint32_t;
+
+    using namespace sycl;
+    using namespace __ESIMD_NS;
+    using namespace __ESIMD_ENS;
+
+    using device_addr_t = uint32_t;
+
+    slm_init(16384);
+    constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
+    constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
+    constexpr uint32_t STAGES = __dpl_ceiling_div(NBITS, RADIX_BITS);
+    constexpr uint32_t PROCESS_SIZE = 128;
+    constexpr uint32_t addr_step = TG_COUNT * THREAD_PER_TG * PROCESS_SIZE;
+
+    uint32_t local_tid = idx.get_local_linear_id();
+    uint32_t tid = idx.get_global_linear_id();
+
+    if ((tid - local_tid) * PROCESS_SIZE > __n) {
+        //no work for this tg;
+        return;
+    }
+
+    // cooperative fill 0
+    {
+        constexpr uint32_t BUFFER_SIZE = STAGES * BINCOUNT;
+        constexpr uint32_t THREAD_SIZE = BUFFER_SIZE / THREAD_PER_TG;
+        slm_block_store<global_hist_t, THREAD_SIZE>(local_tid*THREAD_SIZE*sizeof(global_hist_t), 0);
+    }
+    barrier();
+
+
+    simd<KeyT, PROCESS_SIZE> keys;
+    simd<bin_t, PROCESS_SIZE> bins;
+    simd<global_hist_t, BINCOUNT * STAGES> state_hist_grf(0);
+    constexpr bin_t MASK = BINCOUNT - 1;
+
+    device_addr_t read_addr;
+    for (read_addr = tid * PROCESS_SIZE; read_addr < __n; read_addr += addr_step) {
+        if (read_addr+PROCESS_SIZE < __n) {
+#ifdef REPRODUCE_ERROR_2
+            keys.copy_from(input + read_addr);
 #endif
+        }
+        else
+        {
+            simd<uint32_t, 16> lane_id(0, 1);
+            #pragma unroll
+            for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
+                simd_mask<16> m = (s+lane_id)<(__n-read_addr);
 
-#ifndef TEST_ALL_INPUTS
-#define TEST_ALL_INPUTS 0
-#endif
+                sycl::ext::intel::esimd::simd offset((read_addr + s + lane_id)*sizeof(KeyT));
+                simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m);
 
-template <typename T, bool Order>
-struct Compare : public std::less<T> {};
+                keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(0), m);
+            }
+        }
+        #pragma unroll
+        for (uint32_t stage = 0; stage < STAGES; stage++)
+        {
+            bins = __get_bucket<MASK>(keys, stage * RADIX_BITS);
 
-template <typename T>
-struct Compare<T, false> : public std::greater<T> {};
-
-constexpr bool kAscending = true;
-constexpr bool kDescending = false;
-
-constexpr ::std::uint16_t kWorkGroupSize = 256;
-constexpr ::std::uint16_t kDataPerWorkItem = 16;
-
-#if LOG_TEST_INFO
-struct TypeInfo
-{
-    template <typename T>
-    const std::string& name()
-    {
-        static const std::string kTypeName = "unknown type name";
-        return kTypeName;
+            #pragma unroll
+            for (uint32_t s = 0; s < PROCESS_SIZE; s++)
+            {
+#ifdef REPRODUCE_ERROR_1
+                state_hist_grf[stage * BINCOUNT + bins[s]]++;// 256K * 4 * 1.25 = 1310720 instr for grf indirect addr
+#endif // REPRODUCE_ERROR_1
+            }
+        }
     }
 
-    template <>
-    const std::string& name<int16_t>()
-    {
-        static const std::string kTypeName = "int16_t";
-        return kTypeName;
+    //atomic add to the state counter in slm
+    #pragma unroll
+    for (uint32_t s = 0; s < BINCOUNT * STAGES; s+=16) {
+        simd<uint32_t, 16> offset(0, sizeof(global_hist_t));
+        lsc_slm_atomic_update<atomic_op::add, global_hist_t, 16>(s*sizeof(global_hist_t)+offset, state_hist_grf.template select<16, 1>(s), 1);
     }
 
-    template <>
-    const std::string& name<uint16_t>()
-    {
-        static const std::string kTypeName = "uint16_t";
-        return kTypeName;
-    }
+    barrier();
 
-    template <>
-    const std::string& name<uint32_t>()
     {
-        static const std::string kTypeName = "uint32_t";
-        return kTypeName;
-    }
-
-    template <>
-    const std::string& name<int>()
-    {
-        static const std::string kTypeName = "int";
-        return kTypeName;
-    }
-
-    template <>
-    const std::string& name<float>()
-    {
-        static const std::string kTypeName = "float";
-        return kTypeName;
-    }
-
-    template <>
-    const std::string& name<double>()
-    {
-        static const std::string kTypeName = "double";
-        return kTypeName;
-    }
-};
-struct USMAllocPresentation
-{
-    template <sycl::usm::alloc>
-    const std::string& name()
-    {
-        static const std::string kUSMAllocTypeName = "unknown";
-        return kUSMAllocTypeName;
-    }
-
-    template <>
-    const std::string& name<sycl::usm::alloc::host>()
-    {
-        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::host";
-        return kUSMAllocTypeName;
-    }
-
-    template <>
-    const std::string& name<sycl::usm::alloc::device>()
-    {
-        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::device";
-        return kUSMAllocTypeName;
-    }
-
-    template <>
-    const std::string& name<sycl::usm::alloc::shared>()
-    {
-        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::shared";
-        return kUSMAllocTypeName;
-    }
-
-    template <>
-    const std::string& name<sycl::usm::alloc::unknown>()
-    {
-        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::unknown";
-        return kUSMAllocTypeName;
-    }
-};
-#endif // LOG_TEST_INFO
-
-template <typename T>
-typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
-generate_data(T* input, std::size_t size)
-{
-    std::default_random_engine gen{42};
-    std::size_t unique_threshold = 75 * size / 100;
-    if constexpr (std::is_integral_v<T>)
-    {
-        std::uniform_int_distribution<T> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
-        std::generate(input, input + unique_threshold, [&]{ return dist(gen); });
-    }
-    else
-    {
-        std::uniform_real_distribution<T> dist_real(std::numeric_limits<T>::min(), log2(1e12));
-        std::uniform_int_distribution<int> dist_binary(0, 1);
-        auto randomly_signed_real = [&dist_real, &dist_binary, &gen](){
-            auto v = exp2(dist_real(gen));
-            return dist_binary(gen) == 0 ? v: -v;
-        };
-        std::generate(input, input + unique_threshold, [&]{ return randomly_signed_real(); });
-    }
-    for(uint32_t i = 0, j = unique_threshold; j < size; ++i, ++j)
-    {
-        input[j] = input[i];
+        // bin count 256, 4 stages, 1K uint32_t, by 64 threads, happen to by 16-wide each thread. will not work for other config.
+        constexpr uint32_t BUFFER_SIZE = STAGES * BINCOUNT;
+        constexpr uint32_t THREAD_SIZE = BUFFER_SIZE / THREAD_PER_TG;
+        simd<global_hist_t, THREAD_SIZE> group_hist = slm_block_load<global_hist_t, THREAD_SIZE>(local_tid*THREAD_SIZE*sizeof(global_hist_t));
+        simd<uint32_t, THREAD_SIZE> offset(0, 4);
+        lsc_atomic_update<atomic_op::add>(p_global_offset + local_tid*THREAD_SIZE, offset, group_hist, simd_mask<THREAD_SIZE>(1));
     }
 }
 
-template<typename Container1, typename Container2>
-void print_data(const Container1& expected, const Container2& actual, std::size_t first, std::size_t n = 0)
-{
-    if (expected.size() <= first) return;
-    if (n==0 || expected.size() < first+n)
-        n = expected.size() - first;
-
-    if constexpr (std::is_floating_point_v<typename Container1::value_type>)
-        std::cout << std::hexfloat;
-    else
-        std::cout << std::hex;
-
-    for (std::size_t i=first; i < first+n; ++i)
-    {
-        std::cout << actual[i] << " --- " << expected[i] << std::endl;
-    }
-
-    if constexpr (std::is_floating_point_v<typename Container1::value_type>)
-        std::cout << std::defaultfloat << std::endl;
-    else
-        std::cout << std::dec << std::endl;
-}
-
-#if _ENABLE_RANGES_TESTING
-template<typename T, bool Order>
-void test_all_view(std::size_t size)
-{
-#if LOG_TEST_INFO
-    std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
-#endif
-
-    sycl::queue q = TestUtils::get_test_queue();
-    auto policy = oneapi::dpl::execution::make_device_policy(q);
-
-    std::vector<T> input(size);
-    generate_data(input.data(), size);
-    std::vector<T> ref(input);
-    std::sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
-    {
-        sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, view);
-    }
-
-    std::string msg = "wrong results with all_view, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, input, msg.c_str());
-}
-
-template<typename T, bool Order>
-void test_subrange_view(std::size_t size)
-{
-#if LOG_TEST_INFO
-    std::cout << "\ttest_subrange_view<T, " << Order << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
-#endif
-
-    sycl::queue q = TestUtils::get_test_queue();
-    auto policy = oneapi::dpl::execution::make_device_policy(q);
-
-    std::vector<T> expected(size);
-    generate_data(expected.data(), size);
-
-    TestUtils::usm_data_transfer<sycl::usm::alloc::device, T> dt_input(q, expected.begin(), expected.end());
-
-    std::sort(expected.begin(), expected.end(), Compare<T, Order>{});
-
-    oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, view);
-
-    std::vector<T> actual(size);
-    dt_input.retrieve_data(actual.begin());
-
-    std::string msg = "wrong results with views::subrange, n: " + std::to_string(size);
-    EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
-}
-
-#endif // _ENABLE_RANGES_TESTING
-
-template<typename T, sycl::usm::alloc _alloc_type, bool Order>
-void test_usm(std::size_t size)
-{
-#if LOG_TEST_INFO
-    std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ", " << Order << ">("<< size << ");" << std::endl;
-#endif
-
-    sycl::queue q = TestUtils::get_test_queue();
-    auto policy = oneapi::dpl::execution::make_device_policy(q);
-
-    std::vector<T> expected(size);
-    generate_data(expected.data(), size);
-
-    TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
-
-    std::sort(expected.begin(), expected.end(), Compare<T, Order>{});
-
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, dt_input.get_data(), dt_input.get_data() + size);
-
-    std::vector<T> actual(size);
-    dt_input.retrieve_data(actual.begin());
-
-    std::string msg = "wrong results with USM, n: " + std::to_string(size);
-    EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
-}
-
-template <typename T, bool Order>
+template <typename KeyT, std::uint16_t WorkGroupSize, std::uint16_t DataPerWorkItem, std::uint32_t RADIX_BITS,
+          typename _Iterator>
 void
-test_usm(std::size_t size)
+radix_sort(sycl::queue q, _Iterator __first, _Iterator __last)
 {
-#if LOG_TEST_INFO
-    std::cout << "\ttest_usm<T, " << Order << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
-#endif
+    using namespace sycl;
+    using namespace __ESIMD_NS;
 
-    test_usm<T, sycl::usm::alloc::shared, Order>(size);
-    test_usm<T, sycl::usm::alloc::device, Order>(size);
+    static_assert(sizeof(KeyT) <= sizeof(uint32_t) || sizeof(KeyT) == sizeof(uint64_t),
+                  "Tested and supported only types of specified size");
+
+    const ::std::size_t __n = __last - __first;
+    assert(__n > 1);
+
+    constexpr ::std::uint32_t PROCESS_SIZE = 416;
+
+    using global_hist_t = uint32_t;
+    constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
+    constexpr uint32_t HW_TG_COUNT = 64;
+    constexpr uint32_t THREAD_PER_TG = 64;
+    constexpr uint32_t SWEEP_PROCESSING_SIZE = PROCESS_SIZE;
+    const uint32_t sweep_tg_count = __dpl_ceiling_div(__n, THREAD_PER_TG * SWEEP_PROCESSING_SIZE);
+    constexpr uint32_t NBITS = sizeof(KeyT) * 8;
+    constexpr uint32_t STAGES = __dpl_ceiling_div(NBITS, RADIX_BITS);
+
+    //types are messy. now all are uint32_t
+    const uint32_t SYNC_BUFFER_SIZE = sweep_tg_count * BINCOUNT * STAGES * sizeof(global_hist_t); //bytes
+    constexpr uint32_t GLOBAL_OFFSET_SIZE = BINCOUNT * STAGES * sizeof(global_hist_t);
+    size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE;
+
+    uint8_t* tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, q);
+    auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
+    auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
+
+    sycl::event event_chain = q.memset(tmp_buffer, 0, temp_buffer_size);
+
+    sycl::nd_range<1> __nd_range(HW_TG_COUNT * THREAD_PER_TG, THREAD_PER_TG);
+    q.submit(
+        [&](sycl::handler& __cgh)
+        {
+            __cgh.depends_on(event_chain);
+
+            __cgh.parallel_for(
+                __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
+                    global_histogram<KeyT, _Iterator, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, true>(
+                        __nd_item, __n, __first, p_global_offset, p_sync_buffer);
+                });
+        });
+
+    sycl::free(tmp_buffer, q);
 }
-
-template<typename T, bool Order>
-void test_sycl_iterators(std::size_t size)
-{
-#if LOG_TEST_INFO
-    std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
-#endif
-
-    sycl::queue q = TestUtils::get_test_queue();
-    auto policy = oneapi::dpl::execution::make_device_policy(q);
-
-    std::vector<T> input(size);
-    generate_data(input.data(), size);
-    std::vector<T> ref(input);
-    std::sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
-    {
-        sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
-    }
-
-    std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, input, msg.c_str());
-}
-
-void test_small_sizes()
-{
-#if LOG_TEST_INFO
-    std::cout << "\t\ttest_small_sizes();" << std::endl;
-#endif
-
-    sycl::queue q = TestUtils::get_test_queue();
-    auto policy = oneapi::dpl::execution::make_device_policy(q);
-
-    std::vector<uint32_t> input = {5, 11, 0, 17, 0};
-    std::vector<uint32_t> ref(input);
-
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,kAscending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
-    EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,kAscending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
-    EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
-}
-
-template <typename T>
-void test_general_cases(std::size_t size)
-{
-#if _ENABLE_RANGES_TESTING
-    test_all_view<T, kAscending>(size);
-    test_all_view<T, kDescending>(size);
-    test_subrange_view<T, kAscending>(size);
-    test_subrange_view<T, kDescending>(size);
-#endif // _ENABLE_RANGES_TESTING
-    test_usm<T, kAscending>(size);
-    test_usm<T, kDescending>(size);
-    test_sycl_iterators<T, kAscending>(size);
-    test_sycl_iterators<T, kDescending>(size);
-}
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
-    const std::vector<std::size_t> sizes = {
-        6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14,
-        (1<<14)+1, 50000, 67543, 100'000, 1<<17, 179'581, 250'000, 1<<18,
-        (1<<18)+1, 500'000, 888'235, 1'000'000, 1<<20, 10'000'000
-    };
-
     try
     {
-#if TEST_ALL_INPUTS
-        const std::vector<std::size_t> onewg_sizes   {std::begin(sizes),      std::begin(sizes) + 10};
-        const std::vector<std::size_t> coop_sizes    {std::begin(sizes) + 10, std::begin(sizes) + 18};
-        const std::vector<std::size_t> onesweep_sizes{std::begin(sizes) + 18, std::end(sizes)};
+        std::size_t size = (1 << 18) + 1;
 
-        for(auto size: onewg_sizes)
-        {
-            test_general_cases<int16_t >(size);
-            test_general_cases<uint16_t>(size);
-            test_general_cases<int     >(size);
-            test_general_cases<uint32_t>(size);
-            test_general_cases<float   >(size);
-            //test_general_cases<double  >(size);
-        }
-        for(auto size: coop_sizes)
-        {
-            test_general_cases<int16_t >(size);
-            test_general_cases<uint16_t>(size);
-            test_general_cases<int     >(size);
-            test_general_cases<uint32_t>(size);
-            test_general_cases<float   >(size);
-            //test_general_cases<double  >(size);
-        }
-        for(auto size: onesweep_sizes)
-        {
-            test_usm<int16_t,  kAscending>(size);
-            test_usm<uint16_t, kAscending>(size);
-            test_usm<int,      kAscending>(size);
-            test_usm<uint32_t, kAscending>(size);
-            test_usm<float,    kAscending>(size);
+        sycl::queue q;
+        uint64_t* pData = sycl::malloc_shared<uint64_t>(size, q);
+        radix_sort<uint64_t /* KeyT */, 256 /* WorkGroupSize */, 16 /* DataPerWorkItem */, 8 /* RADIX_BITS */>(q, pData,pData + size);
 
-            test_usm<int16_t,  kDescending>(size);
-            test_usm<uint16_t, kDescending>(size);
-            test_usm<int,      kDescending>(size);
-            test_usm<uint32_t, kDescending>(size);
-            test_usm<float,    kDescending>(size);
-        }
-        test_small_sizes();
-#else
-        for(auto size: sizes)
-        {
-            test_usm<int16_t,  sycl::usm::alloc::shared, kAscending>(size);
-            test_usm<uint16_t, sycl::usm::alloc::shared, kAscending>(size);
-            test_usm<int,      sycl::usm::alloc::shared, kAscending>(size);
-            test_usm<uint32_t, sycl::usm::alloc::shared, kAscending>(size);
-            test_usm<float,    sycl::usm::alloc::shared, kAscending>(size);
-
-            test_usm<int16_t,  sycl::usm::alloc::shared, kDescending>(size);
-            test_usm<uint16_t, sycl::usm::alloc::shared, kDescending>(size);
-            test_usm<int,      sycl::usm::alloc::shared, kDescending>(size);
-            test_usm<uint32_t, sycl::usm::alloc::shared, kDescending>(size);
-            test_usm<float,    sycl::usm::alloc::shared, kDescending>(size);
-        }
-#endif // TEST_ALL_INPUTS
     }
     catch (const ::std::exception& exc)
     {
         std::cout << "Exception: " << exc.what() << std::endl;
-        return EXIT_FAILURE;
+        return -1;
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return 0;
 }
