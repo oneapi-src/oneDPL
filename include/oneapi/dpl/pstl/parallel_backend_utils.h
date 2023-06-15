@@ -176,7 +176,7 @@ template <typename _ForwardIterator1, typename _ForwardIterator2, typename _Outp
 _OutputIterator
 __set_intersection_construct(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
                              _ForwardIterator2 __last2, _OutputIterator __result, _Compare __comp,
-                             _CopyFromFirstSet __copy_from_first_set)
+                             _CopyFromFirstSet)
 {
     using _Tp = typename ::std::iterator_traits<_OutputIterator>::value_type;
 
