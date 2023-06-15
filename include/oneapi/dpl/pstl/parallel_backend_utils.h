@@ -172,11 +172,11 @@ __set_union_construct(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _Fo
 }
 
 template <typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator, typename _Compare,
-          typename _SelectCopy>
+          typename _CopyFromFirstSet>
 _OutputIterator
 __set_intersection_construct(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
                              _ForwardIterator2 __last2, _OutputIterator __result, _Compare __comp,
-                             _SelectCopy __select_copy)
+                             _CopyFromFirstSet __copy_from_first_set)
 {
     using _Tp = typename ::std::iterator_traits<_OutputIterator>::value_type;
 
@@ -188,7 +188,17 @@ __set_intersection_construct(_ForwardIterator1 __first1, _ForwardIterator1 __las
         {
             if (!__comp(*__first2, *__first1))
             {
-                ::new (::std::addressof(*__result)) _Tp(*__select_copy(__first1, __first2));
+
+                auto __select_element = [](auto&& _f1, auto&& _f2) {
+                    if constexpr (_CopyFromFirstSet::value)
+                        return ::std::forward<decltype(_f1)>(_f1);
+                    else
+                        return ::std::forward<decltype(_f2)>(_f2);
+                };
+                if constexpr (::std::is_trivial_v<_Tp>)
+                    *__result = *(__select_element(__first1, __first2));
+                else
+                    ::new (::std::addressof(*__result)) _Tp(*(__select_element(__first1, __first2)));
                 ++__result;
                 ++__first1;
             }
