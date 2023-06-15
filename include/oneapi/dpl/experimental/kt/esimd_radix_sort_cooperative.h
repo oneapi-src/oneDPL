@@ -46,7 +46,7 @@ void inline init_global_sync(uint32_t * psync, uint32_t tg_id) {
     }
 }
 
-void inline global_sync(uint32_t *psync, uint32_t sync_id, uint32_t count, uint32_t gid, uint32_t tid) {
+void inline global_sync(uint32_t *psync, uint32_t sync_id, uint32_t count, uint32_t gid) {
     using namespace __ESIMD_NS;
     using namespace __ESIMD_ENS;
     //assume initial is 1, do inc, then repeat load until count is met, then the first one atomic reduce by count to reset to 1, do not use store to 1, because second round might started.
@@ -207,7 +207,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
             // global sync()
             // each tg read global scan buffer, add with prev tg, then put to slm incoming buffer
             if (local_tid == 0) {
-                global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+0, tg_count, tg_id, local_tid);
+                global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+0, tg_count, tg_id);
             }
             barrier();
             {
@@ -240,7 +240,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                     lsc_fence<lsc_memory_kind::untyped_global, lsc_fence_op::evict, lsc_scope::gpu>();
                 }
                 if (local_tid == 0)  {
-                    global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+1, tg_count, tg_id, local_tid);
+                    global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+1, tg_count, tg_id);
                     {
                         simd<global_hist_t, BIN_COUNT> global_hist_start(p_global_bin_start_buffer);
                         if (tg_id != 0) {
@@ -296,7 +296,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
             }
             lsc_fence<lsc_memory_kind::untyped_global, lsc_fence_op::evict, lsc_scope::gpu>();
             barrier();
-            if (local_tid == 0) {global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+2, tg_count, tg_id, local_tid);}
+            if (local_tid == 0) {global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+2, tg_count, tg_id);}
             barrier();
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
