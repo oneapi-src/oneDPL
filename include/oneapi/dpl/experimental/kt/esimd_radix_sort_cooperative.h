@@ -22,12 +22,13 @@
 namespace oneapi::dpl::experimental::esimd::impl
 {
 
+constexpr uint32_t SYNC_BUFFER_PER_STAGE = 4;
+
 template <uint32_t STAGES>
 void inline init_global_sync(uint32_t * psync, uint32_t tg_id) {
     using namespace __ESIMD_NS;
     using namespace __ESIMD_ENS;
 
-    constexpr uint32_t SYNC_BUFFER_PER_STAGE = 4;
     constexpr uint32_t SYNC_BUFFER_SIZE = SYNC_BUFFER_PER_STAGE * STAGES;
     
     simd<uint32_t, SYNC_BUFFER_SIZE> lane_id(0, 4);
@@ -206,7 +207,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
             // global sync()
             // each tg read global scan buffer, add with prev tg, then put to slm incoming buffer
             if (local_tid == 0) {
-                global_sync(p_sync_buffer, stage*4+0, tg_count, tg_id, local_tid);
+                global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+0, tg_count, tg_id, local_tid);
             }
             barrier();
             {
@@ -239,7 +240,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                     lsc_fence<lsc_memory_kind::untyped_global, lsc_fence_op::evict, lsc_scope::gpu>();
                 }
                 if (local_tid == 0)  {
-                    global_sync(p_sync_buffer, stage*4+1, tg_count, tg_id, local_tid);
+                    global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+1, tg_count, tg_id, local_tid);
                     {
                         simd<global_hist_t, BIN_COUNT> global_hist_start(p_global_bin_start_buffer);
                         if (tg_id != 0) {
@@ -295,7 +296,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
             }
             lsc_fence<lsc_memory_kind::untyped_global, lsc_fence_op::evict, lsc_scope::gpu>();
             barrier();
-            if (local_tid == 0) {global_sync(p_sync_buffer, stage*4+2, tg_count, tg_id, local_tid);}
+            if (local_tid == 0) {global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+2, tg_count, tg_id, local_tid);}
             barrier();
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
