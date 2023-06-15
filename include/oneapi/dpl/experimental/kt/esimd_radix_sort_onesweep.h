@@ -274,7 +274,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     inline void LoadKeys(uint32_t io_offset, __ESIMD_NS::simd<KeyT, PROCESS_SIZE> &keys, KeyT default_key) const {
         using namespace __ESIMD_NS;
         using namespace __ESIMD_ENS;
-        bool is_full_block = (io_offset+PROCESS_SIZE) <= n;
+        bool is_full_block = (io_offset+PROCESS_SIZE) < n;
         if (is_full_block) {
             simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);
             #pragma unroll
@@ -293,7 +293,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
                 sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(KeyT));
                 keys.template select<CHUNK_SIZE, 1>(s) =
                     merge(
-                        lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset),
+                        lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m),
                         simd<KeyT, CHUNK_SIZE>(default_key),
                         m);
             }
