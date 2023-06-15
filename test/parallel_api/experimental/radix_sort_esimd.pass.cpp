@@ -385,7 +385,7 @@ int main()
             test_general_cases<int     >(size);
             test_general_cases<uint32_t>(size);
             test_general_cases<uint64_t>(size);
-            test_general_cases<int64_t >(size);            
+            test_general_cases<int64_t >(size);
             test_general_cases<float   >(size);
             //test_general_cases<double  >(size);
         }
@@ -396,7 +396,7 @@ int main()
             test_general_cases<int     >(size);
             test_general_cases<uint32_t>(size);
             test_general_cases<uint64_t>(size);
-            test_general_cases<int64_t >(size);            
+            test_general_cases<int64_t >(size);
             test_general_cases<float   >(size);
             //test_general_cases<double  >(size);
         }
@@ -406,16 +406,18 @@ int main()
             test_usm<uint16_t, kAscending>(size);
             test_usm<int,      kAscending>(size);
             test_usm<uint32_t, kAscending>(size);
-            test_usm<uint64_t, kAscending>(size);
-            test_usm<int64_t,  kAscending>(size);            
+            // Not implemented for onesweep
+            //test_usm<uint64_t, kAscending>(size);
+            //test_usm<int64_t,  kAscending>(size);
             test_usm<float,    kAscending>(size);
 
             test_usm<int16_t,  kDescending>(size);
             test_usm<uint16_t, kDescending>(size);
             test_usm<int,      kDescending>(size);
             test_usm<uint32_t, kDescending>(size);
-            test_usm<uint64_t, kDescending>(size);
-            test_usm<int64_t,  kDescending>(size);            
+            // Not implemented for onesweep
+            //test_usm<uint64_t, kDescending>(size);
+            //test_usm<int64_t,  kDescending>(size);
             test_usm<float,    kDescending>(size);
         }
         test_small_sizes();
@@ -426,16 +428,24 @@ int main()
             test_usm<uint16_t, sycl::usm::alloc::shared, kAscending>(size);
             test_usm<int,      sycl::usm::alloc::shared, kAscending>(size);
             test_usm<uint32_t, sycl::usm::alloc::shared, kAscending>(size);
-            test_usm<uint64_t, sycl::usm::alloc::shared, kAscending>(size);
-            test_usm<int64_t,  sycl::usm::alloc::shared, kAscending>(size);
+            // Not implemented for onesweep
+            if (size <= 262144)
+            {
+                test_usm<uint64_t, sycl::usm::alloc::shared, kAscending>(size);
+                test_usm<int64_t,  sycl::usm::alloc::shared, kAscending>(size);
+            }
             test_usm<float,    sycl::usm::alloc::shared, kAscending>(size);
 
             test_usm<int16_t,  sycl::usm::alloc::shared, kDescending>(size);
             test_usm<uint16_t, sycl::usm::alloc::shared, kDescending>(size);
             test_usm<int,      sycl::usm::alloc::shared, kDescending>(size);
             test_usm<uint32_t, sycl::usm::alloc::shared, kDescending>(size);
-            test_usm<uint64_t, sycl::usm::alloc::shared, kDescending>(size);
-            test_usm<int64_t,  sycl::usm::alloc::shared, kDescending>(size);
+            // Not implemented for onesweep
+            if (size <= 262144)
+            {
+                test_usm<uint64_t, sycl::usm::alloc::shared, kDescending>(size);
+                test_usm<int64_t,  sycl::usm::alloc::shared, kDescending>(size);
+            }
             test_usm<float,    sycl::usm::alloc::shared, kDescending>(size);
         }
 #endif // TEST_ALL_INPUTS
