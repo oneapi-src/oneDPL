@@ -22,25 +22,31 @@
 namespace oneapi::dpl::experimental::esimd::impl
 {
 
+constexpr uint32_t SYNC_BUFFER_PER_STAGE = 4;
+
+template <uint32_t STAGES>
 void inline init_global_sync(uint32_t * psync, uint32_t tg_id) {
     using namespace __ESIMD_NS;
     using namespace __ESIMD_ENS;
-    simd<uint32_t, 16> lane_id(0, 4);
-    simd<uint32_t, 16> old_value = lsc_atomic_update<atomic_op::load, uint32_t, 16>(psync, lane_id, 1);
+
+    constexpr uint32_t SYNC_BUFFER_SIZE = SYNC_BUFFER_PER_STAGE * STAGES;
+    
+    simd<uint32_t, SYNC_BUFFER_SIZE> lane_id(0, sizeof(uint32_t));
+    simd<uint32_t, SYNC_BUFFER_SIZE> old_value = lsc_atomic_update<atomic_op::load, uint32_t, SYNC_BUFFER_SIZE>(psync, lane_id, 1);
     if (tg_id == 0) {
         if (!(old_value==1).all()) {
-            lsc_atomic_update<atomic_op::store, uint32_t, 16>(psync, lane_id, 1, 1);
+            lsc_atomic_update<atomic_op::store, uint32_t, SYNC_BUFFER_SIZE>(psync, lane_id, 1, 1);
         }
     } else {
         uint32_t try_count = 0;
         while (!(old_value==1).all()) {
-            old_value = lsc_atomic_update<atomic_op::load, uint32_t, 16>(psync, lane_id, 1);
+            old_value = lsc_atomic_update<atomic_op::load, uint32_t, SYNC_BUFFER_SIZE>(psync, lane_id, 1);
             if (try_count++ > 10240) break;
         }
     }
 }
 
-void inline global_sync(uint32_t *psync, uint32_t sync_id, uint32_t count, uint32_t gid, uint32_t tid) {
+void inline global_sync(uint32_t *psync, uint32_t sync_id, uint32_t count, uint32_t gid) {
     using namespace __ESIMD_NS;
     using namespace __ESIMD_ENS;
     //assume initial is 1, do inc, then repeat load until count is met, then the first one atomic reduce by count to reset to 1, do not use store to 1, because second round might started.
@@ -110,7 +116,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
     constexpr uint32_t BIN_WIDTH_UD = BIN_COUNT / BIN_GROUPS * sizeof(hist_t) / sizeof(uint32_t);
     constexpr uint32_t BIN_HEIGHT = THREAD_PER_TG / THREAD_PER_BIN_GROUP;
 
-    if (local_tid == 0) init_global_sync(p_sync_buffer, tg_id);
+    if (local_tid == 0) init_global_sync<STAGES>(p_sync_buffer, tg_id);
     barrier();
 
     #pragma unroll
@@ -201,7 +207,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
             // global sync()
             // each tg read global scan buffer, add with prev tg, then put to slm incoming buffer
             if (local_tid == 0) {
-                global_sync(p_sync_buffer, stage*4+0, tg_count, tg_id, local_tid);
+                global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+0, tg_count, tg_id);
             }
             barrier();
             {
@@ -234,7 +240,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                     lsc_fence<lsc_memory_kind::untyped_global, lsc_fence_op::evict, lsc_scope::gpu>();
                 }
                 if (local_tid == 0)  {
-                    global_sync(p_sync_buffer, stage*4+1, tg_count, tg_id, local_tid);
+                    global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+1, tg_count, tg_id);
                     {
                         simd<global_hist_t, BIN_COUNT> global_hist_start(p_global_bin_start_buffer);
                         if (tg_id != 0) {
@@ -290,7 +296,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
             }
             lsc_fence<lsc_memory_kind::untyped_global, lsc_fence_op::evict, lsc_scope::gpu>();
             barrier();
-            if (local_tid == 0) {global_sync(p_sync_buffer, stage*4+2, tg_count, tg_id, local_tid);}
+            if (local_tid == 0) {global_sync(p_sync_buffer, stage*SYNC_BUFFER_PER_STAGE+2, tg_count, tg_id);}
             barrier();
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
