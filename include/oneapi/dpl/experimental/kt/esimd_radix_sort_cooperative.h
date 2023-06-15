@@ -31,7 +31,7 @@ void inline init_global_sync(uint32_t * psync, uint32_t tg_id) {
 
     constexpr uint32_t SYNC_BUFFER_SIZE = SYNC_BUFFER_PER_STAGE * STAGES;
     
-    simd<uint32_t, SYNC_BUFFER_SIZE> lane_id(0, 4);
+    simd<uint32_t, SYNC_BUFFER_SIZE> lane_id(0, SYNC_BUFFER_PER_STAGE);
     simd<uint32_t, SYNC_BUFFER_SIZE> old_value = lsc_atomic_update<atomic_op::load, uint32_t, SYNC_BUFFER_SIZE>(psync, lane_id, 1);
     if (tg_id == 0) {
         if (!(old_value==1).all()) {
