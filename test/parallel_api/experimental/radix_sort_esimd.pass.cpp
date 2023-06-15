@@ -350,15 +350,30 @@ template <typename T>
 void test_general_cases(std::size_t size)
 {
 #if _ENABLE_RANGES_TESTING
-    test_all_view<T, kAscending>(size);
-    test_all_view<T, kDescending>(size);
-    test_subrange_view<T, kAscending>(size);
-    test_subrange_view<T, kDescending>(size);
+    if constexpr (sizeof(T) <= sizeof(::std::uint32_t))
+    {
+        test_all_view<T, kAscending>(size);
+        test_all_view<T, kDescending>(size);
+        test_subrange_view<T, kAscending>(size);
+        test_subrange_view<T, kDescending>(size);
+    }
+    else
+    {
+        // TODO required to implement
+    }
 #endif // _ENABLE_RANGES_TESTING
     test_usm<T, kAscending>(size);
     test_usm<T, kDescending>(size);
-    test_sycl_iterators<T, kAscending>(size);
-    test_sycl_iterators<T, kDescending>(size);
+
+    if constexpr (sizeof(T) <= sizeof(::std::uint32_t))
+    {
+        test_sycl_iterators<T, kAscending>(size);
+        test_sycl_iterators<T, kDescending>(size);
+    }
+    else
+    {
+        // TODO required to implement
+    }
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
