@@ -27,6 +27,17 @@ Macro                             Description
 ``_PSTL_VERSION_PATCH``           ``_PSTL_VERSION % 10``: The patch number.
 ================================= ==============================
 
+Feature Macros
+==============
+Use these macros to test presence of specific |onedpl_short| functionality.
+
+================================== ===============================================
+Macro                              Macro values and the functionality
+================================== ===============================================
+``ONEDPL_HAS_RANDOM_NUMBERS``      ``202210L`` for pseudo-random number generators and distributions,
+                                   as defined in |onedpl_short| version 2022.2 or later
+================================== ===============================================
+
 Additional Macros
 ==================
 Use these macros to control aspects of |onedpl_short| usage. You can set them in your program code

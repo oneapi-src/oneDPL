@@ -16,16 +16,7 @@
 #ifndef _ONEDPL_CONFIG_H
 #define _ONEDPL_CONFIG_H
 
-#ifndef _PSTL_VERSION
-#    define _PSTL_VERSION 11000
-#    define _PSTL_VERSION_MAJOR (_PSTL_VERSION / 1000)
-#    define _PSTL_VERSION_MINOR ((_PSTL_VERSION % 1000) / 10)
-#    define _PSTL_VERSION_PATCH (_PSTL_VERSION % 10)
-#endif
-
-#define ONEDPL_VERSION_MAJOR 2022
-#define ONEDPL_VERSION_MINOR 2
-#define ONEDPL_VERSION_PATCH 0
+#include "../version"
 
 #if defined(ONEDPL_USE_DPCPP_BACKEND)
 #    undef _ONEDPL_BACKEND_SYCL
