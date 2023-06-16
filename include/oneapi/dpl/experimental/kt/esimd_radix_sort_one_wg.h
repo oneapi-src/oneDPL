@@ -12,7 +12,6 @@
 
 #include <ext/intel/esimd.hpp>
 #include "../../pstl/hetero/dpcpp/sycl_defs.h"
-#include "../../pstl/hetero/dpcpp/execution_sycl_defs.h"
 #include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 #include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 
@@ -191,15 +190,13 @@ template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t PROCESS_SIZ
 struct __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, PROCESS_SIZE, IsAscending,
                                      oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _ExecutionPolicy, typename _Range,
-              oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+    template <typename _Range>
     sycl::event
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n, ::std::uint32_t __tg_count) const
+    operator()(sycl::queue& __q, _Range&& __rng, ::std::size_t __n, ::std::uint32_t __tg_count) const
     {
-        _PRINT_INFO_IN_DEBUG_MODE(__exec);
         sycl::nd_range<1> __nd_range{__tg_count, __tg_count};
 
-        return __exec.queue().submit([&](sycl::handler& __cgh) {
+        return __q.submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __data = __rng.data();
             __cgh.parallel_for<_Name...>(
@@ -211,8 +208,8 @@ struct __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, PROCESS_SIZE, IsAscending
     }
 };
 
-template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS, bool IsAscending>
-void one_wg(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
+template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS, bool IsAscending>
+void one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     using namespace sycl;
     using namespace __ESIMD_NS;
 
@@ -236,26 +233,24 @@ void one_wg(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
     uint32_t TG_COUNT = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE);
     TG_COUNT = std::max(TG_COUNT, MIN_TG_COUNT);
 
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using _CustomName = typename _Policy::kernel_name;
     using _EsimRadixSortKernel =
-    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__esimd_radix_sort_one_wg<_CustomName>>;
+    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__esimd_radix_sort_one_wg<_KernelName>>;
 
     sycl::event __e;
     if (PROCESS_SIZE == 64)
     {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 64, IsAscending, _EsimRadixSortKernel>()(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, TG_COUNT);
+        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 64, IsAscending, _EsimRadixSortKernel>()(__q,
+            ::std::forward<_Range>(__rng), __n, TG_COUNT);
     }
     else if (PROCESS_SIZE == 128)
     {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 128, IsAscending, _EsimRadixSortKernel>()(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, TG_COUNT);
+        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 128, IsAscending, _EsimRadixSortKernel>()(__q,
+            ::std::forward<_Range>(__rng), __n, TG_COUNT);
     }
     else
     {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 256, IsAscending, _EsimRadixSortKernel>()(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n, TG_COUNT);
+        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 256, IsAscending, _EsimRadixSortKernel>()(__q,
+            ::std::forward<_Range>(__rng), __n, TG_COUNT);
     }
     __e.wait();
 }
