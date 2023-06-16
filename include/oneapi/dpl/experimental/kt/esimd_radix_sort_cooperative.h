@@ -12,7 +12,6 @@
 
 #include <ext/intel/esimd.hpp>
 #include "../../pstl/hetero/dpcpp/sycl_defs.h"
-#include "../../pstl/hetero/dpcpp/execution_sycl_defs.h"
 #include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 #include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include <cstdint>
@@ -330,15 +329,13 @@ template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t THREAD_PER_
 struct __radix_sort_cooperative_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending,
                                           oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _ExecutionPolicy, typename _Range, typename _SyncData,
-              oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+    template <typename _Range, typename _SyncData>
     sycl::event
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n, ::std::uint32_t __groups, KeyT* __tmpbuf, const _SyncData& __sync_data) const
+    operator()(sycl::queue& __q, _Range&& __rng, ::std::size_t __n, ::std::uint32_t __groups, KeyT* __tmpbuf, const _SyncData& __sync_data) const
     {
-        _PRINT_INFO_IN_DEBUG_MODE(__exec);
         sycl::nd_range<1> __nd_range{THREAD_PER_TG * __groups, THREAD_PER_TG};
 
-        return __exec.queue().submit([&](sycl::handler& __cgh) {
+        return __q.submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __data = __rng.data();
             __cgh.parallel_for<_Name...>(
@@ -350,8 +347,8 @@ struct __radix_sort_cooperative_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCE
     }
 };
 
-template <typename _ExecutionPolicy, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS, bool IsAscending>
-void cooperative(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
+template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS, bool IsAscending>
+void cooperative(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     using namespace sycl;
     using namespace __ESIMD_NS;
 
@@ -368,31 +365,29 @@ void cooperative(_ExecutionPolicy&& __exec, _Range&& __rng, ::std::size_t __n) {
     }
     assert(__groups <= MAX_GROUPS);
 
-    auto p_sync = sycl::malloc_device<::std::uint32_t>(1024 + (__groups+2) * BIN_COUNT, __exec.queue());
+    auto p_sync = sycl::malloc_device<::std::uint32_t>(1024 + (__groups+2) * BIN_COUNT, __q);
     // to correctly sort floating point values, a buffer to store data plus extra identity values is needed
-    KeyT* __tmpbuf = sycl::malloc_device<KeyT>(__groups * __group_block_size, __exec.queue());
+    KeyT* __tmpbuf = sycl::malloc_device<KeyT>(__groups * __group_block_size, __q);
 
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
-    using _CustomName = typename _Policy::kernel_name;
     using _EsimRadixSort = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __esimd_radix_sort_cooperative<_CustomName>>;
+            __esimd_radix_sort_cooperative<_KernelName>>;
 
     sycl::event __e;
     if (__group_block_size == 128 * THREAD_PER_TG)
     {
         __e = __radix_sort_cooperative_submitter<
             KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 128, IsAscending, _EsimRadixSort>()(
-                __exec, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf, p_sync);
+                __q, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf, p_sync);
     }
     else // __group_block_size == 256 * THREAD_PER_TG
     {
         __e = __radix_sort_cooperative_submitter<
             KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 256, IsAscending, _EsimRadixSort>()(
-                __exec, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf, p_sync);
+                __q, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf, p_sync);
     }
     __e.wait();
-    sycl::free(__tmpbuf, __exec.queue());
-    sycl::free(p_sync, __exec.queue());
+    sycl::free(__tmpbuf, __q);
+    sycl::free(p_sync, __q);
 }
 
 } // oneapi::dpl::experimental::esimd::impl
