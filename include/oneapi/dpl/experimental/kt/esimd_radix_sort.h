@@ -11,15 +11,15 @@
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_H
 
 #include <ext/intel/esimd.hpp>
-#include "../../pstl/hetero/dpcpp/sycl_defs.h" // TODO: unneeded?
 
 #include "esimd_radix_sort_one_wg.h"
 #include "esimd_radix_sort_cooperative.h"
 #include "esimd_radix_sort_onesweep.h"
 
-#include "../../pstl/utils.h" // TODO: unneeded?
 #include "../../pstl/utils_ranges.h"
 #include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
+#include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#include "../../pstl/hetero/dpcpp/execution_sycl_defs.h"
 
 #include <cstdint>
 #include <type_traits>
@@ -43,7 +43,8 @@ namespace oneapi::dpl::experimental::esimd::impl
 */
 // TODO: call it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
 template <std::uint16_t WorkGroupSize, std::uint16_t DataPerWorkItem, bool IsAscending, std::uint32_t RadixBits,
-          typename _ExecutionPolicy, typename _Range>
+          typename _ExecutionPolicy, typename _Range,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 void
 radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
@@ -52,18 +53,21 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
     const ::std::size_t __n = __rng.size();
     assert(__n > 1);
 
+    _PRINT_INFO_IN_DEBUG_MODE(__exec);
+    using _KernelName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
+    
     if (__n <= 16384)
     {
         // TODO: support double and small-size integers
         // TODO: allow all RadixBits values (only 7 or 8 are currently supported)
-        oneapi::dpl::experimental::esimd::impl::one_wg<_ExecutionPolicy, _KeyT, _Range, RadixBits, IsAscending>(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n);
+        oneapi::dpl::experimental::esimd::impl::one_wg<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
+            __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
     else if (__n <= 262144)
     {
         // TODO: support double and small-size integers
-        oneapi::dpl::experimental::esimd::impl::cooperative<_ExecutionPolicy, _KeyT, _Range, RadixBits, IsAscending>(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n);
+        oneapi::dpl::experimental::esimd::impl::cooperative<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
+            __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
     else
     {
@@ -73,8 +77,8 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
         // TODO: pass _ProcessSize according to __n
         // TODO: fix when compiled in -O0 mode: "esimd_radix_sort_one_wg.h : 54 : 5>: SLM init call is supported only in kernels"
         // TODO: support inputs which are transferred to kernels as accessors (sycl_iterator, all_view)
-        oneapi::dpl::experimental::esimd::impl::onesweep<_ExecutionPolicy, _KeyT, _Range, RadixBits, IsAscending, /*_ProcessSize*/ 416>(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __n);
+        oneapi::dpl::experimental::esimd::impl::onesweep<_KernelName, _KeyT, _Range, RadixBits, IsAscending, /*_ProcessSize*/416>(
+            __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
 }
 
