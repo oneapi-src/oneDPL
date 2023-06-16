@@ -38,7 +38,7 @@ Known Issues and Limitations
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
 - Incorrect results may be produced with in-place scans using ``unseq`` and ``unseq_par`` policies on
-  CPUs with the icpc 2021.8 compiler.
+  CPUs with the Intel® C++ Compiler 2021.8.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
