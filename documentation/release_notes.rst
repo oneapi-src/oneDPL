@@ -24,14 +24,14 @@ New Features
 
 Fixed Issues
 ------------
+- Updated minimum CMake version to 3.11 on Linux and 3.20 on Windows.
+- Added new CMake package oneDPLIntelLLVMConfig.cmake to resolve issues using CMake 3.20+ on Windows for icx and icx-cl.
 - Fixed an error in the ``sort`` and ``stable_sort`` algorithms when performing a descending sort
   on signed numeric types with negative values.
 - Fixed an error in ``reduce_by_segment`` algorithm when a non-commutative predicate is used.
 - Fixed ``sort`` and ``stable_sort`` algorithms when sorting integral types with width more than 32 bits
   and using radix sort approach.
 - Fixed an error for some compilers attempting to use openMP or SYCL backend without full compiler support.
-- Added new CMake package oneDPLIntelLLVMConfig.cmake to resolve issues using CMake 3.20+ on Windows for icx and icx-cl.
-- Updated minimum CMake version to 3.11 on Linux and 3.20 on Windows
 
 Known Issues and Limitations
 ----------------------------
