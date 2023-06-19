@@ -121,8 +121,9 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
     #pragma unroll
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
         simd_mask<16> m = (io_offset+lane_id+s)<n;
-        keys.template select<16, 1>(s) = merge(utils::gather<KeyT, 16>(input, lane_id, io_offset + s, m),
-                                               simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
+        simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>
+                (input, (lane_id + io_offset + s)*uint32_t(sizeof(KeyT)), m);
+        keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
     }
 
     for (uint32_t stage=0; stage < STAGES; stage++) {
@@ -287,8 +288,10 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
         if (stage != STAGES - 1) {
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-                utils::scatter<KeyT, 16>(__tmpbuf, write_addr.template select<16, 1>(s),
-                                         keys.template select<16, 1>(s));
+                lsc_scatter<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::write_back, 16>(
+                    __tmpbuf,
+                    write_addr.template select<16, 1>(s)*sizeof(KeyT),
+                    keys.template select<16, 1>(s));
             }
             lsc_fence<lsc_memory_kind::untyped_global, lsc_fence_op::evict, lsc_scope::gpu>();
             barrier();
@@ -296,16 +299,18 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
             barrier();
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-                keys.template select<16, 1>(s) = utils::gather<KeyT, 16>(__tmpbuf, lane_id, io_offset + s);
+                keys.template select<16, 1>(s) = lsc_gather<KeyT, 1,
+                        lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>(
+                            __tmpbuf, (lane_id + io_offset + s)*uint32_t(sizeof(KeyT)));
             }
         }
     }
     #pragma unroll
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-        utils::VectorStore<KeyT, 1, 16>(input,
-                                        write_addr.template select<16, 1>(s) * utils::size32<KeyT>,
-                                        keys.template select<16, 1>(s),
-                                        write_addr.template select<16, 1>(s)<n);
+        lsc_scatter<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::write_back, 16>(
+            input,
+            write_addr.template select<16, 1>(s)*sizeof(KeyT),
+            keys.template select<16, 1>(s), write_addr.template select<16, 1>(s)<n);
     }
 }
 
