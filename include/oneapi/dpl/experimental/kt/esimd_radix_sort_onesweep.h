@@ -591,7 +591,16 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
 
 template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
           bool IsAscending, ::std::uint32_t PROCESS_SIZE>
-void
+typename ::std::enable_if_t<sizeof(KeyT) == sizeof(::std::uint64_t), void>
+onesweep(sycl::queue, _Range&&, ::std::size_t)
+{
+    // Not implemented for 64 bit types
+    assert(false);
+}
+
+template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
+          bool IsAscending, ::std::uint32_t PROCESS_SIZE>
+typename ::std::enable_if_t<sizeof(KeyT) <= sizeof(::std::uint32_t), void>
 onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
 {
     using namespace sycl;
