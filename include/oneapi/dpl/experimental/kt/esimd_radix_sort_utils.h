@@ -501,13 +501,6 @@ slm_scatter(__ESIMD_NS::simd<uint32_t, N> offsets,
         __x32_mask[2 * src_index + 1] = mask[src_index];
     }
 
-    // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__slm.html#gac6d34e476b1addadb3f27648d62322a4
-    //template<typename T , int N>
-    //__ESIMD_API std::enable_if_t<(N == 1 || N == 8 || N == 16 || N == 32) && (sizeof(T) <= 4)>
-    //sycl::_V1::ext::intel::esimd::slm_scatter(
-    //    simd<uint32_t, N> offsets,                    // Byte offsets within the SLM of each element.
-    //    simd<T, N> vals,                              // Values to be written.
-    //    simd_mask<N> mask = 1);                       // Operation mask. All-1 by default.
     __ESIMD_NS::slm_scatter<TypeX32, 2 * N>(__x32_offsets, __x32_vals, __x32_mask);
 }
 
