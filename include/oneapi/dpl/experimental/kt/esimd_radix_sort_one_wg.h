@@ -162,7 +162,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
         if (stage != STAGES - 1) {
             #pragma unroll
             for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-                slm_scatter<KeyT, 16>(
+                utils::VectorStore<KeyT, 1, 16>(
                     write_addr.template select<16, 1>(s)*sizeof(KeyT) + slm_reorder_start,
                     keys.template select<16, 1>(s));
             }
