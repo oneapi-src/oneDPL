@@ -620,16 +620,17 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
     constexpr uint32_t GLOBAL_OFFSET_SIZE = BINCOUNT * STAGES * sizeof(global_hist_t);
     size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE;
 
-    uint8_t *tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, __q);
-    auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
-    auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer + GLOBAL_OFFSET_SIZE);
+    utils::__container_t<uint8_t> tmp_buffer(sycl::malloc_device<uint8_t>(temp_buffer_size, __q),
+                                             utils::__sycl_usm_free<uint8_t>{__q});
+    auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer.get());
+    auto p_sync_buffer = reinterpret_cast<uint32_t*>(tmp_buffer.get() + GLOBAL_OFFSET_SIZE);
 
     // memory for storing values sorted for an iteration
-    auto p_output = sycl::malloc_device<KeyT>(__n, __q);
-    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, decltype(p_output)>();
-    auto __out_rng = __keep(p_output, p_output + __n).all_view();
+    utils::__container_t<KeyT> p_output(sycl::malloc_device<KeyT>(__n, __q), utils::__sycl_usm_free<KeyT>{__q});
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, decltype(p_output.get())>();
+    auto __out_rng = __keep(p_output.get(), p_output.get() + __n).all_view();
 
-    sycl::event event_chain = __q.memset(tmp_buffer, 0, temp_buffer_size);
+    sycl::event event_chain = __q.memset(tmp_buffer.get(), 0, temp_buffer_size);
 
     event_chain = __radix_sort_onesweep_histogram_submitter<
         KeyT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending, _EsimRadixSortHistogram>()(
@@ -643,19 +644,16 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
         {
             event_chain = __radix_sort_onesweep_submitter<
                     KeyT, RADIX_BITS, THREAD_PER_TG, SWEEP_PROCESSING_SIZE, IsAscending, _EsimRadixSortSweepEven>()(
-                        __q, __rng, __out_rng, tmp_buffer, sweep_tg_count, __n, stage, event_chain);
+                        __q, __rng, __out_rng, tmp_buffer.get(), sweep_tg_count, __n, stage, event_chain);
         }
         else
         {
             event_chain = __radix_sort_onesweep_submitter<
                     KeyT, RADIX_BITS, THREAD_PER_TG, SWEEP_PROCESSING_SIZE, IsAscending, _EsimRadixSortSweepOdd>()(
-                        __q, __out_rng, __rng, tmp_buffer, sweep_tg_count, __n, stage, event_chain);
+                        __q, __out_rng, __rng, tmp_buffer.get(), sweep_tg_count, __n, stage, event_chain);
         }
     }
     event_chain.wait();
-
-    sycl::free(tmp_buffer, __q);
-    sycl::free(p_output, __q);
 }
 
 } // oneapi::dpl::experimental::esimd::impl
