@@ -156,7 +156,8 @@ expect_equal(Iterator1 expected_first, Iterator2 actual_first, Size n, const cha
         if (!(*expected_first == *actual_first))
         {
             ::std::stringstream outstr;
-            outstr << "error at " << file << ":" << line << " - " << message << ", at index " << k;
+            outstr << "error at " << file << ":" << line << " - " << message << ", at index " << k << " expected "
+                   << *expected_first << " got " << *actual_first;
             issue_error_message(outstr);
             ++error_count;
         }
