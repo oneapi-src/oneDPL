@@ -445,16 +445,6 @@ slm_scatter(__ESIMD_NS::simd<uint32_t, N> offsets,
     __ESIMD_NS::slm_scatter<T, N>(offsets, vals, mask);
 }
 
-::std::uint32_t DestTypeResolver(::std::uint64_t)
-{
-    return ::std::uint32_t{};
-};
-
-::std::int32_t DestTypeResolver(::std::int64_t)
-{
-    return ::std::int32_t{};
-};
-
 template <typename T, int N>
 inline std::enable_if_t<(N == 1 || N == 8 || N == 16 || N == 32) && (sizeof(T) == sizeof(::std::uint64_t))>
 slm_scatter(__ESIMD_NS::simd<uint32_t, N> offsets,
@@ -492,7 +482,7 @@ slm_scatter(__ESIMD_NS::simd<uint32_t, N> offsets,
     // |             m0              |             m0             |             m1              |             m1              | ... |             mN              |             mN             |
     // +-----------------------------+----------------------------+-----------------------------+-----------------------------+-----+-----------------------------+----------------------------+
 
-    using TypeX32 = decltype(DestTypeResolver(T{}));
+    using TypeX32 = ::std::uint32_t;
 
     // https://intel.github.io/llvm-docs/doxygen/classsycl_1_1__V1_1_1ext_1_1intel_1_1esimd_1_1detail_1_1simd__obj__impl.html#ad1eaca7ca43fcf87a29a9714b93d8109
     // bit_cast_view
