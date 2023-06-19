@@ -365,9 +365,12 @@ void cooperative(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     }
     assert(__groups <= MAX_GROUPS);
 
-    auto p_sync = sycl::malloc_device<::std::uint32_t>(1024 + (__groups+2) * BIN_COUNT, __q);
+    utils::__container_t<::std::uint32_t> p_sync(
+        sycl::malloc_device<::std::uint32_t>(1024 + (__groups+2) * BIN_COUNT, __q),
+        utils::__sycl_usm_free<::std::uint32_t>{__q});
     // to correctly sort floating point values, a buffer to store data plus extra identity values is needed
-    KeyT* __tmpbuf = sycl::malloc_device<KeyT>(__groups * __group_block_size, __q);
+    utils::__container_t<KeyT> __tmpbuf(sycl::malloc_device<KeyT>(__groups * __group_block_size, __q),
+                                        utils::__sycl_usm_free<KeyT>{__q});
 
     using _EsimRadixSort = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __esimd_radix_sort_cooperative<_KernelName>>;
@@ -377,17 +380,15 @@ void cooperative(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     {
         __e = __radix_sort_cooperative_submitter<
             KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 128, IsAscending, _EsimRadixSort>()(
-                __q, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf, p_sync);
+                __q, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf.get(), p_sync.get());
     }
     else // __group_block_size == 256 * THREAD_PER_TG
     {
         __e = __radix_sort_cooperative_submitter<
             KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 256, IsAscending, _EsimRadixSort>()(
-                __q, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf, p_sync);
+                __q, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf.get(), p_sync.get());
     }
     __e.wait();
-    sycl::free(__tmpbuf, __q);
-    sycl::free(p_sync, __q);
 }
 
 } // oneapi::dpl::experimental::esimd::impl
