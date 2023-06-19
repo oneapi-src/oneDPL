@@ -484,8 +484,6 @@ slm_scatter(__ESIMD_NS::simd<uint32_t, N> offsets,
 
     using TypeX32 = ::std::uint32_t;
 
-    // https://intel.github.io/llvm-docs/doxygen/classsycl_1_1__V1_1_1ext_1_1intel_1_1esimd_1_1detail_1_1simd__obj__impl.html#ad1eaca7ca43fcf87a29a9714b93d8109
-    // bit_cast_view
     sycl::ext::intel::esimd::simd<TypeX32, 2 * N> __x32_vals = vals.template bit_cast_view<TypeX32>();
 
     __ESIMD_NS::simd<uint32_t, 2 * N> __x32_offsets;
