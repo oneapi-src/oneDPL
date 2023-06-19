@@ -436,45 +436,6 @@ VectorStore(uint32_t offset,
     return VectorStore<T, VSize, LANES>({offset, LaneStride*sizeof(T)}, data, mask);
 }
 
-template<typename T , int N>
-inline std::enable_if_t<(N == 1 || N == 8 || N == 16 || N == 32) && (sizeof(T) <= sizeof(::std::uint32_t))>
-slm_scatter(__ESIMD_NS::simd<uint32_t, N> offsets,
-            __ESIMD_NS::simd<T, N> vals,
-            __ESIMD_NS::simd_mask<N> mask = 1)
-{
-    __ESIMD_NS::slm_scatter<T, N>(offsets, vals, mask);
-}
-
-template <typename T, int N>
-inline std::enable_if_t<(N == 1 || N == 8 || N == 16 || N == 32) && (sizeof(T) == sizeof(::std::uint64_t))>
-slm_scatter(__ESIMD_NS::simd<uint32_t, N> offsets,
-            __ESIMD_NS::simd<T, N>        vals,
-            __ESIMD_NS::simd_mask<N>      mask = 1)
-{
-    // slm_scatter does not support 64-bit types and the code emulates it by scattering 2*N 32-bit sequences
-
-    using TypeX32 = ::std::uint32_t;
-
-    sycl::ext::intel::esimd::simd<TypeX32, 2 * N> __x32_vals = vals.template bit_cast_view<TypeX32>();
-
-    __ESIMD_NS::simd<uint32_t, 2 * N> __x32_offsets;
-    __ESIMD_NS::simd_mask<2 * N>      __x32_mask(0);
-
-    // TODO required to implement this through simd/mask operations
-    // simd select stride
-    #pragma unroll
-    for (size_t src_index = 0; src_index < N; ++src_index)
-    {
-        __x32_offsets[2 * src_index    ] = offsets[src_index];
-        __x32_offsets[2 * src_index + 1] = offsets[src_index] + sizeof(TypeX32);
-
-        __x32_mask[2 * src_index    ] = mask[src_index];
-        __x32_mask[2 * src_index + 1] = mask[src_index];
-    }
-
-    __ESIMD_NS::slm_scatter<TypeX32, 2 * N>(__x32_offsets, __x32_vals, __x32_mask);
-}
-
 template <typename T, int N>
 inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)<=64), __ESIMD_NS::simd<T, N> > BlockLoad(uint32_t slm_offset)
 {
