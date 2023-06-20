@@ -744,10 +744,15 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
         __tmp_buf = sycl::buffer<::std::uint32_t, 1>(sycl::range<1>(__tmp_buf_size));
 
         // memory for storing values sorted for an iteration
+#if 1
         __internal::__buffer<_DecExecutionPolicy, _ValueT> __out_buffer_holder{__exec, __n};
         __val_buf = __out_buffer_holder.get_buffer();
         auto __out_rng =
             oneapi::dpl::__ranges::all_view<_ValueT, __par_backend_hetero::access_mode::read_write>(__val_buf);
+#else
+        auto __p_buf = sycl::malloc_device<_ValueT>(__n, __exec.queue());
+        auto __out_rng = oneapi::dpl::__ranges::guard_view<_ValueT*>(__p_buf, __n);
+#endif
 
         // iterations per each bucket
         assert("Number of iterations must be even" && __radix_iters % 2 == 0);
@@ -762,9 +767,11 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
                 __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>::submit(
                     __exec, __segments, __radix_iter, __out_rng, __in_rng, __tmp_buf, __event, __proj);
         }
+        //sycl::free(__p_buf, __exec.queue());
     }
 
     return __future(__event, __tmp_buf, __val_buf);
+    //return __future(__event, __tmp_buf);
 }
 
 template<::std::uint32_t __radix, typename _Range, typename Hist>
@@ -842,9 +849,9 @@ __radix_256_iter(sycl::queue q, _Range&& __in_rng, Hist* hist, std::size_t __ite
 
 }
 
-template<::std::uint32_t __radix, typename _Range, typename Hist>
-void
-__calc_hist(sycl::queue q, _Range&& __in_rng, Hist* hist/*, uint32_t* __mask = 0xFF00*/)
+template<::std::uint32_t __radix, typename _Range, typename Hist, typename Idx, typename Event>
+auto
+__calc_hist(sycl::queue q, _Range&& __in_rng, Hist* hist, Idx* idx, Event __dependency_event)
 {
     const ::std::size_t __n = __in_rng.size();
     const ::std::size_t __num_bins = 256;
@@ -872,7 +879,7 @@ __calc_hist(sycl::queue q, _Range&& __in_rng, Hist* hist/*, uint32_t* __mask = 0
 #else
   constexpr int blockSize = 256;
   constexpr int NUM_BINS = 256;
-  constexpr int wg_size = 64;
+  constexpr int wg_size = 256;
   constexpr int sz_per_wg = blockSize*wg_size;
   constexpr int bins_per_wi = NUM_BINS / wg_size;
 
@@ -886,20 +893,21 @@ __calc_hist(sycl::queue q, _Range&& __in_rng, Hist* hist/*, uint32_t* __mask = 0
     sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::work_group, sycl::access::address_space::global_space>;
 
   auto e = q.submit([&](auto &h) {
-    //sycl::accessor<uint32_t, 1, sycl::access_mode::atomic, sycl::target::local> local_hist(256, h);
+      h.depends_on(__dependency_event);
     sycl::local_accessor<uint32_t, 1> local_hist(256, h);
-    h.parallel_for(
+    h.template parallel_for<class calc_hist_256>(
         sycl::nd_range(sycl::range{wg_count * wg_size}, sycl::range{wg_size}),
         [=](sycl::nd_item<1> it) [[intel::reqd_sub_group_size(32)]] {
           int wi = it.get_local_linear_id();
           int group = it.get_group()[0];
 
           //set zero value to the bins
-          for(int i = 0; i < bins_per_wi; ++i)
-          {
-              int idx_bin = wi*bins_per_wi + i;
-              local_hist[idx_bin] = 0;
-          }
+          local_hist[wi] = 0;
+          __atomic_type __b(hist[wi]);
+          __b = 0;
+          __atomic_type __i(idx[wi]);
+          __i = 0;
+
           it.barrier(sycl::access::fence_space::local_space);
 
           for (int k = 0; k < blockSize; k++)
@@ -914,16 +922,19 @@ __calc_hist(sycl::queue q, _Range&& __in_rng, Hist* hist/*, uint32_t* __mask = 0
           }
           it.barrier(sycl::access::fence_space::local_space);
 
+          unsigned int val =  local_hist[wi];
+
           //store a local bin to the global bin
-          for(int i = 0; i < bins_per_wi; ++i)
-          {
-              int idx_bin = wi*bins_per_wi + i;
-              __atomic_type __b(hist[idx_bin]);
-              __b += local_hist[idx_bin];
-          }
+          __b += val;
+
+          //local exclusive scan (wg_count = num_bins)
+          auto scan = exclusive_scan_over_group(it.get_group(), val, sycl::plus<>());
+
+          //accumulate scanned result to the global hist
+          __i += scan;
         });
   });
-  e.wait();
+  return e;
 #endif
 
 }
@@ -971,22 +982,18 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
     __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>::submit(
                 __exec, __segments, __radix_iters - 1, __out_rng, __in_rng, __tmp_buf, __event, __proj);
 
-    __event.wait();
-
     //calc a hist by most radix*2 bits:
     constexpr int NUM_BINS = 256;
     uint32_t* g_bins = sycl::malloc_shared<uint32_t>(NUM_BINS, __exec.queue());
-    //std::vector<int> g_bins(NUM_BINS);
-    for (uint16_t __i = 0; __i < NUM_BINS; ++__i)
-        g_bins[__i] = 0;
+    uint32_t* g_idx = sycl::malloc_shared<uint32_t>(NUM_BINS, __exec.queue());
 
-    __calc_hist<__radix_bits>(__exec.queue(), __in_rng, &g_bins[0]);
+    auto e = __calc_hist<__radix_bits>(__exec.queue(), __in_rng, &g_bins[0], &g_idx[0], __event);
 
-    uint32_t* g_dense_bins = sycl::malloc_shared<uint32_t>(NUM_BINS, __exec.queue());
-    auto __n_dense_bins = std::copy_if(g_bins, g_bins + NUM_BINS, g_dense_bins, [](auto a) { return a > 0;}) - g_dense_bins;
+    //uint32_t* g_dense_bins = sycl::malloc_shared<uint32_t>(NUM_BINS, __exec.queue());
+    //auto __n_dense_bins = std::copy_if(g_bins, g_bins + NUM_BINS, g_dense_bins, [](auto a) { return a > 0;}) - g_dense_bins;
 
-    uint32_t* g_idx = sycl::malloc_shared<uint32_t>(__n_dense_bins, __exec.queue());
-    std::exclusive_scan(g_dense_bins, g_dense_bins + __n_dense_bins, g_idx, 0);
+    //std::exclusive_scan(g_dense_bins, g_dense_bins + __n_dense_bins, g_idx, 0);
+    //std::exclusive_scan(g_bins, g_bins + NUM_BINS, g_idx, 0);
 
 #if 0
     std::cout <<  "hist: ";
@@ -1005,7 +1012,8 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
 #if 1 //multi-groups local sorts
 
     __subgroup_radix_sort<_RadixSortKernel, /*__wg_size_one_wg*16*/968, 16, __radix_bits, __is_ascending>{}.run(
-                    __exec.queue(), __in_rng, __proj, 0, __radix_iters - 2, g_idx, g_dense_bins, __n_dense_bins);
+                    //__exec.queue(), e, __in_rng, __proj, 0, __radix_iters - 2, g_idx, g_dense_bins, __n_dense_bins);
+                    __exec.queue(), e, __in_rng, __proj, 0, __radix_iters - 2, g_idx, g_bins, NUM_BINS);
 
 #else //sequenced local sorts
     uint32_t base_idx = 0;
@@ -1048,10 +1056,10 @@ __parallel_radix_sort_msd_lsd(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Pro
 #endif
     //TODO: use sycl::event::wait(const std::vector<event>& eventList);
     //TODO: extend 'future' type by an event list;
-    __exec.queue().wait();
+    //__exec.queue().wait();
 
     sycl::free(g_idx, __exec.queue());
-    sycl::free(g_dense_bins, __exec.queue());
+    //sycl::free(g_dense_bins, __exec.queue());
     sycl::free(g_bins, __exec.queue());
     //TODO"
     return __future(__event, __tmp_buf, __val_buf);

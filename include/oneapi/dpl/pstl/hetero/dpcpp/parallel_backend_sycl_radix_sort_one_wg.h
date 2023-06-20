@@ -57,7 +57,7 @@ struct __subgroup_radix_sort
     }
     template <typename _Ranges, typename _Proj>
     auto
-    run(sycl::queue __q, _Ranges&& __src, _Proj __proj, uint16_t __start_bit = 0, uint16_t __n_iter = 0,
+    run(sycl::queue __q, sycl::event __e, _Ranges&& __src, _Proj __proj, uint16_t __start_bit = 0, uint16_t __n_iter = 0,
         uint32_t* __r_idx = NULL, uint32_t* __r_sz = NULL, uint16_t __n_ranges = 0)
     {
         using __wg_size_t = ::std::integral_constant<::std::uint16_t, __wg_size>;
@@ -67,7 +67,7 @@ struct __subgroup_radix_sort
         using _SortKernelLoc = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_t>>;
 
-        __one_group_submitter<_SortKernelLoc>()(__q, ::std::forward<_Ranges>(__src), __proj,
+        __one_group_submitter<_SortKernelLoc>()(__q, __e, ::std::forward<_Ranges>(__src), __proj,
                                                            std::true_type{} /*SLM*/, __start_bit, __n_iter, __r_idx, __r_sz, __n_ranges);
     }
 
@@ -146,7 +146,7 @@ struct __subgroup_radix_sort
     {
         template <typename _RangeIn, typename _Proj, typename _SLM_tag>
         auto
-        operator()(sycl::queue __q, _RangeIn&& __data, _Proj __proj, _SLM_tag, uint16_t __start_bit, uint16_t __n_iter, uint32_t* __r_idx = NULL, uint32_t* __r_sz = NULL, uint16_t __n_ranges = 0)
+        operator()(sycl::queue __q, sycl::event __e, _RangeIn&& __data, _Proj __proj, _SLM_tag, uint16_t __start_bit, uint16_t __n_iter, uint32_t* __r_idx = NULL, uint32_t* __r_sz = NULL, uint16_t __n_ranges = 0)
         {
             uint16_t __wg_count = __r_idx ? __n_ranges : 1;
 
@@ -158,6 +158,7 @@ struct __subgroup_radix_sort
 
             sycl::nd_range __range{sycl::range{__wg_count * __wg_size}, sycl::range{__wg_size}};
             return __q.submit([&](sycl::handler& __cgh) {
+                __cgh.depends_on(__e);
                 oneapi::dpl::__ranges::__require_access(__cgh, __data);
                 /*if(__r_idx)
                     oneapi::dpl::__ranges::__require_access(__cgh, *__r_idx);
