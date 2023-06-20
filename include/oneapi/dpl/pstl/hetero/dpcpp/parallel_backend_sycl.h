@@ -264,16 +264,16 @@ struct __parallel_for_submitter</*_IsGPU=*/::std::true_type, __internal::__optio
                 //get an access to data under SYCL buffer:
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
-                __cgh.parallel_for<_Name...>(
-                    sycl::nd_range</*dim=*/1>(__n_groups * __wgroup_size, __wgroup_size),
-                    [=](sycl::nd_item</*dim=*/1> __item_id) {
-                        auto __local_id = __item_id.get_local_id(0);
-                        auto __grid_sz = __n_groups * __wgroup_size;
-                        for (::std::size_t __idx = __item_id.get_global_id(0); __idx < __count; __idx += __grid_sz)
-                        {
-                            __brick(__idx, __rngs...);
-                        }
-                    });
+                __cgh.parallel_for<_Name...>(sycl::nd_range</*dim=*/1>(__n_groups * __wgroup_size, __wgroup_size),
+                                             [=](sycl::nd_item</*dim=*/1> __item_id) {
+                                                 auto __local_id = __item_id.get_local_id(0);
+                                                 auto __grid_sz = __n_groups * __wgroup_size;
+                                                 for (::std::size_t __idx = __item_id.get_global_id(0); __idx < __count;
+                                                      __idx += __grid_sz)
+                                                 {
+                                                     __brick(__idx, __rngs...);
+                                                 }
+                                             });
             });
         return __future(__event);
     }
@@ -291,15 +291,17 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 
     if (__exec.queue().get_device().is_gpu())
     {
-        using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_for_kernel<::std::true_type, _CustomName>>;
-        return __parallel_for_submitter<::std::true_type, _ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                                                          ::std::forward<_Ranges>(__rngs)...);
+        using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __parallel_for_kernel<::std::true_type, _CustomName>>;
+        return __parallel_for_submitter<::std::true_type, _ForKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), __brick, __count, ::std::forward<_Ranges>(__rngs)...);
     }
     else
     {
-        using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__parallel_for_kernel<::std::false_type, _CustomName>>;
-        return __parallel_for_submitter<::std::false_type, _ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
-                                                                           ::std::forward<_Ranges>(__rngs)...);
+        using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __parallel_for_kernel<::std::false_type, _CustomName>>;
+        return __parallel_for_submitter<::std::false_type, _ForKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), __brick, __count, ::std::forward<_Ranges>(__rngs)...);
     }
 }
 
