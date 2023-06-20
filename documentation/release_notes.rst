@@ -13,31 +13,30 @@ New in 2022.2.0
 
 New Features
 ------------
-- Added ``sort_by_key`` algorithm. 
+- Added ``sort_by_key`` algorithm for key-value sorting.
 - Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
   ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
 - Improved performance of the ``reduce_by_segment``, ``inclusive_scan_by_segment``, and
   ``exclusive_scan_by_segment`` algorithms for binary operators with known identities
   when using DPC++ execution policies.
 - Added ``value_type`` to all views in ``oneapi::dpl::__ranges``. 
-- Added projection operator for ``oneapi::dpl::experimental::ranges::sort`` which is applied to the keys prior to sorting.
+- Extended ``oneapi::dpl::experimental::ranges::sort`` to support projections applied to the range elements prior to comparison.
 
 Fixed Issues
 ------------
-- Updated minimum CMake version to 3.11 on Linux and 3.20 on Windows.
+- The minimally required CMake version is raised to 3.11 on Linux and 3.20 on Windows.
 - Added new CMake package ``oneDPLIntelLLVMConfig.cmake`` to resolve issues using CMake 3.20+ on Windows for icx and icx-cl.
 - Fixed an error in the ``sort`` and ``stable_sort`` algorithms when performing a descending sort
   on signed numeric types with negative values.
 - Fixed an error in ``reduce_by_segment`` algorithm when a non-commutative predicate is used.
-- Fixed ``sort`` and ``stable_sort`` algorithms when sorting integral types with width more than 32 bits
-  and using radix sort approach.
+- Fixed an error in ``sort`` and ``stable_sort`` algorithms for integral types wider than 4 bytes.
 - Fixed an error for some compilers attempting to use openMP or SYCL backend without full compiler support.
 
 Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- Incorrect results may be produced with in-place scans using ``unseq`` and ``unseq_par`` policies on
+- Incorrect results may be produced with in-place scans using ``unseq`` and ``par_unseq`` policies on
   CPUs with the Intel® C++ Compiler 2021.8.
 
 Existing Issues
