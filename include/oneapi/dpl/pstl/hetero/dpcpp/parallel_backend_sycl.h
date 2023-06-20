@@ -259,15 +259,13 @@ struct __parallel_for_submitter</*_IsGPU=*/::std::true_type, __internal::__optio
         ::std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __wgroup_size);
         ::std::size_t __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
         __n_groups = ::std::min(__n_groups, __max_cu);
+        ::std::size_t __grid_sz = __n_groups * __wgroup_size;
         auto __event = __exec.queue().submit(
-            [&__rngs..., &__brick, __count, __wgroup_size, __n_groups, __max_cu](sycl::handler& __cgh) {
+            [&__rngs..., &__brick, __count, __wgroup_size, __n_groups, __grid_sz](sycl::handler& __cgh) {
                 //get an access to data under SYCL buffer:
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-
                 __cgh.parallel_for<_Name...>(sycl::nd_range</*dim=*/1>(__n_groups * __wgroup_size, __wgroup_size),
                                              [=](sycl::nd_item</*dim=*/1> __item_id) {
-                                                 auto __local_id = __item_id.get_local_id(0);
-                                                 auto __grid_sz = __n_groups * __wgroup_size;
                                                  for (::std::size_t __idx = __item_id.get_global_id(0); __idx < __count;
                                                       __idx += __grid_sz)
                                                  {
