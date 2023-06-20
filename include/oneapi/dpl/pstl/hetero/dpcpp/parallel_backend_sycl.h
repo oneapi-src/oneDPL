@@ -255,43 +255,23 @@ struct __parallel_for_submitter</*_IsGPU=*/::std::true_type, __internal::__optio
     {
         assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
-        constexpr ::uint16_t __vals_per_witem = 8;
         ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-        ::std::size_t __ngroups = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __vals_per_witem * __wgroup_size);
+        ::std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __wgroup_size);
+        ::std::size_t __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+        __n_groups = ::std::min(__n_groups, __max_cu);
         auto __event = __exec.queue().submit(
-            [&__rngs..., &__brick, __count, __vals_per_witem, __wgroup_size, __ngroups](sycl::handler& __cgh) {
+            [&__rngs..., &__brick, __count, __wgroup_size, __n_groups, __max_cu](sycl::handler& __cgh) {
                 //get an access to data under SYCL buffer:
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
                 __cgh.parallel_for<_Name...>(
-                    sycl::nd_range</*dim=*/1>(__ngroups * __wgroup_size, __wgroup_size),
+                    sycl::nd_range</*dim=*/1>(__n_groups * __wgroup_size, __wgroup_size),
                     [=](sycl::nd_item</*dim=*/1> __item_id) {
-                        auto __stride = __item_id.get_sub_group().get_local_range();
-                        auto __sg_local_id = __item_id.get_sub_group().get_local_id();
-                        auto __sg_id = __item_id.get_sub_group().get_group_id();
                         auto __local_id = __item_id.get_local_id(0);
-                        auto __group_id = __item_id.get_group(0);
-                        auto __start_idx = __vals_per_witem * (__group_id * __wgroup_size + __sg_id * __stride);
-                        bool __is_full_sg = (__start_idx + __vals_per_witem * __stride) < __count;
-
-                        if (__is_full_sg)
+                        auto __grid_sz = __n_groups * __wgroup_size;
+                        for (::std::size_t __idx = __item_id.get_global_id(0); __idx < __count; __idx += __grid_sz)
                         {
-                            _ONEDPL_PRAGMA_UNROLL
-                            for (::std::size_t __offset = 0; __offset < __vals_per_witem; ++__offset)
-                            {
-                                auto __idx = __start_idx + __offset * __stride + __sg_local_id;
-                                __brick(__idx, __rngs...);
-                            }
-                        }
-                        else
-                        {
-                            _ONEDPL_PRAGMA_UNROLL
-                            for (::std::size_t __offset = 0; __offset < __vals_per_witem; ++__offset)
-                            {
-                                auto __idx = __start_idx + __offset * __stride + __sg_local_id;
-                                if (__idx < __count)
-                                    __brick(__idx, __rngs...);
-                            }
+                            __brick(__idx, __rngs...);
                         }
                     });
             });
