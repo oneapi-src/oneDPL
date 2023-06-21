@@ -71,5 +71,5 @@ main()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test(deviceQueue);
-    return 0;
+    return TestUtils::done();
 }

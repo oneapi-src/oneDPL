@@ -95,5 +95,5 @@ main()
     test<input_iterator<const int*>, const int*, random_access_iterator<int*>>(deviceQueue);
     test<input_iterator<const int*>, const int*, int*>(deviceQueue);
 
-    return 0;
+    return TestUtils::done();
 }

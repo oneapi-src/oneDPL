@@ -102,5 +102,6 @@ main()
     test<const int*, bidirectional_iterator<int*>>(deviceQueue);
     test<const int*, random_access_iterator<int*>>(deviceQueue);
     test<const int*, int*>(deviceQueue);
-    return 0;
+
+    return TestUtils::done();
 }

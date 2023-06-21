@@ -54,6 +54,5 @@ int main() {
   test<bidirectional_iterator<int *>>();
   test<random_access_iterator<int *>>();
   test<int *>();
-  std::cout << "done" << std::endl;
-  return 0;
+  return TestUtils::done();
 }
