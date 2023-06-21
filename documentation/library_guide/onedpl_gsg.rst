@@ -91,7 +91,8 @@ oneDPL backend
 
 The oneDPL backend is selected based on compiler and environment availability and the user defined ``ONEDPL_PAR_BACKEND`` option.  ``DPCPP`` backend is always selected if SYCL is available. If this ``ONEDPL_PAR_BACKEND`` is not set then the first suitable backend is chosen among oneTBB, OpenMP and serial, in that order.  oneDPL is considered as not found (``oneDPL_FOUND=FALSE``) if ``ONEDPL_PAR_BACKEND`` is specified, but not found or not supported.
 
-### Using oneDPL package on Windows
+Using oneDPL Package On Windows
+*******************************
 On Windows, we recommend updating to the most recent version of CMake, as they are actively `improving support for Intel compilers <https://gitlab.kitware.com/cmake/cmake/-/issues/24314>`_.  CMake requires some workarounds to use icx[-cl] successfully.  A CMake package has been provided 'oneDPLWindowsIntelLLVM' to apply these required workarounds on Windows with CMake versions 3.20+.  Some workarounds are provided for icpx, but it is not fully supported on Windows at this time.  To enable the workarounds, please add ``find_package(oneDPLWindowsIntelLLVM)`` to your CMake file before you call ``project()``.
 The supported generator in the Windows environment is Ninja, we recommend using ``-GNinja`` in your cmake configuration.
 
@@ -100,7 +101,8 @@ Example CMake File
 To use oneDPL with CMake, create a CMakeLists.txt file for your project and add oneDPL.
 For example:
 
-.. code:: cmake
+.. code:: cpp
+
   # only necessary on Windows
   find_package(oneDPLWindowsIntelLLVM)
   
@@ -113,19 +115,21 @@ For example:
   # Connect oneDPL to foo
   target_link_libraries(foo oneDPL)
 
-Example CMake invocation
+Example CMake Invocation
 ************************
 CMake generates build scripts which can then be used to build and link your application.  
 
 Below is an example Linux CMake invocation which generates build scripts for the project in the parent directory using tbb backend and release build type: 
 
-.. code:: shell
+.. code:: cpp
+
   mkdir build && cd build
   cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=release -DONEDPL_PAR_BACKEND=tbb ..
 
 Below is an example Windows CMake invocation which generates Ninja build scripts for the project in the parent directory using OpenMP backend and debug build type: 
 
-.. code:: shell
+.. code:: cpp
+
   mkdir build && cd build
   cmake -GNinja -DCMAKE_CXX_COMPILER=icx -DCMAKE_BUILD_TYPE=debug -DONEDPL_PAR_BACKEND=openmp ..
 
