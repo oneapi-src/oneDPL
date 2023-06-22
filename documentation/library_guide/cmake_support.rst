@@ -48,14 +48,14 @@ Example CMake Invocation
 ========================
 After creating a ``CMakeLists.txt`` file for their project, a user may use a command line CMake invocation to generate build scripts for their project.
 
-Below is an example Linux CMake invocation which generates build scripts for the project with the icpx compiler, tbb backend and release build type:
+Below is an example ``Linux`` CMake invocation which generates build scripts for the project with the ``icpx`` compiler, ``tbb`` backend and ``release`` build type:
 
 .. code:: cpp
 
   mkdir build && cd build
   cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=release -DONEDPL_PAR_BACKEND=tbb ..
 
-Below is an example Windows CMake invocation which generates Ninja build scripts for the project in the parent directory with the icx compiler, OpenMP backend and debug build type:
+Below is an example ``Windows`` CMake invocation which generates ``Ninja`` build scripts for the project in the parent directory with the ``icx`` compiler, ``OpenMP`` backend and ``debug`` build type:
 
 .. code:: cpp
 
