@@ -94,14 +94,14 @@ Use pkg-config with the ``--cflags`` flag to get the include path to the oneDPL 
 
 .. code:: cpp
 
-  dpcpp test.cpp $(pkg-config --cflags dpl)
+  icpx test.cpp $(pkg-config --cflags dpl)
   
 The ``--msvc-syntax`` flag is required when you use a Microsoft Visual C++* compiler.
 This flag converts your compiling and linking flags to the appropriate form:
 
 .. code:: cpp
 
-  dpcpp test.cpp $(pkg-config --msvc-syntax --cflags dpl)
+  icpx test.cpp $(pkg-config --msvc-syntax --cflags dpl)
 
 .. note::
   Use the pkg-config tool to get rid of large hard-coded paths and make compilation more portable.

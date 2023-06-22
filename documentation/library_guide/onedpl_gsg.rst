@@ -107,25 +107,6 @@ This flag converts your compiling and linking flags to the appropriate form:
   Use the pkg-config tool to get rid of large hard-coded paths and make compilation more portable.
 
 
-
-Example CMake Invocation
-************************
-CMake generates build scripts which can then be used to build and link your application.  
-
-Below is an example Linux CMake invocation which generates build scripts for the project in the parent directory using tbb backend and release build type: 
-
-.. code:: cpp
-
-  mkdir build && cd build
-  cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=release -DONEDPL_PAR_BACKEND=tbb ..
-
-Below is an example Windows CMake invocation which generates Ninja build scripts for the project in the parent directory using OpenMP backend and debug build type: 
-
-.. code:: cpp
-
-  mkdir build && cd build
-  cmake -GNinja -DCMAKE_CXX_COMPILER=icx -DCMAKE_BUILD_TYPE=debug -DONEDPL_PAR_BACKEND=openmp ..
-
 Usage Examples
 --------------
 
