@@ -44,6 +44,35 @@ All |onedpl_short| header files are in the ``oneapi/dpl`` directory. Use ``#incl
 To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
 and use the ``std`` namespace.
 
+CMake Support
+-------------
+|onedpl_short| can be added to your project via CMake.  A simple example for Linux is provided below.  For more detailed usage and options, please look to the `CMake Support Page <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/cmake-support.html>`_.
+
+Simple Example CMake File
+=========================
+To use |onedpl_short| with CMake, create a CMakeLists.txt file for your project's base directory and use `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ and `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html`_ to add oneDPL.
+For example:
+
+.. code:: cpp
+
+  project(Foo)
+  add_executable(foo foo.cpp)
+  
+  # Search to find oneDPL
+  find_package(oneDPL REQUIRED)
+  
+  # Connect oneDPL to foo
+  target_link_libraries(foo oneDPL)
+
+Simple Example CMake Invocation
+===============================
+CMake generates build scripts which can then be used to build and link your application. The following is an example CMake invocation which generates build scripts for the project in the parent directory: 
+
+.. code:: cpp
+
+  mkdir build && cd build
+  cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=release ..
+
 
 pkg-config Support
 ------------------

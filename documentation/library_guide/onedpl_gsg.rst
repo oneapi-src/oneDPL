@@ -44,6 +44,34 @@ All |onedpl_short| header files are in the ``oneapi/dpl`` directory. Use ``#incl
 To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
 and use the ``std`` namespace.
 
+Basic CMake Support
+-------------
+|onedpl_short| can be added to your project via CMake.  A simple example for Linux is provided below.  For more detailed usage and options, please look to the `CMake Support Page <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/cmake-support.html>`_.
+
+Simple Example CMake File
+=========================
+To use |onedpl_short| with CMake, create a CMakeLists.txt file for your project's base directory and use `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ and `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html`_ to add oneDPL.
+For example:
+
+.. code:: cpp
+
+  project(Foo)
+  add_executable(foo foo.cpp)
+  
+  # Search to find oneDPL
+  find_package(oneDPL REQUIRED)
+  
+  # Connect oneDPL to foo
+  target_link_libraries(foo oneDPL)
+
+Simple Example CMake Invocation
+===============================
+CMake generates build scripts which can then be used to build and link your application. The following is an example CMake invocation which generates build scripts for the project in the parent directory: 
+
+.. code:: cpp
+
+  mkdir build && cd build
+  cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=release ..
 
 pkg-config Support
 ------------------
@@ -58,62 +86,19 @@ Use pkg-config with the ``--cflags`` flag to get the include path to the oneDPL 
 
 .. code:: cpp
 
-  dpcpp test.cpp $(pkg-config --cflags dpl)
+  icpx test.cpp $(pkg-config --cflags dpl)
   
 The ``--msvc-syntax`` flag is required when you use a Microsoft Visual C++* compiler.
 This flag converts your compiling and linking flags to the appropriate form:
 
 .. code:: cpp
 
-  dpcpp test.cpp $(pkg-config --msvc-syntax --cflags dpl)
+  icpx test.cpp $(pkg-config --msvc-syntax --cflags dpl)
 
 .. note::
   Use the pkg-config tool to get rid of large hard-coded paths and make compilation more portable.
 
 
-CMake Support
--------------
-
-General Usage
-*************
-oneDPLConfig.cmake and oneDPLConfigVersion.cmake are included into oneDPL distribution.
-
-These files allow to integrate oneDPL into user project with the `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ command. Successful invocation of ``find_package(oneDPL <options>)`` creates imported target `oneDPL` that can be passed to the `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html`_ command.
-
-Some useful CMake variables (`here https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html>`_ you can find a full list of CMake variables for the latest version):
-
-- `CMAKE_CXX_COMPILER <https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html>`_ - C++ compiler used for build, e.g. ``CMAKE_CXX_COMPILER=dpcpp``.
-- `CMAKE_BUILD_TYPE <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_ - build type that affects optimization level and debug options, values: ``RelWithDebInfo``, ``Debug``, ``Release``, ...; e.g. ``CMAKE_BUILD_TYPE=RelWithDebInfo``.
-- `CMAKE_CXX_STANDARD <https://cmake.org/cmake/help/latest/variable/CMAKE_CXX_STANDARD.html>`_ - C++ standard, e.g. ``CMAKE_CXX_STANDARD=17``.
-
-oneDPL backend
-**************
-
-The oneDPL backend is selected based on compiler and environment availability and the user defined ``ONEDPL_PAR_BACKEND`` option.  ``DPCPP`` backend is always selected if SYCL is available. If this ``ONEDPL_PAR_BACKEND`` is not set then the first suitable backend is chosen among oneTBB, OpenMP and serial, in that order.  oneDPL is considered as not found (``oneDPL_FOUND=FALSE``) if ``ONEDPL_PAR_BACKEND`` is specified, but not found or not supported.
-
-Using oneDPL Package On Windows
-*******************************
-On Windows, we recommend updating to the most recent version of CMake, as they are actively `improving support for Intel compilers <https://gitlab.kitware.com/cmake/cmake/-/issues/24314>`_.  CMake requires some workarounds to use icx[-cl] successfully.  A CMake package has been provided 'oneDPLWindowsIntelLLVM' to apply these required workarounds on Windows with CMake versions 3.20+.  Some workarounds are provided for icpx, but it is not fully supported on Windows at this time.  To enable the workarounds, please add ``find_package(oneDPLWindowsIntelLLVM)`` to your CMake file before you call ``project()``.
-The supported generator in the Windows environment is Ninja, we recommend using ``-GNinja`` in your cmake configuration.
-
-Example CMake File
-******************
-To use oneDPL with CMake, create a CMakeLists.txt file for your project and add oneDPL.
-For example:
-
-.. code:: cpp
-
-  # only necessary on Windows
-  find_package(oneDPLWindowsIntelLLVM)
-  
-  project(Foo)
-  add_executable(foo foo.cpp)
-  
-  # Search for oneDPL
-  find_package(oneDPL REQUIRED)
-  
-  # Connect oneDPL to foo
-  target_link_libraries(foo oneDPL)
 
 Example CMake Invocation
 ************************
