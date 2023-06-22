@@ -46,7 +46,7 @@ and use the ``std`` namespace.
 
 Basic CMake Support
 -------------
-|onedpl_short| can be added to your project via CMake.  A simple example for Linux is provided below.  For more detailed usage and options, please look to the `CMake Support Page <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/cmake-support.html>`_.
+`CMake <https://cmake.org/cmake/help/latest/index.html>`_ generates build scripts which can then be used to build and link your application.  |onedpl_short| can be added to your project via CMake.  A simple example for Linux is provided below.  For more detailed usage and options, please look to the `CMake Support Page <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/cmake-support.html>`_.
 
 Simple Example CMake File
 =========================
@@ -66,12 +66,20 @@ For example:
 
 Simple Example CMake Invocation
 ===============================
-CMake generates build scripts which can then be used to build and link your application. The following is an example CMake invocation which generates build scripts for the project in the parent directory: 
+The following is an example CMake invocation which generates build scripts for the project in the parent directory: 
 
 .. code:: cpp
 
   mkdir build && cd build
   cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=release ..
+
+Example Build command
+=====================
+Once build scripts have been generated for your desired configuration following the instruction above, a `build command <https://cmake.org/cmake/help/latest/manual/cmake.1.html#build-a-project>`_ can be issued to build your project:
+
+.. code:: cpp
+
+  cmake --build .
 
 pkg-config Support
 ------------------
