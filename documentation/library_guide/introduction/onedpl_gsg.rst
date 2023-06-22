@@ -50,7 +50,7 @@ Basic CMake Support
 
 Simple Example CMake File
 *************************
-To use |onedpl_short| with CMake, create a CMakeLists.txt file for your project's base directory and use `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ and `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html`_ to add oneDPL.
+To use |onedpl_short| with CMake, create a CMakeLists.txt file for your project's base directory and use `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ and `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html>`_ to add oneDPL.
 For example:
 
 .. code:: cpp
