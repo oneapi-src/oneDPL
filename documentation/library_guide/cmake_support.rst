@@ -16,7 +16,9 @@ Some useful CMake variables (`here <https://cmake.org/cmake/help/latest/manual/c
 |onedpl_short| Backend Selection
 ==============
 
-The |onedpl_short| backend is selected based on compiler and environment availability, in combination with the user defined ``ONEDPL_PAR_BACKEND`` option. ``ONEDPL_PAR_BACKEND`` is optional, and has three possible valid options: ``tbb`` (oneTBB), ``openmp`` (OpenMP), and ``serial``.  If SYCL is supported by the compiler, ``dpcpp`` backend is always selected.  If this ``ONEDPL_PAR_BACKEND`` is not set then the first suitable backend is chosen among oneTBB, OpenMP and serial, in that order.  |onedpl_short| is considered as not found (``oneDPL_FOUND=FALSE``) if ``ONEDPL_PAR_BACKEND`` is specified, but not found or not supported.
+The |onedpl_short| parallel backend is selected based on compiler and environment availability, in combination with the user defined ``ONEDPL_PAR_BACKEND`` option. ``ONEDPL_PAR_BACKEND`` is optional, and has three possible valid options: ``tbb`` (oneTBB), ``openmp`` (OpenMP), and ``serial``.  If SYCL is supported by the compiler, ``dpcpp`` backend is always selected.  If this ``ONEDPL_PAR_BACKEND`` is not set then the first suitable backend is chosen among oneTBB, OpenMP and serial, in that order.  |onedpl_short| is considered as not found (``oneDPL_FOUND=FALSE``) if ``ONEDPL_PAR_BACKEND`` is specified, but not found or not supported.
+
+For more details on |onedpl_short| parallel backend, see :doc:`Execution Policies <parallel_api/execution_policies>`.
 
 Using |onedpl_short| Package On Windows
 ===============================
