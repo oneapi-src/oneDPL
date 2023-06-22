@@ -605,7 +605,7 @@ struct __parallel_radix_sort_iteration
         // correct __block_size according to local memory limit in count phase
         const auto __max_count_wg_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
             __exec, sizeof(typename __decay_t<_TmpBuf>::value_type) * __radix_states, __block_size);
-        __block_size = oneapi::dpl::__internal::__dpl_ceiling_div(__max_count_wg_size, __radix_states);
+        __block_size = static_cast<::std::size_t>((__max_count_wg_size / __radix_states)) * __radix_states;
 
         // block size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
