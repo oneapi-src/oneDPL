@@ -5,9 +5,9 @@ General Usage
 =============
 oneDPLConfig.cmake and oneDPLConfigVersion.cmake are included into |onedpl_short| distribution.
 
-These files allow to integrate |onedpl_short| into user project with the `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ command. Successful invocation of ``find_package(oneDPL <options>)`` creates imported target `oneDPL` that can be passed to the `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html`_ command.
+These files allow to integrate |onedpl_short| into user project with the `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ command. Successful invocation of ``find_package(oneDPL <options>)`` creates imported target `oneDPL` that can be passed to the `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html>`_ command.
 
-Some useful CMake variables (`here https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html>`_ you can find a full list of CMake variables for the latest version):
+Some useful CMake variables (`here <https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html>`_ you can find a full list of CMake variables for the latest version):
 
 - `CMAKE_CXX_COMPILER <https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html>`_ - C++ compiler used for build, e.g. ``CMAKE_CXX_COMPILER=dpcpp``.
 - `CMAKE_BUILD_TYPE <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_ - build type that affects optimization level and debug options, values: ``RelWithDebInfo``, ``Debug``, ``Release``, ...; e.g. ``CMAKE_BUILD_TYPE=RelWithDebInfo``.
@@ -20,8 +20,9 @@ The |onedpl_short| backend is selected based on compiler and environment availab
 
 Using |onedpl_short| Package On Windows
 ===============================
-On Windows, we recommend updating to the most recent version of CMake, as they are actively `improving support for Intel compilers <https://gitlab.kitware.com/cmake/cmake/-/issues/24314>`_.  CMake requires some workarounds to use icx[-cl] successfully.  A CMake package has been provided 'oneDPLWindowsIntelLLVM' to apply these required workarounds on Windows with CMake versions 3.20+.  Some workarounds are provided for icpx, but it is not fully supported on Windows at this time.  To enable the workarounds, please add ``find_package(oneDPLWindowsIntelLLVM)`` to your CMake file before you call ``project()``.
-The supported generator in the Windows environment is Ninja, we recommend using ``-GNinja`` in your cmake configuration.
+On Windows, we recommend updating to the most recent version of CMake, as they are actively `improving support for Intel compilers <https://gitlab.kitware.com/cmake/cmake/-/issues/24314>`_.  Currently, on Windows, some workarounds are are required to icx[-cl] successfully.  A CMake package has been provided, 'oneDPLWindowsIntelLLVM', to provide the required workarounds to enable support for icx[-cl] on Windows with CMake versions 3.20 and greater.  Some workarounds are provided for icpx, but it is not fully supported on Windows at this time.  To use this package, please add ``find_package(oneDPLWindowsIntelLLVM)`` to your CMake file before you call ``project()``.
+
+The supported generator in the Windows environment is Ninja, we recommend using ``-GNinja`` in your CMake configuration.
 
 Example CMake File
 ==================
@@ -30,13 +31,13 @@ For example:
 
 .. code:: cpp
 
-  # only necessary on Windows
+  # only required on Windows
   find_package(oneDPLWindowsIntelLLVM)
   
   project(Foo)
   add_executable(foo foo.cpp)
   
-  # Search for oneDPL
+  # Search to find oneDPL
   find_package(oneDPL REQUIRED)
   
   # Connect oneDPL to foo
