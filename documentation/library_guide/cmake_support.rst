@@ -23,7 +23,7 @@ The |onedpl_short| backend for parallel execution policies controls how algorith
 +--------------------+-----+--------+--------+
 | ONEDPL_PAR_BACKEND | TBB | OpenMP | Serial |
 +====================+=====+========+========+
-| [not set]          | oneDPL heuristics     |
+| [not set]          |   oneDPL heuristics   |
 +--------------------+-----+--------+--------+
 | tbb                |  X  |        |        |
 +--------------------+-----+--------+--------+
@@ -39,7 +39,7 @@ Backend for Device Execution Policies (par and par_unseq)
 The |onedpl_short| backend for device execution policies controls if device policies are enabled.
 
 +-------------------+
-| DPCPP             |
+|       DPCPP       |
 +-------------------+
 | oneDPL heuristics |
 +-------------------+
