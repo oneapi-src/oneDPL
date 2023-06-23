@@ -57,6 +57,10 @@ For example:
 
 .. code:: cpp
 
+  if (CMAKE_HOST_WIN32)
+    find_package(oneDPLWindowsIntelLLVM)
+  endif()
+
   project(Foo)
   add_executable(foo foo.cpp)
   

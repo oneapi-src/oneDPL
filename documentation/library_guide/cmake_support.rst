@@ -46,7 +46,7 @@ The |onedpl_short| backend for device execution policies controls if device poli
 
 +-------------------+
 |       DPCPP       |
-+-------------------+
++===================+
 | oneDPL heuristics |
 +-------------------+
 
