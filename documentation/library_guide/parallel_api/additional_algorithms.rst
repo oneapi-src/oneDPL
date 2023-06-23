@@ -76,7 +76,7 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
     search sequence: [0, 2, 4, 7, 6]
     result sequence: [1, 4, 8, 10, 10]
 
-* ``sort_by_key``: performs a stable a key-value sort. The algorithm sorts sequence's keys according to 
+* ``sort_by_key``: performs a stable key-value sort. The algorithm sorts sequence's keys according to 
   a comparioson operator. If no comparator is provided, then a function object that uses ``operator<``
   to compare the elements is used. The sequence's values are permutated according to the sorted sequence's keys.  
   For correct computation, a size of number of a key sequence and a size of a value sequence should be the same.
