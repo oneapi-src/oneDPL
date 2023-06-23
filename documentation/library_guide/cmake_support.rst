@@ -34,7 +34,7 @@ The |onedpl_short| backend for parallel execution policies controls how algorith
 
 The |onedpl_short| heuristics are the following: the first suitable backend is chosen among ``oneTBB``, ``OpenMP`` and ``Serial``, in that order.  If ``ONEDPL_PAR_BACKEND`` is specified, but the selected backend is not found or unsupported, |onedpl_short| is considered not found (``oneDPL_FOUND=False``).
 
-Backend for Device Execution Policies (par and par_unseq)
+Backend for Device Execution Policies
 -----------------------------------------------------------
 The |onedpl_short| backend for device execution policies controls if device policies are enabled.
 
