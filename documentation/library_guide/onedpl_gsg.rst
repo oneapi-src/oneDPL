@@ -44,9 +44,11 @@ All |onedpl_short| header files are in the ``oneapi/dpl`` directory. Use ``#incl
 To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
 and use the ``std`` namespace.
 
-Basic CMake Support
+CMake Support
 -------------
-`CMake <https://cmake.org/cmake/help/latest/index.html>`_ generates build scripts which can then be used to build and link your application.  |onedpl_short| can be added to your project via CMake.  A simple example for Linux is provided below.  For more detailed usage and options, please look to the `CMake Support Page <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/cmake-support.html>`_.
+`CMake <https://cmake.org/cmake/help/latest/index.html>`_ generates build scripts which can then be used to build and link your application.  |onedpl_short| can be added to your project via CMake.  
+
+A simple example for Linux is provided below.  For more detailed usage and options, please look to the `CMake Support Page <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/cmake-support.html>`_.
 
 Simple Example CMake File
 *************************
@@ -94,14 +96,14 @@ Use pkg-config with the ``--cflags`` flag to get the include path to the oneDPL 
 
 .. code:: cpp
 
-  icpx test.cpp $(pkg-config --cflags dpl)
+  icpx -fsycl foo.cpp $(pkg-config --cflags dpl)
   
 The ``--msvc-syntax`` flag is required when you use a Microsoft Visual C++* compiler.
 This flag converts your compiling and linking flags to the appropriate form:
 
 .. code:: cpp
 
-  icpx test.cpp $(pkg-config --msvc-syntax --cflags dpl)
+  icpx -fsycl foo.cpp $(pkg-config --msvc-syntax --cflags dpl)
 
 .. note::
   Use the pkg-config tool to get rid of large hard-coded paths and make compilation more portable.

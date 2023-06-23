@@ -5,7 +5,7 @@ General Usage
 =============
 `CMake <https://cmake.org/cmake/help/latest/index.html>`_ is a cross-platform build system generator.  It can be used to generate build scripts which can then be used to build and link a users application.
 
-``oneDPLConfig.cmake`` and ``oneDPLConfigVersion.cmake`` are distributed with |onedpl_short|.  These files allow to integratration of |onedpl_short| into user projects with the `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ command. Successful invocation of ``find_package(oneDPL <options>)`` creates imported target `oneDPL` that can be passed to the `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html>`_ command.
+``oneDPLConfig.cmake`` and ``oneDPLConfigVersion.cmake`` are distributed with |onedpl_short|.  These files allow integratration of |onedpl_short| into user projects with the `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ command. Successful invocation of ``find_package(oneDPL <options>)`` creates imported target `oneDPL` that can be passed to the `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html>`_ command.
 
 Some useful CMake variables (`here <https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html>`_ you can find a full list of CMake variables for the latest version):
 
@@ -20,21 +20,16 @@ The |onedpl_short| parallel backend is selected based on compiler and environmen
 
 For more details on |onedpl_short| parallel backend, see :doc:`Execution Policies <parallel_api/execution_policies>`.
 
-Using |onedpl_short| Package On Windows
-===============================
-On Windows, some workarounds may be required to use icx[-cl] successfully with |onedpl_short|.  We recommend updating to the most recent version of CMake to minimize the workarounds required for successful use.  A CMake package has been provided, ``oneDPLWindowsIntelLLVM``, to provide the necessary workarounds to enable support for icx[-cl] on Windows with CMake versions 3.20 and greater.  Some workarounds are provided for icpx, but it is not fully supported on Windows at this time.  To use this package, please add ``find_package(oneDPLWindowsIntelLLVM)`` to your CMake file *before* you call ``project()``.
-
-The supported generator in the Windows environment is `Ninja <https://ninja-build.org/>`_ as described in the `Intel® oneAPI DPC++/C++ Compiler Developer Guide and Reference <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/current/use-cmake-with-the-compiler.html>`_.  We recommend using ``-GNinja`` in your CMake configuration to specify your `CMake Generator <https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#ninja-generators>`_.
-
 Example CMake File
 ==================
 To use |onedpl_short| with CMake, a user must create a ``CMakeLists.txt`` file for their project and add |onedpl_short|.  This file should be placed in the project's base directory.  Below is an example ``CMakeLists.txt`` file:
 
 .. code:: cpp
 
-  # only required on Windows
-  find_package(oneDPLWindowsIntelLLVM)
-  
+  if (CMAKE_HOST_WIN32)
+    find_package(oneDPLWindowsIntelLLVM)
+  endif()
+
   project(Foo)
   add_executable(foo foo.cpp)
   
@@ -44,18 +39,21 @@ To use |onedpl_short| with CMake, a user must create a ``CMakeLists.txt`` file f
   # Connect oneDPL to foo
   target_link_libraries(foo oneDPL)
 
+On Windows, some workarounds may be required to use icx[-cl] successfully with |onedpl_short|.  We recommend updating to the most recent version of CMake to minimize the workarounds required for successful use.  A CMake package has been provided, ``oneDPLWindowsIntelLLVM``, to provide the necessary workarounds to enable support for icx[-cl] on Windows with CMake versions 3.20 and greater.  Some workarounds are provided for icpx, but it is not fully supported on Windows at this time.  To use this package, please add ``find_package(oneDPLWindowsIntelLLVM)`` to your CMake file *before* you call ``project()``.
+
+
 Example CMake Invocation
 ========================
 After creating a ``CMakeLists.txt`` file for their project, a user may use a command line CMake invocation to generate build scripts for their project.
 
-Below is an example ``Linux`` CMake invocation which generates build scripts for the project with the ``icpx`` compiler, ``tbb`` backend and ``release`` build type:
+Below is an example ``Linux`` CMake invocation which generates Unix makefiles for the project with the ``icpx`` compiler, ``tbb`` backend and ``release`` build type:
 
 .. code:: cpp
 
   mkdir build && cd build
   cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=release -DONEDPL_PAR_BACKEND=tbb ..
 
-Below is an example ``Windows`` CMake invocation which generates ``Ninja`` build scripts for the project in the parent directory with the ``icx`` compiler, ``OpenMP`` backend and ``debug`` build type:
+Below is an example ``Windows`` CMake invocation which generates ``Ninja`` build scripts (see :ref:`Requirements Section<Requirements>`) for the project in the parent directory with the ``icx`` compiler, ``OpenMP`` backend and ``debug`` build type:
 
 .. code:: cpp
 
@@ -75,3 +73,9 @@ Once build scripts have been generated for your desired configuration following 
 
 This example assumes the starting working directory is in the directory which contains the CMake generated build scripts, ``build``, if following the instructions above.
 
+
+Requirements
+============
+The minimal supported CMake version for |onedpl_short| is 3.11 on Linux and 3.20 on Windows.
+
+The supported `CMake Generator <https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#ninja-generators>`_ in the Windows environment is `Ninja <https://ninja-build.org/>`_, as described in the `Intel® oneAPI DPC++/C++ Compiler Developer Guide and Reference <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/current/use-cmake-with-the-compiler.html>`_.  The supported generator for Linux is the default which generates Unix Makefiles.
