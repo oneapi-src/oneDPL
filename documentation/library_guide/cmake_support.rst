@@ -13,12 +13,40 @@ Some useful CMake variables (`here <https://cmake.org/cmake/help/latest/manual/c
 - `CMAKE_BUILD_TYPE <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_ - build type that affects optimization level and debug options, values: ``RelWithDebInfo``, ``Debug``, ``Release``, ...; e.g. ``CMAKE_BUILD_TYPE=RelWithDebInfo``.
 - `CMAKE_CXX_STANDARD <https://cmake.org/cmake/help/latest/variable/CMAKE_CXX_STANDARD.html>`_ - C++ standard, e.g. ``CMAKE_CXX_STANDARD=17``.
 
-|onedpl_short| Backend Selection
+|onedpl_short| Backend Options
 ==============
 
-The |onedpl_short| parallel backend is selected based on compiler and environment availability, in combination with the user defined ``ONEDPL_PAR_BACKEND`` option. ``ONEDPL_PAR_BACKEND`` is optional, and has three possible valid options: ``tbb`` (oneTBB), ``openmp`` (OpenMP), and ``serial``.  If SYCL is supported by the compiler, ``dpcpp`` backend is always selected.  If this ``ONEDPL_PAR_BACKEND`` is not set then the first suitable backend is chosen among oneTBB, OpenMP and serial, in that order.  |onedpl_short| is considered as not found (``oneDPL_FOUND=FALSE``) if ``ONEDPL_PAR_BACKEND`` is specified, but not found or not supported.
+Backend for Parallel Execution Policies (par and par_unseq)
+-----------------------------------------------------------
+The |onedpl_short| backend for parallel execution policies controls how algorithms with parallel execution policies (``par`` or ``par_unseq``) are implemented.  This option is controlled via the ``ONEDPL_PAR_BACKEND`` setting.
 
-For more details on |onedpl_short| parallel backend, see :doc:`Execution Policies <parallel_api/execution_policies>`.
++--------------------+-----+--------+--------+
+| ONEDPL_PAR_BACKEND | TBB | OpenMP | Serial |
++====================+=====+========+========+
+| [not set]          | oneDPL heuristics     |
++--------------------+-----+--------+--------+
+| tbb                |  X  |        |        |
++--------------------+-----+--------+--------+
+| openmp             |     |    X   |        |
++--------------------+-----+--------+--------+
+| serial             |     |        |    X   |
++--------------------+-----+--------+--------+
+
+The |onedpl_short| heuristics are the following: the first suitable backend is chosen among ``oneTBB``, ``OpenMP`` and ``Serial``, in that order.  If ``ONEDPL_PAR_BACKEND`` is specified, but the selected backend is not found or unsupported, |onedpl_short| is considered not found (``oneDPL_FOUND=False``).
+
+Backend for Device Execution Policies (par and par_unseq)
+-----------------------------------------------------------
+The |onedpl_short| backend for device execution policies controls if device policies are enabled.
+
++-------------------+
+| DPCPP             |
++-------------------+
+| oneDPL heuristics |
++-------------------+
+
+The heuristics are the following: ``DPCPP`` backend is enabled if the compiler supports -fsycl option and SYCL headers are available.
+
+For more details on |onedpl_short| backends, see :doc:`Execution Policies <parallel_api/execution_policies>`.
 
 Example CMake File
 ==================
