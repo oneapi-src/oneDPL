@@ -13,6 +13,12 @@ Some useful CMake variables (`here <https://cmake.org/cmake/help/latest/manual/c
 - `CMAKE_BUILD_TYPE <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_ - build type that affects optimization level and debug options, values: ``RelWithDebInfo``, ``Debug``, ``Release``, ...; e.g. ``CMAKE_BUILD_TYPE=RelWithDebInfo``.
 - `CMAKE_CXX_STANDARD <https://cmake.org/cmake/help/latest/variable/CMAKE_CXX_STANDARD.html>`_ - C++ standard, e.g. ``CMAKE_CXX_STANDARD=17``.
 
+Requirements
+============
+The minimal supported CMake version for |onedpl_short| is 3.11 on Linux and 3.20 on Windows.
+
+The supported `CMake Generator <https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#ninja-generators>`_ for Linux is `Unix Makefiles <https://cmake.org/cmake/help/latest/generator/Unix%20Makefiles.html>`_ (default).  In the Windows environment, the supported generator is `Ninja <https://cmake.org/cmake/help/latest/generator/Ninja.html>`_ as described in the `Intel® oneAPI DPC++/C++ Compiler Developer Guide and Reference <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/current/use-cmake-with-the-compiler.html>`_ which may be specified via ``-GNinja``.
+
 |onedpl_short| Backend Options
 ==============
 
@@ -100,10 +106,3 @@ Once build scripts have been generated for your desired configuration following 
   cmake --build .
 
 This example assumes the starting working directory is in the directory which contains the CMake generated build scripts, ``build``, if following the instructions above.
-
-
-Requirements
-============
-The minimal supported CMake version for |onedpl_short| is 3.11 on Linux and 3.20 on Windows.
-
-The supported `CMake Generator <https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#ninja-generators>`_ for Linux is `Unix Makefiles <https://cmake.org/cmake/help/latest/generator/Unix%20Makefiles.html>`_ (default).  In the Windows environment, the supported generator is `Ninja <https://cmake.org/cmake/help/latest/generator/Ninja.html>`_ as described in the `Intel® oneAPI DPC++/C++ Compiler Developer Guide and Reference <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/current/use-cmake-with-the-compiler.html>`_ which may be specified via ``-GNinja``.
