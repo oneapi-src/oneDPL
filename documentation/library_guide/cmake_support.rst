@@ -26,17 +26,17 @@ Backend for Parallel Execution Policies (par and par_unseq)
 -----------------------------------------------------------
 The |onedpl_short| backend for parallel execution policies controls how algorithms with parallel execution policies (``par`` or ``par_unseq``) are implemented.  This option is controlled via the ``ONEDPL_PAR_BACKEND`` setting.
 
-+--------------------+-----+--------+--------+
-| ONEDPL_PAR_BACKEND | TBB | OpenMP | Serial |
-+====================+=====+========+========+
-| [not set]          |   oneDPL heuristics   |
-+--------------------+-----+--------+--------+
-| tbb                |  X  |        |        |
-+--------------------+-----+--------+--------+
-| openmp             |     |    X   |        |
-+--------------------+-----+--------+--------+
-| serial             |     |        |    X   |
-+--------------------+-----+--------+--------+
++--------------------+--------+--------+--------+
+| ONEDPL_PAR_BACKEND | oneTBB | OpenMP | Serial |
++====================+========+========+========+
+| [not set]          |     oneDPL heuristics    |
++--------------------+--------+--------+--------+
+| tbb                |   X    |        |        |
++--------------------+--------+--------+--------+
+| openmp             |        |    X   |        |
++--------------------+--------+--------+--------+
+| serial             |        |        |    X   |
++--------------------+--------+--------+--------+
 
 The |onedpl_short| heuristics are the following: the first suitable backend is chosen among ``oneTBB``, ``OpenMP`` and ``Serial``, in that order.  If ``ONEDPL_PAR_BACKEND`` is specified, but the selected backend is not found or unsupported, |onedpl_short| is considered not found (``oneDPL_FOUND=False``).
 
