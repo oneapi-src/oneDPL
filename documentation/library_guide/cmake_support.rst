@@ -80,7 +80,7 @@ Example CMake Invocation
 ========================
 After creating a ``CMakeLists.txt`` file for their project, a user may use a command line CMake invocation to generate build scripts for their project.
 
-Below is an example ``Linux`` CMake invocation which generates Unix makefiles for the project with the ``icpx`` compiler, ``tbb`` backend and ``release`` build type:
+Below is an example ``Linux`` CMake invocation which generates Unix makefiles for the project with the ``icpx`` compiler, ``oneTBB`` backend and ``Release`` build type:
 
 .. code:: cpp
 
