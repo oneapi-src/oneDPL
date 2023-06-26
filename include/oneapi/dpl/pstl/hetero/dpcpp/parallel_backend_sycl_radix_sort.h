@@ -25,6 +25,12 @@
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
 
+#define _ONEDPL_RADIX_WORKLOAD_TUNING 1
+//To achieve the better occupancy work group size and block size are variated depend on data size (32bits):
+//1. 32K...512K  - an estimated workgroup size is reduced down to 8 times
+//2. 512K...2M   - an estimated workgroup size is reduced down to 4 times
+//3. 2M...16M... - block size is increased up to 128
+
 namespace oneapi
 {
 namespace dpl
@@ -610,6 +616,11 @@ struct __parallel_radix_sort_iteration
         // block size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
         __block_size = sycl::max(oneapi::dpl::__internal::__dpl_bit_floor(__block_size), ::std::size_t(__radix_states));
+#if _ONEDPL_RADIX_WORKLOAD_TUNING
+        const ::std::size_t __n = __in_rng.size();
+        if(__n > (1<<21)/*2M*/)
+            __block_size = 128;
+#endif
 
         // Compute the radix position for the given iteration
         ::std::uint32_t __radix_offset = __radix_iter * __radix_bits;
@@ -728,15 +739,17 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     else if (__n <= 16384 && __wg_size * 8 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 32, __radix_bits, __is_ascending>{}(
             __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
-    else if (__n <= 32768 && __wg_size * 16 <= __max_wg_size)
-        __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 16, 32, __radix_bits, __is_ascending>{}(
-            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
     else
     {
         constexpr ::std::uint32_t __radix_iters = __get_buckets_in_type<_KeyT>(__radix_bits);
         const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
-        const ::std::size_t __wg_size = __max_wg_size;
+#if _ONEDPL_RADIX_WORKLOAD_TUNING
+        const auto __wg_sz_k = __n >= (1<<15)/*32K*/ && __n <  (1<<19)/*512K*/ ? 8 : __n <= (1<<21)/*2M*/ ? 4 : 1;
+        const ::std::size_t __wg_size = __max_wg_size / __wg_sz_k;
+#else
+        ::std::size_t __wg_size = __max_wg_size;
+#endif
         const ::std::size_t __segments = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wg_size);
 
         // additional __radix_states elements are used for getting local offsets from count values
