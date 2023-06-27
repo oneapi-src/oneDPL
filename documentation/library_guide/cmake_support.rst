@@ -56,7 +56,7 @@ For more details on |onedpl_short| backends, see :doc:`Execution Policies <paral
 
 Example CMake File
 ==================
-To use |onedpl_short| with CMake, a user must create a ``CMakeLists.txt`` file for their project and add |onedpl_short|. This file should be placed in the project's base directory. Below is an example ``CMakeLists.txt`` file:
+To use |onedpl_short| with CMake, you must create a ``CMakeLists.txt`` file for your project and add |onedpl_short|. This file should be placed in the project's base directory. Below is an example ``CMakeLists.txt`` file:
 
 .. code:: cpp
 
@@ -79,7 +79,7 @@ To use |onedpl_short| with CMake, a user must create a ``CMakeLists.txt`` file f
 
 Example CMake Invocation
 ========================
-After creating a ``CMakeLists.txt`` file for their project, a user may use a command line CMake invocation to generate build scripts for their project.
+After creating a ``CMakeLists.txt`` file for your project, you may use a command line CMake invocation to generate build scripts.
 
 Below is an example ``Linux`` CMake invocation which generates Unix makefiles for the project with the ``icpx`` compiler, ``oneTBB`` backend and ``Release`` build type:
 
