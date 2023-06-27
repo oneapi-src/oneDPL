@@ -10,7 +10,7 @@ General Usage
 Some useful CMake variables (`here <https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html>`_ you can find a full list of CMake variables for the latest version):
 
 - `CMAKE_CXX_COMPILER <https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html>`_ - C++ compiler used for build: ``CMAKE_CXX_COMPILER=dpcpp``.
-- `CMAKE_BUILD_TYPE <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_ - build type that affects optimization level and debug options; For example: ``CMAKE_BUILD_TYPE=Release`` or ``CMAKE_BUILD_TYPE=RelWithDebInfo``.
+- `CMAKE_BUILD_TYPE <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_ - build type that affects optimization level and debug options; For example: ``CMAKE_BUILD_TYPE=Release``.
 - `CMAKE_CXX_STANDARD <https://cmake.org/cmake/help/latest/variable/CMAKE_CXX_STANDARD.html>`_ - C++ standard: ``CMAKE_CXX_STANDARD=17``.
 
 Requirements
