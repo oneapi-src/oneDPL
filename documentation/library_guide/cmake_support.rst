@@ -3,9 +3,9 @@ CMake Support
 
 General Usage
 =============
-`CMake <https://cmake.org/cmake/help/latest/index.html>`_ is a cross-platform build system generator. It can be used to generate build scripts which can then be used to build and link a users application.
+`CMake <https://cmake.org/cmake/help/latest/index.html>`_ is a cross-platform build system generator. It can be used to generate build scripts which can then be used to build and link your application.
 
-``oneDPLConfig.cmake`` and ``oneDPLConfigVersion.cmake`` are distributed with |onedpl_short|. These files allow integratration of |onedpl_short| into user projects with the `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ command. Successful invocation of ``find_package(oneDPL <options>)`` creates imported target `oneDPL` that can be passed to the `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html>`_ command.
+``oneDPLConfig.cmake`` and ``oneDPLConfigVersion.cmake`` are distributed with |onedpl_short|. These files allow integration of |onedpl_short| into user projects with the `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ command. Successful invocation of ``find_package(oneDPL <options>)`` creates imported target `oneDPL` that can be passed to the `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html>`_ command.
 
 Some useful CMake variables (`here <https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html>`_ you can find a full list of CMake variables for the latest version):
 
