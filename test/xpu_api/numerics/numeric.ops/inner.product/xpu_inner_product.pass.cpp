@@ -109,6 +109,5 @@ main()
     test<const int*, const int*>();
 #endif
 
-    std::cout << "done" << std::endl;
-    return 0;
+    return TestUtils::done();
 }

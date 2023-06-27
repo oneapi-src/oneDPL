@@ -118,7 +118,5 @@ main()
     test<const int*, random_access_iterator<const int*>>();
     test<const int*, const int*>();
 #endif
-
-    std::cout << "done" << std::endl;
-    return 0;
+    return TestUtils::done();
 }

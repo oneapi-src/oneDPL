@@ -107,6 +107,5 @@ main(int, char**)
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     test(deviceQueue);
-
-    return 0;
+    return TestUtils::done();
 }

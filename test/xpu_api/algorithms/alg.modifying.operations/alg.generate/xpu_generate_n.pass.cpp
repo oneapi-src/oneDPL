@@ -57,5 +57,5 @@ main()
     test<bidirectional_iterator<int*>>(deviceQueue);
     test<random_access_iterator<int*>>(deviceQueue);
     test<int*>(deviceQueue);
-    return 0;
+    return TestUtils::done();
 }

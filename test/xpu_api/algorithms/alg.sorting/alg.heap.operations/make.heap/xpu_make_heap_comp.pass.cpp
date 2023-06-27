@@ -57,5 +57,5 @@ main()
         test<random_access_iterator<double*>>(deviceQueue);
         test<double*>(deviceQueue);
     }
-    return 0;
+    return TestUtils::done();
 }

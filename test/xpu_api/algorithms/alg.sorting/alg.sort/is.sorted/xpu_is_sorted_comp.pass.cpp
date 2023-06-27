@@ -82,5 +82,5 @@ main()
         test<random_access_iterator<const double*>>(deviceQueue);
         test<const float*>(deviceQueue);
     }
-    return 0;
+    return TestUtils::done();
 }
