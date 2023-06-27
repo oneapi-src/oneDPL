@@ -50,7 +50,7 @@ The |onedpl_short| backend for device execution policies controls if device poli
 | oneDPL heuristics |
 +-------------------+
 
-The heuristics are the following: ``DPCPP`` backend is enabled if the compiler supports -fsycl option and SYCL headers are available.
+The heuristics are the following: ``DPCPP`` backend is enabled if the compiler supports ``-fsycl`` option and SYCL headers are available.
 
 For more details on |onedpl_short| backends, see :doc:`Execution Policies <parallel_api/execution_policies>`.
 
@@ -73,7 +73,8 @@ To use |onedpl_short| with CMake, a user must create a ``CMakeLists.txt`` file f
   # Connect oneDPL to foo
   target_link_libraries(foo oneDPL)
 
-**Note:** On Windows, some workarounds may be required to use icx[-cl] successfully with |onedpl_short|. We recommend updating to the most recent version of CMake to minimize the workarounds required for successful use. A CMake package has been provided, ``oneDPLWindowsIntelLLVM``, to provide the necessary workarounds to enable support for icx[-cl] on Windows with CMake versions 3.20 and greater. Some workarounds are provided for icpx, but it is not fully supported on Windows at this time. To use this package, please add ``find_package(oneDPLWindowsIntelLLVM)`` to your CMake file *before* you call ``project()``.
+.. note::
+  On Windows, some workarounds may be required to use ``icx[-cl]`` successfully with |onedpl_short|. We recommend updating to the most recent version of CMake to minimize the workarounds required for successful use. A CMake package has been provided, ``oneDPLWindowsIntelLLVM``, to provide the necessary workarounds to enable support for icx[-cl] on Windows with CMake versions 3.20 and greater. Some workarounds are provided for ``icpx``, but it is not fully supported on Windows at this time. To use this package, please add ``find_package(oneDPLWindowsIntelLLVM)`` to your CMake file *before* you call ``project()``.
 
 
 Example CMake Invocation
