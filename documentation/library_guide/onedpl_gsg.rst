@@ -75,7 +75,7 @@ The following is an example CMake invocation which generates build scripts for t
   mkdir build && cd build
   cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=release ..
 
-Example Build command
+Example Build Command
 *********************
 Once build scripts have been generated for your desired configuration following the instruction above, a `build command <https://cmake.org/cmake/help/latest/manual/cmake.1.html#build-a-project>`_ can be issued to build your project:
 

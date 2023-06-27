@@ -98,7 +98,7 @@ Below is an example ``Windows`` CMake invocation which generates ``Ninja`` build
 Both of these examples assume the starting working directory is the project's base directory which contains ``CMakeLists.txt``. The build scripts are generated in a newly created ``build`` directory.
 
 
-Example Build command
+Example Build Command
 =====================
 Once build scripts have been generated for your desired configuration following the instruction above, a `build command <https://cmake.org/cmake/help/latest/manual/cmake.1.html#build-a-project>`_ can be issued to build your project:
 
