@@ -102,7 +102,7 @@ __full_sort_identity()
     return utils::__sort_identity<T, __is_ascending>;
 }
 
-template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t TG_COUNT, uint32_t THREAD_PER_TG, bool IsAscending>
+template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t STAGES, uint32_t TG_COUNT, uint32_t THREAD_PER_TG, bool IsAscending>
 void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset, uint32_t *p_sync_buffer) {
     using bin_t = uint16_t;
     using hist_t = uint32_t;
@@ -116,8 +116,6 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
 
     slm_init(16384);
     constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
-    constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
-    constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
     constexpr uint32_t PROCESS_SIZE = 128;
     constexpr uint32_t addr_step = TG_COUNT * THREAD_PER_TG * PROCESS_SIZE;
 
@@ -508,13 +506,13 @@ class __esimd_radix_sort_onesweep_even;
 template <typename... _Name>
 class __esimd_radix_sort_onesweep_odd;
 
-template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t HW_TG_COUNT, ::std::uint32_t THREAD_PER_TG,
-          bool IsAscending, typename _KernelName>
+template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t STAGES, ::std::uint32_t HW_TG_COUNT,
+          ::std::uint32_t THREAD_PER_TG, bool IsAscending, typename _KernelName>
 struct __radix_sort_onesweep_histogram_submitter;
 
-template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t HW_TG_COUNT, ::std::uint32_t THREAD_PER_TG,
-          bool IsAscending, typename... _Name>
-struct __radix_sort_onesweep_histogram_submitter<KeyT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending,
+template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t STAGES, ::std::uint32_t HW_TG_COUNT,
+          ::std::uint32_t THREAD_PER_TG, bool IsAscending, typename... _Name>
+struct __radix_sort_onesweep_histogram_submitter<KeyT, RADIX_BITS, STAGES, HW_TG_COUNT, THREAD_PER_TG, IsAscending,
                                                  oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _Range, typename _GlobalOffsetData, typename _SyncData>
@@ -529,7 +527,7 @@ struct __radix_sort_onesweep_histogram_submitter<KeyT, RADIX_BITS, HW_TG_COUNT, 
             auto __data = __rng.data();
             __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
-                        global_histogram<KeyT, decltype(__data), RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending>(
+                        global_histogram<KeyT, decltype(__data), RADIX_BITS, STAGES, HW_TG_COUNT, THREAD_PER_TG, IsAscending>(
                             __nd_item, __n, __data, __global_offset_data, __sync_data);
                     });
         });
@@ -641,7 +639,7 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
     sycl::event event_chain = __q.memset(tmp_buffer, 0, temp_buffer_size);
 
     event_chain = __radix_sort_onesweep_histogram_submitter<
-        KeyT, RADIX_BITS, HW_TG_COUNT, THREAD_PER_TG, IsAscending, _EsimRadixSortHistogram>()(
+        KeyT, RADIX_BITS, STAGES, HW_TG_COUNT, THREAD_PER_TG, IsAscending, _EsimRadixSortHistogram>()(
             __q, __rng, p_global_offset, p_sync_buffer, __n, event_chain);
 
     event_chain = __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT, _EsimRadixSortScan>()(
