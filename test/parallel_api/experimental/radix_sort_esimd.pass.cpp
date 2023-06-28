@@ -389,51 +389,20 @@ int main()
     try
     {
 #if TEST_ALL_INPUTS
-        const std::vector<std::size_t> onewg_sizes   {std::begin(sizes),      std::begin(sizes) + 10};
-        const std::vector<std::size_t> coop_sizes    {std::begin(sizes) + 10, std::begin(sizes) + 18};
-        const std::vector<std::size_t> onesweep_sizes{std::begin(sizes) + 18, std::end(sizes)};
-
-        for(auto size: onewg_sizes)
+        for(auto size: sizes)
         {
             test_general_cases<int16_t >(size);
             test_general_cases<uint16_t>(size);
             test_general_cases<int     >(size);
             test_general_cases<uint32_t>(size);
-            test_general_cases<uint64_t>(size);
-            test_general_cases<int64_t >(size);
             test_general_cases<float   >(size);
-            //test_general_cases<double  >(size);
-        }
-        for(auto size: coop_sizes)
-        {
-            test_general_cases<int16_t >(size);
-            test_general_cases<uint16_t>(size);
-            test_general_cases<int     >(size);
-            test_general_cases<uint32_t>(size);
-            test_general_cases<uint64_t>(size);
-            test_general_cases<int64_t >(size);
-            test_general_cases<float   >(size);
-            //test_general_cases<double  >(size);
-        }
-        for(auto size: onesweep_sizes)
-        {
-            test_usm<int16_t,  kAscending>(size);
-            test_usm<uint16_t, kAscending>(size);
-            test_usm<int,      kAscending>(size);
-            test_usm<uint32_t, kAscending>(size);
             // Not implemented for onesweep
-            //test_usm<uint64_t, kAscending>(size);
-            //test_usm<int64_t,  kAscending>(size);
-            test_usm<float,    kAscending>(size);
-
-            test_usm<int16_t,  kDescending>(size);
-            test_usm<uint16_t, kDescending>(size);
-            test_usm<int,      kDescending>(size);
-            test_usm<uint32_t, kDescending>(size);
-            // Not implemented for onesweep
-            //test_usm<uint64_t, kDescending>(size);
-            //test_usm<int64_t,  kDescending>(size);
-            test_usm<float,    kDescending>(size);
+            if (size <= 262144)
+            {
+                test_general_cases<int64_t >(size);
+                test_general_cases<uint64_t>(size);
+                test_general_cases<double  >(size);
+            }
         }
         test_small_sizes();
 #else
