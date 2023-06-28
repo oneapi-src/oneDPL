@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#include "support/utils_sycl.h"
+#include "support/utils.h"
 #include "support/test_iterators.h"
 
 template <class T> class KernelTest;
