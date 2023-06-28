@@ -55,6 +55,11 @@ namespace experimental {
     }
 
     template<typename ...Args>
+    auto set_universe(Args&&... args) {
+        return sched_->set_universe(std::forward<Args>(args)...);
+    }
+
+    template<typename ...Args>
     selection_handle_t select(Args&&...) {
       if(!universe_.empty()) {
           return selection_handle_t{universe_[0]};

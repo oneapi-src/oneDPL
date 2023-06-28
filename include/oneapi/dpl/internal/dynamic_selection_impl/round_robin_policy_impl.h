@@ -65,6 +65,11 @@ namespace experimental{
     }
 
     template<typename ...Args>
+    auto set_universe(Args&&... args) {
+        return sched_->set_universe(std::forward<Args>(args)...);
+    }
+
+    template<typename ...Args>
     selection_handle_t select(Args&&...) {
       auto i = next_context_++ % num_contexts_;
       auto &e = universe_[i];
