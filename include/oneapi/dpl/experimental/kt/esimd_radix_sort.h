@@ -55,29 +55,29 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
     using _KernelName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
-    
+
     if (__n <= 16384)
     {
-        // TODO: support double and small-size integers
-        // TODO: allow all RadixBits values (only 7 or 8 are currently supported)
+        // TODO: enable support of char, uint8_t, int8_t types
+        // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize and DataPerWorkItem
         oneapi::dpl::experimental::esimd::impl::one_wg<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
     else if (__n <= 262144)
     {
-        // TODO: support double and small-size integers
+        // TODO: enable support of char, uint8_t, int8_t types
+        // TODO: support different RadixBits, WorkGroupSize and DataPerWorkItem
         oneapi::dpl::experimental::esimd::impl::cooperative<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
     else
     {
-        // TODO: support floating point types and small-size integers
+        // TODO: enable support of double, char, uint8_t, int8_t types
         // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
-        // TODO: allow different RadixBits, make sure the data is in the input storage after the last stage
-        // TODO: pass _ProcessSize according to __n
-        // TODO: fix when compiled in -O0 mode: "esimd_radix_sort_one_wg.h : 54 : 5>: SLM init call is supported only in kernels"
-        // TODO: support inputs which are transferred to kernels as accessors (sycl_iterator, all_view)
-        oneapi::dpl::experimental::esimd::impl::onesweep<_KernelName, _KeyT, _Range, RadixBits, IsAscending, /*_ProcessSize*/416>(
+        // TODO: support different RadixBits, make sure the data is in the input storage after the last stage
+        // TODO: pass _ProcessSize according to DataPerWorkItem
+        // TODO: support different WorkGroupSize
+        oneapi::dpl::experimental::esimd::impl::onesweep<_KernelName, _KeyT, _Range, RadixBits, IsAscending, /*_ProcessSize*/384>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
 }
