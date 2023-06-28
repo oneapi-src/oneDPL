@@ -44,6 +44,44 @@ All |onedpl_short| header files are in the ``oneapi/dpl`` directory. Use ``#incl
 To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
 and use the ``std`` namespace.
 
+CMake Support
+-------------
+`CMake <https://cmake.org/cmake/help/latest/index.html>`_ generates build scripts which can then be used to build and link your application. |onedpl_short| can be added to your project via CMake. 
+
+A simple example for Linux is provided below. For more detailed usage and options including details specific to Windows, please look to the `CMake Support Page <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/cmake-support.html>`_.
+
+Simple Example CMake File
+*************************
+To use |onedpl_short| with CMake, create a CMakeLists.txt file for your project's base directory and use `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ and `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html>`_ to add oneDPL.
+For example:
+
+.. code:: cpp
+
+  project(Foo)
+  add_executable(foo foo.cpp)
+  
+  # Search to find oneDPL
+  find_package(oneDPL REQUIRED)
+  
+  # Connect oneDPL to foo
+  target_link_libraries(foo oneDPL)
+
+Simple Example CMake Invocation
+*******************************
+The following is an example CMake invocation which generates build scripts for the project in the parent directory: 
+
+.. code:: cpp
+
+  mkdir build && cd build
+  cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=release ..
+
+Example Build Command
+*********************
+Once build scripts have been generated for your desired configuration following the instruction above, a `build command <https://cmake.org/cmake/help/latest/manual/cmake.1.html#build-a-project>`_ can be issued to build your project:
+
+.. code:: cpp
+
+  cmake --build .
 
 pkg-config Support
 ------------------
@@ -58,14 +96,14 @@ Use pkg-config with the ``--cflags`` flag to get the include path to the oneDPL 
 
 .. code:: cpp
 
-  dpcpp test.cpp $(pkg-config --cflags dpl)
+  icpx -fsycl foo.cpp $(pkg-config --cflags dpl)
   
 The ``--msvc-syntax`` flag is required when you use a Microsoft Visual C++* compiler.
 This flag converts your compiling and linking flags to the appropriate form:
 
 .. code:: cpp
 
-  dpcpp test.cpp $(pkg-config --msvc-syntax --cflags dpl)
+  icpx -fsycl foo.cpp $(pkg-config --msvc-syntax --cflags dpl)
 
 .. note::
   Use the pkg-config tool to get rid of large hard-coded paths and make compilation more portable.
