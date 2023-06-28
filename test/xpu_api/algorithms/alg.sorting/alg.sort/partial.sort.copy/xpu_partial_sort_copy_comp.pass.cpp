@@ -15,7 +15,7 @@
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/functional>
 
-#include "support/utils_sycl.h"
+#include "support/utils.h"
 #include "support/test_iterators.h"
 
 #include <cassert>
