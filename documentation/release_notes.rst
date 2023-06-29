@@ -30,7 +30,7 @@ Fixed Issues
   on signed numeric types with negative values.
 - Fixed an error in ``reduce_by_segment`` algorithm when a non-commutative predicate is used.
 - Fixed an error in ``sort`` and ``stable_sort`` algorithms for integral types wider than 4 bytes.
-- Fixed an error for some compilers attempting to use openMP or SYCL backend without full compiler support.
+- Fixed an error for some compilers where openMP or SYCL backend was selected by CMake scripts without full compiler support.
 
 Known Issues and Limitations
 ----------------------------
