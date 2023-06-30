@@ -52,11 +52,11 @@ struct Compare : public std::less<T> {};
 template <typename T>
 struct Compare<T, false> : public std::greater<T> {};
 
-constexpr bool kAscending = true;
-constexpr bool kDescending = false;
+constexpr bool Ascending = true;
+constexpr bool Descending = false;
 
-constexpr ::std::uint16_t kWorkGroupSize = 256;
-constexpr ::std::uint16_t kDataPerWorkItem = 16;
+constexpr ::std::uint16_t WorkGroupSize = 256;
+constexpr ::std::uint16_t DataPerWorkItem = 16;
 
 #if LOG_TEST_INFO
 struct TypeInfo
@@ -64,101 +64,123 @@ struct TypeInfo
     template <typename T>
     const std::string& name()
     {
-        static const std::string kTypeName = "unknown type name";
-        return kTypeName;
+        static const std::string TypeName = "unknown type name";
+        return TypeName;
+    }
+
+    template <>
+    const std::string& name<char>()
+    {
+        static const std::string TypeName = "char";
+        return TypeName;
+    }
+
+    template <>
+    const std::string& name<int8_t>()
+    {
+        static const std::string TypeName = "int8_t";
+        return TypeName;
+    }
+
+    template <>
+    const std::string& name<uint8_t>()
+    {
+        static const std::string TypeName = "uint8_t";
+        return TypeName;
     }
 
     template <>
     const std::string& name<int16_t>()
     {
-        static const std::string kTypeName = "int16_t";
-        return kTypeName;
+        static const std::string TypeName = "int16_t";
+        return TypeName;
     }
 
     template <>
     const std::string& name<uint16_t>()
     {
-        static const std::string kTypeName = "uint16_t";
-        return kTypeName;
+        static const std::string TypeName = "uint16_t";
+        return TypeName;
     }
 
     template <>
     const std::string& name<uint32_t>()
     {
-        static const std::string kTypeName = "uint32_t";
-        return kTypeName;
+        static const std::string TypeName = "uint32_t";
+        return TypeName;
     }
 
     template <>
     const std::string& name<uint64_t>()
     {
-        static const std::string kTypeName = "uint64_t";
-        return kTypeName;
+        static const std::string TypeName = "uint64_t";
+        return TypeName;
     }
 
     template <>
     const std::string& name<int64_t>()
     {
-        static const std::string kTypeName = "int64_t";
-        return kTypeName;
+        static const std::string TypeName = "int64_t";
+        return TypeName;
     }
 
     template <>
     const std::string& name<int>()
     {
-        static const std::string kTypeName = "int";
-        return kTypeName;
+        static const std::string TypeName = "int";
+        return TypeName;
     }
 
     template <>
     const std::string& name<float>()
     {
-        static const std::string kTypeName = "float";
-        return kTypeName;
+        static const std::string TypeName = "float";
+        return TypeName;
     }
 
     template <>
     const std::string& name<double>()
     {
-        static const std::string kTypeName = "double";
-        return kTypeName;
+        static const std::string TypeName = "double";
+        return TypeName;
     }
 };
+
 struct USMAllocPresentation
 {
     template <sycl::usm::alloc>
     const std::string& name()
     {
-        static const std::string kUSMAllocTypeName = "unknown";
-        return kUSMAllocTypeName;
+        static const std::string USMAllocTypeName = "unknown";
+        return USMAllocTypeName;
     }
 
     template <>
     const std::string& name<sycl::usm::alloc::host>()
     {
-        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::host";
-        return kUSMAllocTypeName;
+        static const std::string USMAllocTypeName = "sycl::usm::alloc::host";
+        return USMAllocTypeName;
     }
 
     template <>
     const std::string& name<sycl::usm::alloc::device>()
     {
-        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::device";
-        return kUSMAllocTypeName;
+        static const std::string USMAllocTypeName = "sycl::usm::alloc::device";
+        return USMAllocTypeName;
     }
 
     template <>
     const std::string& name<sycl::usm::alloc::shared>()
     {
-        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::shared";
-        return kUSMAllocTypeName;
+        static const std::string USMAllocTypeName = "sycl::usm::alloc::shared";
+        return USMAllocTypeName;
     }
 
     template <>
     const std::string& name<sycl::usm::alloc::unknown>()
     {
-        static const std::string kUSMAllocTypeName = "sycl::usm::alloc::unknown";
-        return kUSMAllocTypeName;
+        static const std::string USMAllocTypeName = "sycl::usm::alloc::unknown";
+        return USMAllocTypeName;
     }
 };
 #endif // LOG_TEST_INFO
@@ -231,7 +253,7 @@ void test_all_view(std::size_t size)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, view);
+        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, view);
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
@@ -256,7 +278,7 @@ void test_subrange_view(std::size_t size)
     std::sort(expected.begin(), expected.end(), Compare<T, Order>{});
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, view);
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, view);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -284,7 +306,7 @@ void test_usm(std::size_t size)
 
     std::sort(expected.begin(), expected.end(), Compare<T, Order>{});
 
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, dt_input.get_data(), dt_input.get_data() + size);
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, dt_input.get_data(), dt_input.get_data() + size);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -321,7 +343,7 @@ void test_sycl_iterators(std::size_t size)
     std::sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,Order>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
+        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
     }
 
     std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
@@ -340,9 +362,9 @@ void test_small_sizes()
     std::vector<uint32_t> input = {5, 11, 0, 17, 0};
     std::vector<uint32_t> ref(input);
 
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,kAscending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Ascending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
-    oneapi::dpl::experimental::esimd::radix_sort<kWorkGroupSize,kDataPerWorkItem,kAscending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Ascending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
@@ -352,23 +374,23 @@ void test_general_cases(std::size_t size)
 #if _ENABLE_RANGES_TESTING
     if constexpr (sizeof(T) <= sizeof(::std::uint32_t))
     {
-        test_all_view<T, kAscending>(size);
-        test_all_view<T, kDescending>(size);
-        test_subrange_view<T, kAscending>(size);
-        test_subrange_view<T, kDescending>(size);
+        test_all_view<T, Ascending>(size);
+        test_all_view<T, Descending>(size);
+        test_subrange_view<T, Ascending>(size);
+        test_subrange_view<T, Descending>(size);
     }
     else
     {
         // TODO required to implement
     }
 #endif // _ENABLE_RANGES_TESTING
-    test_usm<T, kAscending>(size);
-    test_usm<T, kDescending>(size);
+    test_usm<T, Ascending>(size);
+    test_usm<T, Descending>(size);
 
     if constexpr (sizeof(T) <= sizeof(::std::uint32_t))
     {
-        test_sycl_iterators<T, kAscending>(size);
-        test_sycl_iterators<T, kDescending>(size);
+        test_sycl_iterators<T, Ascending>(size);
+        test_sycl_iterators<T, Descending>(size);
     }
     else
     {
@@ -399,6 +421,9 @@ int main()
             // Not implemented for onesweep
             if (size <= 262144)
             {
+                test_general_cases<char    >(size);
+                test_general_cases<int8_t  >(size);
+                test_general_cases<uint8_t >(size);
                 test_general_cases<int64_t >(size);
                 test_general_cases<uint64_t>(size);
                 test_general_cases<double  >(size);
@@ -408,29 +433,25 @@ int main()
 #else
         for(auto size: sizes)
         {
-            test_usm<int16_t,  sycl::usm::alloc::shared, kAscending>(size);
-            test_usm<uint16_t, sycl::usm::alloc::shared, kAscending>(size);
-            test_usm<int,      sycl::usm::alloc::shared, kAscending>(size);
-            test_usm<uint32_t, sycl::usm::alloc::shared, kAscending>(size);
+            test_usm<int,      sycl::usm::alloc::shared, Ascending>(size);
+            test_usm<uint32_t, sycl::usm::alloc::shared, Ascending>(size);
+            test_usm<float,    sycl::usm::alloc::shared, Ascending>(size);
             // Not implemented for onesweep
             if (size <= 262144)
             {
-                test_usm<uint64_t, sycl::usm::alloc::shared, kAscending>(size);
-                test_usm<int64_t,  sycl::usm::alloc::shared, kAscending>(size);
+                test_usm<char,   sycl::usm::alloc::shared, Ascending>(size);
+                test_usm<double, sycl::usm::alloc::shared, Ascending>(size);
             }
-            test_usm<float,    sycl::usm::alloc::shared, kAscending>(size);
 
-            test_usm<int16_t,  sycl::usm::alloc::shared, kDescending>(size);
-            test_usm<uint16_t, sycl::usm::alloc::shared, kDescending>(size);
-            test_usm<int,      sycl::usm::alloc::shared, kDescending>(size);
-            test_usm<uint32_t, sycl::usm::alloc::shared, kDescending>(size);
+            test_usm<int16_t, sycl::usm::alloc::shared, Descending>(size);
+            test_usm<int,     sycl::usm::alloc::shared, Descending>(size);
+            test_usm<float,   sycl::usm::alloc::shared, Descending>(size);
             // Not implemented for onesweep
             if (size <= 262144)
             {
-                test_usm<uint64_t, sycl::usm::alloc::shared, kDescending>(size);
-                test_usm<int64_t,  sycl::usm::alloc::shared, kDescending>(size);
+                test_usm<uint64_t, sycl::usm::alloc::shared, Descending>(size);
+                test_usm<double,   sycl::usm::alloc::shared, Descending>(size);
             }
-            test_usm<float,    sycl::usm::alloc::shared, kDescending>(size);
         }
 #endif // TEST_ALL_INPUTS
     }
