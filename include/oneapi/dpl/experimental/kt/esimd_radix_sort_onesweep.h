@@ -297,10 +297,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         }
     }
 
-    inline void ResetBinCounters(uint32_t slm_bin_hist_this_thread) const {
-        utils::BlockStore<hist_t, BIN_COUNT>(slm_bin_hist_this_thread, 0);
-    }
-
     inline auto RankSLM(__ESIMD_NS::simd<bin_t, PROCESS_SIZE> bins, uint32_t slm_counter_offset, uint32_t local_tid) const {
         using namespace __ESIMD_NS;
         using namespace __ESIMD_ENS;
@@ -442,10 +438,6 @@ struct radix_sort_onesweep_slm_reorder_kernel {
 
         bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
 
-        ResetBinCounters(slm_bin_hist_this_thread);
-
-        fence<fence_mask::local_barrier>();
-
         ranks = RankSLM(bins, slm_bin_hist_this_thread, local_tid);
 
         barrier();
@@ -457,14 +449,11 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         global_hist_t *p_global_bin_start_buffer = p_global_bin_start_buffer_allstages + BIN_COUNT * STAGES + BIN_COUNT * wg_count * stage;
 
         global_hist_t *p_global_bin_this_group = p_global_bin_start_buffer + BIN_COUNT * wg_id;
-        global_hist_t *p_global_bin_prev_group = p_global_bin_start_buffer + BIN_COUNT * (wg_id-1);
-        p_global_bin_prev_group = (0 == wg_id) ? (p_global_bin_start_buffer_allstages + BIN_COUNT * stage) : (p_global_bin_this_group - BIN_COUNT);
+        global_hist_t *p_global_bin_prev_group = (0 == wg_id) ? (p_global_bin_start_buffer_allstages + BIN_COUNT * stage) : (p_global_bin_this_group - BIN_COUNT);
 
         UpdateGroupRank(local_tid, wg_id, subgroup_offset, global_fix, p_global_bin_prev_group, p_global_bin_this_group);
         barrier();
         {
-            bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
-
             slm_lookup_t<hist_t> subgroup_lookup(slm_lookup_subgroup);
             simd<hist_t, PROCESS_SIZE> wg_offset = ranks + subgroup_lookup.template lookup<PROCESS_SIZE>(subgroup_offset, bins);
             barrier();
