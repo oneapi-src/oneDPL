@@ -58,21 +58,19 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 
     if (__n <= 16384)
     {
-        // TODO: enable support of char, uint8_t, int8_t types
         // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize and DataPerWorkItem
         oneapi::dpl::experimental::esimd::impl::one_wg<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
     else if (__n <= 262144)
     {
-        // TODO: enable support of char, uint8_t, int8_t types
         // TODO: support different RadixBits, WorkGroupSize and DataPerWorkItem
         oneapi::dpl::experimental::esimd::impl::cooperative<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
     else
     {
-        // TODO: enable support of double, char, uint8_t, int8_t types
+        // TODO: enable support of double type
         // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
         // TODO: support different RadixBits, make sure the data is in the input storage after the last stage
         // TODO: pass _ProcessSize according to DataPerWorkItem
