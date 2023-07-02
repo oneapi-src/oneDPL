@@ -433,10 +433,10 @@ int main()
 #else
         for(auto size: sizes)
         {
+            test_usm<char,     sycl::usm::alloc::shared, Ascending>(size);
             test_usm<int,      sycl::usm::alloc::shared, Ascending>(size);
             test_usm<uint32_t, sycl::usm::alloc::shared, Ascending>(size);
             test_usm<float,    sycl::usm::alloc::shared, Ascending>(size);
-            test_usm<char,     sycl::usm::alloc::shared, Ascending>(size);
             // Not implemented for onesweep
             if (size <= 262144)
             {

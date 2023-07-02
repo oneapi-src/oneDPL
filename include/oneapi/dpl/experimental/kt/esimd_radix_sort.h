@@ -72,9 +72,8 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
     {
         // TODO: enable support of double type
         // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
-        // TODO: support different RadixBits, make sure the data is in the input storage after the last stage
         // TODO: pass _ProcessSize according to DataPerWorkItem
-        // TODO: support different WorkGroupSize
+        // TODO: support different WorkGroupSize, RadixBits
         oneapi::dpl::experimental::esimd::impl::onesweep<_KernelName, _KeyT, _Range, RadixBits, IsAscending, /*_ProcessSize*/384>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }

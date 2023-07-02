@@ -618,7 +618,7 @@ struct __radix_sort_copyback_submitter<KeyT, oneapi::dpl::__par_backend_hetero::
     {
         return __q.submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __tmp_rng, __out_rng);
-            // TODO: make sure that access is read_only for__tmp_data  and is write_only to __out_rng
+            // TODO: make sure that access is read_only for __tmp_data  and is write_only for __out_rng
             auto __tmp_data = __tmp_rng.data();
             auto __out_data = __out_rng.data();
             __cgh.depends_on(__e);
