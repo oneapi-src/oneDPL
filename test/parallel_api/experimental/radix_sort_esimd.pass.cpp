@@ -372,30 +372,16 @@ template <typename T>
 void test_general_cases(std::size_t size)
 {
 #if _ENABLE_RANGES_TESTING
-    if constexpr (sizeof(T) <= sizeof(::std::uint32_t))
-    {
-        test_all_view<T, Ascending>(size);
-        test_all_view<T, Descending>(size);
-        test_subrange_view<T, Ascending>(size);
-        test_subrange_view<T, Descending>(size);
-    }
-    else
-    {
-        // TODO required to implement
-    }
+    test_all_view<T, Ascending>(size);
+    test_all_view<T, Descending>(size);
+    test_subrange_view<T, Ascending>(size);
+    test_subrange_view<T, Descending>(size);
 #endif // _ENABLE_RANGES_TESTING
     test_usm<T, Ascending>(size);
     test_usm<T, Descending>(size);
 
-    if constexpr (sizeof(T) <= sizeof(::std::uint32_t))
-    {
-        test_sycl_iterators<T, Ascending>(size);
-        test_sycl_iterators<T, Descending>(size);
-    }
-    else
-    {
-        // TODO required to implement
-    }
+    test_sycl_iterators<T, Ascending>(size);
+    test_sycl_iterators<T, Descending>(size);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -421,11 +407,11 @@ int main()
             test_general_cases<int     >(size);
             test_general_cases<uint32_t>(size);
             test_general_cases<float   >(size);
+            test_general_cases<int64_t >(size);
+            test_general_cases<uint64_t>(size);
             // Not implemented for onesweep
             if (size <= 262144)
             {
-                test_general_cases<int64_t >(size);
-                test_general_cases<uint64_t>(size);
                 test_general_cases<double  >(size);
             }
         }
@@ -440,16 +426,16 @@ int main()
             // Not implemented for onesweep
             if (size <= 262144)
             {
-                test_usm<double, sycl::usm::alloc::shared, Ascending>(size);
+                test_usm<double,   sycl::usm::alloc::shared, Ascending>(size);
             }
-
-            test_usm<int16_t, sycl::usm::alloc::shared, Descending>(size);
-            test_usm<int,     sycl::usm::alloc::shared, Descending>(size);
-            test_usm<float,   sycl::usm::alloc::shared, Descending>(size);
+            
+            test_usm<int16_t,  sycl::usm::alloc::shared, Descending>(size);
+            test_usm<int,      sycl::usm::alloc::shared, Descending>(size);
+            test_usm<float,    sycl::usm::alloc::shared, Descending>(size);
+            test_usm<uint64_t, sycl::usm::alloc::shared, Descending>(size);
             // Not implemented for onesweep
             if (size <= 262144)
             {
-                test_usm<uint64_t, sycl::usm::alloc::shared, Descending>(size);
                 test_usm<double,   sycl::usm::alloc::shared, Descending>(size);
             }
         }
