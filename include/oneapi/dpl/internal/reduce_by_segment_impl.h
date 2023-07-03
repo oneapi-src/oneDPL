@@ -232,8 +232,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
     constexpr ::std::uint16_t __vals_per_item =
         16; // Each work item serially processes 16 items. Best observed performance on gpu
 
-    ::std::size_t __wgroup_size =
-        oneapi::dpl::__internal::__max_work_group_size(__exec);
+    ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
     // adjust __wgroup_size according to local memory limit. Double the requirement on __val_type due to sycl group algorithm's use
     // of SLM.
@@ -245,7 +244,8 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
         __par_backend_hetero::__internal::__kernel_compiler<_SegReduceCountKernel>::__compile(__exec);
     auto __seg_reduce_offset_kernel =
         __par_backend_hetero::__internal::__kernel_compiler<_SegReduceOffsetKernel>::__compile(__exec);
-    auto __seg_reduce_wg_kernel = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceWgKernel>::__compile(
+    auto __seg_reduce_wg_kernel =
+        __par_backend_hetero::__internal::__kernel_compiler<_SegReduceWgKernel>::__compile(
         __exec);
     auto __seg_reduce_prefix_kernel =
         __par_backend_hetero::__internal::__kernel_compiler<_SegReducePrefixKernel>::__compile(__exec);
