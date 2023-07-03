@@ -369,12 +369,12 @@ void cooperative(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     const size_t full_buffer_size_part2 = sizeof(KeyT) * (__groups * __group_block_size);
     const size_t full_buffer_size = full_buffer_size_part1 + full_buffer_size_part2;
 
-    uint8_t* p_full_buffer = sycl::malloc_device<uint8_t>(full_buffer_size, __q);
+    uint8_t* p_temp_memory = sycl::malloc_device<uint8_t>(full_buffer_size, __q);
 
-    auto p_sync = reinterpret_cast<::std::uint32_t*>(p_full_buffer);
+    auto p_sync = reinterpret_cast<::std::uint32_t*>(p_temp_memory);
 
     // to correctly sort floating point values, a buffer to store data plus extra identity values is needed
-    KeyT* __tmpbuf = reinterpret_cast<KeyT*>(p_full_buffer + full_buffer_size_part1);
+    KeyT* __tmpbuf = reinterpret_cast<KeyT*>(p_temp_memory + full_buffer_size_part1);
 
     using _EsimRadixSort = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __esimd_radix_sort_cooperative<_KernelName>>;
@@ -394,7 +394,7 @@ void cooperative(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     }
     __e.wait();
 
-    sycl::free(p_full_buffer, __q);
+    sycl::free(p_temp_memory, __q);
 }
 
 } // oneapi::dpl::experimental::esimd::impl
