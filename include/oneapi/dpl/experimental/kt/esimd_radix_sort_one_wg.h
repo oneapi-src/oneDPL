@@ -68,7 +68,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
     for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
         simd_mask<16> m = (io_offset+lane_id+s)<n;
         keys.template select<16, 1>(s) = merge(utils::gather<KeyT, 16>(input, lane_id, io_offset + s, m),
-                                               simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
+                                               simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>()), m);
     }
 
     for (uint32_t stage=0; stage < STAGES; stage++) {
