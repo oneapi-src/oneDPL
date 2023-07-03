@@ -581,11 +581,17 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
     constexpr uint32_t GLOBAL_OFFSET_SIZE = BINCOUNT * STAGES * sizeof(global_hist_t);
     size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE;
 
-    uint8_t *tmp_buffer = sycl::malloc_device<uint8_t>(temp_buffer_size, __q);
+    const size_t full_buffer_size_part1 = temp_buffer_size * sizeof(uint8_t);
+    const size_t full_buffer_size_part2 = __n * sizeof(KeyT);
+    const size_t full_buffer_size = full_buffer_size_part1 + full_buffer_size_part2;
+
+    uint8_t* p_full_buffer = sycl::malloc_device<uint8_t>(full_buffer_size, __q);
+
+    uint8_t* tmp_buffer = p_full_buffer;
     auto p_global_offset = reinterpret_cast<uint32_t*>(tmp_buffer);
 
     // Memory for storing values sorted for an iteration
-    auto p_output = sycl::malloc_device<KeyT>(__n, __q);
+    auto p_output = reinterpret_cast<KeyT*>(p_full_buffer + full_buffer_size_part1);
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, decltype(p_output)>();
     auto __out_rng = __keep(p_output, p_output + __n).all_view();
 
@@ -621,8 +627,7 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
     }
     event_chain.wait();
 
-    sycl::free(tmp_buffer, __q);
-    sycl::free(p_output, __q);
+    sycl::free(p_full_buffer, __q);
 }
 
 } // oneapi::dpl::experimental::esimd::impl
