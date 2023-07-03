@@ -110,6 +110,13 @@ auto
 sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
            _Events&&... __dependencies);
 
+template <class _ExecutionPolicy, class _Iterator1, class _Iterator2, class _Compare,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int,
+                                                                                         _Compare> = 0>
+auto
+sort_by_key_async(_ExecutionPolicy&& __exec, _Iterator1 __keys_first, _Iterator1 __keys_last, _Iterator2 __values_first,
+                  _Compare __comp, const std::vector<sycl::event>& __dependencies);
+                  
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class... _Events,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...> = 0>
 auto

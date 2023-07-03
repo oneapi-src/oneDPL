@@ -1550,7 +1550,8 @@ struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortNam
 {
     template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp,
+               const std::vector<sycl::event>& __dependency_events) const
     {
         using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
@@ -1579,6 +1580,7 @@ struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortNam
 
         // 1. Perform sorting of the leaves of the merge sort tree
         sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
+            __cgh.depends_on(__dependency_events);
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__leaf_steps),
                                                  [=](sycl::item</*dim=*/1> __item_id) {
@@ -1682,7 +1684,8 @@ struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortNam
 template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
-__parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
+__parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp,
+                     const std::vector<sycl::event>& __dependency_events)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
@@ -1694,7 +1697,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
     return __parallel_sort_submitter<_LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __merge, __comp);
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __merge, __comp, __dependency_events);
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
@@ -1808,10 +1811,11 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare, typenam
     __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
     __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
 auto
-__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj)
+__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj,
+                       const std::vector<sycl::event>& __dependency_events)
 {
     return __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj, __dependency_events);
 }
 #endif
 
@@ -1820,14 +1824,15 @@ template <
     __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
     !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
 auto
-__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
+__parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj,
+                       const std::vector<sycl::event>& __dependency_events)
 {
     auto __cmp_f = [__comp, __proj](const auto& __a, const auto& __b) mutable {
         return __comp(__proj(__a), __proj(__b));
     };
     return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
                                 // Pass special tag to choose 'full' merge subroutine at compile-time
-                                __full_merge_kernel(), __cmp_f);
+                                __full_merge_kernel(), __cmp_f, __dependency_events);
 }
 
 //------------------------------------------------------------------------

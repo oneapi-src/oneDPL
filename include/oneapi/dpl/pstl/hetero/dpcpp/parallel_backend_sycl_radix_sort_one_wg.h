@@ -34,7 +34,7 @@ struct __subgroup_radix_sort
 {
     template <typename _RangeIn, typename _Proj>
     auto
-    operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj)
+    operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, const std::vector<sycl::event>& __events)
     {
         using __wg_size_t = ::std::integral_constant<::std::uint16_t, __wg_size>;
         using __block_size_t = ::std::integral_constant<::std::uint16_t, __block_size>;
@@ -50,10 +50,10 @@ struct __subgroup_radix_sort
         //check SLM size
         if (__check_slm_size<_KeyT>(__q, __src.size()))
             return __one_group_submitter<_SortKernelLoc>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                           std::true_type{} /*SLM*/);
+                                                           std::true_type{} /*SLM*/, __events);
         else
             return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                            std::false_type{} /*No SLM*/);
+                                                            std::false_type{} /*No SLM*/, __events);
     }
 
   private:
@@ -130,7 +130,8 @@ struct __subgroup_radix_sort
     {
         template <typename _RangeIn, typename _Proj, typename _SLM_tag>
         auto
-        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag)
+        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag,
+                   const std::vector<sycl::event>& __dependency_events)
         {
             uint16_t __n = __src.size();
             assert(__n <= __block_size * __wg_size);
@@ -143,8 +144,9 @@ struct __subgroup_radix_sort
 
             sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
             return __q.submit([&](sycl::handler& __cgh) {
-                oneapi::dpl::__ranges::__require_access(__cgh, __src);
+                __cgh.depends_on(__dependency_events);
 
+                oneapi::dpl::__ranges::__require_access(__cgh, __src);
                 auto __exchange_lacc = __buf_val.get_acc(__cgh);
                 auto __counter_lacc = __buf_count.get_acc(__cgh);
 

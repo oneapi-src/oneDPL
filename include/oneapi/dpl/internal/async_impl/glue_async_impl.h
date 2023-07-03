@@ -109,6 +109,29 @@ sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcce
                       ::std::forward<_Events>(__dependencies)...);
 }
 
+template <class _ExecutionPolicy, class _Iterator1, class _Iterator2, class _Compare,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int,
+                                                                                         _Compare>>
+auto
+sort_by_key_async(_ExecutionPolicy&& __exec, _Iterator1 __keys_first, _Iterator1 __keys_last, _Iterator2 __values_first,
+                  _Compare __comp, const std::vector<sycl::event>& __dependencies)
+{
+    static_assert(::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator1>::value_type>
+        && ::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator2>::value_type>,
+        "The keys and values should be move constructible in case of parallel execution.");
+
+    auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
+    auto __end = __beg + (__keys_last - __keys_first);
+
+    //TODO: it is not correct in case of the host data
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, decltype(__beg)>();
+    auto __buf = __keep(__beg, __end);
+
+
+    return __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp,
+                                  [](const auto& __a) { return ::std::get<0>(__a); }, __dependencies);
+}
+
 // [async.for_each]
 template <class _ExecutionPolicy, class _ForwardIterator, class _Function, class... _Events,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
