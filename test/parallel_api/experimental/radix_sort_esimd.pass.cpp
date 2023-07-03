@@ -42,10 +42,6 @@
 #define LOG_TEST_INFO 0
 #endif
 
-#ifndef TEST_ALL_INPUTS
-#define TEST_ALL_INPUTS 0
-#endif
-
 template <typename T, bool Order>
 struct Compare : public std::less<T> {};
 
@@ -395,7 +391,7 @@ int main()
 
     try
     {
-#if TEST_ALL_INPUTS
+#if TEST_LONG_RUN
         for(auto size: sizes)
         {
             test_general_cases<char    >(size);
@@ -426,7 +422,7 @@ int main()
             test_usm<uint64_t, sycl::usm::alloc::shared, Descending>(size);
             test_usm<double,   sycl::usm::alloc::shared, Descending>(size);
         }
-#endif // TEST_ALL_INPUTS
+#endif // TEST_LONG_RUN
     }
     catch (const ::std::exception& exc)
     {
