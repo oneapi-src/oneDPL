@@ -63,6 +63,13 @@ template <std::uint16_t WorkGroupSize, std::uint16_t DataPerWorkItem, bool IsAsc
 void
 radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
+    // DataPerWorkItem : 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512
+    static_assert(DataPerWorkItem == 32 || DataPerWorkItem == 64 || DataPerWorkItem == 96 || DataPerWorkItem == 128 ||
+                      DataPerWorkItem == 160 || DataPerWorkItem == 192 || DataPerWorkItem == 224 ||
+                      DataPerWorkItem == 256 || DataPerWorkItem == 288 || DataPerWorkItem == 320 ||
+                      DataPerWorkItem == 352 || DataPerWorkItem == 384 || DataPerWorkItem == 416 ||
+                      DataPerWorkItem == 448 || DataPerWorkItem == 480 || DataPerWorkItem == 512,
+                  "");
     using _KeyT = oneapi::dpl::__internal::__value_t<_Range>;
 
     const ::std::size_t __n = __rng.size();
