@@ -148,9 +148,42 @@ __get_bucket(sycl::ext::intel::esimd::simd<_T, _N> __value, ::std::uint32_t __ra
     return sycl::ext::intel::esimd::simd<::std::uint16_t, _N>(__value >> __radix_offset) & __radix_mask;
 }
 
-template <typename T, bool __is_ascending>
-inline constexpr T __sort_identity =
-    __is_ascending? ::std::numeric_limits<T>::max() : ::std::numeric_limits<T>::lowest();
+template <typename T, bool __is_ascending, std::enable_if_t<::std::is_integral_v<T>, int> = 0>
+constexpr T
+__sort_identity()
+{
+    if constexpr (__is_ascending)
+        return ::std::numeric_limits<T>::max();
+    else
+        return ::std::numeric_limits<T>::lowest();
+}
+
+// std::numeric_limits<T>::max and std::numeric_limits<T>::lowest cannot be used as an idenentity for
+// performing radix sort of floating point numbers.
+// They do not set the smallest exponent bit (i.e. the max is 7F7FFFFF for 32bit float),
+// thus such an identity is not guaranteed to be put at the end of the sorted sequence after each radix sort stage,
+// e.g. 00FF0000 numbers will be pushed out by 7F7FFFFF identities when sorting 16-23 bits.
+template <typename T, bool __is_ascending, std::enable_if_t<::std::is_floating_point_v<T> &&
+                                                            sizeof(T) == sizeof(::std::uint32_t), int> = 0>
+constexpr T
+__sort_identity()
+{
+    if constexpr (__is_ascending)
+        return sycl::bit_cast<T>(0x7FFF'FFFFu);
+    else
+        return sycl::bit_cast<T>(0xFFFF'FFFFu);
+}
+
+template <typename T, bool __is_ascending, std::enable_if_t<::std::is_floating_point_v<T> &&
+                                                            sizeof(T) == sizeof(::std::uint64_t), int> = 0>
+constexpr T
+__sort_identity()
+{
+    if constexpr (__is_ascending)
+        return sycl::bit_cast<T>(0x7FFF'FFFF'FFFF'FFFFu);
+    else
+        return sycl::bit_cast<T>(0xFFFF'FFFF'FFFF'FFFFu);
+}
 
 template <bool __is_ascending, int _N>
 sycl::ext::intel::esimd::simd<bool, _N>
