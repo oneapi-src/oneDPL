@@ -581,9 +581,9 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
     constexpr uint32_t GLOBAL_OFFSET_SIZE = BINCOUNT * STAGES * sizeof(global_hist_t);
     size_t temp_buffer_size = GLOBAL_OFFSET_SIZE + SYNC_BUFFER_SIZE;
 
-    const size_t full_buffer_size_part1 = temp_buffer_size * sizeof(uint8_t);
-    const size_t full_buffer_size_part2 = __n * sizeof(KeyT);
-    const size_t full_buffer_size = full_buffer_size_part1 + full_buffer_size_part2;
+    const size_t full_buffer_size_global_hist = temp_buffer_size * sizeof(uint8_t);
+    const size_t full_buffer_size_output = __n * sizeof(KeyT);
+    const size_t full_buffer_size = full_buffer_size_global_hist + full_buffer_size_output;
 
     uint8_t* p_temp_memory = sycl::malloc_device<uint8_t>(full_buffer_size, __q);
 
@@ -591,7 +591,7 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
     auto p_global_offset = reinterpret_cast<uint32_t*>(p_globl_hist_buffer);
 
     // Memory for storing values sorted for an iteration
-    auto p_output = reinterpret_cast<KeyT*>(p_temp_memory + full_buffer_size_part1);
+    auto p_output = reinterpret_cast<KeyT*>(p_temp_memory + full_buffer_size_global_hist);
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, decltype(p_output)>();
     auto __out_rng = __keep(p_output, p_output + __n).all_view();
 
