@@ -66,7 +66,7 @@ pattern_exclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputI
     auto flags = _flags.get();
     flags[0] = 1;
 
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _flags.get() + 1,
+    transform(policy, first1, last1 - 1, first1 + 1, _flags.get() + 1,
               oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     // shift input one to the right and initialize segments with init
@@ -127,7 +127,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         flags[0] = 1;
     }
 
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _flags.get() + 1,
+    transform(policy, first1, last1 - 1, first1 + 1, _flags.get() + 1,
               oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     // shift input one to the right and initialize segments with init
