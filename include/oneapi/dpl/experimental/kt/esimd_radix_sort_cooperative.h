@@ -365,16 +365,16 @@ void cooperative(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     }
     assert(__groups <= MAX_GROUPS);
 
-    const size_t full_buffer_size_part1 = sizeof(::std::uint32_t) * (1024 + (__groups + 2) * BIN_COUNT);
-    const size_t full_buffer_size_part2 = sizeof(KeyT) * (__groups * __group_block_size);
-    const size_t full_buffer_size = full_buffer_size_part1 + full_buffer_size_part2;
+    const size_t full_buffer_size_sync = sizeof(::std::uint32_t) * (1024 + (__groups + 2) * BIN_COUNT);
+    const size_t full_buffer_size_tmp = sizeof(KeyT) * (__groups * __group_block_size);
+    const size_t full_buffer_size = full_buffer_size_sync + full_buffer_size_tmp;
 
     uint8_t* p_temp_memory = sycl::malloc_device<uint8_t>(full_buffer_size, __q);
 
     auto p_sync = reinterpret_cast<::std::uint32_t*>(p_temp_memory);
 
     // to correctly sort floating point values, a buffer to store data plus extra identity values is needed
-    KeyT* __tmpbuf = reinterpret_cast<KeyT*>(p_temp_memory + full_buffer_size_part1);
+    KeyT* __tmpbuf = reinterpret_cast<KeyT*>(p_temp_memory + full_buffer_size_sync);
 
     using _EsimRadixSort = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __esimd_radix_sort_cooperative<_KernelName>>;
