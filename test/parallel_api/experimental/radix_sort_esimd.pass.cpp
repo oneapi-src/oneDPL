@@ -379,7 +379,6 @@ void test_general_cases(std::size_t size)
 #endif // _ENABLE_RANGES_TESTING
     test_usm<T, Ascending>(size);
     test_usm<T, Descending>(size);
-
     test_sycl_iterators<T, Ascending>(size);
     test_sycl_iterators<T, Descending>(size);
 }
@@ -409,11 +408,7 @@ int main()
             test_general_cases<float   >(size);
             test_general_cases<int64_t >(size);
             test_general_cases<uint64_t>(size);
-            // Not implemented for onesweep
-            if (size <= 262144)
-            {
-                test_general_cases<double  >(size);
-            }
+            test_general_cases<double  >(size);
         }
         test_small_sizes();
 #else
@@ -423,21 +418,13 @@ int main()
             test_usm<int,      sycl::usm::alloc::shared, Ascending>(size);
             test_usm<uint32_t, sycl::usm::alloc::shared, Ascending>(size);
             test_usm<float,    sycl::usm::alloc::shared, Ascending>(size);
-            // Not implemented for onesweep
-            if (size <= 262144)
-            {
-                test_usm<double,   sycl::usm::alloc::shared, Ascending>(size);
-            }
-            
+            test_usm<double,   sycl::usm::alloc::shared, Ascending>(size);
+
             test_usm<int16_t,  sycl::usm::alloc::shared, Descending>(size);
             test_usm<int,      sycl::usm::alloc::shared, Descending>(size);
             test_usm<float,    sycl::usm::alloc::shared, Descending>(size);
             test_usm<uint64_t, sycl::usm::alloc::shared, Descending>(size);
-            // Not implemented for onesweep
-            if (size <= 262144)
-            {
-                test_usm<double,   sycl::usm::alloc::shared, Descending>(size);
-            }
+            test_usm<double,   sycl::usm::alloc::shared, Descending>(size);
         }
 #endif // TEST_ALL_INPUTS
     }
