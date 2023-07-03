@@ -413,6 +413,9 @@ int main()
 #if TEST_ALL_INPUTS
         for(auto size: sizes)
         {
+            test_general_cases<char    >(size);
+            test_general_cases<int8_t  >(size);
+            test_general_cases<uint8_t >(size);
             test_general_cases<int16_t >(size);
             test_general_cases<uint16_t>(size);
             test_general_cases<int     >(size);
@@ -421,9 +424,6 @@ int main()
             // Not implemented for onesweep
             if (size <= 262144)
             {
-                test_general_cases<char    >(size);
-                test_general_cases<int8_t  >(size);
-                test_general_cases<uint8_t >(size);
                 test_general_cases<int64_t >(size);
                 test_general_cases<uint64_t>(size);
                 test_general_cases<double  >(size);
@@ -433,13 +433,13 @@ int main()
 #else
         for(auto size: sizes)
         {
+            test_usm<char,     sycl::usm::alloc::shared, Ascending>(size);
             test_usm<int,      sycl::usm::alloc::shared, Ascending>(size);
             test_usm<uint32_t, sycl::usm::alloc::shared, Ascending>(size);
             test_usm<float,    sycl::usm::alloc::shared, Ascending>(size);
             // Not implemented for onesweep
             if (size <= 262144)
             {
-                test_usm<char,   sycl::usm::alloc::shared, Ascending>(size);
                 test_usm<double, sycl::usm::alloc::shared, Ascending>(size);
             }
 

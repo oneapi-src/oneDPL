@@ -522,6 +522,9 @@ class __esimd_radix_sort_onesweep_even;
 template <typename... _Name>
 class __esimd_radix_sort_onesweep_odd;
 
+template <typename... _Name>
+class __esimd_radix_sort_onesweep_copyback;
+
 template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t STAGES, ::std::uint32_t HW_TG_COUNT,
           ::std::uint32_t THREAD_PER_TG, bool IsAscending, typename _KernelName>
 struct __radix_sort_onesweep_histogram_submitter;
@@ -603,6 +606,30 @@ struct __radix_sort_onesweep_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_
     }
 };
 
+template <typename KeyT, typename _KernelName>
+struct __radix_sort_copyback_submitter;
+
+template <typename KeyT, typename... _Name>
+struct __radix_sort_copyback_submitter<KeyT, oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+{
+    template <typename _TmpRange, typename _OutRange>
+    sycl::event
+    operator()(sycl::queue& __q, _TmpRange& __tmp_rng, _OutRange& __out_rng, ::std::uint32_t __n, const sycl::event& __e) const
+    {
+        return __q.submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __tmp_rng, __out_rng);
+            // TODO: make sure that access is read_only for __tmp_data  and is write_only for __out_rng
+            auto __tmp_data = __tmp_rng.data();
+            auto __out_data = __out_rng.data();
+            __cgh.depends_on(__e);
+            __cgh.parallel_for<_Name...>(sycl::range<1>{__n}, [=](sycl::item<1> __item) {
+                auto __global_id = __item.get_linear_id();
+                __out_data[__global_id] = __tmp_data[__global_id];
+            });
+        });
+    }
+};
+
 template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
           bool IsAscending, ::std::uint32_t PROCESS_SIZE>
 void
@@ -611,14 +638,16 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
     using namespace sycl;
     using namespace __ESIMD_NS;
 
-    using _EsimRadixSortHistogram = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+    using _EsimdRadixSortHistogram = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __esimd_radix_sort_onesweep_histogram<_KernelName>>;
-    using _EsimRadixSortScan = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+    using _EsimdRadixSortScan = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __esimd_radix_sort_onesweep_scan<_KernelName>>;
-    using _EsimRadixSortSweepEven = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+    using _EsimdRadixSortSweepEven = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __esimd_radix_sort_onesweep_even<_KernelName>>;
-    using _EsimRadixSortSweepOdd = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+    using _EsimdRadixSortSweepOdd = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __esimd_radix_sort_onesweep_odd<_KernelName>>;
+    using _EsimdRadixSortCopyback = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __esimd_radix_sort_onesweep_copyback<_KernelName>>;
 
     using global_hist_t = uint32_t;
     constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
@@ -647,25 +676,31 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
     sycl::event event_chain = __q.memset(tmp_buffer, 0, temp_buffer_size);
 
     event_chain = __radix_sort_onesweep_histogram_submitter<
-        KeyT, RADIX_BITS, STAGES, HW_TG_COUNT, THREAD_PER_TG, IsAscending, _EsimRadixSortHistogram>()(
+        KeyT, RADIX_BITS, STAGES, HW_TG_COUNT, THREAD_PER_TG, IsAscending, _EsimdRadixSortHistogram>()(
             __q, __rng, p_global_offset, __n, event_chain);
 
-    event_chain = __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT, _EsimRadixSortScan>()(
+    event_chain = __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT, _EsimdRadixSortScan>()(
         __q, p_global_offset, __n, event_chain);
 
     for (uint32_t stage = 0; stage < STAGES; stage++) {
         if((stage % 2) == 0)
         {
             event_chain = __radix_sort_onesweep_submitter<
-                    KeyT, RADIX_BITS, THREAD_PER_TG, SWEEP_PROCESSING_SIZE, IsAscending, _EsimRadixSortSweepEven>()(
+                    KeyT, RADIX_BITS, THREAD_PER_TG, SWEEP_PROCESSING_SIZE, IsAscending, _EsimdRadixSortSweepEven>()(
                         __q, __rng, __out_rng, tmp_buffer, sweep_tg_count, __n, stage, event_chain);
         }
         else
         {
             event_chain = __radix_sort_onesweep_submitter<
-                    KeyT, RADIX_BITS, THREAD_PER_TG, SWEEP_PROCESSING_SIZE, IsAscending, _EsimRadixSortSweepOdd>()(
+                    KeyT, RADIX_BITS, THREAD_PER_TG, SWEEP_PROCESSING_SIZE, IsAscending, _EsimdRadixSortSweepOdd>()(
                         __q, __out_rng, __rng, tmp_buffer, sweep_tg_count, __n, stage, event_chain);
         }
+    }
+
+    if constexpr (STAGES % 2 != 0)
+    {
+        event_chain = __radix_sort_copyback_submitter<KeyT, _EsimdRadixSortCopyback>()(
+            __q, __out_rng, __rng, __n, event_chain);
     }
     event_chain.wait();
 
