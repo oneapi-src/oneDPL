@@ -421,11 +421,11 @@ int main()
             test_general_cases<int     >(size);
             test_general_cases<uint32_t>(size);
             test_general_cases<float   >(size);
+            test_general_cases<int64_t >(size);
+            test_general_cases<uint64_t>(size);
             // Not implemented for onesweep
             if (size <= 262144)
             {
-                test_general_cases<int64_t >(size);
-                test_general_cases<uint64_t>(size);
                 test_general_cases<double  >(size);
             }
         }
@@ -440,16 +440,16 @@ int main()
             // Not implemented for onesweep
             if (size <= 262144)
             {
-                test_usm<double, sycl::usm::alloc::shared, Ascending>(size);
+                test_usm<double,   sycl::usm::alloc::shared, Ascending>(size);
             }
-
-            test_usm<int16_t, sycl::usm::alloc::shared, Descending>(size);
-            test_usm<int,     sycl::usm::alloc::shared, Descending>(size);
-            test_usm<float,   sycl::usm::alloc::shared, Descending>(size);
+            
+            test_usm<int16_t,  sycl::usm::alloc::shared, Descending>(size);
+            test_usm<int,      sycl::usm::alloc::shared, Descending>(size);
+            test_usm<float,    sycl::usm::alloc::shared, Descending>(size);
+            test_usm<uint64_t, sycl::usm::alloc::shared, Descending>(size);
             // Not implemented for onesweep
             if (size <= 262144)
             {
-                test_usm<uint64_t, sycl::usm::alloc::shared, Descending>(size);
                 test_usm<double,   sycl::usm::alloc::shared, Descending>(size);
             }
         }
