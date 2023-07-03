@@ -26,6 +26,19 @@
 
 namespace oneapi::dpl::experimental::esimd::impl
 {
+template <typename T, ::std::enable_if_t<sizeof(T) <= sizeof(::std::uint32_t), int> = 0>
+constexpr ::std::uint32_t
+__onesweep_process_size()
+{
+    return 384;
+}
+
+template <typename T, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint64_t), int> = 0>
+constexpr ::std::uint32_t
+__onesweep_process_size()
+{
+    return 192;
+}
 
 /*
     Interface:
@@ -74,7 +87,7 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
         // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
         // TODO: pass _ProcessSize according to DataPerWorkItem
         // TODO: support different WorkGroupSize, RadixBits
-        oneapi::dpl::experimental::esimd::impl::onesweep<_KernelName, _KeyT, _Range, RadixBits, IsAscending, /*_ProcessSize*/384>(
+        oneapi::dpl::experimental::esimd::impl::onesweep<_KernelName, _KeyT, _Range, RadixBits, IsAscending, __onesweep_process_size<_KeyT>()>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
 }
