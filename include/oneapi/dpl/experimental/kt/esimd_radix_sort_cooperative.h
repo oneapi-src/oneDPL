@@ -29,7 +29,7 @@ void inline init_global_sync(uint32_t * psync, uint32_t tg_id) {
     using namespace __ESIMD_ENS;
 
     constexpr uint32_t SYNC_BUFFER_SIZE = SYNC_BUFFER_PER_STAGE * STAGES;
-    
+
     simd<uint32_t, SYNC_BUFFER_SIZE> lane_id(0, sizeof(uint32_t));
     simd<uint32_t, SYNC_BUFFER_SIZE> old_value = lsc_atomic_update<atomic_op::load, uint32_t, SYNC_BUFFER_SIZE>(psync, lane_id, 1);
     if (tg_id == 0) {
@@ -123,7 +123,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
         simd_mask<16> m = (io_offset+lane_id+s)<n;
         simd<KeyT, 16> source = lsc_gather<KeyT, 1, lsc_data_size::default_size, cache_hint::uncached, cache_hint::cached, 16>
                 (input, (lane_id + io_offset + s)*uint32_t(sizeof(KeyT)), m);
-        keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>), m);
+        keys.template select<16, 1>(s) = merge(source, simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>()), m);
     }
 
     for (uint32_t stage=0; stage < STAGES; stage++) {
