@@ -135,8 +135,7 @@ struct __sycl_scan_by_segment_impl
 
 #if _ONEDPL_COMPILE_KERNEL
         auto __seg_scan_wg_kernel =
-            __par_backend_hetero::__internal::__kernel_compiler<_SegScanWgKernel>::__compile(
-            __exec);
+            __par_backend_hetero::__internal::__kernel_compiler<_SegScanWgKernel>::__compile(__exec);
         auto __seg_scan_prefix_kernel =
             __par_backend_hetero::__internal::__kernel_compiler<_SegScanPrefixKernel>::__compile(__exec);
         __wgroup_size =
