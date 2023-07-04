@@ -26,9 +26,9 @@
 #include "execution_sycl_defs.h"
 
 #define _ONEDPL_RADIX_WORKLOAD_TUNING 1
-//To achieve the better occupancy work group size and block size are variated depend on data size (32bits):
-//1. 32K...512K  - an estimated workgroup size is reduced down to 8 times
-//2. 512K...2M   - an estimated workgroup size is reduced down to 4 times
+//To achieve better performance number of segments and block size are variated depend on data size (32bits):
+//1. 32K...512K  - number of segments is increased up to 8 times
+//2. 512K...2M   - number of segments is increased up up 4 times
 //3. 2M...16M... - block size is increased up to 128
 
 namespace oneapi
