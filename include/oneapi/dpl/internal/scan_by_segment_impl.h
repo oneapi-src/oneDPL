@@ -32,19 +32,19 @@
 
 #if _ONEDPL_BACKEND_SYCL
 
-#include <type_traits>
-#include <cstddef>
-#include <cstdint>
-#include <utility>
-#include <algorithm>
+#    include <type_traits>
+#    include <cstddef>
+#    include <cstdint>
+#    include <utility>
+#    include <algorithm>
 
-#include <oneapi/dpl/pstl/algorithm_fwd.h>
-#include <oneapi/dpl/pstl/parallel_backend.h>
-#include <oneapi/dpl/pstl/hetero/utils_hetero.h>
+#    include <oneapi/dpl/pstl/algorithm_fwd.h>
+#    include <oneapi/dpl/pstl/parallel_backend.h>
+#    include <oneapi/dpl/pstl/hetero/utils_hetero.h>
 
-#include <oneapi/dpl/pstl/hetero/dpcpp/utils_ranges_sycl.h>
-#include <oneapi/dpl/pstl/hetero/dpcpp/unseq_backend_sycl.h>
-#include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
+#    include <oneapi/dpl/pstl/hetero/dpcpp/utils_ranges_sycl.h>
+#    include <oneapi/dpl/pstl/hetero/dpcpp/unseq_backend_sycl.h>
+#    include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
 
 namespace oneapi
 {
@@ -131,7 +131,7 @@ struct __sycl_scan_by_segment_impl
         __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
             ::std::forward<_ExecutionPolicy>(__exec), 3 * sizeof(__val_type), __wgroup_size);
 
-#if _ONEDPL_COMPILE_KERNEL
+#    if _ONEDPL_COMPILE_KERNEL
         auto __seg_scan_wg_kernel = __par_backend_hetero::__internal::__kernel_compiler<_SegScanWgKernel>::__compile(
             ::std::forward<_ExecutionPolicy>(__exec));
         auto __seg_scan_prefix_kernel =
@@ -142,7 +142,7 @@ struct __sycl_scan_by_segment_impl
                                         ::std::forward<_ExecutionPolicy>(__exec), __seg_scan_wg_kernel),
                                     oneapi::dpl::__internal::__kernel_work_group_size(
                                         ::std::forward<_ExecutionPolicy>(__exec), __seg_scan_prefix_kernel)});
-#endif
+#    endif
 
         ::std::size_t __n_groups = __internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
@@ -164,13 +164,13 @@ struct __sycl_scan_by_segment_impl
 
             __dpl_sycl::__local_accessor<__val_type> __loc_acc(2 * __wgroup_size, __cgh);
 
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#    if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
             __cgh.use_kernel_bundle(__seg_scan_wg_kernel.get_kernel_bundle());
-#endif
+#    endif
             __cgh.parallel_for<_SegScanWgKernel>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+#    if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                 __seg_scan_wg_kernel,
-#endif
+#    endif
                 sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                     __val_type __accumulator = __identity;
 
@@ -268,13 +268,13 @@ struct __sycl_scan_by_segment_impl
                 __dpl_sycl::__local_accessor<__val_type> __loc_partials_acc(__wgroup_size, __cgh);
 
                 __dpl_sycl::__local_accessor<bool> __loc_seg_ends_acc(__wgroup_size, __cgh);
-#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+#    if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__seg_scan_prefix_kernel.get_kernel_bundle());
-#endif
+#    endif
                 __cgh.parallel_for<_SegScanPrefixKernel>(
-#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+#    if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
                     __seg_scan_prefix_kernel,
-#endif
+#    endif
                     sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                         auto __group = __item.get_group();
                         ::std::size_t __group_id = __item.get_group(0);
