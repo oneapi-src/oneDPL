@@ -29,7 +29,7 @@
 //To achieve better performance number of segments and block size are variated depend on data size (32bits):
 //1. 32K...512K  - number of segments is increased up to 8 times
 //2. 512K...2M   - number of segments is increased up up 4 times
-//3. 2M...16M... - block size (count phase) is increased up to 128
+//3. 2M...16M... - work-group size (count phase) is increased up to 128
 
 namespace oneapi
 {
@@ -151,7 +151,7 @@ template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_ascendin
 #endif
           >
 sycl::event
-__radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::size_t __block_size,
+__radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::size_t __wg_size,
                           ::std::uint32_t __radix_offset, _ValRange&& __val_rng, _CountBuf& __count_buf,
                           sycl::event __dependency_event, _Proj __proj
 #if _ONEDPL_COMPILE_KERNEL
@@ -165,10 +165,9 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
     // radix states used for an array storing bucket state counters
     constexpr ::std::uint32_t __radix_states = 1 << __radix_bits;
 
-    const ::std::size_t __val_buf_size = __val_rng.size();
     // iteration space info
-    const ::std::size_t __blocks_total = oneapi::dpl::__internal::__dpl_ceiling_div(__val_buf_size, __block_size);
-    const ::std::size_t __blocks_per_segment = oneapi::dpl::__internal::__dpl_ceiling_div(__blocks_total, __segments);
+    const ::std::size_t __n = __val_rng.size();
+    const ::std::size_t __elem_per_segment = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __segments);
 
     auto __count_rng =
         oneapi::dpl::__ranges::all_view<_CountT, __par_backend_hetero::access_mode::read_write>(__count_buf);
@@ -180,7 +179,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
         // ensure the input data and the space for counters are accessible
         oneapi::dpl::__ranges::__require_access(__hdl, __val_rng, __count_rng);
         // an accessor per work-group with value counters from each work-item
-        auto __count_lacc = __dpl_sycl::__local_accessor<_CountT>(__block_size * __radix_states, __hdl);
+        auto __count_lacc = __dpl_sycl::__local_accessor<_CountT>(__wg_size * __radix_states, __hdl);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
         __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
@@ -188,19 +187,19 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 #if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
             __kernel,
 #endif
-            sycl::nd_range<1>(__segments * __block_size, __block_size), [=](sycl::nd_item<1> __self_item) {
+            sycl::nd_range<1>(__segments * __wg_size, __wg_size), [=](sycl::nd_item<1> __self_item) {
                 // item info
                 const ::std::size_t __self_lidx = __self_item.get_local_id(0);
                 const ::std::size_t __wgroup_idx = __self_item.get_group(0);
-                const ::std::size_t __seg_start = __blocks_per_segment * __block_size * __wgroup_idx;
+                const ::std::size_t __seg_start = __elem_per_segment * __wgroup_idx;
 
                 // 1.1. count per witem: create a private array for storing count values
                 _CountT __count_arr[__radix_states] = {0};
                 // 1.2. count per witem: count values and write result to private count array
                 const ::std::size_t __seg_end =
-                    sycl::min(__seg_start + __block_size * __blocks_per_segment, __val_buf_size);
+                    sycl::min(__seg_start + __elem_per_segment, __n);
                 for (::std::size_t __val_idx = __seg_start + __self_lidx; __val_idx < __seg_end;
-                     __val_idx += __block_size)
+                     __val_idx += __wg_size)
                 {
                     // get the bucket for the bit-ordered input value, applying the offset and mask for radix bits
                     auto __val = __order_preserving_cast<__is_ascending>(__proj(__val_rng[__val_idx]));
@@ -214,12 +213,12 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                     __count_lacc[__count_start_idx + __radix_state_idx] = __count_arr[__radix_state_idx];
                 __dpl_sycl::__group_barrier(__self_item);
 
-                // 2.1. count per wgroup: reduce till __count_lacc[] size > __block_size (all threads work)
+                // 2.1. count per wgroup: reduce till __count_lacc[] size > __wg_size (all threads work)
                 for (::std::uint32_t __i = 1; __i < __radix_states; ++__i)
-                    __count_lacc[__self_lidx] += __count_lacc[__block_size * __i + __self_lidx];
+                    __count_lacc[__self_lidx] += __count_lacc[__wg_size * __i + __self_lidx];
                 __dpl_sycl::__group_barrier(__self_item);
                 // 2.2. count per wgroup: reduce until __count_lacc[] size > __radix_states (threads /= 2 per iteration)
-                for (::std::uint32_t __active_ths = __block_size >> 1; __active_ths >= __radix_states;
+                for (::std::uint32_t __active_ths = __wg_size >> 1; __active_ths >= __radix_states;
                      __active_ths >>= 1)
                 {
                     if (__self_lidx < __active_ths)
@@ -591,10 +590,10 @@ struct __parallel_radix_sort_iteration
 
         ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
         ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-        ::std::size_t __block_size = __max_sg_size;
+        ::std::size_t __count_wg_size = __max_sg_size;
         ::std::size_t __reorder_sg_size = __max_sg_size;
 
-        // correct __block_size, __scan_wg_size, __reorder_sg_size after introspection of the kernels
+        // correct __count_wg_size, __scan_wg_size, __reorder_sg_size after introspection of the kernels
 #if _ONEDPL_COMPILE_KERNEL
         auto __kernels = __internal::__kernel_compiler<_RadixCountKernel, _RadixLocalScanKernel,
                                                        _RadixReorderPeerKernel, _RadixReorderKernel>::__compile(__exec);
@@ -606,22 +605,26 @@ struct __parallel_radix_sort_iteration
         __reorder_sg_size = oneapi::dpl::__internal::__kernel_sub_group_size(__exec, __reorder_kernel);
         __scan_wg_size =
             sycl::min(__scan_wg_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __local_scan_kernel));
-        __block_size = sycl::max(__count_sg_size, __reorder_sg_size);
+        __count_wg_size = sycl::max(__count_sg_size, __reorder_sg_size);
 #endif
         const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
-        // correct __block_size according to local memory limit in count phase
+        // correct __count_wg_size according to local memory limit in count phase
+        using _CounterType = typename __decay_t<_TmpBuf>::value_type;
         const auto __max_count_wg_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
-            __exec, sizeof(typename __decay_t<_TmpBuf>::value_type) * __radix_states, __block_size);
-        __block_size = static_cast<::std::size_t>((__max_count_wg_size / __radix_states)) * __radix_states;
+            __exec, sizeof(_CounterType) * __radix_states, __count_wg_size);
+        __count_wg_size = static_cast<::std::size_t>((__max_count_wg_size / __radix_states)) * __radix_states;
 
-        // block size must be a power of 2 and not less than the number of states.
+        // work-group size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
-        __block_size = sycl::max(oneapi::dpl::__internal::__dpl_bit_floor(__block_size), ::std::size_t(__radix_states));
+        __count_wg_size = sycl::max(oneapi::dpl::__internal::__dpl_bit_floor(__count_wg_size), ::std::size_t(__radix_states));
 #if _ONEDPL_RADIX_WORKLOAD_TUNING
         const ::std::size_t __n = __in_rng.size();
         if(__n > (1<<21)/*2M*/)
-            __block_size = 128;
+        {
+            __count_wg_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec,
+                sizeof(_CounterType) * __radix_states, ::std::size_t(128)/*desired wg size size*/);
+        }
 #endif
 
         // Compute the radix position for the given iteration
@@ -629,7 +632,7 @@ struct __parallel_radix_sort_iteration
 
         // 1. Count Phase
         sycl::event __count_event = __radix_sort_count_submit<_RadixCountKernel, __radix_bits, __is_ascending>(
-            __exec, __segments, __block_size, __radix_offset, __in_rng, __tmp_buf, __dependency_event, __proj
+            __exec, __segments, __count_wg_size, __radix_offset, __in_rng, __tmp_buf, __dependency_event, __proj
 #if _ONEDPL_COMPILE_KERNEL
             , __count_kernel
 #endif
