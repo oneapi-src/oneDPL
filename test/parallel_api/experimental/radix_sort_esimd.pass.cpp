@@ -20,6 +20,7 @@
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #include "support/utils.h"
+#include "support/typelist.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #if __has_include(<sycl/sycl.hpp>)
@@ -37,6 +38,7 @@
 #include <iostream>
 #include <cmath>
 #include <limits>
+#include <type_traits>
 
 #ifndef LOG_TEST_INFO
 #define LOG_TEST_INFO 0
@@ -48,11 +50,22 @@ struct Compare : public std::less<T> {};
 template <typename T>
 struct Compare<T, false> : public std::greater<T> {};
 
-constexpr bool Ascending = true;
-constexpr bool Descending = false;
+using AscendingType  = std::true_type;
+using DescendingType = std::false_type;
 
 constexpr ::std::uint16_t WorkGroupSize = 256;
-constexpr ::std::uint16_t DataPerWorkItem = 32;
+
+using USMAllocShared = ::std::integral_constant<sycl::usm::alloc, sycl::usm::alloc::shared>;
+using USMAllocDevice = ::std::integral_constant<sycl::usm::alloc, sycl::usm::alloc::device>;
+
+template <::std::uint16_t count>
+using DPWI = ::std::integral_constant<::std::uint16_t, count>;
+using DataPerWorkItemListLongRun =
+    TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<96>, DPWI<128>, DPWI<160>,
+                     DPWI<192>, DPWI<224>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>,
+                     DPWI<448>, DPWI<480>, DPWI<512>>;
+using DataPerWorkItemListShortRun =
+    TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
 
 #if LOG_TEST_INFO
 struct TypeInfo
@@ -232,7 +245,7 @@ void print_data(const Container1& expected, const Container2& actual, std::size_
 }
 
 #if _ENABLE_RANGES_TESTING
-template<typename T, bool Order>
+template <typename T, typename OrderType, typename DataPerWorkItem>
 void test_all_view(std::size_t size)
 {
 #if LOG_TEST_INFO
@@ -245,22 +258,22 @@ void test_all_view(std::size_t size)
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
-    std::stable_sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
+    std::stable_sort(std::begin(ref), std::end(ref), Compare<T, OrderType::value>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, view);
+        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, OrderType::value>(policy, view);
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
-template<typename T, bool Order>
+template <typename T, typename OrderType, typename DataPerWorkItem>
 void test_subrange_view(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_subrange_view<T, " << Order << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
+    std::cout << "\ttest_subrange_view<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -271,10 +284,10 @@ void test_subrange_view(std::size_t size)
 
     TestUtils::usm_data_transfer<sycl::usm::alloc::device, T> dt_input(q, expected.begin(), expected.end());
 
-    std::stable_sort(expected.begin(), expected.end(), Compare<T, Order>{});
+    std::stable_sort(expected.begin(), expected.end(), Compare<T, OrderType::value>{});
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, view);
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, OrderType::value>(policy, view);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -285,11 +298,11 @@ void test_subrange_view(std::size_t size)
 
 #endif // _ENABLE_RANGES_TESTING
 
-template<typename T, sycl::usm::alloc _alloc_type, bool Order>
+template <typename T, typename USMAllocType, typename OrderType, typename DataPerWorkItem>
 void test_usm(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ", " << Order << ">("<< size << ");" << std::endl;
+    std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<USMAllocType::value>() << ", " << OrderType::value << ">("<< size << ");" << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -298,11 +311,11 @@ void test_usm(std::size_t size)
     std::vector<T> expected(size);
     generate_data(expected.data(), size);
 
-    TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
+    TestUtils::usm_data_transfer<USMAllocType::value, T> dt_input(q, expected.begin(), expected.end());
 
-    std::stable_sort(expected.begin(), expected.end(), Compare<T, Order>{});
+    std::stable_sort(expected.begin(), expected.end(), Compare<T, OrderType::value>{});
 
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, dt_input.get_data(), dt_input.get_data() + size);
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, OrderType::value>(policy, dt_input.get_data(), dt_input.get_data() + size);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -311,19 +324,19 @@ void test_usm(std::size_t size)
     EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
 }
 
-template <typename T, bool Order>
+template <typename T, typename OrderType, typename DataPerWorkItem>
 void
 test_usm(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_usm<T, " << Order << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
+    std::cout << "\ttest_usm<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #endif
 
-    test_usm<T, sycl::usm::alloc::shared, Order>(size);
-    test_usm<T, sycl::usm::alloc::device, Order>(size);
+    test_usm<T, USMAllocShared, OrderType, DataPerWorkItem>(size);
+    test_usm<T, USMAllocDevice, OrderType, DataPerWorkItem>(size);
 }
 
-template<typename T, bool Order>
+template <typename T, typename OrderType, typename DataPerWorkItem>
 void test_sycl_iterators(std::size_t size)
 {
 #if LOG_TEST_INFO
@@ -336,17 +349,18 @@ void test_sycl_iterators(std::size_t size)
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
-    std::stable_sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
+    std::stable_sort(std::begin(ref), std::end(ref), Compare<T, OrderType::value>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
+        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, OrderType::value>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
     }
 
     std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
-void test_small_sizes()
+template <typename T, typename OrderType, typename DataPerWorkItem>
+void test_small_sizes(std::size_t /*size*/)
 {
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_small_sizes();" << std::endl;
@@ -358,27 +372,174 @@ void test_small_sizes()
     std::vector<uint32_t> input = {5, 11, 0, 17, 0};
     std::vector<uint32_t> ref(input);
 
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Ascending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, AscendingType::value>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Ascending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, AscendingType::value>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
-template <typename T>
+template <typename T, typename DataPerWorkItem>
 void test_general_cases(std::size_t size)
 {
 #if _ENABLE_RANGES_TESTING
-    test_all_view<T, Ascending>(size);
-    test_all_view<T, Descending>(size);
-    test_subrange_view<T, Ascending>(size);
-    test_subrange_view<T, Descending>(size);
+    test_all_view<T, AscendingType,  DataPerWorkItem>(size);
+    test_all_view<T, DescendingType, DataPerWorkItem>(size);
+
+    test_subrange_view<T, AscendingType,  DataPerWorkItem>(size);
+    test_subrange_view<T, DescendingType, DataPerWorkItem>(size);
 #endif // _ENABLE_RANGES_TESTING
-    test_usm<T, Ascending>(size);
-    test_usm<T, Descending>(size);
-    test_sycl_iterators<T, Ascending>(size);
-    test_sycl_iterators<T, Descending>(size);
+
+    test_usm<T, AscendingType,  DataPerWorkItem>(size);
+    test_usm<T, DescendingType, DataPerWorkItem>(size);
+
+    test_sycl_iterators<T, AscendingType,  DataPerWorkItem>(size);
+    test_sycl_iterators<T, DescendingType, DataPerWorkItem>(size);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
+
+using TypeListSmallSizes   = TestUtils::TList<::std::uint32_t>;
+using TypeListLongRun      = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
+using TypeListShortRunAsc  = TestUtils::TList<char,                                     int, uint32_t, float,                    double>;
+using TypeListShortRunDesc = TestUtils::TList<                       int16_t,           int,           float,          uint64_t, double>;
+
+struct test_general_cases_runner
+{
+    template <typename TKey, typename DataPerWorkItem>
+    void
+    run_test(std::size_t size)
+    {
+        test_general_cases<TKey, DataPerWorkItem>(size);
+    }
+};
+
+template <typename USMAllocType, typename OrderType>
+struct test_usm_runner
+{
+    template <typename TKey, typename DataPerWorkItem>
+    void
+    run_test(std::size_t size)
+    {
+        test_usm<TKey, USMAllocType, OrderType, DataPerWorkItem>(size);
+    }
+};
+
+struct test_small_sizes_runner
+{
+    template <typename TKey, typename DataPerWorkItem>
+    void
+    run_test(std::size_t size)
+    {
+        test_small_sizes<TKey, AscendingType, DataPerWorkItem>(size);
+    }
+};
+
+template <typename TKey, typename DataPerWorkItem>
+constexpr bool start_test()
+{
+    // char : <96, 160, 192, 224, 352, 416, 448, 480, 512>
+    using skip_dpwi_for_char = TestUtils::TList<DPWI<96>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<352>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
+    if constexpr (::std::is_same_v<TKey, char>
+                  && TestUtils::type_list_contain<skip_dpwi_for_char, DataPerWorkItem>())
+    {
+        return false;
+    }
+
+    // int8_t : ?
+
+    // uint8_t : ?
+
+    // int16_t : <96, 224, 352, 448, 480>
+    using skip_dpwi_for_int16_t = TestUtils::TList<DPWI<96>, DPWI<224>, DPWI<352>, DPWI<448>, DPWI<480>>;
+    if constexpr (::std::is_same_v<TKey, ::std::int16_t> 
+                  && TestUtils::type_list_contain<skip_dpwi_for_int16_t, DataPerWorkItem>())
+    {
+        return false;
+    }
+
+    // uint16_t : ?
+
+    // int : ?
+
+    // int32_t : <416, 512>
+    // TODO required to implement case for Rsb: run-time issue with sycl::buffer only
+    using skip_dpwi_for_int32_t = TestUtils::TList<DPWI<416>, DPWI<512>>;
+    if constexpr (::std::is_same_v<TKey, ::std::int16_t>
+                  && TestUtils::type_list_contain<skip_dpwi_for_int32_t, DataPerWorkItem>())
+    {
+        return false;
+    }
+
+    // float, <416, 512>
+    // TODO required to implement case for Rsb: run-time issue with sycl::buffer only
+    using skip_dpwi_for_float = TestUtils::TList<DPWI<416>, DPWI<512>>;
+    if constexpr (::std::is_same_v<TKey, float>
+                  && TestUtils::type_list_contain<skip_dpwi_for_float, DataPerWorkItem>())
+    {
+        return false;
+    }
+
+    // int64_t : ?
+
+    // uint64_t, <256, 288, 320, 352, 384, 416, 448, 480, 512>
+    using skip_dpwi_for_uint64_t = TestUtils::TList<DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
+    if constexpr (::std::is_same_v<TKey, ::std::uint64_t>
+                  && TestUtils::type_list_contain<skip_dpwi_for_uint64_t, DataPerWorkItem>())
+    {
+        return false;
+    }
+
+    // double, <256, 288, 320, 352, 384, 416, 448, 480, 512>
+    using skip_dpwi_for_double = TestUtils::TList<DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
+    if constexpr (::std::is_same_v<TKey, double>
+                  && TestUtils::type_list_contain<skip_dpwi_for_double, DataPerWorkItem>())
+    {
+        return false;
+    }
+
+    return true;
+}
+
+template <typename TestRunner, typename ListOfTypes, typename DataPerWorkItemList>
+void
+iterate_all_params(std::size_t size)
+{
+    if constexpr (TestUtils::type_list_is_empty<ListOfTypes>() || TestUtils::type_list_is_empty<DataPerWorkItemList>())
+    {
+        return;
+    }
+
+    using TKey = typename TestUtils::GetHeadType<ListOfTypes>;
+    using DataPerWorkItem = typename TestUtils::GetHeadType<DataPerWorkItemList>;
+
+    // Check that we are ablue to run test for the current pair <TKey, DataPerWorkItem>
+    if constexpr (start_test<TKey, DataPerWorkItem>())
+    {
+        // Start test for the current pair <TKey, DataPerWorkItem>
+        TestRunner runnerObj;
+        runnerObj.template run_test<TKey, DataPerWorkItem>(size);
+    }
+    else
+    {
+#if LOG_TEST_INFO
+        std::cout << "\t\t\tskip test for type " << TypeInfo().name<TKey>()
+                  << " and DataPerWorkItem = " << DataPerWorkItem::value << " due compile or run-time errors" << std::endl;
+#endif
+    }
+
+    // 1. Recursive call for all rest values of DataPerWorkItem
+    using RestDataPerWorkItemList = typename TestUtils::GetRestTypes<DataPerWorkItemList>;
+    if constexpr (!TestUtils::type_list_is_empty<RestDataPerWorkItemList>())
+    {
+        iterate_all_params<TestRunner, ListOfTypes, RestDataPerWorkItemList>(size);
+    }
+
+    // 2. Recursive call for all rest key types
+    using RestTypeList = typename TestUtils::GetRestTypes<ListOfTypes>;
+    if constexpr (!TestUtils::type_list_is_empty<RestTypeList>())
+    {
+        iterate_all_params<TestRunner, RestTypeList, DataPerWorkItemList>(size);
+    }
+};
 
 int main()
 {
@@ -394,33 +555,15 @@ int main()
 //#if TEST_LONG_RUN
         for(auto size: sizes)
         {
-            test_general_cases<char    >(size);
-            test_general_cases<int8_t  >(size);
-            test_general_cases<uint8_t >(size);
-            test_general_cases<int16_t >(size);
-            test_general_cases<uint16_t>(size);
-            test_general_cases<int     >(size);
-            test_general_cases<uint32_t>(size);
-            test_general_cases<float   >(size);
-            test_general_cases<int64_t >(size);
-            test_general_cases<uint64_t>(size);
-            test_general_cases<double  >(size);
+            iterate_all_params<test_general_cases_runner, TypeListLongRun, DataPerWorkItemListLongRun>(size);
         }
-        test_small_sizes();
+        iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemListLongRun>(1 /* this param ignored inside test_small_sizes function */);
 //#else
         for(auto size: sizes)
         {
-            test_usm<char,     sycl::usm::alloc::shared, Ascending>(size);
-            test_usm<int,      sycl::usm::alloc::shared, Ascending>(size);
-            test_usm<uint32_t, sycl::usm::alloc::shared, Ascending>(size);
-            test_usm<float,    sycl::usm::alloc::shared, Ascending>(size);
-            test_usm<double,   sycl::usm::alloc::shared, Ascending>(size);
-
-            test_usm<int16_t,  sycl::usm::alloc::shared, Descending>(size);
-            test_usm<int,      sycl::usm::alloc::shared, Descending>(size);
-            test_usm<float,    sycl::usm::alloc::shared, Descending>(size);
-            test_usm<uint64_t, sycl::usm::alloc::shared, Descending>(size);
-            test_usm<double,   sycl::usm::alloc::shared, Descending>(size);
+            using test_runner = test_usm_runner<USMAllocShared, AscendingType>;
+            iterate_all_params<test_runner, TypeListShortRunAsc,  DataPerWorkItemListShortRun>(size);
+            iterate_all_params<test_runner, TypeListShortRunDesc, DataPerWorkItemListShortRun>(size);
         }
 //#endif // TEST_LONG_RUN
     }
