@@ -391,7 +391,7 @@ int main()
 
     try
     {
-#if TEST_LONG_RUN
+//#if TEST_LONG_RUN
         for(auto size: sizes)
         {
             test_general_cases<char    >(size);
@@ -407,7 +407,7 @@ int main()
             test_general_cases<double  >(size);
         }
         test_small_sizes();
-#else
+//#else
         for(auto size: sizes)
         {
             test_usm<char,     sycl::usm::alloc::shared, Ascending>(size);
@@ -422,7 +422,7 @@ int main()
             test_usm<uint64_t, sycl::usm::alloc::shared, Descending>(size);
             test_usm<double,   sycl::usm::alloc::shared, Descending>(size);
         }
-#endif // TEST_LONG_RUN
+//#endif // TEST_LONG_RUN
     }
     catch (const ::std::exception& exc)
     {
