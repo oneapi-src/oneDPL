@@ -41,12 +41,22 @@ namespace oneapi::dpl::experimental::esimd::impl
             lsc_gather: limited supported platforms: see https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__lsc.html#ga250b3c0085f39c236582352fb711aadb)
 */
 // TODO: call it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
+// WorkGroupSize : 1...sycl:: max group size from sycl (with step 2 ?)
+// DataPerWorkItem : 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512
 template <std::uint16_t WorkGroupSize, std::uint16_t DataPerWorkItem, bool IsAscending, std::uint32_t RadixBits,
           typename _ExecutionPolicy, typename _Range,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 void
 radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
+    // DataPerWorkItem : 16, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512
+    // TODO is 16 available value for DataPerWorkItem template param?
+    static_assert(DataPerWorkItem == 32 || DataPerWorkItem == 64 || DataPerWorkItem == 96 || DataPerWorkItem == 128 ||
+                      DataPerWorkItem == 160 || DataPerWorkItem == 192 || DataPerWorkItem == 224 ||
+                      DataPerWorkItem == 256 || DataPerWorkItem == 288 || DataPerWorkItem == 320 ||
+                      DataPerWorkItem == 352 || DataPerWorkItem == 384 || DataPerWorkItem == 416 ||
+                      DataPerWorkItem == 448 || DataPerWorkItem == 480 || DataPerWorkItem == 512,
+                  "");
     using _KeyT = oneapi::dpl::__internal::__value_t<_Range>;
 
     const ::std::size_t __n = __rng.size();
