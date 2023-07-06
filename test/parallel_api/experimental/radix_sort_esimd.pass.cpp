@@ -52,7 +52,7 @@ constexpr bool Ascending = true;
 constexpr bool Descending = false;
 
 constexpr ::std::uint16_t WorkGroupSize = 256;
-constexpr ::std::uint16_t DataPerWorkItem = 16;
+constexpr ::std::uint16_t DataPerWorkItem = 32;
 
 #if LOG_TEST_INFO
 struct TypeInfo
