@@ -249,7 +249,7 @@ template <typename T, typename OrderType, typename DataPerWorkItem>
 void test_all_view(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
+    std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -273,7 +273,7 @@ template <typename T, typename OrderType, typename DataPerWorkItem>
 void test_subrange_view(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_subrange_view<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
+    std::cout << "\ttest_subrange_view<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -302,7 +302,7 @@ template <typename T, typename USMAllocType, typename OrderType, typename DataPe
 void test_usm(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<USMAllocType::value>() << ", " << OrderType::value << ">("<< size << ");" << std::endl;
+    std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << ", " << USMAllocPresentation().name<USMAllocType::value>() << ", " << OrderType::value << ">("<< size << ");" << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -329,7 +329,7 @@ void
 test_usm(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_usm<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
+    std::cout << "\ttest_usm<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
 #endif
 
     test_usm<T, USMAllocShared, OrderType, DataPerWorkItem>(size);
@@ -340,7 +340,7 @@ template <typename T, typename OrderType, typename DataPerWorkItem>
 void test_sycl_iterators(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
+    std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << ">(" << size << ");" << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
