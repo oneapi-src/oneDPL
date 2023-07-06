@@ -147,7 +147,7 @@ template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_ascendin
 sycl::event
 __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::size_t __block_size,
                           ::std::uint32_t __radix_offset, _ValRange&& __val_rng, _CountBuf& __count_buf,
-                          sycl::event __dependency_event, _Proj __proj
+                          const std::vector<sycl::event>& __dependency_events, _Proj __proj
 #if _ONEDPL_COMPILE_KERNEL
                           , _Kernel& __kernel
 #endif
@@ -169,7 +169,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 
     // submit to compute arrays with local count values
     sycl::event __count_levent = __exec.queue().submit([&](sycl::handler& __hdl) {
-        __hdl.depends_on(__dependency_event);
+        __hdl.depends_on(__dependency_events);
 
         // ensure the input data and the space for counters are accessible
         oneapi::dpl::__ranges::__require_access(__hdl, __val_rng, __count_rng);
@@ -569,7 +569,8 @@ struct __parallel_radix_sort_iteration
     template <typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _TmpBuf, typename _Proj>
     static sycl::event
     submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter,
-           _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event, _Proj __proj)
+           _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf& __tmp_buf,
+           const std::vector<sycl::event>& __dependency_events, _Proj __proj)
     {
         using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
         using _RadixCountKernel =
@@ -616,7 +617,7 @@ struct __parallel_radix_sort_iteration
 
         // 1. Count Phase
         sycl::event __count_event = __radix_sort_count_submit<_RadixCountKernel, __radix_bits, __is_ascending>(
-            __exec, __segments, __block_size, __radix_offset, __in_rng, __tmp_buf, __dependency_event, __proj
+            __exec, __segments, __block_size, __radix_offset, __in_rng, __tmp_buf, __dependency_events, __proj
 #if _ONEDPL_COMPILE_KERNEL
             , __count_kernel
 #endif
@@ -675,7 +676,8 @@ struct __parallel_radix_sort_iteration
 //-----------------------------------------------------------------------
 template <bool __is_ascending, typename _Range, typename _ExecutionPolicy, typename _Proj>
 auto
-__parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj)
+__parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj,
+                      const std::vector<sycl::event>& __dependency_events)
 {
     const ::std::size_t __n = __in_rng.size();
     assert(__n > 1);
@@ -703,34 +705,34 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
 
     if (__n <= 64 && __wg_size <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size, 1, __radix_bits, __is_ascending>{}(
-            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj, __dependency_events);
     else if (__n <= 128 && __wg_size * 2 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 1, __radix_bits, __is_ascending>{}(
-            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj, __dependency_events);
     else if (__n <= 256 && __wg_size * 2 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 2, __radix_bits, __is_ascending>{}(
-            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj, __dependency_events);
     else if (__n <= 512 && __wg_size * 2 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 4, __radix_bits, __is_ascending>{}(
-            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj, __dependency_events);
     else if (__n <= 1024 && __wg_size * 2 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 2, 8, __radix_bits, __is_ascending>{}(
-            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj, __dependency_events);
     else if (__n <= 2048 && __wg_size * 4 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 4, 8, __radix_bits, __is_ascending>{}(
-            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj, __dependency_events);
     else if (__n <= 4096 && __wg_size * 4 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 4, 16, __radix_bits, __is_ascending>{}(
-            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj, __dependency_events);
     else if (__n <= 8192 && __wg_size * 8 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 16, __radix_bits, __is_ascending>{}(
-            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj, __dependency_events);
     else if (__n <= 16384 && __wg_size * 8 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 8, 32, __radix_bits, __is_ascending>{}(
-            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj, __dependency_events);
     else if (__n <= 32768 && __wg_size * 16 <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size * 16, 32, __radix_bits, __is_ascending>{}(
-            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj);
+            __exec.queue(), ::std::forward<_Range>(__in_rng), __proj, __dependency_events);
     else
     {
         constexpr ::std::uint32_t __radix_iters = __get_buckets_in_type<_KeyT>(__radix_bits);
@@ -758,10 +760,10 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
             // TODO: convert to ordered type once at the first iteration and convert back at the last one
             if (__radix_iter % 2 == 0)
                 __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/true>::submit(
-                    __exec, __segments, __radix_iter, __in_rng, __out_rng, __tmp_buf, __event, __proj);
+                    __exec, __segments, __radix_iter, __in_rng, __out_rng, __tmp_buf, __dependency_events, __proj);
             else //swap __in_rng and __out_rng
                 __event = __parallel_radix_sort_iteration<__radix_bits, __is_ascending, /*even=*/false>::submit(
-                    __exec, __segments, __radix_iter, __out_rng, __in_rng, __tmp_buf, __event, __proj);
+                    __exec, __segments, __radix_iter, __out_rng, __in_rng, __tmp_buf, __dependency_events, __proj);
         }
     }
 
