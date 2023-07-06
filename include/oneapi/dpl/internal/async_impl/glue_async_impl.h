@@ -131,7 +131,6 @@ auto
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
              _BinaryOperation __binary_op, _Events&&... __dependencies)
 {
-    using _ValueType = typename ::std::iterator_traits<_ForwardIterator>::value_type;
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = oneapi::dpl::__internal::__pattern_transform_reduce_async(::std::forward<_ExecutionPolicy>(__exec),
                                                                              __first, __last, __init, __binary_op,
