@@ -378,37 +378,57 @@ void test_small_sizes(std::size_t /*size*/)
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
-template <typename T, typename DataPerWorkItem>
-void test_general_cases(std::size_t size)
+enum GeneralCases
 {
+    eRanges = 0,
+    eUSM,
+    eSyclIterators
+};
+
+template <typename T, typename DataPerWorkItem>
+void
+test_general_cases(std::size_t size, GeneralCases kind)
+{
+    switch (kind)
+    {
+    case GeneralCases::eRanges:
 #if _ENABLE_RANGES_TESTING
-    test_all_view<T, AscendingType,  DataPerWorkItem>(size);
-    test_all_view<T, DescendingType, DataPerWorkItem>(size);
+        test_all_view<T, AscendingType,  DataPerWorkItem>(size);
+        test_all_view<T, DescendingType, DataPerWorkItem>(size);
 
-    test_subrange_view<T, AscendingType,  DataPerWorkItem>(size);
-    test_subrange_view<T, DescendingType, DataPerWorkItem>(size);
+        test_subrange_view<T, AscendingType,  DataPerWorkItem>(size);
+        test_subrange_view<T, DescendingType, DataPerWorkItem>(size);
 #endif // _ENABLE_RANGES_TESTING
+        break;
 
-    test_usm<T, AscendingType,  DataPerWorkItem>(size);
-    test_usm<T, DescendingType, DataPerWorkItem>(size);
+    case GeneralCases::eUSM:
+        test_usm<T, AscendingType,  DataPerWorkItem>(size);
+        test_usm<T, DescendingType, DataPerWorkItem>(size);
+        break;
 
-    test_sycl_iterators<T, AscendingType,  DataPerWorkItem>(size);
-    test_sycl_iterators<T, DescendingType, DataPerWorkItem>(size);
+    case GeneralCases::eSyclIterators:
+        test_sycl_iterators<T, AscendingType,  DataPerWorkItem>(size);
+        test_sycl_iterators<T, DescendingType, DataPerWorkItem>(size);
+        break;
+    }
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-using TypeListSmallSizes   = TestUtils::TList<::std::uint32_t>;
-using TypeListLongRun      = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
-using TypeListShortRunAsc  = TestUtils::TList<char,                                     int, uint32_t, float,                    double>;
-using TypeListShortRunDesc = TestUtils::TList<                       int16_t,           int,           float,          uint64_t, double>;
+using TypeListSmallSizes    = TestUtils::TList<::std::uint32_t>;
+using TypeListLongRunRanges = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
+using TypeListLongRunUSM    = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
+using TypeListLongRunSyclIt = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
+using TypeListShortRunAsc   = TestUtils::TList<char,                                     int, uint32_t, float,                    double>;
+using TypeListShortRunDesc  = TestUtils::TList<                       int16_t,           int,           float,          uint64_t, double>;
 
+template <GeneralCases kind>
 struct test_general_cases_runner
 {
     template <typename TKey, typename DataPerWorkItem>
     void
     run_test(std::size_t size)
     {
-        test_general_cases<TKey, DataPerWorkItem>(size);
+        test_general_cases<TKey, DataPerWorkItem>(size, kind);
     }
 };
 
@@ -433,7 +453,7 @@ struct test_small_sizes_runner
     }
 };
 
-template <typename TKey, typename DataPerWorkItem>
+template <typename TestRunner, typename TKey, typename DataPerWorkItem>
 constexpr bool start_test()
 {
     // char : <96, 160, 192, 224, 352, 416, 448, 480, 512>
@@ -512,7 +532,7 @@ iterate_all_params(std::size_t size)
     using DataPerWorkItem = typename TestUtils::GetHeadType<DataPerWorkItemList>;
 
     // Check that we are ablue to run test for the current pair <TKey, DataPerWorkItem>
-    if constexpr (start_test<TKey, DataPerWorkItem>())
+    if constexpr (start_test<TestRunner, TKey, DataPerWorkItem>())
     {
         // Start test for the current pair <TKey, DataPerWorkItem>
         TestRunner runnerObj;
@@ -555,7 +575,9 @@ int main()
 //#if TEST_LONG_RUN
         for(auto size: sizes)
         {
-            iterate_all_params<test_general_cases_runner, TypeListLongRun, DataPerWorkItemListLongRun>(size);
+            iterate_all_params<test_general_cases_runner<GeneralCases::eRanges>,        TypeListLongRunRanges, DataPerWorkItemListLongRun>(size);
+            iterate_all_params<test_general_cases_runner<GeneralCases::eUSM>,           TypeListLongRunUSM,    DataPerWorkItemListLongRun>(size);
+            iterate_all_params<test_general_cases_runner<GeneralCases::eSyclIterators>, TypeListLongRunSyclIt, DataPerWorkItemListLongRun>(size);
         }
         iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemListLongRun>(1 /* this param ignored inside test_small_sizes function */);
 //#else
