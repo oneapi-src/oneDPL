@@ -208,51 +208,23 @@ struct __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, PROCESS_SIZE, IsAscending
     }
 };
 
-template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS, bool IsAscending>
+template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS, bool IsAscending, ::std::uint32_t PROCESS_SIZE>
 void one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     using namespace sycl;
     using namespace __ESIMD_NS;
 
     constexpr uint32_t MAX_TG_COUNT = 64;
     constexpr uint32_t MIN_TG_COUNT = 8;
-    uint32_t PROCESS_SIZE = 64;
-
-    if (__n < MIN_TG_COUNT*64)
-    {
-        PROCESS_SIZE = 64;
-    }
-    else if (__n < MIN_TG_COUNT*128)
-    {
-        PROCESS_SIZE = 128;
-    }
-    else
-    {
-        PROCESS_SIZE = 256;
-    }
 
     uint32_t TG_COUNT = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE);
     TG_COUNT = std::max(TG_COUNT, MIN_TG_COUNT);
 
     using _EsimRadixSortKernel =
-    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__esimd_radix_sort_one_wg<_KernelName>>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__esimd_radix_sort_one_wg<_KernelName>>;
 
-    sycl::event __e;
-    if (PROCESS_SIZE == 64)
-    {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, /* PROCESS_SIZE */ 64, IsAscending, _EsimRadixSortKernel>()(
-            __q,
-            ::std::forward<_Range>(__rng), __n, TG_COUNT);
-    }
-    else if (PROCESS_SIZE == 128)
-    {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, /* PROCESS_SIZE */ 128, IsAscending, _EsimRadixSortKernel>()(__q,
-            ::std::forward<_Range>(__rng), __n, TG_COUNT);
-    }
-    else
-    {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, /* PROCESS_SIZE */ 256, IsAscending, _EsimRadixSortKernel>()(__q,
-            ::std::forward<_Range>(__rng), __n, TG_COUNT);
-    }
+    sycl::event __e =
+        __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, PROCESS_SIZE, IsAscending, _EsimRadixSortKernel>()(
+            __q, ::std::forward<_Range>(__rng), __n, TG_COUNT);
     __e.wait();
 }
 

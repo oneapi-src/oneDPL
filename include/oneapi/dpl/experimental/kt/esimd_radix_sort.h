@@ -72,7 +72,7 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
     if (__n <= 16384)
     {
         // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize and DataPerWorkItem
-        oneapi::dpl::experimental::esimd::impl::one_wg<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
+        oneapi::dpl::experimental::esimd::impl::one_wg<_KernelName, _KeyT, _Range, RadixBits, IsAscending, /* PROCESS_SIZE */ DataPerWorkItem>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
     else if (__n <= 262144)
