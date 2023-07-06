@@ -239,17 +239,18 @@ void one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     sycl::event __e;
     if (PROCESS_SIZE == 64)
     {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 64, IsAscending, _EsimRadixSortKernel>()(__q,
+        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, /* PROCESS_SIZE */ 64, IsAscending, _EsimRadixSortKernel>()(
+            __q,
             ::std::forward<_Range>(__rng), __n, TG_COUNT);
     }
     else if (PROCESS_SIZE == 128)
     {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 128, IsAscending, _EsimRadixSortKernel>()(__q,
+        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, /* PROCESS_SIZE */ 128, IsAscending, _EsimRadixSortKernel>()(__q,
             ::std::forward<_Range>(__rng), __n, TG_COUNT);
     }
     else
     {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 256, IsAscending, _EsimRadixSortKernel>()(__q,
+        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, /* PROCESS_SIZE */ 256, IsAscending, _EsimRadixSortKernel>()(__q,
             ::std::forward<_Range>(__rng), __n, TG_COUNT);
     }
     __e.wait();
