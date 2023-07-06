@@ -534,6 +534,9 @@ iterate_all_params(std::size_t size)
     // Check that we are ablue to run test for the current pair <TKey, DataPerWorkItem>
     if constexpr (start_test<TestRunner, TKey, DataPerWorkItem>())
     {
+#if LOG_TEST_INFO
+        std::cout << "\t\t\tstarting test for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
+#endif
         // Start test for the current pair <TKey, DataPerWorkItem>
         TestRunner runnerObj;
         runnerObj.template run_test<TKey, DataPerWorkItem>(size);
