@@ -347,7 +347,7 @@ struct __radix_sort_cooperative_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCE
     }
 };
 
-template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS, bool IsAscending>
+template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS, bool IsAscending, ::std::uint32_t PROCESS_SIZE>
 void cooperative(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     using namespace sycl;
     using namespace __ESIMD_NS;
@@ -379,19 +379,9 @@ void cooperative(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     using _EsimRadixSort = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __esimd_radix_sort_cooperative<_KernelName>>;
 
-    sycl::event __e;
-    if (__group_block_size == 128 * THREAD_PER_TG)
-    {
-        __e = __radix_sort_cooperative_submitter<
-            KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 128, IsAscending, _EsimRadixSort>()(
-                __q, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf, p_sync);
-    }
-    else // __group_block_size == 256 * THREAD_PER_TG
-    {
-        __e = __radix_sort_cooperative_submitter<
-            KeyT, RADIX_BITS, THREAD_PER_TG, /*PROCESS_SIZE*/ 256, IsAscending, _EsimRadixSort>()(
-                __q, ::std::forward<_Range>(__rng), __n, __groups, __tmpbuf, p_sync);
-    }
+    sycl::event __e = __radix_sort_cooperative_submitter<KeyT, RADIX_BITS, THREAD_PER_TG, PROCESS_SIZE, IsAscending,
+                                                         _EsimRadixSort>()(__q, ::std::forward<_Range>(__rng), __n,
+                                                                           __groups, __tmpbuf, p_sync);
     __e.wait();
 
     sycl::free(p_temp_memory, __q);
