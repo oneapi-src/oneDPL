@@ -32,6 +32,9 @@ else()
     message(STATUS "oneDPL: -fno-fast-math is not supported by current compiler")
 endif()
 
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wall>)
+add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Werror>)
+
 # usage of Kernel names in tests
 set(ONEDPL_TEST_EXPLICIT_KERNEL_NAMES AUTO CACHE STRING "Use explicit Kernel names in tests")
 set_property(CACHE ONEDPL_TEST_EXPLICIT_KERNEL_NAMES PROPERTY STRINGS AUTO ALWAYS)

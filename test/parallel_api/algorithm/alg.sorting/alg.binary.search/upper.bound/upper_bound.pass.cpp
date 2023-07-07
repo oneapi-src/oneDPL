@@ -75,7 +75,8 @@ DEFINE_TEST(test_upper_bound)
         update_data(host_keys, host_vals, host_res);
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
-        auto res1 = oneapi::dpl::upper_bound(new_policy, first, last, value_first, value_last, result_first);
+        // FIXME: add appropriate check for res1
+        auto res1 [[maybe_unused]] = oneapi::dpl::upper_bound(new_policy, first, last, value_first, value_last, result_first);
         exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_res);
@@ -84,7 +85,8 @@ DEFINE_TEST(test_upper_bound)
 
         // call algorithm with comparator
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
-        auto res2 = oneapi::dpl::upper_bound(new_policy2, first, last, value_first, value_last, result_first,
+        // FIXME: add appropriate check for res2
+        auto res2 [[maybe_unused]] = oneapi::dpl::upper_bound(new_policy2, first, last, value_first, value_last, result_first,
                                              [](ValueT first, ValueT second) { return first < second; });
         exec.queue().wait_and_throw();
 
@@ -108,11 +110,13 @@ DEFINE_TEST(test_upper_bound)
         // call algorithm with no optional arguments
         initialize_data(first, value_first, result_first, n);
 
-        auto res1 = oneapi::dpl::upper_bound(exec, first, last, value_first, value_last, result_first);
+        // FIXME: add appropriate check for res1
+        auto res1 [[maybe_unused]] = oneapi::dpl::upper_bound(exec, first, last, value_first, value_last, result_first);
         check_and_clean(result_first, value_first, n);
 
         // call algorithm with comparator
-        auto res2 = oneapi::dpl::upper_bound(exec, first, last, value_first, value_last, result_first,
+        // FIXME: add appropriate check for res2
+        auto res2 [[maybe_unused]] = oneapi::dpl::upper_bound(exec, first, last, value_first, value_last, result_first,
                                              [](ValueT first, ValueT second) { return first < second; });
         check_and_clean(result_first, value_first, n);
     }

@@ -91,7 +91,7 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
             return;
 
         using key_type = typename ::std::decay_t<decltype(host_keys[0])>;
-        key_type current_key = key_type(999); //not one of the input keys
+        key_type current_key [[maybe_unused]] = key_type(999); //not one of the input keys
 
         using value_type = typename ::std::decay_t<decltype(val_res[0])>;
 
@@ -124,7 +124,6 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
         TestDataTransfer<UDTKind::eRes, Size> host_val_res(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
         const ValT zero = 0;
@@ -135,7 +134,8 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         update_data(host_keys, host_vals, host_val_res);
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
-        auto res1 =
+        // FIXME: add appropriate checks for res1
+        auto res1 [[maybe_unused]] =
             oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
 
@@ -147,7 +147,8 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         update_data(host_keys, host_vals, host_val_res);
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
-        auto res2 =
+        // FIXME: add appropriate checks for res2
+        auto res2 [[maybe_unused]] =
             oneapi::dpl::exclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first, init);
         exec.queue().wait_and_throw();
 
@@ -158,9 +159,11 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         initialize_data(host_keys.get(), host_vals.get(), host_val_res.get(), n);
         update_data(host_keys, host_vals, host_val_res);
 
-        auto binary_op = [](ValT first, ValT second) { return first + second; };
+        // FIXME: try to bring back to mind what was intended to be tested by binary_op below and test it
+        //auto binary_op = [](ValT first, ValT second) { return first + second; };
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
-        auto res3 = oneapi::dpl::exclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first,
+        // FIXME: add appropriate checks for res3
+        auto res3 [[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first,
                                                            val_res_first, init, BinaryPredicate());
         exec.queue().wait_and_throw();
 
@@ -172,7 +175,8 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         update_data(host_keys, host_vals, host_val_res);
 
         auto new_policy4 = make_new_policy<new_kernel_name<Policy, 3>>(exec);
-        auto res4 = oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first,
+        // FIXME: add appropriate checks for res4
+        auto res4 [[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first,
                                                            val_res_first, init, BinaryPredicate(), BinaryOperation());
         exec.queue().wait_and_throw();
 
@@ -193,8 +197,6 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
     {
-
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
         const ValT zero = 0;
@@ -202,24 +204,28 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res1 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
+        // FIXME: add appropriate checks for res1
+        auto res1 [[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
         check_values(keys_first, vals_first, val_res_first, n, zero);
 
         // call algorithm with init
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res2 =
+        // FIXME: add appropriate checks for res2
+        auto res2 [[maybe_unused]] =
             oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init);
         check_values(keys_first, vals_first, val_res_first, n, init);
 
         // call algorithm with init and predicate
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res3 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init,
+        // FIXME: add appropriate checks for res3
+        auto res3 [[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init,
                                                            BinaryPredicate());
         check_values(keys_first, vals_first, val_res_first, n, init, BinaryPredicate());
 
         // call algorithm with init, predicate, and operator
         initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res4 = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init,
+        // FIXME: add appropriate checks for res4
+        auto res4 [[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init,
                                                            BinaryPredicate(), BinaryOperation());
         check_values(keys_first, vals_first, val_res_first, n, init, BinaryPredicate(), BinaryOperation());
     }

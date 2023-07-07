@@ -388,7 +388,7 @@ __scan_by_segment_impl_common(Policy&& policy, InputIterator1 first1, InputItera
     auto value_buf = keep_values(first2, first2 + n);
     auto keep_value_outputs = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::write, OutputIterator>();
     auto value_output_buf = keep_value_outputs(result, result + n);
-    auto buf_view = key_buf.all_view();
+    auto buf_view [[maybe_unused]] = key_buf.all_view();  // maybe a bug ?
     using iter_value_t = typename ::std::iterator_traits<InputIterator2>::value_type;
 
     constexpr iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
