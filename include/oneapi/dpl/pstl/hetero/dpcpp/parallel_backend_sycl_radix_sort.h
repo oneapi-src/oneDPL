@@ -595,7 +595,7 @@ struct __parallel_radix_sort_iteration
         ::std::size_t __count_wg_size = (__n > (1<<21)/*2M*/ ? 128 : __max_sg_size);
 #else
         ::std::size_t __count_wg_size = __max_sg_size;
-#ednif
+#endif
 
         // correct __count_wg_size, __scan_wg_size, __reorder_sg_size after introspection of the kernels
 #if _ONEDPL_COMPILE_KERNEL
