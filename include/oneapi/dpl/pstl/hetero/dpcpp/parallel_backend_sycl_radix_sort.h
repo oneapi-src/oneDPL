@@ -26,7 +26,7 @@
 #include "execution_sycl_defs.h"
 
 #define _ONEDPL_RADIX_WORKLOAD_TUNING 1
-//To achieve better performance number of segments and block size are variated depend on data size (32bits):
+//To achieve better performance number of segments and work-group size  are variated depending on number of elements:
 //1. 32K...512K  - number of segments is increased up to 8 times
 //2. 512K...2M   - number of segments is increased up up 4 times
 //3. 2M...16M... - work-group size (count phase) is increased up to 128
