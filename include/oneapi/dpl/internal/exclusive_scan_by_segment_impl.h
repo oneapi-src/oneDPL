@@ -79,7 +79,7 @@ pattern_exclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputI
     // transform call here is difficult to understand and maintain.
 #if 1
     transform(policy, first2, last2 - 1, _flags.get() + 1, _temp.get() + 1,
-              internal::replace_if_fun<OutputType, ::std::negate<FlagType>>(::std::negate<FlagType>(), init));
+              internal::replace_if_fun<T, ::std::negate<FlagType>>(::std::negate<FlagType>(), init));
 #else
     replace_copy_if(policy1, first2, last2 - 1, _flags.get() + 1, _temp.get() + 1, ::std::negate<FlagType>(), init);
 #endif
@@ -145,7 +145,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     // transform call here is difficult to understand and maintain.
 #    if 1
     transform(::std::move(policy1), first2, last2 - 1, _flags.get() + 1, _temp.get() + 1,
-              internal::replace_if_fun<OutputType, ::std::negate<FlagType>>(::std::negate<FlagType>(), init));
+              internal::replace_if_fun<T, ::std::negate<FlagType>>(::std::negate<FlagType>(), init));
 #    else
     replace_copy_if(::std::move(policy1), first2, last2 - 1, _flags.get() + 1, _temp.get() + 1,
                     ::std::negate<FlagType>(), init);

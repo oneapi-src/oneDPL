@@ -21,6 +21,8 @@
 #ifndef _ONEDPL_UTILS_HETERO_H
 #define _ONEDPL_UTILS_HETERO_H
 
+#include "../tuple_impl.h"
+
 namespace oneapi
 {
 namespace dpl
@@ -148,6 +150,25 @@ struct acc_handler_count
         return (__predicate(acc[gidx]) ? 1 : 0);
     }
 };
+
+template <typename _T>
+struct __decay_with_tuple_specialization
+{
+    using type = ::std::decay_t<_T>;
+};
+
+template <typename... _Args>
+struct __decay_with_tuple_specialization<oneapi::dpl::__internal::tuple<_Args...>>
+{
+    using type = oneapi::dpl::__internal::tuple<::std::decay_t<_Args>...>;
+};
+
+template <typename... _Args>
+struct __decay_with_tuple_specialization<::std::tuple<_Args...>>
+{
+    using type = ::std::tuple<::std::decay_t<_Args>...>;
+};
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
