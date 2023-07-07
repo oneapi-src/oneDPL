@@ -589,9 +589,13 @@ struct __parallel_radix_sort_iteration
                                                                         __decay_t<_InRange>, __decay_t<_OutRange>>;
 
         ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
-        ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
-        ::std::size_t __count_wg_size = __max_sg_size;
         ::std::size_t __reorder_sg_size = __max_sg_size;
+        ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+#if _ONEDPL_RADIX_WORKLOAD_TUNING
+        ::std::size_t __count_wg_size = (__n > (1<<21)/*2M*/ ? 128 : __max_sg_size);
+#else
+        ::std::size_t __count_wg_size = __max_sg_size;
+#ednif
 
         // correct __count_wg_size, __scan_wg_size, __reorder_sg_size after introspection of the kernels
 #if _ONEDPL_COMPILE_KERNEL
@@ -618,14 +622,6 @@ struct __parallel_radix_sort_iteration
         // work-group size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
         __count_wg_size = sycl::max(oneapi::dpl::__internal::__dpl_bit_floor(__count_wg_size), ::std::size_t(__radix_states));
-#if _ONEDPL_RADIX_WORKLOAD_TUNING
-        const ::std::size_t __n = __in_rng.size();
-        if(__n > (1<<21)/*2M*/)
-        {
-            __count_wg_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec,
-                sizeof(_CounterType) * __radix_states, ::std::size_t(128)/*desired wg size size*/);
-        }
-#endif
 
         // Compute the radix position for the given iteration
         ::std::uint32_t __radix_offset = __radix_iter * __radix_bits;
