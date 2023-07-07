@@ -592,7 +592,7 @@ struct __parallel_radix_sort_iteration
         ::std::size_t __reorder_sg_size = __max_sg_size;
         ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 #if _ONEDPL_RADIX_WORKLOAD_TUNING
-        ::std::size_t __count_wg_size = (__n > (1<<21)/*2M*/ ? 128 : __max_sg_size);
+        ::std::size_t __count_wg_size = (__in_rng.size() > (1<<21)/*2M*/ ? 128 : __max_sg_size);
 #else
         ::std::size_t __count_wg_size = __max_sg_size;
 #endif
