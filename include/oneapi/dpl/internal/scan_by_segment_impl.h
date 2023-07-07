@@ -117,8 +117,6 @@ struct __sycl_scan_by_segment_impl
         using _SegScanPrefixKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
             _SegScanPrefixPhase, _CustomName, _Range1, _Range2, _Range3, _BinaryPredicate, _BinaryOperator>;
 
-        using __diff_type = oneapi::dpl::__internal::__difference_t<_Range1>;
-        using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
         using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
 
         const ::std::size_t __n = __keys.size();
