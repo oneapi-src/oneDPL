@@ -746,8 +746,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
         const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
 #if _ONEDPL_RADIX_WORKLOAD_TUNING
-        const auto __wg_sz_k =
-            __n >= (1 << 15) /*32K*/ && __n < (1 << 19) /*512K*/ ? 8 : __n <= (1 << 21) /*2M*/ ? 4 : 1;
+        const auto __wg_sz_k = __n >= (1 << 15)/*32K*/ && __n < (1 << 19)/*512K*/ ? 8 : __n <= (1 << 21)/*2M*/ ? 4 : 1;
         const ::std::size_t __wg_size = __max_wg_size / __wg_sz_k;
 #else
         ::std::size_t __wg_size = __max_wg_size;
