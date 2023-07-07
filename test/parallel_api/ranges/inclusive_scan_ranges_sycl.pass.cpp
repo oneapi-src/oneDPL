@@ -47,7 +47,7 @@ main()
         auto view = ranges::all_view<int, sycl::access::mode::read>(A);
         auto view_res1 = ranges::all_view<int, sycl::access::mode::write>(B1);
         // FIXME: add appropriate check for view_res2
-        auto view_res2 [[maybe_unused]] = ranges::all_view<int, sycl::access::mode::write>(B2);
+        auto view_res2[[maybe_unused]] = ranges::all_view<int, sycl::access::mode::write>(B2);
         auto view_res3 = ranges::all_view<int, sycl::access::mode::write>(B3);
 
         auto exec = TestUtils::default_dpcpp_policy;

@@ -66,9 +66,9 @@ test_with_usm()
 
     //run reduce_by_segment algorithm
     // FIXME: add appropriate check for new_last
-    auto new_last [[maybe_unused]] = oneapi::dpl::reduce_by_segment(
-        TestUtils::make_device_policy<KernelName>(q), begin_keys_in,
-        end_keys_in, d_values, begin_keys_out, d_output_values);
+    auto new_last[[maybe_unused]] =
+        oneapi::dpl::reduce_by_segment(TestUtils::make_device_policy<KernelName>(q), begin_keys_in, end_keys_in,
+                                       d_values, begin_keys_out, d_output_values);
 
     q.wait();
 

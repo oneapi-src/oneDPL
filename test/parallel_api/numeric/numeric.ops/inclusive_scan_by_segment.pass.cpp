@@ -93,8 +93,7 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
 
         ::std::vector<ValT> expected_val_res(n);
-        inclusive_scan_by_segment_serial(host_keys, host_vals, ::std::begin(expected_val_res),
-            n, pred, op);
+        inclusive_scan_by_segment_serial(host_keys, host_vals, ::std::begin(expected_val_res), n, pred, op);
 
 #ifdef DUMP_CHECK_RESULTS
         ::std::cout << "check_values(n = " << n << ") : " << ::std::endl;
@@ -127,7 +126,7 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         // FIXME: add appropriate checks for res1
-        auto res1 [[maybe_unused]] =
+        auto res1[[maybe_unused]] =
             oneapi::dpl::inclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
 
@@ -140,8 +139,8 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         // FIXME: add appropriate checks for res2
-        auto res2 [[maybe_unused]] = oneapi::dpl::inclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first,
-                                                           val_res_first, BinaryPredicate());
+        auto res2[[maybe_unused]] = oneapi::dpl::inclusive_scan_by_segment(
+            new_policy2, keys_first, keys_last, vals_first, val_res_first, BinaryPredicate());
         exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res);
@@ -153,8 +152,8 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         // FIXME: add appropriate checks for res3
-        auto res3 [[maybe_unused]] = oneapi::dpl::inclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first,
-                                                           val_res_first, BinaryPredicate(), BinaryOperation());
+        auto res3[[maybe_unused]] = oneapi::dpl::inclusive_scan_by_segment(
+            new_policy3, keys_first, keys_last, vals_first, val_res_first, BinaryPredicate(), BinaryOperation());
         exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res);
@@ -176,21 +175,22 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
         // FIXME: add appropriate checks for res1
-        auto res1 [[maybe_unused]] = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
+        auto res1[[maybe_unused]] =
+            oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
         check_values(keys_first, vals_first, val_res_first, n);
 
         // call algorithm with predicate
         initialize_data(keys_first, vals_first, val_res_first, n);
         // FIXME: add appropriate checks for res2
-        auto res2 [[maybe_unused]] = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
-                                                           BinaryPredicate());
+        auto res2[[maybe_unused]] = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first,
+                                                                           val_res_first, BinaryPredicate());
         check_values(keys_first, vals_first, val_res_first, n, BinaryPredicate());
 
         // call algorithm with predicate and operator
         initialize_data(keys_first, vals_first, val_res_first, n);
         // FIXME: add appropriate checks for res3
-        auto res3 [[maybe_unused]] = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
-                                                           BinaryPredicate(), BinaryOperation());
+        auto res3[[maybe_unused]] = oneapi::dpl::inclusive_scan_by_segment(
+            exec, keys_first, keys_last, vals_first, val_res_first, BinaryPredicate(), BinaryOperation());
         check_values(keys_first, vals_first, val_res_first, n, BinaryPredicate(), BinaryOperation());
     }
 

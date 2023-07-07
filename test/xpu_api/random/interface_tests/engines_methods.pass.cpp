@@ -334,7 +334,7 @@ public:
                         engine1.discard(offset);
                         typename oneapi::dpl::ranlux24::result_type res0;
                         oneapi::dpl::ranlux24 engine(engine1);
-                        auto eng [[maybe_unused]] = engine.base();
+                        auto eng[[maybe_unused]] = engine.base();
                         res0 = engine();
                         typename oneapi::dpl::ranlux24::result_type res1 = engine1();
                         if (res0 != res1)

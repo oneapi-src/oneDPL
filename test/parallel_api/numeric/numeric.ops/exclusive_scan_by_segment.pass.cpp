@@ -91,7 +91,7 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
             return;
 
         using key_type = typename ::std::decay_t<decltype(host_keys[0])>;
-        key_type current_key [[maybe_unused]] = key_type(999); //not one of the input keys
+        key_type current_key[[maybe_unused]] = key_type(999); //not one of the input keys
 
         using value_type = typename ::std::decay_t<decltype(val_res[0])>;
 
@@ -135,7 +135,7 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         // FIXME: add appropriate checks for res1
-        auto res1 [[maybe_unused]] =
+        auto res1[[maybe_unused]] =
             oneapi::dpl::exclusive_scan_by_segment(new_policy, keys_first, keys_last, vals_first, val_res_first);
         exec.queue().wait_and_throw();
 
@@ -148,7 +148,7 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         // FIXME: add appropriate checks for res2
-        auto res2 [[maybe_unused]] =
+        auto res2[[maybe_unused]] =
             oneapi::dpl::exclusive_scan_by_segment(new_policy2, keys_first, keys_last, vals_first, val_res_first, init);
         exec.queue().wait_and_throw();
 
@@ -163,8 +163,8 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         //auto binary_op = [](ValT first, ValT second) { return first + second; };
         auto new_policy3 = make_new_policy<new_kernel_name<Policy, 2>>(exec);
         // FIXME: add appropriate checks for res3
-        auto res3 [[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(new_policy3, keys_first, keys_last, vals_first,
-                                                           val_res_first, init, BinaryPredicate());
+        auto res3[[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(
+            new_policy3, keys_first, keys_last, vals_first, val_res_first, init, BinaryPredicate());
         exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_val_res);
@@ -176,8 +176,8 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 
         auto new_policy4 = make_new_policy<new_kernel_name<Policy, 3>>(exec);
         // FIXME: add appropriate checks for res4
-        auto res4 [[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(new_policy4, keys_first, keys_last, vals_first,
-                                                           val_res_first, init, BinaryPredicate(), BinaryOperation());
+        auto res4[[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(
+            new_policy4, keys_first, keys_last, vals_first, val_res_first, init, BinaryPredicate(), BinaryOperation());
         exec.queue().wait_and_throw();
 
         retrieve_data(host_vals, host_val_res);
@@ -205,28 +205,29 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
         // FIXME: add appropriate checks for res1
-        auto res1 [[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
+        auto res1[[maybe_unused]] =
+            oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
         check_values(keys_first, vals_first, val_res_first, n, zero);
 
         // call algorithm with init
         initialize_data(keys_first, vals_first, val_res_first, n);
         // FIXME: add appropriate checks for res2
-        auto res2 [[maybe_unused]] =
+        auto res2[[maybe_unused]] =
             oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init);
         check_values(keys_first, vals_first, val_res_first, n, init);
 
         // call algorithm with init and predicate
         initialize_data(keys_first, vals_first, val_res_first, n);
         // FIXME: add appropriate checks for res3
-        auto res3 [[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init,
-                                                           BinaryPredicate());
+        auto res3[[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first,
+                                                                           val_res_first, init, BinaryPredicate());
         check_values(keys_first, vals_first, val_res_first, n, init, BinaryPredicate());
 
         // call algorithm with init, predicate, and operator
         initialize_data(keys_first, vals_first, val_res_first, n);
         // FIXME: add appropriate checks for res4
-        auto res4 [[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first, init,
-                                                           BinaryPredicate(), BinaryOperation());
+        auto res4[[maybe_unused]] = oneapi::dpl::exclusive_scan_by_segment(
+            exec, keys_first, keys_last, vals_first, val_res_first, init, BinaryPredicate(), BinaryOperation());
         check_values(keys_first, vals_first, val_res_first, n, init, BinaryPredicate(), BinaryOperation());
     }
 

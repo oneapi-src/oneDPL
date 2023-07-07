@@ -74,7 +74,8 @@ DEFINE_TEST(test_binary_search)
 
         auto new_policy = make_new_policy<new_kernel_name<Policy, 0>>(exec);
         // FIXME: add appropriate check for res1
-        auto res1 [[maybe_unused]] = oneapi::dpl::binary_search(new_policy, first, last, value_first, value_last, result_first);
+        auto res1[[maybe_unused]] =
+            oneapi::dpl::binary_search(new_policy, first, last, value_first, value_last, result_first);
         exec.queue().wait_and_throw();
 
         host_res.retrieve_data();
@@ -84,8 +85,9 @@ DEFINE_TEST(test_binary_search)
         // call algorithm with comparator
         auto new_policy2 = make_new_policy<new_kernel_name<Policy, 1>>(exec);
         // FIXME: add appropriate check for res1
-        auto res2 [[maybe_unused]] = oneapi::dpl::binary_search(new_policy2, first, last, value_first, value_last, result_first,
-                                               [](ValueT first, ValueT second) { return first < second; });
+        auto res2[[maybe_unused]] =
+            oneapi::dpl::binary_search(new_policy2, first, last, value_first, value_last, result_first,
+                                       [](ValueT first, ValueT second) { return first < second; });
         exec.queue().wait_and_throw();
 
         host_res.retrieve_data();
@@ -110,13 +112,15 @@ DEFINE_TEST(test_binary_search)
         initialize_data(first, value_first, result_first, n);
 
         // FIXME: add appropriate check for res1
-        auto res1 [[maybe_unused]] = oneapi::dpl::binary_search(exec, first, last, value_first, value_last, result_first);
+        auto res1[[maybe_unused]] =
+            oneapi::dpl::binary_search(exec, first, last, value_first, value_last, result_first);
         check_and_clean(result_first, n);
 
         // call algorithm with comparator
         // FIXME: add appropriate check for res2
-        auto res2 [[maybe_unused]] = oneapi::dpl::binary_search(exec, first, last, value_first, value_last, result_first,
-                                               [](ValueT first, ValueT second) { return first < second; });
+        auto res2[[maybe_unused]] =
+            oneapi::dpl::binary_search(exec, first, last, value_first, value_last, result_first,
+                                       [](ValueT first, ValueT second) { return first < second; });
         check_and_clean(result_first, n);
     }
 

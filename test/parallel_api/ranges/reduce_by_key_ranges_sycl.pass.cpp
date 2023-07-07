@@ -47,7 +47,8 @@ main()
     auto exec = TestUtils::default_dpcpp_policy;
 
     // FIXME: add appropriate checks for res
-    auto res [[maybe_unused]] = reduce_by_segment(exec, views::all_read(A), views::all_read(B), views::all_write(C), views::all_write(D));
+    auto res[[maybe_unused]] =
+        reduce_by_segment(exec, views::all_read(A), views::all_read(B), views::all_write(C), views::all_write(D));
 
     int key_exp[n_res] = {1, 3, 2, 1};    // expected keys
     int value_exp[n_res] = {9, 21, 9, 3}; // expected values
