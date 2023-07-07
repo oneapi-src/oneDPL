@@ -40,7 +40,10 @@
     !defined(_PSTL_TEST_STABLE_SORT) && \
     !defined(_PSTL_TEST_LEXICOGRAPHICAL_COMPIARE) && \
     !defined(_PSTL_TEST_COUNTING_ZIP_TRANSFORM) && \
-    !defined(_PSTL_TEST_COUNTING_ZIP_DISCARD)
+    !defined(_PSTL_TEST_COUNTING_ZIP_DISCARD) && \
+    !defined(_PSTL_TEST_REDUCE_BY_SEGMENT) && \
+    !defined(_PSTL_TEST_INCLUSIVE_SCAN_BY_SEGMENT) && \
+    !defined(_PSTL_TEST_EXCLUSIVE_SCAN_BY_SEGMENT)
 #define _PSTL_TEST_FOR_EACH
 #define _PSTL_TEST_TRANSFORM_REDUCE_UNARY
 #define _PSTL_TEST_TRANSFORM_REDUCE_BINARY
@@ -56,6 +59,9 @@
 #define _PSTL_TEST_COUNTING_ZIP_DISCARD
 #define _PSTL_TEST_FOR_EACH_STRUCTURED_BINDING
 #define _PSTL_TEST_EQUAL_STRUCTURED_BINDING
+#define _PSTL_TEST_REDUCE_BY_SEGMENT
+#define _PSTL_TEST_INCLUSIVE_SCAN_BY_SEGMENT
+#define _PSTL_TEST_EXCLUSIVE_SCAN_BY_SEGMENT
 #endif
 
 using namespace TestUtils;
@@ -798,6 +804,132 @@ DEFINE_TEST(test_counting_zip_discard)
         EXPECT_TRUE(*(host_vals.get() + 1) == (n / 3 * 2), "Incorrect 2nd element");
     }
 };
+
+// Ensure reduce_by_segment can be used with a zip iterator
+DEFINE_TEST(test_reduce_by_segment)
+{
+    DEFINE_TEST_CONSTRUCTOR(test_reduce_by_segment)
+
+    // specialization for hetero policy
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
+              typename Size>
+    void
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 /*keys_last*/, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
+    {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+        TestDataTransfer<UDTKind::eRes, Size> host_res_keys(*this, n);
+        TestDataTransfer<UDTKind::eRes2, Size> host_res(*this, n);
+
+        using ValueType = typename ::std::iterator_traits<Iterator2>::value_type;
+
+        ::std::generate(host_keys.get(), host_keys.get() + n, [idx = ::std::size_t(0)] () mutable { return idx++ / 3; });
+        ::std::fill(host_vals.get(), host_vals.get() + n, ValueType{1});
+        ::std::fill(host_res_keys.get(), host_res_keys.get() + n, ValueType{0});
+        ::std::fill(host_res.get(), host_res.get() + n, ValueType{1});
+        update_data(host_keys, host_vals, host_res_keys, host_res);
+
+        auto keys_beg = oneapi::dpl::make_zip_iterator(keys_first, keys_first);
+        auto keys_end = oneapi::dpl::make_zip_iterator(keys_first, keys_first) + n;
+        auto vals_beg = oneapi::dpl::make_zip_iterator(vals_first, vals_first);
+        auto out_keys_beg = oneapi::dpl::make_zip_iterator(key_res_first, key_res_first);
+        auto out_vals_beg = oneapi::dpl::make_zip_iterator(val_res_first, val_res_first);
+
+        auto [out_keys_end, out_vals_end] = oneapi::dpl::reduce_by_segment(make_new_policy<new_kernel_name<Policy, 0>>(exec), keys_beg, keys_end,
+                vals_beg, out_keys_beg, out_vals_beg, TuplePredicate<std::equal_to<ValueType>, 1>{std::equal_to<ValueType>()}, TupleNoOp());
+
+#if _PSTL_SYCL_TEST_USM
+        exec.queue().wait_and_throw();
+#endif
+        retrieve_data(host_keys, host_vals, host_res_keys, host_res);
+        ::std::size_t expected_num_segments = (n - 1) / 3 + 1;
+        EXPECT_TRUE(::std::distance(out_keys_beg, out_keys_end) == expected_num_segments, "Incorrect number of output segments");
+        EXPECT_TRUE(::std::distance(out_vals_beg, out_vals_end) == expected_num_segments, "Incorrect number of output vals");
+
+        std::vector<ValueType> expected_keys(::std::distance(out_keys_beg, out_keys_end));
+        std::iota(expected_keys.begin(), expected_keys.end(), ValueType(0));
+        EXPECT_EQ_N(host_res_keys.get(), expected_keys.begin(), expected_num_segments, "Incorrect output keys");
+        EXPECT_TRUE(check_values(host_res.get(), host_res.get() + expected_num_segments, ValueType(1)), "Incorrect output values");
+    }
+};
+
+// Ensure inclusive_scan_by_segment can be used with a zip iterator
+DEFINE_TEST(test_inclusive_scan_by_segment)
+{
+    DEFINE_TEST_CONSTRUCTOR(test_inclusive_scan_by_segment)
+
+    // specialization for hetero policy
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    void
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 /*keys_last*/, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 val_res_first, Iterator3 val_res_last, Size n)
+    {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+        TestDataTransfer<UDTKind::eRes, Size> host_res(*this, n);
+
+        using ValueType = typename ::std::iterator_traits<Iterator2>::value_type;
+
+        ::std::generate(host_keys.get(), host_keys.get() + n, [idx = ::std::size_t(0)] () mutable { return idx++ / 3; });
+        ::std::fill(host_vals.get(), host_vals.get() + n, ValueType{1});
+        ::std::fill(host_res.get(), host_res.get() + n, ValueType{0});
+        update_data(host_keys, host_vals, host_res);
+
+        auto keys_beg = oneapi::dpl::make_zip_iterator(keys_first, keys_first);
+        auto keys_end = oneapi::dpl::make_zip_iterator(keys_first, keys_first) + n;
+        auto vals_beg = oneapi::dpl::make_zip_iterator(vals_first, vals_first);
+        auto out_vals_beg = oneapi::dpl::make_zip_iterator(val_res_first, val_res_first);
+
+        oneapi::dpl::inclusive_scan_by_segment(make_new_policy<new_kernel_name<Policy, 0>>(exec), keys_beg, keys_end,
+                vals_beg, out_vals_beg, TuplePredicate<std::equal_to<ValueType>, 1>{std::equal_to<ValueType>()}, TupleNoOp());
+
+#if _PSTL_SYCL_TEST_USM
+        exec.queue().wait_and_throw();
+#endif
+        retrieve_data(host_keys, host_vals, host_res);
+        EXPECT_TRUE(check_values(host_res.get(), host_res.get() + n, ValueType(1)), "Incorrect output values");
+    }
+};
+
+// Ensure exclusive_scan_by_segment can be used with a zip iterator
+DEFINE_TEST(test_exclusive_scan_by_segment)
+{
+    DEFINE_TEST_CONSTRUCTOR(test_exclusive_scan_by_segment)
+
+    // specialization for hetero policy
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
+    void
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 /*keys_last*/, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 val_res_first, Iterator3 val_res_last, Size n)
+    {
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+        TestDataTransfer<UDTKind::eRes, Size> host_res(*this, n);
+
+        using ValueType = typename ::std::iterator_traits<Iterator2>::value_type;
+
+        ::std::generate(host_keys.get(), host_keys.get() + n, [idx = ::std::size_t(0)] () mutable { return idx++ / 3; });
+        ::std::fill(host_vals.get(), host_vals.get() + n, ValueType{1});
+        ::std::fill(host_res.get(), host_res.get() + n, ValueType{0});
+        update_data(host_keys, host_vals, host_res);
+
+        auto keys_beg = oneapi::dpl::make_zip_iterator(keys_first, keys_first);
+        auto keys_end = oneapi::dpl::make_zip_iterator(keys_first, keys_first) + n;
+        auto vals_beg = oneapi::dpl::make_zip_iterator(vals_first, vals_first);
+        auto out_vals_beg = oneapi::dpl::make_zip_iterator(val_res_first, val_res_first);
+
+        oneapi::dpl::exclusive_scan_by_segment(make_new_policy<new_kernel_name<Policy, 0>>(exec), keys_beg, keys_end,
+                vals_beg, out_vals_beg, ::std::make_tuple(ValueType(1), ValueType(1)),
+                TuplePredicate<std::equal_to<ValueType>, 1>{std::equal_to<ValueType>()}, TupleNoOp());
+
+#if _PSTL_SYCL_TEST_USM
+        exec.queue().wait_and_throw();
+#endif
+        retrieve_data(host_keys, host_vals, host_res);
+        EXPECT_TRUE(check_values(host_res.get(), host_res.get() + n, ValueType(1)), "Incorrect output values");
+    }
+};
 #endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -868,6 +1000,18 @@ test_usm_and_buffer()
 #if defined(_PSTL_TEST_COUNTING_ZIP_DISCARD)
     PRINT_DEBUG("test_counting_zip_discard");
     test2buffers<alloc_type, test_counting_zip_discard<ValueType>>();
+#endif
+#if defined(_PSTL_TEST_REDUCE_BY_SEGMENT)
+    PRINT_DEBUG("test_reduce_by_segment");
+    test4buffers<alloc_type, test_reduce_by_segment<ValueType>>();
+#endif
+#if defined(_PSTL_TEST_INCLUSIVE_SCAN_BY_SEGMENT)
+    PRINT_DEBUG("test_inclusive_scan_by_segment");
+    test3buffers<alloc_type, test_inclusive_scan_by_segment<ValueType>>();
+#endif
+#if defined(_PSTL_TEST_EXCLUSIVE_SCAN_BY_SEGMENT)
+    PRINT_DEBUG("test_exclusive_scan_by_segment");
+    test3buffers<alloc_type, test_exclusive_scan_by_segment<ValueType>>();
 #endif
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
