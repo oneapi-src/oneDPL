@@ -810,7 +810,6 @@ DEFINE_TEST(test_reduce_by_segment)
 {
     DEFINE_TEST_CONSTRUCTOR(test_reduce_by_segment)
 
-    // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
               typename Size>
     void
@@ -859,7 +858,6 @@ DEFINE_TEST(test_inclusive_scan_by_segment)
 {
     DEFINE_TEST_CONSTRUCTOR(test_inclusive_scan_by_segment)
 
-    // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 /*keys_last*/, Iterator2 vals_first, Iterator2 vals_last,
@@ -897,7 +895,6 @@ DEFINE_TEST(test_exclusive_scan_by_segment)
 {
     DEFINE_TEST_CONSTRUCTOR(test_exclusive_scan_by_segment)
 
-    // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 /*keys_last*/, Iterator2 vals_first, Iterator2 vals_last,
