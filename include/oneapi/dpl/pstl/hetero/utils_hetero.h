@@ -169,6 +169,9 @@ struct __decay_with_tuple_specialization<::std::tuple<_Args...>>
     using type = ::std::tuple<::std::decay_t<_Args>...>;
 };
 
+template <typename... _Args>
+using __decay_with_tuple_specialization_t = typename __decay_with_tuple_specialization<_Args...>::type;
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
