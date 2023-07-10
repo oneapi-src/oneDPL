@@ -151,7 +151,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
                     ::std::negate<FlagType>(), init);
 #    endif
 
-    auto policy2 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<ExclusiveScan2>(policy);
+    auto policy2 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<ExclusiveScan2>(::std::forward<Policy>(policy));
 
     // scan key-flag tuples
     transform_inclusive_scan(::std::move(policy2), make_zip_iterator(_temp.get(), _flags.get()),
