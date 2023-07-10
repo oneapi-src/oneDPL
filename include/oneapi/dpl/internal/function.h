@@ -134,7 +134,7 @@ struct segmented_scan_fun
     {
         using ::std::get;
         using x_t = ::std::tuple_element_t<0, _T1>;
-        x_t new_x = get<1>(y) ? get<0>(y) : binary_op(get<0>(x), get<0>(y));
+        auto new_x = get<1>(y) ? x_t(get<0>(y)) : x_t(binary_op(get<0>(x), get<0>(y)));
         auto new_y = get<1>(x) | get<1>(y);
         return _T1(new_x, new_y);
     }
