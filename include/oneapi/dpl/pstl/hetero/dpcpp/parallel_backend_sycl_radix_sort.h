@@ -242,14 +242,16 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
 // radix sort: scan kernel (per iteration)
 //-----------------------------------------------------------------------
 
-template <typename _KernelName, ::std::uint32_t __radix_bits, typename _ExecutionPolicy, typename _CountBuf
+template <typename _KernelName, ::std::uint32_t __radix_bits, typename _ExecutionPolicy, typename _CountBuf,
+          typename __NoOpFlagType
 #if _ONEDPL_COMPILE_KERNEL
           , typename _Kernel
 #endif
           >
 sycl::event
 __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size, ::std::size_t __segments,
-                         _CountBuf& __count_buf, sycl::event __dependency_event
+                         _CountBuf& __count_buf, ::std::size_t __n, __NoOpFlagType& __no_op_flag,
+                          sycl::event __dependency_event
 #if _ONEDPL_COMPILE_KERNEL
                          , _Kernel& __kernel
 #endif
@@ -274,6 +276,7 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
         __hdl.depends_on(__dependency_event);
         // access the counters for all work groups
         oneapi::dpl::__ranges::__require_access(__hdl, __count_rng);
+        sycl::accessor __no_op_acc(__no_op_flag, __hdl, sycl::write_only);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
         __hdl.use_kernel_bundle(__kernel.get_kernel_bundle());
 #endif
@@ -287,6 +290,10 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
                 // TODO: consider another approach with use of local memory
                 __dpl_sycl::__joint_exclusive_scan(__self_item.get_group(), __begin, __begin + __scan_size, __begin,
                                                    _CountT(0), __dpl_sycl::__plus<_CountT>{});
+                const auto __wi = __self_item.get_local_linear_id();
+                //That condition may be truth (by algo semantic) just on one WG, one WI, so there is no race here.
+                if(__wi == __scan_wg_size - 1 && *(__begin + __scan_size - 1) == __n)
+                    __no_op_acc[0] = true; //set flag if the all values got into one bin
             });
     });
     return __scan_event;
@@ -419,11 +426,40 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::subgroup_ballot>
 };
 #endif // _ONEDPL_SYCL_SUB_GROUP_MASK_PRESENT
 
+template <typename _InRange, typename _OutRange>
+void
+__copy_kernel_for_radix_sort(::std::size_t __segments, const ::std::size_t __elem_per_segment, ::std::size_t __sg_size,
+                         sycl::nd_item<1> __self_item, _InRange& __input_rng, _OutRange& __output_rng)
+{
+    // item info
+    const ::std::size_t __self_lidx = __self_item.get_local_id(0);
+    const ::std::size_t __wgroup_idx = __self_item.get_group(0);
+    const ::std::size_t __seg_start = __elem_per_segment * __wgroup_idx;
+    const ::std::size_t __n = __output_rng.size();
+
+    ::std::size_t __seg_end =
+        sycl::min(__seg_start + __elem_per_segment, __n);
+    // ensure that each work item in a subgroup does the same number of loop iterations
+    const ::std::uint16_t __residual = (__seg_end - __seg_start) % __sg_size;
+    __seg_end -= __residual;
+
+    // find offsets for the same values within a segment and fill the resulting buffer
+    for (::std::size_t __val_idx = __seg_start + __self_lidx; __val_idx < __seg_end; __val_idx += __sg_size)
+        __output_rng[__val_idx] = std::move(__input_rng[__val_idx]);
+
+    if (__residual > 0 && __self_lidx < __residual)
+    {
+        const ::std::size_t __val_idx = __seg_end + __self_lidx;
+        __output_rng[__val_idx] = std::move(__input_rng[__val_idx]);
+    }
+}
+
 //-----------------------------------------------------------------------
 // radix sort: reorder kernel (per iteration)
 //-----------------------------------------------------------------------
 template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_ascending, __peer_prefix_algo _PeerAlgo,
-          typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _OffsetBuf, typename _Proj
+          typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _OffsetBuf,
+          typename __NoOpFlagType, typename _Proj
 #if _ONEDPL_COMPILE_KERNEL
           , typename _Kernel
 #endif
@@ -431,8 +467,8 @@ template <typename _KernelName, ::std::uint32_t __radix_bits, bool __is_ascendin
 sycl::event
 __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                             ::std::size_t __sg_size, ::std::uint32_t __radix_offset, _InRange&& __input_rng,
-                            _OutRange&& __output_rng, _OffsetBuf& __offset_buf, sycl::event __dependency_event,
-                            _Proj __proj
+                            _OutRange&& __output_rng, _OffsetBuf& __offset_buf, __NoOpFlagType& __no_op_flag,
+                            sycl::event __dependency_event, _Proj __proj
 #if _ONEDPL_COMPILE_KERNEL
                             , _Kernel& __kernel
 #endif
@@ -456,12 +492,11 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
     // submit to reorder values
     sycl::event __reorder_event = __exec.queue().submit([&](sycl::handler& __hdl) {
         __hdl.depends_on(__dependency_event);
-
         // access the offsets for all work groups
         oneapi::dpl::__ranges::__require_access(__hdl, __offset_rng);
-
         // access the input and output data
         oneapi::dpl::__ranges::__require_access(__hdl, __input_rng, __output_rng);
+        sycl::accessor __no_op_acc(__no_op_flag, __hdl, sycl::read_only);
 
         typename _PeerHelper::_TempStorageT __peer_temp(1, __hdl);
 
@@ -474,6 +509,15 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 #endif
             //Each SYCL work group processes one data segment.
             sycl::nd_range<1>(__segments * __sg_size, __sg_size), [=](sycl::nd_item<1> __self_item) {
+
+                //Optimization: skip re-order phase if the all keys are the same, do just copying
+                if(__no_op_acc[0])
+                {
+                    __copy_kernel_for_radix_sort(__segments, __elem_per_segment, __sg_size, __self_item,
+                                             __input_rng, __output_rng);
+                    return;
+                }
+
                 // item info
                 const ::std::size_t __self_lidx = __self_item.get_local_id(0);
                 const ::std::size_t __segment_idx = __self_item.get_group(0); //SYCL work group ID
@@ -634,9 +678,13 @@ struct __parallel_radix_sort_iteration
 #endif
         );
 
+        //A flag to specify "no re-order execution" if data are the same on the current sort iteration.
+        bool __no_op = false;
+        sycl::buffer<bool, 1> __no_op_flag(&__no_op, 1);
+
         // 2. Scan Phase
         sycl::event __scan_event = __radix_sort_scan_submit<_RadixLocalScanKernel, __radix_bits>(
-            __exec, __scan_wg_size, __segments, __tmp_buf, __count_event
+            __exec, __scan_wg_size, __segments, __tmp_buf, __in_rng.size(), __no_op_flag, __count_event
 #if _ONEDPL_COMPILE_KERNEL
             , __local_scan_kernel
 #endif
@@ -657,7 +705,7 @@ struct __parallel_radix_sort_iteration
             __reorder_event =
                 __radix_sort_reorder_submit<_RadixReorderPeerKernel, __radix_bits, __is_ascending, __peer_algorithm>(
                 __exec, __segments, __reorder_sg_size, __radix_offset, ::std::forward<_InRange>(__in_rng),
-                ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event, __proj
+                ::std::forward<_OutRange>(__out_rng), __tmp_buf, __no_op_flag, __scan_event, __proj
 #if _ONEDPL_COMPILE_KERNEL
                     , __reorder_peer_kernel
 #endif
@@ -668,7 +716,7 @@ struct __parallel_radix_sort_iteration
             __reorder_event = __radix_sort_reorder_submit<_RadixReorderKernel, __radix_bits, __is_ascending,
                                                           __peer_prefix_algo::scan_then_broadcast>(
                 __exec, __segments, __reorder_sg_size, __radix_offset, ::std::forward<_InRange>(__in_rng),
-                ::std::forward<_OutRange>(__out_rng), __tmp_buf, __scan_event, __proj
+                ::std::forward<_OutRange>(__out_rng), __tmp_buf, __no_op_flag, __scan_event, __proj
 #if _ONEDPL_COMPILE_KERNEL
                 , __reorder_kernel
 #endif
