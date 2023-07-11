@@ -167,16 +167,6 @@ struct slm_lookup_t_by_key {
     }
 };
 
-#ifdef __SYCL_DEVICE_ONLY__
-#define __SYCL_CONSTANT_AS __attribute__((opencl_constant))
-#else
-#define __SYCL_CONSTANT_AS
-#endif
-
-const __SYCL_CONSTANT_AS char print_uint32[] = "gid: %u, lid: %u, pid: %u, val: %u\n";
-const __SYCL_CONSTANT_AS char print_int32[] = "gid: %u, lid: %u, pid: %u, val: %d\n";
-const __SYCL_CONSTANT_AS char print_offset[] = "gid: %u, lid: %u, pid: %u, val: %d, off: %u\n";
-
 template <typename KeyT, typename ValueT, typename KeysInputT, typename KeysOutputT, typename ValuesInputT,
           typename ValuesOutputT, uint32_t RADIX_BITS, uint32_t SG_PER_WG, uint32_t PROCESS_SIZE, bool IsAscending>
 struct radix_sort_onesweep_slm_reorder_kernel_by_key {
