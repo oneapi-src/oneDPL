@@ -564,7 +564,7 @@ struct __radix_sort_copyback_submitter_by_key<KeyT, oneapi::dpl::__par_backend_h
 template <typename _KernelName, typename KeyT, typename ValueT, typename KeysRange, typename ValuesRange, ::std::uint32_t RADIX_BITS,
           bool IsAscending, ::std::uint32_t PROCESS_SIZE>
 void
-onesweep_by_key(sycl::queue __q, KeysRange&& __keys, ValuesRange __values, ::std::size_t __n)
+onesweep_by_key(sycl::queue __q, KeysRange&& __keys, ValuesRange&& __values, ::std::size_t __n)
 {
     using namespace sycl;
     using namespace __ESIMD_NS;
