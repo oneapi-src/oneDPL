@@ -57,8 +57,10 @@ main()
     EXPECT_TRUE(res1 == n_exp, "wrong return result from unique, sycl ranges");
     EXPECT_TRUE(res2 == n_exp, "wrong return result from unique with predicate, sycl ranges");
 
-    EXPECT_EQ_N(expected, views::host_all(A).begin(), n_exp, "wrong effect from unique, sycl ranges");
-    EXPECT_EQ_N(expected, views::host_all(B).begin(), n_exp, "wrong effect from unique with predicate, sycl ranges");
+    auto exam = oneapi::dpl::__ranges::guard_view(expected, n_exp);
+
+    EXPECT_EQ_RANGES(exam, views::host_all(A), "wrong effect from unique, sycl ranges");
+    EXPECT_EQ_RANGES(exam, views::host_all(B), "wrong effect from unique with predicate, sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);

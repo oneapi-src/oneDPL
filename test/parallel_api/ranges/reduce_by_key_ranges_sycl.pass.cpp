@@ -63,9 +63,11 @@ main()
     ::std::cout << ::std::endl;
 #endif // _ONEDPL_DEBUG_SYCL
 
+    using ar_t = oneapi::dpl::__ranges::guard_view<int>;
+
     //check result
-    EXPECT_EQ_N(key_exp, views::host_all(C).begin(), n_res, "wrong keys from reduce_by_segment");
-    EXPECT_EQ_N(value_exp, views::host_all(D).begin(), n_res, "wrong values from reduce_by_segment");
+    EXPECT_EQ_RANGES(ar_t(key_exp, n_res), views::host_all(C), "wrong keys from reduce_by_segment");
+    EXPECT_EQ_RANGES(ar_t(value_exp, n_res), views::host_all(D), "wrong values from reduce_by_segment");
 
 // Check if a kernel name can be omitted when a compiler supports implicit names
 #if __SYCL_UNNAMED_LAMBDA__

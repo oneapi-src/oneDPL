@@ -46,8 +46,10 @@ main()
     auto res_exp = ::std::replace_copy_if(src.begin(), src.end(), expected, pred, new_val) - expected;
     std::cout << res_exp;
 
+    using ar_t = oneapi::dpl::__ranges::guard_view<int>;
+
     EXPECT_TRUE(res_exp == res, "wrong result from replace_copy_if");
-    EXPECT_EQ_N(expected, views::host_all(A).begin(), max_n, "wrong effect from replace_copy_if");
+    EXPECT_EQ_RANGES(ar_t(expected, max_n), views::host_all(A), "wrong effect from replace_copy_if");
 
 #endif //_ENABLE_RANGES_TESTING
     return TestUtils::done(_ENABLE_RANGES_TESTING);
