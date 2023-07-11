@@ -15,6 +15,7 @@
 #include <oneapi/dpl/experimental/kernel_templates>
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/iterator>
 
 #include <algorithm>
 #include <numeric>
