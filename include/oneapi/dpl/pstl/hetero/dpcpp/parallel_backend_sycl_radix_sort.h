@@ -197,8 +197,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                 // 1.1. count per witem: create a private array for storing count values
                 _CountT __count_arr[__radix_states] = {0};
                 // 1.2. count per witem: count values and write result to private count array
-                const ::std::size_t __seg_end =
-                    sycl::min(__seg_start + __elem_per_segment, __n);
+                const ::std::size_t __seg_end = sycl::min(__seg_start + __elem_per_segment, __n);
                 for (::std::size_t __val_idx = __seg_start + __self_lidx; __val_idx < __seg_end;
                      __val_idx += __wg_size)
                 {
@@ -235,7 +234,7 @@ __radix_sort_count_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, :
                 }
 
                 // 3.0 side work: reset 'no operation flag', which specifies whether to skip re-order phase
-                if(__wgroup_idx == 0 && __self_lidx == 0)
+                if (__wgroup_idx == 0 && __self_lidx == 0)
                 {
                     auto& __no_op_flag = __count_rng[__no_op_flag_idx];
                     __no_op_flag = 0;
@@ -298,7 +297,7 @@ __radix_sort_scan_submit(_ExecutionPolicy&& __exec, ::std::size_t __scan_wg_size
                                                    _CountT(0), __dpl_sycl::__plus<_CountT>{});
                 const auto __wi = __self_item.get_local_linear_id();
                 //That condition may be truth (by algo semantic) just on one WG, one WI, so there is no race here.
-                if(__wi == __scan_wg_size - 1 && *(__begin + __scan_size - 1) == __n)
+                if (__wi == __scan_wg_size - 1 && *(__begin + __scan_size - 1) == __n)
                 {
                     auto& __no_op_flag = __count_rng[__no_op_flag_idx];
                     __no_op_flag = 1; //set flag if the all values got into one bin
@@ -446,8 +445,7 @@ __copy_kernel_for_radix_sort(::std::size_t __segments, const ::std::size_t __ele
     const ::std::size_t __seg_start = __elem_per_segment * __wgroup_idx;
     const ::std::size_t __n = __output_rng.size();
 
-    ::std::size_t __seg_end =
-        sycl::min(__seg_start + __elem_per_segment, __n);
+    ::std::size_t __seg_end = sycl::min(__seg_start + __elem_per_segment, __n);
     // ensure that each work item in a subgroup does the same number of loop iterations
     const ::std::uint16_t __residual = (__seg_end - __seg_start) % __sg_size;
     __seg_end -= __residual;
@@ -521,10 +519,10 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
 
                 //Optimization: skip re-order phase if the all keys are the same, do just copying
                 auto& __no_op_flag = __offset_rng[__no_op_flag_idx];
-                if(__no_op_flag)
+                if (__no_op_flag)
                 {
-                    __copy_kernel_for_radix_sort(__segments, __elem_per_segment, __sg_size, __self_item,
-                                             __input_rng, __output_rng);
+                    __copy_kernel_for_radix_sort(__segments, __elem_per_segment, __sg_size, __self_item, __input_rng,
+                                                 __output_rng);
                     return;
                 }
 
@@ -629,8 +627,8 @@ struct __parallel_radix_sort_iteration
 
     template <typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _TmpBuf, typename _Proj>
     static sycl::event
-    submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter,
-           _InRange&& __in_rng, _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event, _Proj __proj)
+    submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter, _InRange&& __in_rng,
+           _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event, _Proj __proj)
     {
         using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
         using _RadixCountKernel =
@@ -646,7 +644,7 @@ struct __parallel_radix_sort_iteration
         ::std::size_t __reorder_sg_size = __max_sg_size;
         ::std::size_t __scan_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 #if _ONEDPL_RADIX_WORKLOAD_TUNING
-        ::std::size_t __count_wg_size = (__in_rng.size() > (1<<21)/*2M*/ ? 128 : __max_sg_size);
+        ::std::size_t __count_wg_size = (__in_rng.size() > (1 << 21) /*2M*/ ? 128 : __max_sg_size);
 #else
         ::std::size_t __count_wg_size = __max_sg_size;
 #endif
@@ -675,7 +673,8 @@ struct __parallel_radix_sort_iteration
 
         // work-group size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
-        __count_wg_size = sycl::max(oneapi::dpl::__internal::__dpl_bit_floor(__count_wg_size), ::std::size_t(__radix_states));
+        __count_wg_size = 
+            sycl::max(oneapi::dpl::__internal::__dpl_bit_floor(__count_wg_size), ::std::size_t(__radix_states));
 
         // Compute the radix position for the given iteration
         ::std::uint32_t __radix_offset = __radix_iter * __radix_bits;
