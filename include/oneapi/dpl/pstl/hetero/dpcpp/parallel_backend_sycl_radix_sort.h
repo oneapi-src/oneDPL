@@ -575,34 +575,7 @@ __radix_sort_reorder_submit(_ExecutionPolicy&& __exec, ::std::size_t __segments,
                     }
                     __output_rng[__new_offset_idx] = std::move(__in_val);
                 }
-                if (__residual > 0)
-                {
-                    //_ValueT may not have a default constructor, so we create just a storage via union type
-                    union __storage { _ValueT __v; __storage(){} } __in_val;
-
-                    ::std::uint32_t __bucket = __radix_states; // greater than any actual radix state
-                    if (__self_lidx < __residual)
-                    {
-                        //initialize the storage via move constructor for _ValueT type
-                        new (&__in_val.__v) _ValueT(std::move(__input_rng[__seg_end + __self_lidx]));
-
-                        __bucket = __get_bucket<(1 << __radix_bits) - 1>(
-                            __order_preserving_cast<__is_ascending>(__proj(__in_val.__v)), __radix_offset);
-                    }
-                    _OffsetT __new_offset_idx = 0;
-                    for (::std::uint32_t __radix_state_idx = 0; __radix_state_idx < __radix_states; ++__radix_state_idx)
-                    {
-                        ::std::uint32_t __is_current_bucket = (__bucket == __radix_state_idx);
-                        ::std::uint32_t __sg_total_offset = __peer_prefix_hlp.__peer_contribution(
-                            __new_offset_idx, __offset_arr[__radix_state_idx], __is_current_bucket);
-                        __offset_arr[__radix_state_idx] += __sg_total_offset;
-                    }
-                    if (__self_lidx < __residual)
-                    {
-                        __output_rng[__new_offset_idx] = std::move(__in_val.__v);
-                        __in_val.__v.~_ValueT();
-                    }
-                }
+                //TODO: if (__residual > 0)
             });
     });
 
