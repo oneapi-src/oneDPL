@@ -15,7 +15,6 @@
 #include "esimd_radix_sort_one_wg.h"
 #include "esimd_radix_sort_cooperative.h"
 #include "esimd_radix_sort_onesweep.h"
-#include "esimd_radix_sort_onesweep_by_key.h"
 
 #include "../../pstl/utils_ranges.h"
 #include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
