@@ -57,16 +57,14 @@ main()
     //check result
     int expected[max_n];
 
-    auto exam = oneapi::dpl::__ranges::guard_view(expected, max_n);
-
     ::std::copy_if(src.begin(), src.end(), expected, pred);
-    EXPECT_EQ_RANGES(exam, views::host_all(A), "wrong effect from copy_if with sycl ranges");
+    EXPECT_EQ_N(expected, views::host_all(A).begin(), res1, "wrong effect from copy_if with sycl ranges");
 
     ::std::remove_copy_if(src.begin(), src.end(), expected, pred);
-    EXPECT_EQ_RANGES(exam, views::host_all(B), "wrong effect from remove_copy_if with sycl ranges");
+    EXPECT_EQ_N(expected, views::host_all(B).begin(), res2, "wrong effect from remove_copy_if with sycl ranges");
 
     ::std::remove_copy(src.begin(), src.end(), expected, 0);
-    EXPECT_EQ_RANGES(exam, views::host_all(C), "wrong effect from remove_copy with sycl ranges");
+    EXPECT_EQ_N(expected, views::host_all(C).begin(), res3, "wrong effect from remove_copy with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
 
     return TestUtils::done(_ENABLE_RANGES_TESTING);
