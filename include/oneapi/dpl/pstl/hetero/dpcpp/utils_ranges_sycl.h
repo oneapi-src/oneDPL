@@ -118,6 +118,18 @@ struct all_view_fn
     }
 };
 
+#if _ONEDPL_LIBSYCL_VERSION >= 60200
+struct all_host_view_fn
+{
+    template <typename _T>
+    auto
+    operator()(sycl::buffer<_T, 1> __buf) const
+    {
+        return sycl::host_accessor(__buf);
+    }
+};
+#endif
+
 namespace views
 {
 inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target_device,
@@ -130,8 +142,13 @@ inline constexpr all_view_fn<sycl::access::mode::read, __dpl_sycl::__target_devi
 inline constexpr all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t>
     all_write;
 
+#if _ONEDPL_LIBSYCL_VERSION >= 60200
+//CPO to get a sycl::host_accessor instance due to non-placeholder sycl::accessor for the host is deprecated
+inline constexpr all_host_view_fn
+#else
 inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__host_target,
                              sycl::access::placeholder::false_t>
+#endif
     host_all;
 } // namespace views
 
