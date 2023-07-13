@@ -118,7 +118,7 @@ struct all_view_fn
     }
 };
 
-#if _ONEDPL_LIBSYCL_VERSION >= 60200
+#if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
 struct all_host_view_fn
 {
     template <typename _T>
@@ -142,7 +142,7 @@ inline constexpr all_view_fn<sycl::access::mode::read, __dpl_sycl::__target_devi
 inline constexpr all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t>
     all_write;
 
-#if _ONEDPL_LIBSYCL_VERSION >= 60200
+#if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
 //CPO to get a sycl::host_accessor instance due to non-placeholder sycl::accessor for the host is deprecated
 inline constexpr all_host_view_fn
 #else
