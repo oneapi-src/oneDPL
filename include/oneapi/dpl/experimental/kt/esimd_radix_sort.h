@@ -69,19 +69,19 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
     using _KernelName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
-    // if (__n <= 16384)
-    // {
-    //     // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize and DataPerWorkItem
-    //     oneapi::dpl::experimental::esimd::impl::one_wg<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
-    //         __exec.queue(), ::std::forward<_Range>(__rng), __n);
-    // }
-    // else if (__n <= 262144)
-    // {
-    //     // TODO: support different RadixBits, WorkGroupSize and DataPerWorkItem
-    //     oneapi::dpl::experimental::esimd::impl::cooperative<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
-    //         __exec.queue(), ::std::forward<_Range>(__rng), __n);
-    // }
-    // else
+    if (__n <= 16384)
+    {
+        // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize and DataPerWorkItem
+        oneapi::dpl::experimental::esimd::impl::one_wg<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
+            __exec.queue(), ::std::forward<_Range>(__rng), __n);
+    }
+    else if (__n <= 262144)
+    {
+        // TODO: support different RadixBits, WorkGroupSize and DataPerWorkItem
+        oneapi::dpl::experimental::esimd::impl::cooperative<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
+            __exec.queue(), ::std::forward<_Range>(__rng), __n);
+    }
+    else
     {
         // TODO: enable support of double type
         // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
