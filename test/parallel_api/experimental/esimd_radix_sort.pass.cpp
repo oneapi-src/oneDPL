@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- rasix_sort_esimd.pass.cpp -----------------------------------------===//
+//===-- esimd_radix_sort.pass.cpp -----------------------------------------===//
 //
 // Copyright (C) 2023 Intel Corporation
 //
