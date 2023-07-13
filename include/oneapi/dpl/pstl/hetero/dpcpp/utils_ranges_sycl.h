@@ -121,6 +121,7 @@ struct all_view_fn
 #if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
 struct all_host_view_fn
 {
+    //An overalod for sycl::buffer template type
     template <typename _T>
     auto
     operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
@@ -129,6 +130,7 @@ struct all_host_view_fn
         return sycl::host_accessor(__buf, sycl::range<1>(__n), __offset);
     }
 
+    //"No operation" overalod for another ranges/views
     template <typename _R>
     auto
     operator()(_R&& __r) const -> decltype(::std::forward<_R>(__r))
@@ -151,7 +153,6 @@ inline constexpr all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_dev
     all_write;
 
 #if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
-//CPO to get a sycl::host_accessor instance due to non-placeholder sycl::accessor for the host is deprecated
 inline constexpr all_host_view_fn
 #else
 inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__host_target,
