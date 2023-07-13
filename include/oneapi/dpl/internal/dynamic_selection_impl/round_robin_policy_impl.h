@@ -68,7 +68,7 @@ namespace experimental{
     selection_handle_t select(Args&&...) {
       size_t i=0;
       if(next_context_==std::numeric_limits<universe_container_size_t>::max()){
-          next_context=0;
+          next_context_=0;
       }
       else{
           i = next_context_++ % num_contexts_;
