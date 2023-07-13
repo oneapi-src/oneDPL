@@ -123,9 +123,17 @@ struct all_host_view_fn
 {
     template <typename _T>
     auto
-    operator()(sycl::buffer<_T, 1> __buf) const
+    operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
+               typename ::std::iterator_traits<_T*>::difference_type __n = 0) const
     {
-        return sycl::host_accessor(__buf);
+        return sycl::host_accessor(__buf, sycl::range<1>(__n), __offset);
+    }
+
+    template <typename _R>
+    auto
+    operator()(_R&& __r) const -> decltype(::std::forward<_R>(__r))
+    {
+        return ::std::forward<_R>(__r);
     }
 };
 #endif
