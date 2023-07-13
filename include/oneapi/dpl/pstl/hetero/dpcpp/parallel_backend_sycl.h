@@ -230,8 +230,6 @@ struct __parallel_for_submitter</*_IsGPU=*/::std::false_type, __internal::__opti
     auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
-        assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
-        _PRINT_INFO_IN_DEBUG_MODE(__exec);
         auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
             //get an access to data under SYCL buffer:
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
@@ -253,8 +251,6 @@ struct __parallel_for_submitter</*_IsGPU=*/::std::true_type, __internal::__optio
     auto
     operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
-        assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
-        _PRINT_INFO_IN_DEBUG_MODE(__exec);
         ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
         ::std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__count, __wgroup_size);
         ::std::size_t __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
@@ -286,6 +282,8 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
+    assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
+    _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
     if (__exec.queue().get_device().is_gpu())
     {
