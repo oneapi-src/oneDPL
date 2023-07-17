@@ -514,8 +514,8 @@ constexpr bool start_test()
 
     // int64_t : ?
 
-    // uint64_t, <32, 64, 256, 288, 320, 352, 384, 416, 448, 480, 512>
-    using skip_dpwi_for_uint64_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
+    // uint64_t, <32, 64, 128, 256, 288, 320, 352, 384, 416, 448, 480, 512>
+    using skip_dpwi_for_uint64_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
     if constexpr (::std::is_same_v<TKey, ::std::uint64_t>
                   && TestUtils::type_list_contain<skip_dpwi_for_uint64_t, DataPerWorkItem>())
     {
