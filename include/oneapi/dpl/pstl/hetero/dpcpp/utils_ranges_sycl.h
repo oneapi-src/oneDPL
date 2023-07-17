@@ -133,7 +133,7 @@ struct all_host_view_fn
         return __internal::__create_accessor<sycl::host_accessor<_T>>(__buf, __offset, __n);
     }
 
-    //"No operation" overalod for another ranges/views
+    // "No operation" overload for another ranges/views
     template <typename _R>
     auto
     operator()(_R&& __r) const -> decltype(::std::forward<_R>(__r))
