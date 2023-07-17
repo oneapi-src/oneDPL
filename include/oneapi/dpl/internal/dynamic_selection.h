@@ -83,8 +83,30 @@ namespace experimental {
     return std::forward<DSPolicy>(dp).select(std::forward<Args>(args)...);
   }
 
+  void func(){};
+
+  template<typename T,  typename Function, typename=void, typename... Args>
+  struct has_invoke_async : std::false_type {};
+
+ /* template<typename T, typename Function, typename... Args>
+  struct has_invoke_async<T, Function, std::void_t<decltype(std::declval<T&>(std::declval<Args...>()).selection_handle_t().invoke_async(std::declval<Function>(), std::declval<Args...>()))>, Args...> : std::true_type {};
+*/
+
+  template<typename T, typename Function, typename... Args>
+  struct has_invoke_async<T, Function, std::void_t<decltype(std::declval<T&>().invoke_async(std::declval<Function>(), std::declval<Args...>()))>,Args...> : std::true_type {};
+
+/*  template<typename DSPolicy, typename Function,typename = std::enable_if_t<has_invoke_async<typename std::decay<DSPolicy>::selection_handle_>::value>, typename... Args>
+  auto invoke_async(DSPolicy&& dp, Function&&f, Args&&... args) {
+    return std::forward<DSPolicy>(dp).invoke_async(std::forward<Function>(f), std::forward<Args>(args)...);
+  }*/
+
   template<typename DSPolicy, typename Function, typename... Args>
   auto invoke_async(DSPolicy&& dp, Function&&f, Args&&... args) {
+  //  std::cout<<std::boolalpha;
+  //  std::cout<<"enable if : "<<std::enable_if_t<has_invoke_async<typename std::decay<DSPolicy>::scoring_policy_, Function>>::value<<"\n";
+
+    if constexpr(has_invoke_async<std::decay<DSPolicy&>, Function, Args...>::value == true) std::cout<<"True\n";
+    else std::cout<<"False\n";
     return std::forward<DSPolicy>(dp).invoke_async(std::forward<Function>(f), std::forward<Args>(args)...);
   }
 
@@ -95,6 +117,7 @@ namespace experimental {
 
   template<typename DSPolicy, typename Function, typename... Args>
   auto invoke_async(DSPolicy&& dp, typename DSPolicy::selection_handle_t e, Function&&f, Args&&... args) {
+    std::cout<<"2\n";
     return std::forward<DSPolicy>(dp).invoke_async(e, std::forward<Function>(f), std::forward<Args>(args)...);
   }
 
