@@ -31,6 +31,22 @@ namespace dpl
 namespace __ranges
 {
 
+namespace __internal
+{
+template<typename _AccessorType, typename _BufferType, typename _DiffType>
+static _AccessorType 
+__create_accessor(_BufferType& __buf, _DiffType __offset, _DiffType __n)
+{
+    auto __n_buf = __dpl_sycl::__get_buffer_size(__buf);
+    auto __n_acc = (__n > 0 ? __n : __n_buf);
+
+    assert(__offset + __n_acc <= __n_buf &&
+           "The sum of accessRange and accessOffset should not exceed the range of buffer");
+
+    return {__buf, sycl::range<1>(__n_acc), __offset};
+}
+} // namespace __internal
+
 //A SYCL range over SYCL buffer
 template <typename _T, sycl::access::mode _AccMode = sycl::access::mode::read,
           __dpl_sycl::__target _Target = __dpl_sycl::__target_device,
@@ -45,7 +61,7 @@ class all_view
     using value_type = _T;
 
     all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), __diff_type __offset = 0, __diff_type __n = 0)
-        : __m_acc(__create_accessor(__buf, __offset, __n))
+        : __m_acc(__internal::__create_accessor<__accessor_t>(__buf, __offset, __n))
     {
     }
 
@@ -82,18 +98,6 @@ class all_view
     }
 
   private:
-    static __accessor_t __create_accessor(sycl::buffer<_T, 1>& __buf, __diff_type __offset, __diff_type __n)
-    {
-        auto __n_buf = __dpl_sycl::__get_buffer_size(__buf);
-        auto __n_acc = (__n > 0 ? __n : __n_buf);
-
-        assert(__offset + __n_acc <= __n_buf &&
-               "The sum of accessRange and accessOffset should not exceed the range of buffer");
-
-        return {__buf, sycl::range<1>(__n_acc), __offset};
-    }
-
-  private:
     __accessor_t __m_acc;
 };
 
@@ -118,6 +122,28 @@ struct all_view_fn
     }
 };
 
+#if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
+struct all_host_view_fn
+{
+    // An overload for sycl::buffer template type
+    template <typename _T>
+    auto
+    operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
+               typename ::std::iterator_traits<_T*>::difference_type __n = 0) const
+    {
+        return __internal::__create_accessor<sycl::host_accessor<_T>>(__buf, __offset, __n);
+    }
+
+    // "No operation" overload for another ranges/views
+    template <typename _R>
+    auto
+    operator()(_R&& __r) const -> decltype(::std::forward<_R>(__r))
+    {
+        return ::std::forward<_R>(__r);
+    }
+};
+#endif
+
 namespace views
 {
 inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target_device,
@@ -130,8 +156,12 @@ inline constexpr all_view_fn<sycl::access::mode::read, __dpl_sycl::__target_devi
 inline constexpr all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t>
     all_write;
 
+#if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
+inline constexpr all_host_view_fn
+#else
 inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__host_target,
                              sycl::access::placeholder::false_t>
+#endif
     host_all;
 } // namespace views
 
