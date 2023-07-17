@@ -44,7 +44,7 @@ static _AccessorType __create_accessor(_BufferType& __buf, _DiffType __offset, _
 
     return {__buf, sycl::range<1>(__n_acc), __offset};
 }
-} //__internal
+} // namespace __internal
 
 //A SYCL range over SYCL buffer
 template <typename _T, sycl::access::mode _AccMode = sycl::access::mode::read,
