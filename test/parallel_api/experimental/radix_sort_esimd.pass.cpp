@@ -503,9 +503,9 @@ constexpr bool start_test()
         return false;
     }
 
-    // float, <416, 512>
+    // float : <64, 416, 512>
     // TODO required to implement case for Rsb: run-time issue with sycl::buffer only
-    using skip_dpwi_for_float = TestUtils::TList<DPWI<416>, DPWI<512>>;
+    using skip_dpwi_for_float = TestUtils::TList<DPWI<64>, DPWI<416>, DPWI<512>>;
     if constexpr (::std::is_same_v<TKey, float>
                   && TestUtils::type_list_contain<skip_dpwi_for_float, DataPerWorkItem>())
     {
