@@ -522,8 +522,8 @@ constexpr bool start_test()
         return false;
     }
 
-    // double, <256, 288, 320, 352, 384, 416, 448, 480, 512>
-    using skip_dpwi_for_double = TestUtils::TList<DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
+    // double, <64, 256, 288, 320, 352, 384, 416, 448, 480, 512>
+    using skip_dpwi_for_double = TestUtils::TList<DPWI<64>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
     if constexpr (::std::is_same_v<TKey, double>
                   && TestUtils::type_list_contain<skip_dpwi_for_double, DataPerWorkItem>())
     {
