@@ -245,7 +245,7 @@ void test_all_view(std::size_t size)
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
-    std::sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
+    std::stable_sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
@@ -271,7 +271,7 @@ void test_subrange_view(std::size_t size)
 
     TestUtils::usm_data_transfer<sycl::usm::alloc::device, T> dt_input(q, expected.begin(), expected.end());
 
-    std::sort(expected.begin(), expected.end(), Compare<T, Order>{});
+    std::stable_sort(expected.begin(), expected.end(), Compare<T, Order>{});
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
     oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, view);
@@ -300,7 +300,7 @@ void test_usm(std::size_t size)
 
     TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
 
-    std::sort(expected.begin(), expected.end(), Compare<T, Order>{});
+    std::stable_sort(expected.begin(), expected.end(), Compare<T, Order>{});
 
     oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, dt_input.get_data(), dt_input.get_data() + size);
 
@@ -336,7 +336,7 @@ void test_sycl_iterators(std::size_t size)
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
-    std::sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
+    std::stable_sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
