@@ -46,12 +46,12 @@ test_with_usm()
     int output_values2[n] = { };
 
     // allocate USM memory and copying data to USM shared/device memory
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper1(q, std::begin(keys1),          std::end(keys1));
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper2(q, std::begin(keys2),          std::end(keys2));
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper3(q, std::begin(values1),        std::end(values1));
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper4(q, std::begin(values2),        std::end(values2));
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper5(q, std::begin(output_values1), std::end(output_values1));
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper6(q, std::begin(output_values2), std::end(output_values2));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper1(q, keys1, n);
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper2(q, keys2, n);
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper3(q, values1, n);
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper4(q, values2, n);
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper5(q, output_values1, n);
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper6(q, output_values2, n);
     auto d_keys1          = dt_helper1.get_data();
     auto d_keys2          = dt_helper2.get_data();
     auto d_values1        = dt_helper3.get_data();
@@ -70,8 +70,6 @@ test_with_usm()
         TestUtils::make_device_policy<KernelName>(q), begin_keys_in,
         end_keys_in, begin_vals_in, begin_vals_out, ::std::make_tuple(int(1), int(1)),
         ::std::equal_to<>(), TestUtils::tuple_add_fn());
-
-    q.wait();
 
     //retrieve result on the host and check the result
     dt_helper5.retrieve_data(output_values1);
@@ -98,7 +96,6 @@ test_with_usm()
 }
 #endif
 
-//The code below for test a call of reduce_by_segment with zip iterators was kept "as is", as an example reported by a user; just "memory deallocation" added.
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
