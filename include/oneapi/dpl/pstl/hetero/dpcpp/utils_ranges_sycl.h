@@ -34,7 +34,8 @@ namespace __ranges
 namespace __internal
 {
 template<typename _AccessorType, typename _BufferType, typename _DiffType>
-static _AccessorType __create_accessor(_BufferType& __buf, _DiffType __offset, _DiffType __n)
+static _AccessorType 
+__create_accessor(_BufferType& __buf, _DiffType __offset, _DiffType __n)
 {
     auto __n_buf = __dpl_sycl::__get_buffer_size(__buf);
     auto __n_acc = (__n > 0 ? __n : __n_buf);
