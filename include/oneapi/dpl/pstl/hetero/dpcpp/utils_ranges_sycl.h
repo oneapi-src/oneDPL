@@ -124,7 +124,7 @@ struct all_view_fn
 #if _ONEDPL_SYCL_PLACEHOLDER_HOST_ACCESSOR_DEPRECATED
 struct all_host_view_fn
 {
-    //An overalod for sycl::buffer template type
+    // An overload for sycl::buffer template type
     template <typename _T>
     auto
     operator()(sycl::buffer<_T, 1> __buf, typename ::std::iterator_traits<_T*>::difference_type __offset = 0,
