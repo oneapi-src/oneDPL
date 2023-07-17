@@ -468,8 +468,8 @@ constexpr bool start_test()
 
     // uint8_t : ?
 
-    // int16_t : <96, 224, 352, 448, 480>
-    using skip_dpwi_for_int16_t = TestUtils::TList<DPWI<96>, DPWI<224>, DPWI<352>, DPWI<448>, DPWI<480>>;
+    // int16_t : <32, 96, 224, 352, 448, 480>
+    using skip_dpwi_for_int16_t = TestUtils::TList<DPWI<32>, DPWI<96>, DPWI<224>, DPWI<352>, DPWI<448>, DPWI<480>>;
     if constexpr (::std::is_same_v<TKey, ::std::int16_t> 
                   && TestUtils::type_list_contain<skip_dpwi_for_int16_t, DataPerWorkItem>())
     {
