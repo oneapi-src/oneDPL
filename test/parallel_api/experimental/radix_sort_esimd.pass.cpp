@@ -478,8 +478,8 @@ constexpr bool start_test()
 
     // uint16_t : ?
 
-    // uint32_t : <32, 64, 192>
-    using skip_dpwi_for_uint32_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<192>>;
+    // uint32_t : <32, 64, 128, 192>
+    using skip_dpwi_for_uint32_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>>;
     if constexpr (::std::is_same_v<TKey, ::std::uint32_t> &&
                   TestUtils::type_list_contain<skip_dpwi_for_uint32_t, DataPerWorkItem>())
     {
