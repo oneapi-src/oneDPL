@@ -486,8 +486,8 @@ constexpr bool start_test()
         return false;
     }
 
-    // int : <64>
-    using skip_dpwi_for_int = TestUtils::TList<DPWI<64>>;
+    // int : <32, 64>
+    using skip_dpwi_for_int = TestUtils::TList<DPWI<32>, DPWI<64>>;
     if constexpr (::std::is_same_v<TKey, int> &&
                   TestUtils::type_list_contain<skip_dpwi_for_int, DataPerWorkItem>())
     {
