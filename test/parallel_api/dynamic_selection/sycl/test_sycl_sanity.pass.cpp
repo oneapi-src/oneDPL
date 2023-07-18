@@ -60,8 +60,6 @@ int run_test(sycl::queue q) {
 int test_runner() {
   int r = 0;
   try {
-    //sycl::default_selector ds;
-    //sycl::queue default_queue(ds);
     sycl::queue default_queue;
     default_queue = sycl::queue{sycl::default_selector_v};
     r += run_test(default_queue);
@@ -70,8 +68,6 @@ int test_runner() {
   }
 
   try {
-    //sycl::gpu_selector gs;
-    //sycl::queue gpu_queue(gs);
     sycl::queue gpu_queue;
     gpu_queue = sycl::queue{sycl::gpu_selector_v};
     r += run_test(gpu_queue);
@@ -80,8 +76,6 @@ int test_runner() {
   }
 
   try {
-    //sycl::cpu_selector cs;
-    //sycl::queue cpu_queue(cs);
     sycl::queue cpu_queue;
     cpu_queue = sycl::queue{sycl::cpu_selector_v};
     r += run_test(cpu_queue);
