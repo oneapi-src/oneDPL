@@ -456,6 +456,16 @@ struct test_small_sizes_runner
 template <typename TestRunner, typename TKey, typename DataPerWorkItem>
 constexpr bool start_test()
 {
+    //              32   64   96  128     160     192     224     256     288     320     352     384     416     448     480     512
+    // char         N    N        N       N       N       N                               N               N       N               N
+    // int16_t      N    N    N                           N                               N                       N       N
+    // uint32_t     N    N        N               N               N                                       N                       N
+    // int          N    N        N               N               N                                       N                       N
+    // int32_t                                                                                            N                       N
+    // float        N    N                        N                                                       N                       N
+    // uint64_t     N    N        N               N               N       N        N      N       N       N       N       N       N
+    // double       N    N                                        N       N        N      N       N       N       N       N       N
+
     // char : <32, 64, 96, 128, 160, 192, 224, 352, 416, 448, 480, 512>
     using skip_dpwi_for_char = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<96>, DPWI<128>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<352>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
     if constexpr (::std::is_same_v<TKey, char>
