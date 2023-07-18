@@ -462,7 +462,7 @@ constexpr bool start_test()
     // uint32_t     N    N        N               N               N                                       N                       N
     // int          N    N        N               N               N                                       N                       N
     // int32_t                                                                                            N                       N
-    // float        N    N                        N                                                       N                       N
+    // float        N    N        N               N                                                       N                       N
     // uint64_t     N    N        N               N               N       N        N      N       N       N       N       N       N
     // double       N    N                                        N       N        N      N       N       N       N       N       N
 
@@ -513,9 +513,9 @@ constexpr bool start_test()
         return false;
     }
 
-    // float : <32, 64, 192, 416, 512>
+    // float : <32, 64, 128, 192, 416, 512>
     // TODO required to implement case for Rsb: run-time issue with sycl::buffer only
-    using skip_dpwi_for_float = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<192>, DPWI<416>, DPWI<512>>;
+    using skip_dpwi_for_float = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<416>, DPWI<512>>;
     if constexpr (::std::is_same_v<TKey, float>
                   && TestUtils::type_list_contain<skip_dpwi_for_float, DataPerWorkItem>())
     {
