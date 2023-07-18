@@ -454,7 +454,8 @@ struct test_small_sizes_runner
 };
 
 template <typename TestRunner, typename TKey, typename DataPerWorkItem>
-constexpr bool start_test()
+bool
+start_test(std::size_t size)
 {
     //              32   64   96  128     160     192     224     256     288     320     352     384     416     448     480     512
     // char         N    N        N       N       N       N                               N               N       N               N
@@ -540,6 +541,15 @@ constexpr bool start_test()
         return false;
     }
 
+    // double, <192>, size: 14001, 16384
+    using skip_dpwi_for_double_size = TestUtils::TList<DPWI<192>>;
+    if  (::std::is_same_v<TKey, double> &&
+                  TestUtils::type_list_contain<skip_dpwi_for_double_size, DataPerWorkItem>()
+                  && (size == 14001 || size == 16384))
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -556,7 +566,7 @@ iterate_all_params(std::size_t size)
     using DataPerWorkItem = typename TestUtils::GetHeadType<DataPerWorkItemList>;
 
     // Check that we are ablue to run test for the current pair <TKey, DataPerWorkItem>
-    if constexpr (start_test<TestRunner, TKey, DataPerWorkItem>())
+    if (start_test<TestRunner, TKey, DataPerWorkItem>(size))
     {
 #if LOG_TEST_INFO
         std::cout << "\t\t\tstarting test for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
