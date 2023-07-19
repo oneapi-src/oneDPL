@@ -429,7 +429,9 @@ struct test_general_cases_runner
     static constexpr bool
     can_compile_test()
     {
-        if constexpr (kind == GeneralCases::eRanges || kind == GeneralCases::eUSM)
+        if constexpr (kind == GeneralCases::eRanges                 // Fast solution: use kind == GeneralCases::eUSM without each case check
+                      || kind == GeneralCases::eUSM                 // Checked all disabled case of type + <data per work item> value
+                      || kind == GeneralCases::eSyclIterators)      // Fast solution: use kind == GeneralCases::eUSM without each case check
         {
             //              32   64   96  128     160     192     224     256     288     320     352     384     416     448     480     512
             // char              N    N           N       N       N                               N               N       N       N
@@ -508,11 +510,6 @@ struct test_general_cases_runner
             {
                 return false;
             }
-        }
-        else if constexpr (kind == GeneralCases::eSyclIterators)
-        {
-            // TODO required to specify all not compiled variants
-            return false;
         }
 
         return true;
