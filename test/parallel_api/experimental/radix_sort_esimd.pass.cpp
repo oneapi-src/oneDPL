@@ -517,7 +517,7 @@ struct test_general_cases_runner
 
     template <typename TKey, typename DataPerWorkItem>
     bool
-    can_start_test(std::size_t size)
+    can_run_test(std::size_t /*size*/)
     {
         return true;
     }
@@ -553,7 +553,7 @@ struct test_usm_runner
 
     template <typename TKey, typename DataPerWorkItem>
     bool
-    can_start_test(std::size_t size)
+    can_run_test(std::size_t /*size*/)
     {
         return true;
     }
@@ -577,7 +577,7 @@ struct test_small_sizes_runner
 
     template <typename TKey, typename DataPerWorkItem>
     bool
-    can_start_test(std::size_t size)
+    can_run_test(std::size_t /*size*/)
     {
         return true;
     }
@@ -610,7 +610,7 @@ iterate_all_params(std::size_t size)
     if constexpr (TestRunner::template can_compile_test<TKey, DataPerWorkItem>())
     {
         TestRunner runnerObj;
-        if (runnerObj.template can_start_test<TKey, DataPerWorkItemList>(size))
+        if (runnerObj.template can_run_test<TKey, DataPerWorkItemList>(size))
         {
 #if LOG_TEST_INFO
             std::cout << "starting..." << std::endl;
