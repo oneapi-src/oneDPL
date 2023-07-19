@@ -658,7 +658,7 @@ int main()
 
     try
     {
-//#if TEST_LONG_RUN
+#if TEST_LONG_RUN
         for(auto size: sizes)
         {
             iterate_all_params<test_general_cases_runner<GeneralCases::eRanges>,        TypeListLongRunRanges, DataPerWorkItemListLongRun>(size);
@@ -666,14 +666,14 @@ int main()
             iterate_all_params<test_general_cases_runner<GeneralCases::eSyclIterators>, TypeListLongRunSyclIt, DataPerWorkItemListLongRun>(size);
         }
         iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemListLongRun>(1 /* this param ignored inside test_small_sizes function */);
-//#else
+#else
         for(auto size: sizes)
         {
             using test_runner = test_usm_runner<USMAllocShared, AscendingType>;
             iterate_all_params<test_runner, TypeListShortRunAsc,  DataPerWorkItemListShortRun>(size);
             iterate_all_params<test_runner, TypeListShortRunDesc, DataPerWorkItemListShortRun>(size);
         }
-//#endif // TEST_LONG_RUN
+#endif // TEST_LONG_RUN
     }
     catch (const ::std::exception& exc)
     {
