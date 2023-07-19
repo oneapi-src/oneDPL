@@ -63,24 +63,8 @@ namespace experimental {
     }
 
     template<typename Function, typename ...Args>
-    auto invoke_async(Function&& f, Args&&... args) {
-      return sched_->submit(select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
-    }
-
-    template<typename Function, typename ...Args>
     auto invoke_async(selection_handle_t e, Function&& f, Args&&... args) {
       return sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
-    }
-
-    template<typename Function, typename ...Args>
-    auto invoke(Function&& f, Args&&... args) {
-      return wait(sched_->submit(select(f, args...),
-                                         std::forward<Function>(f), std::forward<Args>(args)...));
-    }
-
-    template<typename Function, typename ...Args>
-    auto invoke(selection_handle_t e, Function&& f, Args&&... args) {
-      return wait(sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...));
     }
 
     auto get_wait_list() {

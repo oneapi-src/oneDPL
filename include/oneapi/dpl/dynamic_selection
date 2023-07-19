@@ -29,11 +29,11 @@ namespace dpl {
 namespace experimental {
 
 #if _DS_BACKEND_SYCL != 0
-  using static_policy = policy<static_policy_impl<sycl_scheduler>>;
+  using static_policy = static_policy_impl<sycl_scheduler>;
   using round_robin_policy = round_robin_policy_impl<sycl_scheduler>;
   inline static_policy default_policy;
 #endif
-  template<typename S> using static_policy_t = policy<static_policy_impl<S>>;
+  template<typename S> using static_policy_t = static_policy_impl<S>;
   template<typename S> using round_robin_policy_t = round_robin_policy_impl<S>;
 } //namespace experimental
 } //namespace dpl
