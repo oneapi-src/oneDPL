@@ -13,15 +13,13 @@ New in 2022.1.1
 New Features
 ------------
 - Improved ``sort`` algorithm performance for the arithmetic data types with ``std::less`` or ``std::greater`` comparison operator and DPC++ policy.
-- AOT compilation for CPU devices is now possible with the use of ``ONEDPL_USE_AOT_COMPILATION`` cmake option.
 
 Fixes Issues
 ------------
-- Fixed ``Device name missing`` error occurring with the following cmake options: ``ONEDPL_USE_AOT_COMPILATION=ON``, ``ONEDPL_DEVICE_BACKEND=GPU`` or not specified and ``CMAKE_BUILD_TYPE`` is not specified.
 - Fixed an error that caused segmentation faults in ``transform_reduce``, ``minmax_element``, and related algorithms when ran on CPU devices. 
 - Fixed a compilation error in ``transform_reduce``, ``minmax_element``, and related algorithms on FPGAs.
 - Fixed an issue with oneDPL permutation iterator. 
-- Fixed an issue with 64-bit integer types with DPC++ policy.
+- Fixed a radix-sort issue with 64-bit signed integer types.
 
 New in 2022.1.0
 ===============
