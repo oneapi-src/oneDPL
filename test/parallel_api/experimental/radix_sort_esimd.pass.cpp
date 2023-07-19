@@ -420,7 +420,6 @@ test_general_cases(std::size_t size, GeneralCases kind)
         break;
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 template <GeneralCases kind>
 struct test_general_cases_runner
@@ -960,6 +959,8 @@ iterate_all_params(std::size_t size)
         iterate_all_params<TestRunner, RestTypeList, DataPerWorkItemList>(size);
     }
 };
+
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int main()
 {
