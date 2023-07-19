@@ -58,14 +58,22 @@ constexpr ::std::uint16_t WorkGroupSize = 256;
 using USMAllocShared = ::std::integral_constant<sycl::usm::alloc, sycl::usm::alloc::shared>;
 using USMAllocDevice = ::std::integral_constant<sycl::usm::alloc, sycl::usm::alloc::device>;
 
+// Test dimension 1 : data per work item
 template <::std::uint16_t count>
 using DPWI = ::std::integral_constant<::std::uint16_t, count>;
-using DataPerWorkItemListLongRun =
-    TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<96>, DPWI<128>, DPWI<160>,
-                     DPWI<192>, DPWI<224>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>,
-                     DPWI<448>, DPWI<480>, DPWI<512>>;
-using DataPerWorkItemListShortRun =
-    TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
+using DataPerWorkItemListLongRun  = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<96>, DPWI<128>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
+using DataPerWorkItemListShortRun = TestUtils::TList<DPWI<32>, DPWI<64>,           DPWI<128>,            DPWI<192>,            DPWI<256>,                                             DPWI<416>,                       DPWI<512>>;
+
+// Test dimension 2 : types
+using TypeListLongRunRanges = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
+using TypeListLongRunUSM    = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
+using TypeListLongRunSyclIt = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
+using TypeListShortRunAsc   = TestUtils::TList<char,                                     int, uint32_t, float,                    double>;
+using TypeListShortRunDesc  = TestUtils::TList<                       int16_t,           int,           float,          uint64_t, double>;
+using TypeListSmallSizes    = TestUtils::TList<                                               uint32_t                                  >;
+
+// test types :           char, int8_t,      uint8_t,       int16_t, uint16_t,       int, uint32_t,     float, int64_t, uint64_t,      double
+// compiler named types : char, signed char, unsigned char, short,   unsigned short, int, unsigned int, float, long,    unsigned long, double
 
 #if LOG_TEST_INFO
 struct TypeInfo
@@ -378,7 +386,7 @@ void test_small_sizes(std::size_t /*size*/)
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
-enum GeneralCases
+enum class GeneralCases
 {
     eRanges = 0,
     eUSM,
@@ -414,16 +422,114 @@ test_general_cases(std::size_t size, GeneralCases kind)
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-using TypeListSmallSizes    = TestUtils::TList<::std::uint32_t>;
-using TypeListLongRunRanges = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
-using TypeListLongRunUSM    = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
-using TypeListLongRunSyclIt = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
-using TypeListShortRunAsc   = TestUtils::TList<char,                                     int, uint32_t, float,                    double>;
-using TypeListShortRunDesc  = TestUtils::TList<                       int16_t,           int,           float,          uint64_t, double>;
-
 template <GeneralCases kind>
 struct test_general_cases_runner
 {
+    template <typename TKey, typename DataPerWorkItem>
+    static constexpr bool
+    can_compile_test()
+    {
+        if constexpr (kind == GeneralCases::eRanges)
+        {
+            // TODO required to specify all not compiled variants
+            return false;
+        }
+        else if constexpr (kind == GeneralCases::eUSM)
+        {
+            //              32   64   96  128     160     192     224     256     288     320     352     384     416     448     480     512
+            // char              N                N       N       N                               N               N       N       N
+            // int8_t                 N           N       N       N                               N               N       N       N
+            // uint8_t                N           N       N       N                               N               N       N       N
+            // int16_t                N                           N                               N                               N
+            // uint16_t               N                           N       N                       N                               N       N
+            // int64_t      N    N    N   N       N       N       N       N       N       N       N       N       N       N       N       N
+            // uint64_t     N    N    N   N       N       N       N       N       N       N       N       N       N       N       N       N
+            // double       N    N    N   N       N       N       N       N       N       N       N       N       N       N       N       N
+            // 
+            // int          ?    ?    ?   ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
+            // uint32_t     ?    ?    ?   ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
+            // float        ?    ?    ?   ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
+
+            // char : <96, 160, 192, 224, 352, 416, 448, 480>
+            using skip_dpwi_for_char = TestUtils::TList<DPWI<96>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<352>, DPWI<416>, DPWI<448>, DPWI<480>>;
+            if constexpr (::std::is_same_v<TKey, char> &&
+                            TestUtils::type_list_contain<skip_dpwi_for_char, DataPerWorkItem>())
+            {
+                return false;
+            }
+
+            // int8_t : <96, 160, 192, 224, 352, 416, 448, 480>
+            using skip_dpwi_for_int8_t = TestUtils::TList<DPWI<96>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<352>, DPWI<416>, DPWI<448>, DPWI<480>>;
+            if constexpr (::std::is_same_v<TKey, int8_t> &&
+                            TestUtils::type_list_contain<skip_dpwi_for_int8_t, DataPerWorkItem>())
+            {
+                return false;
+            }
+
+            // uint8_t : <96, 160, 192, 224, 352, 416, 448, 480>
+            using skip_dpwi_for_uint8_t = TestUtils::TList<DPWI<96>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<352>, DPWI<416>, DPWI<448>, DPWI<480>>;
+            if constexpr (::std::is_same_v<TKey, uint8_t> &&
+                            TestUtils::type_list_contain<skip_dpwi_for_uint8_t, DataPerWorkItem>())
+            {
+                return false;
+            }
+
+            // int16_t : <96, 224, 352, 480>
+            using skip_dpwi_for_int16_t = TestUtils::TList<DPWI<96>, DPWI<224>, DPWI<352>, DPWI<480>>;
+            if constexpr (::std::is_same_v<TKey, int16_t> &&
+                          TestUtils::type_list_contain<skip_dpwi_for_int16_t, DataPerWorkItem>())
+            {
+                return false;
+            }
+
+            // uint16_t : <96, 224, 256, 352, 480, 512>
+            using skip_dpwi_for_uint16_t = TestUtils::TList<DPWI<96>, DPWI<224>, DPWI<256>, DPWI<352>, DPWI<480>, DPWI<512>>;
+            if constexpr (::std::is_same_v<TKey, uint16_t> &&
+                            TestUtils::type_list_contain<skip_dpwi_for_uint16_t, DataPerWorkItem>())
+            {
+                return false;
+            }
+
+            // int64_t : <32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512>
+            using skip_dpwi_for_int64_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<96>, DPWI<128>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
+            if constexpr (::std::is_same_v<TKey, int64_t> &&
+                            TestUtils::type_list_contain<skip_dpwi_for_int64_t, DataPerWorkItem>())
+            {
+                return false;
+            }
+
+            // uint64_t : <32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512>
+            using skip_dpwi_for_uint64_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<96>, DPWI<128>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
+            if constexpr (::std::is_same_v<TKey, uint64_t> &&
+                            TestUtils::type_list_contain<skip_dpwi_for_uint64_t, DataPerWorkItem>())
+            {
+                return false;
+            }
+
+            // double : <32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512>
+            using skip_dpwi_for_double = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<96>, DPWI<128>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
+            if constexpr (::std::is_same_v<TKey, double> &&
+                            TestUtils::type_list_contain<skip_dpwi_for_double, DataPerWorkItem>())
+            {
+                return false;
+            }
+        }
+        else if constexpr (kind == GeneralCases::eSyclIterators)
+        {
+            // TODO required to specify all not compiled variants
+            return false;
+        }
+
+        return true;
+    }
+
+    template <typename TKey, typename DataPerWorkItem>
+    bool
+    can_start_test(std::size_t size)
+    {
+        return true;
+    }
+
     template <typename TKey, typename DataPerWorkItem>
     void
     run_test(std::size_t size)
@@ -436,6 +542,31 @@ template <typename USMAllocType, typename OrderType>
 struct test_usm_runner
 {
     template <typename TKey, typename DataPerWorkItem>
+    static constexpr bool
+    can_compile_test()
+    {
+        //              32   64   96  128     160     192     224     256     288     320     352     384     416     448     480     512
+        // char                                       N                                                       N
+
+        // char : <192, 416>
+        using skip_dpwi_for_char = TestUtils::TList<DPWI<192>, DPWI<416>>;
+        if constexpr (::std::is_same_v<TKey, char> &&
+                        TestUtils::type_list_contain<skip_dpwi_for_char, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    template <typename TKey, typename DataPerWorkItem>
+    bool
+    can_start_test(std::size_t size)
+    {
+        return true;
+    }
+
+    template <typename TKey, typename DataPerWorkItem>
     void
     run_test(std::size_t size)
     {
@@ -446,112 +577,26 @@ struct test_usm_runner
 struct test_small_sizes_runner
 {
     template <typename TKey, typename DataPerWorkItem>
+    static constexpr bool
+    can_compile_test()
+    {
+        return true;
+    }
+
+    template <typename TKey, typename DataPerWorkItem>
+    bool
+    can_start_test(std::size_t size)
+    {
+        return true;
+    }
+
+    template <typename TKey, typename DataPerWorkItem>
     void
     run_test(std::size_t size)
     {
         test_small_sizes<TKey, AscendingType, DataPerWorkItem>(size);
     }
 };
-
-template <typename TestRunner, typename TKey, typename DataPerWorkItem>
-bool
-start_test(std::size_t size)
-{
-    //              32   64   96  128     160     192     224     256     288     320     352     384     416     448     480     512
-    // char         N    N        N       N       N       N                               N               N       N               N
-    // int16_t      N    N    N                           N                               N                       N       N
-    // uint32_t     N    N        N               N               N                                       N                       N
-    // int          N    N        N               N               N                                       N                       N
-    // int32_t                                                                                            N                       N
-    // float        N    N        N               N               N                                       N                       N
-    // uint64_t     N    N        N               N               N       N        N      N       N       N       N       N       N
-    // double       N    N                                        N       N        N      N       N       N       N       N       N
-
-    // char : <32, 64, 96, 128, 160, 192, 224, 352, 416, 448, 480, 512>
-    using skip_dpwi_for_char = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<96>, DPWI<128>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<352>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
-    if constexpr (::std::is_same_v<TKey, char>
-                  && TestUtils::type_list_contain<skip_dpwi_for_char, DataPerWorkItem>())
-    {
-        return false;
-    }
-
-    // int8_t : ?
-
-    // uint8_t : ?
-
-    // int16_t : <32, 64, 96, 224, 352, 448, 480>
-    using skip_dpwi_for_int16_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<96>, DPWI<224>, DPWI<352>, DPWI<448>, DPWI<480>>;
-    if constexpr (::std::is_same_v<TKey, ::std::int16_t> 
-                  && TestUtils::type_list_contain<skip_dpwi_for_int16_t, DataPerWorkItem>())
-    {
-        return false;
-    }
-
-    // uint16_t : ?
-
-    // uint32_t : <32, 64, 128, 192, 256, 416, 512
-    using skip_dpwi_for_uint32_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
-    if constexpr (::std::is_same_v<TKey, ::std::uint32_t> &&
-                  TestUtils::type_list_contain<skip_dpwi_for_uint32_t, DataPerWorkItem>())
-    {
-        return false;
-    }
-
-    // int : <32, 64, 128, 192, 256, 416, 512>
-    using skip_dpwi_for_int = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
-    if constexpr (::std::is_same_v<TKey, int> &&
-                  TestUtils::type_list_contain<skip_dpwi_for_int, DataPerWorkItem>())
-    {
-        return false;
-    }
-
-    // int32_t : <416, 512>
-    // TODO required to implement case for Rsb: run-time issue with sycl::buffer only
-    using skip_dpwi_for_int32_t = TestUtils::TList<DPWI<416>, DPWI<512>>;
-    if constexpr (::std::is_same_v<TKey, ::std::int16_t>
-                  && TestUtils::type_list_contain<skip_dpwi_for_int32_t, DataPerWorkItem>())
-    {
-        return false;
-    }
-
-    // float : <32, 64, 128, 192, 256, 416, 512>
-    // TODO required to implement case for Rsb: run-time issue with sycl::buffer only
-    using skip_dpwi_for_float = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
-    if constexpr (::std::is_same_v<TKey, float>
-                  && TestUtils::type_list_contain<skip_dpwi_for_float, DataPerWorkItem>())
-    {
-        return false;
-    }
-
-    // int64_t : ?
-
-    // uint64_t, <32, 64, 128, 192, 256, 288, 320, 352, 384, 416, 448, 480, 512>
-    using skip_dpwi_for_uint64_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
-    if constexpr (::std::is_same_v<TKey, ::std::uint64_t>
-                  && TestUtils::type_list_contain<skip_dpwi_for_uint64_t, DataPerWorkItem>())
-    {
-        return false;
-    }
-
-    // double, <32, 64, 256, 288, 320, 352, 384, 416, 448, 480, 512>
-    using skip_dpwi_for_double = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
-    if constexpr (::std::is_same_v<TKey, double>
-                  && TestUtils::type_list_contain<skip_dpwi_for_double, DataPerWorkItem>())
-    {
-        return false;
-    }
-
-    // double, <192>, size: 14001, 16384
-    using skip_dpwi_for_double_size = TestUtils::TList<DPWI<192>>;
-    if  (::std::is_same_v<TKey, double> &&
-                  TestUtils::type_list_contain<skip_dpwi_for_double_size, DataPerWorkItem>()
-                  && (size == 14001 || size == 16384))
-    {
-        return false;
-    }
-
-    return true;
-}
 
 template <typename TestRunner, typename ListOfTypes, typename DataPerWorkItemList>
 void
@@ -565,21 +610,33 @@ iterate_all_params(std::size_t size)
     using TKey = typename TestUtils::GetHeadType<ListOfTypes>;
     using DataPerWorkItem = typename TestUtils::GetHeadType<DataPerWorkItemList>;
 
-    // Check that we are ablue to run test for the current pair <TKey, DataPerWorkItem>
-    if (start_test<TestRunner, TKey, DataPerWorkItem>(size))
-    {
 #if LOG_TEST_INFO
-        std::cout << "\t\t\tstarting test for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
+    std::cout << "\t\ttest for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << DataPerWorkItem::value << " : ";
 #endif
-        // Start test for the current pair <TKey, DataPerWorkItem>
+
+    // Check that we are ablue to run test for the current pair <TKey, DataPerWorkItem>
+    if constexpr (TestRunner::template can_compile_test<TKey, DataPerWorkItem>())
+    {
         TestRunner runnerObj;
-        runnerObj.template run_test<TKey, DataPerWorkItem>(size);
+        if (runnerObj.template can_start_test<TKey, DataPerWorkItemList>(size))
+        {
+#if LOG_TEST_INFO
+            std::cout << "starting..." << std::endl;
+#endif
+            // Start test for the current pair <TKey, DataPerWorkItem>
+            runnerObj.template run_test<TKey, DataPerWorkItem>(size);
+        }
+        else
+        {
+#if LOG_TEST_INFO
+            std::cout << "skip due run-time errors" << std::endl;
+#endif
+        }
     }
     else
     {
 #if LOG_TEST_INFO
-        std::cout << "\t\t\tskip test for type " << TypeInfo().name<TKey>()
-                  << " and DataPerWorkItem = " << DataPerWorkItem::value << " due compile or run-time errors" << std::endl;
+        std::cout << "skip due compile errors" << std::endl;
 #endif
     }
 
@@ -612,11 +669,11 @@ int main()
 //#if TEST_LONG_RUN
         for(auto size: sizes)
         {
-            //iterate_all_params<test_general_cases_runner<GeneralCases::eRanges>,        TypeListLongRunRanges, DataPerWorkItemListLongRun>(size);
+            iterate_all_params<test_general_cases_runner<GeneralCases::eRanges>,        TypeListLongRunRanges, DataPerWorkItemListLongRun>(size);
             iterate_all_params<test_general_cases_runner<GeneralCases::eUSM>,           TypeListLongRunUSM,    DataPerWorkItemListLongRun>(size);
-            //iterate_all_params<test_general_cases_runner<GeneralCases::eSyclIterators>, TypeListLongRunSyclIt, DataPerWorkItemListLongRun>(size);
+            iterate_all_params<test_general_cases_runner<GeneralCases::eSyclIterators>, TypeListLongRunSyclIt, DataPerWorkItemListLongRun>(size);
         }
-        //iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemListLongRun>(1 /* this param ignored inside test_small_sizes function */);
+        iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemListLongRun>(1 /* this param ignored inside test_small_sizes function */);
 //#else
         for(auto size: sizes)
         {
