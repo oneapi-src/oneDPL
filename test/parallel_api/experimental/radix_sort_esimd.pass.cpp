@@ -916,7 +916,7 @@ iterate_all_params(std::size_t size)
     using DataPerWorkItem = typename TestUtils::GetHeadType<DataPerWorkItemList>;
 
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << DataPerWorkItem::value << " : ";
+    std::cout << "\ttest for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << DataPerWorkItem::value << " : ";
 #endif
 
     // Check that we are ablue to run test for the current pair <TKey, DataPerWorkItem>
