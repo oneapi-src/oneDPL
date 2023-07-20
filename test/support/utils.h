@@ -755,15 +755,15 @@ struct MaxAbsFunctor<::std::complex<_Tp>>
     }
 };
 
-struct tuple_add_fn
+struct TupleAddFunctor
 {
     template <typename Tup1, typename Tup2>
-    auto operator()(Tup1 lhs, const Tup2& rhs) const
+    auto
+    operator()(const Tup1& lhs, const Tup2& rhs) const
     {
         using ::std::get;
-        get<0>(lhs) += get<1>(rhs);
-        get<1>(lhs) += get<1>(rhs);
-        return lhs;
+        Tup1 tup_sum = ::std::make_tuple(get<0>(lhs) + get<0>(rhs), get<1>(lhs) + get<1>(rhs));
+        return tup_sum;
     }
 };
 
