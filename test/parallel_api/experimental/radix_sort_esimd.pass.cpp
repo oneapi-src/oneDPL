@@ -923,7 +923,7 @@ iterate_all_params(std::size_t size)
     if constexpr (TestRunner::template can_compile_test<TKey, DataPerWorkItem>())
     {
         TestRunner runnerObj;
-        if (runnerObj.template can_run_test<TKey, DataPerWorkItemList>(size))
+        if (runnerObj.template can_run_test<TKey, DataPerWorkItem>(size))
         {
 #if LOG_TEST_INFO
             std::cout << "starting..." << std::endl;
@@ -984,9 +984,8 @@ int main()
 #else
         for(auto size: sizes)
         {
-            using test_runner = test_usm_runner<USMAllocShared, AscendingType>;
-            iterate_all_params<test_runner, TypeListShortRunAsc,  DataPerWorkItemListShortRun>(size);
-            iterate_all_params<test_runner, TypeListShortRunDesc, DataPerWorkItemListShortRun>(size);
+            iterate_all_params<test_usm_runner<USMAllocShared, AscendingType>,  TypeListShortRunAsc,  DataPerWorkItemListShortRun>(size);
+            iterate_all_params<test_usm_runner<USMAllocShared, DescendingType>, TypeListShortRunDesc, DataPerWorkItemListShortRun>(size);
         }
 #endif // TEST_LONG_RUN
     }
