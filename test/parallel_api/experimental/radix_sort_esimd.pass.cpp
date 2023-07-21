@@ -643,11 +643,30 @@ struct test_usm_runner
     {
         //              32   64   96  128     160     192     224     256     288     320     352     384     416     448     480     512
         // char                                       N                                                       N
+        // int8_t                                     N                                                       N
+        // uint8_t                                    N                                                       N
 
         // char : <192, 416>
         using skip_dpwi_for_char = TestUtils::TList<DPWI<192>, DPWI<416>>;
         if constexpr (::std::is_same_v<TKey, char> &&
                         TestUtils::type_list_contain<skip_dpwi_for_char, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+
+        // int8_t : <192, 416>
+        using skip_dpwi_for_int8_t = TestUtils::TList<DPWI<192>, DPWI<416>>;
+        if constexpr (::std::is_same_v<TKey, int8_t> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_int8_t, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+        // uint8_t : <192, 416>
+        using skip_dpwi_for_uint8_t = TestUtils::TList<DPWI<192>, DPWI<416>>;
+        if constexpr (::std::is_same_v<TKey, uint8_t> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_uint8_t, DataPerWorkItem>())
         {
             return false;
         }
@@ -659,109 +678,112 @@ struct test_usm_runner
     bool
     can_run_test(std::size_t /*size*/)
     {
+        // CTE - compile-time error
         // RTE - run-time error
+        // RTE(A) - run-time error only at full test run
         // WTR - wrong test results
+        // SF  - segmentation fault
         
         //              32      64     96    128     160     192     224     256     288     320     352     384     416     448     480     512
-        // char         
-        // int8_t       
-        // uint8_t      
-        // int16_t      
-        // uint16_t     
-        // int          
-        // uint32_t     
-        // int64_t      
-        // float        
-        // uint64_t     
-        // double       
+        // char         RTE(A)  RTE          RTE             CTE             RTE                                     CTE                     RTE
+        // int8_t               RTE          RTE             CTE                                                     CTE                     RTE
+        // uint8_t              RTE          RTE             CTE                                                     CTE                     RTE
+        // int16_t              RTE          RTE             RTE             RTE                                     RTE                     RTE
+        // uint16_t             RTE          RTE             RTE             RTE                                                             RTE
+        // int                  RTE          RTE             RTE             RTE                                     RTE                     RTE
+        // uint32_t     RTE(A)  RTE          RTE             RTE             RTE                                     RTE                     RTE
+        // int64_t              RTE          RTE             RTE                                                     RTE                     RTE
+        // float        RTE(A)  RTE          RTE             RTE             RTE                                     RTE                     RTE
+        // uint64_t     RTE     RTE          RTE             RTE             RTE                                     RTE                     RTE
+        // double               RTE          RTE             RTE             SF                                      RTE                     RTE
 
-        //// char : <>
-        //using skip_dpwi_for_char = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, char> &&
-        //                TestUtils::type_list_contain<skip_dpwi_for_char, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// int8_t : <>
-        //using skip_dpwi_for_int8_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, int8_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_int8_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// uint8_t : <>
-        //using skip_dpwi_for_uint8_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, uint8_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_uint8_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// int16_t : <>
-        //using skip_dpwi_for_int16_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, int16_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_int16_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// uint16_t : <>
-        //using skip_dpwi_for_uint16_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, uint16_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_uint16_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// int : <>
-        //using skip_dpwi_for_int = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, int> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_int, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// uint32_t : <>
-        //using skip_dpwi_for_uint32_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, uint32_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_uint32_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// int64_t : <>
-        //using skip_dpwi_for_int64_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, int64_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_int64_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// uint64_t : <>
-        //using skip_dpwi_for_uint64_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, uint64_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_uint64_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// float : <>
-        //using skip_dpwi_for_float= TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, float> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_float, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// double : <>
-        //using skip_dpwi_for_double= TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, double> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_double, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
+        // char : <32, 64, 128, 256, 512>
+        using skip_dpwi_for_char = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<256>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, char> &&
+                        TestUtils::type_list_contain<skip_dpwi_for_char, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+        // int8_t : <64, 128, 512>
+        using skip_dpwi_for_int8_t = TestUtils::TList<DPWI<64>, DPWI<128>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, int8_t> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_int8_t, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+        // uint8_t : <64, 128, 512>
+        using skip_dpwi_for_uint8_t = TestUtils::TList<DPWI<64>, DPWI<128>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, uint8_t> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_uint8_t, DataPerWorkItem>())
+        {
+            return false;
+        }
+        
+        // int16_t : <64, 128, 192, 256, 416, 512>
+        using skip_dpwi_for_int16_t = TestUtils::TList<DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, int16_t> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_int16_t, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+        // uint16_t : <64, 128, 192, 256, 512>
+        using skip_dpwi_for_uint16_t = TestUtils::TList<DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, uint16_t> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_uint16_t, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+        // int : <64, 128, 192, 256, 416, 512>
+        using skip_dpwi_for_int = TestUtils::TList<DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, int> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_int, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+        // uint32_t : <32 64, 128, 192, 256, 416, 512>
+        using skip_dpwi_for_uint32_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, uint32_t> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_uint32_t, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+        // int64_t : <64, 128, 192, 416, 512>
+        using skip_dpwi_for_int64_t = TestUtils::TList<DPWI<64>, DPWI<128>, DPWI<192>, DPWI<416>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, int64_t> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_int64_t, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+        // uint64_t : <32, 64, 128, 192, 256, 416, 512>
+        using skip_dpwi_for_uint64_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, uint64_t> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_uint64_t, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+        // float : <32, 64, 128, 192, 256, 416, 512>
+        using skip_dpwi_for_float= TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, float> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_float, DataPerWorkItem>())
+        {
+            return false;
+        }
+
+        // double : <64, 128, 192, 256, 416, 512>
+        using skip_dpwi_for_double= TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, double> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_double, DataPerWorkItem>())
+        {
+            return false;
+        }
 
         return true;
     }
