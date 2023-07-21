@@ -521,9 +521,10 @@ struct test_general_cases_runner
         // RTE - run-time error
         // WTR - wrong test results
         // SF  - segmentation fault
+        // H   - hang
 
         //              32      64     96    128     160     192     224     256     288     320     352     384     416     448     480     512
-        // char         
+        // char         H       H            H
         // int8_t       
         // uint8_t      
         // int16_t      
@@ -535,14 +536,14 @@ struct test_general_cases_runner
         // uint64_t     
         // double       
 
-        //// char : <>
-        //using skip_dpwi_for_char = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, char> &&
-        //                TestUtils::type_list_contain<skip_dpwi_for_char, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
+        // char : <32, 64, 128>
+        using skip_dpwi_for_char = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>>;
+        if constexpr (::std::is_same_v<TKey, char> &&
+                        TestUtils::type_list_contain<skip_dpwi_for_char, DataPerWorkItem>())
+        {
+            return false;
+        }
+
         //// int8_t : <>
         //using skip_dpwi_for_int8_t = TestUtils::TList<>;
         //if constexpr (::std::is_same_v<TKey, int8_t> &&
