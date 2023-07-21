@@ -99,7 +99,6 @@ namespace experimental {
 
   template<typename DSPolicy, typename Function, typename... Args>
   auto invoke_async(DSPolicy&& dp, Function&&f, Args&&... args) {
-
     if constexpr(has_invoke_async<DSPolicy, Function, Args...>::value == true) {
         return std::forward<DSPolicy>(dp).invoke_async(std::forward<Function>(f), std::forward<Args>(args)...);
     }
@@ -109,7 +108,7 @@ namespace experimental {
   }
 
 
-   template<typename DSPolicy, typename Function, typename... Args>
+  template<typename DSPolicy, typename Function, typename... Args>
   auto has_invoke_impl(...) -> std::false_type;
 
   template<typename DSPolicy, typename Function, typename... Args>
