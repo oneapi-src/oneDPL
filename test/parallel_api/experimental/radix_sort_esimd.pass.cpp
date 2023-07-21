@@ -257,7 +257,7 @@ template <typename T, typename OrderType, typename DataPerWorkItem>
 void test_all_view(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
+    std::cout << "\t\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -281,7 +281,7 @@ template <typename T, typename OrderType, typename DataPerWorkItem>
 void test_subrange_view(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_subrange_view<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
+    std::cout << "\t\ttest_subrange_view<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -337,7 +337,7 @@ void
 test_usm(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\ttest_usm<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
+    std::cout << "\t\ttest_usm<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
 #endif
 
     test_usm<T, USMAllocShared, OrderType, DataPerWorkItem>(size);
@@ -939,7 +939,7 @@ iterate_all_params(std::size_t size)
     using DataPerWorkItem = typename TestUtils::GetHeadType<DataPerWorkItemList>;
 
 #if LOG_TEST_INFO
-    std::cout << "\ttest for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << DataPerWorkItem::value << " : ";
+    std::cout << "\t\ttest for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << DataPerWorkItem::value << " : ";
 #endif
 
     // Check that we are ablue to run test for the current pair <TKey, DataPerWorkItem>
