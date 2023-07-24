@@ -70,12 +70,21 @@ using DataPerWorkItemListShortRun = TestUtils::TList<DPWI<32>, DPWI<64>,        
 #endif // TEST_DPWI
 
 // Test dimension 2 : types
-using TypeListLongRunRanges = TestUtils::TList<uint8_t>;
-using TypeListLongRunUSM    = TestUtils::TList<uint8_t>;
-using TypeListLongRunSyclIt = TestUtils::TList<uint8_t>;
-using TypeListShortRunAsc   = TestUtils::TList<uint8_t>;
-using TypeListShortRunDesc  = TestUtils::TList<uint8_t>;
-using TypeListSmallSizes    = TestUtils::TList<uint8_t>;
+#ifdef TEST_DATA_TYPE
+using TypeListLongRunRanges = TestUtils::TList<TEST_DATA_TYPE>;
+using TypeListLongRunUSM    = TestUtils::TList<TEST_DATA_TYPE>;
+using TypeListLongRunSyclIt = TestUtils::TList<TEST_DATA_TYPE>;
+using TypeListShortRunAsc   = TestUtils::TList<TEST_DATA_TYPE>;
+using TypeListShortRunDesc  = TestUtils::TList<TEST_DATA_TYPE>;
+using TypeListSmallSizes    = TestUtils::TList<TEST_DATA_TYPE>;
+#else
+using TypeListLongRunRanges = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
+using TypeListLongRunUSM    = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
+using TypeListLongRunSyclIt = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
+using TypeListShortRunAsc   = TestUtils::TList<char,                                     int, uint32_t, float,                    double>;
+using TypeListShortRunDesc  = TestUtils::TList<                       int16_t,           int,           float,          uint64_t, double>;
+using TypeListSmallSizes    = TestUtils::TList<                                               uint32_t                                  >;
+#endif // TEST_DATA_TYPE
 
 // test types :           char, int8_t,      uint8_t,       int16_t, uint16_t,       int, uint32_t,     float, int64_t, uint64_t,      double
 // compiler named types : char, signed char, unsigned char, short,   unsigned short, int, unsigned int, float, long,    unsigned long, double
