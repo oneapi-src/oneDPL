@@ -866,7 +866,7 @@ int main()
             iterate_all_params<test_general_cases_runner<GeneralCases::eUSM>,           TypeListLongRunUSM,    DataPerWorkItemListLongRun>(size);
             iterate_all_params<test_general_cases_runner<GeneralCases::eSyclIterators>, TypeListLongRunSyclIt, DataPerWorkItemListLongRun>(size);
         }
-        //iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemListLongRun>(1 /* this param ignored inside test_small_sizes function */);
+        iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemListLongRun>(1 /* this param ignored inside test_small_sizes function */);
 //#else
 //        for(auto size: sizes)
 //        {
