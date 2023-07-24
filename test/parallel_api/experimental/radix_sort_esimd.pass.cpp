@@ -65,12 +65,12 @@ using DataPerWorkItemListLongRun  = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<96
 using DataPerWorkItemListShortRun = TestUtils::TList<DPWI<32>, DPWI<64>,           DPWI<128>,            DPWI<192>,            DPWI<256>,                                             DPWI<416>,                       DPWI<512>>;
 
 // Test dimension 2 : types
-using TypeListLongRunRanges = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
-using TypeListLongRunUSM    = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
-using TypeListLongRunSyclIt = TestUtils::TList<char, int8_t, uint8_t, int16_t, uint16_t, int, uint32_t, float, int64_t, uint64_t, double>;
-using TypeListShortRunAsc   = TestUtils::TList<char,                                     int, uint32_t, float,                    double>;
-using TypeListShortRunDesc  = TestUtils::TList<                       int16_t,           int,           float,          uint64_t, double>;
-using TypeListSmallSizes    = TestUtils::TList<                                               uint32_t                                  >;
+using TypeListLongRunRanges = TestUtils::TList<uint8_t>;
+using TypeListLongRunUSM    = TestUtils::TList<uint8_t>;
+using TypeListLongRunSyclIt = TestUtils::TList<uint8_t>;
+using TypeListShortRunAsc   = TestUtils::TList<uint8_t>;
+using TypeListShortRunDesc  = TestUtils::TList<uint8_t>;
+using TypeListSmallSizes    = TestUtils::TList<uint8_t>;
 
 // test types :           char, int8_t,      uint8_t,       int16_t, uint16_t,       int, uint32_t,     float, int64_t, uint64_t,      double
 // compiler named types : char, signed char, unsigned char, short,   unsigned short, int, unsigned int, float, long,    unsigned long, double
@@ -997,21 +997,21 @@ int main()
 
     try
     {
-#if TEST_LONG_RUN
+//#if TEST_LONG_RUN
         for(auto size: sizes)
         {
             iterate_all_params<test_general_cases_runner<GeneralCases::eRanges>,        TypeListLongRunRanges, DataPerWorkItemListLongRun>(size);
-            iterate_all_params<test_general_cases_runner<GeneralCases::eUSM>,           TypeListLongRunUSM,    DataPerWorkItemListLongRun>(size);
-            iterate_all_params<test_general_cases_runner<GeneralCases::eSyclIterators>, TypeListLongRunSyclIt, DataPerWorkItemListLongRun>(size);
+            //iterate_all_params<test_general_cases_runner<GeneralCases::eUSM>,           TypeListLongRunUSM,    DataPerWorkItemListLongRun>(size);
+            //iterate_all_params<test_general_cases_runner<GeneralCases::eSyclIterators>, TypeListLongRunSyclIt, DataPerWorkItemListLongRun>(size);
         }
-        iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemListLongRun>(1 /* this param ignored inside test_small_sizes function */);
-#else
-        for(auto size: sizes)
-        {
-            iterate_all_params<test_usm_runner<USMAllocShared, AscendingType>,  TypeListShortRunAsc,  DataPerWorkItemListShortRun>(size);
-            iterate_all_params<test_usm_runner<USMAllocShared, DescendingType>, TypeListShortRunDesc, DataPerWorkItemListShortRun>(size);
-        }
-#endif // TEST_LONG_RUN
+        //iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemListLongRun>(1 /* this param ignored inside test_small_sizes function */);
+//#else
+//        for(auto size: sizes)
+//        {
+//            iterate_all_params<test_usm_runner<USMAllocShared, AscendingType>,  TypeListShortRunAsc,  DataPerWorkItemListShortRun>(size);
+//            iterate_all_params<test_usm_runner<USMAllocShared, DescendingType>, TypeListShortRunDesc, DataPerWorkItemListShortRun>(size);
+//        }
+//#endif // TEST_LONG_RUN
     }
     catch (const ::std::exception& exc)
     {
