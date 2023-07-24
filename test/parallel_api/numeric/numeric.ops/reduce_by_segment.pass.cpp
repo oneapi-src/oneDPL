@@ -327,7 +327,7 @@ main()
         test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
+#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
 #    if TEST_DPCPP_BACKEND_PRESENT
         test_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
 #    else
@@ -341,7 +341,7 @@ main()
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
         using BinaryOperation = MaxAbsFunctor<ValueType>;
 
-#if TEST_DPCPP_BACKEND_PRESENT && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
+#if TEST_DPCPP_BACKEND_PRESENT
         // Run tests for USM shared memory
         test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
         // Run tests for USM device memory
