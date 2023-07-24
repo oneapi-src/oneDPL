@@ -518,14 +518,15 @@ struct test_general_cases_runner
     bool
     can_run_test(std::size_t /*size*/)
     {
+        // CTE - compile-time error
         // RTE - run-time error
         // WTR - wrong test results
         // SF  - segmentation fault
         // H   - hang
 
         //              32      64     96    128     160     192     224     256     288     320     352     384     416     448     480     512
-        // char         H       H            H
-        // int8_t       
+        // char         H       H            H       CTE     CTE     CTE                             CTE             CTE     CTE     CTE
+        // int8_t               H      CTE           CTE     CTE     CTE     H       H       H       CTE     H       CTE     CTE     CTE     H
         // uint8_t      
         // int16_t      
         // uint16_t     
@@ -544,14 +545,14 @@ struct test_general_cases_runner
             return false;
         }
 
-        //// int8_t : <>
-        //using skip_dpwi_for_int8_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, int8_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_int8_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
+        // int8_t : <64, 256, 288, 320, 384, 512>
+        using skip_dpwi_for_int8_t = TestUtils::TList<DPWI<64>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<384>, DPWI<512>>;
+        if constexpr (::std::is_same_v<TKey, int8_t> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_int8_t, DataPerWorkItem>())
+        {
+            return false;
+        }
+
         //// uint8_t : <>
         //using skip_dpwi_for_uint8_t = TestUtils::TList<>;
         //if constexpr (::std::is_same_v<TKey, uint8_t> &&
