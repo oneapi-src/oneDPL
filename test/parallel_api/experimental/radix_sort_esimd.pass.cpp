@@ -542,7 +542,7 @@ struct test_general_cases_runner
         // char         H       H            H       CTE     CTE     CTE                             CTE             CTE     CTE     CTE
         // int8_t       H       H      CTE           CTE     CTE     CTE     H       H       H       CTE     H       CTE     CTE     CTE     H
         // uint8_t      H       H      CTE   H       CTE     CTE     CTE                             CTE             CTE     CTE     CTE
-        // int16_t      
+        // int16_t      H       H      CTE   H       H       H       CTE                             CTE                             CTE
         // uint16_t     
         // int          
         // uint32_t     
@@ -575,14 +575,14 @@ struct test_general_cases_runner
             return false;
         }
 
-        //// int16_t : <>
-        //using skip_dpwi_for_int16_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, int16_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_int16_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
+        // int16_t : <32, 64, 128, 160, 192>
+        using skip_dpwi_for_int16_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<160>, DPWI<192>>;
+        if constexpr (::std::is_same_v<TKey, int16_t> &&
+                      TestUtils::type_list_contain<skip_dpwi_for_int16_t, DataPerWorkItem>())
+        {
+            return false;
+        }
+
         //// uint16_t : <>
         //using skip_dpwi_for_uint16_t = TestUtils::TList<>;
         //if constexpr (::std::is_same_v<TKey, uint16_t> &&
