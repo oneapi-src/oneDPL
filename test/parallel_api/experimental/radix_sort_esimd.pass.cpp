@@ -544,12 +544,13 @@ struct test_general_cases_runner
         // uint8_t      H       H      CTE   H       CTE     CTE     CTE                             CTE             CTE     CTE     CTE
         // int16_t      H       H      CTE   H       H       H       CTE                             CTE                             CTE
         // uint16_t     H       H      CTE   H       H       H       CTE     CTE                     CTE                             CTE     CTE
-        // int          
-        // uint32_t     
-        // int64_t      
-        // float        
-        // uint64_t     
-        // double       
+        // int64_t      CTE     CTE    CTE   CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE
+        // uint64_t     CTE     CTE    CTE   CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE
+        // double       CTE     CTE    CTE   CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE
+        // 
+        // int          ?       ?      ?     ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
+        // uint32_t     ?       ?      ?     ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
+        // float        ?       ?      ?     ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
 
         // char : <32, 64, 128>
         using skip_dpwi_for_char = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>>;
@@ -590,54 +591,6 @@ struct test_general_cases_runner
         {
             return false;
         }
-
-        //// int : <>
-        //using skip_dpwi_for_int = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, int> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_int, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// uint32_t : <>
-        //using skip_dpwi_for_uint32_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, uint32_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_uint32_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// int64_t : <>
-        //using skip_dpwi_for_int64_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, int64_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_int64_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// uint64_t : <>
-        //using skip_dpwi_for_uint64_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, uint64_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_uint64_t, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// float : <>
-        //using skip_dpwi_for_float= TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, float> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_float, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
-        //
-        //// double : <>
-        //using skip_dpwi_for_double= TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, double> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_double, DataPerWorkItem>())
-        //{
-        //    return false;
-        //}
 
         return true;
     }
