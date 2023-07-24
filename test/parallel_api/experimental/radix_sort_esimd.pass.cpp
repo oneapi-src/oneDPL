@@ -526,7 +526,7 @@ struct test_general_cases_runner
 
         //              32      64     96    128     160     192     224     256     288     320     352     384     416     448     480     512
         // char         H       H            H       CTE     CTE     CTE                             CTE             CTE     CTE     CTE
-        // int8_t               H      CTE           CTE     CTE     CTE     H       H       H       CTE     H       CTE     CTE     CTE     H
+        // int8_t       H       H      CTE           CTE     CTE     CTE     H       H       H       CTE     H       CTE     CTE     CTE     H
         // uint8_t                     CTE           CTE     CTE     CTE                             CTE             CTE     CTE     CTE
         // int16_t      
         // uint16_t     
