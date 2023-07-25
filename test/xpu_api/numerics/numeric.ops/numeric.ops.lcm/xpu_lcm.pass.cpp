@@ -113,7 +113,7 @@ main()
 
 // TODO: remove the macro guard once L0 backend fixes the issue
 #if defined(_WIN32)
-    std::cout << TestUtils::done(0) << ::std::endl;
+    return TestUtils::done(0);
 #else
     do_test<signed char>(deviceQueue);
     do_test<short>(deviceQueue);
@@ -132,9 +132,6 @@ main()
     do_test<long, int>(deviceQueue);
     do_test<int, long long>(deviceQueue);
     do_test<long long, int>(deviceQueue);
-
-    std::cout << "done" << std::endl;
 #endif
-
-    return 0;
+    return TestUtils::done();
 }

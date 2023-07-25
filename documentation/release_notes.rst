@@ -49,6 +49,21 @@ See oneDPL Guide for other `restrictions and known limitations`_.
 - The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
 - STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
   the Microsoft* Visual C++ standard library.
+=======
+
+New in 2022.1.1
+===============
+
+New Features
+------------
+- Improved ``sort`` algorithm performance for the arithmetic data types with ``std::less`` or ``std::greater`` comparison operator and DPC++ policy.
+
+Fixes Issues
+------------
+- Fixed an error that caused segmentation faults in ``transform_reduce``, ``minmax_element``, and related algorithms when ran on CPU devices. 
+- Fixed a compilation error in ``transform_reduce``, ``minmax_element``, and related algorithms on FPGAs.
+- Fixed ``permutation_iterator`` to support C-style array as a permutation map.
+- Fixed a radix-sort issue with 64-bit signed integer types.
 
 New in 2022.1.0
 ===============

@@ -19,7 +19,7 @@
 
 #include <iostream>
 
-#include "support/utils_sycl.h"
+#include "support/utils.h"
 #include "support/test_iterators.h"
 
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
@@ -125,6 +125,6 @@ int main() {
   test<const int *, bidirectional_iterator<int *>, KernelTest23>();
   test<const int *, random_access_iterator<int *>, KernelTest24>();
   test<const int *, int *, KernelTest25>();
-  std::cout << "done" << std::endl;
-  return 0;
+
+  return TestUtils::done();
 }

@@ -72,12 +72,29 @@ endif()
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
+include(CheckIncludeFileCXX)
 include(GNUInstallDirs)
 
-# Set default back-end in according with compiler (DPC++ or others)
+# Check SYCL support by the compiler
 check_cxx_compiler_flag("-fsycl" _fsycl_option)
+if (_fsycl_option)
+    CHECK_INCLUDE_FILE_CXX("sycl/sycl.hpp" _sycl_header "-fsycl")
+    if (NOT _sycl_header)
+        CHECK_INCLUDE_FILE_CXX("CL/sycl.hpp" _sycl_header_old "-fsycl")
+    endif()
+    if (_sycl_header OR _sycl_header_old)
+        set(_sycl_support TRUE)
+    endif()
+endif()
+
+# Exit with an error when DPCPP backend is explicitly set and SYCL is not supported
+if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$" AND NOT _sycl_support)
+    message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option or sycl.hpp is not available. It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
+endif()
+
+# Set the default backend if one has not been explicitly provided
 if (NOT ONEDPL_BACKEND)
-    if (_fsycl_option)
+    if (_sycl_support)
         set(ONEDPL_BACKEND "dpcpp" CACHE STRING "Threading backend")
     else()
         set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend")
@@ -161,12 +178,8 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
         )
 
     if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
-        if (NOT _fsycl_option)
-            message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option.\n"
-            "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
-        endif()
         # Enable SYCL* with compilers/compiler drivers not passing -fsycl by default
-        if (_fsycl_option AND NOT CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp)(.exe)?$")
+        if (_sycl_support AND NOT CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp)(.exe)?$")
             message(STATUS "Adding -fsycl compiler option")
             set(USE_FSYCL_OPTION TRUE)
         endif()

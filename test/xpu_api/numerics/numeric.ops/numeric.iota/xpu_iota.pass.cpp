@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#include "support/utils_sycl.h"
+#include "support/utils.h"
 #include "support/test_iterators.h"
 
 template <class T> class KernelTest;
@@ -54,6 +54,5 @@ int main() {
   test<bidirectional_iterator<int *>>();
   test<random_access_iterator<int *>>();
   test<int *>();
-  std::cout << "done" << std::endl;
-  return 0;
+  return TestUtils::done();
 }
