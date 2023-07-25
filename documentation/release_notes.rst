@@ -19,7 +19,7 @@ New Features
 - Improved performance of the ``reduce_by_segment``, ``inclusive_scan_by_segment``, and
   ``exclusive_scan_by_segment`` algorithms for binary operators with known identities
   when using DPC++ execution policies.
-- Added ``value_type`` to all views in ``oneapi::dpl::__ranges``. 
+- Added ``value_type`` to all views in ``oneapi::dpl::experimental::ranges``. 
 - Extended ``oneapi::dpl::experimental::ranges::sort`` to support projections applied to the range elements prior to comparison.
 
 Fixed Issues
