@@ -871,11 +871,11 @@ int main()
         }
         iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemListLongRun>(1 /* this param ignored inside test_small_sizes function */);
 //#else
-//        for(auto size: sizes)
-//        {
-//            iterate_all_params<test_usm_runner<USMAllocShared, AscendingType>,  TypeListShortRunAsc,  DataPerWorkItemListShortRun>(size);
-//            iterate_all_params<test_usm_runner<USMAllocShared, DescendingType>, TypeListShortRunDesc, DataPerWorkItemListShortRun>(size);
-//        }
+        for(auto size: sizes)
+        {
+            iterate_all_params<test_usm_runner<USMAllocShared, AscendingType>,  TypeListShortRunAsc,  DataPerWorkItemListShortRun>(size);
+            iterate_all_params<test_usm_runner<USMAllocShared, DescendingType>, TypeListShortRunDesc, DataPerWorkItemListShortRun>(size);
+        }
 //#endif // TEST_LONG_RUN
     }
     catch (const ::std::exception& exc)
