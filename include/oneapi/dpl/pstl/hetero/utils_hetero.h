@@ -79,7 +79,7 @@ struct __create_mask_unique_copy
 };
 
 template <typename _ReduceValueType>
-struct __acc_handler_minelement
+struct __acc_transform_minelement
 {
 
     template <typename _GlobalIdx, typename _Acc>
@@ -91,8 +91,24 @@ struct __acc_handler_minelement
     }
 };
 
+template <typename _Compare>
+struct __acc_reduce_minelement
+{
+    _Compare __comp;
+
+    // Assumes (a_index < b_index), Reduction algorithm must preserve
+    // relative ordering of arguments to the binary operation.
+    template <typename _ReduceValueType>
+    _ReduceValueType
+    operator()(_ReduceValueType __a, _ReduceValueType __b) const
+    {
+        using ::std::get;
+        return __comp(get<1>(__b), get<1>(__a)) ? __b : __a;
+    }
+};
+
 template <typename _ReduceValueType>
-struct __acc_handler_minmaxelement
+struct __acc_transform_minmaxelement
 {
 
     template <typename _GlobalIdx, typename _Acc>
@@ -107,7 +123,7 @@ struct __acc_handler_minmaxelement
 };
 
 template <typename _Compare>
-struct __identity_reduce_fn
+struct __acc_reduce_minmaxelement
 {
     _Compare __comp;
 
@@ -135,7 +151,7 @@ struct __identity_reduce_fn
 };
 
 template <typename _Predicate>
-struct acc_handler_count
+struct __acc_transform_count
 {
     _Predicate __predicate;
 

@@ -387,7 +387,11 @@ struct __parallel_transform_reduce_impl
 }; // struct __parallel_transform_reduce_impl
 
 // General version of parallel_transform_reduce.
-// The binary operator must be associative but commutativity is not required since the elements are processed in order.
+// The binary operator must be associative but commutativity is only required by some of the algorithms using
+// __parallel_transform_reduce. This is provided by the _Commutative parameter. The current implementation uses a
+// generic implementation that processes elements in order. However, future improvements might be possible utilizing
+// the commutative property of the respective algorithms.
+//
 // Each work item transforms and reduces __iters_per_work_item elements from global memory and stores the result in SLM.
 // 32 __iters_per_work_item was empirically found best for typical devices.
 // Each work group of size __work_group_size reduces the preliminary results of each work item in a group reduction
@@ -396,8 +400,9 @@ struct __parallel_transform_reduce_impl
 // Mid-sized arrays use two tree reductions with independent __iters_per_work_item.
 // Big arrays are processed with a recursive tree reduction. __work_group_size * __iters_per_work_item elements are
 // reduced in each step.
-template <typename _Tp, typename _ReduceOp, typename _TransformOp, typename _ExecutionPolicy, typename _InitType,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
+template <typename _Tp, typename _ReduceOp, typename _TransformOp, typename _Commutative, typename _ExecutionPolicy,
+          typename _InitType, oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
+          typename... _Ranges>
 auto
 __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _TransformOp __transform_op,
                             _InitType __init, _Ranges&&... __rngs)
