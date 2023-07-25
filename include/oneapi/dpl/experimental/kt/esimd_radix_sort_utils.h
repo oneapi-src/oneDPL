@@ -66,13 +66,22 @@ gather(const T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets
     return sycl::ext::intel::esimd::gather(input + base_offset, offsets * size32<T>, mask);
 }
 
-template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
+template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, ::std::enable_if_t<sizeof(T) <= sizeof(::std::uint32_t), int> = 0>
 sycl::ext::intel::esimd::simd<T, N>
 gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
        ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
     return sycl::ext::intel::esimd::gather<T>(input, offsets * size32<T>, base_offset * size32<T>, mask);
 }
+
+//template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
+//std::enable_if_t<(sizeof(T) == sizeof(::std::uint64_t) && (N == 1 || N == 8 || N == 16 || N == 32) && !std::is_pointer<AccessorTy>::value,
+//                 sycl::ext::intel::esimd::simd<T, N>>
+//gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+//       ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+//{
+//    return sycl::ext::intel::esimd::gather<T>(input, offsets * size32<T>, base_offset * size32<T>, mask);
+//}
 
 template <typename T, int N>
 void
@@ -82,7 +91,7 @@ scatter(T* output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
     sycl::ext::intel::esimd::scatter(output, offsets * size32<T>, values, mask);
 }
 
-template<typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
+template<typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, ::std::enable_if_t<sizeof(T) <= sizeof(::std::uint32_t), int> = 0>
 void
 scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
