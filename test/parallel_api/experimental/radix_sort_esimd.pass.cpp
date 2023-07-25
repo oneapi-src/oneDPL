@@ -70,6 +70,7 @@ using DataPerWorkItemListShortRun = TestUtils::TList<DPWI<32>, DPWI<64>,        
 #endif // TEST_DPWI
 
 // Test dimension 2 : types
+#define TEST_DATA_TYPE uint32_t, int32_t, uint64_t, uint64_t, int64_t, float, double
 #ifdef TEST_DATA_TYPE
 using TypeListLongRunRanges = TestUtils::TList<TEST_DATA_TYPE>;
 using TypeListLongRunUSM    = TestUtils::TList<TEST_DATA_TYPE>;
