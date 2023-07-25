@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Additional Algorithms &#8212; oneDPL Documentation 2022.1.0 documentation</title>
+    <title>Additional Algorithms &#8212; oneDPL Documentation 2022.2.0 documentation</title>
     
     <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -96,7 +96,7 @@
       <img src="../_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
       
       
-      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.1.0 documentation</h1>
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.2.0 documentation</h1>
       
     </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -204,6 +204,11 @@
  <li class="toctree-l1">
   <a class="reference internal" href="../macros.html">
    Macros
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../cmake_support.html">
+   CMake Support
   </a>
  </li>
  <li class="toctree-l1">
@@ -479,6 +484,18 @@ to compare the elements is used. For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">input</span> <span class="n">sequence</span><span class="p">:</span>  <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
 <span class="n">search</span> <span class="n">sequence</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
 <span class="n">result</span> <span class="n">sequence</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sort_by_key</span></code>: performs a stable key-value sort. The algorithm sorts the sequence’s keys according to
+a comparioson operator. If no comparator is provided, then the elements are compared with <code class="docutils literal notranslate"><span class="pre">operator&lt;</span></code>.
+The sequence’s values are permutated according to the sorted sequence’s keys. The prerequisite for correct
+behavior is that the size for both keys sequence and values sequence shall be the same.
+For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">keys</span><span class="p">:</span>   <span class="p">[</span><span class="mi">3</span><span class="p">,</span>    <span class="mi">5</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span>   <span class="mi">4</span><span class="p">,</span>   <span class="mi">3</span><span class="p">,</span>   <span class="mi">0</span><span class="p">]</span>
+<span class="n">values</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">]</span>
+<span class="n">output_keys</span><span class="p">:</span>   <span class="p">[</span><span class="mi">0</span><span class="p">,</span>    <span class="mi">0</span><span class="p">,</span>   <span class="mi">3</span><span class="p">,</span>   <span class="mi">3</span><span class="p">,</span>   <span class="mi">4</span><span class="p">,</span>   <span class="mi">5</span><span class="p">]</span>
+<span class="n">output_values</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
 </li>

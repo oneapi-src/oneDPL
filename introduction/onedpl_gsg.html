@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Get Started with the oneAPI DPC++ Library &#8212; oneDPL Documentation 2022.1.0 documentation</title>
+    <title>Get Started with the oneAPI DPC++ Library &#8212; oneDPL Documentation 2022.2.0 documentation</title>
     
     <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -96,7 +96,7 @@
       <img src="../_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
       
       
-      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.1.0 documentation</h1>
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.2.0 documentation</h1>
       
     </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -204,6 +204,11 @@
  <li class="toctree-l1">
   <a class="reference internal" href="../macros.html">
    Macros
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../cmake_support.html">
+   CMake Support
   </a>
  </li>
  <li class="toctree-l1">
@@ -401,36 +406,65 @@ title="Print to PDF"
     <nav id="bd-toc-nav" aria-label="Page">
         <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#before-you-begin">
-   Before You Begin
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#pkg-config-support">
-   pkg-config Support
+  <a class="reference internal nav-link" href="#quick-start">
+   Quick Start
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#use-pkg-config-with-onedpl-short">
-     Use pkg-config with oneDPL
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#usage-examples">
-   Usage Examples
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#oneapi-dpl-random-header-usage-example">
-     &lt;oneapi/dpl/random&gt; Header Usage Example
+    <a class="reference internal nav-link" href="#installation">
+     Installation
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pi-benchmark-usage-example">
-     Pi Benchmark Usage Example
+    <a class="reference internal nav-link" href="#cmake-support">
+     CMake Support
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#simple-example-cmake-file">
+       Simple Example CMake File
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#simple-example-cmake-invocation">
+       Simple Example CMake Invocation
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#example-build-command">
+       Example Build Command
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pkg-config-support">
+     pkg-config Support
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#use-pkg-config-with-onedpl-short">
+       Use pkg-config with oneDPL
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#usage-examples">
+     Usage Examples
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#oneapi-dpl-random-header-usage-example">
+       &lt;oneapi/dpl/random&gt; Header Usage Example
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#pi-benchmark-usage-example">
+       Pi Benchmark Usage Example
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -459,36 +493,65 @@ title="Print to PDF"
                         <nav aria-label="Page">
                             <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#before-you-begin">
-   Before You Begin
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#pkg-config-support">
-   pkg-config Support
+  <a class="reference internal nav-link" href="#quick-start">
+   Quick Start
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#use-pkg-config-with-onedpl-short">
-     Use pkg-config with oneDPL
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#usage-examples">
-   Usage Examples
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#oneapi-dpl-random-header-usage-example">
-     &lt;oneapi/dpl/random&gt; Header Usage Example
+    <a class="reference internal nav-link" href="#installation">
+     Installation
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pi-benchmark-usage-example">
-     Pi Benchmark Usage Example
+    <a class="reference internal nav-link" href="#cmake-support">
+     CMake Support
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#simple-example-cmake-file">
+       Simple Example CMake File
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#simple-example-cmake-invocation">
+       Simple Example CMake Invocation
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#example-build-command">
+       Example Build Command
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pkg-config-support">
+     pkg-config Support
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#use-pkg-config-with-onedpl-short">
+       Use pkg-config with oneDPL
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#usage-examples">
+     Usage Examples
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#oneapi-dpl-random-header-usage-example">
+       &lt;oneapi/dpl/random&gt; Header Usage Example
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#pi-benchmark-usage-example">
+       Pi Benchmark Usage Example
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -510,7 +573,7 @@ title="Print to PDF"
   <section id="get-started-with-the-onedpl-long">
 <h1>Get Started with the oneAPI DPC++ Library<a class="headerlink" href="#get-started-with-the-onedpl-long" title="Permalink to this headline">¶</a></h1>
 <p>oneAPI DPC++ Library (oneDPL) works with the
-<a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html">Intel® oneAPI DPC++/C++ Compiler</a>
+<a class="reference external" href="https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/current/overview.html">Intel® oneAPI DPC++/C++ Compiler</a>
 to provide high-productivity APIs to developers, which can minimize SYCL*
 programming efforts across devices for high performance parallel applications.</p>
 <p>oneDPL consists of the following components:</p>
@@ -520,11 +583,13 @@ programming efforts across devices for high performance parallel applications.</
 <li><p>Macros</p></li>
 </ul>
 <p>For general information about oneDPL, visit the <a class="reference external" href="https://github.com/oneapi-src/oneDPL">oneDPL GitHub* repository</a>,
-or visit the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html">Intel® oneAPI DPC++ Library Guide</a>
-and the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/dpc-library.html">Intel® oneAPI DPC++ Library main page</a>.</p>
-<section id="before-you-begin">
-<h2>Before You Begin<a class="headerlink" href="#before-you-begin" title="Permalink to this headline">¶</a></h2>
-<p>Visit the oneDPL <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html">Release Notes</a>
+or visit the <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html">Intel® oneAPI DPC++ Library Guide</a>
+and the <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-library.html">Intel® oneAPI DPC++ Library main page</a>.</p>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<section id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
+<p>Visit the oneDPL <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-dpcpp-library-release-notes.html">Release Notes</a>
 page for:</p>
 <ul class="simple">
 <li><p>Where to Find the Release</p></li>
@@ -533,7 +598,7 @@ page for:</p>
 <li><p>Fixed Issues</p></li>
 <li><p>Known Issues and Limitations</p></li>
 </ul>
-<p>Install the <a class="reference external" href="https://software.intel.com/en-us/oneapi/base-kit">Intel® oneAPI Base Toolkit (Base Kit)</a>
+<p>Install the <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html">Intel® oneAPI Base Toolkit (Base Kit)</a>
 to use oneDPL.</p>
 <p>To use Parallel API, include the corresponding header files in your source code.</p>
 <p>All oneDPL header files are in the <code class="docutils literal notranslate"><span class="pre">oneapi/dpl</span></code> directory. Use <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;oneapi/dpl/…&gt;</span></code> to include them.
@@ -541,19 +606,54 @@ oneDPL uses the namespace <code class="docutils literal notranslate"><span class
 <p>To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
 and use the <code class="docutils literal notranslate"><span class="pre">std</span></code> namespace.</p>
 </section>
+<section id="cmake-support">
+<h3>CMake Support<a class="headerlink" href="#cmake-support" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="https://cmake.org/cmake/help/latest/index.html">CMake</a> generates build scripts which can then be used to build and link your application. oneDPL can be added to your project via CMake.</p>
+<p>A simple example for Linux is provided below. For more detailed usage and options including details specific to Windows, please look to the <a class="reference external" href="https://oneapi-src.github.io/oneDPL/cmake-support.html">CMake Support Page</a>.</p>
+<section id="simple-example-cmake-file">
+<h4>Simple Example CMake File<a class="headerlink" href="#simple-example-cmake-file" title="Permalink to this headline">¶</a></h4>
+<p>To use oneDPL with CMake, create a CMakeLists.txt file for your project’s base directory and use <a class="reference external" href="https://cmake.org/cmake/help/latest/command/find_package.html">find_package</a> and <a class="reference external" href="https://cmake.org/cmake/help/latest/command/target_link_libraries.html">target_link_libraries</a> to add oneDPL.
+For example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">project</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span>
+<span class="n">add_executable</span><span class="p">(</span><span class="n">foo</span><span class="w"> </span><span class="n">foo</span><span class="p">.</span><span class="n">cpp</span><span class="p">)</span>
+
+<span class="cp"># Search to find oneDPL</span>
+<span class="n">find_package</span><span class="p">(</span><span class="n">oneDPL</span><span class="w"> </span><span class="n">REQUIRED</span><span class="p">)</span>
+
+<span class="cp"># Connect oneDPL to foo</span>
+<span class="n">target_link_libraries</span><span class="p">(</span><span class="n">foo</span><span class="w"> </span><span class="n">oneDPL</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="simple-example-cmake-invocation">
+<h4>Simple Example CMake Invocation<a class="headerlink" href="#simple-example-cmake-invocation" title="Permalink to this headline">¶</a></h4>
+<p>The following is an example CMake invocation which generates build scripts for the project in the parent directory:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">mkdir</span><span class="w"> </span><span class="n">build</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">cd</span><span class="w"> </span><span class="n">build</span>
+<span class="n">cmake</span><span class="w"> </span><span class="o">-</span><span class="n">DCMAKE_CXX_COMPILER</span><span class="o">=</span><span class="n">icpx</span><span class="w"> </span><span class="o">-</span><span class="n">DCMAKE_BUILD_TYPE</span><span class="o">=</span><span class="n">release</span><span class="w"> </span><span class="p">..</span>
+</pre></div>
+</div>
+</section>
+<section id="example-build-command">
+<h4>Example Build Command<a class="headerlink" href="#example-build-command" title="Permalink to this headline">¶</a></h4>
+<p>Once build scripts have been generated for your desired configuration following the instruction above, a <a class="reference external" href="https://cmake.org/cmake/help/latest/manual/cmake.1.html#build-a-project">build command</a> can be issued to build your project:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">cmake</span><span class="w"> </span><span class="o">--</span><span class="n">build</span><span class="w"> </span><span class="p">.</span>
+</pre></div>
+</div>
+</section>
+</section>
 <section id="pkg-config-support">
-<h2>pkg-config Support<a class="headerlink" href="#pkg-config-support" title="Permalink to this headline">¶</a></h2>
+<h3>pkg-config Support<a class="headerlink" href="#pkg-config-support" title="Permalink to this headline">¶</a></h3>
 <p>The pkg-config program is used to retrieve information about your installed libraries, and
 to compile and link against one or more libraries.</p>
 <section id="use-pkg-config-with-onedpl-short">
-<h3>Use pkg-config with oneDPL<a class="headerlink" href="#use-pkg-config-with-onedpl-short" title="Permalink to this headline">¶</a></h3>
+<h4>Use pkg-config with oneDPL<a class="headerlink" href="#use-pkg-config-with-onedpl-short" title="Permalink to this headline">¶</a></h4>
 <p>Use pkg-config with the <code class="docutils literal notranslate"><span class="pre">--cflags</span></code> flag to get the include path to the oneDPL directory:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">dpcpp</span><span class="w"> </span><span class="n">test</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="n">$</span><span class="p">(</span><span class="n">pkg</span><span class="o">-</span><span class="n">config</span><span class="w"> </span><span class="o">--</span><span class="n">cflags</span><span class="w"> </span><span class="n">dpl</span><span class="p">)</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">icpx</span><span class="w"> </span><span class="o">-</span><span class="n">fsycl</span><span class="w"> </span><span class="n">foo</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="n">$</span><span class="p">(</span><span class="n">pkg</span><span class="o">-</span><span class="n">config</span><span class="w"> </span><span class="o">--</span><span class="n">cflags</span><span class="w"> </span><span class="n">dpl</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">--msvc-syntax</span></code> flag is required when you use a Microsoft Visual C++* compiler.
 This flag converts your compiling and linking flags to the appropriate form:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">dpcpp</span><span class="w"> </span><span class="n">test</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="n">$</span><span class="p">(</span><span class="n">pkg</span><span class="o">-</span><span class="n">config</span><span class="w"> </span><span class="o">--</span><span class="n">msvc</span><span class="o">-</span><span class="n">syntax</span><span class="w"> </span><span class="o">--</span><span class="n">cflags</span><span class="w"> </span><span class="n">dpl</span><span class="p">)</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">icpx</span><span class="w"> </span><span class="o">-</span><span class="n">fsycl</span><span class="w"> </span><span class="n">foo</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="n">$</span><span class="p">(</span><span class="n">pkg</span><span class="o">-</span><span class="n">config</span><span class="w"> </span><span class="o">--</span><span class="n">msvc</span><span class="o">-</span><span class="n">syntax</span><span class="w"> </span><span class="o">--</span><span class="n">cflags</span><span class="w"> </span><span class="n">dpl</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -563,12 +663,12 @@ This flag converts your compiling and linking flags to the appropriate form:</p>
 </section>
 </section>
 <section id="usage-examples">
-<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
+<h3>Usage Examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h3>
 <p>oneDPL sample code is available from the
 <a class="reference external" href="https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL">oneAPI GitHub samples repository</a>.
 Each sample includes a readme with build instructions.</p>
 <section id="oneapi-dpl-random-header-usage-example">
-<h3>&lt;oneapi/dpl/random&gt; Header Usage Example<a class="headerlink" href="#oneapi-dpl-random-header-usage-example" title="Permalink to this headline">¶</a></h3>
+<h4>&lt;oneapi/dpl/random&gt; Header Usage Example<a class="headerlink" href="#oneapi-dpl-random-header-usage-example" title="Permalink to this headline">¶</a></h4>
 <p>This example illustrates oneDPL random number generator usage.
 The sample below shows you how to create an random number generator engine object (the source of pseudo-randomness),
 a distribution object (specifying the desired probability distribution), and how to generate
@@ -596,7 +696,7 @@ to improve the speed of your computations.</p>
 </div>
 </section>
 <section id="pi-benchmark-usage-example">
-<h3>Pi Benchmark Usage Example<a class="headerlink" href="#pi-benchmark-usage-example" title="Permalink to this headline">¶</a></h3>
+<h4>Pi Benchmark Usage Example<a class="headerlink" href="#pi-benchmark-usage-example" title="Permalink to this headline">¶</a></h4>
 <p>This example uses a Monte Carlo method to estimate the value of π.
 The basic idea is to generate random points within a square, and to check what
 fraction of these random points lie in a quarter-circle inscribed within that square.
@@ -638,6 +738,7 @@ fit into the square <em>S</em>. Random number generation is performed in scalar 
 </div>
 </section>
 </section>
+</section>
 <section id="find-more">
 <h2>Find More<a class="headerlink" href="#find-more" title="Permalink to this headline">¶</a></h2>
 <table class="table">
@@ -651,19 +752,19 @@ fit into the square <em>S</em>. Random number generation is performed in scalar 
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html">Intel® oneAPI DPC++ Library Guide</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html">Intel® oneAPI DPC++ Library Guide</a></p></td>
 <td><p>Refer to the oneDPL guide for  more in depth information.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-system-requirements.html">System Requirements</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.intel.com/content/www/us/en/developer/articles/system-requirements/intel-oneapi-dpcpp-system-requirements.html">System Requirements</a></p></td>
 <td><p>Check system requirements before you install oneDPL.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html">Intel® oneAPI DPC++ Library Release Notes</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-dpcpp-library-release-notes.html">Intel® oneAPI DPC++ Library Release Notes</a></p></td>
 <td><p>Check the release notes to learn about updates in the latest release.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference external" href="https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL">oneDPL Samples</a></p></td>
 <td><p>Learn how to use oneDPL with samples.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://www.intel.com/content/www/us/en/develop/documentation/get-started-with-intel-oneapi-iot-linux/top/adding-oneapi-components-to-yocto-project-builds.html">Layers for Yocto* Project</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.intel.com/content/www/us/en/docs/oneapi-iot-toolkit/get-started-guide-linux/current/adding-oneapi-components-to-yocto-project-builds.html">Layers for Yocto* Project</a></p></td>
 <td><p>Add oneAPI components to a Yocto project build using the meta-intel layers.</p></td>
 </tr>
 </tbody>

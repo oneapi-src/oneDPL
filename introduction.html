@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>oneAPI DPC++ Library Introduction &#8212; oneDPL Documentation 2022.1.0 documentation</title>
+    <title>oneAPI DPC++ Library Introduction &#8212; oneDPL Documentation 2022.2.0 documentation</title>
     
     <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -96,7 +96,7 @@
       <img src="_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
       
       
-      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.1.0 documentation</h1>
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.2.0 documentation</h1>
       
     </a>
 </div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
@@ -204,6 +204,11 @@
  <li class="toctree-l1">
   <a class="reference internal" href="macros.html">
    Macros
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="cmake_support.html">
+   CMake Support
   </a>
  </li>
  <li class="toctree-l1">
@@ -508,13 +513,13 @@ title="Print to PDF"
 <p>Parallel API can be used with the <a class="reference external" href="https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t">C++ Standard Execution
 Policies</a>
 to enable parallelism on the host.</p>
-<p>The oneAPI DPC++ Library (oneDPL) is implemented in accordance with the <a class="reference external" href="https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html">oneDPL
+<p>The oneAPI DPC++ Library (oneDPL) is implemented in accordance with the <a class="reference external" href="https://spec.oneapi.io/versions/latest/elements/oneDPL/source/index.html">oneDPL
 Specification</a>.</p>
 <p>To support heterogeneity, oneDPL works with the DPC++ API. More information can be found in the
-<a class="reference external" href="https://spec.oneapi.com/versions/latest/elements/dpcpp/source/index.html#dpc">DPC++ Specification</a>.</p>
+<a class="reference external" href="https://spec.oneapi.io/versions/latest/elements/sycl/source/index.html">oneAPI Specification</a>.</p>
 <section id="before-you-begin">
 <h2>Before You Begin<a class="headerlink" href="#before-you-begin" title="Permalink to this headline">¶</a></h2>
-<p>Visit the oneDPL <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html">Release Notes</a>
+<p>Visit the oneDPL <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-dpcpp-library-release-notes.html">Release Notes</a>
 page for:</p>
 <ul class="simple">
 <li><p>Where to Find the Release</p></li>
@@ -525,7 +530,7 @@ page for:</p>
 <li><p>Known Issues and Limitations</p></li>
 <li><p>Previous Release Notes</p></li>
 </ul>
-<p>Install the <a class="reference external" href="https://software.intel.com/en-us/oneapi/base-kit">Intel® oneAPI Base Toolkit (Base Kit)</a>
+<p>Install the <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html#gs.xaontv">Intel® oneAPI Base Toolkit (Base Kit)</a>
 to use oneDPL.</p>
 <p>All oneDPL header files are in the <code class="docutils literal notranslate"><span class="pre">oneapi/dpl</span></code> directory. To use the oneDPL API,
 include the corresponding header in your source code with the <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;oneapi/dpl/…&gt;</span></code> directive.
@@ -600,7 +605,7 @@ Using libstdc++ version 9 requires TBB version 2020 for the header file. This ma
 using C++17 or C++20 and TBB is not found in the environment, even if its use in oneDPL is switched off.
 To overcome these issues, include oneDPL header files before the standard C++ header files,
 or disable parallel algorithms support in the standard library.
-For more information, please see <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html">Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes</a>.</p></li>
+For more information, please see <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-threading-building-blocks-release-notes.html">Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes</a>.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">using</span> <span class="pre">namespace</span> <span class="pre">oneapi;</span></code> directive in a oneDPL program code may result in compilation errors
 with some compilers including GCC 7 and earlier. Instead of this directive, explicitly use
 <code class="docutils literal notranslate"><span class="pre">oneapi::dpl</span></code> namespace, or create a namespace alias.</p></li>
@@ -627,7 +632,7 @@ iterators should be <code class="docutils literal notranslate"><span class="pre"
 <h2>Build Your Code with oneDPL<a class="headerlink" href="#build-your-code-with-onedpl-short" title="Permalink to this headline">¶</a></h2>
 <p>Follow the steps below to build your code with oneDPL:</p>
 <ol class="arabic simple">
-<li><p>To build with the Intel® oneAPI DPC++/C++ Compiler, see the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html">Get Started with the Intel® oneAPI DPC++/C++ Compiler</a>
+<li><p>To build with the Intel® oneAPI DPC++/C++ Compiler, see the <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/current/overview.html">Get Started with the Intel® oneAPI DPC++/C++ Compiler</a>
 for details.</p></li>
 <li><p>Set the environment variables for oneDPL and oneTBB.</p></li>
 <li><p>To avoid naming device policy objects explicitly, add the <code class="docutils literal notranslate"><span class="pre">-fsycl-unnamed-lambda</span></code> option.</p></li>

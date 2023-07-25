@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Execution Policies &#8212; oneDPL Documentation 2022.1.0 documentation</title>
+    <title>Execution Policies &#8212; oneDPL Documentation 2022.2.0 documentation</title>
     
     <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -96,7 +96,7 @@
       <img src="../_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
       
       
-      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.1.0 documentation</h1>
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.2.0 documentation</h1>
       
     </a>
 </div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
@@ -204,6 +204,11 @@
  <li class="toctree-l1">
   <a class="reference internal" href="../macros.html">
    Macros
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../cmake_support.html">
+   CMake Support
   </a>
  </li>
  <li class="toctree-l1">
@@ -493,7 +498,7 @@ title="Print to PDF"
 <h1>Execution Policies<a class="headerlink" href="#execution-policies" title="Permalink to this headline">¶</a></h1>
 <p>The implementation supports the device execution policies used to run the massive parallel
 computational model for heterogeneous systems. The policies are specified in
-the oneAPI DPC++ Library (oneDPL) section of the <a class="reference external" href="https://spec.oneapi.com/versions/latest/elements/oneDPL/source/pstl.html#dpc-execution-policy">oneAPI Specification</a>.</p>
+the oneAPI DPC++ Library (oneDPL) section of the <a class="reference external" href="https://spec.oneapi.io/versions/latest/elements/oneDPL/source/parallel_api.html#dpc-execution-policy">oneAPI Specification</a>.</p>
 <p>For any of the implemented algorithms, pass one of the execution policy objects as the first
 argument in a call to specify the desired execution behavior. The policies have
 the following meaning:</p>
@@ -658,9 +663,9 @@ Use it to create customized policy objects or pass directly when invoking an alg
 <p class="admonition-title">Note</p>
 <p>Specifying the unroll factor for a policy enables loop unrolling in the implementation of
 your algorithms. The default value is 1.
-To find out how to choose a more precise value, refer to the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top/fpga-optimization-flags-attributes-pragmas-and-extensions/loop-directives/unroll-pragma.html">unroll Pragma</a>
-and <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top/analyze-your-design/analyze-the-fpga-early-image/review-the-report-html-file/loop-analysis.html">Loop Analysis</a> chapters of
-the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/documentation/oneapi-fpga-optimization-guide/top.html">Intel® oneAPI DPC++ FPGA Optimization Guide</a>.</p>
+To find out how to choose a more precise value, refer to the <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/optimization-guide/current/unroll-pragma.html">unroll Pragma</a>
+and <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/optimization-guide/current/loop-analysis.html">Loop Analysis</a> chapters of
+the <a class="reference external" href="https://www.intel.com/content/www/us/en/docs/oneapi-fpga-add-on/optimization-guide/current/overview.html">Intel® oneAPI DPC++ FPGA Optimization Guide</a>.</p>
 </aside>
 <p>The <code class="docutils literal notranslate"><span class="pre">make_fpga_policy</span></code> function templates simplify <code class="docutils literal notranslate"><span class="pre">fpga_policy</span></code> creation.</p>
 </section>
