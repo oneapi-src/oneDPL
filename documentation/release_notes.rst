@@ -18,7 +18,7 @@ Fixes Issues
 ------------
 - Fixed an error that caused segmentation faults in ``transform_reduce``, ``minmax_element``, and related algorithms when ran on CPU devices. 
 - Fixed a compilation error in ``transform_reduce``, ``minmax_element``, and related algorithms on FPGAs.
-- Fixed an issue with oneDPL permutation iterator. 
+- Fixed permutation_iterator to support C-style array as a permutation map.
 - Fixed a radix-sort issue with 64-bit signed integer types.
 
 New in 2022.1.0
