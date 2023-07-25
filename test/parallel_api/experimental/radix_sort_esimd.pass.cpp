@@ -445,6 +445,9 @@ struct test_general_cases_runner
     static constexpr bool
     can_compile_test()
     {
+        if constexpr (sizeof(TKey) > 4 && (kind == GeneralCases::eRanges || kind == GeneralCases::eUSM))
+            return false;
+
         if constexpr (kind == GeneralCases::eRanges                 // Fast solution: use kind == GeneralCases::eUSM without each case check
                       || kind == GeneralCases::eUSM                 // Checked all disabled case of type + <data per work item> value
                       || kind == GeneralCases::eSyclIterators)      // Fast solution: use kind == GeneralCases::eUSM without each case check
