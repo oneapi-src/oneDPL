@@ -62,6 +62,7 @@ using USMAllocDevice = ::std::integral_constant<sycl::usm::alloc, sycl::usm::all
 template <::std::uint16_t count>
 using DPWI = ::std::integral_constant<::std::uint16_t, count>;
 
+// 32, 64, 128
 #define TEST_DPWI 32
 
 #ifdef TEST_DPWI
@@ -73,6 +74,7 @@ using DataPerWorkItemListShortRun = TestUtils::TList<DPWI<32>, DPWI<64>,        
 #endif // TEST_DPWI
 
 // Test dimension 2 : types
+#define TEST_DATA_TYPE uint32_t, float, int64_t, uint64_t, double
 #ifdef TEST_DATA_TYPE
 using TypeListLongRunRanges = TestUtils::TList<TEST_DATA_TYPE>;
 using TypeListLongRunUSM    = TestUtils::TList<TEST_DATA_TYPE>;
