@@ -49,7 +49,6 @@ See oneDPL Guide for other `restrictions and known limitations`_.
 - The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
 - STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
   the Microsoft* Visual C++ standard library.
-=======
 
 New in 2022.1.1
 ===============
