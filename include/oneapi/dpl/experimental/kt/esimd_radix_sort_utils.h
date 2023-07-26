@@ -66,12 +66,22 @@ gather(const T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets
     return sycl::ext::intel::esimd::gather(input + base_offset, offsets * size32<T>, mask);
 }
 
-template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
+template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, ::std::enable_if_t<sizeof(T) <= sizeof(::std::uint32_t), int> = 0>
 sycl::ext::intel::esimd::simd<T, N>
 gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
        ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
     return sycl::ext::intel::esimd::gather<T>(input, offsets * size32<T>, base_offset * size32<T>, mask);
+}
+
+template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint64_t), int> = 0>
+sycl::ext::intel::esimd::simd<T, N>
+gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input,
+       sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+       ::std::uint32_t base_offset,
+       sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+{
+    return __ESIMD_ENS::lsc_gather<T>(input, offsets * size32<T> + base_offset * size32<T>, mask);
 }
 
 template <typename T, int N>
@@ -82,12 +92,22 @@ scatter(T* output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
     sycl::ext::intel::esimd::scatter(output, offsets * size32<T>, values, mask);
 }
 
-template<typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
+template<typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, ::std::enable_if_t<sizeof(T) <= sizeof(::std::uint32_t), int> = 0>
 void
 scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
         sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
     sycl::ext::intel::esimd::scatter(output, offsets * size32<T>, values, /*global_offset*/ 0, mask);
+}
+
+template<typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint64_t), int> = 0>
+void
+scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> output,
+        sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+        sycl::ext::intel::esimd::simd<T, N> values,
+        sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+{
+    __ESIMD_ENS::lsc_scatter<T>(output, offsets * size32<T>, values, mask);
 }
 
 template <typename T, uint32_t R, uint32_t C>
