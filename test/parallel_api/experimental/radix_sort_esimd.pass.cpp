@@ -63,7 +63,7 @@ template <::std::uint16_t count>
 using DPWI = ::std::integral_constant<::std::uint16_t, count>;
 
 // 32, 64, 128
-//#define TEST_DPWI 64
+#define TEST_DPWI 64
 
 #ifdef TEST_DPWI
 using DataPerWorkItemListLongRun  = TestUtils::TList<DPWI<TEST_DPWI>>;
@@ -460,13 +460,12 @@ struct test_general_cases_runner
             // uint8_t                N           N       N       N                               N               N       N       N
             // int16_t                N                           N                               N                               N
             // uint16_t               N                           N       N                       N                               N       N
+            // int          
+            // uint32_t     
             // int64_t      
             // uint64_t     
+            // float        
             // double       
-            // 
-            // int          ?    ?    ?   ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
-            // uint32_t     ?    ?    ?   ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
-            // float        ?    ?    ?   ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
 
             // char : <96, 160, 192, 224, 352, 416, 448, 480>
             using skip_dpwi_for_char = TestUtils::TList<DPWI<96>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<352>, DPWI<416>, DPWI<448>, DPWI<480>>;
@@ -552,13 +551,12 @@ struct test_general_cases_runner
         // uint8_t      H       H      CTE   H       CTE     CTE     CTE                             CTE             CTE     CTE     CTE
         // int16_t      H       H      CTE   H       H       H       CTE                             CTE                             CTE
         // uint16_t     H       H      CTE   H       H       H       CTE     CTE                     CTE                             CTE     CTE
-        // int64_t      CTE     CTE    CTE   CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE
-        // uint64_t     CTE     CTE    CTE   CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE
-        // double       CTE     CTE    CTE   CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE     CTE
-        // 
-        // int          ?       ?      ?     ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
-        // uint32_t     ?       ?      ?     ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
-        // float        ?       ?      ?     ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?       ?
+        // int          
+        // uint32_t     
+        // int64_t      
+        // uint64_t     
+        // float        
+        // double       
 
         // char : <32, 64, 128>
         using skip_dpwi_for_char = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>>;
