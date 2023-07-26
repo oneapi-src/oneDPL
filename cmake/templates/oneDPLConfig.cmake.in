@@ -81,7 +81,7 @@ if (EXISTS "${_onedpl_headers}")
                 if (OpenMP_CXX_VERSION VERSION_LESS _openmp_minimum_version)
                     message(STATUS "oneDPL: OpenMP version (${OpenMP_CXX_VERSION}) is less than minimum supported version (${_openmp_minimum_version}), disable OpenMP" )
                 else()
-                    set (_openmp_found_valid TRUE)
+                    set(_openmp_found_valid TRUE)
                 endif()
             endif()
 
