@@ -81,11 +81,7 @@ gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input,
        ::std::uint32_t base_offset,
        sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__lsc.html#gaca847de10e306818fca7bcec9b446bef
-    return __ESIMD_ENS::lsc_gather<T>(
-        input,                                                                      // acc	    is the SYCL accessor
-        offsets * size32<T> + base_offset * size32<T>,                              // offsets	is the zero-based offsets in bytes.
-        mask);                                                                      // pred	    is predicates.
+    return __ESIMD_ENS::lsc_gather<T>(input, offsets * size32<T> + base_offset * size32<T>, mask);
 }
 
 template <typename T, int N>
@@ -111,12 +107,7 @@ scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> output,
         sycl::ext::intel::esimd::simd<T, N> values,
         sycl::ext::intel::esimd::simd_mask<N> mask = 1)
 {
-    // https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__lsc.html#gaf594e1ffb683161e3339e852874f9db3
-    __ESIMD_ENS::lsc_scatter<T>(
-        output,                                     // acc	    is the SYCL accessor.
-        offsets * size32<T>,                        // offsets	is the zero-based offsets in bytes.
-        values,                                     // vals	    is values to store.
-        mask);                                      // pred	    is predicates.
+    __ESIMD_ENS::lsc_scatter<T>(output, offsets * size32<T>, values, mask);
 }
 
 template <typename T, uint32_t R, uint32_t C>
