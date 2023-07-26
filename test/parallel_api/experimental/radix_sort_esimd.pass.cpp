@@ -63,7 +63,7 @@ template <::std::uint16_t count>
 using DPWI = ::std::integral_constant<::std::uint16_t, count>;
 
 // 32, 64, 128
-#define TEST_DPWI 32
+#define TEST_DPWI 64
 
 #ifdef TEST_DPWI
 using DataPerWorkItemListLongRun  = TestUtils::TList<DPWI<TEST_DPWI>>;
