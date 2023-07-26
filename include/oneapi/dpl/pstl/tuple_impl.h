@@ -616,6 +616,28 @@ operator-(Size idx, const oneapi::dpl::__internal::tuple<T1...>& tuple1)
     return oneapi::dpl::__internal::map_tuple(oneapi::dpl::__internal::SubTupleFromIndex<Size>{idx}, tuple1);
 }
 
+// Decay wrapper struct with specialization to decay tuple elements
+template <typename _T>
+struct __decay_with_tuple_specialization
+{
+    using type = ::std::decay_t<_T>;
+};
+
+template <typename... _Args>
+struct __decay_with_tuple_specialization<oneapi::dpl::__internal::tuple<_Args...>>
+{
+    using type = oneapi::dpl::__internal::tuple<::std::decay_t<_Args>...>;
+};
+
+template <typename... _Args>
+struct __decay_with_tuple_specialization<::std::tuple<_Args...>>
+{
+    using type = ::std::tuple<::std::decay_t<_Args>...>;
+};
+
+template <typename... _Args>
+using __decay_with_tuple_specialization_t = typename __decay_with_tuple_specialization<_Args...>::type;
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi

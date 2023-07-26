@@ -937,7 +937,9 @@ struct __brick_reduce_idx
     auto
     reduce(_Idx __segment_begin, _Idx __segment_end, const _Values& __values) const
     {
-        auto __res = __values[__segment_begin];
+        using __ret_type = oneapi::dpl::__internal::__decay_with_tuple_specialization_t<decltype(__values[0])>;
+        __ret_type __res = __values[__segment_begin];
+
         for (++__segment_begin; __segment_begin < __segment_end; ++__segment_begin)
             __res = __binary_op(__res, __values[__segment_begin]);
         return __res;

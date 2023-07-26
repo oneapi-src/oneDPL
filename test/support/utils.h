@@ -34,6 +34,7 @@
 #include <memory>
 #include <sstream>
 #include <vector>
+#include <tuple>
 
 #include "utils_const.h"
 #include "iterator_utils.h"
@@ -751,6 +752,18 @@ struct MaxAbsFunctor<::std::complex<_Tp>>
     operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
     {
         return (complex_abs(__x) < complex_abs(__y)) ? complex_abs(__y) : complex_abs(__x);
+    }
+};
+
+struct TupleAddFunctor
+{
+    template <typename Tup1, typename Tup2>
+    auto
+    operator()(const Tup1& lhs, const Tup2& rhs) const
+    {
+        using ::std::get;
+        Tup1 tup_sum = ::std::make_tuple(get<0>(lhs) + get<0>(rhs), get<1>(lhs) + get<1>(rhs));
+        return tup_sum;
     }
 };
 
