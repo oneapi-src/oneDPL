@@ -34,7 +34,7 @@ namespace experimental {
 
     explicit basic_selection_handle_t(execution_resource_t e = execution_resource_t{}) : e_(e) {}
     native_resource_t get_native() { return e_.get_native(); }
-    constexpr  property_handle_t get_property_handle() { return oneapi::dpl::experimental::basic_property_handle; }
+    property_handle_t get_property_handle() { return oneapi::dpl::experimental::basic_property_handle; }
   };
 
 } // namespace experimental
