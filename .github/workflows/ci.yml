@@ -248,9 +248,9 @@ jobs:
           set CPATH=%CONDA_PREFIX%\include
           set TBB_DLL_PATH=%CONDA_PREFIX%\Library\bin
           reg add HKLM\SOFTWARE\khronos\OpenCL\Vendors /v intelocl64.dll /t REG_DWORD /d 00000000
-          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} .. || goto fail_fast
-          ninja -j 2 -v %ninja_targets% || goto fail_fast
-          ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags% || goto fail_fast
+          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} .. || goto :fail_fast
+          ninja -j 2 -v %ninja_targets% || goto :fail_fast
+          ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags% || goto :fail_fast
           exit /b 0
           :: modify the default behaviour of shell:cmd, which exits with the status of a last command, in order not to unintentially miss an error
           :fail_fast
