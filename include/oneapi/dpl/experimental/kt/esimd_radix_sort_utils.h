@@ -545,9 +545,8 @@ BlockLoad(uint32_t slm_offset)
     // char, 96 -> NElts = 24 -> ItemsCountsOfType_Uint32 = 16
     constexpr int ItemsCountsOfType_Uint32 = CalculateApropriateDataSize<NElts>();
 
-    constexpr int BLOCK_SIZE = EvalItemsCountIn<::std::uint32_t, ItemsCountsOfType_Uint32, T>();
-
     __ESIMD_NS::simd<T, N> result;
+    constexpr int BLOCK_SIZE = EvalItemsCountIn<::std::uint32_t, ItemsCountsOfType_Uint32, T>();
     result.template select<BLOCK_SIZE,     1>(0)          = BlockLoad<T,     BLOCK_SIZE>(slm_offset);
     result.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE) = BlockLoad<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T));
     return result;
