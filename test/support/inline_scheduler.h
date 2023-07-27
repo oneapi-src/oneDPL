@@ -71,6 +71,9 @@ struct int_inline_scheduler_t {
   template<typename SelectionHandle, typename Function, typename ...Args>
   auto submit(SelectionHandle h, Function&& f, Args&&... args) {
     using PropertyHandle = typename SelectionHandle::property_handle_t;
+    if constexpr (PropertyHandle::should_report_task_submission) {
+        oneapi::dpl::experimental::property::report(h.get_property_handle(), oneapi::dpl::experimental::property::task_submission);
+    }
     auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), std::forward<Function>(f)(h.get_native(), std::forward<Args>(args)...));
     waiters_.push(w);
     return *w;
