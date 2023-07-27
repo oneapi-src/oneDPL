@@ -489,32 +489,78 @@ VectorStore(uint32_t offset,
     return VectorStore<T, VSize, LANES>({offset, LaneStride*sizeof(T)}, data, mask);
 }
 
-template <typename T, int N>
-inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)<=64), __ESIMD_NS::simd<T, N> > BlockLoad(uint32_t slm_offset)
+template <int NElts>
+constexpr int
+CalculateApropriateDataSize()
+{
+    static_assert(NElts >= 1, "");
+
+    if constexpr (NElts < 2)
+        return 1;
+
+    if constexpr (NElts < 3)
+        return 2;
+
+    if constexpr (NElts < 4)
+        return 3;
+
+    if constexpr (NElts < 8)
+        return 4;
+
+    if constexpr (NElts < 16)
+        return 8;
+
+    if constexpr (NElts < 32)
+        return 16;
+
+    if constexpr (NElts < 64)
+        return 32;
+
+    return 64;
+}
+
+template <typename SrcType, int N, typename DestType>
+constexpr int
+EvalItemsCountIn()
+{
+    return N * sizeof(SrcType) / sizeof(DestType);
+}
+
+template <typename T, int N, int NElts = EvalItemsCountIn<T, N, ::std::uint32_t>(),
+          ::std::enable_if_t<NElts == CalculateApropriateDataSize<NElts>(), int> = 0>
+inline __ESIMD_NS::simd<T, N>
+BlockLoad(uint32_t slm_offset)
 {
     __ESIMD_NS::simd<T, N> result;
-    result.template bit_cast_view<uint32_t>() = __ESIMD_ENS::lsc_slm_block_load<uint32_t, N*sizeof(T)/sizeof(uint32_t)>(slm_offset);
+    result.template bit_cast_view<uint32_t>() = __ESIMD_ENS::lsc_slm_block_load<uint32_t, NElts>(slm_offset);
     return result;
 }
 
-template <typename T, int N>
-inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)>64), __ESIMD_NS::simd<T, N> > BlockLoad(uint32_t slm_offset)
+// char, 96 -> NElts = 24
+template <typename T, int N, int NElts = EvalItemsCountIn<T, N, ::std::uint32_t>(),
+          ::std::enable_if_t<NElts != CalculateApropriateDataSize<NElts>(), int> = 0>
+inline __ESIMD_NS::simd<T, N>
+BlockLoad(uint32_t slm_offset)
 {
+    // char, 96 -> NElts = 24 -> ItemsCountsOfType_Uint32 = 16
+    constexpr int ItemsCountsOfType_Uint32 = CalculateApropriateDataSize<NElts>();
+
+    constexpr int BLOCK_SIZE = EvalItemsCountIn<::std::uint32_t, ItemsCountsOfType_Uint32, T>();
+
     __ESIMD_NS::simd<T, N> result;
-    constexpr uint32_t BLOCK_SIZE = 64*sizeof(uint32_t)/sizeof(T);
-    result.template select<BLOCK_SIZE, 1>(0) = BlockLoad<T, BLOCK_SIZE>(slm_offset);
-    result.template select<N-BLOCK_SIZE, 1>(BLOCK_SIZE) = BlockLoad<T, N-BLOCK_SIZE>(slm_offset+BLOCK_SIZE*sizeof(T));
+    result.template select<BLOCK_SIZE,     1>(0)          = BlockLoad<T,     BLOCK_SIZE>(slm_offset);
+    result.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE) = BlockLoad<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T));
     return result;
 }
 
-template <typename T, int N>
-inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)<=64), void> BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
+template <typename T, int N, int NElts = N * sizeof(T) / sizeof(uint32_t)>
+inline std::enable_if_t< (NElts<=64), void> BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
 {
-    __ESIMD_ENS::lsc_slm_block_store<uint32_t, N*sizeof(T)/sizeof(uint32_t)>(slm_offset, data.template bit_cast_view<uint32_t>());
+    __ESIMD_ENS::lsc_slm_block_store<uint32_t, NElts>(slm_offset, data.template bit_cast_view<uint32_t>());
 }
 
-template <typename T, int N>
-inline std::enable_if_t< (N*sizeof(T)/sizeof(uint32_t)>64), void> BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
+template <typename T, int N, int NElts = N * sizeof(T) / sizeof(uint32_t)>
+inline std::enable_if_t< (NElts>64), void> BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
 {
     constexpr uint32_t BLOCK_SIZE = 64*sizeof(uint32_t)/sizeof(T);
     BlockStore<T, BLOCK_SIZE>(slm_offset, data.template select<BLOCK_SIZE, 1>(0));
