@@ -536,13 +536,11 @@ BlockLoad(uint32_t slm_offset)
     return result;
 }
 
-// char, 96 -> NElts = 24
 template <typename T, int N, int NElts = EvalItemsCountIn<T, N, ::std::uint32_t>(),
           ::std::enable_if_t<NElts != CalculateApropriateDataSize<NElts>(), int> = 0>
 inline __ESIMD_NS::simd<T, N>
 BlockLoad(uint32_t slm_offset)
 {
-    // char, 96 -> NElts = 24 -> ItemsCountsOfType_Uint32 = 16
     constexpr int ItemsCountsOfType_Uint32 = CalculateApropriateDataSize<NElts>();
 
     __ESIMD_NS::simd<T, N> result;
