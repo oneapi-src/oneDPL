@@ -491,7 +491,7 @@ VectorStore(uint32_t offset,
 
 template <int NElts>
 constexpr int
-CalculateApropriateDataSize()
+lsc_op_block_size_rounding()
 {
     static_assert(NElts >= 1, "");
 
@@ -527,7 +527,7 @@ EvalItemsCountIn()
 }
 
 template <typename T, int N, int NElts = EvalItemsCountIn<T, N, ::std::uint32_t>(),
-          ::std::enable_if_t<NElts == CalculateApropriateDataSize<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts == lsc_op_block_size_rounding<NElts>(), int> = 0>
 inline __ESIMD_NS::simd<T, N>
 BlockLoad(uint32_t slm_offset)
 {
@@ -537,11 +537,11 @@ BlockLoad(uint32_t slm_offset)
 }
 
 template <typename T, int N, int NElts = EvalItemsCountIn<T, N, ::std::uint32_t>(),
-          ::std::enable_if_t<NElts != CalculateApropriateDataSize<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts != lsc_op_block_size_rounding<NElts>(), int> = 0>
 inline __ESIMD_NS::simd<T, N>
 BlockLoad(uint32_t slm_offset)
 {
-    constexpr int ItemsCountsOfType_Uint32 = CalculateApropriateDataSize<NElts>();
+    constexpr int ItemsCountsOfType_Uint32 = lsc_op_block_size_rounding<NElts>();
 
     __ESIMD_NS::simd<T, N> result;
     constexpr int BLOCK_SIZE = EvalItemsCountIn<::std::uint32_t, ItemsCountsOfType_Uint32, T>();
@@ -551,7 +551,7 @@ BlockLoad(uint32_t slm_offset)
 }
 
 template <typename T, int N, int NElts = EvalItemsCountIn<T, N, ::std::uint32_t>(),
-          ::std::enable_if_t<NElts == CalculateApropriateDataSize<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts == lsc_op_block_size_rounding<NElts>(), int> = 0>
 void
 BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
 {
@@ -559,11 +559,11 @@ BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
 }
 
 template <typename T, int N, int NElts = EvalItemsCountIn<T, N, ::std::uint32_t>(),
-          ::std::enable_if_t<NElts != CalculateApropriateDataSize<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts != lsc_op_block_size_rounding<NElts>(), int> = 0>
 void
 BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
 {
-    constexpr int ItemsCountsOfType_Uint32 = CalculateApropriateDataSize<NElts>();
+    constexpr int ItemsCountsOfType_Uint32 = lsc_op_block_size_rounding<NElts>();
 
     constexpr int BLOCK_SIZE = EvalItemsCountIn<::std::uint32_t, ItemsCountsOfType_Uint32, T>();
     BlockStore<T, BLOCK_SIZE>(slm_offset, data.template select<BLOCK_SIZE, 1>(0));
