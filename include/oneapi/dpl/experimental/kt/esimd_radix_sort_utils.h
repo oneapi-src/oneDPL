@@ -526,46 +526,49 @@ lsc_op_block_size()
     return N * sizeof(SrcType) / sizeof(DestType);
 }
 
-template <typename T, int N, int NElts = lsc_op_block_size<T, N, ::std::uint32_t>(),
+template <typename T>
+using lsc_op_aligned_t = ::std::conditional_t<sizeof(T) <= sizeof(::std::uint32_t), ::std::uint32_t, ::std::uint64_t>;
+
+template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>, int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
           ::std::enable_if_t<NElts == lsc_op_block_size_rounding<NElts>(), int> = 0>
 inline __ESIMD_NS::simd<T, N>
 BlockLoad(uint32_t slm_offset)
 {
     __ESIMD_NS::simd<T, N> result;
-    result.template bit_cast_view<uint32_t>() = __ESIMD_ENS::lsc_slm_block_load<uint32_t, NElts>(slm_offset);
+    result.template bit_cast_view<OpAlignedT>() = __ESIMD_ENS::lsc_slm_block_load<OpAlignedT, NElts>(slm_offset);
     return result;
 }
 
-template <typename T, int N, int NElts = lsc_op_block_size<T, N, ::std::uint32_t>(),
+template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>, int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
           ::std::enable_if_t<NElts != lsc_op_block_size_rounding<NElts>(), int> = 0>
 inline __ESIMD_NS::simd<T, N>
 BlockLoad(uint32_t slm_offset)
 {
-    constexpr int ItemsCountsOfType_Uint32 = lsc_op_block_size_rounding<NElts>();
+    constexpr int ItemsCountsOfType_OpAlignedT = lsc_op_block_size_rounding<NElts>();
 
     __ESIMD_NS::simd<T, N> result;
-    constexpr int BLOCK_SIZE = lsc_op_block_size<::std::uint32_t, ItemsCountsOfType_Uint32, T>();
+    constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, ItemsCountsOfType_OpAlignedT, T>();
     result.template select<BLOCK_SIZE, 1>(0) = BlockLoad<T, BLOCK_SIZE>(slm_offset);
     result.template select<N-BLOCK_SIZE, 1>(BLOCK_SIZE) = BlockLoad<T, N-BLOCK_SIZE>(slm_offset+BLOCK_SIZE*sizeof(T));
     return result;
 }
 
-template <typename T, int N, int NElts = lsc_op_block_size<T, N, ::std::uint32_t>(),
+template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>, int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
           ::std::enable_if_t<NElts == lsc_op_block_size_rounding<NElts>(), int> = 0>
 void
 BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
 {
-    __ESIMD_ENS::lsc_slm_block_store<uint32_t, NElts>(slm_offset, data.template bit_cast_view<uint32_t>());
+    __ESIMD_ENS::lsc_slm_block_store<OpAlignedT, NElts>(slm_offset, data.template bit_cast_view<uint32_t>());
 }
 
-template <typename T, int N, int NElts = lsc_op_block_size<T, N, ::std::uint32_t>(),
+template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>, int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
           ::std::enable_if_t<NElts != lsc_op_block_size_rounding<NElts>(), int> = 0>
 void
 BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
 {
-    constexpr int ItemsCountsOfType_Uint32 = lsc_op_block_size_rounding<NElts>();
+    constexpr int ItemsCountsOfType_OpAlignedT = lsc_op_block_size_rounding<NElts>();
 
-    constexpr int BLOCK_SIZE = lsc_op_block_size<::std::uint32_t, ItemsCountsOfType_Uint32, T>();
+    constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, ItemsCountsOfType_OpAlignedT, T>();
     BlockStore<T, BLOCK_SIZE>(slm_offset, data.template select<BLOCK_SIZE, 1>(0));
     BlockStore<T, N-BLOCK_SIZE>(slm_offset+BLOCK_SIZE*sizeof(T), data.template select<N-BLOCK_SIZE, 1>(BLOCK_SIZE));
 }
