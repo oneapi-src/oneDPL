@@ -495,25 +495,25 @@ CalculateApropriateDataSize()
 {
     static_assert(NElts >= 1, "");
 
-    if constexpr (NElts < 2)
+    if (NElts < 2)
         return 1;
 
-    if constexpr (NElts < 3)
+    if (NElts < 3)
         return 2;
 
-    if constexpr (NElts < 4)
+    if (NElts < 4)
         return 3;
 
-    if constexpr (NElts < 8)
+    if (NElts < 8)
         return 4;
 
-    if constexpr (NElts < 16)
+    if (NElts < 16)
         return 8;
 
-    if constexpr (NElts < 32)
+    if (NElts < 32)
         return 16;
 
-    if constexpr (NElts < 64)
+    if (NElts < 64)
         return 32;
 
     return 64;
