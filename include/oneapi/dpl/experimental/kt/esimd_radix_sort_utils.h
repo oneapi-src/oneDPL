@@ -544,10 +544,10 @@ template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>, int NElt
 inline __ESIMD_NS::simd<T, N>
 BlockLoad(uint32_t slm_offset)
 {
-    constexpr int ItemsCountsOfType_OpAlignedT = lsc_op_block_size_rounding<NElts>();
+    constexpr int BLOCK_SIZE_ROUNDED = lsc_op_block_size_rounding<NElts>();
 
     __ESIMD_NS::simd<T, N> result;
-    constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, ItemsCountsOfType_OpAlignedT, T>();
+    constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, BLOCK_SIZE_ROUNDED, T>();
     result.template select<BLOCK_SIZE, 1>(0) = BlockLoad<T, BLOCK_SIZE>(slm_offset);
     result.template select<N-BLOCK_SIZE, 1>(BLOCK_SIZE) = BlockLoad<T, N-BLOCK_SIZE>(slm_offset+BLOCK_SIZE*sizeof(T));
     return result;
@@ -566,9 +566,9 @@ template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>, int NElt
 void
 BlockStore(uint32_t slm_offset, __ESIMD_NS::simd<T, N> data)
 {
-    constexpr int ItemsCountsOfType_OpAlignedT = lsc_op_block_size_rounding<NElts>();
+    constexpr int BLOCK_SIZE_ROUNDED = lsc_op_block_size_rounding<NElts>();
 
-    constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, ItemsCountsOfType_OpAlignedT, T>();
+    constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, BLOCK_SIZE_ROUNDED, T>();
     BlockStore<T, BLOCK_SIZE>(slm_offset, data.template select<BLOCK_SIZE, 1>(0));
     BlockStore<T, N-BLOCK_SIZE>(slm_offset+BLOCK_SIZE*sizeof(T), data.template select<N-BLOCK_SIZE, 1>(BLOCK_SIZE));
 }
