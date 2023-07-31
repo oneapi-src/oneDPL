@@ -92,7 +92,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
             barrier();
             #pragma unroll
             for (uint32_t s = 0; s<BIN_COUNT; s+=128) {
-                lsc_slm_block_store<uint32_t, 64>(slm_bin_hist_this_thread + s*sizeof(hist_t), bin_offset.template select<128, 1>(s).template bit_cast_view<uint32_t>());
+                utils::BlockStore<uint32_t, 64>(slm_bin_hist_this_thread + s*sizeof(hist_t), bin_offset.template select<128, 1>(s).template bit_cast_view<uint32_t>());
             }
             barrier();
             constexpr uint32_t BIN_SUMMARY_GROUP_SIZE = 8;
@@ -108,13 +108,13 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
                 for (uint32_t s = 1; s<THREAD_PER_TG-1; s++) {
                     tmp = utils::BlockLoad<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
                     thread_grf_hist_summary += tmp.template bit_cast_view<hist_t>();
-                    lsc_slm_block_store<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
+                    utils::BlockStore<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
                     slm_bin_hist_summary_offset += HIST_STRIDE;
                 }
                 tmp = utils::BlockLoad<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
                 thread_grf_hist_summary += tmp.template bit_cast_view<hist_t>();
                 thread_grf_hist_summary = utils::scan<hist_t, hist_t>(thread_grf_hist_summary);
-                lsc_slm_block_store<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
+                utils::BlockStore<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
             }
             barrier();
             if (local_tid == 0) {
@@ -132,7 +132,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
                 }
                 #pragma unroll
                 for (uint32_t s = 0; s<BIN_COUNT; s+=128) {
-                    lsc_slm_block_store<uint32_t, 64>(slm_incoming_offset + s * sizeof(hist_t), grf_hist_summary_scan.template select<128, 1>(s).template bit_cast_view<uint32_t>());
+                    utils::BlockStore<uint32_t, 64>(slm_incoming_offset + s * sizeof(hist_t), grf_hist_summary_scan.template select<128, 1>(s).template bit_cast_view<uint32_t>());
                 }
             }
             barrier();
