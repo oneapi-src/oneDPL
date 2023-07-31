@@ -493,7 +493,7 @@ template <int NElts>
 constexpr int
 lsc_op_block_size_rounding()
 {
-    static_assert(NElts >= 1, "");
+    static_assert(NElts >= 1);
 
     if (NElts < 2)
         return 1;
