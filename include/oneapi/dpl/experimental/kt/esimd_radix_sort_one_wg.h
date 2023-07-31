@@ -92,7 +92,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
             barrier();
             #pragma unroll
             for (uint32_t s = 0; s<BIN_COUNT; s+=128) {
-                lsc_slm_block_store<uint32_t, 64>(slm_bin_hist_this_thread + s*sizeof(hist_t), bin_offset.template select<128, 1>(s).template bit_cast_view<uint32_t>());
+                utils::BlockStore<uint32_t, 64>(slm_bin_hist_this_thread + s*sizeof(hist_t), bin_offset.template select<128, 1>(s).template bit_cast_view<uint32_t>());
             }
             barrier();
             constexpr uint32_t BIN_SUMMARY_GROUP_SIZE = 8;
@@ -103,18 +103,18 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
                 simd<hist_t, BIN_WIDTH> thread_grf_hist_summary;
                 simd<uint32_t, BIN_WIDTH_UD> tmp;
 
-                thread_grf_hist_summary.template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
+                thread_grf_hist_summary.template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
                 slm_bin_hist_summary_offset += HIST_STRIDE;
                 for (uint32_t s = 1; s<THREAD_PER_TG-1; s++) {
-                    tmp = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
+                    tmp = utils::BlockLoad<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
                     thread_grf_hist_summary += tmp.template bit_cast_view<hist_t>();
-                    lsc_slm_block_store<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
+                    utils::BlockStore<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
                     slm_bin_hist_summary_offset += HIST_STRIDE;
                 }
-                tmp = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
+                tmp = utils::BlockLoad<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
                 thread_grf_hist_summary += tmp.template bit_cast_view<hist_t>();
                 thread_grf_hist_summary = utils::scan<hist_t, hist_t>(thread_grf_hist_summary);
-                lsc_slm_block_store<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
+                utils::BlockStore<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
             }
             barrier();
             if (local_tid == 0) {
@@ -122,7 +122,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
                 simd<hist_t, BIN_COUNT+1> grf_hist_summary_scan;
                 #pragma unroll
                 for (uint32_t s = 0; s<BIN_COUNT; s+=128) {
-                    grf_hist_summary.template select<128, 1>(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, 64>(slm_bin_hist_start + (THREAD_PER_TG-1) * HIST_STRIDE + s*sizeof(hist_t));
+                    grf_hist_summary.template select<128, 1>(s).template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, 64>(slm_bin_hist_start + (THREAD_PER_TG-1) * HIST_STRIDE + s*sizeof(hist_t));
                 }
                 grf_hist_summary_scan[0] = 0;
                 grf_hist_summary_scan.template select<32, 1>(1) = grf_hist_summary.template select<32, 1>(0);
@@ -132,20 +132,20 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
                 }
                 #pragma unroll
                 for (uint32_t s = 0; s<BIN_COUNT; s+=128) {
-                    lsc_slm_block_store<uint32_t, 64>(slm_incoming_offset + s * sizeof(hist_t), grf_hist_summary_scan.template select<128, 1>(s).template bit_cast_view<uint32_t>());
+                    utils::BlockStore<uint32_t, 64>(slm_incoming_offset + s * sizeof(hist_t), grf_hist_summary_scan.template select<128, 1>(s).template bit_cast_view<uint32_t>());
                 }
             }
             barrier();
             {
                 #pragma unroll
                 for (uint32_t s = 0; s<BIN_COUNT; s+=128) {
-                    bin_offset.template select<128, 1>(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, 64>(slm_incoming_offset + s*sizeof(hist_t));
+                    bin_offset.template select<128, 1>(s).template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, 64>(slm_incoming_offset + s*sizeof(hist_t));
                 }
                 if (local_tid>0) {
                     #pragma unroll
                     for (uint32_t s = 0; s<BIN_COUNT; s+=128) {
                         simd<hist_t, 128> group_local_sum;
-                        group_local_sum.template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, 64>(slm_bin_hist_start + (local_tid-1)*HIST_STRIDE + s*sizeof(hist_t));
+                        group_local_sum.template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, 64>(slm_bin_hist_start + (local_tid-1)*HIST_STRIDE + s*sizeof(hist_t));
                         bin_offset.template select<128, 1>(s) += group_local_sum;
                     }
                 }
