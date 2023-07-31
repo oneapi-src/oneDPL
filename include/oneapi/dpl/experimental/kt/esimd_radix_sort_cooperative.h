@@ -147,7 +147,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
             // put local hist to slm
             #pragma unroll
             for (uint32_t s = 0; s<BIN_COUNT; s+=64) {
-                lsc_slm_block_store<uint32_t, 64>(slm_bin_hist_this_thread + s*sizeof(hist_t), bin_offset.template select<64, 1>(s).template bit_cast_view<uint32_t>());
+                utils::BlockStore<uint32_t, 64>(slm_bin_hist_this_thread + s*sizeof(hist_t), bin_offset.template select<64, 1>(s).template bit_cast_view<uint32_t>());
             }
             barrier();
             // small group sum for local hist
@@ -163,7 +163,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                 utils::simd2d<hist_t, BIN_HEIGHT, BIN_WIDTH> thread_grf_hist;
                 #pragma unroll
                 for (uint32_t s = 0; s<BIN_HEIGHT; s++) {
-                    thread_grf_hist.row(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_ingroup_offset + s * HIST_STRIDE);
+                    thread_grf_hist.row(s).template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_ingroup_offset + s * HIST_STRIDE);
                 }
                 #pragma unroll
                 for (uint32_t s = 1; s<BIN_HEIGHT; s++) {
@@ -171,7 +171,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                 }
                 #pragma unroll
                 for (uint32_t s = 1; s<BIN_HEIGHT; s++) {
-                    lsc_slm_block_store<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_ingroup_offset + s * HIST_STRIDE, thread_grf_hist.row(s).template bit_cast_view<uint32_t>());
+                    utils::BlockStore<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_ingroup_offset + s * HIST_STRIDE, thread_grf_hist.row(s).template bit_cast_view<uint32_t>());
                 }
             }
 
@@ -182,7 +182,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                 utils::simd2d<hist_t, THREAD_PER_BIN_GROUP, BIN_WIDTH> thread_grf_hist_summary;
                 #pragma unroll
                 for (uint32_t s = 0; s<THREAD_PER_BIN_GROUP; s++) {
-                    thread_grf_hist_summary.row(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_group_summary_offset + s * BIN_HEIGHT * HIST_STRIDE);
+                    thread_grf_hist_summary.row(s).template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_group_summary_offset + s * BIN_HEIGHT * HIST_STRIDE);
                 }
                 #pragma unroll
                 for (uint32_t s = 1; s<THREAD_PER_BIN_GROUP; s++) {
@@ -190,7 +190,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                 }
                 #pragma unroll
                 for (uint32_t s = 1; s<THREAD_PER_BIN_GROUP-1; s++) {
-                    lsc_slm_block_store<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_group_summary_offset + s * BIN_HEIGHT * HIST_STRIDE, thread_grf_hist_summary.row(s).template bit_cast_view<uint32_t>());
+                    utils::BlockStore<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_group_summary_offset + s * BIN_HEIGHT * HIST_STRIDE, thread_grf_hist_summary.row(s).template bit_cast_view<uint32_t>());
                 }
                 simd<global_hist_t, BIN_WIDTH> group_hist_sum = thread_grf_hist_summary.row(THREAD_PER_BIN_GROUP-1);
                 group_hist_sum.copy_to(p_global_bin_hist_tg + THREAD_GID * BIN_WIDTH * sizeof(global_hist_t)/sizeof(uint32_t));
@@ -222,7 +222,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                             global_hist_sum.copy_to(p_global_hist_sum_per_thread + i * BIN_COUNT * sizeof(global_hist_t)/sizeof(uint32_t));
                         }
                         global_hist_sum = utils::scan<global_hist_t, global_hist_t>(global_hist_sum);
-                        lsc_slm_block_store<global_hist_t, 16>(slm_global_scan_start + local_tid * (BIN_COUNT/16)* sizeof(global_hist_t), global_hist_sum);
+                        utils::BlockStore<global_hist_t, 16>(slm_global_scan_start + local_tid * (BIN_COUNT/16)* sizeof(global_hist_t), global_hist_sum);
                     }
                     barrier();//TODO: change to smaller named barrier
                     if (local_tid==0) {
@@ -230,7 +230,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                         global_hist_t prev(0);
                         #pragma unroll
                         for (uint32_t i = 0; i<BIN_COUNT; i+=16) {
-                            global_hist_sum = prev + lsc_slm_block_load<global_hist_t, 16>(slm_global_scan_start + i * sizeof(global_hist_t));
+                            global_hist_sum = prev + utils::BlockLoad<global_hist_t, 16>(slm_global_scan_start + i * sizeof(global_hist_t));
                             prev = global_hist_sum[15];
                             global_hist_sum.copy_to(p_global_bin_start_buffer+1+i);
                         }
@@ -247,7 +247,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                         }
                         #pragma unroll
                         for (uint32_t s = 0; s<BIN_COUNT; s+=64) {
-                            lsc_slm_block_store<uint32_t, 64>(slm_incoming_start + s * sizeof(global_hist_t), global_hist_start.template select<64, 1>(s));
+                            utils::BlockStore<uint32_t, 64>(slm_incoming_start + s * sizeof(global_hist_t), global_hist_start.template select<64, 1>(s));
                         }
                     }
                 }
@@ -256,13 +256,13 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
             {
                 #pragma unroll
                 for (uint32_t s = 0; s<BIN_COUNT; s+=64) {
-                    bin_offset.template select<64, 1>(s).template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, 64>(slm_incoming_start + s*sizeof(hist_t));
+                    bin_offset.template select<64, 1>(s).template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, 64>(slm_incoming_start + s*sizeof(hist_t));
                 }
                 if (local_tid>0) {
                     #pragma unroll
                     for (uint32_t s = 0; s<BIN_COUNT; s+=64) {
                         simd<hist_t, 64> group_local_sum;
-                        group_local_sum.template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, 64>(slm_bin_hist_start + (local_tid-1)*HIST_STRIDE + s*sizeof(hist_t));
+                        group_local_sum.template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, 64>(slm_bin_hist_start + (local_tid-1)*HIST_STRIDE + s*sizeof(hist_t));
                         bin_offset.template select<64, 1>(s) += group_local_sum;
                     }
                 }
@@ -271,7 +271,7 @@ void cooperative_kernel(sycl::nd_item<1> idx, size_t n, const InputT& input, Key
                     #pragma unroll
                     for (uint32_t s = 0; s<BIN_COUNT; s+=64) {
                         simd<hist_t, 64> group_sum;
-                        group_sum.template bit_cast_view<uint32_t>() = lsc_slm_block_load<uint32_t, 64>(slm_bin_hist_start + prev_cum_rowid*HIST_STRIDE + s*sizeof(hist_t));
+                        group_sum.template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, 64>(slm_bin_hist_start + prev_cum_rowid*HIST_STRIDE + s*sizeof(hist_t));
                         bin_offset.template select<64, 1>(s) += group_sum;
                     }
                 }
