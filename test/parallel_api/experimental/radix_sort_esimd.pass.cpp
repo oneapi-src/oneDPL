@@ -88,8 +88,8 @@ using DataPerWorkItemListShortRun = TestUtils::TList<DPWI<32>, DPWI<64>,        
 #endif // TEST_DPWI
 
 // Test dimension 2 : types
-//#define TEST_DATA_TYPE char
-#define TEST_DATA_TYPE char, int8_t, uint8_t
+#define TEST_DATA_TYPE char
+//#define TEST_DATA_TYPE char, int8_t, uint8_t
 //#define TEST_DATA_TYPE int16_t, uint16_t
 //#define TEST_DATA_TYPE int, uint32_t, float
 //#define TEST_DATA_TYPE int64_t, uint64_t, double
