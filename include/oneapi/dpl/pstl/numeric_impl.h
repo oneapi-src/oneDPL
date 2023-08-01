@@ -207,7 +207,7 @@ __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
 {
 #if (_PSTL_UDS_PRESENT || _ONEDPL_UDS_PRESENT)
     // An in-place scan violates the intra-iteration dependency restriction of the omp scan directive. We must call our serial brick.
-    if (::std::addressof(*__first) != ::std::addressof(*__result))
+    if (reinterpret_cast<void*>(::std::addressof(*__first)) != reinterpret_cast<void*>(::std::addressof(*__result)))
     {
         return __unseq_backend::__simd_scan(__first, __last - __first, __result, __unary_op, __init, __binary_op,
                                             _Inclusive());
