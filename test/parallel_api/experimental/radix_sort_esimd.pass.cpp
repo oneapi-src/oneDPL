@@ -462,68 +462,6 @@ template <GeneralCases kind>
 struct test_general_cases_runner
 {
     template <typename TKey, typename DataPerWorkItem>
-    static constexpr bool
-    can_compile_test()
-    {
-        if constexpr (kind == GeneralCases::eRanges                 // Fast solution: use kind == GeneralCases::eUSM without each case check
-                      || kind == GeneralCases::eUSM                 // Checked all disabled case of type + <data per work item> value
-                      || kind == GeneralCases::eSyclIterators)      // Fast solution: use kind == GeneralCases::eUSM without each case check
-        {
-            //              32   64   96  128     160     192     224     256     288     320     352     384     416     448     480     512
-            // int16_t                N                           N                               N                               N
-            // uint16_t               N                           N       N                       N                               N       N
-            // int          
-            // uint32_t     
-            // int64_t      
-            // uint64_t     
-            // float        
-            // double       
-
-            // int16_t : <96, 224, 352, 480>
-            using skip_dpwi_for_int16_t = TestUtils::TList<DPWI<96>, DPWI<224>, DPWI<352>, DPWI<480>>;
-            if constexpr (::std::is_same_v<TKey, int16_t> &&
-                          TestUtils::type_list_contain<skip_dpwi_for_int16_t, DataPerWorkItem>())
-            {
-                return false;
-            }
-
-            // uint16_t : <96, 224, 256, 352, 480, 512>
-            using skip_dpwi_for_uint16_t = TestUtils::TList<DPWI<96>, DPWI<224>, DPWI<256>, DPWI<352>, DPWI<480>, DPWI<512>>;
-            if constexpr (::std::is_same_v<TKey, uint16_t> &&
-                            TestUtils::type_list_contain<skip_dpwi_for_uint16_t, DataPerWorkItem>())
-            {
-                return false;
-            }
-
-            // int64_t : <>
-            //using skip_dpwi_for_int64_t = TestUtils::TList<>;
-            //if constexpr (::std::is_same_v<TKey, int64_t> &&
-            //                TestUtils::type_list_contain<skip_dpwi_for_int64_t, DataPerWorkItem>())
-            //{
-            //    return false;
-            //}
-
-            // uint64_t : <>
-            //using skip_dpwi_for_uint64_t = TestUtils::TList<>;
-            //if constexpr (::std::is_same_v<TKey, uint64_t> &&
-            //                TestUtils::type_list_contain<skip_dpwi_for_uint64_t, DataPerWorkItem>())
-            //{
-            //    return false;
-            //}
-
-            // double : <>
-            //using skip_dpwi_for_double = TestUtils::TList<DPWI<>;
-            //if constexpr (::std::is_same_v<TKey, double> &&
-            //                TestUtils::type_list_contain<skip_dpwi_for_double, DataPerWorkItem>())
-            //{
-            //    return false;
-            //}
-        }
-
-        return true;
-    }
-
-    template <typename TKey, typename DataPerWorkItem>
     bool
     can_run_test(std::size_t /*size*/)
     {
@@ -600,13 +538,6 @@ struct test_general_cases_runner
 template <typename USMAllocType, typename OrderType>
 struct test_usm_runner
 {
-    template <typename TKey, typename DataPerWorkItem>
-    static constexpr bool
-    can_compile_test()
-    {
-        return true;
-    }
-
     template <typename TKey, typename DataPerWorkItem>
     bool
     can_run_test(std::size_t /*size*/)
@@ -732,13 +663,6 @@ struct test_usm_runner
 struct test_small_sizes_runner
 {
     template <typename TKey, typename DataPerWorkItem>
-    static constexpr bool
-    can_compile_test()
-    {
-        return true;
-    }
-
-    template <typename TKey, typename DataPerWorkItem>
     bool
     can_run_test(std::size_t /*size*/)
     {
@@ -769,29 +693,19 @@ iterate_all_params(std::size_t size)
     std::cout << "\t\ttest for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << DataPerWorkItem::value << " : ";
 #endif
 
-    // Check that we are ablue to run test for the current pair <TKey, DataPerWorkItem>
-    if constexpr (TestRunner::template can_compile_test<TKey, DataPerWorkItem>())
+    TestRunner runnerObj;
+    if (runnerObj.template can_run_test<TKey, DataPerWorkItem>(size))
     {
-        TestRunner runnerObj;
-        if (runnerObj.template can_run_test<TKey, DataPerWorkItem>(size))
-        {
 #if LOG_TEST_INFO
-            std::cout << "starting..." << std::endl;
+        std::cout << "starting..." << std::endl;
 #endif
-            // Start test for the current pair <TKey, DataPerWorkItem>
-            runnerObj.template run_test<TKey, DataPerWorkItem>(size);
-        }
-        else
-        {
-#if LOG_TEST_INFO
-            std::cout << "skip due run-time errors" << std::endl;
-#endif
-        }
+        // Start test for the current pair <TKey, DataPerWorkItem>
+        runnerObj.template run_test<TKey, DataPerWorkItem>(size);
     }
     else
     {
 #if LOG_TEST_INFO
-        std::cout << "skip due compile errors" << std::endl;
+        std::cout << "skip due run-time errors" << std::endl;
 #endif
     }
 
