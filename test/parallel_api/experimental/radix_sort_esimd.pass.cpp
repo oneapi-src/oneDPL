@@ -64,7 +64,7 @@ using DPWI = ::std::integral_constant<::std::uint16_t, count>;
 
 //#define TEST_DPWI 32
 //#define TEST_DPWI 64
-//#define TEST_DPWI 96
+#define TEST_DPWI 96
 //#define TEST_DPWI 128
 //#define TEST_DPWI 160
 //#define TEST_DPWI 192
