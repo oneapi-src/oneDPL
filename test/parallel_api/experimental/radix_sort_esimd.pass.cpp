@@ -514,14 +514,14 @@ struct test_general_cases_runner
         //    return false;
 
         // int16_t : <32, 64, 128, 160, 192>
-        const DataPerWorkItems skip_dpwi_for_int16_t = { 32, 64, 128, 160, 192 };
-        if (::std::is_same_v<TKey, int16_t> && list_contain(skip_dpwi_for_int16_t, dpwi))
-            return false;
+        //const DataPerWorkItems skip_dpwi_for_int16_t = { 32, 64, 128, 160, 192 };
+        //if (::std::is_same_v<TKey, int16_t> && list_contain(skip_dpwi_for_int16_t, dpwi))
+        //    return false;
 
         // uint16_t : <32, 64, 128, 160, 192>
-        const DataPerWorkItems skip_dpwi_for_uint16_t = { 32, 64, 128, 160, 192 };
-        if (::std::is_same_v<TKey, uint16_t> && list_contain(skip_dpwi_for_uint16_t, dpwi))
-            return false;
+        //const DataPerWorkItems skip_dpwi_for_uint16_t = { 32, 64, 128, 160, 192 };
+        //if (::std::is_same_v<TKey, uint16_t> && list_contain(skip_dpwi_for_uint16_t, dpwi))
+        //    return false;
 
         return true;
     }
@@ -575,44 +575,44 @@ struct test_usm_runner
         //    return false;
         
         // int16_t : <64, 128, 192, 256, 416, 512>
-        const DataPerWorkItems skip_dpwi_for_int16_t = { 64, 128, 192, 256, 416, 512 };
-        if (::std::is_same_v<TKey, int16_t> && list_contain(skip_dpwi_for_int16_t, dpwi))
-            return false;
+        //const DataPerWorkItems skip_dpwi_for_int16_t = { 64, 128, 192, 256, 416, 512 };
+        //if (::std::is_same_v<TKey, int16_t> && list_contain(skip_dpwi_for_int16_t, dpwi))
+        //    return false;
 
         // uint16_t : <64, 128, 192, 256, 512>
-        const DataPerWorkItems skip_dpwi_for_uint16_t = { 64, 128, 192, 256, 512 };
-        if (::std::is_same_v<TKey, uint16_t> && list_contain(skip_dpwi_for_uint16_t, dpwi))
-            return false;
+        //const DataPerWorkItems skip_dpwi_for_uint16_t = { 64, 128, 192, 256, 512 };
+        //if (::std::is_same_v<TKey, uint16_t> && list_contain(skip_dpwi_for_uint16_t, dpwi))
+        //    return false;
 
         // int : <64, 128, 192, 256, 416, 512>
-        const DataPerWorkItems skip_dpwi_for_int = { 64, 128, 192, 256, 416, 512 };
-        if (::std::is_same_v<TKey, int> && list_contain(skip_dpwi_for_int, dpwi))
-            return false;
+        //const DataPerWorkItems skip_dpwi_for_int = { 64, 128, 192, 256, 416, 512 };
+        //if (::std::is_same_v<TKey, int> && list_contain(skip_dpwi_for_int, dpwi))
+        //    return false;
 
         // uint32_t : <32 64, 128, 192, 256, 416, 512>
-        const DataPerWorkItems skip_dpwi_for_uint32_t = { 32, 64, 128, 192, 256, 416, 512 };
-        if (::std::is_same_v<TKey, uint32_t> && list_contain(skip_dpwi_for_uint32_t, dpwi))
-            return false;
+        //const DataPerWorkItems skip_dpwi_for_uint32_t = { 32, 64, 128, 192, 256, 416, 512 };
+        //if (::std::is_same_v<TKey, uint32_t> && list_contain(skip_dpwi_for_uint32_t, dpwi))
+        //    return false;
 
         // int64_t : <64, 128, 192, 416, 512>
-        const DataPerWorkItems skip_dpwi_for_int64_t = { 64, 128, 192, 416, 512 };
-        if (::std::is_same_v<TKey, int64_t> && list_contain(skip_dpwi_for_int64_t, dpwi))
-            return false;
+        //const DataPerWorkItems skip_dpwi_for_int64_t = { 64, 128, 192, 416, 512 };
+        //if (::std::is_same_v<TKey, int64_t> && list_contain(skip_dpwi_for_int64_t, dpwi))
+        //    return false;
 
         // uint64_t : <32, 64, 128, 192, 256, 416, 512>
-        const DataPerWorkItems skip_dpwi_for_uint64_t = { 32, 64, 128, 192, 256, 416, 512 };
-        if (::std::is_same_v<TKey, uint64_t> && list_contain(skip_dpwi_for_uint64_t, dpwi))
-            return false;
+        //const DataPerWorkItems skip_dpwi_for_uint64_t = { 32, 64, 128, 192, 256, 416, 512 };
+        //if (::std::is_same_v<TKey, uint64_t> && list_contain(skip_dpwi_for_uint64_t, dpwi))
+        //    return false;
 
         // float : <32, 64, 128, 192, 256, 416, 512>
-        const DataPerWorkItems skip_dpwi_for_float = { 32, 64, 128, 192, 256, 416, 512 };
-        if (::std::is_same_v<TKey, float> && list_contain(skip_dpwi_for_float, dpwi))
-            return false;
+        //const DataPerWorkItems skip_dpwi_for_float = { 32, 64, 128, 192, 256, 416, 512 };
+        //if (::std::is_same_v<TKey, float> && list_contain(skip_dpwi_for_float, dpwi))
+        //    return false;
 
         // double : <64, 128, 192, 256, 416, 512>
-        const DataPerWorkItems skip_dpwi_for_double = { 32, 64, 128, 192, 256, 416, 512 };
-        if (::std::is_same_v<TKey, double> && list_contain(skip_dpwi_for_double, dpwi))
-            return false;
+        //const DataPerWorkItems skip_dpwi_for_double = { 32, 64, 128, 192, 256, 416, 512 };
+        //if (::std::is_same_v<TKey, double> && list_contain(skip_dpwi_for_double, dpwi))
+        //    return false;
 
         return true;
     }
