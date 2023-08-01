@@ -39,6 +39,7 @@
 #include <cmath>
 #include <limits>
 #include <type_traits>
+#include <initializer_list>
 
 //#ifndef LOG_TEST_INFO
 #define LOG_TEST_INFO 1
@@ -59,8 +60,8 @@ using USMAllocShared = ::std::integral_constant<sycl::usm::alloc, sycl::usm::all
 using USMAllocDevice = ::std::integral_constant<sycl::usm::alloc, sycl::usm::alloc::device>;
 
 // Test dimension 1 : data per work item
-template <::std::uint16_t count>
-using DPWI = ::std::integral_constant<::std::uint16_t, count>;
+using DPWI = ::std::uint16_t;
+using DataPerWorkItems = ::std::initializer_list<DPWI>;
 
 //#define TEST_DPWI 32
 //#define TEST_DPWI 64
@@ -80,11 +81,11 @@ using DPWI = ::std::integral_constant<::std::uint16_t, count>;
 //#define TEST_DPWI 512
 
 #ifdef TEST_DPWI
-using DataPerWorkItemListLongRun  = TestUtils::TList<DPWI<TEST_DPWI>>;
-using DataPerWorkItemListShortRun = TestUtils::TList<DPWI<TEST_DPWI>>;
+#   define DataPerWorkItemsLongRun  TEST_DPWI
+#   define DataPerWorkItemsShortRun TEST_DPWI
 #else
-using DataPerWorkItemListLongRun  = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<96>, DPWI<128>, DPWI<160>, DPWI<192>, DPWI<224>, DPWI<256>, DPWI<288>, DPWI<320>, DPWI<352>, DPWI<384>, DPWI<416>, DPWI<448>, DPWI<480>, DPWI<512>>;
-using DataPerWorkItemListShortRun = TestUtils::TList<DPWI<32>, DPWI<64>,           DPWI<128>,            DPWI<192>,            DPWI<256>,                                             DPWI<416>,                       DPWI<512>>;
+#   define DataPerWorkItemsLongRun  32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512
+#   define DataPerWorkItemsShortRun     64,     128,      192,      256,                     416,           512
 #endif // TEST_DPWI
 
 // Test dimension 2 : types
@@ -239,6 +240,18 @@ struct USMAllocPresentation
 };
 #endif // LOG_TEST_INFO
 
+bool
+list_contain(DataPerWorkItems dpwiVariants, DPWI dpwi)
+{
+    for (::std::size_t index = 0; index < dpwiVariants.size(); ++index)
+    {
+        if (*(dpwiVariants.begin() + index) == dpwi)
+            return true;
+    }
+
+    return false;
+}
+
 template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
 generate_data(T* input, std::size_t size)
@@ -290,11 +303,11 @@ void print_data(const Container1& expected, const Container2& actual, std::size_
 }
 
 #if _ENABLE_RANGES_TESTING
-template <typename T, typename OrderType, typename DataPerWorkItem>
+template <typename T, typename OrderType, DPWI dpwi>
 void test_all_view(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
+    std::cout << "\t\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << dpwi << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -307,18 +320,18 @@ void test_all_view(std::size_t size)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, OrderType::value>(policy, view);
+        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, dpwi, OrderType::value>(policy, view);
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
-template <typename T, typename OrderType, typename DataPerWorkItem>
+template <typename T, typename OrderType, DPWI dpwi>
 void test_subrange_view(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest_subrange_view<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
+    std::cout << "\t\ttest_subrange_view<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << dpwi << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -332,7 +345,7 @@ void test_subrange_view(std::size_t size)
     std::stable_sort(expected.begin(), expected.end(), Compare<T, OrderType::value>{});
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, OrderType::value>(policy, view);
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, dpwi, OrderType::value>(policy, view);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -343,11 +356,11 @@ void test_subrange_view(std::size_t size)
 
 #endif // _ENABLE_RANGES_TESTING
 
-template <typename T, typename USMAllocType, typename OrderType, typename DataPerWorkItem>
+template <typename T, typename USMAllocType, typename OrderType, DPWI dpwi>
 void test_usm(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << ", " << USMAllocPresentation().name<USMAllocType::value>() << ", " << OrderType::value << ">("<< size << ");" << std::endl;
+    std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", DataPerWorkItem = " << dpwi << ", " << USMAllocPresentation().name<USMAllocType::value>() << ", " << OrderType::value << ">("<< size << ");" << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -360,7 +373,7 @@ void test_usm(std::size_t size)
 
     std::stable_sort(expected.begin(), expected.end(), Compare<T, OrderType::value>{});
 
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, OrderType::value>(policy, dt_input.get_data(), dt_input.get_data() + size);
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, dpwi, OrderType::value>(policy, dt_input.get_data(), dt_input.get_data() + size);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -369,23 +382,23 @@ void test_usm(std::size_t size)
     EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
 }
 
-template <typename T, typename OrderType, typename DataPerWorkItem>
+template <typename T, typename OrderType, DPWI dpwi>
 void
 test_usm(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest_usm<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << std::endl;
+    std::cout << "\t\ttest_usm<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << dpwi << std::endl;
 #endif
 
-    test_usm<T, USMAllocShared, OrderType, DataPerWorkItem>(size);
-    test_usm<T, USMAllocDevice, OrderType, DataPerWorkItem>(size);
+    test_usm<T, USMAllocShared, OrderType, dpwi>(size);
+    test_usm<T, USMAllocDevice, OrderType, dpwi>(size);
 }
 
-template <typename T, typename OrderType, typename DataPerWorkItem>
+template <typename T, typename OrderType, DPWI dpwi>
 void test_sycl_iterators(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ", DataPerWorkItem = " << DataPerWorkItem::value << ">(" << size << ");" << std::endl;
+    std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ", DataPerWorkItem = " << dpwi << ">(" << size << ");" << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -397,14 +410,14 @@ void test_sycl_iterators(std::size_t size)
     std::stable_sort(std::begin(ref), std::end(ref), Compare<T, OrderType::value>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, OrderType::value>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
+        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, dpwi, OrderType::value>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
     }
 
     std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
-template <typename T, typename OrderType, typename DataPerWorkItem>
+template <typename T, typename OrderType, DPWI dpwi>
 void test_small_sizes(std::size_t /*size*/)
 {
 #if LOG_TEST_INFO
@@ -417,9 +430,9 @@ void test_small_sizes(std::size_t /*size*/)
     std::vector<uint32_t> input = {5, 11, 0, 17, 0};
     std::vector<uint32_t> ref(input);
 
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, AscendingType::value>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, dpwi, AscendingType::value>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem::value, AscendingType::value>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, dpwi, AscendingType::value>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
@@ -430,7 +443,7 @@ enum class GeneralCases
     eSyclIterators
 };
 
-template <typename T, typename DataPerWorkItem>
+template <typename T, DPWI dpwi>
 void
 test_general_cases(std::size_t size, GeneralCases kind)
 {
@@ -438,22 +451,22 @@ test_general_cases(std::size_t size, GeneralCases kind)
     {
     case GeneralCases::eRanges:
 #if _ENABLE_RANGES_TESTING
-        test_all_view<T, AscendingType,  DataPerWorkItem>(size);
-        test_all_view<T, DescendingType, DataPerWorkItem>(size);
+        test_all_view<T, AscendingType,  dpwi>(size);
+        test_all_view<T, DescendingType, dpwi>(size);
 
-        test_subrange_view<T, AscendingType,  DataPerWorkItem>(size);
-        test_subrange_view<T, DescendingType, DataPerWorkItem>(size);
+        test_subrange_view<T, AscendingType,  dpwi>(size);
+        test_subrange_view<T, DescendingType, dpwi>(size);
 #endif // _ENABLE_RANGES_TESTING
         break;
 
     case GeneralCases::eUSM:
-        test_usm<T, AscendingType,  DataPerWorkItem>(size);
-        test_usm<T, DescendingType, DataPerWorkItem>(size);
+        test_usm<T, AscendingType,  dpwi>(size);
+        test_usm<T, DescendingType, dpwi>(size);
         break;
 
     case GeneralCases::eSyclIterators:
-        test_sycl_iterators<T, AscendingType,  DataPerWorkItem>(size);
-        test_sycl_iterators<T, DescendingType, DataPerWorkItem>(size);
+        test_sycl_iterators<T, AscendingType,  dpwi>(size);
+        test_sycl_iterators<T, DescendingType, dpwi>(size);
         break;
     }
 }
@@ -461,7 +474,7 @@ test_general_cases(std::size_t size, GeneralCases kind)
 template <GeneralCases kind>
 struct test_general_cases_runner
 {
-    template <typename TKey, typename DataPerWorkItem>
+    template <typename TKey, DPWI dpwi>
     bool
     can_run_test(std::size_t /*size*/)
     {
@@ -485,60 +498,45 @@ struct test_general_cases_runner
         // double       
 
         //// char : <>
-        //using skip_dpwi_for_char = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>>;
-        //if constexpr (::std::is_same_v<TKey, char> &&
-        //                TestUtils::type_list_contain<skip_dpwi_for_char, DataPerWorkItem>())
-        //{
+        //const DataPerWorkItems skip_dpwi_for_char = { 32, 64, 128 };
+        //if (::std::is_same_v<TKey, char> && list_contain(skip_dpwi_for_char, dpwi))
         //    return false;
-        //}
 
         // int8_t : <>
-        //using skip_dpwi_for_int8_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, int8_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_int8_t, DataPerWorkItem>())
-        //{
+        //const DataPerWorkItems skip_dpwi_for_int8_t = { };
+        //if (::std::is_same_v<TKey, int8_t> && list_contain(skip_dpwi_for_int8_t, dpwi))
         //    return false;
-        //}
 
         //// uint8_t : <32, 64, 128>
-        //using skip_dpwi_for_uint8_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, uint8_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_uint8_t, DataPerWorkItem>())
-        //{
+        //const DataPerWorkItems skip_dpwi_for_uint8_t = { };
+        //if (::std::is_same_v<TKey, uint8_t> && list_contain(skip_dpwi_for_uint8_t, dpwi))
         //    return false;
-        //}
 
         // int16_t : <32, 64, 128, 160, 192>
-        using skip_dpwi_for_int16_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<160>, DPWI<192>>;
-        if constexpr (::std::is_same_v<TKey, int16_t> &&
-                      TestUtils::type_list_contain<skip_dpwi_for_int16_t, DataPerWorkItem>())
-        {
+        const DataPerWorkItems skip_dpwi_for_int16_t = { 32, 64, 128, 160, 192 };
+        if (::std::is_same_v<TKey, int16_t> && list_contain(skip_dpwi_for_int16_t, dpwi))
             return false;
-        }
 
         // uint16_t : <32, 64, 128, 160, 192>
-        using skip_dpwi_for_uint16_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<160>, DPWI<192>>;
-        if constexpr (::std::is_same_v<TKey, uint16_t> &&
-                      TestUtils::type_list_contain<skip_dpwi_for_uint16_t, DataPerWorkItem>())
-        {
+        const DataPerWorkItems skip_dpwi_for_uint16_t = { 32, 64, 128, 160, 192 };
+        if (::std::is_same_v<TKey, uint16_t> && list_contain(skip_dpwi_for_uint16_t, dpwi))
             return false;
-        }
 
         return true;
     }
 
-    template <typename TKey, typename DataPerWorkItem>
+    template <typename TKey, DPWI dpwi>
     void
     run_test(std::size_t size)
     {
-        test_general_cases<TKey, DataPerWorkItem>(size, kind);
+        test_general_cases<TKey, dpwi>(size, kind);
     }
 };
 
 template <typename USMAllocType, typename OrderType>
 struct test_usm_runner
 {
-    template <typename TKey, typename DataPerWorkItem>
+    template <typename TKey, DPWI dpwi>
     bool
     can_run_test(std::size_t /*size*/)
     {
@@ -562,166 +560,137 @@ struct test_usm_runner
         // double               RTE          RTE             RTE             SF                                      RTE                     RTE
 
         // char : <>
-        //using skip_dpwi_for_char = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, char> &&
-        //                TestUtils::type_list_contain<skip_dpwi_for_char, DataPerWorkItem>())
-        //{
+        //const DataPerWorkItems skip_dpwi_for_char = { };
+        //if (::std::is_same_v<TKey, char> && list_contain(skip_dpwi_for_char, dpwi))
         //    return false;
-        //}
 
         // int8_t : <>
-        //using skip_dpwi_for_int8_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, int8_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_int8_t, DataPerWorkItem>())
-        //{
+        //const DataPerWorkItems skip_dpwi_for_int8_t = { };
+        //if (::std::is_same_v<TKey, int8_t> && list_contain(skip_dpwi_for_int8_t, dpwi))
         //    return false;
-        //}
 
         // uint8_t : <>
-        //using skip_dpwi_for_uint8_t = TestUtils::TList<>;
-        //if constexpr (::std::is_same_v<TKey, uint8_t> &&
-        //              TestUtils::type_list_contain<skip_dpwi_for_uint8_t, DataPerWorkItem>())
-        //{
+        //const DataPerWorkItems skip_dpwi_for_uint8_t = { };
+        //if (::std::is_same_v<TKey, uint8_t> && list_contain(skip_dpwi_for_uint8_t, dpwi))
         //    return false;
-        //}
         
         // int16_t : <64, 128, 192, 256, 416, 512>
-        using skip_dpwi_for_int16_t = TestUtils::TList<DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
-        if constexpr (::std::is_same_v<TKey, int16_t> &&
-                      TestUtils::type_list_contain<skip_dpwi_for_int16_t, DataPerWorkItem>())
-        {
+        const DataPerWorkItems skip_dpwi_for_int16_t = { 64, 128, 192, 256, 416, 512 };
+        if (::std::is_same_v<TKey, int16_t> && list_contain(skip_dpwi_for_int16_t, dpwi))
             return false;
-        }
 
         // uint16_t : <64, 128, 192, 256, 512>
-        using skip_dpwi_for_uint16_t = TestUtils::TList<DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<512>>;
-        if constexpr (::std::is_same_v<TKey, uint16_t> &&
-                      TestUtils::type_list_contain<skip_dpwi_for_uint16_t, DataPerWorkItem>())
-        {
+        const DataPerWorkItems skip_dpwi_for_uint16_t = { 64, 128, 192, 256, 512 };
+        if (::std::is_same_v<TKey, uint16_t> && list_contain(skip_dpwi_for_uint16_t, dpwi))
             return false;
-        }
 
         // int : <64, 128, 192, 256, 416, 512>
-        using skip_dpwi_for_int = TestUtils::TList<DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
-        if constexpr (::std::is_same_v<TKey, int> &&
-                      TestUtils::type_list_contain<skip_dpwi_for_int, DataPerWorkItem>())
-        {
+        const DataPerWorkItems skip_dpwi_for_int = { 64, 128, 192, 256, 416, 512 };
+        if (::std::is_same_v<TKey, int> && list_contain(skip_dpwi_for_int, dpwi))
             return false;
-        }
 
         // uint32_t : <32 64, 128, 192, 256, 416, 512>
-        using skip_dpwi_for_uint32_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
-        if constexpr (::std::is_same_v<TKey, uint32_t> &&
-                      TestUtils::type_list_contain<skip_dpwi_for_uint32_t, DataPerWorkItem>())
-        {
+        const DataPerWorkItems skip_dpwi_for_uint32_t = { 32, 64, 128, 192, 256, 416, 512 };
+        if (::std::is_same_v<TKey, uint32_t> && list_contain(skip_dpwi_for_uint32_t, dpwi))
             return false;
-        }
 
         // int64_t : <64, 128, 192, 416, 512>
-        using skip_dpwi_for_int64_t = TestUtils::TList<DPWI<64>, DPWI<128>, DPWI<192>, DPWI<416>, DPWI<512>>;
-        if constexpr (::std::is_same_v<TKey, int64_t> &&
-                      TestUtils::type_list_contain<skip_dpwi_for_int64_t, DataPerWorkItem>())
-        {
+        const DataPerWorkItems skip_dpwi_for_int64_t = { 64, 128, 192, 416, 512 };
+        if (::std::is_same_v<TKey, int64_t> && list_contain(skip_dpwi_for_int64_t, dpwi))
             return false;
-        }
 
         // uint64_t : <32, 64, 128, 192, 256, 416, 512>
-        using skip_dpwi_for_uint64_t = TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
-        if constexpr (::std::is_same_v<TKey, uint64_t> &&
-                      TestUtils::type_list_contain<skip_dpwi_for_uint64_t, DataPerWorkItem>())
-        {
+        const DataPerWorkItems skip_dpwi_for_uint64_t = { 32, 64, 128, 192, 256, 416, 512 };
+        if (::std::is_same_v<TKey, uint64_t> && list_contain(skip_dpwi_for_uint64_t, dpwi))
             return false;
-        }
 
         // float : <32, 64, 128, 192, 256, 416, 512>
-        using skip_dpwi_for_float= TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
-        if constexpr (::std::is_same_v<TKey, float> &&
-                      TestUtils::type_list_contain<skip_dpwi_for_float, DataPerWorkItem>())
-        {
+        const DataPerWorkItems skip_dpwi_for_float = { 32, 64, 128, 192, 256, 416, 512 };
+        if (::std::is_same_v<TKey, float> && list_contain(skip_dpwi_for_float, dpwi))
             return false;
-        }
 
         // double : <64, 128, 192, 256, 416, 512>
-        using skip_dpwi_for_double= TestUtils::TList<DPWI<32>, DPWI<64>, DPWI<128>, DPWI<192>, DPWI<256>, DPWI<416>, DPWI<512>>;
-        if constexpr (::std::is_same_v<TKey, double> &&
-                      TestUtils::type_list_contain<skip_dpwi_for_double, DataPerWorkItem>())
-        {
+        const DataPerWorkItems skip_dpwi_for_double = { 32, 64, 128, 192, 256, 416, 512 };
+        if (::std::is_same_v<TKey, double> && list_contain(skip_dpwi_for_double, dpwi))
             return false;
-        }
 
         return true;
     }
 
-    template <typename TKey, typename DataPerWorkItem>
+    template <typename TKey, DPWI dpwi>
     void
     run_test(std::size_t size)
     {
-        test_usm<TKey, USMAllocType, OrderType, DataPerWorkItem>(size);
+        test_usm<TKey, USMAllocType, OrderType, dpwi>(size);
     }
 };
 
 struct test_small_sizes_runner
 {
-    template <typename TKey, typename DataPerWorkItem>
+    template <typename TKey, DPWI dpwi>
     bool
     can_run_test(std::size_t /*size*/)
     {
         return true;
     }
 
-    template <typename TKey, typename DataPerWorkItem>
+    template <typename TKey, DPWI dpwi>
     void
     run_test(std::size_t size)
     {
-        test_small_sizes<TKey, AscendingType, DataPerWorkItem>(size);
+        test_small_sizes<TKey, AscendingType, dpwi>(size);
     }
 };
 
-template <typename TestRunner, typename ListOfTypes, typename DataPerWorkItemList>
+template <typename TestRunner, typename ListOfTypes>
 void
 iterate_all_params(std::size_t size)
 {
-    if constexpr (TestUtils::type_list_is_empty<ListOfTypes>() || TestUtils::type_list_is_empty<DataPerWorkItemList>())
+    // Implementation not requierd because dpwiItem template param is absent
+}
+
+template <typename TestRunner, typename ListOfTypes, DPWI dpwiItem, DPWI... dpwiVariants>
+void
+iterate_all_params(std::size_t size)
+{
+    if constexpr (TestUtils::type_list_is_empty<ListOfTypes>())
     {
         return;
     }
 
     using TKey = typename TestUtils::GetHeadType<ListOfTypes>;
-    using DataPerWorkItem = typename TestUtils::GetHeadType<DataPerWorkItemList>;
 
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << DataPerWorkItem::value << " : ";
+    std::cout << "\t\ttest for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << dpwiItem << " : ";
 #endif
 
-    TestRunner runnerObj;
-    if (runnerObj.template can_run_test<TKey, DataPerWorkItem>(size))
     {
+        TestRunner runnerObj;
+        if (runnerObj.template can_run_test<TKey, dpwiItem>(size))
+        {
 #if LOG_TEST_INFO
-        std::cout << "starting..." << std::endl;
+            std::cout << "starting..." << std::endl;
 #endif
-        // Start test for the current pair <TKey, DataPerWorkItem>
-        runnerObj.template run_test<TKey, DataPerWorkItem>(size);
-    }
-    else
-    {
+            // Start test for the current pair <TKey, dpwiItem>
+            runnerObj.template run_test<TKey, dpwiItem>(size);
+        }
+        else
+        {
 #if LOG_TEST_INFO
-        std::cout << "skip due run-time errors" << std::endl;
+            std::cout << "skip due run-time errors" << std::endl;
 #endif
+        }
     }
 
-    // 1. Recursive call for all rest values of DataPerWorkItem
-    using RestDataPerWorkItemList = typename TestUtils::GetRestTypes<DataPerWorkItemList>;
-    if constexpr (!TestUtils::type_list_is_empty<RestDataPerWorkItemList>())
-    {
-        iterate_all_params<TestRunner, ListOfTypes, RestDataPerWorkItemList>(size);
-    }
-
-    // 2. Recursive call for all rest key types
+    // 1. Recursive call for all rest key types
     using RestTypeList = typename TestUtils::GetRestTypes<ListOfTypes>;
     if constexpr (!TestUtils::type_list_is_empty<RestTypeList>())
     {
-        iterate_all_params<TestRunner, RestTypeList, DataPerWorkItemList>(size);
+        iterate_all_params<TestRunner, RestTypeList, dpwiItem>(size);
     }
+
+    // 2. Recursive call for all rest DataPerWorkItem's values
+    iterate_all_params<TestRunner, ListOfTypes, dpwiVariants...>(size);
 };
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -740,16 +709,16 @@ int main()
 //#if TEST_LONG_RUN
         for(auto size: sizes)
         {
-            iterate_all_params<test_general_cases_runner<GeneralCases::eRanges>,        TypeListLongRunRanges, DataPerWorkItemListLongRun>(size);
-            iterate_all_params<test_general_cases_runner<GeneralCases::eUSM>,           TypeListLongRunUSM,    DataPerWorkItemListLongRun>(size);
-            iterate_all_params<test_general_cases_runner<GeneralCases::eSyclIterators>, TypeListLongRunSyclIt, DataPerWorkItemListLongRun>(size);
+            iterate_all_params<test_general_cases_runner<GeneralCases::eRanges>,        TypeListLongRunRanges, DataPerWorkItemsLongRun>(size);
+            iterate_all_params<test_general_cases_runner<GeneralCases::eUSM>,           TypeListLongRunUSM,    DataPerWorkItemsLongRun>(size);
+            iterate_all_params<test_general_cases_runner<GeneralCases::eSyclIterators>, TypeListLongRunSyclIt, DataPerWorkItemsLongRun>(size);
         }
-        iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemListLongRun>(1 /* this param ignored inside test_small_sizes function */);
+        iterate_all_params<test_small_sizes_runner, TypeListSmallSizes, DataPerWorkItemsLongRun>(1 /* this param ignored inside test_small_sizes function */);
 //#else
         for(auto size: sizes)
         {
-            iterate_all_params<test_usm_runner<USMAllocShared, AscendingType>,  TypeListShortRunAsc,  DataPerWorkItemListShortRun>(size);
-            iterate_all_params<test_usm_runner<USMAllocShared, DescendingType>, TypeListShortRunDesc, DataPerWorkItemListShortRun>(size);
+            iterate_all_params<test_usm_runner<USMAllocShared, AscendingType>,  TypeListShortRunAsc,  DataPerWorkItemsShortRun>(size);
+            iterate_all_params<test_usm_runner<USMAllocShared, DescendingType>, TypeListShortRunDesc, DataPerWorkItemsShortRun>(size);
         }
 //#endif // TEST_LONG_RUN
     }
