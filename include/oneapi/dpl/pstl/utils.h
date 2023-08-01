@@ -48,6 +48,17 @@ namespace dpl
 namespace __internal
 {
 
+
+// TODO: find a better spot for this
+enum class __algorithm_type
+{
+    transform_scan,
+    set_operation,
+    scan_copy,
+    other
+};
+
+
 template <typename Iterator>
 using is_const_iterator =
     typename ::std::is_const<typename ::std::remove_pointer<typename ::std::iterator_traits<Iterator>::pointer>::type>;

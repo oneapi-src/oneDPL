@@ -1621,6 +1621,7 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
     using _MaskAssigner = unseq_backend::__mask_assigner<2>;
     using _InitType = unseq_backend::__no_init_value<_Size1>;
     using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
+    using _AlgoType = ::std::integral_constant<::oneapi::dpl::__internal::__algorithm_type, ::oneapi::dpl::__internal::__algorithm_type::set_operation>;
 
     _ReduceOp __reduce_op;
     _Assigner __assign_op;
@@ -1650,7 +1651,7 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
                 __buf1.all_view(), __buf2.all_view(),
                 oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
                     __mask_buf.get_buffer())),
-            __buf3.all_view(), __reduce_op, _InitType{},
+            __buf3.all_view(), __reduce_op, _InitType{}, _AlgoType{},
             // local scan
             unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
                                   _MaskAssigner, decltype(__create_mask_op), _InitType>{
