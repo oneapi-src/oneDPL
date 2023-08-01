@@ -60,25 +60,6 @@ constexpr ::std::uint16_t WorkGroupSize = 256;
 using DPWI = ::std::uint16_t;
 using DataPerWorkItems = ::std::initializer_list<DPWI>;
 
-//#define TEST_DPWI 32
-//#define TEST_DPWI 64
-//#define TEST_DPWI 96
-//#define TEST_DPWI 128
-//#define TEST_DPWI 160
-//#define TEST_DPWI 192
-//#define TEST_DPWI 224
-//#define TEST_DPWI 256
-//#define TEST_DPWI 288
-//#define TEST_DPWI 320
-//#define TEST_DPWI 352
-//#define TEST_DPWI 384
-//#define TEST_DPWI 416
-//#define TEST_DPWI 448
-//#define TEST_DPWI 480
-//#define TEST_DPWI 512
-
-//#define TEST_DPWI 96, 160
-
 #ifdef TEST_DPWI
 #   define DataPerWorkItemsLongRun  TEST_DPWI
 #   define DataPerWorkItemsShortRun TEST_DPWI
@@ -88,11 +69,6 @@ using DataPerWorkItems = ::std::initializer_list<DPWI>;
 #endif // TEST_DPWI
 
 // Test dimension 2 : types
-//#define TEST_DATA_TYPE char
-//#define TEST_DATA_TYPE char, int8_t, uint8_t
-//#define TEST_DATA_TYPE int16_t, uint16_t
-//#define TEST_DATA_TYPE int, uint32_t, float
-//#define TEST_DATA_TYPE int64_t, uint64_t, double
 #ifdef TEST_DATA_TYPE
 using TypeListLongRunRanges = TestUtils::TList<TEST_DATA_TYPE>;
 using TypeListLongRunUSM    = TestUtils::TList<TEST_DATA_TYPE>;
