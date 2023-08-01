@@ -206,13 +206,16 @@ __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
                        /*is_vector=*/::std::true_type) noexcept
 {
 #if (_PSTL_UDS_PRESENT || _ONEDPL_UDS_PRESENT)
-    return __unseq_backend::__simd_scan(__first, __last - __first, __result, __unary_op, __init, __binary_op,
-                                        _Inclusive());
-#else
+    // An in-place scan violates the intra-iteration dependency restriction of the omp scan directive. We must call our serial brick.
+    if (::std::addressof(*__first) != ::std::addressof(*__result))
+    {
+        return __unseq_backend::__simd_scan(__first, __last - __first, __result, __unary_op, __init, __binary_op,
+                                            _Inclusive());
+    }
+#endif
     // We need to call serial brick here to call function for inclusive and exclusive scan that depends on _Inclusive() value
     return __internal::__brick_transform_scan(__first, __last, __result, __unary_op, __init, __binary_op, _Inclusive(),
                                               /*is_vector=*/::std::false_type());
-#endif
 }
 
 template <class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation,
