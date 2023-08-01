@@ -56,9 +56,6 @@ using DescendingType = std::false_type;
 
 constexpr ::std::uint16_t WorkGroupSize = 256;
 
-using USMAllocShared = ::std::integral_constant<sycl::usm::alloc, sycl::usm::alloc::shared>;
-using USMAllocDevice = ::std::integral_constant<sycl::usm::alloc, sycl::usm::alloc::device>;
-
 // Test dimension 1 : data per work item
 using DPWI = ::std::uint16_t;
 using DataPerWorkItems = ::std::initializer_list<DPWI>;
@@ -358,11 +355,11 @@ void test_subrange_view(std::size_t size)
 
 #endif // _ENABLE_RANGES_TESTING
 
-template <typename T, typename USMAllocType, typename OrderType, DPWI dpwi>
+template <typename T, sycl::usm::alloc USMAllocType, typename OrderType, DPWI dpwi>
 void test_usm(std::size_t size)
 {
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", DataPerWorkItem = " << dpwi << ", " << USMAllocPresentation().name<USMAllocType::value>() << ", " << OrderType::value << ">("<< size << ");" << std::endl;
+    std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", DataPerWorkItem = " << dpwi << ", " << USMAllocPresentation().name<USMAllocType>() << ", " << OrderType::value << ">("<< size << ");" << std::endl;
 #endif
 
     sycl::queue q = TestUtils::get_test_queue();
@@ -371,7 +368,7 @@ void test_usm(std::size_t size)
     std::vector<T> expected(size);
     generate_data(expected.data(), size);
 
-    TestUtils::usm_data_transfer<USMAllocType::value, T> dt_input(q, expected.begin(), expected.end());
+    TestUtils::usm_data_transfer<USMAllocType, T> dt_input(q, expected.begin(), expected.end());
 
     std::stable_sort(expected.begin(), expected.end(), Compare<T, OrderType::value>{});
 
@@ -392,8 +389,8 @@ test_usm(std::size_t size)
     std::cout << "\t\ttest_usm<T, " << OrderType::value << ">(" << size << ") : " << TypeInfo().name<T>() << ", DataPerWorkItem = " << dpwi << std::endl;
 #endif
 
-    test_usm<T, USMAllocShared, OrderType, dpwi>(size);
-    test_usm<T, USMAllocDevice, OrderType, dpwi>(size);
+    test_usm<T, sycl::usm::alloc::shared, OrderType, dpwi>(size);
+    test_usm<T, sycl::usm::alloc::device, OrderType, dpwi>(size);
 }
 
 template <typename T, typename OrderType, DPWI dpwi>
@@ -534,7 +531,7 @@ struct test_general_cases_runner
     }
 };
 
-template <typename USMAllocType, typename OrderType>
+template <sycl::usm::alloc USMAllocType, typename OrderType>
 struct test_usm_runner
 {
     template <typename TKey, DPWI dpwi>
@@ -717,8 +714,8 @@ int main()
 #else
         for(auto size: sizes)
         {
-            iterate_all_params<test_usm_runner<USMAllocShared, AscendingType>,  TypeListShortRunAsc,  DataPerWorkItemsShortRun>(size);
-            iterate_all_params<test_usm_runner<USMAllocShared, DescendingType>, TypeListShortRunDesc, DataPerWorkItemsShortRun>(size);
+            iterate_all_params<test_usm_runner<sycl::usm::alloc::shared, AscendingType>,  TypeListShortRunAsc,  DataPerWorkItemsShortRun>(size);
+            iterate_all_params<test_usm_runner<sycl::usm::alloc::shared, DescendingType>, TypeListShortRunDesc, DataPerWorkItemsShortRun>(size);
         }
 #endif // TEST_LONG_RUN
     }
