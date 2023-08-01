@@ -80,7 +80,7 @@ using DataPerWorkItems = ::std::initializer_list<DPWI>;
 //#define TEST_DPWI 480
 //#define TEST_DPWI 512
 
-#define TEST_DPWI 96, 160
+//#define TEST_DPWI 96, 160
 
 #ifdef TEST_DPWI
 #   define DataPerWorkItemsLongRun  TEST_DPWI
