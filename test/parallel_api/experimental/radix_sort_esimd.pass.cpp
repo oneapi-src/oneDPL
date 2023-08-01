@@ -80,6 +80,8 @@ using DataPerWorkItems = ::std::initializer_list<DPWI>;
 //#define TEST_DPWI 480
 //#define TEST_DPWI 512
 
+#define TEST_DPWI 96, 160
+
 #ifdef TEST_DPWI
 #   define DataPerWorkItemsLongRun  TEST_DPWI
 #   define DataPerWorkItemsShortRun TEST_DPWI
@@ -89,7 +91,7 @@ using DataPerWorkItems = ::std::initializer_list<DPWI>;
 #endif // TEST_DPWI
 
 // Test dimension 2 : types
-//#define TEST_DATA_TYPE char
+#define TEST_DATA_TYPE char
 //#define TEST_DATA_TYPE char, int8_t, uint8_t
 //#define TEST_DATA_TYPE int16_t, uint16_t
 //#define TEST_DATA_TYPE int, uint32_t, float
