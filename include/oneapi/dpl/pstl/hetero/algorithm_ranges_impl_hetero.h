@@ -145,8 +145,8 @@ __pattern_find_end(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2
 
     if (__rng1.size() == __rng2.size())
     {
-        const bool __res =
-            __pattern_equal(::std::forward<_ExecutionPolicy>(__exec), __rng1, ::std::forward<_Range2>(__rng2), __pred);
+        const bool __res = __pattern_equal(::std::forward<_ExecutionPolicy>(__exec), __rng1,
+                                           ::std::forward<_Range2>(__rng2), __pred);
         return __res ? 0 : __rng1.size();
     }
 
@@ -223,8 +223,8 @@ __pattern_search(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
     if (__rng1.size() == __rng2.size())
     {
         const bool __res = __pattern_equal(
-            __par_backend_hetero::make_wrapped_policy<equal_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __rng1,
-            ::std::forward<_Range2>(__rng2), __pred);
+            __par_backend_hetero::make_wrapped_policy<equal_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+            __rng1, ::std::forward<_Range2>(__rng2), __pred);
         return __res ? 0 : __rng1.size();
     }
 
@@ -232,8 +232,8 @@ __pattern_search(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
     using _TagType = oneapi::dpl::__par_backend_hetero::__parallel_find_forward_tag<_Range1>;
 
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<
-            oneapi::dpl::__par_backend_hetero::__find_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<oneapi::dpl::__par_backend_hetero::__find_policy_wrapper>
+            (::std::forward<_ExecutionPolicy>(__exec)),
         _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
 }
 
@@ -661,12 +661,12 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
         __brick_copy<_ExecutionPolicy> __copy_range{};
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_keys_wrapper>(__exec), __copy_range,
-            ::std::forward<_Range1>(__keys), ::std::forward<_Range3>(__out_keys));
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_keys_wrapper>(__exec),
+            __copy_range, ::std::forward<_Range1>(__keys), ::std::forward<_Range3>(__out_keys));
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_values_wrapper>(
-                ::std::forward<_ExecutionPolicy>(__exec)),
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_values_wrapper>
+                (::std::forward<_ExecutionPolicy>(__exec)),
             __copy_range, ::std::forward<_Range2>(__values), ::std::forward<_Range4>(__out_values));
 
         return 1;

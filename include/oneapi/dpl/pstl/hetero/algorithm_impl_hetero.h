@@ -1174,9 +1174,8 @@ __stable_sort_with_projection(_ExecutionPolicy&& __exec, _Iterator __first, _Ite
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp,
-                                                 __proj)
-        .wait();
+    __par_backend_hetero::__parallel_stable_sort(
+        ::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __comp, __proj).wait();
 }
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
@@ -1206,15 +1205,16 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _Iterator1 __keys_first, _Itera
                       _Iterator2 __values_first, _Compare __comp, /*vector=*/::std::true_type,
                       /*parallel=*/::std::true_type)
 {
-    static_assert(::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator1>::value_type> &&
-                      ::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator2>::value_type>,
-                  "The keys and values should be move constructible in case of parallel execution.");
+    static_assert(::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator1>::value_type>
+        && ::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator2>::value_type>,
+        "The keys and values should be move constructible in case of parallel execution.");
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
     __stable_sort_with_projection(::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __comp,
                                   [](const auto& __a) { return ::std::get<0>(__a); });
 }
+
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _UnaryPredicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
@@ -1244,8 +1244,9 @@ __pattern_stable_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterat
 
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
     __pattern_walk2</*_IsSync=*/::std::false_type>(
-        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result, copy_result.first, __first,
-        __brick_move<_ExecutionPolicy>{}, ::std::true_type{}, ::std::true_type{});
+        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec),
+        __true_result, copy_result.first, __first, __brick_move<_ExecutionPolicy>{}, ::std::true_type{},
+        ::std::true_type{});
     __pattern_walk2(
         __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
         __false_result, copy_result.second, __first + true_count, __brick_move<_ExecutionPolicy>{}, ::std::true_type{},
@@ -1777,10 +1778,9 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forw
     auto __buf = __diff.get();
 
     //1. Calc difference {2} \ {1}
-    const auto __n_diff =
-        oneapi::dpl::__internal::__pattern_hetero_set_op(__exec, __first2, __last2, __first1, __last1, __buf, __comp,
-                                                         unseq_backend::_DifferenceTag()) -
-        __buf;
+    const auto __n_diff = oneapi::dpl::__internal::__pattern_hetero_set_op(__exec,__first2, __last2, __first1, __last1,
+                                                                           __buf,__comp, unseq_backend::_DifferenceTag()
+                                                                          ) - __buf;
     //2. Merge {1} and the difference
     return oneapi::dpl::__internal::__pattern_merge(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_union_copy_case_2>(
