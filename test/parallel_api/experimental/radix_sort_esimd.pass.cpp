@@ -480,7 +480,6 @@ struct test_general_cases_runner
     bool
     can_run_test(std::size_t /*size*/)
     {
-        // CTE - compile-time error
         // RTE - run-time error
         // WTR - wrong test results
         // SF  - segmentation fault
@@ -490,8 +489,8 @@ struct test_general_cases_runner
         // char         
         // int8_t       
         // uint8_t      
-        // int16_t      H       H      CTE   H       H       H       CTE                             CTE                             CTE
-        // uint16_t     H       H      CTE   H       H       H       CTE     CTE                     CTE                             CTE     CTE
+        // int16_t      H       H            H       H       H
+        // uint16_t     H       H            H       H       H
         // int          
         // uint32_t     
         // int64_t      
@@ -542,7 +541,6 @@ struct test_usm_runner
     bool
     can_run_test(std::size_t /*size*/)
     {
-        // CTE - compile-time error
         // RTE - run-time error
         // RTE(A) - run-time error only at full test run
         // WTR - wrong test results
