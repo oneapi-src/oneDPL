@@ -518,8 +518,8 @@ struct test_usm_runner
     {
         //              32      64     96    128     160     192     224     256     288     320     352     384     416     448     480     512
         // char                 N            N               N                                                                               N
-        // int8_t       
-        // uint8_t      
+        // int8_t               N            N               N                                                                               N
+        // uint8_t              N            N               N                                                                               N
         // int16_t      
         // uint16_t     
         // int          
@@ -529,9 +529,9 @@ struct test_usm_runner
         // uint64_t     
         // double       
 
-        // char : <>
-        if (::std::is_same_v<TKey, char> &&
-            (dpwi == 64
+        // char, int8_t, uint8_t
+        if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
+         && (dpwi == 64
                 && (size == 5072            // char, 64 : size 5072 - runtime error
                     || size == 8192         // char, 64 : size 8192 - WTR
                     || size == 14001        // char, 64 : size 14001 - runtime error
