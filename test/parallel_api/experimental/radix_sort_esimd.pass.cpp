@@ -509,6 +509,13 @@ struct test_general_cases_runner
     }
 };
 
+template <DPWI required_dpwi, std::size_t required_size>
+inline bool
+check_dpwi_size(DPWI dpwi, std::size_t size)
+{
+    return required_dpwi == dpwi && required_size == size;
+}
+
 template <sycl::usm::alloc USMAllocType, typename OrderType>
 struct test_usm_runner
 {
@@ -520,7 +527,7 @@ struct test_usm_runner
         // char                 N            N               N                                                                               N
         // int8_t               N            N               N                                                                               N
         // uint8_t              N            N               N                                                                               N
-        // int16_t      
+        // int16_t              N                                            N                                       N
         // uint16_t     
         // int          
         // uint32_t     
@@ -558,6 +565,20 @@ struct test_usm_runner
                     || size == 1000000      // char, 512 : size 1000000 - WTR
                     || size == 1048576      // char, 512 : size 1048576 - WTR
                     || size == 10000000)))  // char, 512 : size 10000000 - WTR
+            return false;
+
+        // int16_t, uint16_t
+        if ((::std::is_same_v<TKey, int16_t> || ::std::is_same_v<TKey, uint16_t>)
+            && (check_dpwi_size< 64,  5072>(dpwi, size) ||      // int16_t,  64 : size  5072 - runtime error
+                check_dpwi_size< 64, 14001>(dpwi, size) ||      // int16_t,  64 : size 14001 - runtime error
+                check_dpwi_size< 64, 16384>(dpwi, size) ||      // int16_t,  64 : size 16384 - runtime error
+                check_dpwi_size<256, 14001>(dpwi, size) ||      // int16_t, 256 : size 14001 - runtime error
+                check_dpwi_size<256, 16384>(dpwi, size) ||      // int16_t, 256 : size 16384 - runtime error
+                check_dpwi_size<416,  8192>(dpwi, size) ||      // int16_t, 416 : size  8192 - runtime error
+                check_dpwi_size<416, 14001>(dpwi, size) ||      // int16_t, 416 : size 14001 - runtime error
+                check_dpwi_size<416, 16384>(dpwi, size) ||      // int16_t, 416 : size 16384 - runtime error
+                check_dpwi_size<512, 14001>(dpwi, size) ||      // int16_t, 512 : size 14001 - runtime error
+                check_dpwi_size<512, 16384>(dpwi, size)))       // int16_t, 512 : size 16384 - runtime error
             return false;
 
         return true;
