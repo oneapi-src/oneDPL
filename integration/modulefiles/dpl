@@ -38,7 +38,7 @@ set componentroot "[file dirname [file dirname [file dirname [file dirname "${sc
 
 ##############################################################################
 
-module-whatis "Name: Intel® oneAPI DPC++ Library"
+module-whatis "Name: Intel® oneAPI DPC++ Library (oneDPL)"
 module-whatis "Version: $modulefilename/$modulefilever"
 module-whatis "Description: Intel® oneAPI DPC++ Library provides an alternative for C++ developers who create heterogeneous applications and solutions. Its APIs are based on familiar standards — C++ STL, Parallel STL (PSTL), Boost.Compute, and SYCL* — to maximize productivity and performance across CPUs, GPUs, and FPGAs."
 module-whatis "URL: https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-library.html"
