@@ -103,7 +103,7 @@ namespace experimental {
         return std::forward<DSPolicy>(dp).invoke_async(std::forward<Function>(f), std::forward<Args>(args)...);
     }
     else {
-        return invoke_async(std::forward<DSPolicy>(dp), std::forward<DSPolicy>(dp).select(std::forward<Function>(f), std::forward<Args>(args)...), std::forward<Function>(f), std::forward<Args>(args)...);
+        return invoke_async(std::forward<DSPolicy>(dp), std::forward<DSPolicy>(dp).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
     }
   }
 
@@ -123,7 +123,7 @@ namespace experimental {
         return std::forward<DSPolicy>(dp).invoke(std::forward<Function>(f), std::forward<Args>(args)...);
     }
     else{
-        return wait(std::forward<DSPolicy>(dp).invoke_async(std::forward<DSPolicy>(dp).select(std::forward<Function>(f), std::forward<Args>(args)...), std::forward<Function>(f), std::forward<Args>(args)...));
+        return wait(std::forward<DSPolicy>(dp).invoke_async(std::forward<DSPolicy>(dp).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...));
     }
   }
 
