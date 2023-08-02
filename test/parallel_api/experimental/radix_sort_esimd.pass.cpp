@@ -527,7 +527,7 @@ struct test_usm_runner
         // char                 N            N               N                                                                               N
         // int8_t               N            N               N                                                                               N
         // uint8_t              N            N               N                                                                               N
-        // int16_t              N                                            N                                       N
+        // int16_t              N            N                               N                                       N                       N
         // uint16_t     
         // int          
         // uint32_t     
@@ -536,35 +536,35 @@ struct test_usm_runner
         // uint64_t     
         // double       
 
-        // char, int8_t, uint8_t
+        // char, int8_t, uint8_t - runtime errors
         if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
-         && (dpwi == 64
-                && (size == 5072            // char, 64 : size 5072 - runtime error
-                    || size == 8192         // char, 64 : size 8192 - WTR
-                    || size == 14001        // char, 64 : size 14001 - runtime error
-                    || size == 16384        // char, 64 : size 16384 - WTR
-                    || size == 16385        // char, 64 : size 16385 - WTR
-                    || size == 50000        // char, 64 : size 50000 - WTR
-                    || size == 67543        // char, 64 : size 67543 - WTR
-                    || size == 100000       // char, 64 : size 100000 - WTR
-                    || size == 131072       // char, 64 : size 131072 - WTR
-                    || size == 179581       // char, 64 : size 179581 - WTR
-                    || size == 250000       // char, 64 : size 250000 - WTR
-                    || size == 262144))     // char, 64 : size 262144 - WTR
-         || (dpwi == 128
-                && (size == 14001           // char, 128 : size 14001 - runtime error
-                    || size == 16384))      // char, 128 : size 16384 - WTR
-         || (dpwi == 192
-                && (size == 8192            // char, 192 : size 8192 - runtime error
-                    || size == 14001        // char, 192 : size 14001 - runtime error
-                    || size == 16384))      // char, 192 : size 16384 - runtime error
-        || (dpwi == 512
-                && (size == 262145          // char, 512 : size 262145 - WTR
-                    || size == 500000       // char, 512 : size 500000 - WTR
-                    || size == 888235       // char, 512 : size 888235 - WTR
-                    || size == 1000000      // char, 512 : size 1000000 - WTR
-                    || size == 1048576      // char, 512 : size 1048576 - WTR
-                    || size == 10000000)))  // char, 512 : size 10000000 - WTR
+            && (check_dpwi_size< 64,     5072>(dpwi, size) ||   // char,  64 : size 5072
+                check_dpwi_size< 64,    14001>(dpwi, size) ||   // char,  64 : size 14001
+                check_dpwi_size<128,    14001>(dpwi, size) ||   // char, 128 : size 14001
+                check_dpwi_size<128,     8192>(dpwi, size) ||   // char, 192 : size 8192
+                check_dpwi_size<128,    14001>(dpwi, size) ||   // char, 192 : size 14001
+                check_dpwi_size<128,    16384>(dpwi, size)))    // char, 192 : size 16384
+            return false;
+
+        // char, int8_t, uint8_t - wrong test results
+        if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
+            && (check_dpwi_size< 64,     8192>(dpwi, size) ||   // char,  64 : size 8192
+                check_dpwi_size< 64,    16384>(dpwi, size) ||   // char,  64 : size 16384
+                check_dpwi_size< 64,    16385>(dpwi, size) ||   // char,  64 : size 16385
+                check_dpwi_size< 64,    50000>(dpwi, size) ||   // char,  64 : size 50000
+                check_dpwi_size< 64,    67543>(dpwi, size) ||   // char,  64 : size 67543
+                check_dpwi_size< 64,   100000>(dpwi, size) ||   // char,  64 : size 100000
+                check_dpwi_size< 64,   131072>(dpwi, size) ||   // char,  64 : size 131072
+                check_dpwi_size< 64,   179581>(dpwi, size) ||   // char,  64 : size 179581
+                check_dpwi_size< 64,   250000>(dpwi, size) ||   // char,  64 : size 250000
+                check_dpwi_size< 64,   262144>(dpwi, size) ||   // char,  64 : size 262144
+                check_dpwi_size<128,    16384>(dpwi, size) ||   // char, 128 : size 16384
+                check_dpwi_size<512,   262145>(dpwi, size) ||   // char, 512 : size 262145
+                check_dpwi_size<512,   500000>(dpwi, size) ||   // char, 512 : size 500000
+                check_dpwi_size<512,   888235>(dpwi, size) ||   // char, 512 : size 888235
+                check_dpwi_size<512,  1000000>(dpwi, size) ||   // char, 512 : size 1000000
+                check_dpwi_size<512,  1048576>(dpwi, size) ||   // char, 512 : size 1048576
+                check_dpwi_size<512, 10000000>(dpwi, size)))    // char, 512 : size 10000000
             return false;
 
         // int16_t, uint16_t
@@ -572,6 +572,7 @@ struct test_usm_runner
             && (check_dpwi_size< 64,  5072>(dpwi, size) ||      // int16_t,  64 : size  5072 - runtime error
                 check_dpwi_size< 64, 14001>(dpwi, size) ||      // int16_t,  64 : size 14001 - runtime error
                 check_dpwi_size< 64, 16384>(dpwi, size) ||      // int16_t,  64 : size 16384 - runtime error
+                check_dpwi_size<256,  8192>(dpwi, size) ||      // int16_t, 256 : size  8192 - runtime error
                 check_dpwi_size<256, 14001>(dpwi, size) ||      // int16_t, 256 : size 14001 - runtime error
                 check_dpwi_size<256, 16384>(dpwi, size) ||      // int16_t, 256 : size 16384 - runtime error
                 check_dpwi_size<416,  8192>(dpwi, size) ||      // int16_t, 416 : size  8192 - runtime error
