@@ -26,20 +26,25 @@ namespace experimental {
     using selection_handle_t = oneapi::dpl::experimental::basic_selection_handle_t<execution_resource_t>;
 
     std::shared_ptr<scheduler_t> sched_;
-    universe_container_t universe_;
 
-    static_policy_impl() : sched_{std::make_shared<scheduler_t>()} {
-      universe_ = oneapi::dpl::experimental::property::query(*sched_, oneapi::dpl::experimental::property::universe);
+    struct unit_t{
+        universe_container_t universe_;
+    };
+
+    std::shared_ptr<unit_t> unit_;
+
+    static_policy_impl() : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()}  {
+      unit_->universe_ = oneapi::dpl::experimental::property::query(*sched_, oneapi::dpl::experimental::property::universe);
     }
 
-    static_policy_impl(universe_container_t u) : sched_{std::make_shared<scheduler_t>()} {
+    static_policy_impl(universe_container_t u) : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()} {
       oneapi::dpl::experimental::property::report(*sched_, oneapi::dpl::experimental::property::universe, u);
-      universe_ = oneapi::dpl::experimental::property::query(*sched_, oneapi::dpl::experimental::property::universe);
+      unit_->universe_ = oneapi::dpl::experimental::property::query(*sched_, oneapi::dpl::experimental::property::universe);
     }
 
     template<typename ...Args>
-    static_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)} {
-      universe_ = oneapi::dpl::experimental::property::query(*sched_, oneapi::dpl::experimental::property::universe);
+    static_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)}, unit_{std::make_shared<unit_t>()} {
+      unit_->universe_ = oneapi::dpl::experimental::property::query(*sched_, oneapi::dpl::experimental::property::universe);
     }
 
     //
@@ -56,8 +61,8 @@ namespace experimental {
 
     template<typename ...Args>
     selection_handle_t select(Args&&...) {
-      if(!universe_.empty()) {
-          return selection_handle_t{universe_[0]};
+      if(!unit_->universe_.empty()) {
+          return selection_handle_t{unit_->universe_[0]};
       }
       return selection_handle_t{};
     }
