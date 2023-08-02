@@ -514,80 +514,51 @@ struct test_usm_runner
 {
     template <typename TKey, DPWI dpwi>
     bool
-    can_run_test(std::size_t /*size*/)
+    can_run_test(std::size_t size)
     {
-        // RTE - run-time error
-        // RTE(A) - run-time error only at full test run
-        // WTR - wrong test results
-        // SF  - segmentation fault
-        
         //              32      64     96    128     160     192     224     256     288     320     352     384     416     448     480     512
-        // char         
+        // char                 N            N               N                                                                               N
         // int8_t       
         // uint8_t      
-        // int16_t              RTE          RTE             RTE             RTE                                     RTE                     RTE
-        // uint16_t             RTE          RTE             RTE             RTE                                                             RTE
-        // int                  RTE          RTE             RTE             RTE                                     RTE                     RTE
-        // uint32_t     RTE(A)  RTE          RTE             RTE             RTE                                     RTE                     RTE
-        // int64_t              RTE          RTE             RTE                                                     RTE                     RTE
-        // float        RTE(A)  RTE          RTE             RTE             RTE                                     RTE                     RTE
-        // uint64_t     RTE     RTE          RTE             RTE             RTE                                     RTE                     RTE
-        // double               RTE          RTE             RTE             SF                                      RTE                     RTE
+        // int16_t      
+        // uint16_t     
+        // int          
+        // uint32_t     
+        // int64_t      
+        // float        
+        // uint64_t     
+        // double       
 
         // char : <>
-        //const DataPerWorkItems skip_dpwi_for_char = { };
-        //if (::std::is_same_v<TKey, char> && list_contain(skip_dpwi_for_char, dpwi))
-        //    return false;
-
-        // int8_t : <>
-        //const DataPerWorkItems skip_dpwi_for_int8_t = { };
-        //if (::std::is_same_v<TKey, int8_t> && list_contain(skip_dpwi_for_int8_t, dpwi))
-        //    return false;
-
-        // uint8_t : <>
-        //const DataPerWorkItems skip_dpwi_for_uint8_t = { };
-        //if (::std::is_same_v<TKey, uint8_t> && list_contain(skip_dpwi_for_uint8_t, dpwi))
-        //    return false;
-        
-        // int16_t : <64, 128, 192, 256, 416, 512>
-        //const DataPerWorkItems skip_dpwi_for_int16_t = { 64, 128, 192, 256, 416, 512 };
-        //if (::std::is_same_v<TKey, int16_t> && list_contain(skip_dpwi_for_int16_t, dpwi))
-        //    return false;
-
-        // uint16_t : <64, 128, 192, 256, 512>
-        //const DataPerWorkItems skip_dpwi_for_uint16_t = { 64, 128, 192, 256, 512 };
-        //if (::std::is_same_v<TKey, uint16_t> && list_contain(skip_dpwi_for_uint16_t, dpwi))
-        //    return false;
-
-        // int : <64, 128, 192, 256, 416, 512>
-        //const DataPerWorkItems skip_dpwi_for_int = { 64, 128, 192, 256, 416, 512 };
-        //if (::std::is_same_v<TKey, int> && list_contain(skip_dpwi_for_int, dpwi))
-        //    return false;
-
-        // uint32_t : <32 64, 128, 192, 256, 416, 512>
-        //const DataPerWorkItems skip_dpwi_for_uint32_t = { 32, 64, 128, 192, 256, 416, 512 };
-        //if (::std::is_same_v<TKey, uint32_t> && list_contain(skip_dpwi_for_uint32_t, dpwi))
-        //    return false;
-
-        // int64_t : <64, 128, 192, 416, 512>
-        //const DataPerWorkItems skip_dpwi_for_int64_t = { 64, 128, 192, 416, 512 };
-        //if (::std::is_same_v<TKey, int64_t> && list_contain(skip_dpwi_for_int64_t, dpwi))
-        //    return false;
-
-        // uint64_t : <32, 64, 128, 192, 256, 416, 512>
-        //const DataPerWorkItems skip_dpwi_for_uint64_t = { 32, 64, 128, 192, 256, 416, 512 };
-        //if (::std::is_same_v<TKey, uint64_t> && list_contain(skip_dpwi_for_uint64_t, dpwi))
-        //    return false;
-
-        // float : <32, 64, 128, 192, 256, 416, 512>
-        //const DataPerWorkItems skip_dpwi_for_float = { 32, 64, 128, 192, 256, 416, 512 };
-        //if (::std::is_same_v<TKey, float> && list_contain(skip_dpwi_for_float, dpwi))
-        //    return false;
-
-        // double : <64, 128, 192, 256, 416, 512>
-        //const DataPerWorkItems skip_dpwi_for_double = { 32, 64, 128, 192, 256, 416, 512 };
-        //if (::std::is_same_v<TKey, double> && list_contain(skip_dpwi_for_double, dpwi))
-        //    return false;
+        if (::std::is_same_v<TKey, char> &&
+            (dpwi == 64
+                && (size == 5072            // char, 64 : size 5072 - runtime error
+                    || size == 8192         // char, 64 : size 8192 - WTR
+                    || size == 14001        // char, 64 : size 14001 - runtime error
+                    || size == 16384        // char, 64 : size 16384 - WTR
+                    || size == 16385        // char, 64 : size 16385 - WTR
+                    || size == 50000        // char, 64 : size 50000 - WTR
+                    || size == 67543        // char, 64 : size 67543 - WTR
+                    || size == 100000       // char, 64 : size 100000 - WTR
+                    || size == 131072       // char, 64 : size 131072 - WTR
+                    || size == 179581       // char, 64 : size 179581 - WTR
+                    || size == 250000       // char, 64 : size 250000 - WTR
+                    || size == 262144))     // char, 64 : size 262144 - WTR
+         || (dpwi == 128
+                && (size == 14001           // char, 128 : size 14001 - runtime error
+                    || size == 16384))      // char, 128 : size 16384 - WTR
+         || (dpwi == 192
+                && (size == 8192            // char, 192 : size 8192 - runtime error
+                    || size == 14001        // char, 192 : size 14001 - runtime error
+                    || size == 16384))      // char, 192 : size 16384 - runtime error
+        || (dpwi == 512
+                && (size == 262145          // char, 512 : size 262145 - WTR
+                    || size == 500000       // char, 512 : size 500000 - WTR
+                    || size == 888235       // char, 512 : size 888235 - WTR
+                    || size == 1000000      // char, 512 : size 1000000 - WTR
+                    || size == 1048576      // char, 512 : size 1048576 - WTR
+                    || size == 10000000)))  // char, 512 : size 10000000 - WTR
+            return false;
 
         return true;
     }
