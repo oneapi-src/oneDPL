@@ -573,6 +573,7 @@ struct test_usm_runner
                 check_dpwi_size< 64, 14001>(dpwi, size) ||      // int16_t,  64 : size 14001
                 check_dpwi_size< 64, 16384>(dpwi, size) ||      // int16_t,  64 : size 16384
                 check_dpwi_size<128, 14001>(dpwi, size) ||      // int16_t, 128 : size 14001
+                check_dpwi_size<128, 16384>(dpwi, size) ||      // int16_t, 128 : size 16384
                 check_dpwi_size<192, 14001>(dpwi, size) ||      // int16_t, 192 : size 14001
                 check_dpwi_size<192, 16384>(dpwi, size) ||      // int16_t, 192 : size 16384
                 check_dpwi_size<256,  8192>(dpwi, size) ||      // int16_t, 256 : size 8192
