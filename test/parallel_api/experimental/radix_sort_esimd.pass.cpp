@@ -218,18 +218,6 @@ struct USMAllocPresentation
 };
 #endif // LOG_TEST_INFO
 
-bool
-list_contain(DataPerWorkItems dpwiVariants, DPWI dpwi)
-{
-    for (::std::size_t index = 0; index < dpwiVariants.size(); ++index)
-    {
-        if (*(dpwiVariants.begin() + index) == dpwi)
-            return true;
-    }
-
-    return false;
-}
-
 template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
 generate_data(T* input, std::size_t size)
@@ -474,30 +462,15 @@ struct test_general_cases_runner
         // float        
         // double       
 
-        //// char : <>
-        //const DataPerWorkItems skip_dpwi_for_char = { 32, 64, 128 };
-        //if (::std::is_same_v<TKey, char> && list_contain(skip_dpwi_for_char, dpwi))
-        //    return false;
+        // char : <>
 
         // int8_t : <>
-        //const DataPerWorkItems skip_dpwi_for_int8_t = { };
-        //if (::std::is_same_v<TKey, int8_t> && list_contain(skip_dpwi_for_int8_t, dpwi))
-        //    return false;
 
-        //// uint8_t : <32, 64, 128>
-        //const DataPerWorkItems skip_dpwi_for_uint8_t = { };
-        //if (::std::is_same_v<TKey, uint8_t> && list_contain(skip_dpwi_for_uint8_t, dpwi))
-        //    return false;
+        // uint8_t : <32, 64, 128>
 
         // int16_t : <32, 64, 128, 160, 192>
-        //const DataPerWorkItems skip_dpwi_for_int16_t = { 32, 64, 128, 160, 192 };
-        //if (::std::is_same_v<TKey, int16_t> && list_contain(skip_dpwi_for_int16_t, dpwi))
-        //    return false;
 
         // uint16_t : <32, 64, 128, 160, 192>
-        //const DataPerWorkItems skip_dpwi_for_uint16_t = { 32, 64, 128, 160, 192 };
-        //if (::std::is_same_v<TKey, uint16_t> && list_contain(skip_dpwi_for_uint16_t, dpwi))
-        //    return false;
 
         return true;
     }
