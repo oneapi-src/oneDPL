@@ -639,7 +639,8 @@ struct test_usm_runner
 
         // int, uint32_t - wrong test results
         if ((::std::is_same_v<TKey, int> || ::std::is_same_v<TKey, uint32_t>)
-            && (check_dpwi_size< 64,     8192>(dpwi, size) ||      // int,  64 : size     8192
+            && (check_dpwi_size< 32,     8192>(dpwi, size) ||      // int,  32 : size     8192
+                check_dpwi_size< 64,     8192>(dpwi, size) ||      // int,  64 : size     8192
                 check_dpwi_size< 64,    16385>(dpwi, size) ||      // int,  64 : size    16385
                 check_dpwi_size< 64,    50000>(dpwi, size) ||      // int,  64 : size    50000
                 check_dpwi_size< 64,    67543>(dpwi, size) ||      // int,  64 : size    67543
