@@ -60,6 +60,8 @@ constexpr ::std::uint16_t WorkGroupSize = 256;
 using DPWI = ::std::uint16_t;
 using DataPerWorkItems = ::std::initializer_list<DPWI>;
 
+#define TEST_DPWI 32
+
 #ifdef TEST_DPWI
 #   define DataPerWorkItemsLongRun  TEST_DPWI
 #   define DataPerWorkItemsShortRun TEST_DPWI
