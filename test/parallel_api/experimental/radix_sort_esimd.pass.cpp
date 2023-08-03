@@ -68,7 +68,7 @@ using DataPerWorkItems = ::std::initializer_list<DPWI>;
 #   define DataPerWorkItemsShortRun     64,     128,      192,      256,                     416,           512
 #endif // TEST_DPWI
 
-#define TEST_DATA_TYPE int
+#define TEST_DATA_TYPE int, uint32_t
 
 // Test dimension 2 : types
 #ifdef TEST_DATA_TYPE
