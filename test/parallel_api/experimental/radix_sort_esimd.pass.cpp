@@ -60,14 +60,13 @@ constexpr ::std::uint16_t WorkGroupSize = 256;
 using DPWI = ::std::uint16_t;
 using DataPerWorkItems = ::std::initializer_list<DPWI>;
 
-#define TEST_DPWI 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512
-
 #ifdef TEST_DPWI
 #   define DataPerWorkItemsLongRun  TEST_DPWI
 #   define DataPerWorkItemsShortRun TEST_DPWI
 #else
 #   define DataPerWorkItemsLongRun  32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512
-#   define DataPerWorkItemsShortRun     64,     128,      192,      256,                     416,           512
+// TODO required to exclude some DataPerWorkItem values later
+#   define DataPerWorkItemsShortRun 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512
 #endif // TEST_DPWI
 
 #define TEST_DATA_TYPE int, uint32_t
