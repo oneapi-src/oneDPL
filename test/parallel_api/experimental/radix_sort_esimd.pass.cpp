@@ -531,7 +531,7 @@ struct test_usm_runner
         // uint8_t              N            N               N                                                                               N
         // int16_t              N            N               N               N                                       N                       N
         // uint16_t             N            N               N               N                                       N                       N
-        // int                  N      N     N               N               N                                       N                       N
+        // int          N       N      N     N               N               N                                       N                       N
         // uint32_t     
         // int64_t      
         // uint64_t     
