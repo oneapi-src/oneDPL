@@ -613,7 +613,18 @@ struct test_usm_runner
 
         // int, uint32_t - wrong test results
         if ((::std::is_same_v<TKey, int> || ::std::is_same_v<TKey, uint32_t>)
-            && (check_dpwi_size< 32,     8192>(dpwi, size) ||      // int,  32 : size     8192
+            && (check_dpwi_size< 32,     5072>(dpwi, size) ||      // int,  32 : size     5072
+                check_dpwi_size< 32,     8192>(dpwi, size) ||      // int,  32 : size     8192
+                check_dpwi_size< 32,    14001>(dpwi, size) ||      // int,  32 : size    14001
+                check_dpwi_size< 32,    16384>(dpwi, size) ||      // int,  32 : size    16384
+                check_dpwi_size< 32,    16385>(dpwi, size) ||      // int,  32 : size    16385
+                check_dpwi_size< 32,    50000>(dpwi, size) ||      // int,  32 : size    50000
+                check_dpwi_size< 32,    67543>(dpwi, size) ||      // int,  32 : size    67543
+                check_dpwi_size< 32,   100000>(dpwi, size) ||      // int,  32 : size   100000
+                check_dpwi_size< 32,   131072>(dpwi, size) ||      // int,  32 : size   131072
+                check_dpwi_size< 32,   179581>(dpwi, size) ||      // int,  32 : size   179581
+                check_dpwi_size< 32,   250000>(dpwi, size) ||      // int,  32 : size   250000
+                check_dpwi_size< 32,   262144>(dpwi, size) ||      // int,  32 : size   262144
                 check_dpwi_size< 64,     8192>(dpwi, size) ||      // int,  64 : size     8192
                 check_dpwi_size< 64,    16385>(dpwi, size) ||      // int,  64 : size    16385
                 check_dpwi_size< 64,    50000>(dpwi, size) ||      // int,  64 : size    50000
