@@ -529,11 +529,11 @@ struct test_usm_runner
         // uint8_t              N            N               N                                                                               N
         // int16_t              N            N               N               N                                       N                       N
         // uint16_t             N            N               N               N                                       N                       N
-        // int          
+        // int                  N            N               N               N                                       N                       N
         // uint32_t     
         // int64_t      
-        // float        
         // uint64_t     
+        // float        
         // double       
 
         // char, int8_t, uint8_t - runtime errors
@@ -613,6 +613,25 @@ struct test_usm_runner
                 check_dpwi_size<512, 179581>(dpwi, size) ||     // int16_t, 512 : size 179581
                 check_dpwi_size<512, 250000>(dpwi, size) ||     // int16_t, 512 : size 250000
                 check_dpwi_size<512, 262144>(dpwi, size)))      // int16_t, 512 : size 262144
+            return false;
+
+        // int, uint32_t - runtime errors
+        if ((::std::is_same_v<TKey, int> || ::std::is_same_v<TKey, uint32_t>)
+            && (check_dpwi_size< 64,  5072>(dpwi, size) ||      // int,  64 : size  5072
+                check_dpwi_size< 64, 14001>(dpwi, size) ||      // int,  64 : size 14001
+                check_dpwi_size< 64, 16384>(dpwi, size) ||      // int,  64 : size 16384
+                check_dpwi_size<128, 14001>(dpwi, size) ||      // int, 128 : size 14001
+                check_dpwi_size<128, 16384>(dpwi, size) ||      // int, 128 : size 16384
+                check_dpwi_size<192,  8192>(dpwi, size) ||      // int, 192 : size  8192
+                check_dpwi_size<192, 14001>(dpwi, size) ||      // int, 192 : size 14001
+                check_dpwi_size<192, 16384>(dpwi, size) ||      // int, 192 : size 16384
+                check_dpwi_size<256, 14001>(dpwi, size) ||      // int, 256 : size 14001
+                check_dpwi_size<256, 16384>(dpwi, size) ||      // int, 256 : size 16384
+                check_dpwi_size<416,  8192>(dpwi, size) ||      // int, 416 : size  8192
+                check_dpwi_size<416, 14001>(dpwi, size) ||      // int, 416 : size 14001
+                check_dpwi_size<416, 16384>(dpwi, size) ||      // int, 416 : size 16384
+                check_dpwi_size<512, 14001>(dpwi, size) ||      // int, 512 : size 14001
+                check_dpwi_size<512, 16384>(dpwi, size)))       // int, 512 : size 16384
             return false;
 
         return true;
