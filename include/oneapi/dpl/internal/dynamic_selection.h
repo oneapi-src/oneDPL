@@ -67,6 +67,11 @@ namespace experimental {
   }
 
   template<typename Handle>
+  auto wait(Handle* h) {
+    return h->wait();
+  }
+
+  template<typename Handle>
   auto wait(std::list<Handle> l) {
       for(auto h : l){
         return h->wait();
