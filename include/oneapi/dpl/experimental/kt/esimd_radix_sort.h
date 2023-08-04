@@ -13,7 +13,6 @@
 #include <ext/intel/esimd.hpp>
 
 #include "esimd_radix_sort_one_wg.h"
-#include "esimd_radix_sort_cooperative.h"
 #include "esimd_radix_sort_onesweep.h"
 
 #include "../../pstl/utils_ranges.h"
@@ -40,21 +39,7 @@ __onesweep_process_size()
     return 192;
 }
 
-/*
-    Interface:
-        Provide a temporary buffer. May be not necessary for some implementations, e.g. one-work-group implementation.
-            Provide a way to show required size of a temporary memory pool.
-        Sort only specific range of bits?
-            Add a tag for implementation with requiring forward progress
-            Allow selection of specific implementation?
-*/
-/*
-     limitations:
-         eSIMD operations:
-            gather: Element type; can only be a 1,2,4-byte integer, sycl::half or float.
-            lsc_gather: limited supported platforms: see https://intel.github.io/llvm-docs/doxygen/group__sycl__esimd__memory__lsc.html#ga250b3c0085f39c236582352fb711aadb)
-*/
-// TODO: call it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
+// TODO: allow calling it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
 template <std::uint16_t WorkGroupSize, std::uint16_t DataPerWorkItem, bool IsAscending, std::uint32_t RadixBits,
           typename _ExecutionPolicy, typename _Range,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
@@ -75,18 +60,10 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
         oneapi::dpl::experimental::esimd::impl::one_wg<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
-    else if (__n <= 262144)
-    {
-        // TODO: support different RadixBits, WorkGroupSize and DataPerWorkItem
-        oneapi::dpl::experimental::esimd::impl::cooperative<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
-            __exec.queue(), ::std::forward<_Range>(__rng), __n);
-    }
     else
     {
-        // TODO: enable support of double type
         // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
-        // TODO: pass _ProcessSize according to DataPerWorkItem
-        // TODO: support different WorkGroupSize, RadixBits
+        // TODO: support different RadixBits, WorkGroupSize and DataPerWorkItem
         oneapi::dpl::experimental::esimd::impl::onesweep<_KernelName, _KeyT, _Range, RadixBits, IsAscending, __onesweep_process_size<_KeyT>()>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
