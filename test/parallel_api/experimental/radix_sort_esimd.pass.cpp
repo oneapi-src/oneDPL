@@ -523,33 +523,21 @@ struct test_usm_runner
 
         // char, int8_t, uint8_t - runtime errors
         if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
-            && (check_dpwi_size< 64,     5072>(dpwi, size) ||   // char,  64 : size 5072
-                check_dpwi_size< 64,    14001>(dpwi, size) ||   // char,  64 : size 14001
-                check_dpwi_size<128,    14001>(dpwi, size) ||   // char, 128 : size 14001
-                check_dpwi_size<128,     8192>(dpwi, size) ||   // char, 192 : size 8192
-                check_dpwi_size<128,    14001>(dpwi, size) ||   // char, 192 : size 14001
-                check_dpwi_size<128,    16384>(dpwi, size)))    // char, 192 : size 16384
+            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+            // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
+            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+            && (check_dpwi_size< 64,           5072, 14001                                                                                                                              >(dpwi, size) ||
+                check_dpwi_size<128,           8192, 14001, 16384                                                                                                                       >(dpwi, size)))
             return false;
 
         // char, int8_t, uint8_t - wrong test results
         if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
-            && (check_dpwi_size< 64,     8192>(dpwi, size) ||   // char,  64 : size 8192
-                check_dpwi_size< 64,    16384>(dpwi, size) ||   // char,  64 : size 16384
-                check_dpwi_size< 64,    16385>(dpwi, size) ||   // char,  64 : size 16385
-                check_dpwi_size< 64,    50000>(dpwi, size) ||   // char,  64 : size 50000
-                check_dpwi_size< 64,    67543>(dpwi, size) ||   // char,  64 : size 67543
-                check_dpwi_size< 64,   100000>(dpwi, size) ||   // char,  64 : size 100000
-                check_dpwi_size< 64,   131072>(dpwi, size) ||   // char,  64 : size 131072
-                check_dpwi_size< 64,   179581>(dpwi, size) ||   // char,  64 : size 179581
-                check_dpwi_size< 64,   250000>(dpwi, size) ||   // char,  64 : size 250000
-                check_dpwi_size< 64,   262144>(dpwi, size) ||   // char,  64 : size 262144
-                check_dpwi_size<128,    16384>(dpwi, size) ||   // char, 128 : size 16384
-                check_dpwi_size<512,   262145>(dpwi, size) ||   // char, 512 : size 262145
-                check_dpwi_size<512,   500000>(dpwi, size) ||   // char, 512 : size 500000
-                check_dpwi_size<512,   888235>(dpwi, size) ||   // char, 512 : size 888235
-                check_dpwi_size<512,  1000000>(dpwi, size) ||   // char, 512 : size 1000000
-                check_dpwi_size<512,  1048576>(dpwi, size) ||   // char, 512 : size 1048576
-                check_dpwi_size<512, 10000000>(dpwi, size)))    // char, 512 : size 10000000
+            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+            // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
+            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+            && (check_dpwi_size< 64,                  8192, 16384,                      16385, 50000, 100000, 179581, 250000, 262144                                                    >(dpwi, size) ||
+                check_dpwi_size<128,                        16384                                                                                                                       >(dpwi, size) ||
+                check_dpwi_size<512,                                                                                                  262145, 500000, 888235, 1000000, 1048576, 10000000>(dpwi, size)))
             return false;
 
         // int16_t, uint16_t - runtime errors
