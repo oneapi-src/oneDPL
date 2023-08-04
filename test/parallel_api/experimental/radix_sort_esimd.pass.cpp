@@ -515,7 +515,7 @@ struct test_usm_runner
         // int16_t              N            N               N               N                                       N                       N
         // uint16_t             N            N               N               N                                       N                       N
         // int          N       N      N     N       N       N       N       N       N       N                       N                       N
-        // uint32_t     
+        // uint32_t     N       N      N     N       N       N       N       N       N       N                       N                       N
         // int64_t      
         // uint64_t     
         // float        
@@ -594,7 +594,7 @@ struct test_usm_runner
                 check_dpwi_size<256,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
                 check_dpwi_size<288,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
                 check_dpwi_size<320,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<352,                               16385, 50000, 67543, 100000, 131072, 179581,         262144                                                    >(dpwi, size) ||
+                check_dpwi_size<352,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
                 check_dpwi_size<416,                               16385, 50000, 67543, 100000,         179581                                                                    >(dpwi, size) ||
                 check_dpwi_size<512,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000>(dpwi, size)))
             return false;
