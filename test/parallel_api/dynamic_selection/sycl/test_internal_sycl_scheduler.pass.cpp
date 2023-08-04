@@ -197,14 +197,14 @@ int test_properties() {
   }
 
   std::cout << "UNIVERSE SIZE " << v.size() << std::endl;
-  oneapi::dpl::experimental::property::report(s, oneapi::dpl::experimental::property::universe, v);
-  auto v2 = oneapi::dpl::experimental::property::query(s, oneapi::dpl::experimental::property::universe);
+  s.set_universe(v);
+  auto v2 = s.get_universe();
   auto v2s = v2.size();
   if (v != v2) {
     std::cout << "ERROR: reported universe and queried universe are not equal\n";
     return 1;
   }
-  auto us = oneapi::dpl::experimental::property::query(s, oneapi::dpl::experimental::property::universe_size);
+  auto us = s.get_universe_size();
   if (v2s != us) {
     std::cout << "ERROR: queried universe size inconsistent with queried universe\n";
     return 1;
