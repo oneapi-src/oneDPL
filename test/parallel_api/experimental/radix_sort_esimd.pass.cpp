@@ -505,7 +505,7 @@ struct test_usm_runner
         // uint8_t              N            N               N                                                                               N
         // int16_t              N            N               N               N                                       N                       N
         // uint16_t             N            N               N               N                                       N                       N
-        // int          N       N      N     N       N       N       N       N                                       N                       N
+        // int          N       N      N     N       N       N       N       N       N                               N                       N
         // uint32_t     
         // int64_t      
         // uint64_t     
@@ -664,6 +664,8 @@ struct test_usm_runner
                 check_dpwi_size<256,   262144>(dpwi, size) ||      // int, 256 : size   262144
                 check_dpwi_size<288,    16385>(dpwi, size) ||      // int, 288 : size    16385
                 check_dpwi_size<288,    50000>(dpwi, size) ||      // int, 288 : size    50000
+                check_dpwi_size<288,    67543>(dpwi, size) ||      // int, 288 : size    67543
+                check_dpwi_size<288,   100000>(dpwi, size) ||      // int, 288 : size   100000
                 check_dpwi_size<416,    16385>(dpwi, size) ||      // int, 416 : size    16385
                 check_dpwi_size<416,    50000>(dpwi, size) ||      // int, 416 : size    50000
                 check_dpwi_size<416,    67543>(dpwi, size) ||      // int, 416 : size    67543
