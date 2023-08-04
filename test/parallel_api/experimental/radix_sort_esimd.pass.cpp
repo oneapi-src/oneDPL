@@ -554,50 +554,27 @@ struct test_usm_runner
 
         // int16_t, uint16_t - runtime errors
         if ((::std::is_same_v<TKey, int16_t> || ::std::is_same_v<TKey, uint16_t>)
-            && (check_dpwi_size< 64,  5072>(dpwi, size) ||      // int16_t,  64 : size 5072
-                check_dpwi_size< 64, 14001>(dpwi, size) ||      // int16_t,  64 : size 14001
-                check_dpwi_size< 64, 16384>(dpwi, size) ||      // int16_t,  64 : size 16384
-                check_dpwi_size<128, 14001>(dpwi, size) ||      // int16_t, 128 : size 14001
-                check_dpwi_size<128, 16384>(dpwi, size) ||      // int16_t, 128 : size 16384
-                check_dpwi_size<192, 14001>(dpwi, size) ||      // int16_t, 192 : size 14001
-                check_dpwi_size<192, 16384>(dpwi, size) ||      // int16_t, 192 : size 16384
-                check_dpwi_size<256,  8192>(dpwi, size) ||      // int16_t, 256 : size 8192
-                check_dpwi_size<256, 14001>(dpwi, size) ||      // int16_t, 256 : size 14001
-                check_dpwi_size<256, 16384>(dpwi, size) ||      // int16_t, 256 : size 16384
-                check_dpwi_size<416,  8192>(dpwi, size) ||      // int16_t, 416 : size 8192
-                check_dpwi_size<416, 14001>(dpwi, size) ||      // int16_t, 416 : size 14001
-                check_dpwi_size<416, 16384>(dpwi, size) ||      // int16_t, 416 : size 16384
-                check_dpwi_size<512, 14001>(dpwi, size) ||      // int16_t, 512 : size 14001
-                check_dpwi_size<512, 16384>(dpwi, size)))       // int16_t, 512 : size 16384
+            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+            // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
+            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+            && (check_dpwi_size< 64,           5072, 14001, 16384                                                                                                                       >(dpwi, size) ||
+                check_dpwi_size<128,                 14001, 16384                                                                                                                       >(dpwi, size) ||
+                check_dpwi_size<192,                 14001, 16384                                                                                                                       >(dpwi, size) ||
+                check_dpwi_size<256,           8192, 14001, 16384                                                                                                                       >(dpwi, size) ||
+                check_dpwi_size<416,           8192, 14001, 16384                                                                                                                       >(dpwi, size) ||
+                check_dpwi_size<512,                 14001, 16384                                                                                                                       >(dpwi, size)))
             return false;
 
-        // char, int16_t, uint16_t - wrong test results
+        // int16_t, uint16_t - wrong test results
         if ((::std::is_same_v<TKey, int16_t> || ::std::is_same_v<TKey, uint16_t>)
-            && (check_dpwi_size< 64,   8192>(dpwi, size) ||     // int16_t,  64 : size 8192
-                check_dpwi_size< 64,  16385>(dpwi, size) ||     // int16_t,  64 : size 16385
-                check_dpwi_size< 64,  50000>(dpwi, size) ||     // int16_t,  64 : size 50000
-                check_dpwi_size< 64,  67543>(dpwi, size) ||     // int16_t,  64 : size 67543
-                check_dpwi_size< 64, 100000>(dpwi, size) ||     // int16_t,  64 : size 100000
-                check_dpwi_size< 64, 131072>(dpwi, size) ||     // int16_t,  64 : size 131072
-                check_dpwi_size< 64, 179581>(dpwi, size) ||     // int16_t,  64 : size 179581
-                check_dpwi_size< 64, 250000>(dpwi, size) ||     // int16_t,  64 : size 250000
-                check_dpwi_size< 64, 262144>(dpwi, size) ||     // int16_t,  64 : size 262144
-                check_dpwi_size<192,  16385>(dpwi, size) ||     // int16_t, 192 : size 16385
-                check_dpwi_size<256,  16385>(dpwi, size) ||     // int16_t, 256 : size 16385
-                check_dpwi_size<256,  50000>(dpwi, size) ||     // int16_t, 256 : size 50000
-                check_dpwi_size<416,  16385>(dpwi, size) ||     // int16_t, 416 : size 16385
-                check_dpwi_size<416,  50000>(dpwi, size) ||     // int16_t, 416 : size 50000
-                check_dpwi_size<416,  67543>(dpwi, size) ||     // int16_t, 416 : size 67543
-                check_dpwi_size<416, 100000>(dpwi, size) ||     // int16_t, 416 : size 100000
-                check_dpwi_size<416, 179581>(dpwi, size) ||     // int16_t, 416 : size 179581
-                check_dpwi_size<512,  16385>(dpwi, size) ||     // int16_t, 512 : size 16385
-                check_dpwi_size<512,  67543>(dpwi, size) ||     // int16_t, 512 : size 67543
-                check_dpwi_size<512,  50000>(dpwi, size) ||     // int16_t, 512 : size 50000
-                check_dpwi_size<512, 100000>(dpwi, size) ||     // int16_t, 512 : size 100000
-                check_dpwi_size<512, 131072>(dpwi, size) ||     // int16_t, 512 : size 131072
-                check_dpwi_size<512, 179581>(dpwi, size) ||     // int16_t, 512 : size 179581
-                check_dpwi_size<512, 250000>(dpwi, size) ||     // int16_t, 512 : size 250000
-                check_dpwi_size<512, 262144>(dpwi, size)))      // int16_t, 512 : size 262144
+            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+            // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
+            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+            &&(check_dpwi_size< 64,            8192,              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                           >(dpwi, size) ||
+                check_dpwi_size<192,                              16385                                                                                                                 >(dpwi, size) ||
+                check_dpwi_size<256,                              16385, 50000                                                                                                          >(dpwi, size) ||
+                check_dpwi_size<416,                              16385, 50000, 67543,        100000,         179581                                                                    >(dpwi, size) ||
+                check_dpwi_size<512,                              16385,        67543, 50000, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size))) 
             return false;
 
         // int, uint32_t - runtime errors
