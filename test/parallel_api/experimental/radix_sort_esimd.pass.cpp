@@ -730,7 +730,7 @@ iterate_all_params(std::size_t size)
     using TKey = typename TestUtils::GetHeadType<ListOfTypes>;
 
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest for type " << TypeInfo().name<TKey>() << " and DataPerWorkItem = " << dpwiItem << " : ";
+    std::cout << "\t\ttest for type " << TypeInfo().name<TKey>() << ", DataPerWorkItem = " << dpwiItem << ", size = " << size << " : ";
 #endif
 
     {
