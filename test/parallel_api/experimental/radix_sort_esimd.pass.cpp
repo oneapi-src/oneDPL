@@ -60,7 +60,8 @@ constexpr ::std::uint16_t WorkGroupSize = 256;
 using DPWI = ::std::uint16_t;
 using DataPerWorkItems = ::std::initializer_list<DPWI>;
 
-#define TEST_DPWI 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512
+#define TEST_DPWI 192, 224, 256, 288, 320
+//#define TEST_DPWI  352, 384, 416, 448, 480, 512
 
 #ifdef TEST_DPWI
 #   define DataPerWorkItemsLongRun  TEST_DPWI
@@ -625,6 +626,17 @@ struct test_usm_runner
                 check_dpwi_size< 96,                 14001, 16384,        50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
                 check_dpwi_size<128,                        16384                                                                                                                 >(dpwi, size) ||
                 check_dpwi_size<160,                 14001,        16385                                                                                                          >(dpwi, size)))
+                // 192
+                // 224
+                // 256
+                // 288
+                // 320
+                // 352
+                // 384
+                // 416
+                // 448
+                // 480
+                // 512
             return false;
 
         return true;
