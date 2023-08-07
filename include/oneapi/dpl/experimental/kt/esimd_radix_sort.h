@@ -23,7 +23,7 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace oneapi::dpl::experimental::esimd::impl
+namespace oneapi::dpl::experimental::kt::esimd::impl
 {
 template <typename T, ::std::enable_if_t<sizeof(T) <= sizeof(::std::uint32_t), int> = 0>
 constexpr ::std::uint32_t
@@ -57,21 +57,21 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
     if (__n <= 16384)
     {
         // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize and DataPerWorkItem
-        oneapi::dpl::experimental::esimd::impl::one_wg<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
+        oneapi::dpl::experimental::kt::esimd::impl::one_wg<_KernelName, _KeyT, _Range, RadixBits, IsAscending>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
     else
     {
         // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
         // TODO: support different RadixBits, WorkGroupSize and DataPerWorkItem
-        oneapi::dpl::experimental::esimd::impl::onesweep<_KernelName, _KeyT, _Range, RadixBits, IsAscending, __onesweep_process_size<_KeyT>()>(
+        oneapi::dpl::experimental::kt::esimd::impl::onesweep<_KernelName, _KeyT, _Range, RadixBits, IsAscending, __onesweep_process_size<_KeyT>()>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
 }
 
-} // oneapi::dpl::experimental::esimd::impl
+} // oneapi::dpl::experimental::kt::esimd::impl
 
-namespace oneapi::dpl::experimental::esimd
+namespace oneapi::dpl::experimental::kt::esimd
 {
 template <std::uint16_t WorkGroupSize, std::uint16_t DataPerWorkItem, bool IsAscending = true,
           std::uint32_t RadixBits = 8, typename _ExecutionPolicy, typename _Range>
@@ -80,7 +80,7 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
 {
     if(__rng.size() < 2)
         return;
-    oneapi::dpl::experimental::esimd::impl::radix_sort<WorkGroupSize, DataPerWorkItem, IsAscending, RadixBits>
+    oneapi::dpl::experimental::kt::esimd::impl::radix_sort<WorkGroupSize, DataPerWorkItem, IsAscending, RadixBits>
         (::std::forward<_ExecutionPolicy>(__exec), __rng);
 }
 
@@ -93,10 +93,10 @@ radix_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last)
         return;
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __rng = __keep(__first, __last);
-    oneapi::dpl::experimental::esimd::impl::radix_sort<WorkGroupSize, DataPerWorkItem, IsAscending, RadixBits>
+    oneapi::dpl::experimental::kt::esimd::impl::radix_sort<WorkGroupSize, DataPerWorkItem, IsAscending, RadixBits>
         (::std::forward<_ExecutionPolicy>(__exec), __rng.all_view());
 }
 
-} // namespace oneapi::dpl::experimental::esimd
+} // namespace oneapi::dpl::experimental::kt::esimd
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_H
