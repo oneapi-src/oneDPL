@@ -70,12 +70,14 @@ radix_sort(_ExecutionPolicy&& __exec, _Range&& __rng)
         oneapi::dpl::experimental::esimd::impl::one_wg<_KernelName, _KeyT, _Range, RadixBits, IsAscending, /* PROCESS_SIZE */ DataPerWorkItem>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
+#if USE_COOPERATIVE_RADIX_SORT_IMPL
     else if (__n <= 262144)
     {
         // TODO: support different RadixBits, WorkGroupSize and DataPerWorkItem
         oneapi::dpl::experimental::esimd::impl::cooperative<_KernelName, _KeyT, _Range, RadixBits, IsAscending, /* PROCESS_SIZE */ DataPerWorkItem>(
             __exec.queue(), ::std::forward<_Range>(__rng), __n);
     }
+#endif // USE_COOPERATIVE_RADIX_SORT_IMPL
     else
     {
         // TODO: enable support of double type

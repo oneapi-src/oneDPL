@@ -10,6 +10,10 @@
 #ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_COOPERATIVE_H
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_COOPERATIVE_H
 
+#define USE_COOPERATIVE_RADIX_SORT_IMPL 1
+
+#if USE_COOPERATIVE_RADIX_SORT_IMPL
+
 #include <ext/intel/esimd.hpp>
 #include "../../pstl/hetero/dpcpp/sycl_defs.h"
 #include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
@@ -388,5 +392,7 @@ void cooperative(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
 }
 
 } // oneapi::dpl::experimental::esimd::impl
+
+#endif // USE_COOPERATIVE_RADIX_SORT_IMPL
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_COOPERATIVE_H
