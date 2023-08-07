@@ -187,7 +187,12 @@ generate_data(T* input, std::size_t size)
 {
     std::default_random_engine gen{42};
     std::size_t unique_threshold = 75 * size / 100;
-    if constexpr (std::is_integral_v<T>)
+    if constexpr (sizeof(T) < sizeof(short)) // no uniform_int_distribution for chars
+    {
+        std::uniform_int_distribution<int> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
+        std::generate(input, input + unique_threshold, [&]{ return T(dist(gen)); });
+    }
+    else if constexpr (std::is_integral_v<T>)
     {
         std::uniform_int_distribution<T> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
         std::generate(input, input + unique_threshold, [&]{ return dist(gen); });
