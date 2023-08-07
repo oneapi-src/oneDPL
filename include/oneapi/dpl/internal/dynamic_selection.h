@@ -98,7 +98,6 @@ namespace experimental {
   auto has_invoke_async_impl(int) -> decltype(std::declval<DSPolicy>().invoke_async(std::declval<Function>(), std::declval<Args>()...), std::true_type{});
 
   template<typename DSPolicy, typename Function, typename... Args>
-
   struct has_invoke_async : decltype(has_invoke_async_impl<DSPolicy, Function, Args...>(0)) {};
 
   template<typename DSPolicy, typename Function, typename... Args>
@@ -128,6 +127,7 @@ namespace experimental {
     }
     else{
         return wait(std::forward<DSPolicy>(dp).invoke_async(std::forward<DSPolicy>(dp).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...));
+    }
   }
 
 
