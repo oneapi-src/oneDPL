@@ -45,6 +45,8 @@
 #define LOG_TEST_INFO 1
 //#endif
 
+#define SKIP_RUNTIME_ERRORS 1
+
 template <typename T, bool Order>
 struct Compare : public std::less<T> {};
 
@@ -524,6 +526,7 @@ struct test_usm_runner
         // double       
 
         // char, int8_t, uint8_t - runtime errors
+#if SKIP_RUNTIME_ERRORS
         if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
             // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
             // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
@@ -531,6 +534,7 @@ struct test_usm_runner
             && (check_dpwi_size< 64,           5072, 14001                                                                                                                              >(dpwi, size) ||
                 check_dpwi_size<128,           8192, 14001, 16384                                                                                                                       >(dpwi, size)))
             return false;
+#endif // SKIP_RUNTIME_ERRORS
 
         // char, int8_t, uint8_t - wrong test results
         if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
@@ -543,6 +547,7 @@ struct test_usm_runner
             return false;
 
         // int16_t, uint16_t - runtime errors
+#if SKIP_RUNTIME_ERRORS
         if ((::std::is_same_v<TKey, int16_t> || ::std::is_same_v<TKey, uint16_t>)
             // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
             // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
@@ -554,6 +559,7 @@ struct test_usm_runner
                 check_dpwi_size<416,           8192, 14001, 16384                                                                                                                       >(dpwi, size) ||
                 check_dpwi_size<512,                 14001, 16384                                                                                                                       >(dpwi, size)))
             return false;
+#endif // SKIP_RUNTIME_ERRORS
 
         // int16_t, uint16_t - wrong test results
         if ((::std::is_same_v<TKey, int16_t> || ::std::is_same_v<TKey, uint16_t>)
@@ -568,6 +574,7 @@ struct test_usm_runner
             return false;
 
         // int, uint32_t - runtime errors
+#if SKIP_RUNTIME_ERRORS
         if ((::std::is_same_v<TKey, int> || ::std::is_same_v<TKey, uint32_t>)
             // +-------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
             // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
@@ -582,6 +589,7 @@ struct test_usm_runner
                 check_dpwi_size<416,           8192, 14001, 16384                                                                                                                 >(dpwi, size) ||
                 check_dpwi_size<512,                 14001, 16384                                                                                                                 >(dpwi, size)))
             return false;
+#endif // SKIP_RUNTIME_ERRORS
 
         // int, uint32_t - wrong test results
         if ((::std::is_same_v<TKey, int> || ::std::is_same_v<TKey, uint32_t>)
@@ -605,6 +613,7 @@ struct test_usm_runner
             return false;
 
         // float - runtime errors
+#if SKIP_RUNTIME_ERRORS
         if ((::std::is_same_v<TKey, float>)
             // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
             // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
@@ -616,7 +625,7 @@ struct test_usm_runner
                 check_dpwi_size<160,                        16384                                                                                                                 >(dpwi, size) ||
                 check_dpwi_size<192,                        16384                                                                                                                 >(dpwi, size)))
             return false;
-
+#endif // SKIP_RUNTIME_ERRORS
 
         // float - wrong test results
         if (::std::is_same_v<TKey, float>
