@@ -44,7 +44,7 @@ main()
 
     int64_t max_int32p2 = (size_t)::std::numeric_limits<int32_t>::max() + 2L;
 
-    auto base_view = views::iota(0L, max_int32p2);
+    auto base_view = views::iota(::std::int64_t(0), max_int32p2);
 
     //avoiding allocating large amounts of memory, just reusing small data container
     auto transform_data_idx = [&max_n, &data](auto idx) { return data[idx % max_n]; };

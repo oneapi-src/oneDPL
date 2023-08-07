@@ -17,7 +17,7 @@
 #ifndef _ONEDPL_ASYNC_EXTENSION_DEFS_H
 #define _ONEDPL_ASYNC_EXTENSION_DEFS_H
 
-#include "async_impl/async_utils.h"
+#include "../pstl/hetero/dpcpp/execution_sycl_defs.h"
 
 namespace oneapi
 {

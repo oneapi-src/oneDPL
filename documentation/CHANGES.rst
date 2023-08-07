@@ -238,7 +238,7 @@ Known Issues and Limitations
   use ``std::array::operator[]`` instead.
 - ``std::array`` member function swap cannot be used in DPC++ kernels on Windows platform.
 - ``std::swap`` for ``std::array`` cannot work in DPC++ kernels on Windows platform.
-- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_ guide for detail list.
+- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_ guide for detail list.
 - Due to specifics of Microsoft Visual C++ implementation, some standard math functions for float
   (including: ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
   for double precision.
@@ -281,7 +281,7 @@ Known Issues and Limitations
   use ``std::array::operator[]`` instead.
 - ``std::array`` member function swap cannot be used in DPC++ kernels on Windows platform.
 - ``std::swap`` for ``std::array`` cannot work in DPC++ kernels on Windows platform.
-- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_ for detail list.
+- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_ for detail list.
 - Due to specifics of Microsoft Visual C++ implementation, some standard math functions for float
   (including: ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
   for double precision.
@@ -334,7 +334,7 @@ Known Issues and Limitations
   use ``std::array::operator[]`` instead.
 - ``std::array`` member function swap cannot be used in DPC++ kernels on Windows platform.
 - ``std::swap`` for ``std::array`` cannot work in DPC++ kernels on Windows platform.
-- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_ for detail list.
+- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_ for detail list.
 - Due to specifics of Microsoft Visual C++ implementation, some standard math functions for float
   (including: ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
   for double precision.
@@ -407,7 +407,7 @@ Known Issues and Limitations
   use ``std::array::operator[]`` instead.
 - ``std::array`` member function swap cannot be used in DPC++ kernels on Windows platform.
 - ``std::swap`` for ``std::array`` cannot work in DPC++ kernels on Windows platform.
-- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_ for detail list.
+- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_ for detail list.
 - Due to specifics of Microsoft Visual C++ implementation, some standard math functions for float
   (including: ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
   for double precision.
@@ -439,7 +439,7 @@ Known Issues and Limitations
 - ``std::array::at`` member function cannot be used in kernels because it may throw an exception; use ``std::array::operator[]`` instead.
 - ``std::array`` member function swap cannot be used in DPC++ kernels on Windows platform.
 - ``std::swap`` for ``std::array`` cannot work in DPC++ kernels on Windows platform.
-- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_ for detail list.
+- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_ for detail list.
 - Due to specifics of Microsoft Visual C++ implementation, some standard math functions for float (including: ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support for double precision.
 - There is a known issue on Windows platform with trying to use clGetPlatformInfo and ClGetDeviceInfo when using a graphics driver older than 27.20.100.8280.
   If you run into this issue, please upgrade to the latest driver of at least version 27.20.100.8280 from the `Download Center <https://downloadcenter.intel.com/product/80939/Graphics>`_.
@@ -473,7 +473,7 @@ Known Issues and Limitations
 - ``std::array::at`` member function cannot be used in kernels because it may throw an exception; use ``std::array::operator[]`` instead.
 - ``std::array`` member function swap cannot be used in DPC++ kernels on Windows platform.
 - ``std::swap`` for ``std::array`` cannot work in DPC++ kernels on Windows platform.
-- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_ for detail list.
+- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_ for detail list.
 - ``std::complex`` division may fail in kernel code on some CPU platform.
 
 New in 2021.1-beta05
@@ -498,7 +498,7 @@ Known Issues and Limitations
 - ``std::array::at`` member function cannot be used in kernels because it may throw an exception; use ``std::array::operator[]`` instead.
 - ``std::array`` member function swap cannot be used in DPC++ kernels on Windows platform.
 - ``std::swap`` for ``std::array`` cannot work in DPC++ kernels on Windows platform.
-- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_ for detail list.
+- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_ for detail list.
 - ``std::complex`` division may fail in kernel code on some CPU platform.
 
 New in 2021.1-beta04
@@ -539,7 +539,7 @@ Known Issues and Limitations
 - ``std::array::at`` member function cannot be used in kernels because it may throw an exception; use ``std::array::operator[]`` instead.
 - ``std::array`` member function swap cannot be used in DPC++ kernels on Windows platform.
 - ``std::swap`` for ``std::array`` cannot work in DPC++ kernels on Windows platform.
-- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_ for detail list.
+- Not all functions in <cmath> are supported currently, please refer to `DPC++ library guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_ for detail list.
 - ``std::complex`` division may fail in kernel code on some CPU platform.
 
 New in 2021.1-beta03
@@ -577,7 +577,7 @@ Known Issues and Limitations
 .. [#fnote1] The sorting algorithms in oneDPL use Radix sort for arithmetic data types compared with
    ``std::less`` or ``std::greater``, otherwise Merge sort.
 .. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
-.. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
+.. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-threading-building-blocks-release-notes.html
 .. _`oneDPL Guide`: https://oneapi-src.github.io/oneDPL/index.html
 .. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_dpcpp_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 .. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html

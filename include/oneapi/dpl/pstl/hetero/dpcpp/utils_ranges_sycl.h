@@ -42,6 +42,8 @@ class all_view
     using __accessor_t = sycl::accessor<_T, 1, _AccMode, _Target, _Placeholder>;
 
   public:
+    using value_type = _T;
+
     all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), __diff_type __offset = 0, __diff_type __n = 0)
         : __m_acc(__create_accessor(__buf, __offset, __n))
     {
@@ -128,7 +130,7 @@ inline constexpr all_view_fn<sycl::access::mode::read, __dpl_sycl::__target_devi
 inline constexpr all_view_fn<sycl::access::mode::write, __dpl_sycl::__target_device, sycl::access::placeholder::true_t>
     all_write;
 
-inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__target::host_buffer,
+inline constexpr all_view_fn<sycl::access::mode::read_write, __dpl_sycl::__host_target,
                              sycl::access::placeholder::false_t>
     host_all;
 } // namespace views

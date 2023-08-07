@@ -17,10 +17,7 @@
 #define _ONEDPL_GLUE_ASYNC_IMPL_H
 
 #include "../async_extension_defs.h"
-
-#if _ONEDPL_HETERO_BACKEND
-#    include "async_impl_hetero.h"
-#endif
+#include "async_impl_hetero.h"
 
 namespace oneapi
 {
@@ -28,6 +25,15 @@ namespace dpl
 {
 namespace experimental
 {
+// [wait_for_all]
+template <typename... _Ts>
+oneapi::dpl::__internal::__enable_if_convertible_to_events<void, _Ts...>
+wait_for_all(_Ts&&... __events)
+{
+    // TODO design a backend API function for waiting, and move this implementation into the SYCL backend
+    ::std::initializer_list<int> i = {0, (static_cast<sycl::event>(__events).wait_and_throw(), 0)...};
+    (void)i;
+}
 
 // [async.transform]
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _UnaryOperation,
@@ -89,7 +95,18 @@ sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Comp
     auto __buf = __keep(__first, __last);
 
     return __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
-                                                        __comp);
+                                                        __comp, oneapi::dpl::identity{});
+}
+
+template <class _ExecutionPolicy, class _RandomAccessIterator, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
+auto
+sort_async(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
+           _Events&&... __dependencies)
+{
+    using _ValueType = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
+    return sort_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, ::std::less<_ValueType>(),
+                      ::std::forward<_Events>(__dependencies)...);
 }
 
 // [async.for_each]
@@ -114,12 +131,32 @@ auto
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
              _BinaryOperation __binary_op, _Events&&... __dependencies)
 {
+    using _ValueType = typename ::std::iterator_traits<_ForwardIterator>::value_type;
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-    typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _InputType;
     auto ret_val = oneapi::dpl::__internal::__pattern_transform_reduce_async(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_InputType>(),
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_ValueType>(),
         oneapi::dpl::__internal::__no_op());
     return ret_val;
+}
+
+template <class _ExecutionPolicy, class _ForwardIt, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
+auto
+reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _Events&&... __dependencies)
+{
+    using _ValueType = typename ::std::iterator_traits<_ForwardIt>::value_type;
+    return reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, _ValueType(0),
+                        ::std::plus<_ValueType>(), ::std::forward<_Events>(__dependencies)...);
+}
+
+template <class _ExecutionPolicy, class _ForwardIt, class _T, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy_single_no_default<_ExecutionPolicy, int, _T,
+                                                                                         _Events...>>
+auto
+reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init, _Events&&... __dependencies)
+{
+    return reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, ::std::plus<_T>(),
+                        ::std::forward<_Events>(__dependencies)...);
 }
 
 // [async.fill]
@@ -162,6 +199,18 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt
                                                                      __last, __init, __binary_op, __unary_op);
 }
 
+template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events,
+          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int, _Events...>>
+auto
+transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
+                       _T __init, _Events&&... __dependencies)
+{
+    using _ValueType = typename ::std::iterator_traits<_ForwardIt1>::value_type;
+    return transform_reduce_async(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init,
+                                  ::std::plus<_T>(), ::std::multiplies<_ValueType>(),
+                                  ::std::forward<_Events>(__dependencies)...);
+}
+
 // [async.scan]
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class... _Events,
@@ -170,10 +219,11 @@ auto
 inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _Events&&... __dependencies)
 {
+    using _ValueType = typename ::std::iterator_traits<_ForwardIt1>::value_type;
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, oneapi::dpl::__internal::__no_op(),
-        ::std::plus<typename ::std::iterator_traits<_ForwardIt1>::value_type>(), /*inclusive=*/::std::true_type());
+        ::std::plus<_ValueType>(), /*inclusive=*/::std::true_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class... _Events,

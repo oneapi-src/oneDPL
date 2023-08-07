@@ -39,7 +39,8 @@
     !defined(_PSTL_TEST_MERGE) && \
     !defined(_PSTL_TEST_STABLE_SORT) && \
     !defined(_PSTL_TEST_LEXICOGRAPHICAL_COMPIARE) && \
-    !defined(_PSTL_TEST_COUNTING_ZIP_TRANSFORM)
+    !defined(_PSTL_TEST_COUNTING_ZIP_TRANSFORM) && \
+    !defined(_PSTL_TEST_COUNTING_ZIP_DISCARD)
 #define _PSTL_TEST_FOR_EACH
 #define _PSTL_TEST_TRANSFORM_REDUCE_UNARY
 #define _PSTL_TEST_TRANSFORM_REDUCE_BINARY
@@ -52,6 +53,7 @@
 #define _PSTL_TEST_STABLE_SORT
 #define _PSTL_TEST_LEXICOGRAPHICAL_COMPIARE
 #define _PSTL_TEST_COUNTING_ZIP_TRANSFORM
+#define _PSTL_TEST_COUNTING_ZIP_DISCARD
 #define _PSTL_TEST_FOR_EACH_STRUCTURED_BINDING
 #define _PSTL_TEST_EQUAL_STRUCTURED_BINDING
 #endif
@@ -710,7 +712,7 @@ struct Assigner{
     }
 };
 
-// Make sure that it's possible to use conting iterator inside zip iterator
+// Make sure that it's possible to use counting iterator inside zip iterator
 DEFINE_TEST(test_counting_zip_transform)
 {
     DEFINE_TEST_CONSTRUCTOR(test_counting_zip_transform)
@@ -736,6 +738,8 @@ DEFINE_TEST(test_counting_zip_transform)
         auto idx = oneapi::dpl::counting_iterator<ValueType>(0);
         auto start = oneapi::dpl::make_zip_iterator(idx, first1);
 
+        // This usage pattern can be rewritten equivalently and more simply using zip_iterator and discard_iterator,
+        // see test_counting_zip_discard
         auto res =
             ::std::copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), start, start + n,
                            oneapi::dpl::make_transform_iterator(first2,
@@ -751,6 +755,45 @@ DEFINE_TEST(test_counting_zip_transform)
 #endif
         host_vals.retrieve_data();
         EXPECT_TRUE(res.base() - first2 == 2, "Incorrect number of elements");
+        EXPECT_TRUE(*host_vals.get() == n / 3, "Incorrect 1st element");
+        EXPECT_TRUE(*(host_vals.get() + 1) == (n / 3 * 2), "Incorrect 2nd element");
+    }
+};
+
+//make sure its possible to use a discard iterator in a zip iterator
+DEFINE_TEST(test_counting_zip_discard)
+{
+    DEFINE_TEST_CONSTRUCTOR(test_counting_zip_discard)
+
+    template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
+    void
+    operator()(Policy&& exec, Iterator1 first1, Iterator1 /* last1 */, Iterator2 first2, Iterator2 /* last2 */, Size n)
+    {
+        if (n < 6)
+            return;
+
+        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+        TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
+
+        using ValueType = typename ::std::iterator_traits<Iterator2>::value_type;
+
+        ::std::fill(host_keys.get(), host_keys.get() + n, ValueType{0});
+        ::std::fill(host_vals.get(), host_vals.get() + n, ValueType{0});
+        *(host_keys.get() + (n / 3)) = 10;
+        *(host_keys.get() + (n / 3 * 2)) = 100;
+        update_data(host_keys, host_vals);
+
+        auto idx = oneapi::dpl::counting_iterator<ValueType>(0);
+        auto start = oneapi::dpl::make_zip_iterator(idx, first1);
+        auto discard = oneapi::dpl::discard_iterator();
+        auto out = oneapi::dpl::make_zip_iterator(first2, discard);
+        auto res = ::std::copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), start, start + n, out, Assigner{});
+
+#if _PSTL_SYCL_TEST_USM
+        exec.queue().wait_and_throw();
+#endif
+        host_vals.retrieve_data();
+        EXPECT_TRUE(res - out == 2, "Incorrect number of elements");
         EXPECT_TRUE(*host_vals.get() == n / 3, "Incorrect 1st element");
         EXPECT_TRUE(*(host_vals.get() + 1) == (n / 3 * 2), "Incorrect 2nd element");
     }
@@ -821,6 +864,10 @@ test_usm_and_buffer()
 #if defined(_PSTL_TEST_COUNTING_ZIP_TRANSFORM)
     PRINT_DEBUG("test_counting_zip_transform");
     test2buffers<alloc_type, test_counting_zip_transform<ValueType>>();
+#endif
+#if defined(_PSTL_TEST_COUNTING_ZIP_DISCARD)
+    PRINT_DEBUG("test_counting_zip_discard");
+    test2buffers<alloc_type, test_counting_zip_discard<ValueType>>();
 #endif
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
