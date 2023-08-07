@@ -21,18 +21,6 @@ namespace experimental {
 //ds_properties
 
   namespace property {
-    struct universe_t {
-      static constexpr bool is_property_v = true;
-      static constexpr bool can_report_v = false;
-    };
-    inline constexpr universe_t universe;
-
-    struct universe_size_t {
-      static constexpr bool is_property_v = true;
-      static constexpr bool can_report_v = false;
-    };
-    inline constexpr universe_size_t universe_size;
-
     struct task_completion_t {
       static constexpr bool is_property_v = true;
       static constexpr bool can_report_v = true;
@@ -61,6 +49,21 @@ namespace experimental {
   } //namespace property
 
 //ds_algorithms
+  template<typename DSPolicy>
+  auto get_universe(DSPolicy&& dp) {
+    return std::forward<DSPolicy>(dp).get_universe();
+  }
+
+  template<typename DSPolicy>
+  auto get_universe_size(DSPolicy&& dp) {
+    return std::forward<DSPolicy>(dp).get_universe_size();
+  }
+
+  template<typename DSPolicy, typename ...Args>
+  auto set_universe(DSPolicy&& dp, Args&&... args) {
+    return std::forward<DSPolicy>(dp).get_universe(std::forward<Args>(args)...);
+  }
+
   template<typename Handle>
   auto wait(Handle&& h) {
     return std::forward<Handle>(h).wait();

@@ -38,21 +38,21 @@ namespace experimental{
     std::shared_ptr<unit_t> unit_;
 
     round_robin_policy_impl() : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()}  {
-      unit_->universe_ = oneapi::dpl::experimental::property::query(*sched_, property::universe);
+      unit_->universe_ = get_universe();
       unit_->num_contexts_ = unit_->universe_.size();
       unit_->next_context_ = 0;
     }
 
     round_robin_policy_impl(universe_container_t u) : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()}  {
-      oneapi::dpl::experimental::property::report(*sched_, property::universe, u);
-      unit_->universe_ = oneapi::dpl::experimental::property::query(*sched_, property::universe);
+      sched_->set_universe(u);
+      unit_->universe_ = get_universe();
       unit_->num_contexts_ = unit_->universe_.size();
       unit_->next_context_ = 0;
     }
 
     template<typename ...Args>
     round_robin_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)}, unit_{std::make_shared<unit_t>()} {
-      unit_->universe_ = oneapi::dpl::experimental::property::query(*sched_, property::universe);
+      unit_->universe_ = sched_->get_universe();
       unit_->num_contexts_ = unit_->universe_.size();
       unit_->next_context_ = 0;
     }
@@ -61,12 +61,17 @@ namespace experimental{
     // Support for property queries
     //
 
-    auto query(oneapi::dpl::experimental::property::universe_t) const noexcept {
-      return oneapi::dpl::experimental::property::query(*sched_, property::universe);
+    auto get_universe() const noexcept {
+      return sched_->get_universe();
     }
 
-    auto query(oneapi::dpl::experimental::property::universe_size_t) const noexcept {
-      return oneapi::dpl::experimental::property::query(*sched_, property::universe_size);
+    auto get_universe_size() const noexcept {
+      return sched_->get_universe_size();
+    }
+
+    template<typename ...Args>
+    auto set_universe(Args&&... args) {
+        return sched_->set_universe(std::forward<Args>(args)...);
     }
 
     template<typename ...Args>
