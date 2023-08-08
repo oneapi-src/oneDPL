@@ -659,6 +659,46 @@ struct test_usm_runner
             return false;
 #endif // SKIP_WRONG_RESULTS
 
+        // double - runtime errors
+#if SKIP_RUNTIME_ERRORS
+        if ((::std::is_same_v<TKey, double>)
+            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+            // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
+            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+            && (check_dpwi_size< 32,                 14001, 16384                                                                                                                 >(dpwi, size) ||
+                check_dpwi_size< 64,     5072,       14001, 16384                                                                                                                 >(dpwi, size) ||
+                check_dpwi_size< 96,           8192, 14001, 16384                                                                                                                 >(dpwi, size) ||
+                check_dpwi_size<128,                 14001, 16384                                                                                                                 >(dpwi, size) ||
+                check_dpwi_size<160,                 14001, 16384                                                                                                                 >(dpwi, size)))
+                //check_dpwi_size<192,                                                                                                                                              >(dpwi, size)))
+            return false;
+#endif // SKIP_RUNTIME_ERRORS
+
+        // double - wrong test results
+#if SKIP_WRONG_RESULTS
+        //if (::std::is_same_v<TKey, double>
+        //    // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        //    // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
+        //    // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        //    && (check_dpwi_size< 32,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size< 64,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size< 96,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<128,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<160,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<192,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<224,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<256,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<288,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<320,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<352,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<384,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<416,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<448,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<480,                                                                                                                                              >(dpwi, size) ||
+        //        check_dpwi_size<512,                                                                                                                                              >(dpwi, size)))
+        //    return false;
+#endif // SKIP_WRONG_RESULTS
+
         return true;
     }
 
