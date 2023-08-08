@@ -428,13 +428,13 @@ struct __sycl_usm_free
     }
 };
 
-template <typename _ExecutionPolicy, typename _T, sycl::usm::alloc __alloc_t>
+template <typename _ExecutionPolicy, typename _T>
 struct __sycl_usm_alloc
 {
     _ExecutionPolicy __exec;
 
     _T*
-    operator()(::std::size_t __elements) const
+    operator()(::std::size_t __elements, sycl::usm::alloc __alloc_t) const
     {
         const auto& __queue = __exec.queue();
         return (_T*)sycl::malloc(sizeof(_T) * __elements, __queue.get_device(), __queue.get_context(), __alloc_t);
@@ -448,13 +448,12 @@ struct __buffer<_ExecutionPolicy, _T, _BValueT*>
   private:
     using __exec_policy_t = __decay_t<_ExecutionPolicy>;
     using __container_t = ::std::unique_ptr<_T, __sycl_usm_free<__exec_policy_t, _T>>;
-    using __alloc_t = sycl::usm::alloc;
 
     __container_t __container;
 
   public:
-    __buffer(_ExecutionPolicy __exec, ::std::size_t __n_elements)
-        : __container(__sycl_usm_alloc<__exec_policy_t, _T, __alloc_t::shared>{__exec}(__n_elements),
+    __buffer(_ExecutionPolicy __exec, ::std::size_t __n_elements, sycl::usm::alloc __alloc_t)
+        : __container(__sycl_usm_alloc<__exec_policy_t, _T>{__exec}(__n_elements, __alloc_t),
                       __sycl_usm_free<__exec_policy_t, _T>{__exec})
     {
     }

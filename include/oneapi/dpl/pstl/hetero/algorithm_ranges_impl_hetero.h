@@ -319,12 +319,11 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
         return (__predicate(__acc[__gidx]) ? 1 : 0);
     };
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce_sync<_ReduceValueType,
                                                                           ::std::true_type /*is_commutative*/>(
                ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
                unseq_backend::__no_init_value{}, // no initial value
-               ::std::forward<_Range>(__rng))
-        .get();
+               ::std::forward<_Range>(__rng));
 }
 
 //------------------------------------------------------------------------
@@ -558,12 +557,11 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
     auto __transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
 
     auto __ret_idx =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce_sync<_ReduceValueType,
                                                                        ::std::false_type /*is_commutative*/>(
             ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
             unseq_backend::__no_init_value{}, // no initial value
-            ::std::forward<_Range>(__rng))
-            .get();
+            ::std::forward<_Range>(__rng));
 
     using ::std::get;
     return get<0>(__ret_idx);
@@ -614,12 +612,11 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
     };
 
     _ReduceValueType __ret =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce_sync<_ReduceValueType,
                                                                        ::std::false_type /*is_commutative*/>(
             ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
             unseq_backend::__no_init_value{}, // no initial value
-            ::std::forward<_Range>(__rng))
-            .get();
+            ::std::forward<_Range>(__rng));
 
     using ::std::get;
     return ::std::make_pair(get<0>(__ret), get<1>(__ret));
