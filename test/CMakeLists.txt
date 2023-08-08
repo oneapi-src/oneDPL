@@ -224,13 +224,10 @@ foreach (_file IN LISTS UNIT_TESTS)
             endif()
         endif()
     endif()
-
 endforeach()
 
 file(GLOB_RECURSE UNIT_TESTS "std/*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
-
         # Do not switch off checked iterators
         onedpl_add_test(${_file} false true)
-
 endforeach()
