@@ -490,6 +490,13 @@ struct test_general_cases_runner
     }
 };
 
+template <DPWI required_dpwi, typename Pred>
+inline bool
+check_dpwi_size_if(DPWI dpwi, std::size_t size, Pred pred)
+{
+    return required_dpwi == dpwi && pred(size);
+}
+
 template <DPWI required_dpwi>
 inline bool
 check_dpwi_size(DPWI /*dpwi*/, std::size_t /*size*/)
@@ -670,11 +677,11 @@ struct test_usm_runner
                 check_dpwi_size< 96,           8192, 14001, 16384                                                                                                                 >(dpwi, size) ||
                 check_dpwi_size<128,                 14001, 16384                                                                                                                 >(dpwi, size) ||
                 check_dpwi_size<160,                 14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<192,  0                                                                                                                                           >(dpwi, size) ||
-                check_dpwi_size<224,  0                                                                                                                                           >(dpwi, size) ||
-                check_dpwi_size<256,  0                                                                                                                                           >(dpwi, size) ||
-                check_dpwi_size<288,  0                                                                                                                                           >(dpwi, size) ||
-                check_dpwi_size<320,  0                                                                                                                                           >(dpwi, size) ||
+                check_dpwi_size<192,                 14001, 16384                                                                                                                 >(dpwi, size) ||
+                check_dpwi_size<224,                        16384                                                                                                                 >(dpwi, size) ||
+                check_dpwi_size_if<256                                                                                        /* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */ >(dpwi, size, [](std::size_t size) { return 262145 <= size; }) ||
+                check_dpwi_size_if<288 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384; }) ||
+                check_dpwi_size_if<320 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384; }) ||
                 check_dpwi_size<352,  0                                                                                                                                           >(dpwi, size) ||
                 check_dpwi_size<384,  0                                                                                                                                           >(dpwi, size) ||
                 check_dpwi_size<416,  0                                                                                                                                           >(dpwi, size) ||
@@ -696,11 +703,11 @@ struct test_usm_runner
                 check_dpwi_size< 96,                                     50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
                 check_dpwi_size<128,  0                                                                                                                                           >(dpwi, size) ||
                 check_dpwi_size<160,                                                                           250000                                                             >(dpwi, size) ||
-                check_dpwi_size<192,  0                                                                                                                                           >(dpwi, size) ||
-                check_dpwi_size<224,  0                                                                                                                                           >(dpwi, size) ||
-                check_dpwi_size<256,  0                                                                                                                                           >(dpwi, size) ||
-                check_dpwi_size<288,  0                                                                                                                                           >(dpwi, size) ||
-                check_dpwi_size<320,  0                                                                                                                                           >(dpwi, size) ||
+                check_dpwi_size<192,                              16385, 50000, 67543,                         250000, 262144                                                     >(dpwi, size) ||
+                check_dpwi_size<224,                              16385, 50000, 67543,                         250000, 262144                                                     >(dpwi, size) ||
+                check_dpwi_size<256,                              16385, 50000, 67543,                         250000, 262144                                                     >(dpwi, size) ||
+                check_dpwi_size<288,                              16385, 50000, 67543, 100000,                 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
+                check_dpwi_size<320,                              16385, 50000, 67543, 100000, 179581,         250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
                 check_dpwi_size<352,  0                                                                                                                                           >(dpwi, size) ||
                 check_dpwi_size<384,  0                                                                                                                                           >(dpwi, size) ||
                 check_dpwi_size<416,  0                                                                                                                                           >(dpwi, size) ||
