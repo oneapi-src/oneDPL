@@ -21,7 +21,7 @@
 
 #include <cstdint>
 
-namespace oneapi::dpl::experimental::esimd::impl
+namespace oneapi::dpl::experimental::kt::esimd::impl
 {
 
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t PROCESS_SIZE, bool IsAscending>
@@ -255,6 +255,6 @@ void one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
     __e.wait();
 }
 
-} // oneapi::dpl::experimental::esimd::impl
+} // oneapi::dpl::experimental::kt::esimd::impl
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_ONE_WG_H
