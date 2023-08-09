@@ -21,7 +21,7 @@
 #include <type_traits>
 #include <limits>
 
-namespace oneapi::dpl::experimental::esimd::impl::utils
+namespace oneapi::dpl::experimental::kt::esimd::impl::utils
 {
 
 // converts sizeof(T) to 32 bits, so that it could be used in operations with 32-bit SIMD without changing the type
@@ -605,5 +605,6 @@ inline std::enable_if_t< (N>16) && (N % 16 == 0), __ESIMD_NS::simd<T, N> > creat
     return ret;
 }
 
-}
+} // oneapi::dpl::experimental::kt::esimd::impl::utils
+
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
