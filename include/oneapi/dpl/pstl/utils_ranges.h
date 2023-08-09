@@ -245,6 +245,9 @@ class guard_view
     // Unified funciton to get pointer or accessor to use inside ESIMD kernels
     _Iterator data()
     {
+        // TODO seems this method is required for esimd radix sort
+        // In any case __m_acc defined here as private.
+        // From another point of view we are able to use begin() exclusively from this class
         return m_p;
     }
 
