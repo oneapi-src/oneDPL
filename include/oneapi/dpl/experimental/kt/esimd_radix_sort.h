@@ -25,44 +25,32 @@
 
 namespace oneapi::dpl::experimental::kt::esimd::impl
 {
-template <typename T, ::std::enable_if_t<sizeof(T) <= sizeof(::std::uint32_t), int> = 0>
-constexpr ::std::uint32_t
-__onesweep_process_size()
-{
-    return 384;
-}
-
-template <typename T, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint64_t), int> = 0>
-constexpr ::std::uint32_t
-__onesweep_process_size()
-{
-    return 192;
-}
 
 // TODO: allow calling it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
-template <bool _IsAscending, std::uint32_t _RadixBits, typename _KernelParam, typename _Range>
+template <bool _IsAscending, std::uint8_t _RadixBits, typename _KernelParam, typename _Range>
 sycl::event
 radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
 {
-    using _KeyT = oneapi::dpl::__internal::__value_t<_Range>;
-
     const ::std::size_t __n = __rng.size();
     assert(__n > 1);
 
-//    _PRINT_INFO_IN_DEBUG_MODE(__exec); TODO: extend the utility to work with queues
+    // _PRINT_INFO_IN_DEBUG_MODE(__exec); TODO: extend the utility to work with queues
+    constexpr auto __data_per_workitem = _KernelParam::data_per_workitem;
+    constexpr auto __workgroup_size = _KernelParam::workgroup_size;
     using _KernelName = typename _KernelParam::kernel_name;
 
-    if (__n <= 16384)
+    constexpr ::std::uint32_t __one_wg_cap = __data_per_workitem * __workgroup_size;
+    if (__n <= __one_wg_cap)
     {
         // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize and DataPerWorkItem
-        return oneapi::dpl::experimental::kt::esimd::impl::one_wg<_KernelName, _KeyT, _Range, _RadixBits, _IsAscending>(
+        return one_wg<_KernelName, _IsAscending, _RadixBits, __data_per_workitem, __workgroup_size>(
             __q, ::std::forward<_Range>(__rng), __n);
     }
     else
     {
         // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
         // TODO: support different RadixBits, WorkGroupSize and DataPerWorkItem
-        return oneapi::dpl::experimental::kt::esimd::impl::onesweep<_KernelName, _KeyT, _Range, _RadixBits, _IsAscending, __onesweep_process_size<_KeyT>()>(
+        return onesweep<_KernelName, _IsAscending, _RadixBits,  __data_per_workitem, __workgroup_size>(
             __q, ::std::forward<_Range>(__rng), __n);
     }
 }
@@ -72,7 +60,7 @@ radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
 namespace oneapi::dpl::experimental::kt::esimd
 {
 
-template <bool _IsAscending = true, std::uint32_t _RadixBits = 8, typename _KernelParam, typename _Range>
+template <bool _IsAscending = true, std::uint8_t _RadixBits = 8, typename _KernelParam, typename _Range>
 sycl::event
 radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param = {})
 {
@@ -82,7 +70,7 @@ radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param = {})
     return oneapi::dpl::experimental::kt::esimd::impl::radix_sort<_IsAscending, _RadixBits>(__q, ::std::forward<_Range>(__rng), __param);
 }
 
-template <bool _IsAscending = true, std::uint32_t _RadixBits = 8, typename _KernelParam, typename _Iterator>
+template <bool _IsAscending = true, std::uint8_t _RadixBits = 8, typename _KernelParam, typename _Iterator>
 sycl::event
 radix_sort(sycl::queue __q, _Iterator __first, _Iterator __last, _KernelParam __param = {})
 {
