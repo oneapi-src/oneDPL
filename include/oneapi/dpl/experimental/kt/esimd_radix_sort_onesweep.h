@@ -17,8 +17,9 @@
 
 #include <cstdint>
 
-namespace oneapi::dpl::experimental::esimd::impl
+namespace oneapi::dpl::experimental::kt::esimd::impl
 {
+
 template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t STAGES, uint32_t WORK_GROUPS,
           uint32_t WORK_GROUP_SIZE, bool IsAscending>
 void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset) {
@@ -630,6 +631,6 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
     sycl::free(p_temp_memory, __q);
 }
 
-} // oneapi::dpl::experimental::esimd::impl
+} // oneapi::dpl::experimental::kt::esimd::impl
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_ONESWEEP_H
