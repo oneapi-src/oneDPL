@@ -100,6 +100,8 @@ class all_view
     // Unified funciton to get pointer or accessor to use inside ESIMD kernels
     __accessor_t data()
     {
+        // TODO seems this method is required for esimd radix sort
+        // In any case __m_acc defined here as private.
         return __m_acc;
     }
 
