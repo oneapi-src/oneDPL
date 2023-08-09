@@ -444,6 +444,28 @@ test_general_cases(std::size_t size, GeneralCases kind)
     }
 }
 
+template <DPWI required_dpwi, typename Pred>
+inline bool
+check_dpwi_size_if(DPWI dpwi, std::size_t size, Pred pred)
+{
+    return required_dpwi == dpwi && pred(size);
+}
+
+template <DPWI required_dpwi>
+inline bool
+check_dpwi_size(DPWI /*dpwi*/, std::size_t /*size*/)
+{
+    return false;
+}
+
+template <DPWI required_dpwi, std::size_t required_size, std::size_t... rest_of_required_sizes>
+inline bool
+check_dpwi_size(DPWI dpwi, std::size_t size)
+{
+    return (required_dpwi == dpwi && required_size == size)
+        || check_dpwi_size<required_dpwi, rest_of_required_sizes...>(dpwi, size);
+}
+
 template <typename TKey, DPWI dpwi>
 bool
 can_run_test_common(std::size_t size)
@@ -664,29 +686,6 @@ struct test_general_cases_runner
         test_general_cases<TKey, dpwi>(size, kind);
     }
 };
-
-template <DPWI required_dpwi, typename Pred>
-inline bool
-check_dpwi_size_if(DPWI dpwi, std::size_t size, Pred pred)
-{
-    return required_dpwi == dpwi && pred(size);
-}
-
-template <DPWI required_dpwi>
-inline bool
-check_dpwi_size(DPWI /*dpwi*/, std::size_t /*size*/)
-{
-    return false;
-}
-
-template <DPWI required_dpwi, std::size_t required_size, std::size_t... rest_of_required_sizes>
-inline bool
-check_dpwi_size(DPWI dpwi, std::size_t size)
-{
-    return (required_dpwi == dpwi && required_size == size)
-        || check_dpwi_size<required_dpwi, rest_of_required_sizes...>(dpwi, size);
-}
-
 
 template <sycl::usm::alloc USMAllocType, typename OrderType>
 struct test_usm_runner
