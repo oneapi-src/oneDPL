@@ -63,6 +63,12 @@ main()
         {
             /*auto res = */create_future(UserEvent{}, ptr);
             EXPECT_TRUE(ptr.use_count() != counter_state, "wrong counter state #3");
+
+            // This means that managed resources already was destroyed because the instance of __future class wasn't saved.
+            // In the case of sycl__event this means that we haven't sycl::event::wait() call
+            // and destroyed some managed resources for example sycl::buffer,
+            // but our async algorithm can continue working after that.
+            EXPECT_TRUE(ptr.use_count() == 1, "wrong counter state #3");
         }
 
         EXPECT_TRUE(ptr.use_count() == 1, "wrong counter state #4");
