@@ -307,7 +307,7 @@ void test_usm(std::size_t size)
 
     std::stable_sort(expected.begin(), expected.end(), Compare<T, Order>{});
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, dt_input.get_data(), dt_input.get_data() + size, param);
+    oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, dt_input.get_data(), dt_input.get_data() + size, param).wait();
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
