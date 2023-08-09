@@ -51,8 +51,8 @@ struct Compare<T, false> : public std::greater<T> {};
 constexpr bool Ascending = true;
 constexpr bool Descending = false;
 
-constexpr ::std::uint16_t WorkGroupSize = 256;
-constexpr ::std::uint16_t DataPerWorkItem = 16;
+using ParamType = oneapi::dpl::experimental::kt::kernel_param</*DataPerWorkItem*/16,/*WorkGroupSize*/256>;
+constexpr ParamType param;
 
 #if LOG_TEST_INFO
 struct TypeInfo
@@ -187,7 +187,12 @@ generate_data(T* input, std::size_t size)
 {
     std::default_random_engine gen{42};
     std::size_t unique_threshold = 75 * size / 100;
-    if constexpr (std::is_integral_v<T>)
+    if constexpr (sizeof(T) < sizeof(short)) // no uniform_int_distribution for chars
+    {
+        std::uniform_int_distribution<int> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
+        std::generate(input, input + unique_threshold, [&]{ return T(dist(gen)); });
+    }
+    else if constexpr (std::is_integral_v<T>)
     {
         std::uniform_int_distribution<T> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
         std::generate(input, input + unique_threshold, [&]{ return dist(gen); });
@@ -249,7 +254,7 @@ void test_all_view(std::size_t size)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, view);
+        oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, view, param);
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
@@ -274,7 +279,7 @@ void test_subrange_view(std::size_t size)
     std::stable_sort(expected.begin(), expected.end(), Compare<T, Order>{});
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, view);
+    oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, view, param);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -302,7 +307,7 @@ void test_usm(std::size_t size)
 
     std::stable_sort(expected.begin(), expected.end(), Compare<T, Order>{});
 
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, dt_input.get_data(), dt_input.get_data() + size);
+    oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, dt_input.get_data(), dt_input.get_data() + size, param);
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -339,7 +344,7 @@ void test_sycl_iterators(std::size_t size)
     std::stable_sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Order>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf));
+        oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), param);
     }
 
     std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
@@ -358,9 +363,12 @@ void test_small_sizes()
     std::vector<uint32_t> input = {5, 11, 0, 17, 0};
     std::vector<uint32_t> ref(input);
 
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Ascending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+    oneapi::dpl::experimental::kt::esimd::radix_sort<Ascending,/*RadixBits=*/8,ParamType>(
+        policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
-    oneapi::dpl::experimental::esimd::radix_sort<WorkGroupSize, DataPerWorkItem, Ascending>(policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+
+    oneapi::dpl::experimental::kt::esimd::radix_sort<Ascending,/*RadixBits=*/8,ParamType>(
+        policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
