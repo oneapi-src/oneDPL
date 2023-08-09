@@ -444,42 +444,217 @@ test_general_cases(std::size_t size, GeneralCases kind)
     }
 }
 
+template <typename TKey, DPWI dpwi>
+bool
+can_run_test_common(std::size_t size)
+{
+    //              32      64     96    128     160     192     224     256     288     320     352     384     416     448     480     512
+    // char                 N            N               N                                                                               N
+    // int8_t               N            N               N                                                                               N
+    // uint8_t              N            N               N                                                                               N
+    // int16_t              N            N               N               N                                       N                       N
+    // uint16_t             N            N               N               N                                       N                       N
+    // int          N       N      N     N       N       N       N       N       N       N                       N                       N
+    // uint32_t     N       N      N     N       N       N       N       N       N       N                       N                       N
+    // int64_t      
+    // uint64_t     
+    // float        
+    // double       
+
+    // char, int8_t, uint8_t - runtime errors
+#if SKIP_RUNTIME_ERRORS
+    if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
+        // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+        // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
+        // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+        && (check_dpwi_size< 64,           5072, 14001                                                                                                                              >(dpwi, size) ||
+            check_dpwi_size<128,           8192, 14001, 16384                                                                                                                       >(dpwi, size)))
+        return false;
+#endif // SKIP_RUNTIME_ERRORS
+
+    // char, int8_t, uint8_t - wrong test results
+#if SKIP_WRONG_RESULTS
+    if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
+        // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+        // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
+        // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+        && (check_dpwi_size< 64,                  8192, 16384,                      16385, 50000, 100000, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<128,                        16384                                                                                                                       >(dpwi, size) ||
+            check_dpwi_size<512,                                                                                                  262145, 500000, 888235, 1000000, 1048576, 10000000>(dpwi, size)))
+        return false;
+#endif // SKIP_WRONG_RESULTS
+
+    // int16_t, uint16_t - runtime errors
+#if SKIP_RUNTIME_ERRORS
+    if ((::std::is_same_v<TKey, int16_t> || ::std::is_same_v<TKey, uint16_t>)
+        // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+        // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
+        // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+        && (check_dpwi_size< 64,           5072, 14001, 16384                                                                                                                       >(dpwi, size) ||
+            check_dpwi_size<128,                 14001, 16384                                                                                                                       >(dpwi, size) ||
+            check_dpwi_size<192,                 14001, 16384                                                                                                                       >(dpwi, size) ||
+            check_dpwi_size<256,           8192, 14001, 16384                                                                                                                       >(dpwi, size) ||
+            check_dpwi_size<416,           8192, 14001, 16384                                                                                                                       >(dpwi, size) ||
+            check_dpwi_size<512,                 14001, 16384                                                                                                                       >(dpwi, size)))
+        return false;
+#endif // SKIP_RUNTIME_ERRORS
+
+    // int16_t, uint16_t - wrong test results
+#if SKIP_WRONG_RESULTS
+    if ((::std::is_same_v<TKey, int16_t> || ::std::is_same_v<TKey, uint16_t>)
+        // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+        // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
+        // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
+        &&(check_dpwi_size< 64,            8192,              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                           >(dpwi, size) ||
+            check_dpwi_size<192,                              16385                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<256,                              16385, 50000                                                                                                          >(dpwi, size) ||
+            check_dpwi_size<416,                              16385, 50000, 67543,        100000,         179581                                                                    >(dpwi, size) ||
+            check_dpwi_size<512,                              16385,        67543, 50000, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size))) 
+        return false;
+#endif // SKIP_WRONG_RESULTS
+
+    // int, uint32_t - runtime errors
+#if SKIP_RUNTIME_ERRORS
+    if ((::std::is_same_v<TKey, int> || ::std::is_same_v<TKey, uint32_t>)
+        // +-------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
+        // +-------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        && (check_dpwi_size< 64,     5072,       14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size< 96,           8192                                                                                                                               >(dpwi, size) ||
+            check_dpwi_size<128,                 14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<160,                 14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<192,           8192, 14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<224,                        16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<256,                 14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<416,           8192, 14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<512,                 14001, 16384                                                                                                                 >(dpwi, size)))
+        return false;
+#endif // SKIP_RUNTIME_ERRORS
+
+    // int, uint32_t - wrong test results
+#if SKIP_WRONG_RESULTS
+    if ((::std::is_same_v<TKey, int> || ::std::is_same_v<TKey, uint32_t>)
+        // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
+        // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        && (check_dpwi_size< 32,     5072, 8192, 14001, 16384, 16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size< 64,           8192,               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<160,                               16385, 50000                                                                                                   >(dpwi, size) ||
+            check_dpwi_size<192,                               16385, 50000, 67543, 100000, 131072, 179581,         262144                                                    >(dpwi, size) ||
+            check_dpwi_size<224,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<256,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<288,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<320,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<352,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<384,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<416,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<448,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<480,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<512,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000>(dpwi, size)))
+        return false;
+#endif // SKIP_WRONG_RESULTS
+
+    // float - runtime errors
+#if SKIP_RUNTIME_ERRORS
+    if ((::std::is_same_v<TKey, float>)
+        // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
+        // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        && (//  32
+            check_dpwi_size< 64,     5072,       14001                                                                                                                        >(dpwi, size) ||
+            check_dpwi_size< 96,           8192                                                                                                                               >(dpwi, size) ||
+            check_dpwi_size<128,                 14001                                                                                                                        >(dpwi, size) ||
+            check_dpwi_size<160,                        16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<192,                        16384                                                                                                                 >(dpwi, size)))
+        return false;
+#endif // SKIP_RUNTIME_ERRORS
+
+    // float - wrong test results
+#if SKIP_WRONG_RESULTS
+    if (::std::is_same_v<TKey, float>
+        // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
+        // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        && (check_dpwi_size< 32,     5072, 8192, 14001, 16384, 16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size< 64,           8192,        16384, 16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size< 96,                 14001, 16384,        50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<128,                        16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<160,                 14001,        16385                                                                                                          >(dpwi, size) ||
+            check_dpwi_size<192,                 14001,        16385, 50000, 67543, 100000, 131072, 179581,         262144                                                    >(dpwi, size) ||
+            check_dpwi_size<224,                        16384, 16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<256,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<288,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<320,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<352,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<384,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<416,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<448,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<480,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size<512,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000>(dpwi, size)))
+        return false;
+#endif // SKIP_WRONG_RESULTS
+
+    // double - runtime errors
+#if SKIP_RUNTIME_ERRORS
+    if ((::std::is_same_v<TKey, double>)
+        // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
+        // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        && (check_dpwi_size< 32,                 14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size< 64,     5072,       14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size< 96,           8192, 14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<128,                 14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<160,                 14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<192,                 14001, 16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size<224,                        16384                                                                                                                 >(dpwi, size) ||
+            check_dpwi_size_if<256                                                                                        /* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */ >(dpwi, size, [](std::size_t size) { return 262145 <= size; }) ||
+            check_dpwi_size_if<288 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
+            check_dpwi_size_if<320 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
+            check_dpwi_size_if<352 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
+            check_dpwi_size_if<384 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
+            check_dpwi_size_if<416 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
+            check_dpwi_size_if<448 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
+            check_dpwi_size_if<480 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
+            check_dpwi_size_if<512 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  })))
+        return false;
+#endif // SKIP_RUNTIME_ERRORS
+
+    // double - wrong test results
+#if SKIP_WRONG_RESULTS
+    if (::std::is_same_v<TKey, double>
+        // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
+        // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
+        && (check_dpwi_size< 32,     5072, 8192,              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
+            check_dpwi_size< 64,           8192,              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
+            check_dpwi_size< 96,                                     50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
+            check_dpwi_size<128,  0                                                                                                                                           >(dpwi, size) ||
+            check_dpwi_size<160,                                                                           250000                                                             >(dpwi, size) ||
+            check_dpwi_size<192,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
+            check_dpwi_size<224,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
+            check_dpwi_size<256,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
+            check_dpwi_size<288,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
+            check_dpwi_size<320,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
+            check_dpwi_size<352,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
+            check_dpwi_size<384,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
+            check_dpwi_size<416,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
+            check_dpwi_size<448,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
+            check_dpwi_size<480,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
+            check_dpwi_size<512,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size)))
+        return false;
+#endif // SKIP_WRONG_RESULTS
+
+    return true;
+}
+
 template <GeneralCases kind>
 struct test_general_cases_runner
 {
     template <typename TKey, DPWI dpwi>
     bool
-    can_run_test(std::size_t /*size*/)
+    can_run_test(std::size_t size)
     {
-        // RTE - run-time error
-        // WTR - wrong test results
-        // SF  - segmentation fault
-        // H   - hang
-
-        //              32      64     96    128     160     192     224     256     288     320     352     384     416     448     480     512
-        // char         
-        // int8_t       
-        // uint8_t      
-        // int16_t      H       H            H       H       H
-        // uint16_t     H       H            H       H       H
-        // int          
-        // uint32_t     
-        // int64_t      
-        // uint64_t     
-        // float        
-        // double       
-
-        // char : <>
-
-        // int8_t : <>
-
-        // uint8_t : <32, 64, 128>
-
-        // int16_t : <32, 64, 128, 160, 192>
-
-        // uint16_t : <32, 64, 128, 160, 192>
-
-        return true;
+        return can_run_test_common<TKey, dpwi>(size);
     }
 
     template <typename TKey, DPWI dpwi>
@@ -520,203 +695,7 @@ struct test_usm_runner
     bool
     can_run_test(std::size_t size)
     {
-        //              32      64     96    128     160     192     224     256     288     320     352     384     416     448     480     512
-        // char                 N            N               N                                                                               N
-        // int8_t               N            N               N                                                                               N
-        // uint8_t              N            N               N                                                                               N
-        // int16_t              N            N               N               N                                       N                       N
-        // uint16_t             N            N               N               N                                       N                       N
-        // int          N       N      N     N       N       N       N       N       N       N                       N                       N
-        // uint32_t     N       N      N     N       N       N       N       N       N       N                       N                       N
-        // int64_t      
-        // uint64_t     
-        // float        
-        // double       
-
-        // char, int8_t, uint8_t - runtime errors
-#if SKIP_RUNTIME_ERRORS
-        if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
-            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
-            // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
-            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
-            && (check_dpwi_size< 64,           5072, 14001                                                                                                                              >(dpwi, size) ||
-                check_dpwi_size<128,           8192, 14001, 16384                                                                                                                       >(dpwi, size)))
-            return false;
-#endif // SKIP_RUNTIME_ERRORS
-
-        // char, int8_t, uint8_t - wrong test results
-#if SKIP_WRONG_RESULTS
-        if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
-            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
-            // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
-            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
-            && (check_dpwi_size< 64,                  8192, 16384,                      16385, 50000, 100000, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<128,                        16384                                                                                                                       >(dpwi, size) ||
-                check_dpwi_size<512,                                                                                                  262145, 500000, 888235, 1000000, 1048576, 10000000>(dpwi, size)))
-            return false;
-#endif // SKIP_WRONG_RESULTS
-
-        // int16_t, uint16_t - runtime errors
-#if SKIP_RUNTIME_ERRORS
-        if ((::std::is_same_v<TKey, int16_t> || ::std::is_same_v<TKey, uint16_t>)
-            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
-            // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
-            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
-            && (check_dpwi_size< 64,           5072, 14001, 16384                                                                                                                       >(dpwi, size) ||
-                check_dpwi_size<128,                 14001, 16384                                                                                                                       >(dpwi, size) ||
-                check_dpwi_size<192,                 14001, 16384                                                                                                                       >(dpwi, size) ||
-                check_dpwi_size<256,           8192, 14001, 16384                                                                                                                       >(dpwi, size) ||
-                check_dpwi_size<416,           8192, 14001, 16384                                                                                                                       >(dpwi, size) ||
-                check_dpwi_size<512,                 14001, 16384                                                                                                                       >(dpwi, size)))
-            return false;
-#endif // SKIP_RUNTIME_ERRORS
-
-        // int16_t, uint16_t - wrong test results
-#if SKIP_WRONG_RESULTS
-        if ((::std::is_same_v<TKey, int16_t> || ::std::is_same_v<TKey, uint16_t>)
-            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
-            // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
-            // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
-            &&(check_dpwi_size< 64,            8192,              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                           >(dpwi, size) ||
-                check_dpwi_size<192,                              16385                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<256,                              16385, 50000                                                                                                          >(dpwi, size) ||
-                check_dpwi_size<416,                              16385, 50000, 67543,        100000,         179581                                                                    >(dpwi, size) ||
-                check_dpwi_size<512,                              16385,        67543, 50000, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size))) 
-            return false;
-#endif // SKIP_WRONG_RESULTS
-
-        // int, uint32_t - runtime errors
-#if SKIP_RUNTIME_ERRORS
-        if ((::std::is_same_v<TKey, int> || ::std::is_same_v<TKey, uint32_t>)
-            // +-------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
-            // +-------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            && (check_dpwi_size< 64,     5072,       14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size< 96,           8192                                                                                                                               >(dpwi, size) ||
-                check_dpwi_size<128,                 14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<160,                 14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<192,           8192, 14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<224,                        16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<256,                 14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<416,           8192, 14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<512,                 14001, 16384                                                                                                                 >(dpwi, size)))
-            return false;
-#endif // SKIP_RUNTIME_ERRORS
-
-        // int, uint32_t - wrong test results
-#if SKIP_WRONG_RESULTS
-        if ((::std::is_same_v<TKey, int> || ::std::is_same_v<TKey, uint32_t>)
-            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
-            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            && (check_dpwi_size< 32,     5072, 8192, 14001, 16384, 16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size< 64,           8192,               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<160,                               16385, 50000                                                                                                   >(dpwi, size) ||
-                check_dpwi_size<192,                               16385, 50000, 67543, 100000, 131072, 179581,         262144                                                    >(dpwi, size) ||
-                check_dpwi_size<224,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<256,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<288,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<320,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<352,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<384,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<416,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<448,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<480,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<512,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000>(dpwi, size)))
-            return false;
-#endif // SKIP_WRONG_RESULTS
-
-        // float - runtime errors
-#if SKIP_RUNTIME_ERRORS
-        if ((::std::is_same_v<TKey, float>)
-            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
-            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            && (//  32
-                check_dpwi_size< 64,     5072,       14001                                                                                                                        >(dpwi, size) ||
-                check_dpwi_size< 96,           8192                                                                                                                               >(dpwi, size) ||
-                check_dpwi_size<128,                 14001                                                                                                                        >(dpwi, size) ||
-                check_dpwi_size<160,                        16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<192,                        16384                                                                                                                 >(dpwi, size)))
-            return false;
-#endif // SKIP_RUNTIME_ERRORS
-
-        // float - wrong test results
-#if SKIP_WRONG_RESULTS
-        if (::std::is_same_v<TKey, float>
-            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
-            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            && (check_dpwi_size< 32,     5072, 8192, 14001, 16384, 16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size< 64,           8192,        16384, 16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size< 96,                 14001, 16384,        50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<128,                        16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<160,                 14001,        16385                                                                                                          >(dpwi, size) ||
-                check_dpwi_size<192,                 14001,        16385, 50000, 67543, 100000, 131072, 179581,         262144                                                    >(dpwi, size) ||
-                check_dpwi_size<224,                        16384, 16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<256,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<288,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<320,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<352,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<384,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<416,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<448,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<480,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                    >(dpwi, size) ||
-                check_dpwi_size<512,                               16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000>(dpwi, size)))
-            return false;
-#endif // SKIP_WRONG_RESULTS
-
-        // double - runtime errors
-#if SKIP_RUNTIME_ERRORS
-        if ((::std::is_same_v<TKey, double>)
-            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
-            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            && (check_dpwi_size< 32,                 14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size< 64,     5072,       14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size< 96,           8192, 14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<128,                 14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<160,                 14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<192,                 14001, 16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size<224,                        16384                                                                                                                 >(dpwi, size) ||
-                check_dpwi_size_if<256                                                                                        /* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */ >(dpwi, size, [](std::size_t size) { return 262145 <= size; }) ||
-                check_dpwi_size_if<288 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
-                check_dpwi_size_if<320 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
-                check_dpwi_size_if<352 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
-                check_dpwi_size_if<384 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
-                check_dpwi_size_if<416 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
-                check_dpwi_size_if<448 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
-                check_dpwi_size_if<480 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  }) ||
-                check_dpwi_size_if<512 /* XXXXXXXXXXXXXXXXXXXX */                                                                                                                 >(dpwi, size, [](std::size_t size) { return size <= 16384;  })))
-            return false;
-#endif // SKIP_RUNTIME_ERRORS
-
-        // double - wrong test results
-#if SKIP_WRONG_RESULTS
-        if (::std::is_same_v<TKey, double>
-            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            // |  DataPweWorkItem  |           one_wg            |                  cooperative                               |                     one_sweep                     |
-            // --------------------+-----------------------------+------------------------------------------------------------+---------------------------------------------------+
-            && (check_dpwi_size< 32,     5072, 8192,              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
-                check_dpwi_size< 64,           8192,              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
-                check_dpwi_size< 96,                                     50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
-                check_dpwi_size<128,  0                                                                                                                                           >(dpwi, size) ||
-                check_dpwi_size<160,                                                                           250000                                                             >(dpwi, size) ||
-                check_dpwi_size<192,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
-                check_dpwi_size<224,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
-                check_dpwi_size<256,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144                                                     >(dpwi, size) ||
-                check_dpwi_size<288,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
-                check_dpwi_size<320,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
-                check_dpwi_size<352,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
-                check_dpwi_size<384,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
-                check_dpwi_size<416,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
-                check_dpwi_size<448,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
-                check_dpwi_size<480,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size) ||
-                check_dpwi_size<512,                              16385, 50000, 67543, 100000, 131072, 179581, 250000, 262144, 262145, 500000, 888235, 1000000, 1048576, 10000000 >(dpwi, size)))
-            return false;
-#endif // SKIP_WRONG_RESULTS
-
-        return true;
+        return can_run_test_common<TKey, dpwi>(size);
     }
 
     template <typename TKey, DPWI dpwi>
@@ -731,9 +710,9 @@ struct test_small_sizes_runner
 {
     template <typename TKey, DPWI dpwi>
     bool
-    can_run_test(std::size_t /*size*/)
+    can_run_test(std::size_t size)
     {
-        return true;
+        return can_run_test_common<TKey, dpwi>(size);
     }
 
     template <typename TKey, DPWI dpwi>
