@@ -65,7 +65,7 @@ using DataPerWorkItems = ::std::initializer_list<DPWI>;
 
 //#define TEST_DPWI 32, 64, 96, 128, 160
 //#define TEST_DPWI 192, 224, 256, 288, 320
-#define TEST_DPWI  352, 384, 416, 448, 480, 512
+//#define TEST_DPWI 352, 384, 416, 448, 480, 512
 
 #ifdef TEST_DPWI
 #   define DataPerWorkItemsLongRun  TEST_DPWI
