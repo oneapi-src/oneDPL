@@ -113,13 +113,19 @@ namespace experimental{
     selection_handle_t select(Args&&...) {
       std::shared_ptr<resource_t> least_loaded = nullptr;
       int least_load = std::numeric_limits<load_t>::max();
+      int i=0;
+      int least=0;
       for (auto& r : universe_) {
           load_t v = r->load_.load();
           if (least_loaded == nullptr || v < least_load) {
             least_load = v;
             least_loaded = r;
+            least=i;
+
           }
+          i++;
       }
+      std::cout<<"Selected CPU : "<<least<<"\n";
       return selection_handle_t{dl_property_handle_t{least_loaded}};
     }
 
