@@ -41,7 +41,7 @@ __onesweep_process_size()
 
 // TODO: allow calling it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
 template <bool _IsAscending, std::uint32_t _RadixBits, typename _KernelParam, typename _Range>
-void
+sycl::event
 radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
 {
     using _KeyT = oneapi::dpl::__internal::__value_t<_Range>;
@@ -55,14 +55,14 @@ radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
     if (__n <= 16384)
     {
         // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize and DataPerWorkItem
-        oneapi::dpl::experimental::kt::esimd::impl::one_wg<_KernelName, _KeyT, _Range, _RadixBits, _IsAscending>(
+        return oneapi::dpl::experimental::kt::esimd::impl::one_wg<_KernelName, _KeyT, _Range, _RadixBits, _IsAscending>(
             __q, ::std::forward<_Range>(__rng), __n);
     }
     else
     {
         // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
         // TODO: support different RadixBits, WorkGroupSize and DataPerWorkItem
-        oneapi::dpl::experimental::kt::esimd::impl::onesweep<_KernelName, _KeyT, _Range, _RadixBits, _IsAscending, __onesweep_process_size<_KeyT>()>(
+        return oneapi::dpl::experimental::kt::esimd::impl::onesweep<_KernelName, _KeyT, _Range, _RadixBits, _IsAscending, __onesweep_process_size<_KeyT>()>(
             __q, ::std::forward<_Range>(__rng), __n);
     }
 }
@@ -73,23 +73,25 @@ namespace oneapi::dpl::experimental::kt::esimd
 {
 
 template <bool _IsAscending = true, std::uint32_t _RadixBits = 8, typename _KernelParam, typename _Range>
-void
+sycl::event
 radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param = {})
 {
     if(__rng.size() < 2)
-        return;
-    oneapi::dpl::experimental::kt::esimd::impl::radix_sort<_IsAscending, _RadixBits>(__q, ::std::forward<_Range>(__rng), __param);
+        return {};
+
+    return oneapi::dpl::experimental::kt::esimd::impl::radix_sort<_IsAscending, _RadixBits>(__q, ::std::forward<_Range>(__rng), __param);
 }
 
 template <bool _IsAscending = true, std::uint32_t _RadixBits = 8, typename _KernelParam, typename _Iterator>
-void
+sycl::event
 radix_sort(sycl::queue __q, _Iterator __first, _Iterator __last, _KernelParam __param = {})
 {
     if (__last - __first < 2)
-        return;
+        return {};
+
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __rng = __keep(__first, __last);
-    oneapi::dpl::experimental::kt::esimd::impl::radix_sort<_IsAscending, _RadixBits>(__q, __rng.all_view(), __param);
+    return oneapi::dpl::experimental::kt::esimd::impl::radix_sort<_IsAscending, _RadixBits>(__q, __rng.all_view(), __param);
 }
 
 } // namespace oneapi::dpl::experimental::kt::esimd
