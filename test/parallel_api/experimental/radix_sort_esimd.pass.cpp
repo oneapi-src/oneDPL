@@ -500,8 +500,21 @@ can_run_test_common(std::size_t size)
         // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
         // |  DataPweWorkItem  |           one_wg            |                  cooperative                                     |                     one_sweep                     |
         // +-------------------+-----------------------------+------------------------------------------------------------------+---------------------------------------------------+
-        && (check_dpwi_size< 64,                  8192, 16384,                      16385, 50000, 100000, 179581, 250000, 262144                                                    >(dpwi, size) ||
+        && (check_dpwi_size< 32,            5072, 8192                                                                                                                              >(dpwi, size) ||
+            check_dpwi_size< 64,                  8192, 16384,                      16385, 50000, 100000, 179581, 250000, 262144                                                    >(dpwi, size) ||
+            check_dpwi_size< 96, 0                                                                                                                                                  >(dpwi, size) ||
             check_dpwi_size<128,                        16384                                                                                                                       >(dpwi, size) ||
+            check_dpwi_size<160, 0                                                                                                                                                  >(dpwi, size) ||
+            check_dpwi_size<192, 0                                                                                                                                                  >(dpwi, size) ||
+            check_dpwi_size<224, 0                                                                                                                                                  >(dpwi, size) ||
+            check_dpwi_size<256, 0                                                                                                                                                  >(dpwi, size) ||
+            check_dpwi_size<288, 0                                                                                                                                                  >(dpwi, size) ||
+            check_dpwi_size<320, 0                                                                                                                                                  >(dpwi, size) ||
+            check_dpwi_size<352, 0                                                                                                                                                  >(dpwi, size) ||
+            check_dpwi_size<384, 0                                                                                                                                                  >(dpwi, size) ||
+            check_dpwi_size<416, 0                                                                                                                                                  >(dpwi, size) ||
+            check_dpwi_size<448, 0                                                                                                                                                  >(dpwi, size) ||
+            check_dpwi_size<480, 0                                                                                                                                                  >(dpwi, size) ||
             check_dpwi_size<512,                                                                                                  262145, 500000, 888235, 1000000, 1048576, 10000000>(dpwi, size)))
         return false;
 #endif // SKIP_WRONG_RESULTS
