@@ -536,7 +536,7 @@ class __future : private std::tuple<_Args...>
     __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
     ~__future()
     {
-        // TODO: we able to have exceptions in this place -> in this case we will have chrash
+        // TODO: we able to have exceptions in this place -> in this case we will have crash
         wait();
     }
 
