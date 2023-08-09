@@ -27,7 +27,7 @@ namespace oneapi::dpl::experimental::kt::esimd::impl
 {
 
 // TODO: allow calling it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
-template <bool _IsAscending, std::uint16_t _RadixBits, typename _KernelParam, typename _Range>
+template <bool _IsAscending, std::uint8_t _RadixBits, typename _KernelParam, typename _Range>
 sycl::event
 radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
 {
@@ -35,8 +35,8 @@ radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
     assert(__n > 1);
 
     // _PRINT_INFO_IN_DEBUG_MODE(__exec); TODO: extend the utility to work with queues
-    constexpr ::std::uint16_t __data_per_workitem = _KernelParam::data_per_workitem;
-    constexpr ::std::uint16_t __workgroup_size = _KernelParam::workgroup_size;
+    constexpr auto __data_per_workitem = _KernelParam::data_per_workitem;
+    constexpr auto __workgroup_size = _KernelParam::workgroup_size;
     using _KernelName = typename _KernelParam::kernel_name;
 
     constexpr ::std::uint32_t __one_wg_cap = __data_per_workitem * __workgroup_size;
@@ -60,7 +60,7 @@ radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
 namespace oneapi::dpl::experimental::kt::esimd
 {
 
-template <bool _IsAscending = true, std::uint16_t _RadixBits = 8, typename _KernelParam, typename _Range>
+template <bool _IsAscending = true, std::uint8_t _RadixBits = 8, typename _KernelParam, typename _Range>
 sycl::event
 radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param = {})
 {
@@ -70,7 +70,7 @@ radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param = {})
     return oneapi::dpl::experimental::kt::esimd::impl::radix_sort<_IsAscending, _RadixBits>(__q, ::std::forward<_Range>(__rng), __param);
 }
 
-template <bool _IsAscending = true, std::uint16_t _RadixBits = 8, typename _KernelParam, typename _Iterator>
+template <bool _IsAscending = true, std::uint8_t _RadixBits = 8, typename _KernelParam, typename _Iterator>
 sycl::event
 radix_sort(sycl::queue __q, _Iterator __first, _Iterator __last, _KernelParam __param = {})
 {

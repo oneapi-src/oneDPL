@@ -249,7 +249,7 @@ void print_data(const Container1& expected, const Container2& actual, std::size_
 }
 
 #if _ENABLE_RANGES_TESTING
-template <typename T, bool IsAscending, std::uint16_t RadixBits, typename KernelParam>
+template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
 void test_all_view(std::size_t size, KernelParam param)
 {
 #if LOG_TEST_INFO
@@ -273,7 +273,7 @@ void test_all_view(std::size_t size, KernelParam param)
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
-template <typename T, bool IsAscending, std::uint16_t RadixBits, typename KernelParam>
+template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
 void test_subrange_view(std::size_t size, KernelParam param)
 {
 #if LOG_TEST_INFO
@@ -302,7 +302,7 @@ void test_subrange_view(std::size_t size, KernelParam param)
 
 #endif // _ENABLE_RANGES_TESTING
 
-template <typename T, bool IsAscending, std::uint16_t RadixBits, sycl::usm::alloc _alloc_type, typename KernelParam>
+template <typename T, bool IsAscending, std::uint8_t RadixBits, sycl::usm::alloc _alloc_type, typename KernelParam>
 void test_usm(std::size_t size, KernelParam param)
 {
 #if LOG_TEST_INFO
@@ -328,7 +328,7 @@ void test_usm(std::size_t size, KernelParam param)
     EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
 }
 
-template <typename T, bool IsAscending, std::uint16_t RadixBits, typename KernelParam>
+template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
 void test_sycl_iterators(std::size_t size, KernelParam param)
 {
 #if LOG_TEST_INFO
@@ -351,7 +351,7 @@ void test_sycl_iterators(std::size_t size, KernelParam param)
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
-template <typename T, bool IsAscending, std::uint16_t RadixBits, typename KernelParam>
+template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
 void test_small_sizes(KernelParam param)
 {
 #if LOG_TEST_INFO
@@ -373,7 +373,7 @@ void test_small_sizes(KernelParam param)
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
-template <typename T, bool IsAscending, std::uint16_t RadixBits, typename KernelParam>
+template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
 void test_general_cases(std::size_t size, KernelParam param)
 {
 #if _ENABLE_RANGES_TESTING

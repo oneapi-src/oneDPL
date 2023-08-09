@@ -25,7 +25,7 @@
 namespace oneapi::dpl::experimental::kt::esimd::impl
 {
 
-template <bool _IsAscending, ::std::uint16_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
+template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
           ::std::uint16_t _WorkGroupSize, typename _KeyT, typename InputT>
 void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input) {
     using namespace sycl;
@@ -184,11 +184,11 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input) {
 template <typename... _Name>
 class __esimd_radix_sort_one_wg;
 
-template <bool _IsAscending, ::std::uint16_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
+template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
           ::std::uint16_t _WorkGroupSize, typename _KeyT, typename _KernelName>
 struct __radix_sort_one_wg_submitter;
 
-template <bool _IsAscending, ::std::uint16_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
+template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
           ::std::uint16_t _WorkGroupSize, typename _KeyT, typename... _Name>
 struct __radix_sort_one_wg_submitter<_IsAscending, _RadixBits, _DataPerWorkItem, _WorkGroupSize, _KeyT,
                                      oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
@@ -210,7 +210,7 @@ struct __radix_sort_one_wg_submitter<_IsAscending, _RadixBits, _DataPerWorkItem,
     }
 };
 
-template <typename _KernelName, bool _IsAscending, ::std::uint16_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
+template <typename _KernelName, bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
           ::std::uint16_t _WorkGroupSize, typename _Range>
 sycl::event
 one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n)

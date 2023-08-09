@@ -167,7 +167,7 @@ struct slm_lookup_t {
     }
 };
 
-template <bool _IsAscending, ::std::uint16_t _RadixBits, ::std::uint16_t _DataPerWorkItem, ::std::uint16_t _WorkGroupSize,
+template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem, ::std::uint16_t _WorkGroupSize,
           typename _KeyT, typename InputT, typename OutputT>
 struct radix_sort_onesweep_slm_reorder_kernel {
     using bin_t = uint16_t;
@@ -498,11 +498,11 @@ struct __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT,
     }
 };
 
-template <bool _IsAscending, ::std::uint16_t _RadixBits, ::std::uint16_t _DataPerWorkItem, ::std::uint16_t _WorkGroupSize,
+template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem, ::std::uint16_t _WorkGroupSize,
           typename _KeyT, typename _KernelName>
 struct __radix_sort_onesweep_submitter;
 
-template <bool _IsAscending, ::std::uint16_t _RadixBits, ::std::uint16_t _DataPerWorkItem, ::std::uint16_t _WorkGroupSize,
+template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem, ::std::uint16_t _WorkGroupSize,
           typename _KeyT, typename... _Name>
 struct __radix_sort_onesweep_submitter<_IsAscending, _RadixBits, _DataPerWorkItem, _WorkGroupSize, _KeyT,
                                        oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
@@ -549,7 +549,7 @@ struct __radix_sort_copyback_submitter<_KeyT, oneapi::dpl::__par_backend_hetero:
     }
 };
 
-template <typename _KernelName, bool _IsAscending, ::std::uint16_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
+template <typename _KernelName, bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
           ::std::uint16_t _WorkGroupSize, typename _Range>
 sycl::event
 onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
