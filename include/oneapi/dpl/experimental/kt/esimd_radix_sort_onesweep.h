@@ -550,7 +550,7 @@ struct __radix_sort_copyback_submitter<KeyT, oneapi::dpl::__par_backend_hetero::
 
 template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS,
           bool IsAscending, ::std::uint32_t PROCESS_SIZE>
-void
+sycl::event
 onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
 {
     using namespace sycl;
@@ -626,9 +626,13 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
         event_chain = __radix_sort_copyback_submitter<KeyT, _EsimdRadixSortCopyback>()(
             __q, __out_rng, __rng, __n, event_chain);
     }
+
+    // TODO: required to remove this wait
     event_chain.wait();
 
     sycl::free(p_temp_memory, __q);
+
+    return event_chain;
 }
 
 } // oneapi::dpl::experimental::kt::esimd::impl
