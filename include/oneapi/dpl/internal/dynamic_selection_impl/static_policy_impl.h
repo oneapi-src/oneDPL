@@ -26,20 +26,26 @@ namespace experimental {
     using selection_handle_t = oneapi::dpl::experimental::basic_selection_handle_t<execution_resource_t>;
 
     std::shared_ptr<scheduler_t> sched_;
-    universe_container_t universe_;
 
-    static_policy_impl() : sched_{std::make_shared<scheduler_t>()} {
-      universe_ = get_universe();
+
+    struct unit_t{
+        universe_container_t universe_;
+    };
+
+    std::shared_ptr<unit_t> unit_;
+
+    static_policy_impl() : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()}  {
+      unit_->universe_ = get_universe();
     }
 
-    static_policy_impl(universe_container_t u) : sched_{std::make_shared<scheduler_t>()} {
+    static_policy_impl(universe_container_t u) : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()} {
       sched_->set_universe(u);
-      universe_ = get_universe();
+      unit_->universe_ = get_universe();
     }
 
     template<typename ...Args>
-    static_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)} {
-      universe_ = get_universe();
+    static_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)}, unit_{std::make_shared<unit_t>()} {
+      unit_->universe_ = get_universe();
     }
 
     //
@@ -61,31 +67,15 @@ namespace experimental {
 
     template<typename ...Args>
     selection_handle_t select(Args&&...) {
-      if(!universe_.empty()) {
-          return selection_handle_t{universe_[0]};
+      if(!unit_->universe_.empty()) {
+          return selection_handle_t{unit_->universe_[0]};
       }
       return selection_handle_t{};
     }
 
     template<typename Function, typename ...Args>
-    auto invoke_async(Function&& f, Args&&... args) {
-      return sched_->submit(select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
-    }
-
-    template<typename Function, typename ...Args>
     auto invoke_async(selection_handle_t e, Function&& f, Args&&... args) {
       return sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
-    }
-
-    template<typename Function, typename ...Args>
-    auto invoke(Function&& f, Args&&... args) {
-      return wait(sched_->submit(select(f, args...),
-                                         std::forward<Function>(f), std::forward<Args>(args)...));
-    }
-
-    template<typename Function, typename ...Args>
-    auto invoke(selection_handle_t e, Function&& f, Args&&... args) {
-      return wait(sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...));
     }
 
     auto get_wait_list() {
