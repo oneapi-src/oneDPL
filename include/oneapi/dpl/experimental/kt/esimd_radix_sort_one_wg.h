@@ -209,7 +209,9 @@ struct __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, PROCESS_SIZE, IsAscending
 };
 
 template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS, bool IsAscending>
-void one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
+sycl::event
+one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
+{
     using namespace sycl;
     using namespace __ESIMD_NS;
 
@@ -252,7 +254,8 @@ void one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n) {
         __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 256, IsAscending, _EsimRadixSortKernel>()(__q,
             ::std::forward<_Range>(__rng), __n, TG_COUNT);
     }
-    __e.wait();
+
+    return __e;
 }
 
 } // oneapi::dpl::experimental::kt::esimd::impl
