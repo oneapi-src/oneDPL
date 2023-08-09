@@ -470,19 +470,6 @@ template <typename TKey, DPWI dpwi>
 bool
 can_run_test_common(std::size_t size)
 {
-    //              32      64     96    128     160     192     224     256     288     320     352     384     416     448     480     512
-    // char                 N            N               N                                                                               N
-    // int8_t               N            N               N                                                                               N
-    // uint8_t              N            N               N                                                                               N
-    // int16_t              N            N               N               N                                       N                       N
-    // uint16_t             N            N               N               N                                       N                       N
-    // int          N       N      N     N       N       N       N       N       N       N                       N                       N
-    // uint32_t     N       N      N     N       N       N       N       N       N       N                       N                       N
-    // int64_t      
-    // uint64_t     
-    // float        
-    // double       
-
     // char, int8_t, uint8_t - runtime errors
 #if SKIP_RUNTIME_ERRORS
     if ((::std::is_same_v<TKey, char> || ::std::is_same_v<TKey, int8_t> || ::std::is_same_v<TKey, uint8_t>)
