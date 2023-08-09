@@ -63,6 +63,8 @@ To use Parallel API with the device execution policies, you need to install the 
 Difference with Standard C++ Parallel Algorithms
 ************************************************
 
+* For algorithms executed with device policies, function object parameters which are passed must
+provide `const` function call operators.
 * oneDPL execution policies only result in parallel execution if random access iterators are provided,
   the execution will remain serial for other iterator types.
 * For the following algorithms, par_unseq and unseq policies do not result in vectorized execution:
@@ -71,8 +73,6 @@ Difference with Standard C++ Parallel Algorithms
 * The following algorithms require additional O(n) memory space for parallel execution:
   ``copy_if``, ``inplace_merge``, ``partial_sort``, ``partial_sort_copy``, ``partition_copy``,
   ``remove``, ``remove_if``, ``rotate``, ``sort``, ``stable_sort``, ``unique``, ``unique_copy``.
-* For algorithms executed with device policies, callable function object parameters must provide `const`
-  function call operators.
 
 
 Restrictions
