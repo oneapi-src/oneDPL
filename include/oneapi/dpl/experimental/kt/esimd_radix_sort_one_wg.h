@@ -20,12 +20,14 @@
 #include "../../pstl/utils.h"
 
 #include <cstdint>
+#include <cassert>
 
 namespace oneapi::dpl::experimental::kt::esimd::impl
 {
 
-template <typename KeyT, typename InputT, uint32_t RADIX_BITS, uint32_t PROCESS_SIZE, bool IsAscending>
-void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, const InputT& input) {
+template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
+          ::std::uint16_t _WorkGroupSize, typename _KeyT, typename InputT>
+void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input) {
     using namespace sycl;
     using namespace __ESIMD_NS;
     using namespace __ESIMD_ENS;
@@ -35,49 +37,48 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
     using device_addr_t = uint32_t;
 
     uint32_t local_tid = idx.get_local_linear_id();
-    constexpr uint32_t BIN_COUNT = 1 << RADIX_BITS;
-    constexpr uint32_t NBITS =  sizeof(KeyT) * 8;
-    constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, RADIX_BITS);
+    constexpr uint32_t BIN_COUNT = 1 << _RadixBits;
+    constexpr uint32_t NBITS =  sizeof(_KeyT) * 8;
+    constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, _RadixBits);
     constexpr uint32_t MAX_THREAD_PER_TG = 64;
     constexpr bin_t MASK = BIN_COUNT - 1;
     constexpr uint32_t HIST_STRIDE = sizeof(hist_t) * BIN_COUNT;
 
-    constexpr uint32_t REORDER_SLM_SIZE = PROCESS_SIZE * sizeof(KeyT) * MAX_THREAD_PER_TG; // reorder buffer
+    constexpr uint32_t REORDER_SLM_SIZE = _DataPerWorkItem * sizeof(_KeyT) * MAX_THREAD_PER_TG; // reorder buffer
     constexpr uint32_t BIN_HIST_SLM_SIZE = HIST_STRIDE * MAX_THREAD_PER_TG;             // bin hist working buffer
     constexpr uint32_t INCOMING_OFFSET_SLM_SIZE = (BIN_COUNT+1)*sizeof(hist_t);                // incoming offset buffer
 
-    // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  PROCESS_SIZE = 256, BIN_COUNT = 256
+    // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  _DataPerWorkItem = 256, BIN_COUNT = 256
     // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
     slm_init( std::max(REORDER_SLM_SIZE,  BIN_HIST_SLM_SIZE + INCOMING_OFFSET_SLM_SIZE));
     uint32_t slm_reorder_start = 0;
     uint32_t slm_bin_hist_start = 0;
     uint32_t slm_incoming_offset = slm_bin_hist_start + BIN_HIST_SLM_SIZE;
 
-    uint32_t slm_reorder_this_thread = slm_reorder_start + local_tid * PROCESS_SIZE * sizeof(KeyT);
+    uint32_t slm_reorder_this_thread = slm_reorder_start + local_tid * _DataPerWorkItem * sizeof(_KeyT);
     uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * HIST_STRIDE;
 
     simd<hist_t, BIN_COUNT> bin_offset;
-    simd<device_addr_t, PROCESS_SIZE> write_addr;
-    simd<KeyT, PROCESS_SIZE> keys;
-    simd<bin_t, PROCESS_SIZE> bins;
+    simd<device_addr_t, _DataPerWorkItem> write_addr;
+    simd<_KeyT, _DataPerWorkItem> keys;
+    simd<bin_t, _DataPerWorkItem> bins;
     simd<device_addr_t, 16> lane_id(0, 1);
 
-    device_addr_t io_offset = PROCESS_SIZE * local_tid;
+    device_addr_t io_offset = _DataPerWorkItem * local_tid;
 
     #pragma unroll
-    for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
+    for (uint32_t s = 0; s<_DataPerWorkItem; s+=16) {
         simd_mask<16> m = (io_offset+lane_id+s)<n;
-        keys.template select<16, 1>(s) = merge(utils::gather<KeyT, 16>(input, lane_id, io_offset + s, m),
-                                               simd<KeyT, 16>(utils::__sort_identity<KeyT, IsAscending>()), m);
+        keys.template select<16, 1>(s) = merge(utils::gather<_KeyT, 16>(input, lane_id, io_offset + s, m),
+                                               simd<_KeyT, 16>(utils::__sort_identity<_KeyT, _IsAscending>()), m);
     }
 
     for (uint32_t stage=0; stage < STAGES; stage++) {
-        // bins = (keys >> (stage * RADIX_BITS)) & MASK;
-        bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<IsAscending>(keys), stage * RADIX_BITS);
+        bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<_IsAscending>(keys), stage * _RadixBits);
 
         bin_offset = 0;
         #pragma unroll
-        for (uint32_t s = 0; s<PROCESS_SIZE; s+=1) {
+        for (uint32_t s = 0; s<_DataPerWorkItem; s+=1) {
             write_addr[s] = bin_offset[bins[s]];
             bin_offset[bins[s]] += 1;
         }
@@ -105,7 +106,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
 
                 thread_grf_hist_summary.template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
                 slm_bin_hist_summary_offset += HIST_STRIDE;
-                for (uint32_t s = 1; s<THREAD_PER_TG-1; s++) {
+                for (uint32_t s = 1; s<_WorkGroupSize-1; s++) {
                     tmp = utils::BlockLoad<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
                     thread_grf_hist_summary += tmp.template bit_cast_view<hist_t>();
                     utils::BlockStore<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
@@ -122,7 +123,7 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
                 simd<hist_t, BIN_COUNT+1> grf_hist_summary_scan;
                 #pragma unroll
                 for (uint32_t s = 0; s<BIN_COUNT; s+=128) {
-                    grf_hist_summary.template select<128, 1>(s).template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, 64>(slm_bin_hist_start + (THREAD_PER_TG-1) * HIST_STRIDE + s*sizeof(hist_t));
+                    grf_hist_summary.template select<128, 1>(s).template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, 64>(slm_bin_hist_start + (_WorkGroupSize-1) * HIST_STRIDE + s*sizeof(hist_t));
                 }
                 grf_hist_summary_scan[0] = 0;
                 grf_hist_summary_scan.template select<32, 1>(1) = grf_hist_summary.template select<32, 1>(0);
@@ -154,25 +155,25 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
         }
 
         #pragma unroll
-        for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
+        for (uint32_t s = 0; s<_DataPerWorkItem; s+=16) {
             simd<uint16_t, 16> bins_uw = bins.template select<16, 1>(s);
             write_addr.template select<16, 1>(s) += bin_offset.template iselect(bins_uw);
         }
 
         if (stage != STAGES - 1) {
             #pragma unroll
-            for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-                utils::VectorStore<KeyT, 1, 16>(
-                    write_addr.template select<16, 1>(s)*sizeof(KeyT) + slm_reorder_start,
+            for (uint32_t s = 0; s<_DataPerWorkItem; s+=16) {
+                utils::VectorStore<_KeyT, 1, 16>(
+                    write_addr.template select<16, 1>(s)*sizeof(_KeyT) + slm_reorder_start,
                     keys.template select<16, 1>(s));
             }
             barrier();
-            keys = utils::BlockLoad<KeyT, PROCESS_SIZE>(slm_reorder_this_thread);
+            keys = utils::BlockLoad<_KeyT, _DataPerWorkItem>(slm_reorder_this_thread);
         }
     }
     #pragma unroll
-    for (uint32_t s = 0; s<PROCESS_SIZE; s+=16) {
-        utils::scatter<KeyT, 16>(input, write_addr.template select<16, 1>(s), keys.template select<16, 1>(s),
+    for (uint32_t s = 0; s<_DataPerWorkItem; s+=16) {
+        utils::scatter<_KeyT, 16>(input, write_addr.template select<16, 1>(s), keys.template select<16, 1>(s),
                                  write_addr.template select<16, 1>(s) < n);
     }
 }
@@ -183,79 +184,46 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, uint32_t THREAD_PER_TG, con
 template <typename... _Name>
 class __esimd_radix_sort_one_wg;
 
-template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t PROCESS_SIZE, bool IsAscending, typename _KernelName>
+template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
+          ::std::uint16_t _WorkGroupSize, typename _KeyT, typename _KernelName>
 struct __radix_sort_one_wg_submitter;
 
-template <typename KeyT, ::std::uint32_t RADIX_BITS, ::std::uint32_t PROCESS_SIZE, bool IsAscending, typename... _Name>
-struct __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, PROCESS_SIZE, IsAscending,
+template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
+          ::std::uint16_t _WorkGroupSize, typename _KeyT, typename... _Name>
+struct __radix_sort_one_wg_submitter<_IsAscending, _RadixBits, _DataPerWorkItem, _WorkGroupSize, _KeyT,
                                      oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _Range>
     sycl::event
-    operator()(sycl::queue& __q, _Range&& __rng, ::std::size_t __n, ::std::uint32_t __tg_count) const
+    operator()(sycl::queue __q, _Range&& __rng, ::std::size_t __n) const
     {
-        sycl::nd_range<1> __nd_range{__tg_count, __tg_count};
-
+        sycl::nd_range<1> __nd_range{_WorkGroupSize, _WorkGroupSize};
         return __q.submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             auto __data = __rng.data();
             __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
-                        one_wg_kernel<KeyT,  decltype(__data), RADIX_BITS, PROCESS_SIZE, IsAscending> (
-                            __nd_item, __n, __tg_count, __data);
+                        one_wg_kernel<_IsAscending, _RadixBits, _DataPerWorkItem, _WorkGroupSize, _KeyT>(
+                            __nd_item, __n, __data);
                     });
         });
     }
 };
 
-template <typename _KernelName, typename KeyT, typename _Range, ::std::uint32_t RADIX_BITS, bool IsAscending>
+template <typename _KernelName, bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
+          ::std::uint16_t _WorkGroupSize, typename _Range>
 sycl::event
 one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
 {
-    using namespace sycl;
-    using namespace __ESIMD_NS;
-
-    constexpr uint32_t MAX_TG_COUNT = 64;
-    constexpr uint32_t MIN_TG_COUNT = 8;
-    uint32_t PROCESS_SIZE = 64;
-
-    if (__n < MIN_TG_COUNT*64)
-    {
-        PROCESS_SIZE = 64;
-    }
-    else if (__n < MIN_TG_COUNT*128)
-    {
-        PROCESS_SIZE = 128;
-    }
-    else
-    {
-        PROCESS_SIZE = 256;
-    }
-
-    uint32_t TG_COUNT = oneapi::dpl::__internal::__dpl_ceiling_div(__n, PROCESS_SIZE);
-    TG_COUNT = std::max(TG_COUNT, MIN_TG_COUNT);
-
+    using _KeyT = oneapi::dpl::__internal::__value_t<_Range>;
     using _EsimRadixSortKernel =
-    oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__esimd_radix_sort_one_wg<_KernelName>>;
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__esimd_radix_sort_one_wg<_KernelName>>;
 
-    sycl::event __e;
-    if (PROCESS_SIZE == 64)
-    {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 64, IsAscending, _EsimRadixSortKernel>()(__q,
-            ::std::forward<_Range>(__rng), __n, TG_COUNT);
-    }
-    else if (PROCESS_SIZE == 128)
-    {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 128, IsAscending, _EsimRadixSortKernel>()(__q,
-            ::std::forward<_Range>(__rng), __n, TG_COUNT);
-    }
-    else
-    {
-        __e = __radix_sort_one_wg_submitter<KeyT, RADIX_BITS, 256, IsAscending, _EsimRadixSortKernel>()(__q,
-            ::std::forward<_Range>(__rng), __n, TG_COUNT);
-    }
+    // TODO: check if MAX_THREAD_PER_TG is necessary; remove the assert if it is not
+    assert((_WorkGroupSize <= 64) && "WorkGroupSize shall not exceed 64");
 
-    return __e;
+    return __radix_sort_one_wg_submitter<_IsAscending, _RadixBits, _DataPerWorkItem, _WorkGroupSize,
+        _KeyT, _EsimRadixSortKernel>()(__q, ::std::forward<_Range>(__rng), __n);
 }
 
 } // oneapi::dpl::experimental::kt::esimd::impl

@@ -11,11 +11,13 @@
 # See https://llvm.org/LICENSE.txt for license information.
 #
 ##===----------------------------------------------------------------------===##
+add_subdirectory(kt)
+
 # rng_tests
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
-# disable fast math for ALL TESTS 
+# disable fast math for ALL TESTS
 # icpx and dpcpp accept -fno-fast-math, but icx-cl and dpcpp-cl only accept /clang:-fno-fast-math
 foreach(_fno_fast_math_flag -fno-fast-math /clang:-fno-fast-math)
     string(MAKE_C_IDENTIFIER ${_fno_fast_math_flag} FLAG_DISPLAY_NAME)
