@@ -12,6 +12,7 @@
 #include "../internal/common_config.h"
 #include "../pstl/onedpl_config.h"
 
+#include "kt/kernel_param.h"
 #include "kt/esimd_radix_sort.h"
 
 #endif // _ONEDPL_KERNEL_TEMPLATES
