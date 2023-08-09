@@ -71,6 +71,8 @@ Difference with Standard C++ Parallel Algorithms
 * The following algorithms require additional O(n) memory space for parallel execution:
   ``copy_if``, ``inplace_merge``, ``partial_sort``, ``partial_sort_copy``, ``partition_copy``,
   ``remove``, ``remove_if``, ``rotate``, ``sort``, ``stable_sort``, ``unique``, ``unique_copy``.
+* For algorithms executed with device policies, callable function object parameters must provide `const`
+  function call operators.
 
 
 Restrictions
