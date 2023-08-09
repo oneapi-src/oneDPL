@@ -254,7 +254,7 @@ void test_all_view(std::size_t size)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, view, param);
+        oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, view, param).wait();
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
@@ -279,7 +279,7 @@ void test_subrange_view(std::size_t size)
     std::stable_sort(expected.begin(), expected.end(), Compare<T, Order>{});
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, view, param);
+    oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, view, param).wait();
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -307,7 +307,7 @@ void test_usm(std::size_t size)
 
     std::stable_sort(expected.begin(), expected.end(), Compare<T, Order>{});
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, dt_input.get_data(), dt_input.get_data() + size, param);
+    oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, dt_input.get_data(), dt_input.get_data() + size, param).wait();
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -344,7 +344,7 @@ void test_sycl_iterators(std::size_t size)
     std::stable_sort(std::begin(ref), std::end(ref), Compare<T, Order>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), param);
+        oneapi::dpl::experimental::kt::esimd::radix_sort<Order>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), param).wait();
     }
 
     std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
@@ -364,11 +364,11 @@ void test_small_sizes()
     std::vector<uint32_t> ref(input);
 
     oneapi::dpl::experimental::kt::esimd::radix_sort<Ascending,/*RadixBits=*/8,ParamType>(
-        policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input));
+        policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input)).wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
 
     oneapi::dpl::experimental::kt::esimd::radix_sort<Ascending,/*RadixBits=*/8,ParamType>(
-        policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1);
+        policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1).wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
@@ -392,7 +392,7 @@ int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     const std::vector<std::size_t> sizes = {
-        6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14,
+        1, 6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14,
         (1<<14)+1, 50000, 67543, 100'000, 1<<17, 179'581, 250'000, 1<<18,
         (1<<18)+1, 500'000, 888'235, 1'000'000, 1<<20, 10'000'000
     };
