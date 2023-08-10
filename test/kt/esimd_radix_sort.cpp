@@ -37,7 +37,6 @@
 #include <iostream>
 #include <cmath>
 #include <limits>
-#include <string_view>
 
 #ifndef LOG_TEST_INFO
 #define LOG_TEST_INFO 0
