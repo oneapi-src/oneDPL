@@ -78,8 +78,8 @@ namespace experimental{
     template<typename ...Args>
     selection_handle_t select(Args&&...) {
       size_t i=0;
-      universe_container_size_t current_context_ = unit_->next_context_.load();
       while(true){
+          universe_container_size_t current_context_ = unit_->next_context_.load();
           universe_container_size_t new_context_;
           if(current_context_ == std::numeric_limits<universe_container_size_t>::max()){
               new_context_ = (current_context_%unit_->num_contexts_)+1;
