@@ -638,7 +638,7 @@ transform_reduce_serial(InputIterator first, InputIterator last, T init, BinaryO
 
 template <typename TState>
 void
-exitOnError(TState state, const char* sFailMsg = "Fail")
+exit_on_error(TState state, const char* sFailMsg = "Fail")
 {
     if (!state)
     {

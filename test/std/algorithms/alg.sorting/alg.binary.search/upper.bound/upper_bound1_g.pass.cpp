@@ -74,7 +74,7 @@ main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
-    TestUtils::exitOnError(ret);
+    TestUtils::exit_on_error(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

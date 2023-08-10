@@ -75,7 +75,7 @@ kernel_test()
     });
 
     auto ret_access_host = buffer1.get_access<sycl_read>();
-    TestUtils::exitOnError(ret_access_host[0]);
+    TestUtils::exit_on_error(ret_access_host[0]);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
