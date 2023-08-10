@@ -386,8 +386,16 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
 
     // __acc_reduce_minelement doesn't track the lowest found index in case of equal min. or max. values. Thus, this
     // operator is not commutative.
-    auto __identity_reduce_fn = __acc_reduce_minelement<_Compare>{__comp};
-    auto __identity_transform_fn = __acc_transform_minelement<_ReduceValueType>{};
+    auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b)
+    {
+        using ::std::get;
+        if (__comp(get<1>(__b), get<1>(__a)))
+        {
+            return __b;
+        }
+        return __a;
+    };
+    auto __identity_transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
@@ -437,8 +445,30 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
 
     // __acc_reduce_minmaxelement doesn't track the lowest found index in case of equal min. values and the highest
     // found index in case of equal max. values. Thus, this operator is not commutative.
-    auto __identity_reduce_fn = __acc_reduce_minmaxelement<_Compare>{__comp};
-    auto __identity_transform_fn = __acc_transform_minmaxelement<_ReduceValueType>{};
+    auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b)
+    {
+        using ::std::get;
+        auto __chosen_for_min = __a;
+        auto __chosen_for_max = __b;
+
+        assert(get<0>(__a) < get<0>(__b));
+        assert(get<1>(__a) < get<1>(__b));
+
+        if (__comp(get<2>(__b), get<2>(__a)))
+            __chosen_for_min = __b;
+        if (__comp(get<3>(__b), get<3>(__a)))
+            __chosen_for_max = __a;
+        auto __result = _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
+                                         get<3>(__chosen_for_max)};
+        return __result;
+    };
+
+    // TODO: Doesn't work with `zip_iterator`.
+    //       In that case the first and the second arguments of `_ReduceValueType` will be
+    //       a `tuple` of `difference_type`, not the `difference_type` itself.
+    auto __identity_transform_fn = [](auto __gidx, auto __acc) {
+        return _ReduceValueType{__gidx, __gidx, __acc[__gidx], __acc[__gidx]};
+    };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
@@ -533,7 +563,10 @@ __pattern_count(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
     using _ReduceValueType = typename ::std::iterator_traits<_Iterator>::difference_type;
 
     auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
-    auto __identity_transform_fn = __acc_transform_count<_Predicate>{__predicate};
+    // int is being implicitly casted to difference_type
+    // otherwise we can only pass the difference_type as a functor template parameter
+    auto __identity_transform_fn = [__predicate](auto __gidx, auto __acc)
+    { return (__predicate(__acc[__gidx]) ? 1 : 0); };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
@@ -973,34 +1006,6 @@ enum _IsPartitionedReduceType : signed char
     __true_false
 };
 
-template <typename _Predicate>
-struct __acc_transform_is_partitioned
-{
-    _Predicate __predicate;
-
-    // int is being implicitly casted to difference_type
-    // otherwise we can only pass the difference_type as a functor template parameter
-    template <typename _Acc, typename _GlobalIdx>
-    _IsPartitionedReduceType
-    operator()(_GlobalIdx gidx, _Acc acc) const
-    {
-        return (__predicate(acc[gidx]) ? __all_true : __all_false);
-    }
-};
-
-struct __acc_reduce_is_partitioned
-{
-    template <typename _ReduceValueType>
-    _ReduceValueType
-    operator()(_ReduceValueType __val1, _ReduceValueType __val2) const
-    {
-        _ReduceValueType __table[] = {__broken,     __broken,     __broken,     __broken, __broken,    __all_true,
-                                      __true_false, __true_false, __broken,     __broken, __all_false, __broken,
-                                      __broken,     __broken,     __true_false, __broken};
-        return __table[__val1 * 4 + __val2];
-    }
-};
-
 template <typename _ExecutionPolicy, typename _Iterator, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, bool>
 __pattern_is_partitioned(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Predicate __predicate,
@@ -1010,9 +1015,15 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
         return true;
 
     using _ReduceValueType = _IsPartitionedReduceType;
-
-    auto __identity_reduce_fn = __acc_reduce_is_partitioned{};
-    auto __identity_transform_fn = __acc_transform_is_partitioned<_Predicate>{__predicate};
+    auto __identity_reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b)
+    {
+        _ReduceValueType __table[] = {__broken,     __broken,     __broken,     __broken, __broken,    __all_true,
+                                      __true_false, __true_false, __broken,     __broken, __all_false, __broken,
+                                      __broken,     __broken,     __true_false, __broken};
+        return __table[__a * 4 + __b];
+    };
+    auto __identity_transform_fn = [__predicate](auto __gidx, auto __acc)
+    { return (__predicate(__acc[__gidx]) ? __all_true : __all_false); };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
@@ -1269,37 +1280,6 @@ __pattern_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __la
 // lexicographical_compare
 //------------------------------------------------------------------------
 
-template <typename _Predicate, typename _ReduceValueType>
-struct __acc_transform_lexicographical_compare
-{
-    _Predicate __predicate;
-
-    template <typename _GlobalIdx, typename _Acc1, typename _Acc2>
-    _ReduceValueType
-    operator()(_GlobalIdx __gidx, _Acc1 __acc1, _Acc2 __acc2) const
-    {
-        auto __s1_val = __acc1[__gidx];
-        auto __s2_val = __acc2[__gidx];
-
-        int32_t __is_s1_val_less = __predicate(__s1_val, __s2_val);
-        int32_t __is_s1_val_greater = __predicate(__s2_val, __s1_val);
-
-        // 1 if __s1_val <  __s2_val, -1 if __s1_val <  __s2_val, 0 if __s1_val == __s2_val
-        return _ReduceValueType{1 * __is_s1_val_less - 1 * __is_s1_val_greater};
-    }
-};
-
-struct __acc_reduce_lexicographical_compare
-{
-    template <typename _ReduceValueType>
-    _ReduceValueType
-    operator()(_ReduceValueType __a, _ReduceValueType __b) const
-    {
-        bool __is_mismatched = __a != 0;
-        return __a * __is_mismatched + __b * !__is_mismatched;
-    }
-};
-
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, bool>
 __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
@@ -1315,8 +1295,22 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
     using _Iterator1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
     using _ReduceValueType = int32_t;
 
-    auto __identity_transform_fn = __acc_transform_lexicographical_compare<_Compare, _ReduceValueType>{__comp};
-    auto __identity_reduce_fn = __acc_reduce_lexicographical_compare{};
+    auto __identity_reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b)
+    {
+        bool __is_mismatched = __a != 0;
+        return __a * __is_mismatched + __b * !__is_mismatched;
+    };
+    auto __identity_transform_fn = [__comp](auto __gidx, auto __acc1, auto __acc2)
+    {
+        auto __s1_val = __acc1[__gidx];
+        auto __s2_val = __acc2[__gidx];
+
+        int32_t __is_s1_val_less = __comp(__s1_val, __s2_val);
+        int32_t __is_s1_val_greater = __comp(__s2_val, __s1_val);
+
+        // 1 if __s1_val <  __s2_val, -1 if __s1_val <  __s2_val, 0 if __s1_val == __s2_val
+        return _ReduceValueType{1 * __is_s1_val_less - 1 * __is_s1_val_greater};
+    };
 
     auto __shared_size = ::std::min(__last1 - __first1, (_Iterator1DifferenceType)(__last2 - __first2));
 

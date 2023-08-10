@@ -313,7 +313,11 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
     using _ReduceValueType = oneapi::dpl::__internal::__difference_t<_Range>;
 
     auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
-    auto __identity_transform_fn = __acc_transform_count<_Predicate>{__predicate};
+    // int is being implicitly casted to difference_type
+    // otherwise we can only pass the difference_type as a functor template parameter
+    auto __identity_transform_fn = [__predicate](auto __gidx, auto __acc) {
+        return (__predicate(__acc[__gidx]) ? 1 : 0);
+    };
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<
                _ReduceValueType, decltype(__identity_reduce_fn), decltype(__identity_transform_fn),
@@ -548,8 +552,15 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
 
     // __acc_reduce_minelement doesn't track the lowest found index in case of equal min. or max. values. Thus, this
     // operator is not commutative.
-    auto __identity_reduce_fn = __acc_reduce_minelement<_Compare>{__comp};
-    auto __identity_transform_fn = __acc_transform_minelement<_ReduceValueType>{};
+    auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
+        using ::std::get;
+        if (__comp(get<1>(__b), get<1>(__a)))
+        {
+            return __b;
+        }
+        return __a;
+    };
+    auto __identity_transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
 
     auto __ret_idx =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
@@ -585,8 +596,31 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
 
     // __acc_reduce_minmaxelement doesn't track the lowest found index in case of equal min. values and the highest
     // found index in case of equal max. values. Thus, this operator is not commutative.
-    auto __identity_reduce_fn = __acc_transform_minmaxelement<_ReduceValueType>{};
-    auto __identity_transform_fn = __acc_reduce_minmaxelement<_Compare>{__comp};
+    // __acc_reduce_minmaxelement doesn't track the lowest found index in case of equal min. values and the highest
+    // found index in case of equal max. values. Thus, this operator is not commutative.
+    auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
+        using ::std::get;
+        auto __chosen_for_min = __a;
+        auto __chosen_for_max = __b;
+
+        assert(get<0>(__a) < get<0>(__b));
+        assert(get<1>(__a) < get<1>(__b));
+
+        if (__comp(get<2>(__b), get<2>(__a)))
+            __chosen_for_min = __b;
+        if (__comp(get<3>(__b), get<3>(__a)))
+            __chosen_for_max = __a;
+        auto __result = _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
+                                         get<3>(__chosen_for_max)};
+        return __result;
+    };
+
+    // TODO: Doesn't work with `zip_iterator`.
+    //       In that case the first and the second arguments of `_ReduceValueType` will be
+    //       a `tuple` of `difference_type`, not the `difference_type` itself.
+    auto __identity_transform_fn = [](auto __gidx, auto __acc) {
+        return _ReduceValueType{__gidx, __gidx, __acc[__gidx], __acc[__gidx]};
+    };
 
     _ReduceValueType __ret =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
