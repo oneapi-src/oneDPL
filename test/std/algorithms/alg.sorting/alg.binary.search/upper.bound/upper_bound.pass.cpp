@@ -83,15 +83,6 @@ kernel_test()
 
             for (int x = 1; x <= M; ++x)
                 ret_access[0] &= test(Iter(device_vbuf), Iter(device_vbuf + N), x);
-
-            // Simple local array testing, current dpc++ compiler will crash when building
-            // following code snippet, so comment those code now and will enable them when
-            // dpc++ compiler fixes the bug
-            /* int d[] = {0, 1, 2, 3};
-	    for (int *e = d; e < d+4; ++e)
-	        for (int y = -1; y <= 4; ++y)
-	            ret_access[0] &= test(d, e, y);
-	    */
         });
     });
 
