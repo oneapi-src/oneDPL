@@ -28,6 +28,7 @@ function(generate_esimd_radix_sort_tests)
                 set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
 
                 add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
+                set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
                 if (DEFINED DEVICE_SELECTION_LINE)
                     set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
                 endif()

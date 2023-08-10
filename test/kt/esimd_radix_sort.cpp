@@ -252,15 +252,11 @@ void print_data(const Container1& expected, const Container2& actual, std::size_
 
 #if _ENABLE_RANGES_TESTING
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
-void test_all_view(std::size_t size, KernelParam param)
+void test_all_view(sycl::queue q, std::size_t size, KernelParam param)
 {
 #if LOG_TEST_INFO
     std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #endif
-
-    sycl::queue q = TestUtils::get_test_queue();
-    auto policy = oneapi::dpl::execution::make_device_policy(q);
-
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
@@ -268,7 +264,7 @@ void test_all_view(std::size_t size, KernelParam param)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(policy, view, param).wait();
+        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view, param).wait();
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
@@ -276,15 +272,11 @@ void test_all_view(std::size_t size, KernelParam param)
 }
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
-void test_subrange_view(std::size_t size, KernelParam param)
+void test_subrange_view(sycl::queue q, std::size_t size, KernelParam param)
 {
 #if LOG_TEST_INFO
     std::cout << "\ttest_subrange_view<T, " << IsAscending << ">(" << size << ") : " << TypeInfo().name<T>() << std::endl;
 #endif
-
-    sycl::queue q = TestUtils::get_test_queue();
-    auto policy = oneapi::dpl::execution::make_device_policy(q);
-
     std::vector<T> expected(size);
     generate_data(expected.data(), size);
 
@@ -293,7 +285,7 @@ void test_subrange_view(std::size_t size, KernelParam param)
     std::stable_sort(expected.begin(), expected.end(), Compare<T, IsAscending>{});
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(policy, view, param).wait();
+    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view, param).wait();
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -305,15 +297,11 @@ void test_subrange_view(std::size_t size, KernelParam param)
 #endif // _ENABLE_RANGES_TESTING
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, sycl::usm::alloc _alloc_type, typename KernelParam>
-void test_usm(std::size_t size, KernelParam param)
+void test_usm(sycl::queue q, std::size_t size, KernelParam param)
 {
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ", " << IsAscending << ">("<< size << ");" << std::endl;
 #endif
-
-    sycl::queue q = TestUtils::get_test_queue();
-    auto policy = oneapi::dpl::execution::make_device_policy(q);
-
     std::vector<T> expected(size);
     generate_data(expected.data(), size);
 
@@ -321,7 +309,7 @@ void test_usm(std::size_t size, KernelParam param)
 
     std::stable_sort(expected.begin(), expected.end(), Compare<T, IsAscending>{});
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(policy, dt_input.get_data(), dt_input.get_data() + size, param).wait();
+    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, dt_input.get_data(), dt_input.get_data() + size, param).wait();
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -331,22 +319,18 @@ void test_usm(std::size_t size, KernelParam param)
 }
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
-void test_sycl_iterators(std::size_t size, KernelParam param)
+void test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
 {
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
 #endif
-
-    sycl::queue q = TestUtils::get_test_queue();
-    auto policy = oneapi::dpl::execution::make_device_policy(q);
-
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
     std::stable_sort(std::begin(ref), std::end(ref), Compare<T, IsAscending>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(policy, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), param).wait();
+        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), param).wait();
     }
 
     std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
@@ -354,57 +338,48 @@ void test_sycl_iterators(std::size_t size, KernelParam param)
 }
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
-void test_small_sizes(KernelParam param)
+void test_small_sizes(sycl::queue q, KernelParam param)
 {
-#if LOG_TEST_INFO
-    std::cout << "\t\ttest_small_sizes();" << std::endl;
-#endif
-
-    sycl::queue q = TestUtils::get_test_queue();
-    auto policy = oneapi::dpl::execution::make_device_policy(q);
-
     std::vector<uint32_t> input = {5, 11, 0, 17, 0};
     std::vector<uint32_t> ref(input);
 
     oneapi::dpl::experimental::kt::esimd::radix_sort<Ascending, RadixBits>(
-        policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input), param).wait();
+        q, oneapi::dpl::begin(input), oneapi::dpl::begin(input), param).wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
 
     oneapi::dpl::experimental::kt::esimd::radix_sort<Ascending, RadixBits>(
-        policy, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1, param).wait();
+        q, oneapi::dpl::begin(input), oneapi::dpl::begin(input) + 1, param).wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
-void test_general_cases(std::size_t size, KernelParam param)
+void test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
 {
+    test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::shared>(q, size, param);
+    test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::device>(q, size, param);
+    test_sycl_iterators<T, IsAscending, RadixBits>(q, size, param);
 #if _ENABLE_RANGES_TESTING
-    test_all_view<T, IsAscending, RadixBits>(size, param);
-    test_subrange_view<T, IsAscending, RadixBits>(size, param);
+    test_all_view<T, IsAscending, RadixBits>(q, size, param);
+    test_subrange_view<T, IsAscending, RadixBits>(q, size, param);
 #endif // _ENABLE_RANGES_TESTING
-    test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::shared>(size, param);
-    test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::device>(size, param);
-    test_sycl_iterators<T, IsAscending, RadixBits>(size, param);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 template <typename T, typename KernelParam>
 bool
-can_run_test(KernelParam param)
+can_run_test(sycl::queue q, KernelParam param)
 {
-    sycl::queue q = TestUtils::get_test_queue();
-
-    const ::std::size_t __max_slm_size = q.get_device().template get_info<sycl::info::device::local_mem_size>();
-
+    const auto max_slm_size = q.get_device().template get_info<sycl::info::device::local_mem_size>();
     // skip tests with error: LLVM ERROR: SLM size exceeds target limits
-    return sizeof(T) * param.data_per_workitem * param.workgroup_size < __max_slm_size;
+    return sizeof(T) * param.data_per_workitem * param.workgroup_size < max_slm_size;
 }
 
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    const bool _can_run_test = can_run_test<TEST_DATA_TYPE>(kernel_parameters);
-    if (_can_run_test)
+    auto q = TestUtils::get_test_queue();
+    bool run_test =  can_run_test<TEST_DATA_TYPE>(q, kernel_parameters);
+    if (run_test)
     {
         const std::vector<std::size_t> sizes = {
             1, 6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14,
@@ -417,15 +392,15 @@ int main()
 #if TEST_LONG_RUN
             for(auto size: sizes)
             {
-                test_general_cases<TEST_DATA_TYPE, Ascending, RadixBits>(size, kernel_parameters);
-                test_general_cases<TEST_DATA_TYPE, Descending, RadixBits>(size, kernel_parameters);
+                test_general_cases<TEST_DATA_TYPE, Ascending, RadixBits>(q, size, kernel_parameters);
+                test_general_cases<TEST_DATA_TYPE, Descending, RadixBits>(q, size, kernel_parameters);
             }
-            test_small_sizes<TEST_DATA_TYPE, Ascending, RadixBits>(kernel_parameters);
+            test_small_sizes<TEST_DATA_TYPE, Ascending, RadixBits>(q, kernel_parameters);
 #else
             for(auto size: sizes)
             {
-                test_usm<TEST_DATA_TYPE, Ascending, RadixBits, sycl::usm::alloc::shared>(size, kernel_parameters);
-                test_usm<TEST_DATA_TYPE, Descending, RadixBits, sycl::usm::alloc::shared>(size, kernel_parameters);
+                test_usm<TEST_DATA_TYPE, Ascending, RadixBits, sycl::usm::alloc::shared>(q, size, kernel_parameters);
+                test_usm<TEST_DATA_TYPE, Descending, RadixBits, sycl::usm::alloc::shared>(q, size, kernel_parameters);
             }
 #endif // TEST_LONG_RUN
         }
@@ -437,5 +412,5 @@ int main()
 #endif // TEST_DPCPP_BACKEND_PRESENT
     }
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && _can_run_test);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && run_test);
 }
