@@ -78,16 +78,18 @@ namespace experimental{
     template<typename ...Args>
     selection_handle_t select(Args&&...) {
       size_t i=0;
-      universe_container_size_t current_context_;
+      universe_container_size_t current_context_ = unit_->next_context_.load();
       while(true){
+          universe_container_size_t new_context_;
           if(current_context_ == std::numeric_limits<universe_container_size_t>::max()){
-            universe_container_size_t new_context_ = (current_context_%unit_->num_contexts_)+1;
-            if(unit_->next_context_.compare_exchange_weak(current_context_, new_context_)){
-                i = new_context_;
-                break;
-            }
-          }else{
-              i = unit_->next_context_.fetch_add(1)%unit_->num_contexts_;
+              new_context_ = (current_context_%unit_->num_contexts_)+1;
+          }
+          else{
+              new_context_ = (current_context_+1)%unit_->num_contexts_;
+          }
+
+          if(unit_->next_context_.compare_exchange_weak(current_context_, new_context_)){
+              i = current_context_;
               break;
           }
       }
