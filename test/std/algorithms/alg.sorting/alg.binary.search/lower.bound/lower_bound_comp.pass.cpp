@@ -84,7 +84,7 @@ kernel_test()
             for (int x = 1; x <= M; ++x)
                 ret_access[0] &= test(Iter(device_vbuf), Iter(device_vbuf + N), x);
         });
-    });
+    }).wait();
 
     auto ret_access_host = buffer1.get_access<sycl_read>();
     TestUtils::exit_on_error(ret_access_host[0]);

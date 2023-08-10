@@ -81,7 +81,7 @@ kernel_test()
                     ret_access[0] &= !(s::binary_search(&access[0], &access[0] + 5, X{2}, s::less<X>{}));
                 }
             });
-        });
+        }).wait();
     }
     // check if there is change after executing kernel function
     check &= checkData(seq, tmp, N);

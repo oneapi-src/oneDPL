@@ -102,7 +102,7 @@ kernel_test()
                     ret_access[0] &= (w.second == &access2[0] + 2);
                 }
             });
-        });
+        }).wait();
     }
     // check if there is change after executing kernel function
     check &= checkData(A, A1, N);

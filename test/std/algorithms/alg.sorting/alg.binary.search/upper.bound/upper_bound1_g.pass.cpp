@@ -59,7 +59,7 @@ kernel_test()
                     ret_access[0] = ret;
                 }
             });
-        });
+        }).wait();
     }
     // check if there is change after executing kernel function
     check = checkData(tmp, array, N);
