@@ -6,8 +6,8 @@
 #include <iostream>
 
 #ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(algorithm)
-#    include _ONEAPI_STD_TEST_HEADER(iterator)
+#    include <oneapi/dpl/algorithm>
+#    include <oneapi/dpl/iterator>
 namespace s = oneapi_cpp_ns;
 #else
 #    include <algorithm>
