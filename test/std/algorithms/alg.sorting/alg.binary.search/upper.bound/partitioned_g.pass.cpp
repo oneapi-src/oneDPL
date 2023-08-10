@@ -169,7 +169,7 @@ main()
     {
         ret &= kernel_test2(deviceQueue);
     }
-    TestUtils::exitOnError(ret);
+    TestUtils::exit_on_error(ret);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
