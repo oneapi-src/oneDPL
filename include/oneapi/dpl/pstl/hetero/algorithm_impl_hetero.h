@@ -384,10 +384,9 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
         typename ::std::make_unsigned<typename ::std::iterator_traits<_Iterator>::difference_type>::type;
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
 
-    // __acc_reduce_minelement doesn't track the lowest found index in case of equal min. or max. values. Thus, this
-    // operator is not commutative.
-    auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b)
-    {
+    // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
+    // not commutative.
+    auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) -> _ReduceValueType {
         using ::std::get;
         if (__comp(get<1>(__b), get<1>(__a)))
         {
@@ -395,7 +394,9 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
         }
         return __a;
     };
-    auto __identity_transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
+    auto __identity_transform_fn = [](auto __gidx, auto __acc) -> _ReduceValueType {
+        return _ReduceValueType{__gidx, __acc[__gidx]};
+    };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
@@ -443,10 +444,9 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
         typename ::std::make_unsigned<typename ::std::iterator_traits<_Iterator>::difference_type>::type;
     using _ReduceValueType = ::std::tuple<_IndexValueType, _IndexValueType, _IteratorValueType, _IteratorValueType>;
 
-    // __acc_reduce_minmaxelement doesn't track the lowest found index in case of equal min. values and the highest
-    // found index in case of equal max. values. Thus, this operator is not commutative.
-    auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b)
-    {
+    // This operator doesn't track the lowest found index in case of equal min. values and the highest found index in
+    // case of equal max. values. Thus, this operator is not commutative.
+    auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) -> _ReduceValueType {
         using ::std::get;
         auto __chosen_for_min = __a;
         auto __chosen_for_max = __b;
@@ -466,7 +466,7 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
     // TODO: Doesn't work with `zip_iterator`.
     //       In that case the first and the second arguments of `_ReduceValueType` will be
     //       a `tuple` of `difference_type`, not the `difference_type` itself.
-    auto __identity_transform_fn = [](auto __gidx, auto __acc) {
+    auto __identity_transform_fn = [](auto __gidx, auto __acc) -> _ReduceValueType {
         return _ReduceValueType{__gidx, __gidx, __acc[__gidx], __acc[__gidx]};
     };
 
@@ -565,8 +565,9 @@ __pattern_count(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
     auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
     // int is being implicitly casted to difference_type
     // otherwise we can only pass the difference_type as a functor template parameter
-    auto __identity_transform_fn = [__predicate](auto __gidx, auto __acc)
-    { return (__predicate(__acc[__gidx]) ? 1 : 0); };
+    auto __identity_transform_fn = [__predicate](auto __gidx, auto __acc) -> int {
+        return (__predicate(__acc[__gidx]) ? 1 : 0);
+    };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
@@ -1015,15 +1016,15 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
         return true;
 
     using _ReduceValueType = _IsPartitionedReduceType;
-    auto __identity_reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b)
-    {
+    auto __identity_reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b) -> _ReduceValueType {
         _ReduceValueType __table[] = {__broken,     __broken,     __broken,     __broken, __broken,    __all_true,
                                       __true_false, __true_false, __broken,     __broken, __all_false, __broken,
                                       __broken,     __broken,     __true_false, __broken};
         return __table[__a * 4 + __b];
     };
-    auto __identity_transform_fn = [__predicate](auto __gidx, auto __acc)
-    { return (__predicate(__acc[__gidx]) ? __all_true : __all_false); };
+    auto __identity_transform_fn = [__predicate](auto __gidx, auto __acc) -> _ReduceValueType {
+        return (__predicate(__acc[__gidx]) ? __all_true : __all_false);
+    };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
@@ -1218,7 +1219,7 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _Iterator1 __keys_first, _Itera
 {
     static_assert(::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator1>::value_type>
         && ::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator2>::value_type>,
-        "The keys and values should be move constructible in case of parallel execution.");
+                  "The keys and values should be move constructible in case of parallel execution.");
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
@@ -1295,13 +1296,11 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
     using _Iterator1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
     using _ReduceValueType = int32_t;
 
-    auto __identity_reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b)
-    {
+    auto __identity_reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b) -> _ReduceValueType {
         bool __is_mismatched = __a != 0;
         return __a * __is_mismatched + __b * !__is_mismatched;
     };
-    auto __identity_transform_fn = [__comp](auto __gidx, auto __acc1, auto __acc2)
-    {
+    auto __identity_transform_fn = [__comp](auto __gidx, auto __acc1, auto __acc2) -> _ReduceValueType {
         auto __s1_val = __acc1[__gidx];
         auto __s2_val = __acc2[__gidx];
 
