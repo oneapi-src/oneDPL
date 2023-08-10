@@ -71,6 +71,11 @@ namespace experimental{
     }
 
     template<typename ...Args>
+    auto set_universe(Args&&... args) {
+        return sched_->set_universe(std::forward<Args>(args)...);
+    }
+
+    template<typename ...Args>
     selection_handle_t select(Args&&...) {
       size_t i=0;
       universe_container_size_t current_context_;
@@ -82,16 +87,12 @@ namespace experimental{
                 break;
             }
           }else{
-              i = next_context_.fetch_add(1)%unit_->num_contexts_;
+              i = unit_->next_context_.fetch_add(1)%unit_->num_contexts_;
               break;
           }
       }
       auto &e = unit_->universe_[i];
       return selection_handle_t{e};
-    }
-
-    auto set_universe(Args&&... args) {
-        return sched_->set_universe(std::forward<Args>(args)...);
     }
 
     template<typename Function, typename ...Args>
