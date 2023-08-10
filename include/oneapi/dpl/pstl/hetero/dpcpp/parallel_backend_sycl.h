@@ -301,7 +301,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             case __algorithm_type::transform_scan:
                 return 32;
             case __algorithm_type::set_operation:
-                return 16;
+                return 4;
             default:
                 return 16;
         }
@@ -315,7 +315,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             case __algorithm_type::transform_scan:
                 return 128;
             case __algorithm_type::set_operation:
-                return 1024;
+                return 512;
             default:
                 return ::std::numeric_limits<::std::size_t>::max();
         }
@@ -352,8 +352,21 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         __wgroup_size = ::std::min({__wgroup_size, __wgroup_size_kernel_1, __wgroup_size_kernel_2});
 #endif
 
-        // Practically this is the better value that was found
+#ifdef _ONEDPL_SCAN_ITER_SIZE
+        constexpr decltype(__wgroup_size) __iters_per_witem = _ONEDPL_SCAN_ITER_SIZE;
+#else
         constexpr decltype(__wgroup_size) __iters_per_witem = __iters_per_item(_AlgoType::value);
+#endif
+
+#ifdef _ONEDPL_SCAN_TUNING_MODE
+        // Override wgsize if performing a tuning sweep
+        if (const char* __wgroup_size_override = ::std::getenv("_ONEDPL_SCAN_WG_SIZE"))
+        {
+            __wgroup_size = ::std::atoi(__wgroup_size_override);
+        }
+#endif
+
+
         auto __size_per_wg = __iters_per_witem * __wgroup_size;
         auto __n_groups = (__n - 1) / __size_per_wg + 1;
         // Storage for the results of scan for each workgroup
