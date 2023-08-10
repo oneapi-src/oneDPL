@@ -392,11 +392,12 @@ template <typename T, typename KernelParam>
 bool
 can_run_test(KernelParam param)
 {
-    // uint64_t, int64_t, double - skip tests with error: LLVM ERROR: SLM size exceeds target limits
-    if (sizeof(T) == sizeof(::std::uint64_t) && param.data_per_workitem >= 288 && param.workgroup_size == 64)
-        return false;
+    sycl::queue q = TestUtils::get_test_queue();
 
-    return true;
+    const ::std::size_t __max_slm_size = q.get_device().template get_info<sycl::info::device::local_mem_size>();
+
+    // skip tests with error: LLVM ERROR: SLM size exceeds target limits
+    return sizeof(T) * param.data_per_workitem * param.workgroup_size < __max_slm_size;
 }
 
 int main()
