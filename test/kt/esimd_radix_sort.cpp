@@ -414,7 +414,7 @@ int main()
     }
     catch (const ::std::exception& exc)
     {
-        std::cout << "Exception: " << exc.what() << std::endl;
+        std::cerr << "Exception: " << exc.what() << std::endl;
         return EXIT_FAILURE;
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
