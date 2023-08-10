@@ -31,6 +31,11 @@ template <bool _IsAscending, std::uint8_t _RadixBits, typename _KernelParam, typ
 sycl::event
 radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
 {
+    static_assert(_RadixBits == 8);
+
+    static_assert(32 <= __param.data_per_workitem && __param.data_per_workitem <= 512 &&
+                  __param.data_per_workitem % 32 == 0);
+
     const ::std::size_t __n = __rng.size();
     assert(__n > 1);
 
@@ -42,14 +47,14 @@ radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
     constexpr ::std::uint32_t __one_wg_cap = __data_per_workitem * __workgroup_size;
     if (__n <= __one_wg_cap)
     {
-        // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize and DataPerWorkItem
+        // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize
         return one_wg<_KernelName, _IsAscending, _RadixBits, __data_per_workitem, __workgroup_size>(
             __q, ::std::forward<_Range>(__rng), __n);
     }
     else
     {
         // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
-        // TODO: support different RadixBits, WorkGroupSize and DataPerWorkItem
+        // TODO: support different RadixBits, WorkGroupSize
         return onesweep<_KernelName, _IsAscending, _RadixBits,  __data_per_workitem, __workgroup_size>(
             __q, ::std::forward<_Range>(__rng), __n);
     }
