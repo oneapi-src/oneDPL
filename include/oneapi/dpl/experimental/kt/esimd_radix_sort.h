@@ -31,7 +31,7 @@ template <bool _IsAscending, std::uint8_t _RadixBits, typename _KernelParam, typ
 sycl::event
 radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
 {
-    static_assert(_RadixBits == 7 || _RadixBits == 8);
+    static_assert(_RadixBits == 8);
 
     static_assert(__param.data_per_workitem == 32 || __param.data_per_workitem == 64 || __param.data_per_workitem == 96 ||
                   __param.data_per_workitem == 128 || __param.data_per_workitem == 160 || __param.data_per_workitem == 192 ||
