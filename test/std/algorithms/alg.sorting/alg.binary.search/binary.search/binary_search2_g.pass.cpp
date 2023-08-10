@@ -75,7 +75,7 @@ kernel_test()
                     ret_access[0] &= (!binary_search(&access3[0], &access3[0] + N, 4, gt()));
                 }
             });
-        });
+        }).wait();
     }
     // check if there is change after executing kernel function
     check &= checkData(A, A1, N);

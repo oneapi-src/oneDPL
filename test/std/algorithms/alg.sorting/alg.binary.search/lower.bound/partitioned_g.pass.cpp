@@ -84,7 +84,7 @@ kernel_test1(sycl::queue& deviceQueue)
                     ret_access[0] &= (part4->val == 1);
                 }
             });
-        });
+        }).wait();
     }
     // check if there is change after executing kernel function
     check &= checkData(tmp, seq, N);
@@ -150,7 +150,7 @@ kernel_test2(sycl::queue& deviceQueue)
                     ret_access[0] &= (part4->val == 1.2);
                 }
             });
-        });
+        }).wait();
     }
     // check if there is change after executing kernel function
     check &= checkData(tmp, seq, N);

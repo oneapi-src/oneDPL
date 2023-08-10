@@ -46,7 +46,7 @@ kernel_test1()
                     ret_access[0] = (!binary_search(con.begin(), con.end(), 1));
                 }
             });
-        });
+        }).wait();
     }
     // check if there is change after executing kernel function
     transferCheck &= (array[0] == 0);
@@ -94,7 +94,7 @@ kernel_test2()
                     }
                 }
             });
-        });
+        }).wait();
     }
     // check if there is change after executing kernel function
     check &= checkData(tmp, array, N);

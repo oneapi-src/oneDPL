@@ -60,7 +60,7 @@ kernel_test1()
                     ret_access[0] = ret;
                 }
             });
-        });
+        }).wait();
     }
     // check if there is change after executing kernel function
     check &= checkData(tmp, array, N);
@@ -99,7 +99,7 @@ kernel_test2()
                     ret_access[0] &= (equal_range(con.begin(), con.end(), 1).second.ptr == &access[0] + 2);
                 }
             });
-        });
+        }).wait();
     }
     // check if there is change after executing kernel function
     check &= checkData(tmp, array, N);
