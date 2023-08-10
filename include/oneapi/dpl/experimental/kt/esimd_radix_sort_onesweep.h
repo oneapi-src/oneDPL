@@ -17,6 +17,10 @@
 
 #include <cstdint>
 
+#ifndef DATA_PER_STEP
+#define DATA_PER_STEP 16
+#endif
+
 namespace oneapi::dpl::experimental::kt::esimd::impl
 {
 template <typename _KeyT, typename InputT, uint32_t _RadixBits, uint32_t STAGES, uint32_t WORK_GROUPS,
@@ -77,7 +81,6 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
             }
             else
             {
-                constexpr uint8_t DATA_PER_STEP = 16;
                 simd<uint32_t, DATA_PER_STEP> lane_offsets(0, 1);
                 #pragma unroll
                 for (uint32_t step_offset = 0; step_offset < DATA_PER_WORK_ITEM; step_offset += DATA_PER_STEP)
@@ -105,7 +108,6 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
         }
 
         // 3. Reduce thread-local histograms from GRF into group-local histograms in SLM
-        constexpr uint8_t DATA_PER_STEP = 16;
         #pragma unroll
         for (uint32_t grf_offset = 0; grf_offset < BIN_COUNT * STAGES_PER_BLOCK; grf_offset += DATA_PER_STEP)
         {
@@ -202,31 +204,32 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     radix_sort_onesweep_slm_reorder_kernel(uint32_t n, uint32_t stage, InputT input, OutputT output, uint8_t *p_global_buffer):
         n(n), stage(stage), input(input), output(output), p_global_buffer(p_global_buffer) {}
 
-    template <uint32_t CHUNK_SIZE>
     inline void LoadKeys(uint32_t io_offset, __ESIMD_NS::simd<_KeyT, _DataPerWorkItem> &keys, _KeyT default_key) const {
         using namespace __ESIMD_NS;
         using namespace __ESIMD_ENS;
         bool is_full_block = (io_offset+_DataPerWorkItem) < n;
         if (is_full_block) {
-            simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);
+            simd<uint32_t, DATA_PER_STEP> lane_id(0, 1);
             #pragma unroll
-            for (uint32_t s = 0; s<_DataPerWorkItem; s+=CHUNK_SIZE) {
+            for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+            {
                 sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
-                keys.template select<CHUNK_SIZE, 1>(s) = lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset);
+                keys.template select<DATA_PER_STEP, 1>(s) = lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, DATA_PER_STEP>(input, offset);
             }
         }
         else
         {
-            simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);
+            simd<uint32_t, DATA_PER_STEP> lane_id(0, 1);
             #pragma unroll
-            for (uint32_t s = 0; s<_DataPerWorkItem; s+=CHUNK_SIZE) {
-                simd_mask<CHUNK_SIZE> m = (io_offset+lane_id+s)<n;
+            for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+            {
+                simd_mask<DATA_PER_STEP> m = (io_offset + lane_id + s) < n;
 
                 sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
-                keys.template select<CHUNK_SIZE, 1>(s) =
+                keys.template select<DATA_PER_STEP, 1>(s) =
                     merge(
-                        lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m),
-                        simd<_KeyT, CHUNK_SIZE>(default_key),
+                        lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, DATA_PER_STEP>(input, offset, m),
+                        simd<_KeyT, DATA_PER_STEP>(default_key),
                         m);
             }
         }
@@ -368,12 +371,12 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         simd<hist_t, _DataPerWorkItem> ranks;
         simd<_KeyT, _DataPerWorkItem> keys;
         simd<bin_t, _DataPerWorkItem> bins;
-        simd<device_addr_t, 16> lane_id(0, 1);
+        simd<device_addr_t, DATA_PER_STEP> lane_id(0, 1);
 
         device_addr_t io_offset = _DataPerWorkItem * (wg_id*wg_size+local_tid);
         constexpr _KeyT default_key = utils::__sort_identity<_KeyT, _IsAscending>();
 
-        LoadKeys<16>(io_offset, keys, default_key);
+        LoadKeys(io_offset, keys, default_key);
 
         bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<_IsAscending>(keys), stage * _RadixBits);
 
