@@ -63,6 +63,8 @@ constexpr bool Descending = false;
 #define TEST_WORK_GROUP_SIZE 64
 #endif
 
+constexpr std::uint8_t RadixBits = 8;
+
 using ParamType = oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE>;
 constexpr ParamType kernel_parameters;
 
@@ -386,38 +388,54 @@ void test_general_cases(std::size_t size, KernelParam param)
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
+template <typename T, typename KernelParam>
+bool
+can_run_test(KernelParam param)
+{
+    sycl::queue q = TestUtils::get_test_queue();
+
+    const ::std::size_t __max_slm_size = q.get_device().template get_info<sycl::info::device::local_mem_size>();
+
+    // skip tests with error: LLVM ERROR: SLM size exceeds target limits
+    return sizeof(T) * param.data_per_workitem * param.workgroup_size < __max_slm_size;
+}
+
 int main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    const std::vector<std::size_t> sizes = {
-        1, 6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14,
-        (1<<14)+1, 50000, 67543, 100'000, 1<<17, 179'581, 250'000, 1<<18,
-        (1<<18)+1, 500'000, 888'235, 1'000'000, 1<<20, 10'000'000
-    };
-
-    try
+    const bool _can_run_test = can_run_test<TEST_DATA_TYPE>(kernel_parameters);
+    if (_can_run_test)
     {
+        const std::vector<std::size_t> sizes = {
+            1, 6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14,
+            (1<<14)+1, 50000, 67543, 100'000, 1<<17, 179'581, 250'000, 1<<18,
+            (1<<18)+1, 500'000, 888'235, 1'000'000, 1<<20, 10'000'000
+        };
+
+        try
+        {
 #if TEST_LONG_RUN
-        for(auto size: sizes)
-        {
-            test_general_cases<TEST_DATA_TYPE, Ascending, /*RadixBits*/8>(size, kernel_parameters);
-            test_general_cases<TEST_DATA_TYPE, Descending, /*RadixBits*/8>(size, kernel_parameters);
-        }
-        test_small_sizes<TEST_DATA_TYPE, Ascending, /*RadixBits*/8>(kernel_parameters);
+            for(auto size: sizes)
+            {
+                test_general_cases<TEST_DATA_TYPE, Ascending, RadixBits>(size, kernel_parameters);
+                test_general_cases<TEST_DATA_TYPE, Descending, RadixBits>(size, kernel_parameters);
+            }
+            test_small_sizes<TEST_DATA_TYPE, Ascending, RadixBits>(kernel_parameters);
 #else
-        for(auto size: sizes)
-        {
-            test_usm<TEST_DATA_TYPE, Ascending, /*RadixBits*/8, sycl::usm::alloc::shared>(size, kernel_parameters);
-            test_usm<TEST_DATA_TYPE, Descending, /*RadixBits*/8, sycl::usm::alloc::shared>(size, kernel_parameters);
-        }
+            for(auto size: sizes)
+            {
+                test_usm<TEST_DATA_TYPE, Ascending, RadixBits, sycl::usm::alloc::shared>(size, kernel_parameters);
+                test_usm<TEST_DATA_TYPE, Descending, RadixBits, sycl::usm::alloc::shared>(size, kernel_parameters);
+            }
 #endif // TEST_LONG_RUN
-    }
-    catch (const ::std::exception& exc)
-    {
-        std::cout << "Exception: " << exc.what() << std::endl;
-        return EXIT_FAILURE;
-    }
+        }
+        catch (const ::std::exception& exc)
+        {
+            std::cerr << "Exception: " << exc.what() << std::endl;
+            return EXIT_FAILURE;
+        }
 #endif // TEST_DPCPP_BACKEND_PRESENT
+    }
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && _can_run_test);
 }
