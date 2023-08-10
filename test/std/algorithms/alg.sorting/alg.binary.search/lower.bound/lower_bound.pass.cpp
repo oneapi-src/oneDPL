@@ -82,13 +82,6 @@ kernel_test()
             ret_access[0] = test(Iter(device_vbuf), Iter(device_vbuf + N), 0);
             for (int x = 1; x <= M; ++x)
                 ret_access[0] &= test(Iter(device_vbuf), Iter(device_vbuf + N), x);
-
-            // Simple local array testing
-            /* int d[] = {0, 1, 2, 3};
-	for (int *e = d; e < d+4; ++e)
-	    for (int y = -1; y <= 4; ++y)
-	        ret_access[0] &= test(d, e, y);
-        */
         });
     });
 
