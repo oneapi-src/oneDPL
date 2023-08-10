@@ -190,6 +190,39 @@ __reduce_over_group(_Args... __args)
 
 template <typename... _Args>
 constexpr auto
+__any_of_group(_Args&&... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::any_of_group(::std::forward<_Args>(__args)...);
+#else
+    return sycl::ONEAPI::any_of(::std::forward<_Args>(__args)...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__all_of_group(_Args&&... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::all_of_group(::std::forward<_Args>(__args)...);
+#else
+    return sycl::ONEAPI::all_of(::std::forward<_Args>(__args)...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__none_of_group(_Args&&... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::none_of_group(::std::forward<_Args>(__args)...);
+#else
+    return sycl::ONEAPI::none_of(::std::forward<_Args>(__args)...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
 __joint_exclusive_scan(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
@@ -210,13 +243,79 @@ __joint_inclusive_scan(_Args&&... __args)
 #endif
 }
 
+template <typename... _Args>
+constexpr auto
+__joint_reduce(_Args&&... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_reduce(::std::forward<_Args>(__args)...);
+#else
+    return sycl::ONEAPI::reduce(::std::forward<_Args>(__args)...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__joint_any_of(_Args&&... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_any_of(::std::forward<_Args>(__args)...);
+#else
+    return sycl::ONEAPI::any_of(::std::forward<_Args>(__args)...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__joint_all_of(_Args&&... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_all_of(::std::forward<_Args>(__args)...);
+#else
+    return sycl::ONEAPI::all_of(::std::forward<_Args>(__args)...);
+#endif
+}
+
+template <typename... _Args>
+constexpr auto
+__joint_none_of(_Args&&... __args)
+{
+#if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
+    return sycl::joint_none_of(::std::forward<_Args>(__args)...);
+#else
+    return sycl::ONEAPI::none_of(::std::forward<_Args>(__args)...);
+#endif
+}
+
 #if _ONEDPL_FPGA_DEVICE
-#    if _ONEDPL_LIBSYCL_VERSION >= 50300
-using __fpga_emulator_selector = sycl::ext::intel::fpga_emulator_selector;
-using __fpga_selector = sycl::ext::intel::fpga_selector;
+#    if _ONEDPL_LIBSYCL_VERSION >= 60100
+inline auto __fpga_emulator_selector()
+{
+    return sycl::ext::intel::fpga_emulator_selector_v;
+}
+inline auto __fpga_selector()
+{
+    return sycl::ext::intel::fpga_selector_v;
+}
+
+#    elif _ONEDPL_LIBSYCL_VERSION >= 50300
+inline auto __fpga_emulator_selector()
+{
+    return sycl::ext::intel::fpga_emulator_selector{};
+}
+inline auto __fpga_selector()
+{
+    return sycl::ext::intel::fpga_selector{};
+}
 #    else
-using __fpga_emulator_selector = sycl::INTEL::fpga_emulator_selector;
-using __fpga_selector = sycl::INTEL::fpga_selector;
+inline auto __fpga_emulator_selector()
+{
+    return sycl::INTEL::fpga_emulator_selector{};
+}
+inline auto __fpga_selector()
+{
+    return sycl::INTEL::fpga_selector{};
+}
 #    endif
 #endif // _ONEDPL_FPGA_DEVICE
 
@@ -232,6 +331,13 @@ constexpr __target __target_device =
     __target::device;
 #else
     __target::global_buffer;
+#endif
+
+constexpr __target __host_target =
+#if _ONEDPL_LIBSYCL_VERSION >= 60200
+    __target::host_task;
+#else
+    __target::host_buffer;
 #endif
 
 template <typename _DataT>
@@ -260,6 +366,17 @@ using __local_accessor =
 #else
     sycl::accessor<DataT, Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
 #endif
+
+template <typename _Buf>
+auto
+__get_host_access(_Buf&& __buf)
+{
+#if _ONEDPL_LIBSYCL_VERSION >= 60200
+    return ::std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
+#else
+    return ::std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
+#endif
+}
 
 } // namespace __dpl_sycl
 

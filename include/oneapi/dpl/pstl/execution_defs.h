@@ -211,23 +211,6 @@ __check_size(...) -> decltype(::std::declval<_R&>().get_count());
 template <typename _R>
 using __difference_t = typename ::std::make_signed<decltype(__check_size<_R>(0))>::type;
 
-template <typename _R>
-auto
-__check_subscript(int) -> typename ::std::decay<decltype(::std::declval<_R&>()[0])>::type;
-
-template <typename _R>
-auto
-__check_subscript(...) -> typename ::std::decay<_R>::type::value_type;
-
-template <typename _R>
-struct __range_traits
-{
-    using __value_t = decltype(__check_subscript<_R>(0));
-};
-
-template <typename _R>
-using __value_t = typename __range_traits<_R>::__value_t;
-
 } // namespace __internal
 
 } // namespace dpl

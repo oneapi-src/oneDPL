@@ -91,19 +91,15 @@ struct int_inline_scheduler_t {
     }
   }
 
-  //
-  // Support for property queries
-  //
-
-  universe_container_t query(oneapi::dpl::experimental::property::universe_t) const noexcept {
+  universe_container_t get_universe() const noexcept {
     return universe_;
   }
 
-  auto query(oneapi::dpl::experimental::property::universe_size_t)  const noexcept {
+  auto get_universe_size()  const noexcept {
      return universe_.size();
   }
 
-  auto report(oneapi::dpl::experimental::property::universe_t, const universe_container_t &u) noexcept {
+  auto set_universe(const universe_container_t &u) noexcept {
     universe_ = u;
   }
 };

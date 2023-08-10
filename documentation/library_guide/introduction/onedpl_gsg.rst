@@ -2,7 +2,7 @@ Get Started with the |onedpl_long|
 ##################################
 
 |onedpl_long| (|onedpl_short|) works with the
-`Intel® oneAPI DPC++/C++ Compiler <https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html>`_
+`Intel® oneAPI DPC++/C++ Compiler <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/current/overview.html>`_
 to provide high-productivity APIs to developers, which can minimize SYCL*
 programming efforts across devices for high performance parallel applications.
 
@@ -14,14 +14,17 @@ programming efforts across devices for high performance parallel applications.
 
 
 For general information about |onedpl_short|, visit the `oneDPL GitHub* repository <https://github.com/oneapi-src/oneDPL>`_,
-or visit the `Intel® oneAPI DPC++ Library Guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_
-and the `Intel® oneAPI DPC++ Library main page <https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/dpc-library.html>`_.
+or visit the `Intel® oneAPI DPC++ Library Guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_
+and the `Intel® oneAPI DPC++ Library main page <https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-library.html>`_.
 
-Before You Begin
-================
+Quick Start
+===========
+
+Installation
+------------
 
 Visit the |onedpl_short| `Release Notes
-<https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html>`_
+<https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-dpcpp-library-release-notes.html>`_
 page for:
 
 * Where to Find the Release
@@ -30,7 +33,7 @@ page for:
 * Fixed Issues
 * Known Issues and Limitations
 
-Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://software.intel.com/en-us/oneapi/base-kit>`_
+Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html>`_
 to use |onedpl_short|.
 
 To use Parallel API, include the corresponding header files in your source code.
@@ -41,42 +44,80 @@ All |onedpl_short| header files are in the ``oneapi/dpl`` directory. Use ``#incl
 To use tested C++ standard APIs, you need to include the corresponding C++ standard header files
 and use the ``std`` namespace.
 
+CMake Support
+-------------
+`CMake <https://cmake.org/cmake/help/latest/index.html>`_ generates build scripts which can then be used to build and link your application. |onedpl_short| can be added to your project via CMake.
+
+A simple example for Linux is provided below. For more detailed usage and options including details specific to Windows, please look to the `CMake Support Page <https://oneapi-src.github.io/oneDPL/cmake-support.html>`_.
+
+Simple Example CMake File
+*************************
+To use |onedpl_short| with CMake, create a CMakeLists.txt file for your project's base directory and use `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_ and `target_link_libraries <https://cmake.org/cmake/help/latest/command/target_link_libraries.html>`_ to add oneDPL.
+For example:
+
+.. code:: cpp
+
+  project(Foo)
+  add_executable(foo foo.cpp)
+  
+  # Search to find oneDPL
+  find_package(oneDPL REQUIRED)
+  
+  # Connect oneDPL to foo
+  target_link_libraries(foo oneDPL)
+
+Simple Example CMake Invocation
+*******************************
+The following is an example CMake invocation which generates build scripts for the project in the parent directory: 
+
+.. code:: cpp
+
+  mkdir build && cd build
+  cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=release ..
+
+Example Build Command
+*********************
+Once build scripts have been generated for your desired configuration following the instruction above, a `build command <https://cmake.org/cmake/help/latest/manual/cmake.1.html#build-a-project>`_ can be issued to build your project:
+
+.. code:: cpp
+
+  cmake --build .
 
 pkg-config Support
-==================
+------------------
 
 The pkg-config program is used to retrieve information about your installed libraries, and
 to compile and link against one or more libraries.
 
 Use pkg-config with |onedpl_short|
-----------------------------------
+**********************************
 
 Use pkg-config with the ``--cflags`` flag to get the include path to the oneDPL directory:
 
 .. code:: cpp
 
-  dpcpp test.cpp $(pkg-config --cflags dpl)
+  icpx -fsycl foo.cpp $(pkg-config --cflags dpl)
   
 The ``--msvc-syntax`` flag is required when you use a Microsoft Visual C++* compiler.
 This flag converts your compiling and linking flags to the appropriate form:
 
 .. code:: cpp
 
-  dpcpp test.cpp $(pkg-config --msvc-syntax --cflags dpl)
+  icpx -fsycl foo.cpp $(pkg-config --msvc-syntax --cflags dpl)
 
 .. note::
   Use the pkg-config tool to get rid of large hard-coded paths and make compilation more portable.
 
 
 Usage Examples
-==============
+--------------
 
 |onedpl_short| sample code is available from the
 `oneAPI GitHub samples repository <https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL>`_.
 Each sample includes a readme with build instructions.
 
 \<oneapi/dpl/random\> Header Usage Example
-------------------------------------------
+******************************************
 
 This example illustrates |onedpl_short| random number generator usage.
 The sample below shows you how to create an random number generator engine object (the source of pseudo-randomness),
@@ -107,7 +148,7 @@ This example performs its computations on your default SYCL device. You can set 
     }
 
 Pi Benchmark Usage Example
---------------------------
+**************************
 
 This example uses a Monte Carlo method to estimate the value of π.
 The basic idea is to generate random points within a square, and to check what
@@ -162,13 +203,13 @@ Find More
 
    * - Resource Link
      - Description
-   * - `Intel® oneAPI DPC++ Library Guide <https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-library-guide/top.html>`_
+   * - `Intel® oneAPI DPC++ Library Guide <https://www.intel.com/content/www/us/en/docs/onedpl/developer-guide/current/overview.html>`_
      - Refer to the |onedpl_short| guide for  more in depth information.
-   * - `System Requirements <https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-system-requirements.html>`_
+   * - `System Requirements <https://www.intel.com/content/www/us/en/developer/articles/system-requirements/intel-oneapi-dpcpp-system-requirements.html>`_
      - Check system requirements before you install |onedpl_short|.
-   * - `Intel® oneAPI DPC++ Library Release Notes <https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html>`_
+   * - `Intel® oneAPI DPC++ Library Release Notes <https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-dpcpp-library-release-notes.html>`_
      - Check the release notes to learn about updates in the latest release.
    * - `oneDPL Samples <https://github.com/oneapi-src/oneAPI-samples/tree/master/Libraries/oneDPL>`_
      - Learn how to use |onedpl_short| with samples.
-   * - `Layers for Yocto* Project <https://www.intel.com/content/www/us/en/develop/documentation/get-started-with-intel-oneapi-iot-linux/top/adding-oneapi-components-to-yocto-project-builds.html>`_
+   * - `Layers for Yocto* Project <https://www.intel.com/content/www/us/en/docs/oneapi-iot-toolkit/get-started-guide-linux/current/adding-oneapi-components-to-yocto-project-builds.html>`_
      - Add oneAPI components to a Yocto project build using the meta-intel layers.

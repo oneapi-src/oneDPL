@@ -24,8 +24,11 @@
 #endif
 
 #define ONEDPL_VERSION_MAJOR 2022
-#define ONEDPL_VERSION_MINOR 1
-#define ONEDPL_VERSION_PATCH 1
+#define ONEDPL_VERSION_MINOR 3
+#define ONEDPL_VERSION_PATCH 0
+
+// Feature macros
+#define ONEDPL_HAS_DYNAMIC_SELECTION 202304L
 
 // Feature macros
 #define ONEDPL_HAS_DYNAMIC_SELECTION 202304L
@@ -246,7 +249,8 @@
 // Check the user-defined macro for parallel policies
 // define _ONEDPL_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
 #if !defined(_ONEDPL_BACKEND_SYCL)
-#    if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION))
+#    if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                      \
+         (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>)))
 #        define _ONEDPL_BACKEND_SYCL 1
 #    else
 #        define _ONEDPL_BACKEND_SYCL 0

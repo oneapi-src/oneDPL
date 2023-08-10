@@ -28,40 +28,46 @@ namespace experimental{
     using universe_container_size_t = typename universe_container_t::size_type;
 
     std::shared_ptr<scheduler_t> sched_;
-    universe_container_t universe_;
-    universe_container_size_t num_contexts_;
-    std::atomic<universe_container_size_t> next_context_;
 
-    round_robin_policy_impl() : sched_{std::make_shared<scheduler_t>()}  {
-      universe_ = oneapi::dpl::experimental::property::query(*sched_, property::universe);
-      num_contexts_ = universe_.size();
-      next_context_ = 0;
+
+    struct unit_t{
+        universe_container_t universe_;
+        universe_container_size_t num_contexts_;
+        std::atomic<universe_container_size_t> next_context_;
+    };
+
+    std::shared_ptr<unit_t> unit_;
+
+    round_robin_policy_impl() : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()}  {
+      unit_->universe_ = get_universe();
+      unit_->num_contexts_ = unit_->universe_.size();
+      unit_->next_context_ = 0;
     }
 
-    round_robin_policy_impl(universe_container_t u) : sched_{std::make_shared<scheduler_t>()}  {
-      oneapi::dpl::experimental::property::report(*sched_, property::universe, u);
-      universe_ = oneapi::dpl::experimental::property::query(*sched_, property::universe);
-      num_contexts_ = universe_.size();
-      next_context_ = 0;
+    round_robin_policy_impl(universe_container_t u) : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()}  {
+      sched_->set_universe(u);
+      unit_->universe_ = get_universe();
+      unit_->num_contexts_ = unit_->universe_.size();
+      unit_->next_context_ = 0;
     }
 
     template<typename ...Args>
-    round_robin_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)} {
-      universe_ = oneapi::dpl::experimental::property::query(*sched_, property::universe);
-      num_contexts_ = universe_.size();
-      next_context_ = 0;
+    round_robin_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)}, unit_{std::make_shared<unit_t>()} {
+      unit_->universe_ = sched_->get_universe();
+      unit_->num_contexts_ = unit_->universe_.size();
+      unit_->next_context_ = 0;
     }
 
     //
     // Support for property queries
     //
 
-    auto query(oneapi::dpl::experimental::property::universe_t) const noexcept {
-      return oneapi::dpl::experimental::property::query(*sched_, property::universe);
+    auto get_universe() const noexcept {
+      return sched_->get_universe();
     }
 
-    auto query(oneapi::dpl::experimental::property::universe_size_t) const noexcept {
-      return oneapi::dpl::experimental::property::query(*sched_, property::universe_size);
+    auto get_universe_size() const noexcept {
+      return sched_->get_universe_size();
     }
 
     template<typename ...Args>
@@ -70,39 +76,27 @@ namespace experimental{
       universe_container_size_t current_context_;
       while(true){
           if(current_context_ == std::numeric_limits<universe_container_size_t>::max()){
-            universe_container_size_t new_context_ = (current_context_%num_contexts_)+1;
-            if(next_context_.compare_exchange_weak(current_context_, new_context_)){
+            universe_container_size_t new_context_ = (current_context_%unit_->num_contexts_)+1;
+            if(unit_->next_context_.compare_exchange_weak(current_context_, new_context_)){
                 i = new_context_;
                 break;
             }
           }else{
-              i = next_context_.fetch_add(1)%num_contexts_;
+              i = next_context_.fetch_add(1)%unit_->num_contexts_;
               break;
           }
       }
-      auto &e = universe_[i];
+      auto &e = unit_->universe_[i];
       return selection_handle_t{e};
     }
 
-    template<typename Function, typename ...Args>
-    auto invoke_async(Function&& f, Args&&... args) {
-      return sched_->submit(select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
+    auto set_universe(Args&&... args) {
+        return sched_->set_universe(std::forward<Args>(args)...);
     }
 
     template<typename Function, typename ...Args>
     auto invoke_async(selection_handle_t e, Function&& f, Args&&... args) {
       return sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
-    }
-
-    template<typename Function, typename ...Args>
-    auto invoke(Function&& f, Args&&... args) {
-      return wait(sched_->submit(select(std::forward<Function>(f), std::forward<Args>(args)...),
-                                         std::forward<Function>(f), std::forward<Args>(args)...));
-    }
-
-    template<typename Function, typename ...Args>
-    auto invoke(selection_handle_t e, Function&& f, Args&&... args) {
-      return wait(sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...));
     }
 
     auto get_wait_list() {

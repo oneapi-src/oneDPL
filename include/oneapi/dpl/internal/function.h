@@ -31,29 +31,7 @@ namespace internal
 {
 using ::std::get;
 
-// Helper used to eliminate compile errors when an algorithm needs to pass a policy instance to
-// multiple Parallel STL functions.
-template <typename Policy, typename NewName>
-struct rebind_policy
-{
-    using type = Policy;
-};
-
 #if _ONEDPL_BACKEND_SYCL
-template <typename KernelName, typename NewName>
-struct rebind_policy<oneapi::dpl::execution::device_policy<KernelName>, NewName>
-{
-    using type = oneapi::dpl::execution::device_policy<NewName>;
-};
-
-#    if _ONEDPL_FPGA_DEVICE
-template <unsigned int factor, typename KernelName, typename NewName>
-struct rebind_policy<oneapi::dpl::execution::fpga_policy<factor, KernelName>, NewName>
-{
-    using type = oneapi::dpl::execution::fpga_policy<factor, NewName>;
-};
-#    endif
-
 using oneapi::dpl::__internal::is_hetero_iterator;
 using oneapi::dpl::__par_backend_hetero::__internal::__buffer;
 #endif
