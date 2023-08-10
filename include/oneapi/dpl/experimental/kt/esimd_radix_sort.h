@@ -33,12 +33,8 @@ radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
 {
     static_assert(_RadixBits == 8);
 
-    static_assert(__param.data_per_workitem == 32 || __param.data_per_workitem == 64 || __param.data_per_workitem == 96 ||
-                  __param.data_per_workitem == 128 || __param.data_per_workitem == 160 || __param.data_per_workitem == 192 ||
-                  __param.data_per_workitem == 224 || __param.data_per_workitem == 256 || __param.data_per_workitem == 288 ||
-                  __param.data_per_workitem == 320 || __param.data_per_workitem == 352 || __param.data_per_workitem == 384 ||
-                  __param.data_per_workitem == 416 || __param.data_per_workitem == 448 || __param.data_per_workitem == 480 ||
-                  __param.data_per_workitem == 512);
+    static_assert(32 <= __param.data_per_workitem && __param.data_per_workitem <= 512 &&
+                  __param.data_per_workitem % 32 == 0);
 
     const ::std::size_t __n = __rng.size();
     assert(__n > 1);
