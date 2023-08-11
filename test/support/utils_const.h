@@ -28,6 +28,7 @@ constexpr ::std::size_t max_n = 100000;
 constexpr ::std::size_t inout1_offset = 3;
 constexpr ::std::size_t inout2_offset = 5;
 constexpr ::std::size_t inout3_offset = 7;
+constexpr ::std::size_t inout4_offset = 9;
 
 } /* namespace TestUtils */
 

@@ -117,11 +117,7 @@ namespace experimental {
       }
     }
 
-    //
-    // Support for property queries
-    //
-
-    auto query(oneapi::dpl::experimental::property::universe_t) noexcept {
+    auto get_universe()  noexcept {
       std::unique_lock<std::mutex> l(global_rank_mutex_);
       if (global_rank_.empty()) {
         auto devices = sycl::device::get_devices();
@@ -132,9 +128,9 @@ namespace experimental {
       return global_rank_;
     }
 
-    auto query(oneapi::dpl::experimental::property::universe_size_t) noexcept {
+    auto get_universe_size() noexcept {
       if (global_rank_.empty()) {
-        query(oneapi::dpl::experimental::property::universe);
+        global_rank_=get_universe();
       }
       {
         std::unique_lock<std::mutex> l(global_rank_mutex_);
@@ -142,7 +138,7 @@ namespace experimental {
       }
     }
 
-    auto report(oneapi::dpl::experimental::property::universe_t, const universe_container_t &gr) noexcept {
+    auto set_universe(const universe_container_t &gr) noexcept {
       std::unique_lock<std::mutex> l(global_rank_mutex_);
       global_rank_ = gr;
     }

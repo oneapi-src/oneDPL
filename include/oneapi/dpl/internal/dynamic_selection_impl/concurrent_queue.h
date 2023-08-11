@@ -13,7 +13,7 @@
 
 #include <queue>
 #include <mutex>
-#include <list>
+#include <deque>
 #include <condition_variable>
 
 namespace oneapi {
@@ -33,13 +33,13 @@ namespace util{
                 cond_.wait(mlock);
             }
             item = queue_.front();
-            queue_.pop();
+            queue_.pop_front();
         }
 
         void push(T item)
         {
             std::unique_lock<std::mutex> mlock(mutex_);
-            queue_.push(item);
+            queue_.push_back(item);
             mlock.unlock();
             cond_.notify_one();
         }
@@ -47,12 +47,7 @@ namespace util{
         void pop_all(std::list<T>& item_list)
         {
             std::unique_lock<std::mutex> mlock(mutex_);
-            while(!queue_.empty()){
-                auto item = queue_.front();
-                queue_.pop();
-                item_list.push_back(item);
-
-            }
+            item_list.insert(item_list.begin(),std::make_move_iterator(queue_.begin()), std::make_move_iterator(queue_.end()));
         }
 
         bool empty(){
@@ -64,7 +59,7 @@ namespace util{
         concurrent_queue& operator=(const concurrent_queue& q) = delete;
 
     private:
-        std::queue<T> queue_;
+        std::deque<T> queue_;
         std::mutex mutex_;
         std::condition_variable cond_;
     };

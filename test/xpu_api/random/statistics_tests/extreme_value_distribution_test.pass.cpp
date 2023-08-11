@@ -41,8 +41,8 @@ statistics_check(int nsamples, ScalarRealType _a, ScalarRealType _b, const std::
     const double y = 0.5772156649015328606065120;
     const double pi = 3.1415926535897932384626433;
     double tM = _a + _b * y;
-    double tD = pi * pi / 6 * _b * _b;
-    double tQ = 27 / 5 * tD * tD;
+    double tD = pi * pi / 6.0 * _b * _b;
+    double tQ = 27.0 / 5.0 * tD * tD;
 
     return compare_moments(nsamples, samples, tM, tD, tQ);
 }
@@ -94,7 +94,7 @@ test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> _a,  on
 
 template <class RealType, class UIntType>
 int
-test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> _a,  oneapi::dpl::internal::element_type_t<RealType> _b, 
+test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> _a,  oneapi::dpl::internal::element_type_t<RealType> _b,
                     int nsamples, unsigned int part)
 {
     // memory allocation

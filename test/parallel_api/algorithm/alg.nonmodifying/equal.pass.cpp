@@ -26,7 +26,7 @@ struct UserType
 {
     size_t key;
     float32_t f;
-    float64_t d;
+    std::uint64_t u;
     std::int32_t i;
 
     bool
@@ -77,20 +77,20 @@ struct UserType
         return stream;
     }
 
-    UserType() : key(-1), f(0.0f), d(0.0), i(0) {}
-    UserType(size_t Number) : key(Number), f(0.0f), d(0.0), i(0) {}
+    UserType() : key(-1), f(0.0f), u(0), i(0) {}
+    UserType(size_t Number) : key(Number), f(0.0f), u(0), i(0) {}
     UserType&
     operator=(const UserType& other)
     {
         key = other.key;
         return *this;
     }
-    UserType(const UserType& other) : key(other.key), f(other.f), d(other.d), i(other.i) {}
-    UserType(UserType&& other) : key(other.key), f(other.f), d(other.d), i(other.i)
+    UserType(const UserType& other) : key(other.key), f(other.f), u(other.u), i(other.i) {}
+    UserType(UserType&& other) : key(other.key), f(other.f), u(other.u), i(other.i)
     {
         other.key = -1;
         other.f = 0.0f;
-        other.d = 0.0;
+        other.u = 0;
         other.i = 0;
     }
 };

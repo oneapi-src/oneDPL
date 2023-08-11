@@ -17,6 +17,7 @@ The following variables are provided for oneDPL configuration:
 | ONEDPL_ENABLE_SIMD           | BOOL   | Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported; the flag is passed to user project compilation string if enabled | ON           |
 | ONEDPL_AOT_ARCH              | STRING | Architecture options for ahead-of-time compilation, supported values can be found [here](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html)                                                                                            | "*" for GPU device and "avx" for CPU device |
 | ONEDPL_TEST_EXPLICIT_KERNEL_NAMES   | STRING | Control kernel naming. Affects only oneDPL test targets. Supported values: AUTO, ALWAYS. AUTO: rely on the compiler if "Unnamed SYCL lambda kernels" feature is on, otherwise provide kernel names explicitly; ALWAYS: provide kernel names explicitly | AUTO          |
+| ONEDPL_TEST_WIN_ICX_FIXES     | BOOL   | Affects only oneDPL test targets.  Enable icx, icx-cl workarounds to fix issues in CMake for Windows.                      | ON            |
 
 Some useful CMake variables ([here](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) you can find a full list of CMake variables for the latest version):
 
@@ -100,6 +101,28 @@ Use `ONEDPL_PAR_BACKEND` variable before the invocation of `find_package(oneDPL 
 - Macro `ONEDPL_USE_OPENMP_BACKEND` is set to `0` if oneTBB backend is chosen.
 - Macro `ONEDPL_USE_TBB_BACKEND` is set to `0` if OpenMP backend is chosen.
 - Macro `ONEDPL_USE_TBB_BACKEND` is set to `0` and `ONEDPL_USE_OPENMP_BACKEND` is set to `0` if serial backend is chosen.
+
+### Using oneDPL package on Windows
+On Windows, CMake requires some workarounds to use icx[-cl] successfully.  A CMake package has been provided 'oneDPLWindowsIntelLLVM' to apply these required workarounds.
+Some workarounds are provided for icpx, but it is not fully supported on Windows at this time.  We also recommend updating to the most recent version of CMake, as they are actively improving support for Intel compilers (https://gitlab.kitware.com/cmake/cmake/-/issues/24314).
+To enable the workarounds, please add `find_package(oneDPLWindowsIntelLLVM)` to your cmake file before you call `project()`.  If using oneDPL from source files, you must add oneDPL's cmake directory to your `CMAKE_PREFIX_PATH` to allow CMake to find `oneDPLWindowsIntelLLVM`. 
+
+For example:
+
+```cmake
+list(APPEND CMAKE_PREFIX_PATH /path/to/oneDPL/cmake)
+find_package(oneDPLWindowsIntelLLVM)
+project(Foo)
+add_executable(foo foo.cpp)
+
+# Specify oneDPL backend
+set(ONEDPL_BACKEND tbb)
+
+# Add oneDPL to the build.
+add_subdirectory(/path/to/oneDPL build_oneDPL)
+```
+
+Finally, the supported generator in the Windows environment is Ninja, we recommend using `-GNinja` in your cmake configuration.
 
 ### oneDPLConfig files generation
 
