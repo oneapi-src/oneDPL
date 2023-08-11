@@ -211,7 +211,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
             simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);
             #pragma unroll
             for (uint32_t s = 0; s<_DataPerWorkItem; s+=CHUNK_SIZE) {
-                sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
+                __ESIMD_NS::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
                 keys.template select<CHUNK_SIZE, 1>(s) = lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset);
             }
         }
@@ -222,7 +222,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
             for (uint32_t s = 0; s<_DataPerWorkItem; s+=CHUNK_SIZE) {
                 simd_mask<CHUNK_SIZE> m = (io_offset+lane_id+s)<n;
 
-                sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
+                __ESIMD_NS::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
                 keys.template select<CHUNK_SIZE, 1>(s) =
                     merge(
                         lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m),
