@@ -28,7 +28,7 @@ template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPer
           ::std::uint16_t _WorkGroupSize, typename _KeyT, typename InputT>
 void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input) {
     using namespace sycl;
-    using namespace __ESIMD_NS;
+    using namespace __dpl_esimd_ns;
     using namespace __ESIMD_ENS;
 
     using bin_t = uint16_t;

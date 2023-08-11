@@ -23,7 +23,7 @@ template <typename _KeyT, typename InputT, uint32_t _RadixBits, uint32_t STAGES,
           uint32_t WORK_GROUP_SIZE, bool _IsAscending>
 void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset) {
     using namespace sycl;
-    using namespace __ESIMD_NS;
+    using namespace __dpl_esimd_ns;
     using namespace __ESIMD_ENS;
 
     using bin_t = uint16_t;
@@ -124,18 +124,20 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
 }
 
 template <uint32_t BITS>
-inline __ESIMD_NS::simd<uint32_t, 32> match_bins(__ESIMD_NS::simd<uint32_t, 32> bins, uint32_t local_tid) {
+inline __dpl_esimd_ns::simd<uint32_t, 32>
+match_bins(__dpl_esimd_ns::simd<uint32_t, 32> bins, uint32_t local_tid)
+{
     //instruction count is 5*BITS, so 40 for 8 bits.
     //performance is about 2 u per bit for processing size 512 (will call this 16 times)
     // per bits 5 inst * 16 segments * 4 stages = 320 instructions, * 8 threads = 2560, /1.6G = 1.6 us.
     // 8 bits is 12.8 us
-    using namespace __ESIMD_NS;
+    using namespace __dpl_esimd_ns;
     fence<fence_mask::sw_barrier>();
     simd<uint32_t, 32> matched_bins(0xffffffff);
     #pragma unroll
     for (int i = 0; i<BITS; i++) {
         simd<uint32_t, 32> bit = (bins >> i) & 1;// and
-        simd<uint32_t, 32> x = __ESIMD_NS::merge<uint32_t, 32>(0, -1, bit!=0); // sel
+        simd<uint32_t, 32> x = __dpl_esimd_ns::merge<uint32_t, 32>(0, -1, bit != 0); // sel
         uint32_t ones = pack_mask(bit!=0);// mov
         matched_bins = matched_bins & (x ^ ones); // bfn
     }
@@ -149,17 +151,21 @@ struct slm_lookup_t {
     inline slm_lookup_t(uint32_t slm): slm(slm) {}
 
     template <int TABLE_SIZE>
-    inline void setup (__ESIMD_NS::simd<T, TABLE_SIZE> source) SYCL_ESIMD_FUNCTION {
+    inline void
+    setup(__dpl_esimd_ns::simd<T, TABLE_SIZE> source) SYCL_ESIMD_FUNCTION
+    {
         utils::BlockStore<T, TABLE_SIZE>(slm, source);
     }
 
     template <int N, typename IDX>
     inline auto lookup (IDX idx) SYCL_ESIMD_FUNCTION {
-        return utils::VectorLoad<T, 1, N>(slm+__ESIMD_NS::simd<uint32_t, N>(idx)*sizeof(T));
+        return utils::VectorLoad<T, 1, N>(slm + __dpl_esimd_ns::simd<uint32_t, N>(idx) * sizeof(T));
     }
 
     template <int N, int TABLE_SIZE, typename IDX>
-    inline auto lookup (__ESIMD_NS::simd<T, TABLE_SIZE> source, IDX idx) SYCL_ESIMD_FUNCTION {
+    inline auto
+    lookup(__dpl_esimd_ns::simd<T, TABLE_SIZE> source, IDX idx) SYCL_ESIMD_FUNCTION
+    {
         setup(source);
         return lookup<N>(idx);
     }
@@ -200,8 +206,10 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     radix_sort_onesweep_slm_reorder_kernel(uint32_t n, uint32_t stage, InputT input, OutputT output, uint8_t *p_global_buffer):
         n(n), stage(stage), input(input), output(output), p_global_buffer(p_global_buffer) {}
 
-    inline void LoadKeys(uint32_t io_offset, __ESIMD_NS::simd<_KeyT, _DataPerWorkItem> &keys, _KeyT default_key) const {
-        using namespace __ESIMD_NS;
+    inline void
+    LoadKeys(uint32_t io_offset, __dpl_esimd_ns::simd<_KeyT, _DataPerWorkItem>& keys, _KeyT default_key) const
+    {
+        using namespace __dpl_esimd_ns;
         using namespace __ESIMD_ENS;
         bool is_full_block = (io_offset+_DataPerWorkItem) < n;
         if (is_full_block) {
@@ -209,7 +217,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
             #pragma unroll
             for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
             {
-                sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
+                __dpl_esimd_ns::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
                 keys.template select<DATA_PER_STEP, 1>(s) = lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, DATA_PER_STEP>(input, offset);
             }
         }
@@ -221,7 +229,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
             {
                 simd_mask<DATA_PER_STEP> m = (io_offset + lane_id + s) < n;
 
-                sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
+                __dpl_esimd_ns::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
                 keys.template select<DATA_PER_STEP, 1>(s) =
                     merge(
                         lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, DATA_PER_STEP>(input, offset, m),
@@ -235,8 +243,10 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         utils::BlockStore<hist_t, BIN_COUNT>(slm_bin_hist_this_thread, 0);
     }
 
-    inline auto RankSLM(__ESIMD_NS::simd<bin_t, _DataPerWorkItem> bins, uint32_t slm_counter_offset, uint32_t local_tid) const {
-        using namespace __ESIMD_NS;
+    inline auto
+    RankSLM(__dpl_esimd_ns::simd<bin_t, _DataPerWorkItem> bins, uint32_t slm_counter_offset, uint32_t local_tid) const
+    {
+        using namespace __dpl_esimd_ns;
         using namespace __ESIMD_ENS;
 
         constexpr int BinsPerStep = 32;
@@ -267,12 +277,12 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     inline void UpdateGroupRank(
         uint32_t local_tid,
         uint32_t wg_id,
-        __ESIMD_NS::simd<hist_t, BIN_COUNT> &subgroup_offset,
-        __ESIMD_NS::simd<global_hist_t, BIN_COUNT> &global_fix,
+        __dpl_esimd_ns::simd<hist_t, BIN_COUNT> &subgroup_offset,
+        __dpl_esimd_ns::simd<global_hist_t, BIN_COUNT> &global_fix,
         global_hist_t *p_global_bin_prev_group,
         global_hist_t *p_global_bin_this_group
         ) const {
-        using namespace __ESIMD_NS;
+        using namespace __dpl_esimd_ns;
         using namespace __ESIMD_ENS;
         /*
         first do column scan by group, each thread do 32c,
@@ -349,7 +359,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
 
 
     void operator() (sycl::nd_item<1> idx) const SYCL_ESIMD_KERNEL {
-        using namespace __ESIMD_NS;
+        using namespace __dpl_esimd_ns;
         using namespace __ESIMD_ENS;
 
         slm_init(128*1024);
@@ -557,7 +567,7 @@ sycl::event
 onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
 {
     using namespace sycl;
-    using namespace __ESIMD_NS;
+    using namespace __dpl_esimd_ns;
 
     using _KeyT = oneapi::dpl::__internal::__value_t<_Range>;
 

@@ -25,6 +25,8 @@ namespace oneapi::dpl::experimental::kt::esimd::impl
 {
 constexpr int DATA_PER_STEP = 16;
 
+namespace __dpl_esimd_ns = sycl::ext::intel::esimd;
+
 namespace utils
 {
 
