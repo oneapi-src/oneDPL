@@ -24,13 +24,13 @@ int test_properties(UniverseContainer u, typename UniverseContainer::value_type 
 
   my_policy_t p{u};
 
-  auto u2 = oneapi::dpl::experimental::property::query(p, oneapi::dpl::experimental::property::universe);
+  auto u2 = oneapi::dpl::experimental::get_universe(p);
   auto u2s = u2.size();
   if (!std::equal(std::begin(u2), std::end(u2), std::begin(u))) {
     std::cout << "ERROR: reported universe and queried universe are not equal\n";
     return 1;
   }
-  auto us = oneapi::dpl::experimental::property::query(p, oneapi::dpl::experimental::property::universe_size);
+  auto us = oneapi::dpl::experimental::get_universe_size(p);
   if (u2s != us) {
     std::cout << "ERROR: queried universe size inconsistent with queried universe\n";
     return 1;

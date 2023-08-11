@@ -21,18 +21,6 @@ namespace experimental {
 //ds_properties
 
   namespace property {
-    struct universe_t {
-      static constexpr bool is_property_v = true;
-      static constexpr bool can_report_v = false;
-    };
-    inline constexpr universe_t universe;
-
-    struct universe_size_t {
-      static constexpr bool is_property_v = true;
-      static constexpr bool can_report_v = false;
-    };
-    inline constexpr universe_size_t universe_size;
-
     struct task_completion_t {
       static constexpr bool is_property_v = true;
       static constexpr bool can_report_v = true;
@@ -73,6 +61,21 @@ namespace experimental {
   } //namespace property
 
 //ds_algorithms
+  template<typename DSPolicy>
+  auto get_universe(DSPolicy&& dp) {
+    return std::forward<DSPolicy>(dp).get_universe();
+  }
+
+  template<typename DSPolicy>
+  auto get_universe_size(DSPolicy&& dp) {
+    return std::forward<DSPolicy>(dp).get_universe_size();
+  }
+
+  template<typename DSPolicy, typename ...Args>
+  auto set_universe(DSPolicy&& dp, Args&&... args) {
+    return std::forward<DSPolicy>(dp).get_universe(std::forward<Args>(args)...);
+  }
+
   template<typename Handle>
   auto wait(Handle&& h) {
     return std::forward<Handle>(h).wait();
@@ -96,85 +99,67 @@ namespace experimental {
   }
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto invoke_async(DSPolicy&& dp, Function&&f, Args&&... args) {
-    return std::forward<DSPolicy>(dp).invoke_async(std::forward<Function>(f), std::forward<Args>(args)...);
-  }
-
-  template<typename DSPolicy, typename Function, typename... Args>
-  auto invoke(DSPolicy&& dp, Function&&f, Args&&... args) {
-    return wait(invoke_async(std::forward<DSPolicy>(dp), std::forward<Function>(f), std::forward<Args>(args)...));
-  }
-
-  template<typename DSPolicy, typename Function, typename... Args>
   auto invoke_async(DSPolicy&& dp, typename DSPolicy::selection_handle_t e, Function&&f, Args&&... args) {
     return std::forward<DSPolicy>(dp).invoke_async(e, std::forward<Function>(f), std::forward<Args>(args)...);
   }
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto invoke(DSPolicy&& dp, typename DSPolicy::selection_handle_t e, Function&&f, Args&&... args) {
-    return wait(invoke_async(std::forward<DSPolicy>(dp), e, std::forward<Function>(f), std::forward<Args>(args)...));
+  auto has_invoke_async_impl(...) -> std::false_type;
+
+  template<typename DSPolicy, typename Function, typename... Args>
+  auto has_invoke_async_impl(int) -> decltype(std::declval<DSPolicy>().invoke_async(std::declval<Function>(), std::declval<Args>()...), std::true_type{});
+
+  template<typename DSPolicy, typename Function, typename... Args>
+  struct has_invoke_async : decltype(has_invoke_async_impl<DSPolicy, Function, Args...>(0)) {};
+
+  template<typename DSPolicy, typename Function, typename... Args>
+  auto invoke_async(DSPolicy&& dp, Function&&f, Args&&... args) {
+    if constexpr(has_invoke_async<DSPolicy, Function, Args...>::value == true) {
+        return std::forward<DSPolicy>(dp).invoke_async(std::forward<Function>(f), std::forward<Args>(args)...);
+    }
+    else {
+        return invoke_async(std::forward<DSPolicy>(dp), std::forward<DSPolicy>(dp).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
+    }
   }
-//ds_policy
 
-  template<typename ScoringPolicy>
-  struct policy {
-    using scoring_policy_t = ScoringPolicy;
-    using native_resource_t = typename scoring_policy_t::native_resource_t;
-    using native_sync_t = typename scoring_policy_t::native_sync_t;
-    using selection_handle_t = typename scoring_policy_t::selection_handle_t;
-    std::shared_ptr<ScoringPolicy> scoring_policy_;
 
-    template<typename... Args>
-    policy(Args&&... args) : scoring_policy_{std::make_shared<scoring_policy_t>(std::forward<Args>(args)...)} {}
+  template<typename DSPolicy, typename Function, typename... Args>
+  auto has_invoke_impl(...) -> std::false_type;
 
-    template<typename Property>
-    auto query(const Property &prop) const {
-      return const_cast<const scoring_policy_t &>(*scoring_policy_).query(prop);
+  template<typename DSPolicy, typename Function, typename... Args>
+  auto has_invoke_impl(int) -> decltype(std::declval<DSPolicy>().invoke(std::declval<Function>(), std::declval<Args>()...), std::true_type{});
+
+  template<typename DSPolicy, typename Function, typename... Args>
+  struct has_invoke : decltype(has_invoke_impl<DSPolicy, Function, Args...>(0)) {};
+
+  template<typename DSPolicy, typename Function, typename... Args>
+  auto invoke(DSPolicy&& dp, Function&&f, Args&&... args) {
+    if constexpr(has_invoke<DSPolicy, Function, Args...>::value == true) {
+        return std::forward<DSPolicy>(dp).invoke(std::forward<Function>(f), std::forward<Args>(args)...);
     }
-
-    template<typename Property, typename Other>
-    auto query(const Property &prop, const Other &other) const {
-      return const_cast<const scoring_policy_t &>(*scoring_policy_).query(prop, other);
+    else{
+        return wait(std::forward<DSPolicy>(dp).invoke_async(std::forward<DSPolicy>(dp).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...));
     }
+  }
 
-    template<typename Property, typename Value>
-    auto report(const Property &prop, const Value &value) const {
-      return const_cast<const scoring_policy_t &>(*scoring_policy_).report(prop, value);
-    }
 
-    template<typename ...Args>
-    auto select(Args&&... args) {
-      return scoring_policy_->select(std::forward<Args>(args)...);
-    }
+  template<typename DSPolicy, typename SelectionHandle,  typename Function, typename... Args>
+  auto has_invoke_handle_impl(...) -> std::false_type;
 
-    template<typename Function, typename ...Args>
-    auto invoke_async(Function&& f, Args&&... args) {
-      return scoring_policy_->invoke_async(std::forward<Function>(f), std::forward<Args>(args)...);
-    }
+  template<typename DSPolicy, typename SelectionHandle,  typename Function, typename... Args>
+  auto has_invoke_handle_impl(int) -> decltype(std::declval<DSPolicy>().invoke(std::declval<SelectionHandle>(), std::declval<Function>(), std::declval<Args>()...), std::true_type{});
 
-    template<typename Function, typename ...Args>
-    auto invoke_async(selection_handle_t e, Function&& f, Args&&... args) {
-      return scoring_policy_->invoke_async(e, std::forward<Function>(f), std::forward<Args>(args)...);
-    }
+  template<typename DSPolicy, typename SelectionHandle, typename Function, typename... Args>
+  struct has_invoke_handle : decltype(has_invoke_handle_impl<DSPolicy, SelectionHandle , Function, Args...>(0)) {};
 
-    template<typename Function, typename ...Args>
-    auto invoke(Function&& f, Args&&... args) {
-      return scoring_policy_->invoke(std::forward<Function>(f), std::forward<Args>(args)...);
+  template<typename DSPolicy, typename Function, typename... Args>
+  auto invoke(DSPolicy&& dp, typename std::decay_t<DSPolicy>::selection_handle_t e, Function&&f, Args&&... args) {
+    if constexpr(has_invoke_handle<DSPolicy, typename std::decay_t<DSPolicy>::selection_handle_t, Function, Args...>::value == true) {
+        return std::forward<DSPolicy>(dp).invoke(e, std::forward<Function>(f), std::forward<Args>(args)...);
+    }else{
+        return wait(invoke_async(std::forward<DSPolicy>(dp), e, std::forward<Function>(f), std::forward<Args>(args)...));
     }
-
-    template<typename Function, typename ...Args>
-    auto invoke(selection_handle_t e, Function&& f, Args&&... args) {
-      return scoring_policy_->invoke(e, std::forward<Function>(f), std::forward<Args>(args)...);
-    }
-
-    auto get_wait_list(){
-      return scoring_policy_->get_wait_list();
-    }
-
-    auto wait() {
-      return scoring_policy_->wait();
-    }
-  };
+  }
 } // namespace experimental
 } // namespace dpl
 } // namespace oneapi

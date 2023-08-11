@@ -14,7 +14,7 @@
 
 #include <oneapi/dpl/algorithm>
 
-#include "support/utils_sycl.h"
+#include "support/utils.h"
 #include "support/test_iterators.h"
 
 #include <cassert>
@@ -91,5 +91,5 @@ main()
     kernel_test1<bidirectional_iterator<const int*>>(deviceQueue);
     kernel_test1<random_access_iterator<const int*>>(deviceQueue);
     kernel_test1<const int*>(deviceQueue);
-    return 0;
+    return TestUtils::done();
 }

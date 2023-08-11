@@ -12,8 +12,24 @@
 #
 ##===----------------------------------------------------------------------===##
 
-cmake_minimum_required(VERSION 3.4.3)
+if (CMAKE_HOST_WIN32)
+    # Requires version 3.20 for baseline support of icx, icx-cl
+    cmake_minimum_required(VERSION 3.20)
+else()
+    # Requires version 3.11 for use of icpc with c++17 requirement
+    cmake_minimum_required(VERSION 3.11)
+endif()
+
+# oneDPL is a subproject only when PARENT_DIRECTORY is defined
+get_directory_property(_onedpl_is_subproject PARENT_DIRECTORY)
+
+include(CMakeDependentOption)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
+option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation" OFF)
+option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
+cmake_dependent_option(ONEDPL_TEST_WIN_ICX_FIXES "Enable icx workarounds for Windows" ON "CMAKE_HOST_WIN32;NOT _onedpl_is_subproject" OFF)
 
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/oneapi/dpl/pstl/onedpl_config.h
     _onedpl_version_info
@@ -22,36 +38,26 @@ string(REGEX REPLACE ".*#define ONEDPL_VERSION_MAJOR ([0-9]+).*" "\\1" _onedpl_v
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_MINOR ([0-9]+).*" "\\1" _onedpl_ver_minor "${_onedpl_version_info}")
 string(REGEX REPLACE ".*#define ONEDPL_VERSION_PATCH ([0-9]+).*" "\\1" _onedpl_ver_patch "${_onedpl_version_info}")
 
-# CMAKE_CXX_COMPILER and CMAKE_CXX_COMPILER_VERSION cannot be used because
+# CMAKE_CXX_COMPILER_ID and CMAKE_CXX_COMPILER_VERSION cannot be used because
 # CMake 3.19 and older will detect IntelLLVM compiler as CLang with CLang-specific version, see https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html
 if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp|icx-cl|icpx|icx)(.exe)?$")
     set(INTEL_LLVM_COMPILER TRUE)
     execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE INTEL_LLVM_COMPILER_VERSION_RAW)
     string(REGEX MATCH "[0-9][0-9][0-9][0-9]\\.[0-9]\\.[0-9]" INTEL_LLVM_COMPILER_VERSION ${INTEL_LLVM_COMPILER_VERSION_RAW})
-    if (CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|icx-cl|icx)(.exe)?$")
-        set(INTEL_LLVM_COMPILER_MSVC_LIKE TRUE)
-        set(MSVC TRUE)
-    else()
-        set(INTEL_LLVM_COMPILER_GNU_LIKE TRUE)
-    endif()
+else()
+    set(INTEL_LLVM_COMPILER FALSE)
 endif()
 
-if (WIN32 AND INTEL_LLVM_COMPILER_GNU_LIKE)
-    set(CMAKE_CXX_FLAGS_DEBUG_INIT "-O0")
-    set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "-O2 -DNDEBUG")
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG_INIT "/debug")
-    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO_INIT "/debug")
-
-    #CMake does not properly handle IntelLLVM compilers with GNU-like front ends after 3.19,
-    if (NOT ${CMAKE_VERSION} VERSION_LESS "3.20")
-        message(WARNING "${CMAKE_CXX_COMPILER} requires a workaround to allow proper usage with CMake ${CMAKE_VERSION} on Windows. We recommend using CMAKE_CXX_COMPILER=icx or icx-cl on Windows.")
-        set(CMAKE_CXX_COMPILER_ID "IntelLLVM GNU-Like Workaround" CACHE STRING "Switch compiler identification" FORCE)
-        set(CMAKE_CXX_COMPILER_VERSION "${INTEL_LLVM_COMPILER_VERSION}" CACHE STRING "Switch compiler version" FORCE)
-        # Explicitly setting the c++17 standard compile option so that "target_compile_features()" check functions properly for this workaround
-        set(CMAKE_CXX_COMPILE_FEATURES cxx_std_17)
-        set(CMAKE_CXX17_COMPILE_FEATURES cxx_std_17)
-        set(CMAKE_CXX17_STANDARD_COMPILE_OPTION "-std=c++17")
+if (CMAKE_HOST_WIN32 AND INTEL_LLVM_COMPILER)
+    if (_onedpl_is_subproject)
+        # If oneDPL is a subproject, warn if workarounds are not included
+        if (NOT oneDPLWindowsIntelLLVM_FOUND)
+            message(WARNING "On Windows, ${CMAKE_CXX_COMPILER} requires some workarounds to function properly with CMake. Please see \"Using oneDPL package on Windows\" in oneDPL/cmake/README.md for more details.")
+        endif()
+    elseif(ONEDPL_TEST_WIN_ICX_FIXES)
+        #if oneDPL is not a subproject, automatically include workarounds
+        list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+        find_package(oneDPLWindowsIntelLLVM)
     endif()
 endif()
 
@@ -63,18 +69,32 @@ if (FIND_GXX_EXE)
     execute_process(COMMAND ${FIND_GXX_EXE} -dumpfullversion OUTPUT_VARIABLE _onedpl_gxx_version)
 endif()
 
-option(ONEDPL_FPGA_STATIC_REPORT "Enable the static report generation for the FPGA device" OFF)
-option(ONEDPL_USE_AOT_COMPILATION "Enable the ahead of time compilation via OCLOC compiler" OFF)
-option(ONEDPL_ENABLE_SIMD "Enable SIMD vectorization by passing an OpenMP SIMD flag to the compiler if supported" ON)
 
 include(CMakePackageConfigHelpers)
 include(CheckCXXCompilerFlag)
+include(CheckIncludeFileCXX)
 include(GNUInstallDirs)
 
-# Set default back-end in according with compiler (DPC++ or others)
+# Check SYCL support by the compiler
 check_cxx_compiler_flag("-fsycl" _fsycl_option)
+if (_fsycl_option)
+    CHECK_INCLUDE_FILE_CXX("sycl/sycl.hpp" _sycl_header "-fsycl")
+    if (NOT _sycl_header)
+        CHECK_INCLUDE_FILE_CXX("CL/sycl.hpp" _sycl_header_old "-fsycl")
+    endif()
+    if (_sycl_header OR _sycl_header_old)
+        set(_sycl_support TRUE)
+    endif()
+endif()
+
+# Exit with an error when DPCPP backend is explicitly set and SYCL is not supported
+if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$" AND NOT _sycl_support)
+    message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option or sycl.hpp is not available. It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
+endif()
+
+# Set the default backend if one has not been explicitly provided
 if (NOT ONEDPL_BACKEND)
-    if (_fsycl_option)
+    if (_sycl_support)
         set(ONEDPL_BACKEND "dpcpp" CACHE STRING "Threading backend")
     else()
         set(ONEDPL_BACKEND "tbb" CACHE STRING "Threading backend")
@@ -158,12 +178,8 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
         )
 
     if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
-        if (NOT _fsycl_option)
-            message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option.\n"
-            "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
-        endif()
         # Enable SYCL* with compilers/compiler drivers not passing -fsycl by default
-        if (_fsycl_option AND NOT CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp)(.exe)?$")
+        if (_sycl_support AND NOT CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp)(.exe)?$")
             message(STATUS "Adding -fsycl compiler option")
             set(USE_FSYCL_OPTION TRUE)
         endif()
@@ -282,28 +298,32 @@ elseif(ONEDPL_BACKEND MATCHES "^(serial)$")
     message(STATUS "Compilation for the host due to serial backend")
 
 elseif(ONEDPL_BACKEND MATCHES "^(omp)$")
-    if(UNIX)
-        set(_openmp_flag "-fopenmp")
-    else()
-        set(_openmp_flag "-Qopenmp")
-    endif()
-    set(_cmake_required_libraries ${CMAKE_REQUIRED_LIBRARIES})
-    set(CMAKE_REQUIRED_LIBRARIES ${_openmp_flag})
-    check_cxx_compiler_flag(${_openmp_flag} _openmp_option)
-    if (_openmp_option)
-        target_compile_options(oneDPL INTERFACE ${_openmp_flag})
-        target_link_libraries(oneDPL INTERFACE ${_openmp_flag})
+    find_package(OpenMP)
+    if (OpenMP_CXX_FOUND)
+        message(STATUS "Compilation for the host due to OpenMP backend.")
+        # Due to minor correctness issues with -fiopenmp / -Qiopenmp, we are using -fopenmp / -Qopenmp until they are corrected.
+        # Once correctness issues are resolved, we will limit this workaround to affected versions of specific compilers.
+        if (OpenMP_CXX_FLAGS MATCHES ".*-fiopenmp.*")
+            set(_openmp_flag -fopenmp)
+        elseif (OpenMP_CXX_FLAGS MATCHES ".*[-/]Qiopenmp.*")
+            set(_openmp_flag /Qopenmp)
+        endif()
+        if (_openmp_flag)
+            message(STATUS "Using ${_openmp_flag} for openMP")
+            target_compile_options(oneDPL INTERFACE ${_openmp_flag})
+            target_link_libraries(oneDPL INTERFACE ${_openmp_flag})
+        else()
+            target_link_libraries(oneDPL INTERFACE OpenMP::OpenMP_CXX)
+        endif()
         target_compile_definitions(oneDPL INTERFACE
             ONEDPL_USE_TBB_BACKEND=0
             ONEDPL_USE_DPCPP_BACKEND=0
             ONEDPL_USE_OPENMP_BACKEND=1
             )
-        message(STATUS "Compilation for the host due to OpenMP backend")
     else()
-        message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support ${_openmp_flag} option.\n"
+        message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support OpenMP.\n"
             "It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
     endif()
-    set(CMAKE_REQUIRED_LIBRARIES ${_cmake_required_libraries})
 
 else()
     message(STATUS "Using Parallel Policies, but not oneTBB/DPC++")
@@ -323,7 +343,6 @@ target_include_directories(oneDPL
 ###############################################################################
 # Setup tests
 ###############################################################################
-get_directory_property(_onedpl_is_subproject PARENT_DIRECTORY)
 if (NOT _onedpl_is_subproject)
     enable_testing()
     add_subdirectory(test)
@@ -337,3 +356,4 @@ install(CODE "set(SKIP_HEADERS_SUBDIR TRUE)")
 install(SCRIPT cmake/scripts/generate_config.cmake)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(DIRECTORY licensing DESTINATION ${CMAKE_INSTALL_DOCDIR})
+install(FILES cmake/oneDPLWindowsIntelLLVMApply.cmake cmake/oneDPLWindowsIntelLLVMConfig.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/oneDPL/)

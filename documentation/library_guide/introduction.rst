@@ -6,16 +6,16 @@ Policies <https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t>`_
 to enable parallelism on the host.
 
 The |onedpl_long| (|onedpl_short|) is implemented in accordance with the `oneDPL
-Specification <https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html>`_.
+Specification <https://spec.oneapi.io/versions/latest/elements/oneDPL/source/index.html>`_.
 
 To support heterogeneity, |onedpl_short| works with the DPC++ API. More information can be found in the
-`DPC++ Specification <https://spec.oneapi.com/versions/latest/elements/dpcpp/source/index.html#dpc>`_.
+`oneAPI Specification <https://spec.oneapi.io/versions/latest/elements/sycl/source/index.html>`_.
 
 Before You Begin
 ================
 
 Visit the |onedpl_short| `Release Notes
-<https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-dpcpp-library-release-notes.html>`_
+<https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-dpcpp-library-release-notes.html>`_
 page for:
 
 * Where to Find the Release
@@ -26,7 +26,7 @@ page for:
 * Known Issues and Limitations
 * Previous Release Notes 
 
-Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://software.intel.com/en-us/oneapi/base-kit>`_
+Install the `Intel® oneAPI Base Toolkit (Base Kit) <https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit.html#gs.xaontv>`_
 to use |onedpl_short|.
 
 All |onedpl_short| header files are in the ``oneapi/dpl`` directory. To use the |onedpl_short| API,
@@ -132,7 +132,7 @@ Build Your Code with |onedpl_short|
 Follow the steps below to build your code with |onedpl_short|:
 
 #. To build with the |dpcpp_cpp|, see the `Get Started with the Intel® oneAPI DPC++/C++ Compiler
-   <https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-dpcpp-compiler/top.html>`_
+   <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/current/overview.html>`_
    for details.
 #. Set the environment variables for |onedpl_short| and |onetbb_short|.
 #. To avoid naming device policy objects explicitly, add the ``-fsycl-unnamed-lambda`` option.
@@ -144,4 +144,4 @@ Below is an example of a command line used to compile code that contains
 
   dpcpp [-fsycl-unnamed-lambda] test.cpp [-ltbb|-fopenmp] -o test
 
-.. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://software.intel.com/content/www/us/en/develop/articles/intel-oneapi-threading-building-blocks-release-notes.html
+.. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-threading-building-blocks-release-notes.html
