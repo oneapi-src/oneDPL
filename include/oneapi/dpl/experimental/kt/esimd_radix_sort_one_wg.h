@@ -24,13 +24,12 @@
 
 namespace oneapi::dpl::experimental::kt::esimd::impl
 {
-
 template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
           ::std::uint16_t _WorkGroupSize, typename _KeyT, typename InputT>
 void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input) {
     using namespace sycl;
-    using namespace __ESIMD_NS;
-    using namespace __ESIMD_ENS;
+    using namespace __dpl_esimd_ns;
+    using namespace __dpl_esimd_ens;
 
     using bin_t = uint16_t;
     using hist_t = uint16_t;
@@ -62,15 +61,17 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input) {
     simd<device_addr_t, _DataPerWorkItem> write_addr;
     simd<_KeyT, _DataPerWorkItem> keys;
     simd<bin_t, _DataPerWorkItem> bins;
-    simd<device_addr_t, 16> lane_id(0, 1);
+    simd<device_addr_t, DATA_PER_STEP> lane_id(0, 1);
 
     device_addr_t io_offset = _DataPerWorkItem * local_tid;
 
     #pragma unroll
-    for (uint32_t s = 0; s<_DataPerWorkItem; s+=16) {
-        simd_mask<16> m = (io_offset+lane_id+s)<n;
-        keys.template select<16, 1>(s) = merge(utils::gather<_KeyT, 16>(input, lane_id, io_offset + s, m),
-                                               simd<_KeyT, 16>(utils::__sort_identity<_KeyT, _IsAscending>()), m);
+    for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+    {
+        simd_mask<DATA_PER_STEP> m = (io_offset + lane_id + s) < n;
+        keys.template select<DATA_PER_STEP, 1>(s) =
+            merge(utils::gather<_KeyT, DATA_PER_STEP>(input, lane_id, io_offset + s, m),
+                  simd<_KeyT, DATA_PER_STEP>(utils::__sort_identity<_KeyT, _IsAscending>()), m);
     }
 
     for (uint32_t stage=0; stage < STAGES; stage++) {
@@ -155,26 +156,30 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input) {
         }
 
         #pragma unroll
-        for (uint32_t s = 0; s<_DataPerWorkItem; s+=16) {
-            simd<uint16_t, 16> bins_uw = bins.template select<16, 1>(s);
-            write_addr.template select<16, 1>(s) += bin_offset.template iselect(bins_uw);
+        for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+        {
+            simd<uint16_t, DATA_PER_STEP> bins_uw = bins.template select<DATA_PER_STEP, 1>(s);
+            write_addr.template select<DATA_PER_STEP, 1>(s) += bin_offset.template iselect(bins_uw);
         }
 
         if (stage != STAGES - 1) {
             #pragma unroll
-            for (uint32_t s = 0; s<_DataPerWorkItem; s+=16) {
-                utils::VectorStore<_KeyT, 1, 16>(
-                    write_addr.template select<16, 1>(s)*sizeof(_KeyT) + slm_reorder_start,
-                    keys.template select<16, 1>(s));
+            for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+            {
+                utils::VectorStore<_KeyT, 1, DATA_PER_STEP>(
+                    write_addr.template select<DATA_PER_STEP, 1>(s) * sizeof(_KeyT) + slm_reorder_start,
+                    keys.template select<DATA_PER_STEP, 1>(s));
             }
             barrier();
             keys = utils::BlockLoad<_KeyT, _DataPerWorkItem>(slm_reorder_this_thread);
         }
     }
     #pragma unroll
-    for (uint32_t s = 0; s<_DataPerWorkItem; s+=16) {
-        utils::scatter<_KeyT, 16>(input, write_addr.template select<16, 1>(s), keys.template select<16, 1>(s),
-                                 write_addr.template select<16, 1>(s) < n);
+    for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+    {
+        utils::scatter<_KeyT, DATA_PER_STEP>(
+            input, write_addr.template select<DATA_PER_STEP, 1>(s), keys.template select<DATA_PER_STEP, 1>(s),
+            write_addr.template select<DATA_PER_STEP, 1>(s) < n);
     }
 }
 
