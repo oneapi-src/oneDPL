@@ -24,7 +24,7 @@ template <typename _KeyT, typename InputT, uint32_t _RadixBits, uint32_t STAGES,
 void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset) {
     using namespace sycl;
     using namespace __dpl_esimd_ns;
-    using namespace __ESIMD_ENS;
+    using namespace __dpl_esimd_ens;
 
     using bin_t = uint16_t;
     using hist_t = uint32_t;
@@ -210,7 +210,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     LoadKeys(uint32_t io_offset, __dpl_esimd_ns::simd<_KeyT, _DataPerWorkItem>& keys, _KeyT default_key) const
     {
         using namespace __dpl_esimd_ns;
-        using namespace __ESIMD_ENS;
+        using namespace __dpl_esimd_ens;
         bool is_full_block = (io_offset+_DataPerWorkItem) < n;
         if (is_full_block) {
             simd<uint32_t, DATA_PER_STEP> lane_id(0, 1);
@@ -247,7 +247,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     RankSLM(__dpl_esimd_ns::simd<bin_t, _DataPerWorkItem> bins, uint32_t slm_counter_offset, uint32_t local_tid) const
     {
         using namespace __dpl_esimd_ns;
-        using namespace __ESIMD_ENS;
+        using namespace __dpl_esimd_ens;
 
         constexpr int BinsPerStep = 32;
 
@@ -283,7 +283,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         global_hist_t *p_global_bin_this_group
         ) const {
         using namespace __dpl_esimd_ns;
-        using namespace __ESIMD_ENS;
+        using namespace __dpl_esimd_ens;
         /*
         first do column scan by group, each thread do 32c,
         then last row do exclusive scan as group incoming offset
@@ -360,7 +360,7 @@ struct radix_sort_onesweep_slm_reorder_kernel {
 
     void operator() (sycl::nd_item<1> idx) const SYCL_ESIMD_KERNEL {
         using namespace __dpl_esimd_ns;
-        using namespace __ESIMD_ENS;
+        using namespace __dpl_esimd_ens;
 
         slm_init(128*1024);
 

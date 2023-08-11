@@ -29,7 +29,7 @@ template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPer
 void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input) {
     using namespace sycl;
     using namespace __dpl_esimd_ns;
-    using namespace __ESIMD_ENS;
+    using namespace __dpl_esimd_ens;
 
     using bin_t = uint16_t;
     using hist_t = uint16_t;
