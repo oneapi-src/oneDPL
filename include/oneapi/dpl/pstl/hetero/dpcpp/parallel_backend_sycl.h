@@ -298,10 +298,16 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         using namespace ::oneapi::dpl::__internal;
         switch (__algo_type)
         {
-            case __algorithm_type::transform_scan:
-                return 32;
+            case __algorithm_type::partition:
+                return 1;
+            case __algorithm_type::unique:
+                return 2;
             case __algorithm_type::set_operation:
                 return 4;
+            case __algorithm_type::scan_copy:
+                return 16;
+            case __algorithm_type::transform_scan:
+                return 32;
             default:
                 return 16;
         }
@@ -314,8 +320,12 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         {
             case __algorithm_type::transform_scan:
                 return 128;
+            case __algorithm_type::scan_copy:
+                return 256;
+            case __algorithm_type::unique:
             case __algorithm_type::set_operation:
                 return 512;
+            case __algorithm_type::partition:
             default:
                 return ::std::numeric_limits<::std::size_t>::max();
         }
@@ -899,11 +909,11 @@ struct __invoke_single_group_copy_if
     }
 };
 
-template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _AlgoType, typename _CreateMaskOp,
           typename _CopyByMaskOp,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
-__parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n,
+__parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _AlgoType,
                      _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
 {
     using _ReduceOp = ::std::plus<_Size>;
@@ -912,7 +922,6 @@ __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __o
     using _MaskAssigner = unseq_backend::__mask_assigner<1>;
     using _DataAcc = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
     using _InitType = unseq_backend::__no_init_value<_Size>;
-    using _AlgoType = ::std::integral_constant<::oneapi::dpl::__internal::__algorithm_type, ::oneapi::dpl::__internal::__algorithm_type::scan_copy>;
 
     _Assigner __assign_op;
     _ReduceOp __reduce_op;
@@ -978,9 +987,10 @@ __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out
         using CreateOp = unseq_backend::__create_mask<_Pred, _Size>;
         using CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign,
                                                      /*inclusive*/ ::std::true_type, 1>;
+        using _AlgoType = ::std::integral_constant<::oneapi::dpl::__internal::__algorithm_type, ::oneapi::dpl::__internal::__algorithm_type::scan_copy>;
 
         return __parallel_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_InRng>(__in_rng),
-                                    ::std::forward<_OutRng>(__out_rng), __n, CreateOp{__pred}, CopyOp{});
+                                    ::std::forward<_OutRng>(__out_rng), __n, _AlgoType{}, CreateOp{__pred}, CopyOp{});
     }
 }
 

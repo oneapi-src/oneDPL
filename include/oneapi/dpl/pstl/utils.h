@@ -55,6 +55,8 @@ enum class __algorithm_type
     transform_scan,
     set_operation,
     scan_copy,
+    partition,
+    unique,
     other
 };
 

@@ -802,11 +802,11 @@ __pattern_mismatch(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __
 // copy_if
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Iterator1, typename _IteratorOrTuple, typename _CreateMaskOp,
+template <typename _ExecutionPolicy, typename _Iterator1, typename _IteratorOrTuple, typename _AlgoType, typename _CreateMaskOp,
           typename _CopyByMaskOp>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<
     _ExecutionPolicy, ::std::pair<_IteratorOrTuple, typename ::std::iterator_traits<_Iterator1>::difference_type>>
-__pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _IteratorOrTuple __output_first,
+__pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _IteratorOrTuple __output_first, _AlgoType,
                     _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
 {
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
@@ -824,7 +824,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
 
     auto __res =
         __par_backend_hetero::__parallel_scan_copy(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
-                                                   __buf2.all_view(), __n, __create_mask_op, __copy_by_mask_op);
+                                                   __buf2.all_view(), __n, _AlgoType{}, __create_mask_op, __copy_by_mask_op);
 
     ::std::size_t __num_copied = __res.get();
     return ::std::make_pair(__output_first + __n, __num_copied);
@@ -870,16 +870,17 @@ __pattern_partition_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterato
 
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
     using _ReduceOp = ::std::plus<_It1DifferenceType>;
+    using _AlgoType = ::std::integral_constant<::oneapi::dpl::__internal::__algorithm_type, ::oneapi::dpl::__internal::__algorithm_type::partition>;
 
     unseq_backend::__create_mask<_UnaryPredicate, _It1DifferenceType> __create_mask_op{__pred};
     unseq_backend::__partition_by_mask<_ReduceOp, /*inclusive*/ ::std::true_type> __copy_by_mask_op{_ReduceOp{}};
 
     auto __result = __pattern_scan_copy(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, 
         __par_backend_hetero::zip(
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result1),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result2)),
-        __create_mask_op, __copy_by_mask_op);
+        _AlgoType{}, __create_mask_op, __copy_by_mask_op);
 
     return ::std::make_pair(__result1 + __result.second, __result2 + (__last - __first - __result.second));
 }
@@ -893,6 +894,7 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_unique_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result_first,
                       _BinaryPredicate __pred, /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type)
 {
+    using _AlgoType = ::std::integral_constant<::oneapi::dpl::__internal::__algorithm_type, ::oneapi::dpl::__internal::__algorithm_type::unique>;
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
     unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, oneapi::dpl::__internal::__pstl_assign,
                                   /*inclusive*/ ::std::true_type, 1>
@@ -900,7 +902,7 @@ __pattern_unique_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 
     __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
         __not_pred<_BinaryPredicate>{__pred}};
 
-    auto __result = __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first,
+    auto __result = __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first, _AlgoType{},
                                         __create_mask_op, __copy_by_mask_op);
 
     return __result_first + __result.second;
