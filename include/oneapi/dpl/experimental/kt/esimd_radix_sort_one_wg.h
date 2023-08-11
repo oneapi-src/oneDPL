@@ -22,10 +22,6 @@
 #include <cstdint>
 #include <cassert>
 
-#ifndef DATA_PER_STEP
-#define DATA_PER_STEP 16
-#endif
-
 namespace oneapi::dpl::experimental::kt::esimd::impl
 {
 template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,

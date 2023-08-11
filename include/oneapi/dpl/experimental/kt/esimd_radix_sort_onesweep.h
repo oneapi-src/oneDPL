@@ -17,10 +17,6 @@
 
 #include <cstdint>
 
-#ifndef DATA_PER_STEP
-#define DATA_PER_STEP 16
-#endif
-
 namespace oneapi::dpl::experimental::kt::esimd::impl
 {
 template <typename _KeyT, typename InputT, uint32_t _RadixBits, uint32_t STAGES, uint32_t WORK_GROUPS,
