@@ -64,7 +64,12 @@ namespace experimental{
     };
 
     std::shared_ptr<scheduler_t> sched_;
-    std::shared_ptr<universe_container_t> universe_;
+
+    struct unit_t{
+        universe_container_t universe_;
+    };
+
+    std::shared_ptr<unit_t> unit_;
 
     dynamic_load_policy_impl() : sched_{std::make_shared<scheduler_t>()}  {
       auto u = property::query(*sched_, property::universe);
@@ -92,14 +97,6 @@ namespace experimental{
     //
     // Support for property queries
     //
-
-    auto query(oneapi::dpl::experimental::property::universe_t) const noexcept {
-      return oneapi::dpl::experimental::property::query(*sched_, property::universe);
-    }
-
-    auto query(oneapi::dpl::experimental::property::universe_size_t) const noexcept {
-      return property::query(*sched_, property::universe_size);
-    }
 
     auto query(oneapi::dpl::experimental::property::dynamic_load_t, typename scheduler_t::native_resource_t e) const noexcept {
       for (const auto& r : universe_) {
@@ -139,15 +136,6 @@ namespace experimental{
       return sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }
 
-    template<typename Function, typename ...Args>
-    auto invoke(Function&& f, Args&&... args) {
-      return wait_for_all(sched_->submit(select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...));
-    }
-
-    template<typename Function, typename ...Args>
-    auto invoke(selection_handle_t e, Function&& f, Args&&... args) {
-      return wait_for_all(sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...));
-    }
 
     auto get_wait_list() {
       return sched_->get_wait_list();
