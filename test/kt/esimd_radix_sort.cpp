@@ -371,6 +371,8 @@ can_run_test(sycl::queue q, KernelParam param)
 {
     const auto max_slm_size = q.get_device().template get_info<sycl::info::device::local_mem_size>();
     // skip tests with error: LLVM ERROR: SLM size exceeds target limits
+    // due to speculative kernel compilation and runtime nature of this functin,
+    // one might need to specify an option for split kernel compilation
     return sizeof(T) * param.data_per_workitem * param.workgroup_size < max_slm_size;
 }
 
@@ -409,8 +411,8 @@ int main()
             std::cerr << "Exception: " << exc.what() << std::endl;
             return EXIT_FAILURE;
         }
-#endif // TEST_DPCPP_BACKEND_PRESENT
     }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && run_test);
 }
