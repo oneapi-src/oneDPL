@@ -30,7 +30,7 @@ inline constexpr ::std::uint32_t size32 = sizeof(T);
 
 template <typename T, int N>
 void
-copy_from(const T* input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd<T, N>& values)
+copy_from(const T* input, ::std::uint32_t base_offset, __ESIMD_NS::simd<T, N>& values)
 {
     values.copy_from(input + base_offset);
 }
@@ -38,14 +38,14 @@ copy_from(const T* input, ::std::uint32_t base_offset, sycl::ext::intel::esimd::
 template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
 void
 copy_from(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, ::std::uint32_t base_offset,
-          sycl::ext::intel::esimd::simd<T, N>& values)
+          __ESIMD_NS::simd<T, N>& values)
 {
     values.copy_from(input, base_offset * size32<T>);
 }
 
 template <typename T, int N>
 void
-copy_to(T* output, ::std::uint32_t base_offset, const sycl::ext::intel::esimd::simd<T, N>& values)
+copy_to(T* output, ::std::uint32_t base_offset, const __ESIMD_NS::simd<T, N>& values)
 {
     values.copy_to(output + base_offset);
 }
@@ -53,65 +53,66 @@ copy_to(T* output, ::std::uint32_t base_offset, const sycl::ext::intel::esimd::s
 template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
 void
 copy_to(sycl::accessor<T, 1, Mode, sycl::target::device, P> output, ::std::uint32_t base_offset,
-        const sycl::ext::intel::esimd::simd<T, N>& values)
+        const __ESIMD_NS::simd<T, N>& values)
 {
     values.copy_to(output, base_offset * size32<T>);
 }
 
 template <typename T, int N>
-sycl::ext::intel::esimd::simd<T, N>
-gather(const T* input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset,
-       sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+__ESIMD_NS::simd<T, N>
+gather(const T* input, __ESIMD_NS::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset,
+       __ESIMD_NS::simd_mask<N> mask = 1)
 {
-    return sycl::ext::intel::esimd::gather(input + base_offset, offsets * size32<T>, mask);
+    return __ESIMD_NS::gather(input + base_offset, offsets * size32<T>, mask);
 }
 
 template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, ::std::enable_if_t<sizeof(T) <= sizeof(::std::uint32_t), int> = 0>
-sycl::ext::intel::esimd::simd<T, N>
-gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
-       ::std::uint32_t base_offset, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+__ESIMD_NS::simd<T, N>
+gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, __ESIMD_NS::simd<::std::uint32_t, N> offsets,
+       ::std::uint32_t base_offset, __ESIMD_NS::simd_mask<N> mask = 1)
 {
-    return sycl::ext::intel::esimd::gather<T>(input, offsets * size32<T>, base_offset * size32<T>, mask);
+    return __ESIMD_NS::gather<T>(input, offsets * size32<T>, base_offset * size32<T>, mask);
 }
 
 template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint64_t), int> = 0>
-sycl::ext::intel::esimd::simd<T, N>
+__ESIMD_NS::simd<T, N>
 gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input,
-       sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
+       __ESIMD_NS::simd<::std::uint32_t, N> offsets,
        ::std::uint32_t base_offset,
-       sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+       __ESIMD_NS::simd_mask<N> mask = 1)
 {
     return __ESIMD_ENS::lsc_gather<T>(input, offsets * size32<T> + base_offset * size32<T>, mask);
 }
 
 template <typename T, int N>
 void
-scatter(T* output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
-        sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+scatter(T* output, __ESIMD_NS::simd<::std::uint32_t, N> offsets,
+        __ESIMD_NS::simd<T, N> values, __ESIMD_NS::simd_mask<N> mask = 1)
 {
-    sycl::ext::intel::esimd::scatter(output, offsets * size32<T>, values, mask);
+    __ESIMD_NS::scatter(output, offsets * size32<T>, values, mask);
 }
 
 template<typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, ::std::enable_if_t<sizeof(T) <= sizeof(::std::uint32_t), int> = 0>
 void
-scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> output, sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
-        sycl::ext::intel::esimd::simd<T, N> values, sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> output, __ESIMD_NS::simd<::std::uint32_t, N> offsets,
+        __ESIMD_NS::simd<T, N> values, __ESIMD_NS::simd_mask<N> mask = 1)
 {
-    sycl::ext::intel::esimd::scatter(output, offsets * size32<T>, values, /*global_offset*/ 0, mask);
+    __ESIMD_NS::scatter(output, offsets * size32<T>, values, /*global_offset*/ 0, mask);
 }
 
 template<typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint64_t), int> = 0>
 void
 scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> output,
-        sycl::ext::intel::esimd::simd<::std::uint32_t, N> offsets,
-        sycl::ext::intel::esimd::simd<T, N> values,
-        sycl::ext::intel::esimd::simd_mask<N> mask = 1)
+        __ESIMD_NS::simd<::std::uint32_t, N> offsets,
+        __ESIMD_NS::simd<T, N> values,
+        __ESIMD_NS::simd_mask<N> mask = 1)
 {
     __ESIMD_ENS::lsc_scatter<T>(output, offsets * size32<T>, values, mask);
 }
 
 template <typename T, uint32_t R, uint32_t C>
-class simd2d : public sycl::ext::intel::esimd::simd<T, R*C> {
+class simd2d : public __ESIMD_NS::simd<T, R * C>
+{
     public:
         auto row(uint16_t r) {return this->template bit_cast_view<T, R, C>().row(r);}
         template <int SizeY, int StrideY, int SizeX, int StrideX>
@@ -162,10 +163,10 @@ inline __ESIMD_NS::simd<RT, 64> scan(__ESIMD_NS::simd<T, 64> src, const T init=0
 
 // get bits value (bucket) in a certain radix position
 template <::std::uint16_t __radix_mask, typename _T, int _N, std::enable_if_t<::std::is_unsigned_v<_T>, int> = 0>
-sycl::ext::intel::esimd::simd<::std::uint16_t, _N>
-__get_bucket(sycl::ext::intel::esimd::simd<_T, _N> __value, ::std::uint32_t __radix_offset)
+__ESIMD_NS::simd<::std::uint16_t, _N>
+__get_bucket(__ESIMD_NS::simd<_T, _N> __value, ::std::uint32_t __radix_offset)
 {
-    return sycl::ext::intel::esimd::simd<::std::uint16_t, _N>(__value >> __radix_offset) & __radix_mask;
+    return __ESIMD_NS::simd<::std::uint16_t, _N>(__value >> __radix_offset) & __radix_mask;
 }
 
 template <typename T, bool __is_ascending, std::enable_if_t<::std::is_integral_v<T>, int> = 0>
@@ -206,8 +207,8 @@ __sort_identity()
 }
 
 template <bool __is_ascending, int _N>
-sycl::ext::intel::esimd::simd<bool, _N>
-__order_preserving_cast(sycl::ext::intel::esimd::simd<bool, _N> __src)
+__ESIMD_NS::simd<bool, _N>
+__order_preserving_cast(__ESIMD_NS::simd<bool, _N> __src)
 {
     if constexpr (__is_ascending)
         return __src;
@@ -216,8 +217,8 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<bool, _N> __src)
 }
 
 template <bool __is_ascending, typename _UInt, int _N, std::enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
-sycl::ext::intel::esimd::simd<_UInt, _N>
-__order_preserving_cast(sycl::ext::intel::esimd::simd<_UInt, _N> __src)
+__ESIMD_NS::simd<_UInt, _N>
+__order_preserving_cast(__ESIMD_NS::simd<_UInt, _N> __src)
 {
     if constexpr (__is_ascending)
         return __src;
@@ -227,8 +228,8 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_UInt, _N> __src)
 
 template <bool __is_ascending, typename _Int, int _N,
           std::enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
-sycl::ext::intel::esimd::simd<::std::make_unsigned_t<_Int>, _N>
-__order_preserving_cast(sycl::ext::intel::esimd::simd<_Int, _N> __src)
+__ESIMD_NS::simd<::std::make_unsigned_t<_Int>, _N>
+__order_preserving_cast(__ESIMD_NS::simd<_Int, _N> __src)
 {
     using _UInt = ::std::make_unsigned_t<_Int>;
     // mask: 100..0 for ascending, 011..1 for descending
@@ -239,46 +240,46 @@ __order_preserving_cast(sycl::ext::intel::esimd::simd<_Int, _N> __src)
 
 template <bool __is_ascending, typename _Float, int _N,
           std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
-sycl::ext::intel::esimd::simd<::std::uint32_t, _N>
-__order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
+__ESIMD_NS::simd<::std::uint32_t, _N>
+__order_preserving_cast(__ESIMD_NS::simd<_Float, _N> __src)
 {
-    sycl::ext::intel::esimd::simd<::std::uint32_t, _N> __uint32_src = __src.template bit_cast_view<::std::uint32_t>();
-    sycl::ext::intel::esimd::simd<::std::uint32_t, _N> __mask;
-    sycl::ext::intel::esimd::simd_mask<_N> __sign_bit_m = (__uint32_src >> 31 == 0);
+    __ESIMD_NS::simd<::std::uint32_t, _N> __uint32_src = __src.template bit_cast_view<::std::uint32_t>();
+    __ESIMD_NS::simd<::std::uint32_t, _N> __mask;
+    __ESIMD_NS::simd_mask<_N> __sign_bit_m = (__uint32_src >> 31 == 0);
     if constexpr (__is_ascending)
     {
-        __mask = sycl::ext::intel::esimd::merge(
-            sycl::ext::intel::esimd::simd<::std::uint32_t, _N>(0x80000000u),
-            sycl::ext::intel::esimd::simd<::std::uint32_t, _N>(0xFFFFFFFFu), __sign_bit_m);
+        __mask = __ESIMD_NS::merge(
+            __ESIMD_NS::simd<::std::uint32_t, _N>(0x80000000u),
+            __ESIMD_NS::simd<::std::uint32_t, _N>(0xFFFFFFFFu), __sign_bit_m);
     }
     else
     {
-        __mask = sycl::ext::intel::esimd::merge(
-            sycl::ext::intel::esimd::simd<::std::uint32_t, _N>(0x7FFFFFFFu),
-            sycl::ext::intel::esimd::simd<::std::uint32_t, _N>(::std::uint32_t(0)), __sign_bit_m);
+        __mask = __ESIMD_NS::merge(
+            __ESIMD_NS::simd<::std::uint32_t, _N>(0x7FFFFFFFu),
+            __ESIMD_NS::simd<::std::uint32_t, _N>(::std::uint32_t(0)), __sign_bit_m);
     }
     return __uint32_src ^ __mask;
 }
 
 template <bool __is_ascending, typename _Float, int _N,
           std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t), int> = 0>
-sycl::ext::intel::esimd::simd<::std::uint64_t, _N>
-__order_preserving_cast(sycl::ext::intel::esimd::simd<_Float, _N> __src)
+__ESIMD_NS::simd<::std::uint64_t, _N>
+__order_preserving_cast(__ESIMD_NS::simd<_Float, _N> __src)
 {
-    sycl::ext::intel::esimd::simd<::std::uint64_t, _N> __uint64_src = __src.template bit_cast_view<::std::uint64_t>();
-    sycl::ext::intel::esimd::simd<::std::uint64_t, _N> __mask;
-    sycl::ext::intel::esimd::simd_mask<_N> __sign_bit_m = (__uint64_src >> 63 == 0);
+    __ESIMD_NS::simd<::std::uint64_t, _N> __uint64_src = __src.template bit_cast_view<::std::uint64_t>();
+    __ESIMD_NS::simd<::std::uint64_t, _N> __mask;
+    __ESIMD_NS::simd_mask<_N> __sign_bit_m = (__uint64_src >> 63 == 0);
     if constexpr (__is_ascending)
     {
-        __mask = sycl::ext::intel::esimd::merge(
-            sycl::ext::intel::esimd::simd<::std::uint64_t, _N>(0x8000000000000000u),
-            sycl::ext::intel::esimd::simd<::std::uint64_t, _N>(0xFFFFFFFFFFFFFFFFu), __sign_bit_m);
+        __mask = __ESIMD_NS::merge(
+            __ESIMD_NS::simd<::std::uint64_t, _N>(0x8000000000000000u),
+            __ESIMD_NS::simd<::std::uint64_t, _N>(0xFFFFFFFFFFFFFFFFu), __sign_bit_m);
     }
     else
     {
-        __mask = sycl::ext::intel::esimd::merge(
-            sycl::ext::intel::esimd::simd<::std::uint64_t, _N>(0x7FFFFFFFFFFFFFFFu),
-            sycl::ext::intel::esimd::simd<::std::uint64_t, _N>(::std::uint64_t(0)), __sign_bit_m);
+        __mask = __ESIMD_NS::merge(
+            __ESIMD_NS::simd<::std::uint64_t, _N>(0x7FFFFFFFFFFFFFFFu),
+            __ESIMD_NS::simd<::std::uint64_t, _N>(::std::uint64_t(0)), __sign_bit_m);
     }
     return __uint64_src ^ __mask;
 }
