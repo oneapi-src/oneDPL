@@ -23,8 +23,8 @@ template <typename _KeyT, typename InputT, uint32_t _RadixBits, uint32_t STAGES,
           uint32_t WORK_GROUP_SIZE, bool _IsAscending>
 void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t *p_global_offset) {
     using namespace sycl;
-    using namespace __ESIMD_NS;
-    using namespace __ESIMD_ENS;
+    using namespace __dpl_esimd_ns;
+    using namespace __dpl_esimd_ens;
 
     using bin_t = uint16_t;
     using hist_t = uint32_t;
@@ -77,7 +77,6 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
             }
             else
             {
-                constexpr uint8_t DATA_PER_STEP = 16;
                 simd<uint32_t, DATA_PER_STEP> lane_offsets(0, 1);
                 #pragma unroll
                 for (uint32_t step_offset = 0; step_offset < DATA_PER_WORK_ITEM; step_offset += DATA_PER_STEP)
@@ -105,7 +104,6 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
         }
 
         // 3. Reduce thread-local histograms from GRF into group-local histograms in SLM
-        constexpr uint8_t DATA_PER_STEP = 16;
         #pragma unroll
         for (uint32_t grf_offset = 0; grf_offset < BIN_COUNT * STAGES_PER_BLOCK; grf_offset += DATA_PER_STEP)
         {
@@ -126,18 +124,20 @@ void global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uin
 }
 
 template <uint32_t BITS>
-inline __ESIMD_NS::simd<uint32_t, 32> match_bins(__ESIMD_NS::simd<uint32_t, 32> bins, uint32_t local_tid) {
+inline __dpl_esimd_ns::simd<uint32_t, 32>
+match_bins(__dpl_esimd_ns::simd<uint32_t, 32> bins, uint32_t local_tid)
+{
     //instruction count is 5*BITS, so 40 for 8 bits.
     //performance is about 2 u per bit for processing size 512 (will call this 16 times)
     // per bits 5 inst * 16 segments * 4 stages = 320 instructions, * 8 threads = 2560, /1.6G = 1.6 us.
     // 8 bits is 12.8 us
-    using namespace __ESIMD_NS;
+    using namespace __dpl_esimd_ns;
     fence<fence_mask::sw_barrier>();
     simd<uint32_t, 32> matched_bins(0xffffffff);
     #pragma unroll
     for (int i = 0; i<BITS; i++) {
         simd<uint32_t, 32> bit = (bins >> i) & 1;// and
-        simd<uint32_t, 32> x = __ESIMD_NS::merge<uint32_t, 32>(0, -1, bit!=0); // sel
+        simd<uint32_t, 32> x = __dpl_esimd_ns::merge<uint32_t, 32>(0, -1, bit != 0); // sel
         uint32_t ones = pack_mask(bit!=0);// mov
         matched_bins = matched_bins & (x ^ ones); // bfn
     }
@@ -151,17 +151,21 @@ struct slm_lookup_t {
     inline slm_lookup_t(uint32_t slm): slm(slm) {}
 
     template <int TABLE_SIZE>
-    inline void setup (__ESIMD_NS::simd<T, TABLE_SIZE> source) SYCL_ESIMD_FUNCTION {
+    inline void
+    setup(__dpl_esimd_ns::simd<T, TABLE_SIZE> source) SYCL_ESIMD_FUNCTION
+    {
         utils::BlockStore<T, TABLE_SIZE>(slm, source);
     }
 
     template <int N, typename IDX>
     inline auto lookup (IDX idx) SYCL_ESIMD_FUNCTION {
-        return utils::VectorLoad<T, 1, N>(slm+__ESIMD_NS::simd<uint32_t, N>(idx)*sizeof(T));
+        return utils::VectorLoad<T, 1, N>(slm + __dpl_esimd_ns::simd<uint32_t, N>(idx) * sizeof(T));
     }
 
     template <int N, int TABLE_SIZE, typename IDX>
-    inline auto lookup (__ESIMD_NS::simd<T, TABLE_SIZE> source, IDX idx) SYCL_ESIMD_FUNCTION {
+    inline auto
+    lookup(__dpl_esimd_ns::simd<T, TABLE_SIZE> source, IDX idx) SYCL_ESIMD_FUNCTION
+    {
         setup(source);
         return lookup<N>(idx);
     }
@@ -202,31 +206,34 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     radix_sort_onesweep_slm_reorder_kernel(uint32_t n, uint32_t stage, InputT input, OutputT output, uint8_t *p_global_buffer):
         n(n), stage(stage), input(input), output(output), p_global_buffer(p_global_buffer) {}
 
-    template <uint32_t CHUNK_SIZE>
-    inline void LoadKeys(uint32_t io_offset, __ESIMD_NS::simd<_KeyT, _DataPerWorkItem> &keys, _KeyT default_key) const {
-        using namespace __ESIMD_NS;
-        using namespace __ESIMD_ENS;
+    inline void
+    LoadKeys(uint32_t io_offset, __dpl_esimd_ns::simd<_KeyT, _DataPerWorkItem>& keys, _KeyT default_key) const
+    {
+        using namespace __dpl_esimd_ns;
+        using namespace __dpl_esimd_ens;
         bool is_full_block = (io_offset+_DataPerWorkItem) < n;
         if (is_full_block) {
-            simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);
+            simd<uint32_t, DATA_PER_STEP> lane_id(0, 1);
             #pragma unroll
-            for (uint32_t s = 0; s<_DataPerWorkItem; s+=CHUNK_SIZE) {
-                sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
-                keys.template select<CHUNK_SIZE, 1>(s) = lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset);
+            for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+            {
+                __dpl_esimd_ns::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
+                keys.template select<DATA_PER_STEP, 1>(s) = lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, DATA_PER_STEP>(input, offset);
             }
         }
         else
         {
-            simd<uint32_t, CHUNK_SIZE> lane_id(0, 1);
+            simd<uint32_t, DATA_PER_STEP> lane_id(0, 1);
             #pragma unroll
-            for (uint32_t s = 0; s<_DataPerWorkItem; s+=CHUNK_SIZE) {
-                simd_mask<CHUNK_SIZE> m = (io_offset+lane_id+s)<n;
+            for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+            {
+                simd_mask<DATA_PER_STEP> m = (io_offset + lane_id + s) < n;
 
-                sycl::ext::intel::esimd::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
-                keys.template select<CHUNK_SIZE, 1>(s) =
+                __dpl_esimd_ns::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
+                keys.template select<DATA_PER_STEP, 1>(s) =
                     merge(
-                        lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, 16>(input, offset, m),
-                        simd<_KeyT, CHUNK_SIZE>(default_key),
+                        lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached, DATA_PER_STEP>(input, offset, m),
+                        simd<_KeyT, DATA_PER_STEP>(default_key),
                         m);
             }
         }
@@ -236,28 +243,33 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         utils::BlockStore<hist_t, BIN_COUNT>(slm_bin_hist_this_thread, 0);
     }
 
-    inline auto RankSLM(__ESIMD_NS::simd<bin_t, _DataPerWorkItem> bins, uint32_t slm_counter_offset, uint32_t local_tid) const {
-        using namespace __ESIMD_NS;
-        using namespace __ESIMD_ENS;
+    inline auto
+    RankSLM(__dpl_esimd_ns::simd<bin_t, _DataPerWorkItem> bins, uint32_t slm_counter_offset, uint32_t local_tid) const
+    {
+        using namespace __dpl_esimd_ns;
+        using namespace __dpl_esimd_ens;
+
+        constexpr int BinsPerStep = 32;
 
         constexpr uint32_t BIN_COUNT = 1 << _RadixBits;
         simd<uint32_t, _DataPerWorkItem> ranks;
         utils::BlockStore<hist_t, BIN_COUNT>(slm_counter_offset, 0);
-        simd<uint32_t, 32> remove_right_lanes, lane_id(0, 1);
-        remove_right_lanes = 0x7fffffff >> (31-lane_id);
+        simd<uint32_t, BinsPerStep> remove_right_lanes, lane_id(0, 1);
+        remove_right_lanes = 0x7fffffff >> (BinsPerStep - 1 - lane_id);
         #pragma unroll
-        for (uint32_t s = 0; s<_DataPerWorkItem; s+=32) {
-            simd<uint32_t, 32> this_bins = bins.template select<32, 1>(s);
-            simd<uint32_t, 32> matched_bins = match_bins<_RadixBits>(this_bins, local_tid); // 40 insts
-            simd<uint32_t, 32> pre_rank, this_round_rank;
-            pre_rank = utils::VectorLoad<hist_t, 1, 32>(slm_counter_offset + this_bins*sizeof(hist_t)); // 2 mad+load.slm
+        for (uint32_t s = 0; s < _DataPerWorkItem; s += BinsPerStep)
+        {
+            simd<uint32_t, BinsPerStep> this_bins = bins.template select<BinsPerStep, 1>(s);
+            simd<uint32_t, BinsPerStep> matched_bins = match_bins<_RadixBits>(this_bins, local_tid); // 40 insts
+            simd<uint32_t, BinsPerStep> pre_rank, this_round_rank;
+            pre_rank = utils::VectorLoad<hist_t, 1, BinsPerStep>(slm_counter_offset + this_bins*sizeof(hist_t)); // 2 mad+load.slm
             auto matched_left_lanes = matched_bins & remove_right_lanes;
             this_round_rank = cbit(matched_left_lanes);
             auto this_round_count = cbit(matched_bins);
             auto rank_after = pre_rank + this_round_rank;
             auto is_leader = this_round_rank == this_round_count-1;
-            utils::VectorStore<hist_t, 1, 32>(slm_counter_offset + this_bins*sizeof(hist_t), rank_after+1, is_leader);
-            ranks.template select<32, 1>(s) = rank_after;
+            utils::VectorStore<hist_t, 1, BinsPerStep>(slm_counter_offset + this_bins*sizeof(hist_t), rank_after+1, is_leader);
+            ranks.template select<BinsPerStep, 1>(s) = rank_after;
         }
         return ranks;
     }
@@ -265,13 +277,13 @@ struct radix_sort_onesweep_slm_reorder_kernel {
     inline void UpdateGroupRank(
         uint32_t local_tid,
         uint32_t wg_id,
-        __ESIMD_NS::simd<hist_t, BIN_COUNT> &subgroup_offset,
-        __ESIMD_NS::simd<global_hist_t, BIN_COUNT> &global_fix,
+        __dpl_esimd_ns::simd<hist_t, BIN_COUNT> &subgroup_offset,
+        __dpl_esimd_ns::simd<global_hist_t, BIN_COUNT> &global_fix,
         global_hist_t *p_global_bin_prev_group,
         global_hist_t *p_global_bin_this_group
         ) const {
-        using namespace __ESIMD_NS;
-        using namespace __ESIMD_ENS;
+        using namespace __dpl_esimd_ns;
+        using namespace __dpl_esimd_ens;
         /*
         first do column scan by group, each thread do 32c,
         then last row do exclusive scan as group incoming offset
@@ -347,8 +359,8 @@ struct radix_sort_onesweep_slm_reorder_kernel {
 
 
     void operator() (sycl::nd_item<1> idx) const SYCL_ESIMD_KERNEL {
-        using namespace __ESIMD_NS;
-        using namespace __ESIMD_ENS;
+        using namespace __dpl_esimd_ns;
+        using namespace __dpl_esimd_ens;
 
         slm_init(128*1024);
 
@@ -368,12 +380,12 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         simd<hist_t, _DataPerWorkItem> ranks;
         simd<_KeyT, _DataPerWorkItem> keys;
         simd<bin_t, _DataPerWorkItem> bins;
-        simd<device_addr_t, 16> lane_id(0, 1);
+        simd<device_addr_t, DATA_PER_STEP> lane_id(0, 1);
 
         device_addr_t io_offset = _DataPerWorkItem * (wg_id*wg_size+local_tid);
         constexpr _KeyT default_key = utils::__sort_identity<_KeyT, _IsAscending>();
 
-        LoadKeys<16>(io_offset, keys, default_key);
+        LoadKeys(io_offset, keys, default_key);
 
         bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<_IsAscending>(keys), stage * _RadixBits);
 
@@ -555,7 +567,7 @@ sycl::event
 onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
 {
     using namespace sycl;
-    using namespace __ESIMD_NS;
+    using namespace __dpl_esimd_ns;
 
     using _KeyT = oneapi::dpl::__internal::__value_t<_Range>;
 
