@@ -243,24 +243,27 @@ struct radix_sort_onesweep_slm_reorder_kernel {
         using namespace __ESIMD_NS;
         using namespace __ESIMD_ENS;
 
+        constexpr int BinsPerStep = 32;
+
         constexpr uint32_t BIN_COUNT = 1 << _RadixBits;
         simd<uint32_t, _DataPerWorkItem> ranks;
         utils::BlockStore<hist_t, BIN_COUNT>(slm_counter_offset, 0);
-        simd<uint32_t, 32> remove_right_lanes, lane_id(0, 1);
-        remove_right_lanes = 0x7fffffff >> (31-lane_id);
+        simd<uint32_t, BinsPerStep> remove_right_lanes, lane_id(0, 1);
+        remove_right_lanes = 0x7fffffff >> (BinsPerStep - 1 - lane_id);
         #pragma unroll
-        for (uint32_t s = 0; s<_DataPerWorkItem; s+=32) {
-            simd<uint32_t, 32> this_bins = bins.template select<32, 1>(s);
-            simd<uint32_t, 32> matched_bins = match_bins<_RadixBits>(this_bins, local_tid); // 40 insts
-            simd<uint32_t, 32> pre_rank, this_round_rank;
-            pre_rank = utils::VectorLoad<hist_t, 1, 32>(slm_counter_offset + this_bins*sizeof(hist_t)); // 2 mad+load.slm
+        for (uint32_t s = 0; s < _DataPerWorkItem; s += BinsPerStep)
+        {
+            simd<uint32_t, BinsPerStep> this_bins = bins.template select<BinsPerStep, 1>(s);
+            simd<uint32_t, BinsPerStep> matched_bins = match_bins<_RadixBits>(this_bins, local_tid); // 40 insts
+            simd<uint32_t, BinsPerStep> pre_rank, this_round_rank;
+            pre_rank = utils::VectorLoad<hist_t, 1, BinsPerStep>(slm_counter_offset + this_bins*sizeof(hist_t)); // 2 mad+load.slm
             auto matched_left_lanes = matched_bins & remove_right_lanes;
             this_round_rank = cbit(matched_left_lanes);
             auto this_round_count = cbit(matched_bins);
             auto rank_after = pre_rank + this_round_rank;
             auto is_leader = this_round_rank == this_round_count-1;
-            utils::VectorStore<hist_t, 1, 32>(slm_counter_offset + this_bins*sizeof(hist_t), rank_after+1, is_leader);
-            ranks.template select<32, 1>(s) = rank_after;
+            utils::VectorStore<hist_t, 1, BinsPerStep>(slm_counter_offset + this_bins*sizeof(hist_t), rank_after+1, is_leader);
+            ranks.template select<BinsPerStep, 1>(s) = rank_after;
         }
         return ranks;
     }
