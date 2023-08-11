@@ -64,12 +64,12 @@ namespace experimental{
     };
 
     std::shared_ptr<scheduler_t> sched_;
-    universe_container_t universe_;
+    std::shared_ptr<universe_container_t> universe_;
 
     dynamic_load_policy_impl() : sched_{std::make_shared<scheduler_t>()}  {
       auto u = property::query(*sched_, property::universe);
       for (auto e : u) {
-        universe_.push_back(std::make_shared<resource_t>(e));
+        universe_->push_back(std::make_shared<resource_t>(e));
       }
     }
 
@@ -77,7 +77,7 @@ namespace experimental{
       oneapi::dpl::experimental::property::report(*sched_, property::universe, u);
       auto u2 = oneapi::dpl::experimental::property::query(*sched_, property::universe);
       for (auto e : u2) {
-        universe_.push_back(std::make_shared<resource_t>(e));
+        universe_->push_back(std::make_shared<resource_t>(e));
       }
     }
 
@@ -85,7 +85,7 @@ namespace experimental{
     dynamic_load_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)} {
       auto u = oneapi::dpl::experimental::property::query(*sched_, property::universe);
       for (auto e : u) {
-        universe_.push_back(std::make_shared<resource_t>(e));
+        universe_->push_back(std::make_shared<resource_t>(e));
       }
     }
 
@@ -115,7 +115,7 @@ namespace experimental{
       int least_load = std::numeric_limits<load_t>::max();
       int i=0;
       int least=0;
-      for (auto& r : universe_) {
+      for (auto& r : *universe_) {
           load_t v = r->load_.load();
           if (least_loaded == nullptr || v < least_load) {
             least_load = v;
@@ -141,8 +141,7 @@ namespace experimental{
 
     template<typename Function, typename ...Args>
     auto invoke(Function&& f, Args&&... args) {
-      return wait_for_all(sched_->submit(select(std::forward<Function>(f), std::forward<Args>(args)...),
-                                         std::forward<Function>(f), std::forward<Args>(args)...));
+      return wait_for_all(sched_->submit(select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...));
     }
 
     template<typename Function, typename ...Args>
