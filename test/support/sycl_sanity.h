@@ -70,7 +70,7 @@ static inline int run_sycl_sanity_test(sycl::queue q) {
 
 static inline void build_universe(std::vector<sycl::queue> &u) {
   try {
-    auto device_default = sycl::device(sycl::default_selector());
+    auto device_default = sycl::device(sycl::default_selector_v);
     sycl::queue default_queue(device_default);
     run_sycl_sanity_test(default_queue);
     u.push_back(default_queue);
@@ -79,7 +79,7 @@ static inline void build_universe(std::vector<sycl::queue> &u) {
   }
 
   try {
-    auto device_gpu = sycl::device(sycl::gpu_selector());
+    auto device_gpu = sycl::device(sycl::gpu_selector_v);
     cl::sycl::queue gpu_queue(device_gpu);
     run_sycl_sanity_test(gpu_queue);
     u.push_back(gpu_queue);
@@ -88,7 +88,7 @@ static inline void build_universe(std::vector<sycl::queue> &u) {
   }
 
   try {
-    auto device_cpu = sycl::device(sycl::cpu_selector());
+    auto device_cpu = sycl::device(sycl::cpu_selector_v);
     cl::sycl::queue cpu_queue(device_cpu);
     run_sycl_sanity_test(cpu_queue);
     u.push_back(cpu_queue);
