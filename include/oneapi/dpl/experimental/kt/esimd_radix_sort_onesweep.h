@@ -40,7 +40,8 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
 
     // Cap the number of histograms to reduce in SLM per input range read pass
     // due to excessive GRF usage for thread-local histograms
-    constexpr uint32_t STAGES_PER_BLOCK = sizeof(_KeyT) < 4 ? sizeof(_KeyT) : 4;
+    //constexpr uint32_t STAGES_PER_BLOCK = sizeof(_KeyT) < 4 ? sizeof(_KeyT) : 4;
+    constexpr uint32_t STAGES_PER_BLOCK = sizeof(_KeyT);
     constexpr uint32_t STAGE_BLOCKS = oneapi::dpl::__internal::__dpl_ceiling_div(STAGES, STAGES_PER_BLOCK);
 
     constexpr uint32_t HIST_BUFFER_SIZE = STAGES * BIN_COUNT;
