@@ -35,21 +35,21 @@ void one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input) {
     using hist_t = uint16_t;
     using device_addr_t = uint32_t;
 
-    uint32_t local_tid = idx.get_local_linear_id();
     constexpr uint32_t BIN_COUNT = 1 << _RadixBits;
     constexpr uint32_t NBITS =  sizeof(_KeyT) * 8;
     constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, _RadixBits);
-    constexpr uint32_t MAX_THREAD_PER_TG = 64;
     constexpr bin_t MASK = BIN_COUNT - 1;
     constexpr uint32_t HIST_STRIDE = sizeof(hist_t) * BIN_COUNT;
 
-    constexpr uint32_t REORDER_SLM_SIZE = _DataPerWorkItem * sizeof(_KeyT) * MAX_THREAD_PER_TG; // reorder buffer
-    constexpr uint32_t BIN_HIST_SLM_SIZE = HIST_STRIDE * MAX_THREAD_PER_TG;             // bin hist working buffer
-    constexpr uint32_t INCOMING_OFFSET_SLM_SIZE = (BIN_COUNT+1)*sizeof(hist_t);                // incoming offset buffer
+    constexpr uint32_t REORDER_SLM_SIZE = _DataPerWorkItem * sizeof(_KeyT) * _WorkGroupSize;
+    constexpr uint32_t BIN_HIST_SLM_SIZE = HIST_STRIDE * _WorkGroupSize;
+    constexpr uint32_t INCOMING_OFFSET_SLM_SIZE = (BIN_COUNT+1)*sizeof(hist_t);
 
     // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  _DataPerWorkItem = 256, BIN_COUNT = 256
     // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
-    slm_init( std::max(REORDER_SLM_SIZE,  BIN_HIST_SLM_SIZE + INCOMING_OFFSET_SLM_SIZE));
+    slm_init(std::max(REORDER_SLM_SIZE,  BIN_HIST_SLM_SIZE + INCOMING_OFFSET_SLM_SIZE));
+
+    uint32_t local_tid = idx.get_local_linear_id();
     uint32_t slm_reorder_start = 0;
     uint32_t slm_bin_hist_start = 0;
     uint32_t slm_incoming_offset = slm_bin_hist_start + BIN_HIST_SLM_SIZE;
@@ -223,9 +223,6 @@ one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
     using _KeyT = oneapi::dpl::__internal::__value_t<_Range>;
     using _EsimRadixSortKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__esimd_radix_sort_one_wg<_KernelName>>;
-
-    // TODO: check if MAX_THREAD_PER_TG is necessary; remove the assert if it is not
-    assert((_WorkGroupSize <= 64) && "WorkGroupSize shall not exceed 64");
 
     return __radix_sort_one_wg_submitter<_IsAscending, _RadixBits, _DataPerWorkItem, _WorkGroupSize,
         _KeyT, _EsimRadixSortKernel>()(__q, ::std::forward<_Range>(__rng), __n);

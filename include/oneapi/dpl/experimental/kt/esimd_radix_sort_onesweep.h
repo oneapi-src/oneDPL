@@ -584,7 +584,11 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
 
     using global_hist_t = uint32_t;
     constexpr uint32_t BINCOUNT = 1 << _RadixBits;
-    constexpr uint32_t HW_TG_COUNT = 64;
+
+    // TODO: consider adding a more versatile API, e.g. passing special kernel_config parameters for histogram computation
+    constexpr uint32_t _HistWorkGroupCount = 64;
+    constexpr uint32_t _HistWorkGroupSize = 64;
+
     const uint32_t sweep_tg_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, _WorkGroupSize*_DataPerWorkItem);
     constexpr uint32_t NBITS =  sizeof(_KeyT) * 8;
     constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, _RadixBits);
@@ -613,7 +617,7 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
     sycl::event event_chain = __q.memset(p_globl_hist_buffer, 0, temp_buffer_size);
 
     event_chain = __radix_sort_onesweep_histogram_submitter<
-        _KeyT, _RadixBits, STAGES, HW_TG_COUNT, _WorkGroupSize, _IsAscending, _EsimdRadixSortHistogram>()(
+        _KeyT, _RadixBits, STAGES, _HistWorkGroupCount, _HistWorkGroupSize, _IsAscending, _EsimdRadixSortHistogram>()(
             __q, __rng, p_global_offset, __n, event_chain);
 
     event_chain = __radix_sort_onesweep_scan_submitter<STAGES, BINCOUNT, _EsimdRadixSortScan>()(
