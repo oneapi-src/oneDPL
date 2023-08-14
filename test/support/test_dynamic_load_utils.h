@@ -13,6 +13,8 @@
 
 #include<thread>
 #include<chrono>
+#include<random>
+#include<algorithm>
 
 template<typename Policy>
 int test_cout() {
@@ -47,35 +49,67 @@ int test_invoke_async_and_wait_on_policy(UniverseContainer u, ResourceFunction&&
   using my_policy_t = Policy;
   my_policy_t p{u};
 
-  const int N = 6;
+  const int loops = 6;
   std::atomic<int> ecount = 0;
   bool pass = true;
 
 
-  auto f1 = []()->void {std::cout<<"Running func1\n"; std::this_thread::sleep_for (std::chrono::seconds(10));};
-  auto f2 = []()->void {std::cout<<"Running func2\n"; std::this_thread::sleep_for (std::chrono::milliseconds(1));};
-  std::vector<std::function<void(void)>> func;
-  func.push_back(f1);
-  for(int i=0;i<5;i++) func.push_back(f2);
+  std::random_device rnd_device;
+  // Specify the engine and distribution.
+  std::mt19937 mersenne_engine {rnd_device()};  // Generates random integers
+  std::uniform_int_distribution<int> dist {1, 52};
 
-  for (int i = 0; i < N; ++i) {
+  auto gen = [&dist, &mersenne_engine](){
+               return dist(mersenne_engine);
+           };
+  std::vector<double> a_host(1000000, 0);
+  std::vector<double> b_host(1000000, 0);
+  std::vector<double> c_host(100000000, 0);
+  std::generate(begin(a_host), end(a_host), gen);
+  std::generate(begin(b_host), end(b_host), gen);
+
+
+  size_t M = 10000;
+  size_t N = 100;
+  size_t P = 10000;
+
+  sycl::buffer a(a_host.data(), sycl::range<1>{a_host.size()});
+  sycl::buffer b(b_host.data(), sycl::range<1>{b_host.size()});
+  sycl::buffer c(c_host.data(), sycl::range<2>{M, P});
+
+  for (int i = 0; i < loops; ++i) {
     auto test_resource = f(i);
-    auto sleeper = func[i];
     oneapi::dpl::experimental::invoke_async(p,
-                     [&pass,&ecount,test_resource, i, &sleeper](typename Policy::native_resource_t e) {
+                     [&pass,&ecount,test_resource, i, &a, &b, &c, M, N, P](typename Policy::native_resource_t e) {
                        if (e != test_resource) {
                          pass = false;
                        }
                        ecount += i+1;
-                        auto e2 = e.submit([=](sycl::handler& h){
-                            h.host_task([=](){
-                                sleeper();
-                                //func[i]();
-                            });
+                        double *v = sycl::malloc_shared<double>(1000000, e);
+                        auto e2 = e.submit([&](sycl::handler& h){
+                           auto A = a.get_access<sycl::access::mode::read>(h);
+                           auto B = b.get_access<sycl::access::mode::read>(h);
+                           auto C = c.get_access<sycl::access::mode::write>(h);
+
+                           if(i==0){
+                                    std::cout<<"Printing first function"<<std::endl;
+                                h.parallel_for(sycl::range<2>{M, P}, [=](sycl::id<2> idx) {
+                                     int row = idx[0];
+                                     int col = idx[1];
+                                     double sum = 0.0;
+                                     for (int i = 0; i < N; i++){
+                                        sum += A[row*M+i]*B[i*N+col];
+                                     }
+                                     C[idx] = sum;
+                                });
+                           }else{
+                                    std::cout<<"Printing second function"<<std::endl;
+                                    for(int i=0;i<100;i++);
+                           }
+
                         });
-                       return typename Policy::native_sync_t{};
+                       return e2;
                      });
-      std::this_thread::sleep_for (std::chrono::milliseconds(3));
   }
   oneapi::dpl::experimental::wait(p);
   int count = ecount.load();

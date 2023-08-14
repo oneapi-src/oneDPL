@@ -31,9 +31,11 @@ namespace experimental {
 #if _DS_BACKEND_SYCL != 0
 using static_policy = static_policy_impl<sycl_scheduler>;
 using round_robin_policy = round_robin_policy_impl<sycl_scheduler>;
+using dynamic_load_policy = dynamic_load_policy_impl<sycl_scheduler>;
 #endif
 template<typename S> using static_policy_t = static_policy_impl<S>;
 template<typename S> using round_robin_policy_t = round_robin_policy_impl<S>;
+template<typename S> using dynamic_load_policy_t = dynamic_load_policy_impl<S>;
 
 } //namespace experimental
 } //namespace dpl

@@ -71,26 +71,27 @@ namespace experimental{
 
     std::shared_ptr<unit_t> unit_;
 
-    dynamic_load_policy_impl() : sched_{std::make_shared<scheduler_t>()}  {
-      auto u = property::query(*sched_, property::universe);
+    dynamic_load_policy_impl() : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()}  {
+      //auto u = property::query(*sched_, property::universe);
+      auto u = get_universe();
       for (auto e : u) {
-        universe_->push_back(std::make_shared<resource_t>(e));
+        unit_->universe_.push_back(std::make_shared<resource_t>(e));
       }
     }
 
-    dynamic_load_policy_impl(universe_container_t u) : sched_{std::make_shared<scheduler_t>()}  {
-      oneapi::dpl::experimental::property::report(*sched_, property::universe, u);
-      auto u2 = oneapi::dpl::experimental::property::query(*sched_, property::universe);
+    dynamic_load_policy_impl(universe_container_t u) : sched_{std::make_shared<scheduler_t>()} , unit_{std::make_shared<unit_t>()}  {
+      sched_->set_universe(u);
+      auto u2 = get_universe();
       for (auto e : u2) {
-        universe_->push_back(std::make_shared<resource_t>(e));
+        unit_->universe_.push_back(std::make_shared<resource_t>(e));
       }
     }
 
     template<typename ...Args>
-    dynamic_load_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)} {
-      auto u = oneapi::dpl::experimental::property::query(*sched_, property::universe);
+    dynamic_load_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)}, unit_{std::make_shared<unit_t>()} {
+      auto u = get_universe();
       for (auto e : u) {
-        universe_->push_back(std::make_shared<resource_t>(e));
+        unit_->universe_.push_back(std::make_shared<resource_t>(e));
       }
     }
 
@@ -98,8 +99,21 @@ namespace experimental{
     // Support for property queries
     //
 
+    auto get_universe() const noexcept {
+      return sched_->get_universe();
+    }
+
+    auto get_universe_size() const noexcept {
+      return sched_->get_universe_size();
+    }
+
+    template<typename ...Args>
+    auto set_universe(Args&&... args) {
+        return sched_->set_universe(std::forward<Args>(args)...);
+    }
+
     auto query(oneapi::dpl::experimental::property::dynamic_load_t, typename scheduler_t::native_resource_t e) const noexcept {
-      for (const auto& r : universe_) {
+      for (const auto& r : unit_->universe_) {
         if (r->e_ == e) {
           return r->load_.load();
         }
@@ -112,7 +126,7 @@ namespace experimental{
       int least_load = std::numeric_limits<load_t>::max();
       int i=0;
       int least=0;
-      for (auto& r : *universe_) {
+      for (auto& r : unit_->universe_) {
           load_t v = r->load_.load();
           if (least_loaded == nullptr || v < least_load) {
             least_load = v;
