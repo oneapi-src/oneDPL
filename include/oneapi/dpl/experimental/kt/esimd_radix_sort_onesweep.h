@@ -11,6 +11,7 @@
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_ONESWEEP_H
 
 #include <ext/intel/esimd.hpp>
+#include <sycl/ext/intel/experimental/kernel_properties.hpp>
 #include "../../pstl/hetero/dpcpp/sycl_defs.h"
 #include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 #include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
@@ -528,6 +529,10 @@ struct __radix_sort_onesweep_histogram_submitter<
                 auto __data = __rng.data();
                 __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
+
+                        // Please see details in https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2023-1/small-register-mode-vs-large-register-mode.html
+                        sycl::ext::intel::experimental::set_kernel_properties(sycl::ext::intel::experimental::kernel_properties::use_large_grf);
+                   
                         global_histogram<_KeyT, decltype(__data), _RadixBits, STAGES, HW_TG_COUNT, _WorkGroupSize,
                                          _IsAscending>(__nd_item, __n, __data, __global_offset_data);
                     });
