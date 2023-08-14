@@ -409,8 +409,8 @@ int main()
             std::cerr << "Exception: " << exc.what() << std::endl;
             return EXIT_FAILURE;
         }
-#endif // TEST_DPCPP_BACKEND_PRESENT
     }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && run_test);
 }
