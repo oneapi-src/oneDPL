@@ -1,5 +1,4 @@
-// -*- C++ -*-
-//===-- set.pass.cpp ------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -364,43 +363,3 @@ struct test_non_const_set_union
         set_union(exec, input_iter, input_iter, input_iter, input_iter, out_iter, non_const(::std::less<T>()));
     }
 };
-
-int
-main()
-{
-    using data_t =
-#if !ONEDPL_FPGA_DEVICE
-        float64_t;
-#else
-        std::int32_t;
-#endif
-
-    test_set<data_t, data_t>(oneapi::dpl::__internal::__pstl_less(),false);
-#if !ONEDPL_FPGA_DEVICE
-    test_set<data_t, data_t>(oneapi::dpl::__internal::__pstl_less(),true);
-#endif
-
-#if !TEST_DPCPP_BACKEND_PRESENT
-    test_set<Num<std::int64_t>, Num<std::int32_t>>([](const Num<std::int64_t>& x, const Num<std::int32_t>& y) { return x < y; }, true);
-
-    test_set<MemoryChecker, MemoryChecker>([](const MemoryChecker& val1, const MemoryChecker& val2) -> bool {
-        return val1.value() < val2.value();
-    }, true);
-    EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from set algorithms: number of ctor and dtor calls is not equal");
-#endif
-
-#ifdef _PSTL_TEST_SET_DIFFERENCE
-    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_set_difference<std::int32_t>>());
-#endif
-#ifdef _PSTL_TEST_SET_INTERSECTION
-    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_set_intersection<std::int32_t>>());
-#endif
-#ifdef _PSTL_TEST_SET_SYMMETRIC_DIFFERENCE
-    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_set_symmetric_difference<std::int32_t>>());
-#endif
-#ifdef _PSTL_TEST_SET_UNION
-    test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_set_union<std::int32_t>>());
-#endif
-
-    return done();
-}
