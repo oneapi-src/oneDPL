@@ -55,12 +55,12 @@ radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
     {
         // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
         // TODO: support different RadixBits, WorkGroupSize
-        return onesweep<_KernelName, _IsAscending, _RadixBits,  __data_per_workitem, __workgroup_size>(
+        return onesweep<_KernelName, _IsAscending, _RadixBits, __data_per_workitem, __workgroup_size>(
             __q, ::std::forward<_Range>(__rng), __n);
     }
 }
 
-} // oneapi::dpl::experimental::kt::esimd::impl
+} // namespace oneapi::dpl::experimental::kt::esimd::impl
 
 namespace oneapi::dpl::experimental::kt::esimd
 {
@@ -69,10 +69,11 @@ template <bool _IsAscending = true, std::uint8_t _RadixBits = 8, typename _Kerne
 sycl::event
 radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param = {})
 {
-    if(__rng.size() < 2)
+    if (__rng.size() < 2)
         return {};
 
-    return oneapi::dpl::experimental::kt::esimd::impl::radix_sort<_IsAscending, _RadixBits>(__q, ::std::forward<_Range>(__rng), __param);
+    return oneapi::dpl::experimental::kt::esimd::impl::radix_sort<_IsAscending, _RadixBits>(
+        __q, ::std::forward<_Range>(__rng), __param);
 }
 
 template <bool _IsAscending = true, std::uint8_t _RadixBits = 8, typename _KernelParam, typename _Iterator>
@@ -82,9 +83,11 @@ radix_sort(sycl::queue __q, _Iterator __first, _Iterator __last, _KernelParam __
     if (__last - __first < 2)
         return {};
 
-    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, _Iterator>();
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
+                                                          _Iterator>();
     auto __rng = __keep(__first, __last);
-    return oneapi::dpl::experimental::kt::esimd::impl::radix_sort<_IsAscending, _RadixBits>(__q, __rng.all_view(), __param);
+    return oneapi::dpl::experimental::kt::esimd::impl::radix_sort<_IsAscending, _RadixBits>(__q, __rng.all_view(),
+                                                                                            __param);
 }
 
 } // namespace oneapi::dpl::experimental::kt::esimd
