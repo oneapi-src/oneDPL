@@ -15,7 +15,6 @@ template <typename _Dst, typename _Src>
 __dpl_bit_cast(const _Src& __src) noexcept
 {
     return sycl::bit_cast<_Dst>(__src);
-
 }
 
 template <bool __is_ascending>
@@ -87,7 +86,7 @@ __get_bucket(_T __value, ::std::uint32_t __radix_offset)
 {
     return (__value >> __radix_offset) & _T(__radix_mask);
 }
-} // utils_sycl
+} // namespace utils_sycl
 
 template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
@@ -98,33 +97,35 @@ generate_data(T* input, std::size_t size)
     if constexpr (std::is_integral_v<T>)
     {
         std::uniform_int_distribution<T> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
-        std::generate(input, input + unique_threshold, [&]{ return dist(gen); });
+        std::generate(input, input + unique_threshold, [&] { return dist(gen); });
     }
     else
     {
         std::uniform_real_distribution<T> dist_real(std::numeric_limits<T>::min(), log2(1e12));
         std::uniform_int_distribution<int> dist_binary(0, 1);
-        auto randomly_signed_real = [&dist_real, &dist_binary, &gen](){
+        auto randomly_signed_real = [&dist_real, &dist_binary, &gen]()
+        {
             auto v = exp2(dist_real(gen));
-            return dist_binary(gen) == 0 ? v: -v;
+            return dist_binary(gen) == 0 ? v : -v;
         };
-        std::generate(input, input + unique_threshold, [&]{ return randomly_signed_real(); });
+        std::generate(input, input + unique_threshold, [&] { return randomly_signed_real(); });
     }
-    for(uint32_t i = 0, j = unique_threshold; j < size; ++i, ++j)
+    for (uint32_t i = 0, j = unique_threshold; j < size; ++i, ++j)
     {
         input[j] = input[i];
     }
 }
 
-template<typename T, uint32_t RADIX_BITS, bool isAscending>
-void test(uint32_t n)
+template <typename T, uint32_t RADIX_BITS, bool isAscending>
+void
+test(uint32_t n)
 {
     using global_hist_t = uint32_t;
 
     constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
     constexpr uint32_t HW_TG_COUNT = 64;
     constexpr uint32_t THREAD_PER_TG = 64;
-    constexpr uint32_t NBITS =  sizeof(T) * 8;
+    constexpr uint32_t NBITS = sizeof(T) * 8;
     constexpr uint32_t STAGES = (NBITS + RADIX_BITS - 1) / RADIX_BITS; // ceiling division
     constexpr uint32_t GLOBAL_OFFSET_SIZE = BINCOUNT * STAGES;
 
@@ -140,21 +141,24 @@ void test(uint32_t n)
     // get histogram on device
     sycl::event event_chain = q.memset(hist, 0, GLOBAL_OFFSET_SIZE * sizeof(global_hist_t));
     sycl::nd_range<1> range{HW_TG_COUNT * THREAD_PER_TG, THREAD_PER_TG};
-    event_chain = q.submit([&](sycl::handler& cgh) {
-        cgh.parallel_for(range, [=](sycl::nd_item<1> nd_item) [[intel::sycl_explicit_simd]] {
-            oneapi::dpl::experimental::esimd::impl::global_histogram<T, decltype(input), RADIX_BITS, STAGES,
-                                                                     HW_TG_COUNT, THREAD_PER_TG, isAscending>(
-                nd_item, n, input, hist);
+    event_chain = q.submit(
+        [&](sycl::handler& cgh)
+        {
+            cgh.parallel_for(
+                range, [=](sycl::nd_item<1> nd_item) [[intel::sycl_explicit_simd]] {
+                    oneapi::dpl::experimental::esimd::impl::global_histogram<T, decltype(input), RADIX_BITS, STAGES,
+                                                                             HW_TG_COUNT, THREAD_PER_TG, isAscending>(
+                        nd_item, n, input, hist);
+                });
         });
-    });
     event_chain.wait();
 
     // get histogram on host
     std::fill(hist_ref, hist_ref + GLOBAL_OFFSET_SIZE, 0);
-    for(uint32_t i = 0; i < n; ++i)
+    for (uint32_t i = 0; i < n; ++i)
     {
         auto ordered_key = utils_sycl::__order_preserving_cast<isAscending>(ref[i]);
-        for(uint32_t stage = 0; stage < STAGES; ++stage)
+        for (uint32_t stage = 0; stage < STAGES; ++stage)
         {
             constexpr uint32_t MASK = BINCOUNT - 1;
             uint32_t bin = utils_sycl::__get_bucket<MASK>(ordered_key, stage * RADIX_BITS);
@@ -164,22 +168,23 @@ void test(uint32_t n)
 
     // verify
     uint32_t err_count = 0;
-    for(uint32_t i = 0; i < GLOBAL_OFFSET_SIZE; ++i)
+    for (uint32_t i = 0; i < GLOBAL_OFFSET_SIZE; ++i)
     {
         // checking the last bin in global histogram is not necessary: it is not used in radix sort
-        if(i % BINCOUNT != BINCOUNT - 1)
+        if (i % BINCOUNT != BINCOUNT - 1)
         {
-            if(hist[i] != hist_ref[i])
+            if (hist[i] != hist_ref[i])
             {
                 ++err_count;
-                if(err_count <= 3)
+                if (err_count <= 3)
                 {
                     std::cout << "\texpected: " << hist_ref[i] << ", got: " << hist[i] << ", at: " << i << std::endl;
                 }
             }
         }
     }
-    std::cout << "\terror count: " << err_count << std::endl;;
+    std::cout << "\terror count: " << err_count << std::endl;
+    ;
 
     sycl::free(input, q);
     sycl::free(ref, q);
@@ -187,15 +192,15 @@ void test(uint32_t n)
     sycl::free(hist_ref, q);
 }
 
-int main()
+int
+main()
 {
     const std::vector<std::size_t> sizes = {
-        6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14,
-        (1<<14)+1, 50000, 67543, 100'000, 1<<17, 179'581, 250'000, 1<<18,
-        (1<<18)+1, 500'000, 888'235, 1'000'000, 1<<20, 10'000'000
-    };
+        6,       16,        43,      256,     316,     2048,    5072,    8192,          14001,   1 << 14, (1 << 14) + 1,
+        50000,   67543,     100'000, 1 << 17, 179'581, 250'000, 1 << 18, (1 << 18) + 1, 500'000, 888'235, 1'000'000,
+        1 << 20, 10'000'000};
 
-    for(auto size: sizes)
+    for (auto size : sizes)
     {
         // 64-bit, ascending
         std::cout << "test<uint64_t, 8, true>(" << size << ")" << std::endl;
