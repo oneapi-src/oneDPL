@@ -66,12 +66,6 @@ namespace experimental {
       }
     };
 
-    template<typename PropertyHandle>
-    using submission_t = async_wait_impl_t<PropertyHandle>;
-
-    template<typename PropertyHandle>
-    using submission_group_t = std::list<submission_t<PropertyHandle>>;
-
     std::mutex global_rank_mutex_;
     universe_container_t global_rank_;
     waiter_container_t waiters_;

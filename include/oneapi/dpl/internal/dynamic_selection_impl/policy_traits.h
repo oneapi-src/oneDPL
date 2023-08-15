@@ -20,7 +20,6 @@ namespace experimental{
         using resource_type = typename std::decay<Policy>::type::resource_type; //resource type
 
         using wait_type = typename std::decay<Policy>::type::wait_type; //wait_type
-        //using submission_group_t = typename std::decay<Policy>::type::submission_group_t; //submission group type
     };
 }
 }
