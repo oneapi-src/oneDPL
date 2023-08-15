@@ -16,13 +16,11 @@ namespace experimental{
 
     template<typename Policy>
     struct policy_traits{
-        //selection_type, resource_type, submission_type, wait_type, submission_group_type
-        using selection_t = typename std::decay<Policy>::type::selection_handle_t;  //selection type
-        using resource_t = typename std::decay<Policy>::type::execution_resource_t; //resource type
+        using selection_type = typename std::decay<Policy>::type::selection_type;  //selection type
+        using resource_type = typename std::decay<Policy>::type::resource_type; //resource type
 
-        using wait_t = typename std::decay<Policy>::type::native_sync_t; //wait_type
-        using submission_t = typename std::decay<Policy>::type::submission_t; //submission_type
-        using submission_group_t = typename std::decay<Policy>::type::submission_group_t; //submission group type
+        using wait_type = typename std::decay<Policy>::type::wait_type; //wait_type
+        //using submission_group_t = typename std::decay<Policy>::type::submission_group_t; //submission group type
     };
 }
 }
