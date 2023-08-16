@@ -30,8 +30,8 @@ namespace experimental {
     using resource_type = sycl::queue;
     using wait_type = sycl::event;
 
-    using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
-    using universe_container_t = std::vector<execution_resource_t>;
+    //using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
+    using universe_container_t = std::vector<resource_type>;
 
     class async_wait_t {
     public:
@@ -57,12 +57,9 @@ namespace experimental {
 
       void wait() override {
         w_.wait();
-        if (wait_reported_->exchange(true) == false) {
-          if constexpr (PropertyHandle::should_report_task_completion) {
+        if constexpr (PropertyHandle::should_report_task_completion) {
             property::report(p_, property::task_completion);
-          }
         }
-
       }
     };
 
@@ -85,6 +82,10 @@ namespace experimental {
     template<typename SelectionHandle, typename Function, typename ...Args>
     auto submit(SelectionHandle h, Function&& f, Args&&... args) {
       using PropertyHandle = typename SelectionHandle::property_handle_t;
+      auto prop = h.get_property_handle();
+      if constexpr (PropertyHandle::should_report_task_submission) {
+        oneapi::dpl::experimental::property::report(prop, oneapi::dpl::experimental::property::task_submission);
+      }
       auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), f(h.get_native(), std::forward<Args>(args)...));
       waiters_.push(w);
       return *w;

@@ -28,6 +28,18 @@ namespace experimental {
     };
     inline constexpr task_completion_t task_completion;
 
+    struct task_submission_t {
+      static constexpr bool is_property_v = true;
+      static constexpr bool can_report_v = true;
+    };
+    inline constexpr task_submission_t task_submission;
+
+    struct dynamic_load_t {
+      static constexpr bool is_property_v = true;
+      static constexpr bool can_report_v = false;
+    };
+    inline constexpr dynamic_load_t dynamic_load;
+
     template<typename T, typename Property>
     auto query(T&& t, const Property& prop) {
       return std::forward<T>(t).query(prop);
@@ -157,5 +169,6 @@ namespace experimental {
 #endif
 #include "oneapi/dpl/internal/dynamic_selection_impl/static_policy_impl.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy_impl.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/dynamic_load_policy_impl.h"
 
 #endif /*_ONEDPL_INTERNAL_DYNAMIC_SELECTION_H*/

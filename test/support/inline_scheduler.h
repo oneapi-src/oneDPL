@@ -21,9 +21,8 @@ namespace TestUtils {
 struct int_inline_scheduler_t {
   using resource_type = int;
   using wait_type = int;
-  using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
-  using native_universe_container_t = std::vector<resource_type>;
-  using universe_container_t = std::vector<execution_resource_t>;
+  //using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
+  using universe_container_t = std::vector<resource_type>;
 
   class async_wait_t {
   public:
@@ -60,17 +59,21 @@ struct int_inline_scheduler_t {
 
   int_inline_scheduler_t() {
     for (int i = 1; i < 4; ++i)
-      universe_.push_back(execution_resource_t{i});
+      universe_.push_back(resource_type{i});
   }
 
-  int_inline_scheduler_t(const native_universe_container_t& u) {
+  int_inline_scheduler_t(const universe_container_t& u) {
     for (const auto& e : u)
-      universe_.push_back(execution_resource_t{e});
+      universe_.push_back(resource_type{e});
   }
 
   template<typename SelectionHandle, typename Function, typename ...Args>
   auto submit(SelectionHandle h, Function&& f, Args&&... args) {
     using PropertyHandle = typename SelectionHandle::property_handle_t;
+    auto prop = h.get_property_handle();
+    if constexpr (PropertyHandle::should_report_task_submission) {
+        oneapi::dpl::experimental::property::report(prop, oneapi::dpl::experimental::property::task_submission);
+    }
     auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), std::forward<Function>(f)(h.get_native(), std::forward<Args>(args)...));
     waiters_.push(w);
     return *w;
