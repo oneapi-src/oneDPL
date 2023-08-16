@@ -318,14 +318,3 @@ test_set(Compare compare, bool comp_flag)
         }
     }
 }
-
-template <typename T>
-struct test_non_const_set_intersection
-{
-    template <typename Policy, typename InputIterator, typename OutputInterator>
-    void
-    operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
-    {
-        set_intersection(exec, input_iter, input_iter, input_iter, input_iter, out_iter, non_const(::std::less<T>()));
-    }
-};
