@@ -48,7 +48,6 @@ namespace dpl
 namespace __internal
 {
 
-// TODO: find a better spot for this
 enum class __algorithm_type
 {
     transform_scan,
