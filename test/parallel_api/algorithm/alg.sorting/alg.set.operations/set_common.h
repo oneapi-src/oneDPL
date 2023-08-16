@@ -12,6 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#ifndef _SET_COMMON_H
+#define _SET_COMMON_H
+
 #include "support/test_config.h"
 
 #include _PSTL_TEST_HEADER(execution)
@@ -318,3 +321,5 @@ test_set(Compare compare, bool comp_flag)
         }
     }
 }
+
+#endif // _SET_COMMON_H
