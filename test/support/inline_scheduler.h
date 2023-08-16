@@ -19,16 +19,16 @@
 
 namespace TestUtils {
 struct int_inline_scheduler_t {
-  using native_resource_t = int;
-  using native_sync_t = int;
-  using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<native_resource_t>;
-  using native_universe_container_t = std::vector<native_resource_t>;
+  using resource_type = int;
+  using wait_type = int;
+  using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
+  using native_universe_container_t = std::vector<resource_type>;
   using universe_container_t = std::vector<execution_resource_t>;
 
   class async_wait_t {
   public:
     virtual void wait() = 0;
-    virtual native_sync_t get_native() const = 0;
+    virtual wait_type get_native() const = 0;
     virtual ~async_wait_t() {}
   };
   using waiter_container_t = concurrent_queue<async_wait_t *>;
@@ -36,14 +36,14 @@ struct int_inline_scheduler_t {
   template<typename PropertyHandle>
   class async_wait_impl_t : public async_wait_t {
     PropertyHandle p_;
-    native_sync_t w_;
+    wait_type w_;
     std::shared_ptr<std::atomic<bool>> wait_reported_;
   public:
 
-    async_wait_impl_t(PropertyHandle p, native_sync_t w) : p_(p), w_(w),
+    async_wait_impl_t(PropertyHandle p, wait_type w) : p_(p), w_(w),
                                                            wait_reported_{std::make_shared<std::atomic<bool>>(false)} { };
 
-    native_sync_t get_native() const override {
+    wait_type get_native() const override {
       return w_;
     }
     void wait() override {

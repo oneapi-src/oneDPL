@@ -14,6 +14,7 @@
 #include <memory>
 #include <utility>
 #include <list>
+#include "oneapi/dpl/internal/dynamic_selection_impl/policy_traits.h"
 
 namespace oneapi {
 namespace dpl {
@@ -77,17 +78,17 @@ namespace experimental {
   }
 
   template<typename DSPolicy>
-  auto get_wait_list(DSPolicy&& dp){
+  auto  get_wait_list(DSPolicy&& dp){
     return std::forward<DSPolicy>(dp).get_wait_list();
   }
 
   template<typename DSPolicy, typename... Args>
-  auto select(DSPolicy&& dp, Args&&... args) {
+  typename policy_traits<DSPolicy>::selection_type select(DSPolicy&& dp, Args&&... args) {
     return std::forward<DSPolicy>(dp).select(std::forward<Args>(args)...);
   }
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto invoke_async(DSPolicy&& dp, typename DSPolicy::selection_handle_t e, Function&&f, Args&&... args) {
+  auto invoke_async(DSPolicy&& dp, typename policy_traits<DSPolicy>::selection_type e, Function&&f, Args&&... args) {
     return std::forward<DSPolicy>(dp).invoke_async(e, std::forward<Function>(f), std::forward<Args>(args)...);
   }
 
@@ -141,8 +142,8 @@ namespace experimental {
   struct has_invoke_handle : decltype(has_invoke_handle_impl<DSPolicy, SelectionHandle , Function, Args...>(0)) {};
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto invoke(DSPolicy&& dp, typename std::decay_t<DSPolicy>::selection_handle_t e, Function&&f, Args&&... args) {
-    if constexpr(has_invoke_handle<DSPolicy, typename std::decay_t<DSPolicy>::selection_handle_t, Function, Args...>::value == true) {
+  auto invoke(DSPolicy&& dp, typename policy_traits<DSPolicy>::selection_type e, Function&&f, Args&&... args) {
+    if constexpr(has_invoke_handle<DSPolicy, typename policy_traits<DSPolicy>::selection_type, Function, Args...>::value == true) {
         return std::forward<DSPolicy>(dp).invoke(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }else{
         return wait(invoke_async(std::forward<DSPolicy>(dp), e, std::forward<Function>(f), std::forward<Args>(args)...));

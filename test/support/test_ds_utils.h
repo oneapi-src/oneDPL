@@ -51,15 +51,15 @@ int test_invoke_async_and_wait_on_policy(UniverseContainer u, ResourceFunction&&
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
     oneapi::dpl::experimental::invoke_async(p,
-                     [&pass,&ecount,test_resource, i](typename Policy::native_resource_t e) {
+                     [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
                        }
                        ecount += i;
-                       if constexpr (std::is_same_v<typename Policy::native_resource_t, int>)
+                       if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
                          return e;
                        else
-                         return typename Policy::native_sync_t{};
+                         return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                      });
   }
   oneapi::dpl::experimental::wait(p);
@@ -88,15 +88,15 @@ int test_invoke_async_and_get_wait_list(UniverseContainer u, ResourceFunction&& 
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
     oneapi::dpl::experimental::invoke_async(p,
-                     [&pass,&ecount,test_resource, i](typename Policy::native_resource_t e) {
+                     [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
                        }
                        ecount += i;
-                       if constexpr (std::is_same_v<typename Policy::native_resource_t, int>)
+                       if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
                          return e;
                        else
-                         return typename Policy::native_sync_t{};
+                         return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                      });
   }
   auto wlist=oneapi::dpl::experimental::get_wait_list(p);
@@ -126,15 +126,15 @@ int test_invoke_async_and_get_wait_list_single_element(UniverseContainer u, Reso
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
     oneapi::dpl::experimental::invoke_async(p,
-                     [&pass,&ecount,test_resource, i](typename Policy::native_resource_t e) {
+                     [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
                        }
                        ecount += i;
-                       if constexpr (std::is_same_v<typename Policy::native_resource_t, int>)
+                       if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
                          return e;
                        else
-                         return typename Policy::native_sync_t{};
+                         return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                      });
   }
   auto wlist=oneapi::dpl::experimental::get_wait_list(p);
@@ -164,15 +164,15 @@ int test_invoke_async_and_get_wait_list_empty(UniverseContainer u, ResourceFunct
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
     oneapi::dpl::experimental::invoke_async(p,
-                     [&pass,&ecount,test_resource, i](typename Policy::native_resource_t e) {
+                     [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
                        }
                        ecount += i;
-                       if constexpr (std::is_same_v<typename Policy::native_resource_t, int>)
+                       if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
                          return e;
                        else
-                         return typename Policy::native_sync_t{};
+                         return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                      });
   }
   auto wlist=oneapi::dpl::experimental::get_wait_list(p);
@@ -202,15 +202,15 @@ int test_invoke_async_and_wait_on_sync(UniverseContainer u, ResourceFunction&& f
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
     auto w = oneapi::dpl::experimental::invoke_async(p,
-                              [&pass,&ecount,test_resource, i](typename Policy::native_resource_t e) {
+                              [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                                 if (e != test_resource) {
                                   pass = false;
                                 }
                                 ecount += i;
-                                if constexpr (std::is_same_v<typename Policy::native_resource_t, int>)
+                                if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
                                   return e;
                                 else
-                                  return typename Policy::native_sync_t{};
+                                  return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                               });
     oneapi::dpl::experimental::wait(w);
     int count = ecount.load();
@@ -239,15 +239,15 @@ int test_invoke(UniverseContainer u, ResourceFunction&& f) {
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
     oneapi::dpl::experimental::invoke(p,
-               [&pass,&ecount,test_resource, i](typename Policy::native_resource_t e) {
+               [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                  if (e != test_resource) {
                    pass = false;
                  }
                  ecount += i;
-                 if constexpr (std::is_same_v<typename Policy::native_resource_t, int>)
+                 if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
                    return e;
                  else
-                   return typename Policy::native_sync_t{};
+                   return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                });
     int count = ecount.load();
     if (count != i*(i+1)/2) {
@@ -276,15 +276,15 @@ int test_select_and_wait_on_policy(UniverseContainer u, ResourceFunction&& f) {
     auto test_resource = f(i);
     auto h = select(p);
     oneapi::dpl::experimental::invoke_async(p, h,
-                     [&pass,&ecount,test_resource,i](typename Policy::native_resource_t e) {
+                     [&pass,&ecount,test_resource,i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
                        }
                        ecount += i;
-                       if constexpr (std::is_same_v<typename Policy::native_resource_t, int>)
+                       if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
                          return e;
                        else
-                         return typename Policy::native_sync_t{};
+                         return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                      });
   }
   oneapi::dpl::experimental::wait(p);
@@ -314,15 +314,15 @@ int test_select_and_wait_on_sync(UniverseContainer u, ResourceFunction&& f) {
     auto test_resource = f(i);
     auto h = select(p);
     auto w = oneapi::dpl::experimental::invoke_async(p, h,
-                     [&pass,&ecount,test_resource,i](typename Policy::native_resource_t e) {
+                     [&pass,&ecount,test_resource,i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
                        }
                        ecount += i;
-                       if constexpr (std::is_same_v<typename Policy::native_resource_t, int>)
+                       if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
                          return e;
                        else
-                         return typename Policy::native_sync_t{};
+                         return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                      });
     oneapi::dpl::experimental::wait(w);
     int count = ecount.load();
@@ -352,15 +352,15 @@ int test_select_invoke(UniverseContainer u, ResourceFunction&& f) {
     auto test_resource = f(i);
     auto h = select(p);
     oneapi::dpl::experimental::invoke(p, h,
-               [&pass,&ecount,test_resource,i](typename Policy::native_resource_t e) {
+               [&pass,&ecount,test_resource,i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                  if (e != test_resource) {
                    pass = false;
                  }
                  ecount += i;
-                 if constexpr (std::is_same_v<typename Policy::native_resource_t, int>)
+                 if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
                    return e;
                  else
-                   return typename Policy::native_sync_t{};
+                   return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                });
     int count = ecount.load();
     if (count != i*(i+1)/2) {

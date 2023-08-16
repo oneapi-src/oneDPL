@@ -20,12 +20,17 @@ namespace experimental{
   template <typename Scheduler>
   struct round_robin_policy_impl {
     using scheduler_t = Scheduler;
-    using native_resource_t = typename scheduler_t::native_resource_t;
-    using execution_resource_t = typename scheduler_t::execution_resource_t;
-    using native_sync_t = typename scheduler_t::native_sync_t;
     using universe_container_t = typename scheduler_t::universe_container_t;
-    using selection_handle_t = oneapi::dpl::experimental::basic_selection_handle_t<execution_resource_t>;
     using universe_container_size_t = typename universe_container_t::size_type;
+    using waiter_container_t = typename scheduler_t::waiter_container_t;
+
+    using execution_resource_t = typename scheduler_t::execution_resource_t;
+
+    //Policy Traits
+    using selection_type = oneapi::dpl::experimental::basic_selection_handle_t<execution_resource_t>;
+    using resource_type = typename scheduler_t::resource_type;
+    using wait_type = typename scheduler_t::wait_type;
+
 
     std::shared_ptr<scheduler_t> sched_;
 
@@ -76,7 +81,7 @@ namespace experimental{
     }
 
     template<typename ...Args>
-    selection_handle_t select(Args&&...) {
+    selection_type select(Args&&...) {
       size_t i=0;
       while(true){
           universe_container_size_t current_context_ = unit_->next_context_.load();
@@ -94,11 +99,11 @@ namespace experimental{
           }
       }
       auto &e = unit_->universe_[i];
-      return selection_handle_t{e};
+      return selection_type{e};
     }
 
     template<typename Function, typename ...Args>
-    auto invoke_async(selection_handle_t e, Function&& f, Args&&... args) {
+    auto invoke_async(selection_type e, Function&& f, Args&&... args) {
       return sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }
 

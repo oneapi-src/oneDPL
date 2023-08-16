@@ -27,15 +27,16 @@ namespace experimental {
 
   struct sycl_scheduler {
 
-    using native_resource_t = sycl::queue;
-    using native_sync_t = sycl::event;
-    using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<native_resource_t>;
+    using resource_type = sycl::queue;
+    using wait_type = sycl::event;
+
+    using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
     using universe_container_t = std::vector<execution_resource_t>;
 
     class async_wait_t {
     public:
       virtual void wait() = 0;
-      virtual native_sync_t get_native() const = 0;
+      virtual wait_type get_native() const = 0;
       virtual ~async_wait_t() {}
     };
     using waiter_container_t = util::concurrent_queue<async_wait_t *>;
@@ -43,14 +44,14 @@ namespace experimental {
     template<typename PropertyHandle>
     class async_wait_impl_t : public async_wait_t {
       PropertyHandle p_;
-      native_sync_t w_;
+      wait_type w_;
       std::shared_ptr<std::atomic<bool>> wait_reported_;
     public:
 
       async_wait_impl_t(PropertyHandle p, sycl::event e) : p_(p), w_(e),
                                                            wait_reported_{std::make_shared<std::atomic<bool>>(false)} { };
 
-      native_sync_t get_native() const override {
+      wait_type get_native() const override {
         return w_;
       }
 
