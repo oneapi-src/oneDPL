@@ -352,14 +352,3 @@ struct test_non_const_set_symmetric_difference
                                  non_const(::std::less<T>()));
     }
 };
-
-template <typename T>
-struct test_non_const_set_union
-{
-    template <typename Policy, typename InputIterator, typename OutputInterator>
-    void
-    operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
-    {
-        set_union(exec, input_iter, input_iter, input_iter, input_iter, out_iter, non_const(::std::less<T>()));
-    }
-};
