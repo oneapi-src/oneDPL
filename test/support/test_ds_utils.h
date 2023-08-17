@@ -376,7 +376,7 @@ int test_select_invoke(UniverseContainer u, ResourceFunction&& f) {
   return 0;
 }
 
-template<typename Policy, typename UniverseContainer, typename ResourceFunction>
+template<typename Policy, typename UniverseContainer, typename ResourceFunction, bool AutoTune=false>
 int test_select(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};
@@ -385,11 +385,20 @@ int test_select(UniverseContainer u, ResourceFunction&& f) {
   std::atomic<int> ecount = 0;
   bool pass = true;
 
+  auto function_key = [](){};
+
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
-    auto h = select(p);
-    if (h.get_native() != test_resource) {
+    if constexpr (AutoTune) { 
+      auto h = select(p, function_key);
+      if (oneapi::dpl::experimental::unwrap(h) != test_resource) {
          pass = false;
+      }
+    } else {
+      auto h = select(p);
+      if (h.get_native() != test_resource) {
+         pass = false;
+      }
     }
     ecount += i;
     int count = ecount.load();

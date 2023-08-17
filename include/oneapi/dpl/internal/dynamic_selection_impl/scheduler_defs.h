@@ -21,6 +21,7 @@ namespace experimental{
     basic_execution_resource_t() : native_resource_(native_resource_t{}) {}
     basic_execution_resource_t(native_resource_t nc) : native_resource_(nc) {}
     native_resource_t get_native() const { return native_resource_; }
+    native_resource_t unwrap() const { return native_resource_; }
     bool operator==(const basic_execution_resource_t& e) const {
       return native_resource_ == e.native_resource_;
     }

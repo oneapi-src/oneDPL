@@ -71,7 +71,14 @@ struct int_inline_scheduler_t {
   template<typename SelectionHandle, typename Function, typename ...Args>
   auto submit(SelectionHandle h, Function&& f, Args&&... args) {
     using PropertyHandle = typename SelectionHandle::property_handle_t;
+    std::chrono::high_resolution_clock::time_point t0;
+    if constexpr (oneapi::dpl::experimental::report_execution_info_v<SelectionHandle, oneapi::dpl::experimental::execution_info::execution_time_t>) {
+      t0 = std::chrono::high_resolution_clock::now();
+    }
     auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), std::forward<Function>(f)(h.get_native(), std::forward<Args>(args)...));
+    if constexpr (oneapi::dpl::experimental::report_execution_info_v<SelectionHandle, oneapi::dpl::experimental::execution_info::execution_time_t>) {
+      report(h, oneapi::dpl::experimental::execution_info::execution_time, (std::chrono::high_resolution_clock::now()-t0).count());
+    }
     waiters_.push(w);
     return *w;
   }

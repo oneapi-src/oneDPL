@@ -21,6 +21,14 @@ namespace dpl {
 namespace experimental {
 //ds_properties
 
+  namespace execution_info {
+    struct execution_time_t {
+      static constexpr bool is_execution_info_v = true;
+      using value_type = uint64_t;
+    };
+    inline constexpr execution_time_t execution_time;
+  }
+
   namespace property {
     struct task_completion_t {
       static constexpr bool is_property_v = true;
@@ -149,6 +157,64 @@ namespace experimental {
         return wait(invoke_async(std::forward<DSPolicy>(dp), e, std::forward<Function>(f), std::forward<Args>(args)...));
     }
   }
+
+  template<typename T>
+  auto has_unwrap_impl(...) -> std::false_type;
+
+  template<typename T>
+  auto has_unwrap_impl(int) -> decltype(std::declval<T>().unwrap(), std::true_type{});
+
+  template<typename T>
+  struct has_unwrap : decltype(has_unwrap_impl<T>(0)) {};
+
+  template<typename T>
+  auto unwrap(T&& v) {
+    if constexpr(has_unwrap<T>::value == true) {
+        return std::forward<T>(v).unwrap();
+    } else {
+        return v;
+    }
+  }
+
+  template<typename S, typename Info>
+  auto has_report_impl(...) -> std::false_type;
+
+  template<typename S, typename Info>
+  auto has_report_impl(int) -> decltype(std::declval<S>().report(std::declval<Info>()), std::true_type{});
+
+  template<typename S, typename Info>
+  struct has_report : decltype(has_report_impl<S,Info>(0)) {};
+
+  template<typename S, typename Info>
+  void report(S&& s, const Info& i) {
+    if constexpr(has_report<S,Info>::value == true) {
+      std::forward<S>(s).report(i);
+    } 
+  }
+
+  template<typename S, typename Info>
+  auto has_report_value_impl(...) -> std::false_type;
+
+  template<typename S, typename Info>
+  auto has_report_value_impl(int) -> decltype(std::declval<S>().report(std::declval<Info>(), std::declval<typename Info::value_type>()), std::true_type{});
+
+  template<typename S, typename Info>
+  struct has_report_value : decltype(has_report_value_impl<S,Info>(0)) {};
+
+  template<typename S, typename Info, typename Value>
+  void report(S&& s, const Info& i, const Value& v) {
+    if constexpr(has_report_value<S,Info>::value == true) {
+      std::forward<S>(s).report(i, v);
+    } 
+  }
+
+  template<typename S, typename Info>
+  struct report_execution_info {
+    static constexpr bool value = std::disjunction_v<has_report<S,Info>, has_report_value<S,Info>>;   
+  };
+  template<typename S, typename Info>
+  inline constexpr bool report_execution_info_v = report_execution_info<S,Info>::value; 
+
 } // namespace experimental
 } // namespace dpl
 } // namespace oneapi
@@ -157,5 +223,6 @@ namespace experimental {
 #endif
 #include "oneapi/dpl/internal/dynamic_selection_impl/static_policy_impl.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy_impl.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/auto_tune_policy.h"
 
 #endif /*_ONEDPL_INTERNAL_DYNAMIC_SELECTION_H*/
