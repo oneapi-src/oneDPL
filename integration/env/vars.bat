@@ -19,7 +19,7 @@ set "VARSDIR=%~dp0"
 
 if not defined DPL_ROOT for /f "delims=" %%F in ("%VARSDIR%..") do set "DPL_ROOT=%%~fF"
 
-set "CPATH=%DPL_ROOT%\windows\include;%CPATH%"
+set "CPATH=%DPL_ROOT%\include;%CPATH%"
 set "PKG_CONFIG_PATH=%DPL_ROOT%\lib\pkgconfig;%PKG_CONFIG_PATH%"
 
 set "CMAKE_PREFIX_PATH=%DPL_ROOT%\lib\cmake\oneDPL;%CMAKE_PREFIX_PATH%"
