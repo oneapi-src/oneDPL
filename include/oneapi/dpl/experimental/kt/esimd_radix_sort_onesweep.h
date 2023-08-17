@@ -205,7 +205,7 @@ struct radix_sort_onesweep_slm_reorder_kernel
     // then shuffle keys to workgroup order in SLM, need _DataPerWorkItem * sizeof(_KeyT) * _WorkGroupSize
     // then read reordered slm and look up global fix, need GLOBAL_LOOKUP_SIZE on top
 
-    uint32_t n;
+    const uint32_t n;
     uint32_t stage;
     InputT input;
     OutputT output;
