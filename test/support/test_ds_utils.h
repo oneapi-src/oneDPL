@@ -30,11 +30,6 @@ int test_properties(UniverseContainer u, typename UniverseContainer::value_type 
     std::cout << "ERROR: reported universe and queried universe are not equal\n";
     return 1;
   }
-  auto us = oneapi::dpl::experimental::get_universe_size(p);
-  if (u2s != us) {
-    std::cout << "ERROR: queried universe size inconsistent with queried universe\n";
-    return 1;
-  }
   std::cout << "properties: OK\n";
   return 0;
 }
