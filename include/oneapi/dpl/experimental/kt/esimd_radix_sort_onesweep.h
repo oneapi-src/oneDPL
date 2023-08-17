@@ -83,10 +83,9 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
 #pragma unroll
                 for (uint32_t step_offset = 0; step_offset < DATA_PER_WORK_ITEM; step_offset += DATA_PER_STEP)
                 {
-                    simd<uint32_t, DATA_PER_STEP> byte_offsets =
-                        (lane_offsets + step_offset + wi_offset) * sizeof(_KeyT);
-                    simd_mask<DATA_PER_STEP> is_in_range = byte_offsets < __n * sizeof(_KeyT);
-                    simd<_KeyT, DATA_PER_STEP> data = lsc_gather<_KeyT>(input, byte_offsets, is_in_range);
+                    simd<uint32_t, DATA_PER_STEP> offsets = lane_offsets + step_offset + wi_offset;
+                    simd_mask<DATA_PER_STEP> is_in_range = offsets < __n;
+                    simd<_KeyT, DATA_PER_STEP> data = utils::gather<_KeyT, DATA_PER_STEP>(input, offsets, 0, is_in_range);
                     simd<_KeyT, DATA_PER_STEP> sort_identities = utils::__sort_identity<_KeyT, _IsAscending>();
                     keys.template select<DATA_PER_STEP, 1>(step_offset) = merge(data, sort_identities, is_in_range);
                 }
@@ -206,8 +205,8 @@ struct radix_sort_onesweep_slm_reorder_kernel
     // then shuffle keys to workgroup order in SLM, need _DataPerWorkItem * sizeof(_KeyT) * _WorkGroupSize
     // then read reordered slm and look up global fix, need GLOBAL_LOOKUP_SIZE on top
 
-    uint32_t n;
-    uint32_t stage;
+    const uint32_t n;
+    const uint32_t stage;
     InputT input;
     OutputT output;
     uint8_t* p_global_buffer;
@@ -230,10 +229,8 @@ struct radix_sort_onesweep_slm_reorder_kernel
 #pragma unroll
             for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
             {
-                __dpl_esimd_ns::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
-                keys.template select<DATA_PER_STEP, 1>(s) =
-                    lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached,
-                               DATA_PER_STEP>(input, offset);
+                __dpl_esimd_ns::simd offset = io_offset + s + lane_id;
+                keys.template select<DATA_PER_STEP, 1>(s) = utils::gather<_KeyT, DATA_PER_STEP>(input, offset, 0);
             }
         }
         else
@@ -242,13 +239,10 @@ struct radix_sort_onesweep_slm_reorder_kernel
 #pragma unroll
             for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
             {
-                simd_mask<DATA_PER_STEP> m = (io_offset + lane_id + s) < n;
-
-                __dpl_esimd_ns::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
-                keys.template select<DATA_PER_STEP, 1>(s) =
-                    merge(lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached,
-                                     DATA_PER_STEP>(input, offset, m),
-                          simd<_KeyT, DATA_PER_STEP>(default_key), m);
+                __dpl_esimd_ns::simd offset = io_offset + s + lane_id;
+                simd_mask<DATA_PER_STEP> m = offset < n;
+                keys.template select<DATA_PER_STEP, 1>(s) = merge(utils::gather<_KeyT, DATA_PER_STEP>(input, offset, 0, m),
+                                                                  simd<_KeyT, DATA_PER_STEP>(default_key), m);
             }
         }
     }
@@ -330,9 +324,8 @@ struct radix_sort_onesweep_slm_reorder_kernel
                 utils::BlockStore(slm_bin_hist_group_incoming + local_tid * BIN_WIDTH * sizeof(hist_t),
                                   utils::scan<hist_t, hist_t>(thread_grf_hist_summary));
                 if (wg_id != 0)
-                    lsc_block_store<uint32_t, BIN_WIDTH, lsc_data_size::default_size, cache_hint::uncached,
-                                    cache_hint::write_back>(p_global_bin_this_group + local_tid * BIN_WIDTH,
-                                                            thread_grf_hist_summary | HIST_UPDATED);
+                    utils::BlockStore<uint32_t, BIN_WIDTH>(p_global_bin_this_group + local_tid * BIN_WIDTH,
+                                                           thread_grf_hist_summary | HIST_UPDATED);
             }
             barrier();
             if (local_tid == BIN_SUMMARY_GROUP_SIZE + 1)
@@ -373,9 +366,8 @@ struct radix_sort_onesweep_slm_reorder_kernel
                 } while (is_not_accumulated.any() && wg_id != 0);
                 prev_group_hist_sum &= GLOBAL_OFFSET_MASK;
                 simd<global_hist_t, BIN_WIDTH> after_group_hist_sum = prev_group_hist_sum + thread_grf_hist_summary;
-                lsc_block_store<uint32_t, BIN_WIDTH, lsc_data_size::default_size, cache_hint::uncached,
-                                cache_hint::write_back>(p_global_bin_this_group + local_tid * BIN_WIDTH,
-                                                        after_group_hist_sum | HIST_UPDATED | GLOBAL_ACCUMULATED);
+                utils::BlockStore<uint32_t, BIN_WIDTH>(p_global_bin_this_group + local_tid * BIN_WIDTH,
+                                                       after_group_hist_sum | HIST_UPDATED | GLOBAL_ACCUMULATED);
 
                 utils::BlockStore<uint32_t, BIN_WIDTH>(
                     slm_bin_hist_global_incoming + local_tid * BIN_WIDTH * sizeof(global_hist_t), prev_group_hist_sum);
