@@ -58,7 +58,7 @@
 // Avoid throwing an error during compilation for a device by checking __SYCL_DEVICE_ONLY__
 #if ONEDPL_USE_OPENMP_BACKEND && !_ONEDPL_OPENMP_AVAILABLE && !defined(__SYCL_DEVICE_ONLY__)
 #    error "Parallel execution policies with OpenMP* support are enabled, \
-        but OpenMP* headers are not found or the compiler does not support OpenMP*"
+        but OpenMP headers are not found or the compiler does not support OpenMP"
 #endif
 
 #if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                           \
@@ -67,7 +67,7 @@
 #endif
 #if ONEDPL_USE_DPCPP_BACKEND && !_ONEDPL_SYCL_AVAILABLE
 #    error "Device execution policies are enabled, \
-        but SYCL* headers are not found or the compiler does not support SYCL*"
+        but SYCL* headers are not found or the compiler does not support SYCL"
 #endif
 
 // Check the user-defined macro for warnings

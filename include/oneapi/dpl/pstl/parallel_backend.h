@@ -19,13 +19,12 @@
 // Select a parallel backend
 #if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND && _ONEDPL_TBB_AVAILABLE)
 #    define _ONEDPL_PAR_BACKEND_TBB 1
-#endif
-
-#if ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && _ONEDPL_OPENMP_AVAILABLE)
+#    include "parallel_backend_tbb.h"
+#elif ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && _ONEDPL_OPENMP_AVAILABLE)
+#    include "parallel_backend_omp.h"
 #    define _ONEDPL_PAR_BACKEND_OPENMP 1
-#endif
-
-#if !_ONEDPL_PAR_BACKEND_TBB && !_ONEDPL_PAR_BACKEND_OPENMP
+#else
+#    include "parallel_backend_serial.h"
 #    define _ONEDPL_PAR_BACKEND_SERIAL 1
 #endif
 
@@ -36,35 +35,21 @@
 #    endif
 #endif
 
+namespace oneapi
+{
+namespace dpl
+{
+namespace __par_backend =
 #if _ONEDPL_PAR_BACKEND_TBB
-#    include "parallel_backend_tbb.h"
-namespace oneapi
-{
-namespace dpl
-{
-namespace __par_backend = __tbb_backend;
-}
-} // namespace oneapi
+__tbb_backend;
 #elif _ONEDPL_PAR_BACKEND_OPENMP
-#    include "parallel_backend_omp.h"
-namespace oneapi
-{
-namespace dpl
-{
-namespace __par_backend = __omp_backend;
-}
-} // namespace oneapi
+__omp_backend;
 #elif _ONEDPL_PAR_BACKEND_SERIAL
-#    include "parallel_backend_serial.h"
-namespace oneapi
-{
-namespace dpl
-{
-namespace __par_backend = __serial_backend;
-}
-} // namespace oneapi
+__serial_backend;
 #else
 _PSTL_PRAGMA_MESSAGE("Parallel backend was not specified");
 #endif
+}
+} // namespace oneapi
 
 #endif // _ONEDPL_PARALLEL_BACKEND_H
