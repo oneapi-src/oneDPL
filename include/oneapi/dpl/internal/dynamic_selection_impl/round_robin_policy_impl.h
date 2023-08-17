@@ -71,10 +71,6 @@ namespace experimental{
       return sched_->get_universe();
     }
 
-    auto get_universe_size() const noexcept {
-      return sched_->get_universe_size();
-    }
-
     template<typename ...Args>
     auto set_universe(Args&&... args) {
         return sched_->set_universe(std::forward<Args>(args)...);
@@ -103,7 +99,7 @@ namespace experimental{
     }
 
     template<typename Function, typename ...Args>
-    auto invoke_async(selection_type e, Function&& f, Args&&... args) {
+    auto submit(selection_type e, Function&& f, Args&&... args) {
       return sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }
 
