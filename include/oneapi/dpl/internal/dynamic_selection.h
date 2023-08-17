@@ -90,8 +90,8 @@ namespace experimental {
   }
 
   template<typename DSPolicy>
-  auto  get_wait_list(DSPolicy&& dp){
-    return std::forward<DSPolicy>(dp).get_wait_list();
+  auto  get_submission_group(DSPolicy&& dp){
+    return std::forward<DSPolicy>(dp).get_submission_group();
   }
 
   template<typename DSPolicy, typename... Args>

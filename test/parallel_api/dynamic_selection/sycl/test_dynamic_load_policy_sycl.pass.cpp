@@ -13,7 +13,7 @@
 #include "support/sycl_sanity.h"
 
 int main() {
-  using policy_t = oneapi::dpl::experimental::dynamic_load_policy;
+  using policy_t = oneapi::dpl::experimental::dynamic_load_policy_sycl;
   std::vector<sycl::queue> u;
   build_universe(u);
   if (u.empty()) {
@@ -36,9 +36,9 @@ int main() {
       || test_invoke<policy_t>(u, fs)
       || test_invoke_async_and_wait_on_policy<policy_t>(u, fp)
       || test_invoke_async_and_wait_on_sync<policy_t>(u, fs)
-      || test_invoke_async_and_get_wait_list<policy_t>(u, fp)
-      || test_invoke_async_and_get_wait_list_single_element<policy_t>(u, fs)
-      || test_invoke_async_and_get_wait_list_empty<policy_t>(u, fs)
+      || test_invoke_async_and_get_submission_group<policy_t>(u, fp)
+      || test_invoke_async_and_get_submission_group_single_element<policy_t>(u, fs)
+      || test_invoke_async_and_get_submission_group_empty<policy_t>(u, fs)
       || test_select<policy_t>(u, fs)
       || test_select_and_wait_on_policy<policy_t>(u, fp)
       || test_select_and_wait_on_sync<policy_t>(u, fs)

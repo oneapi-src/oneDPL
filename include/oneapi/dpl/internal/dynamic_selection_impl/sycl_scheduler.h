@@ -30,7 +30,6 @@ namespace experimental {
     using resource_type = sycl::queue;
     using wait_type = sycl::event;
 
-    //using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
     using universe_container_t = std::vector<resource_type>;
 
     class async_wait_t {
@@ -91,7 +90,7 @@ namespace experimental {
       return *w;
     }
 
-    auto get_wait_list(){
+    auto get_submission_group(){
        std::list<async_wait_t*> wlist;
        waiters_.pop_all(wlist);
        return wlist;
@@ -126,7 +125,7 @@ namespace experimental {
       }
     }
 
-    auto set_universe(const universe_container_t &gr) noexcept {
+    auto initialize(const universe_container_t &gr) noexcept {
       std::unique_lock<std::mutex> l(global_rank_mutex_);
       global_rank_ = gr;
     }

@@ -21,7 +21,6 @@ namespace TestUtils {
 struct int_inline_scheduler_t {
   using resource_type = int;
   using wait_type = int;
-  //using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
   using universe_container_t = std::vector<resource_type>;
 
   class async_wait_t {
@@ -79,7 +78,7 @@ struct int_inline_scheduler_t {
     return *w;
   }
 
-  auto get_wait_list(){
+  auto get_submission_group(){
     std::list<async_wait_t*> wlist;
     waiters_.pop_all(wlist);
     return wlist;
@@ -102,8 +101,13 @@ struct int_inline_scheduler_t {
      return universe_.size();
   }
 
-  auto set_universe(const universe_container_t &u) noexcept {
+  auto initialize(const universe_container_t &u) noexcept {
     universe_ = u;
+  }
+
+  auto initialize() noexcept {
+    for (int i = 1; i < 4; ++i)
+      universe_.push_back(resource_type{i});
   }
 };
 
