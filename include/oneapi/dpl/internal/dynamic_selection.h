@@ -169,6 +169,6 @@ namespace experimental {
 #endif
 #include "oneapi/dpl/internal/dynamic_selection_impl/static_policy_impl.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy_impl.h"
-#include "oneapi/dpl/internal/dynamic_selection_impl/dynamic_load_policy_impl.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/dynamic_load_policy.h"
 
 #endif /*_ONEDPL_INTERNAL_DYNAMIC_SELECTION_H*/
