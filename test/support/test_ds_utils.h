@@ -40,7 +40,7 @@ int test_properties(UniverseContainer u, typename UniverseContainer::value_type 
 }
 
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
-int test_invoke_async_and_wait_on_policy(UniverseContainer u, ResourceFunction&& f) {
+int test_submit_and_wait_on_policy(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};
 
@@ -50,7 +50,7 @@ int test_invoke_async_and_wait_on_policy(UniverseContainer u, ResourceFunction&&
 
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
-    oneapi::dpl::experimental::invoke_async(p,
+    oneapi::dpl::experimental::submit(p,
                      [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
@@ -72,12 +72,12 @@ int test_invoke_async_and_wait_on_policy(UniverseContainer u, ResourceFunction&&
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "async_invoke_wait_on_policy: OK\n";
+  std::cout << "submit_and_wait_on_policy: OK\n";
   return 0;
 }
 
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
-int test_invoke_async_and_get_wait_list(UniverseContainer u, ResourceFunction&& f) {
+int test_submit_and_get_wait_list(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};
 
@@ -87,7 +87,7 @@ int test_invoke_async_and_get_wait_list(UniverseContainer u, ResourceFunction&& 
 
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
-    oneapi::dpl::experimental::invoke_async(p,
+    oneapi::dpl::experimental::submit(p,
                      [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
@@ -110,12 +110,12 @@ int test_invoke_async_and_get_wait_list(UniverseContainer u, ResourceFunction&& 
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "async_invoke_and_get_wait_list: OK\n";
+  std::cout << "submit_and_get_wait_list: OK\n";
   return 0;
 }
 
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
-int test_invoke_async_and_get_wait_list_single_element(UniverseContainer u, ResourceFunction&& f) {
+int test_submit_and_get_wait_list_single_element(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};
 
@@ -125,7 +125,7 @@ int test_invoke_async_and_get_wait_list_single_element(UniverseContainer u, Reso
 
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
-    oneapi::dpl::experimental::invoke_async(p,
+    oneapi::dpl::experimental::submit(p,
                      [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
@@ -148,12 +148,12 @@ int test_invoke_async_and_get_wait_list_single_element(UniverseContainer u, Reso
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "async_invoke_and_get_wait_list single element: OK\n";
+  std::cout << "submit_and_get_wait_list single element: OK\n";
   return 0;
 }
 
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
-int test_invoke_async_and_get_wait_list_empty(UniverseContainer u, ResourceFunction&& f) {
+int test_submit_and_get_wait_list_empty(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};
 
@@ -163,7 +163,7 @@ int test_invoke_async_and_get_wait_list_empty(UniverseContainer u, ResourceFunct
 
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
-    oneapi::dpl::experimental::invoke_async(p,
+    oneapi::dpl::experimental::submit(p,
                      [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
@@ -186,12 +186,12 @@ int test_invoke_async_and_get_wait_list_empty(UniverseContainer u, ResourceFunct
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "async_invoke_and_get_wait_list empty list: OK\n";
+  std::cout << "submit_and_get_wait_list empty list: OK\n";
   return 0;
 }
 
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
-int test_invoke_async_and_wait_on_sync(UniverseContainer u, ResourceFunction&& f) {
+int test_submit_and_wait_on_sync(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};
 
@@ -201,7 +201,7 @@ int test_invoke_async_and_wait_on_sync(UniverseContainer u, ResourceFunction&& f
 
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
-    auto w = oneapi::dpl::experimental::invoke_async(p,
+    auto w = oneapi::dpl::experimental::submit(p,
                               [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                                 if (e != test_resource) {
                                   pass = false;
@@ -223,12 +223,12 @@ int test_invoke_async_and_wait_on_sync(UniverseContainer u, ResourceFunction&& f
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "async_invoke_wait_on_sync: OK\n";
+  std::cout << "submit_and_wait_on_sync: OK\n";
   return 0;
 }
 
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
-int test_invoke(UniverseContainer u, ResourceFunction&& f) {
+int test_submit_and_wait(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};
 
@@ -238,7 +238,7 @@ int test_invoke(UniverseContainer u, ResourceFunction&& f) {
 
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
-    oneapi::dpl::experimental::invoke(p,
+    oneapi::dpl::experimental::submit_and_wait(p,
                [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                  if (e != test_resource) {
                    pass = false;
@@ -259,7 +259,7 @@ int test_invoke(UniverseContainer u, ResourceFunction&& f) {
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "invoke: OK\n";
+  std::cout << "submit_and_wait: OK\n";
   return 0;
 }
 
@@ -275,7 +275,7 @@ int test_select_and_wait_on_policy(UniverseContainer u, ResourceFunction&& f) {
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
     auto h = select(p);
-    oneapi::dpl::experimental::invoke_async(p, h,
+    oneapi::dpl::experimental::submit(p, h,
                      [&pass,&ecount,test_resource,i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
@@ -297,7 +297,7 @@ int test_select_and_wait_on_policy(UniverseContainer u, ResourceFunction&& f) {
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "select_invoke_async_and_wait_on_policy: OK\n";
+  std::cout << "select_submit_and_wait_on_policy: OK\n";
   return 0;
 }
 
@@ -313,7 +313,7 @@ int test_select_and_wait_on_sync(UniverseContainer u, ResourceFunction&& f) {
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
     auto h = select(p);
-    auto w = oneapi::dpl::experimental::invoke_async(p, h,
+    auto w = oneapi::dpl::experimental::submit(p, h,
                      [&pass,&ecount,test_resource,i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
                          pass = false;
@@ -335,12 +335,12 @@ int test_select_and_wait_on_sync(UniverseContainer u, ResourceFunction&& f) {
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "select_invoke_async_and_wait_on_sync: OK\n";
+  std::cout << "select_submit_and_wait_on_sync: OK\n";
   return 0;
 }
 
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
-int test_select_invoke(UniverseContainer u, ResourceFunction&& f) {
+int test_select_submit_and_wait(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};
 
@@ -351,7 +351,7 @@ int test_select_invoke(UniverseContainer u, ResourceFunction&& f) {
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
     auto h = select(p);
-    oneapi::dpl::experimental::invoke(p, h,
+    oneapi::dpl::experimental::submit_and_wait(p, h,
                [&pass,&ecount,test_resource,i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                  if (e != test_resource) {
                    pass = false;
@@ -372,7 +372,7 @@ int test_select_invoke(UniverseContainer u, ResourceFunction&& f) {
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "select_invoke: OK\n";
+  std::cout << "select_submit_and_wait: OK\n";
   return 0;
 }
 

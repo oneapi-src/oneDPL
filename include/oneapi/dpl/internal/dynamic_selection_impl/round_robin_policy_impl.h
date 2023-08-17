@@ -103,7 +103,7 @@ namespace experimental{
     }
 
     template<typename Function, typename ...Args>
-    auto invoke_async(selection_type e, Function&& f, Args&&... args) {
+    auto submit(selection_type e, Function&& f, Args&&... args) {
       return sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }
 

@@ -26,16 +26,16 @@ int main() {
 
   if (test_cout<policy_t>()
       || test_properties<policy_t>(u, test_resource)
-      || test_invoke<policy_t>(u, f)
-      || test_invoke_async_and_wait_on_policy<policy_t>(u, f)
-      || test_invoke_async_and_wait_on_sync<policy_t>(u, f)
-      || test_invoke_async_and_get_wait_list<policy_t>(u, f)
-      || test_invoke_async_and_get_wait_list_single_element<policy_t>(u, f)
-      || test_invoke_async_and_get_wait_list_empty<policy_t>(u, f)
+      || test_submit_and_wait<policy_t>(u, f)
+      || test_submit_and_wait_on_policy<policy_t>(u, f)
+      || test_submit_and_wait_on_sync<policy_t>(u, f)
+      || test_submit_and_get_wait_list<policy_t>(u, f)
+      || test_submit_and_get_wait_list_single_element<policy_t>(u, f)
+      || test_submit_and_get_wait_list_empty<policy_t>(u, f)
       || test_select<policy_t>(u, f)
       || test_select_and_wait_on_policy<policy_t>(u, f)
       || test_select_and_wait_on_sync<policy_t>(u, f)
-      || test_select_invoke<policy_t>(u, f)
+      || test_select_submit_and_wait<policy_t>(u, f)
      ) {
     std::cout << "FAIL\n";
     return 1;
