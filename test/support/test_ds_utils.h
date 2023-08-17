@@ -72,7 +72,7 @@ int test_submit_and_wait_on_policy(UniverseContainer u, ResourceFunction&& f) {
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "async_submit_and_wait_wait_on_policy: OK\n";
+  std::cout << "submit_and_wait_on_policy: OK\n";
   return 0;
 }
 
@@ -110,7 +110,7 @@ int test_submit_and_get_wait_list(UniverseContainer u, ResourceFunction&& f) {
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "async_submit_and_wait_and_get_wait_list: OK\n";
+  std::cout << "submit_and_get_wait_list: OK\n";
   return 0;
 }
 
@@ -148,7 +148,7 @@ int test_submit_and_get_wait_list_single_element(UniverseContainer u, ResourceFu
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "async_submit_and_wait_and_get_wait_list single element: OK\n";
+  std::cout << "submit_and_get_wait_list single element: OK\n";
   return 0;
 }
 
@@ -186,7 +186,7 @@ int test_submit_and_get_wait_list_empty(UniverseContainer u, ResourceFunction&& 
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "async_submit_and_wait_and_get_wait_list empty list: OK\n";
+  std::cout << "submit_and_get_wait_list empty list: OK\n";
   return 0;
 }
 
@@ -223,7 +223,7 @@ int test_submit_and_wait_on_sync(UniverseContainer u, ResourceFunction&& f) {
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "async_submit_and_wait_wait_on_sync: OK\n";
+  std::cout << "submit_and_wait_on_sync: OK\n";
   return 0;
 }
 
