@@ -51,7 +51,6 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
     slm_init(std::max(REORDER_SLM_SIZE, BIN_HIST_SLM_SIZE + INCOMING_OFFSET_SLM_SIZE));
 
     uint32_t local_tid = idx.get_local_linear_id();
-    uint32_t slm_incoming_offset = BIN_HIST_SLM_SIZE;
 
     uint32_t slm_reorder_this_thread = local_tid * _DataPerWorkItem * sizeof(_KeyT);
     uint32_t slm_bin_hist_this_thread = local_tid * HIST_STRIDE;
@@ -150,7 +149,7 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
                 for (uint32_t s = 0; s < BIN_COUNT; s += 128)
                 {
                     utils::BlockStore<uint32_t, 64>(
-                        slm_incoming_offset + s * sizeof(hist_t),
+                        BIN_HIST_SLM_SIZE + s * sizeof(hist_t),
                         grf_hist_summary_scan.template select<128, 1>(s).template bit_cast_view<uint32_t>());
                 }
             }
@@ -160,7 +159,7 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
                 for (uint32_t s = 0; s < BIN_COUNT; s += 128)
                 {
                     bin_offset.template select<128, 1>(s).template bit_cast_view<uint32_t>() =
-                        utils::BlockLoad<uint32_t, 64>(slm_incoming_offset + s * sizeof(hist_t));
+                        utils::BlockLoad<uint32_t, 64>(BIN_HIST_SLM_SIZE + s * sizeof(hist_t));
                 }
                 if (local_tid > 0)
                 {
