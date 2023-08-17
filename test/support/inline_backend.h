@@ -11,19 +11,19 @@
 #define _ONEDPL_INLINE_SCHEDULER_H
 
 #include "oneapi/dpl/dynamic_selection"
-#include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/backend_defs.h"
 #include "support/concurrent_queue.h"
 
 #include <vector>
 #include <atomic>
 
 namespace TestUtils {
-struct int_inline_scheduler_t {
+struct int_inline_backend_t {
   using resource_type = int;
   using wait_type = int;
   using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
-  using native_universe_container_t = std::vector<resource_type>;
-  using universe_container_t = std::vector<execution_resource_t>;
+  using native_resource_container_t = std::vector<resource_type>;
+  using resource_container_t = std::vector<execution_resource_t>;
 
   class async_wait_t {
   public:
@@ -55,17 +55,17 @@ struct int_inline_scheduler_t {
     }
   };
 
-  universe_container_t universe_;
+  resource_container_t resources_;
   waiter_container_t waiters_;
 
-  int_inline_scheduler_t() {
+  int_inline_backend_t() {
     for (int i = 1; i < 4; ++i)
-      universe_.push_back(execution_resource_t{i});
+      resources_.push_back(execution_resource_t{i});
   }
 
-  int_inline_scheduler_t(const native_universe_container_t& u) {
+  int_inline_backend_t(const native_resource_container_t& u) {
     for (const auto& e : u)
-      universe_.push_back(execution_resource_t{e});
+      resources_.push_back(execution_resource_t{e});
   }
 
   template<typename SelectionHandle, typename Function, typename ...Args>
@@ -91,20 +91,20 @@ struct int_inline_scheduler_t {
     }
   }
 
-  universe_container_t get_universe() const noexcept {
-    return universe_;
+  resource_container_t get_resources() const noexcept {
+    return resources_;
   }
 
-  auto get_universe_size()  const noexcept {
-     return universe_.size();
+  auto get_resources_size()  const noexcept {
+     return resources_.size();
   }
 
-  auto set_universe(const universe_container_t &u) noexcept {
-    universe_ = u;
+  auto set_universe(const resource_container_t &u) noexcept {
+    resources_ = u;
   }
 };
 
-inline int_inline_scheduler_t int_inline_scheduler;
+inline int_inline_backend_t int_inline_backend;
 
 } //namespace TestUtils
 

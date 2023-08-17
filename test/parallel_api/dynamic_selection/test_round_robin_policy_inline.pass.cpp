@@ -10,10 +10,10 @@
 #include <iostream>
 #include "oneapi/dpl/dynamic_selection"
 #include "support/test_ds_utils.h"
-#include "support/inline_scheduler.h"
+#include "support/inline_backend.h"
 
 int main() {
-  using policy_t = oneapi::dpl::experimental::round_robin_policy_t<TestUtils::int_inline_scheduler_t>;
+  using policy_t = oneapi::dpl::experimental::round_robin_policy_t<TestUtils::int_inline_backend_t>;
   std::vector<int> u{4, 5, 6, 7};
   int test_resource = 5;
   auto f = [test_resource, u](int i) { return u[(i-1)%4]; };
