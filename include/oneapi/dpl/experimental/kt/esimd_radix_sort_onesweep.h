@@ -206,7 +206,7 @@ struct radix_sort_onesweep_slm_reorder_kernel
     // then read reordered slm and look up global fix, need GLOBAL_LOOKUP_SIZE on top
 
     const uint32_t n;
-    uint32_t stage;
+    const uint32_t stage;
     InputT input;
     OutputT output;
     uint8_t* p_global_buffer;
