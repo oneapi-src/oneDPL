@@ -2,7 +2,7 @@
 REM
 REM ===----------------------------------------------------------------------===
 REM
-REM Copyright (C) Intel Corporation
+REM Copyright (C) 2023 Intel Corporation
 REM
 REM SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 REM
