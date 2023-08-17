@@ -610,7 +610,6 @@ struct __radix_sort_onesweep_mem_free_submitter
     }
 };
 
-
 template <typename _KeyT, typename _KernelName>
 struct __radix_sort_copyback_submitter;
 
