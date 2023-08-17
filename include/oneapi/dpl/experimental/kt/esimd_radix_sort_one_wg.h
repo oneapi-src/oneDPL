@@ -61,7 +61,7 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
     simd<bin_t, _DataPerWorkItem> bins;
     simd<device_addr_t, DATA_PER_STEP> lane_id(0, 1);
 
-    device_addr_t io_offset = _DataPerWorkItem * local_tid;
+    const device_addr_t io_offset = _DataPerWorkItem * local_tid;
 
 #pragma unroll
     for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
