@@ -83,10 +83,9 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
 #pragma unroll
                 for (uint32_t step_offset = 0; step_offset < DATA_PER_WORK_ITEM; step_offset += DATA_PER_STEP)
                 {
-                    simd<uint32_t, DATA_PER_STEP> byte_offsets =
-                        (lane_offsets + step_offset + wi_offset) * sizeof(_KeyT);
-                    simd_mask<DATA_PER_STEP> is_in_range = byte_offsets < __n * sizeof(_KeyT);
-                    simd<_KeyT, DATA_PER_STEP> data = lsc_gather<_KeyT>(input, byte_offsets, is_in_range);
+                    simd<uint32_t, DATA_PER_STEP> offsets = lane_offsets + step_offset + wi_offset;
+                    simd_mask<DATA_PER_STEP> is_in_range = offsets < __n;
+                    simd<_KeyT, DATA_PER_STEP> data = utils::gather<_KeyT, DATA_PER_STEP>(input, offsets, 0, is_in_range);
                     simd<_KeyT, DATA_PER_STEP> sort_identities = utils::__sort_identity<_KeyT, _IsAscending>();
                     keys.template select<DATA_PER_STEP, 1>(step_offset) = merge(data, sort_identities, is_in_range);
                 }
@@ -230,10 +229,8 @@ struct radix_sort_onesweep_slm_reorder_kernel
 #pragma unroll
             for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
             {
-                __dpl_esimd_ns::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
-                keys.template select<DATA_PER_STEP, 1>(s) =
-                    lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached,
-                               DATA_PER_STEP>(input, offset);
+                __dpl_esimd_ns::simd offset = io_offset + s + lane_id;
+                keys.template select<DATA_PER_STEP, 1>(s) = utils::gather<_KeyT, DATA_PER_STEP>(input, offset, 0);
             }
         }
         else
@@ -242,13 +239,10 @@ struct radix_sort_onesweep_slm_reorder_kernel
 #pragma unroll
             for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
             {
-                simd_mask<DATA_PER_STEP> m = (io_offset + lane_id + s) < n;
-
-                __dpl_esimd_ns::simd offset((io_offset + s + lane_id) * sizeof(_KeyT));
-                keys.template select<DATA_PER_STEP, 1>(s) =
-                    merge(lsc_gather<_KeyT, 1, lsc_data_size::default_size, cache_hint::cached, cache_hint::cached,
-                                     DATA_PER_STEP>(input, offset, m),
-                          simd<_KeyT, DATA_PER_STEP>(default_key), m);
+                __dpl_esimd_ns::simd offset = io_offset + s + lane_id;
+                simd_mask<DATA_PER_STEP> m = offset < n;
+                keys.template select<DATA_PER_STEP, 1>(s) = merge(utils::gather<_KeyT, DATA_PER_STEP>(input, offset, 0, m),
+                                                                  simd<_KeyT, DATA_PER_STEP>(default_key), m);
             }
         }
     }
