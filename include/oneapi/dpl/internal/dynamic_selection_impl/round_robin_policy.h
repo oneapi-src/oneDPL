@@ -31,75 +31,71 @@ namespace experimental{
   private:
     std::shared_ptr<Backend> backend_;
 
-    struct unit_t{
+    struct state_t{
         resource_container_t resource_;
         resource_container_size_t num_contexts_;
         std::atomic<resource_container_size_t> next_context_;
 	int offset_;
-	bool deferred_;
     };
 
-    std::shared_ptr<unit_t> unit_;
+    std::shared_ptr<state_t> state_;
   public:
-    round_robin_policy(int offset=0, bool deferred=false) : backend_{std::make_shared<Backend>()}, unit_{std::make_shared<unit_t>()}  {
-      unit_->resource_ = get_resources();
-      unit_->num_contexts_ = unit_->resource_.size();
-      unit_->offset_ = offset;
-      unit_->next_context_ = unit_->offset_;
-      unit_->deferred_ = deferred;
-    }
+    round_robin_policy(int offset=0) : backend_{std::make_shared<Backend>()}, state_{std::make_shared<state_t>()}  {
+      state_->resource_ = get_resources();
+      state_->num_contexts_ = state_->resource_.size();
+      state_->offset_ = offset;
+      state_->next_context_ = state_->offset_;
+  }
 
-    round_robin_policy(resource_container_t u, int offset=0, bool deferred=false) : backend_{std::make_shared<Backend>()}, unit_{std::make_shared<unit_t>()}  {
+    round_robin_policy(resource_container_t u, int offset=0) : backend_{std::make_shared<Backend>()}, state_{std::make_shared<state_t>()}  {
       backend_->initialize(u);
-      unit_->resource_ = get_resources();
-      unit_->num_contexts_ = unit_->resource_.size();
-      unit_->offset_ = offset;
-      unit_->next_context_ = unit_->offset_;
-      unit_->deferred_ = deferred;
+      state_->resource_ = get_resources();
+      state_->num_contexts_ = state_->resource_.size();
+      state_->offset_ = offset;
+      state_->next_context_ = state_->offset_;
     }
 
     template<typename ...Args>
-    round_robin_policy_impl(Args&&... args) : backend_{std::make_shared<Backend>(std::forward<Args>(args)...)}, unit_{std::make_shared<unit_t>()} {
-      unit_->resource_ = backend_->get_resources();
-      unit_->num_contexts_ = unit_->resource_.size();
-      unit_->next_context_ = 0;
+    round_robin_policy_impl(Args&&... args) : backend_{std::make_shared<Backend>(std::forward<Args>(args)...)}, state_{std::make_shared<state_t>()} {
+      state_->resource_ = backend_->get_resources();
+      state_->num_contexts_ = state_->resource_.size();
+      state_->next_context_ = 0;
     }
 
     auto get_resources() const noexcept {
       return backend_->get_resources();
     }
 
-    void initialize(int offset=0, bool deferred=false) {
-      unit_->offset_ = offset;
-      unit_->deferred_ = deferred;
-      backend_->initialize(deferred);
+    void initialize(int offset=0) {
+      if (offset == -1) return;
+      state_->offset_ = offset;
+      backend_->initialize();
     }
 
-    void initialize(resource_container_t u, int offset=0, bool deferred=false) {
-      unit_->offset_ = offset;
-      unit_->deferred_ = deferred;
+    void initialize(resource_container_t u, int offset=0) {
+      state_->offset_ = offset;
       backend_->initialize(u);
     }
 
     template<typename ...Args>
     selection_t select(Args&&...) {
-      size_t i=unit_->offset_;
+      size_t i=state_->offset_;
       while(true){
-          resource_container_size_t current_context_ = unit_->next_context_.load();
+          resource_container_size_t current_context_ = state_->next_context_.load();
           resource_container_size_t new_context_;
           if(current_context_ == std::numeric_limits<resource_container_size_t>::max()){
-              new_context_ = (current_context_%unit_->num_contexts_)+1;
+              new_context_ = (current_context_%state_->num_contexts_)+1;
           }
           else{
-              new_context_ = (current_context_+1)%unit_->num_contexts_;
+              new_context_ = (current_context_+1)%state_->num_contexts_;
           }
 
-          if(unit_->next_context_.compare_exchange_weak(current_context_, new_context_)){
+          if(state_->next_context_.compare_exchange_weak(current_context_, new_context_)){
               i = current_context_;
               break;
           }
       }
-      auto &e = unit_->resource_[i];
+      auto &e = state_->resource_[i];
       return selection_t{e};
     }
 
