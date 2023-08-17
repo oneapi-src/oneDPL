@@ -596,20 +596,6 @@ struct __radix_sort_onesweep_submitter<_IsAscending, _RadixBits, _DataPerWorkIte
     }
 };
 
-struct __radix_sort_onesweep_mem_free_submitter
-{
-    sycl::event
-    operator()(sycl::queue& __q, void* __ptr, const sycl::event& __e) const
-    {
-        return __q.submit(
-            [&](sycl::handler& __cgh)
-            {
-                __cgh.depends_on(__e);
-                __cgh.host_task([__q, __ptr]() { sycl::free(__ptr, __q); });
-            });
-    }
-};
-
 template <typename _KeyT, typename _KernelName>
 struct __radix_sort_copyback_submitter;
 
@@ -726,8 +712,12 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
             __radix_sort_copyback_submitter<_KeyT, _EsimdRadixSortCopyback>()(__q, __out_rng, __rng, __n, event_chain);
     }
 
-    // Create host task to call sycl::free(p_temp_memory, __q)
-    event_chain = __radix_sort_onesweep_mem_free_submitter()(__q, p_temp_memory, event_chain);
+    event_chain = __q.submit(
+        [&](sycl::handler& __cgh)
+        {
+            __cgh.depends_on(event_chain);
+            __cgh.host_task([&]() { sycl::free(p_temp_memory, __q); });
+        });
 
     return event_chain;
 }
