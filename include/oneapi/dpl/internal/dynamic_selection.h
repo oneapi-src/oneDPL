@@ -88,65 +88,65 @@ namespace experimental {
   }
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto invoke_async(DSPolicy&& dp, typename policy_traits<DSPolicy>::selection_type e, Function&&f, Args&&... args) {
-    return std::forward<DSPolicy>(dp).invoke_async(e, std::forward<Function>(f), std::forward<Args>(args)...);
+  auto submit(DSPolicy&& dp, typename policy_traits<DSPolicy>::selection_type e, Function&&f, Args&&... args) {
+    return std::forward<DSPolicy>(dp).submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
   }
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto has_invoke_async_impl(...) -> std::false_type;
+  auto has_submit_impl(...) -> std::false_type;
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto has_invoke_async_impl(int) -> decltype(std::declval<DSPolicy>().invoke_async(std::declval<Function>(), std::declval<Args>()...), std::true_type{});
+  auto has_submit_impl(int) -> decltype(std::declval<DSPolicy>().submit(std::declval<Function>(), std::declval<Args>()...), std::true_type{});
 
   template<typename DSPolicy, typename Function, typename... Args>
-  struct has_invoke_async : decltype(has_invoke_async_impl<DSPolicy, Function, Args...>(0)) {};
+  struct has_submit : decltype(has_submit_impl<DSPolicy, Function, Args...>(0)) {};
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto invoke_async(DSPolicy&& dp, Function&&f, Args&&... args) {
-    if constexpr(has_invoke_async<DSPolicy, Function, Args...>::value == true) {
-        return std::forward<DSPolicy>(dp).invoke_async(std::forward<Function>(f), std::forward<Args>(args)...);
+  auto submit(DSPolicy&& dp, Function&&f, Args&&... args) {
+    if constexpr(has_submit<DSPolicy, Function, Args...>::value == true) {
+        return std::forward<DSPolicy>(dp).submit(std::forward<Function>(f), std::forward<Args>(args)...);
     }
     else {
-        return invoke_async(std::forward<DSPolicy>(dp), std::forward<DSPolicy>(dp).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
+        return submit(std::forward<DSPolicy>(dp), std::forward<DSPolicy>(dp).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
     }
   }
 
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto has_invoke_impl(...) -> std::false_type;
+  auto has_submit_and_wait_impl(...) -> std::false_type;
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto has_invoke_impl(int) -> decltype(std::declval<DSPolicy>().invoke(std::declval<Function>(), std::declval<Args>()...), std::true_type{});
+  auto has_submit_and_wait_impl(int) -> decltype(std::declval<DSPolicy>().submit_and_wait(std::declval<Function>(), std::declval<Args>()...), std::true_type{});
 
   template<typename DSPolicy, typename Function, typename... Args>
-  struct has_invoke : decltype(has_invoke_impl<DSPolicy, Function, Args...>(0)) {};
+  struct has_submit_and_wait : decltype(has_submit_and_wait_impl<DSPolicy, Function, Args...>(0)) {};
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto invoke(DSPolicy&& dp, Function&&f, Args&&... args) {
-    if constexpr(has_invoke<DSPolicy, Function, Args...>::value == true) {
-        return std::forward<DSPolicy>(dp).invoke(std::forward<Function>(f), std::forward<Args>(args)...);
+  auto submit_and_wait(DSPolicy&& dp, Function&&f, Args&&... args) {
+    if constexpr(has_submit_and_wait<DSPolicy, Function, Args...>::value == true) {
+        return std::forward<DSPolicy>(dp).submit_and_wait(std::forward<Function>(f), std::forward<Args>(args)...);
     }
     else{
-        return wait(std::forward<DSPolicy>(dp).invoke_async(std::forward<DSPolicy>(dp).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...));
+        return wait(std::forward<DSPolicy>(dp).submit(std::forward<DSPolicy>(dp).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...));
     }
   }
 
 
   template<typename DSPolicy, typename SelectionHandle,  typename Function, typename... Args>
-  auto has_invoke_handle_impl(...) -> std::false_type;
+  auto has_submit_and_wait_handle_impl(...) -> std::false_type;
 
   template<typename DSPolicy, typename SelectionHandle,  typename Function, typename... Args>
-  auto has_invoke_handle_impl(int) -> decltype(std::declval<DSPolicy>().invoke(std::declval<SelectionHandle>(), std::declval<Function>(), std::declval<Args>()...), std::true_type{});
+  auto has_submit_and_wait_handle_impl(int) -> decltype(std::declval<DSPolicy>().submit_and_wait(std::declval<SelectionHandle>(), std::declval<Function>(), std::declval<Args>()...), std::true_type{});
 
   template<typename DSPolicy, typename SelectionHandle, typename Function, typename... Args>
-  struct has_invoke_handle : decltype(has_invoke_handle_impl<DSPolicy, SelectionHandle , Function, Args...>(0)) {};
+  struct has_submit_and_wait_handle : decltype(has_submit_and_wait_handle_impl<DSPolicy, SelectionHandle , Function, Args...>(0)) {};
 
   template<typename DSPolicy, typename Function, typename... Args>
-  auto invoke(DSPolicy&& dp, typename policy_traits<DSPolicy>::selection_type e, Function&&f, Args&&... args) {
-    if constexpr(has_invoke_handle<DSPolicy, typename policy_traits<DSPolicy>::selection_type, Function, Args...>::value == true) {
-        return std::forward<DSPolicy>(dp).invoke(e, std::forward<Function>(f), std::forward<Args>(args)...);
+  auto submit_and_wait(DSPolicy&& dp, typename policy_traits<DSPolicy>::selection_type e, Function&&f, Args&&... args) {
+    if constexpr(has_submit_and_wait_handle<DSPolicy, typename policy_traits<DSPolicy>::selection_type, Function, Args...>::value == true) {
+        return std::forward<DSPolicy>(dp).submit_and_wait(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }else{
-        return wait(invoke_async(std::forward<DSPolicy>(dp), e, std::forward<Function>(f), std::forward<Args>(args)...));
+        return wait(submit(std::forward<DSPolicy>(dp), e, std::forward<Function>(f), std::forward<Args>(args)...));
     }
   }
 } // namespace experimental
