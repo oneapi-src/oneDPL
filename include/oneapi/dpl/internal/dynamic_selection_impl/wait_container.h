@@ -11,50 +11,40 @@
 #define _ONEDPL_WAIT_CONTAINER_H
 
 #include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
-#include <list>
+#include <vector>
 
 namespace oneapi {
 namespace dpl {
 namespace experimental {
   template<typename T>
-  class waiters_t {
-    using waiter_container_t = util::concurrent_queue<T>;
-    using waiter_list_t = std::list<T>;
-    waiter_list_t waiters;
-    waiter_container_t waiter_container;
-
+  class submission_group_t {
+    using submission_container_t = util::concurrent_queue<T>;
+    using submissions_t = std::vector<T>;
+    submission_container_t submission_container;
+    submissions_t submissions;
+    
     public:
-    waiters_t() = default;
-    waiters_t(const waiters_t&) = delete;
-    waiters_t& operator=(const waiters_t&) = delete;
+    submission_group_t() = default;
+    submission_group_t(const submission_group_t&) = delete;
+    submission_group_t& operator=(const submission_group_t&) = delete;
 
-    //add to waiters list after submit
-    void add_waiter(T w) { 
-      waiter_container.push(w);	
+    //add to submissions list after submit
+    void add_submission(T w) { 
+      submission_container.push_back(w);	
     }	
-    //get the list of all waiters
-    waiter_list_t get_waiters() {
-      waiter_container.pop_all(waiters);
-	return waiters;
+    //get the list of all submissions
+    submissions_t get_submission_group() {
+      submission_container.pop_all(submissions);
+	return submissions;
     }
 
-    //wait on all waiters in the list
-    auto wait() {
-      while(!waiter_container.empty()){
+    //wait on all submissions in the list
+    void wait() {
+      while(!submission_container.empty()){
         T w;  
-        waiter_container.pop(w);
+        submission_container.pop(w);
         w->wait();
         delete w;
-      }
-    }
-
-    //get the list of native sync objects
-    auto get_native() { 
-      std::list<typename T::native_sync_t> native_list;
-      waiter_container.pop_all(waiters);
-      for (auto w : waiters) {
-        native_list.push_back(w->get_native());
-        return native_list;
       }
     }
   };	
