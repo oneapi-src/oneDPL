@@ -53,7 +53,7 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
     const uint32_t local_tid = idx.get_local_linear_id();
 
     const uint32_t slm_reorder_this_thread = local_tid * _DataPerWorkItem * sizeof(_KeyT);
-    uint32_t slm_bin_hist_this_thread = local_tid * HIST_STRIDE;
+    const uint32_t slm_bin_hist_this_thread = local_tid * HIST_STRIDE;
 
     simd<hist_t, BIN_COUNT> bin_offset;
     simd<device_addr_t, _DataPerWorkItem> write_addr;
