@@ -51,11 +51,10 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
     slm_init(std::max(REORDER_SLM_SIZE, BIN_HIST_SLM_SIZE + INCOMING_OFFSET_SLM_SIZE));
 
     uint32_t local_tid = idx.get_local_linear_id();
-    uint32_t slm_reorder_start = 0;
     uint32_t slm_bin_hist_start = 0;
     uint32_t slm_incoming_offset = slm_bin_hist_start + BIN_HIST_SLM_SIZE;
 
-    uint32_t slm_reorder_this_thread = slm_reorder_start + local_tid * _DataPerWorkItem * sizeof(_KeyT);
+    uint32_t slm_reorder_this_thread = local_tid * _DataPerWorkItem * sizeof(_KeyT);
     uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * HIST_STRIDE;
 
     simd<hist_t, BIN_COUNT> bin_offset;
@@ -193,7 +192,7 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
             for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
             {
                 utils::VectorStore<_KeyT, 1, DATA_PER_STEP>(
-                    write_addr.template select<DATA_PER_STEP, 1>(s) * sizeof(_KeyT) + slm_reorder_start,
+                    write_addr.template select<DATA_PER_STEP, 1>(s) * sizeof(_KeyT),
                     keys.template select<DATA_PER_STEP, 1>(s));
             }
             barrier();
