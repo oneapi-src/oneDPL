@@ -11,36 +11,36 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
-#    include <oneapi/dpl/experimental/kernel_templates>
-#    include <oneapi/dpl/execution>
-#    include <oneapi/dpl/algorithm>
-#    if _ENABLE_RANGES_TESTING
-#        include <oneapi/dpl/ranges>
-#    endif
+#include <oneapi/dpl/experimental/kernel_templates>
+#include <oneapi/dpl/execution>
+#include <oneapi/dpl/algorithm>
+#if _ENABLE_RANGES_TESTING
+#    include <oneapi/dpl/ranges>
+#endif
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #include "../support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#    if __has_include(<sycl/sycl.hpp>)
-#        include <sycl/sycl.hpp>
-#    else
-#        include <CL/sycl.hpp>
-#    endif
+#if __has_include(<sycl/sycl.hpp>)
+#    include <sycl/sycl.hpp>
+#else
+#    include <CL/sycl.hpp>
+#endif
 
-#    include "../support/sycl_alloc_utils.h"
+#include "../support/sycl_alloc_utils.h"
 
-#    include <vector>
-#    include <algorithm>
-#    include <random>
-#    include <string>
-#    include <iostream>
-#    include <cmath>
-#    include <limits>
+#include <vector>
+#include <algorithm>
+#include <random>
+#include <string>
+#include <iostream>
+#include <cmath>
+#include <limits>
 
-#    ifndef LOG_TEST_INFO
-#        define LOG_TEST_INFO 0
-#    endif
+#ifndef LOG_TEST_INFO
+#    define LOG_TEST_INFO 0
+#endif
 
 template <typename T, bool Order>
 struct Compare : public std::less<T>
@@ -55,24 +55,24 @@ struct Compare<T, false> : public std::greater<T>
 constexpr bool Ascending = true;
 constexpr bool Descending = false;
 
-#    ifndef TEST_DATA_TYPE
-#        define TEST_DATA_TYPE int
-#    endif
+#ifndef TEST_DATA_TYPE
+#    define TEST_DATA_TYPE int
+#endif
 
-#    ifndef TEST_DATA_PER_WORK_ITEM
-#        define TEST_DATA_PER_WORK_ITEM 256
-#    endif
+#ifndef TEST_DATA_PER_WORK_ITEM
+#    define TEST_DATA_PER_WORK_ITEM 256
+#endif
 
-#    ifndef TEST_WORK_GROUP_SIZE
-#        define TEST_WORK_GROUP_SIZE 64
-#    endif
+#ifndef TEST_WORK_GROUP_SIZE
+#    define TEST_WORK_GROUP_SIZE 64
+#endif
 
 constexpr std::uint8_t RadixBits = 8;
 
 using ParamType = oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE>;
 constexpr ParamType kernel_parameters;
 
-#    if LOG_TEST_INFO
+#if LOG_TEST_INFO
 struct TypeInfo
 {
     template <typename T>
@@ -214,7 +214,7 @@ struct USMAllocPresentation
         return USMAllocTypeName;
     }
 };
-#    endif // LOG_TEST_INFO
+#endif // LOG_TEST_INFO
 
 template <typename T>
 typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
@@ -274,14 +274,14 @@ print_data(const Container1& expected, const Container2& actual, std::size_t fir
         std::cout << std::dec << std::endl;
 }
 
-#    if _ENABLE_RANGES_TESTING
+#if _ENABLE_RANGES_TESTING
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
 void
 test_all_view(sycl::queue q, std::size_t size, KernelParam param)
 {
-#        if LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
-#        endif
+#endif
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
@@ -300,10 +300,10 @@ template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelP
 void
 test_subrange_view(sycl::queue q, std::size_t size, KernelParam param)
 {
-#        if LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\ttest_subrange_view<T, " << IsAscending << ">(" << size << ") : " << TypeInfo().name<T>()
               << std::endl;
-#        endif
+#endif
     std::vector<T> expected(size);
     generate_data(expected.data(), size);
 
@@ -321,16 +321,16 @@ test_subrange_view(sycl::queue q, std::size_t size, KernelParam param)
     EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
 }
 
-#    endif // _ENABLE_RANGES_TESTING
+#endif // _ENABLE_RANGES_TESTING
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, sycl::usm::alloc _alloc_type, typename KernelParam>
 void
 test_usm(sycl::queue q, std::size_t size, KernelParam param)
 {
-#    if LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>() << ", "
               << IsAscending << ">(" << size << ");" << std::endl;
-#    endif
+#endif
     std::vector<T> expected(size);
     generate_data(expected.data(), size);
 
@@ -353,9 +353,9 @@ template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelP
 void
 test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
 {
-#    if LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
-#    endif
+#endif
     std::vector<T> input(size);
     generate_data(input.data(), size);
     std::vector<T> ref(input);
@@ -396,10 +396,10 @@ test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
     test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::shared>(q, size, param);
     test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::device>(q, size, param);
     test_sycl_iterators<T, IsAscending, RadixBits>(q, size, param);
-#    if _ENABLE_RANGES_TESTING
+#if _ENABLE_RANGES_TESTING
     test_all_view<T, IsAscending, RadixBits>(q, size, param);
     test_subrange_view<T, IsAscending, RadixBits>(q, size, param);
-#    endif // _ENABLE_RANGES_TESTING
+#endif // _ENABLE_RANGES_TESTING
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -428,20 +428,20 @@ main()
 
         try
         {
-#    if TEST_LONG_RUN
+#if TEST_LONG_RUN
             for (auto size : sizes)
             {
                 test_general_cases<TEST_DATA_TYPE, Ascending, RadixBits>(q, size, kernel_parameters);
                 test_general_cases<TEST_DATA_TYPE, Descending, RadixBits>(q, size, kernel_parameters);
             }
             test_small_sizes<TEST_DATA_TYPE, Ascending, RadixBits>(q, kernel_parameters);
-#    else
+#else
             for (auto size : sizes)
             {
                 test_usm<TEST_DATA_TYPE, Ascending, RadixBits, sycl::usm::alloc::shared>(q, size, kernel_parameters);
                 test_usm<TEST_DATA_TYPE, Descending, RadixBits, sycl::usm::alloc::shared>(q, size, kernel_parameters);
             }
-#    endif // TEST_LONG_RUN
+#endif // TEST_LONG_RUN
         }
         catch (const ::std::exception& exc)
         {
