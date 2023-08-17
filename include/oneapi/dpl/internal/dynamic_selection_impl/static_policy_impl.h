@@ -57,10 +57,6 @@ namespace experimental {
       return sched_->get_universe();
     }
 
-    auto get_universe_size() const noexcept {
-      return sched_->get_universe_size();
-    }
-
     template<typename ...Args>
     auto set_universe(Args&&... args) {
         return sched_->set_universe(std::forward<Args>(args)...);
