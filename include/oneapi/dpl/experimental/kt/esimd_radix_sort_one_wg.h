@@ -50,7 +50,7 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
     // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
     slm_init(std::max(REORDER_SLM_SIZE, BIN_HIST_SLM_SIZE + INCOMING_OFFSET_SLM_SIZE));
 
-    uint32_t local_tid = idx.get_local_linear_id();
+    const uint32_t local_tid = idx.get_local_linear_id();
 
     uint32_t slm_reorder_this_thread = local_tid * _DataPerWorkItem * sizeof(_KeyT);
     uint32_t slm_bin_hist_this_thread = local_tid * HIST_STRIDE;
