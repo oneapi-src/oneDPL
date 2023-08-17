@@ -51,11 +51,10 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
     slm_init(std::max(REORDER_SLM_SIZE, BIN_HIST_SLM_SIZE + INCOMING_OFFSET_SLM_SIZE));
 
     uint32_t local_tid = idx.get_local_linear_id();
-    uint32_t slm_bin_hist_start = 0;
-    uint32_t slm_incoming_offset = slm_bin_hist_start + BIN_HIST_SLM_SIZE;
+    uint32_t slm_incoming_offset = BIN_HIST_SLM_SIZE;
 
     uint32_t slm_reorder_this_thread = local_tid * _DataPerWorkItem * sizeof(_KeyT);
-    uint32_t slm_bin_hist_this_thread = slm_bin_hist_start + local_tid * HIST_STRIDE;
+    uint32_t slm_bin_hist_this_thread = local_tid * HIST_STRIDE;
 
     simd<hist_t, BIN_COUNT> bin_offset;
     simd<device_addr_t, _DataPerWorkItem> write_addr;
@@ -107,7 +106,7 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
             {
                 constexpr uint32_t BIN_WIDTH = BIN_COUNT / BIN_SUMMARY_GROUP_SIZE;
                 constexpr uint32_t BIN_WIDTH_UD = BIN_WIDTH * sizeof(hist_t) / sizeof(uint32_t);
-                uint32_t slm_bin_hist_summary_offset = slm_bin_hist_start + local_tid * BIN_WIDTH * sizeof(hist_t);
+                uint32_t slm_bin_hist_summary_offset = local_tid * BIN_WIDTH * sizeof(hist_t);
                 simd<hist_t, BIN_WIDTH> thread_grf_hist_summary;
                 simd<uint32_t, BIN_WIDTH_UD> tmp;
 
@@ -137,8 +136,7 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
                 for (uint32_t s = 0; s < BIN_COUNT; s += 128)
                 {
                     grf_hist_summary.template select<128, 1>(s).template bit_cast_view<uint32_t>() =
-                        utils::BlockLoad<uint32_t, 64>(slm_bin_hist_start + (_WorkGroupSize - 1) * HIST_STRIDE +
-                                                       s * sizeof(hist_t));
+                        utils::BlockLoad<uint32_t, 64>((_WorkGroupSize - 1) * HIST_STRIDE + s * sizeof(hist_t));
                 }
                 grf_hist_summary_scan[0] = 0;
                 grf_hist_summary_scan.template select<32, 1>(1) = grf_hist_summary.template select<32, 1>(0);
@@ -171,7 +169,7 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
                     {
                         simd<hist_t, 128> group_local_sum;
                         group_local_sum.template bit_cast_view<uint32_t>() = utils::BlockLoad<uint32_t, 64>(
-                            slm_bin_hist_start + (local_tid - 1) * HIST_STRIDE + s * sizeof(hist_t));
+                            (local_tid - 1) * HIST_STRIDE + s * sizeof(hist_t));
                         bin_offset.template select<128, 1>(s) += group_local_sum;
                     }
                 }
