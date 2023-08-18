@@ -52,8 +52,8 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
     simd<_KeyT, DATA_PER_WORK_ITEM> keys;
     simd<bin_t, DATA_PER_WORK_ITEM> bins;
 
-    uint32_t local_id = idx.get_local_linear_id();
-    uint32_t global_id = idx.get_global_linear_id();
+    const uint32_t local_id = idx.get_local_linear_id();
+    const uint32_t global_id = idx.get_global_linear_id();
 
     // 0. Early exit for threads without work
     if ((global_id - local_id) * DATA_PER_WORK_ITEM > __n)
@@ -401,17 +401,17 @@ struct radix_sort_onesweep_slm_reorder_kernel
 
         slm_init(128 * 1024);
 
-        uint32_t local_tid = idx.get_local_linear_id();
-        uint32_t wg_id = idx.get_group(0);
-        uint32_t wg_size = idx.get_local_range(0);
-        uint32_t wg_count = idx.get_group_range(0);
+        const uint32_t local_tid = idx.get_local_linear_id();
+        const uint32_t wg_id = idx.get_group(0);
+        const uint32_t wg_size = idx.get_local_range(0);
+        const uint32_t wg_count = idx.get_group_range(0);
 
         // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  _DataPerWorkItem = 256, BIN_COUNT = 256
         // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
         // change slm to reuse
 
-        uint32_t slm_bin_hist_this_thread = local_tid * BIN_COUNT * sizeof(hist_t);
-        uint32_t slm_lookup_subgroup = local_tid * sizeof(hist_t) * BIN_COUNT;
+        const uint32_t slm_bin_hist_this_thread = local_tid * BIN_COUNT * sizeof(hist_t);
+        const uint32_t slm_lookup_subgroup = local_tid * sizeof(hist_t) * BIN_COUNT;
 
         simd<hist_t, BIN_COUNT> bin_offset;
         simd<hist_t, _DataPerWorkItem> ranks;
@@ -419,7 +419,7 @@ struct radix_sort_onesweep_slm_reorder_kernel
         simd<bin_t, _DataPerWorkItem> bins;
         simd<device_addr_t, DATA_PER_STEP> lane_id(0, 1);
 
-        device_addr_t io_offset = _DataPerWorkItem * (wg_id * wg_size + local_tid);
+        const device_addr_t io_offset = _DataPerWorkItem * (wg_id * wg_size + local_tid);
         constexpr _KeyT default_key = utils::__sort_identity<_KeyT, _IsAscending>();
 
         LoadKeys(io_offset, keys, default_key);
@@ -554,7 +554,7 @@ struct __radix_sort_onesweep_scan_submitter<
                                              [=](sycl::nd_item<1> __nd_item)
                                              {
                                                  uint32_t __offset = __nd_item.get_global_id(0);
-                                                 auto __g = __nd_item.get_group();
+                                                 const auto __g = __nd_item.get_group();
                                                  uint32_t __count = __global_offset_data[__offset];
                                                  uint32_t __presum = sycl::exclusive_scan_over_group(
                                                      __g, __count, sycl::plus<::std::uint32_t>());
