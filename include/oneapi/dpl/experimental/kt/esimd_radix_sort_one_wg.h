@@ -63,6 +63,9 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
 
     const device_addr_t io_offset = _DataPerWorkItem * local_tid;
 
+    static_assert(_DataPerWorkItem % DATA_PER_STEP == 0);
+    static_assert(BIN_COUNT % 128 == 0);
+    static_assert(BIN_COUNT % 32 == 0);
 #pragma unroll
     for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
     {
