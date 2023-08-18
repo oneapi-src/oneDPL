@@ -14,18 +14,19 @@ namespace oneapi {
 namespace dpl{
 namespace experimental{
 
-  template<typename NativeContext>
-  struct basic_execution_resource_t {
-    using native_resource_t = NativeContext;
-    native_resource_t native_resource_;
-    basic_execution_resource_t() : native_resource_(native_resource_t{}) {}
-    basic_execution_resource_t(native_resource_t nc) : native_resource_(nc) {}
-    native_resource_t get_native() const { return native_resource_; }
+  template<typename Resource>
+  class basic_execution_resource_t {
+    using resource_t = Resource;
+    resource_t resource_;
+  public:
+    basic_execution_resource_t() : resource_(resource_t{}) {}
+    basic_execution_resource_t(resource_t r) : resource_(r) {}
+    resource_t unwrap() const { return resource_; }
     bool operator==(const basic_execution_resource_t& e) const {
-      return native_resource_ == e.native_resource_;
+      return resource_ == e.resource_;
     }
-    bool operator==(const native_resource_t& e) const {
-      return native_resource_ == e;
+    bool operator==(const resource_t& e) const {
+      return resource_ == e;
     }
   };
 

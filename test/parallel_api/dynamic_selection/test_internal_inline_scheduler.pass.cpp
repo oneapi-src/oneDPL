@@ -9,7 +9,7 @@
 
 
 #include "oneapi/dpl/dynamic_selection"
-#include "support/inline_scheduler.h"
+#include "support/inline_backend.h"
 
 #include <atomic>
 #include <iostream>
@@ -18,24 +18,20 @@
 class fake_selection_handle_t {
   int  q_;
 public:
-  using property_handle_t = oneapi::dpl::experimental::basic_property_handle_t;
-  using native_context_t = int;
-
-  fake_selection_handle_t(native_context_t q = 0) : q_(q) {}
-  native_context_t get_native() { return q_; }
-  property_handle_t get_property_handle() { return oneapi::dpl::experimental::basic_property_handle; }
+  fake_selection_handle_t(int q = 0) : q_(q) {}
+  auto unwrap() { return q_; }
 };
 
 int test_cout() {
-  TestUtils::int_inline_scheduler_t s;
-  TestUtils::int_inline_scheduler_t::execution_resource_t e;
+  TestUtils::int_inline_backend_t s;
+  TestUtils::int_inline_backend_t::execution_resource_t e;
 //  std::cout << e;
   return 0;
 }
 
 int test_submit_and_wait_on_scheduler() {
   const int N = 100;
-  TestUtils::int_inline_scheduler_t s;
+  TestUtils::int_inline_backend_t s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -59,7 +55,7 @@ int test_submit_and_wait_on_scheduler() {
 
 int test_submit_and_wait_on_scheduler_single_element() {
   const int N = 1;
-  TestUtils::int_inline_scheduler_t s;
+  TestUtils::int_inline_backend_t s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -83,7 +79,7 @@ int test_submit_and_wait_on_scheduler_single_element() {
 
 int test_submit_and_wait_on_scheduler_empty() {
   const int N = 0;
-  TestUtils::int_inline_scheduler_t s;
+  TestUtils::int_inline_backend_t s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -107,7 +103,7 @@ int test_submit_and_wait_on_scheduler_empty() {
 
 int test_submit_and_wait_on_sync() {
   const int N = 100;
-  TestUtils::int_inline_scheduler_t s;
+  TestUtils::int_inline_backend_t s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -132,7 +128,7 @@ int test_submit_and_wait_on_sync() {
 
 int test_submit_and_wait_on_sync_single_element() {
   const int N = 1;
-  TestUtils::int_inline_scheduler_t s;
+  TestUtils::int_inline_backend_t s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -157,7 +153,7 @@ int test_submit_and_wait_on_sync_single_element() {
 
 int test_submit_and_wait_on_sync_empty() {
   const int N = 0;
-  TestUtils::int_inline_scheduler_t s;
+  TestUtils::int_inline_backend_t s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -181,19 +177,21 @@ int test_submit_and_wait_on_sync_empty() {
 }
 
 int test_properties() {
-  TestUtils::int_inline_scheduler_t s;
-  TestUtils::int_inline_scheduler_t::universe_container_t v = { 1,2};
+  TestUtils::int_inline_backend_t s;
+  std::vector<int> v = {1,2};
   s.set_universe(v);
   auto v2 = s.get_resources();
   auto v2s = v2.size();
-  if (v != v2) {
-    std::cout << "ERROR: reported universe and queried universe are not equal\n";
-    return 1;
+
+  if (v2s != v.size()) {
+    std::cout << "ERROR: universe size inconsistent with queried universe\n";
   }
-  auto us = s.get_resources_size();
-  if (v2s != us) {
-    std::cout << "ERROR: queried universe size inconsistent with queried universe\n";
-    return 1;
+
+  for (int i = 0; i < v2s; ++i) {
+    if (v[i] != unwrap(v2[i])) {
+      std::cout << "ERROR: reported universe and queried universe are not equal\n";
+      return 1;
+    }
   }
   std::cout << "properties: OK\n";
   return 0;

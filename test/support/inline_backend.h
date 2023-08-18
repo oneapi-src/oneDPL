@@ -28,28 +28,28 @@ struct int_inline_backend_t {
   class async_wait_t {
   public:
     virtual void wait() = 0;
-    virtual wait_type get_native() const = 0;
+    virtual wait_type unwrap() const = 0;
     virtual ~async_wait_t() {}
   };
   using waiter_container_t = concurrent_queue<async_wait_t *>;
 
-  template<typename PropertyHandle>
+  template<typename Selection>
   class async_wait_impl_t : public async_wait_t {
-    PropertyHandle p_;
+    Selection s_;
     wait_type w_;
     std::shared_ptr<std::atomic<bool>> wait_reported_;
   public:
 
-    async_wait_impl_t(PropertyHandle p, wait_type w) : p_(p), w_(w),
+    async_wait_impl_t(Selection s, wait_type w) : s_(s), w_(w),
                                                            wait_reported_{std::make_shared<std::atomic<bool>>(false)} { };
 
-    wait_type get_native() const override {
+    wait_type unwrap() const override {
       return w_;
     }
     void wait() override {
       if (wait_reported_->exchange(true) == false) {
-        if constexpr (PropertyHandle::should_report_task_completion) {
-          oneapi::dpl::experimental::property::report(p_, oneapi::dpl::experimental::property::task_completion);
+        if constexpr (oneapi::dpl::experimental::report_execution_info_v<Selection, oneapi::dpl::experimental::execution_info::task_completion_t>) {
+          oneapi::dpl::experimental::report(s_, oneapi::dpl::experimental::execution_info::task_completion);
         }
       }
     }
@@ -69,9 +69,10 @@ struct int_inline_backend_t {
   }
 
   template<typename SelectionHandle, typename Function, typename ...Args>
-  auto submit(SelectionHandle h, Function&& f, Args&&... args) {
-    using PropertyHandle = typename SelectionHandle::property_handle_t;
-    auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), std::forward<Function>(f)(h.get_native(), std::forward<Args>(args)...));
+  auto submit(SelectionHandle s, Function&& f, Args&&... args) {
+    auto w = new async_wait_impl_t<SelectionHandle>(s, 
+                                                    std::forward<Function>(f)(oneapi::dpl::experimental::unwrap(s), 
+                                                    std::forward<Args>(args)...));
     waiters_.push(w);
     return *w;
   }
@@ -99,8 +100,11 @@ struct int_inline_backend_t {
      return resources_.size();
   }
 
-  auto set_universe(const resource_container_t &u) noexcept {
-    resources_ = u;
+  template<typename V>
+  auto set_universe(const V& u) noexcept {
+    resources_.clear();
+    for (const auto& e : u)
+      resources_.push_back(execution_resource_t{e});
   }
 };
 
