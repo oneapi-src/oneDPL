@@ -41,15 +41,15 @@ namespace dpl
 {
 namespace __par_backend =
 #if _ONEDPL_PAR_BACKEND_TBB
-__tbb_backend;
+    __tbb_backend;
 #elif _ONEDPL_PAR_BACKEND_OPENMP
-__omp_backend;
+    __omp_backend;
 #elif _ONEDPL_PAR_BACKEND_SERIAL
-__serial_backend;
+    __serial_backend;
 #else
-_PSTL_PRAGMA_MESSAGE("Parallel backend was not specified");
+    _PSTL_PRAGMA_MESSAGE("Parallel backend was not specified");
 #endif
-}
+} // namespace dpl
 } // namespace oneapi
 
 #endif // _ONEDPL_PARALLEL_BACKEND_H

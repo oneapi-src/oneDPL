@@ -64,7 +64,7 @@
 
 #if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                           \
     (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
-#   define _ONEDPL_SYCL_AVAILABLE 1
+#    define _ONEDPL_SYCL_AVAILABLE 1
 #endif
 #if ONEDPL_USE_DPCPP_BACKEND && !_ONEDPL_SYCL_AVAILABLE
 #    error "Device execution policies are enabled, \
