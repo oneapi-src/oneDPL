@@ -46,6 +46,7 @@
 #endif
 
 #include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
+#include "parallel_backend_sycl_scan.h"
 
 namespace oneapi
 {
