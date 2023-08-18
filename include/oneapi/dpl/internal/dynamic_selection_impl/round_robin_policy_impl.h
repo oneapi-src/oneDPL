@@ -44,21 +44,21 @@ namespace experimental{
     std::shared_ptr<unit_t> unit_;
 
     round_robin_policy_impl() : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()}  {
-      unit_->universe_ = get_universe();
+      unit_->universe_ = get_resources();
       unit_->num_contexts_ = unit_->universe_.size();
       unit_->next_context_ = 0;
     }
 
     round_robin_policy_impl(universe_container_t u) : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()}  {
       sched_->set_universe(u);
-      unit_->universe_ = get_universe();
+      unit_->universe_ = get_resources();
       unit_->num_contexts_ = unit_->universe_.size();
       unit_->next_context_ = 0;
     }
 
     template<typename ...Args>
     round_robin_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)}, unit_{std::make_shared<unit_t>()} {
-      unit_->universe_ = sched_->get_universe();
+      unit_->universe_ = sched_->get_resources();
       unit_->num_contexts_ = unit_->universe_.size();
       unit_->next_context_ = 0;
     }
@@ -67,8 +67,8 @@ namespace experimental{
     // Support for property queries
     //
 
-    auto get_universe() const noexcept {
-      return sched_->get_universe();
+    auto get_resources() const noexcept {
+      return sched_->get_resources();
     }
 
     template<typename ...Args>
@@ -103,8 +103,8 @@ namespace experimental{
       return sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }
 
-    auto get_wait_list() {
-      return sched_->get_wait_list();
+    auto get_submission_group() {
+      return sched_->get_submission_group();
     }
 
     auto wait() {

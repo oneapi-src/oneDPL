@@ -184,13 +184,13 @@ int test_properties() {
   TestUtils::int_inline_scheduler_t s;
   TestUtils::int_inline_scheduler_t::universe_container_t v = { 1,2};
   s.set_universe(v);
-  auto v2 = s.get_universe();
+  auto v2 = s.get_resources();
   auto v2s = v2.size();
   if (v != v2) {
     std::cout << "ERROR: reported universe and queried universe are not equal\n";
     return 1;
   }
-  auto us = s.get_universe_size();
+  auto us = s.get_resources_size();
   if (v2s != us) {
     std::cout << "ERROR: queried universe size inconsistent with queried universe\n";
     return 1;

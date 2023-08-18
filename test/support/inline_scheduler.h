@@ -76,7 +76,7 @@ struct int_inline_scheduler_t {
     return *w;
   }
 
-  auto get_wait_list(){
+  auto get_submission_group(){
     std::list<async_wait_t*> wlist;
     waiters_.pop_all(wlist);
     return wlist;
@@ -91,11 +91,11 @@ struct int_inline_scheduler_t {
     }
   }
 
-  universe_container_t get_universe() const noexcept {
+  universe_container_t get_resources() const noexcept {
     return universe_;
   }
 
-  auto get_universe_size()  const noexcept {
+  auto get_resources_size()  const noexcept {
      return universe_.size();
   }
 
