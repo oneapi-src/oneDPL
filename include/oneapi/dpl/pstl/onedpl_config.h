@@ -55,7 +55,8 @@
 #if defined(_OPENMP) && __has_include(<omp.h>)
 #    define _ONEDPL_OPENMP_AVAILABLE 1
 #endif
-// Avoid throwing an error during compilation for a device by checking __SYCL_DEVICE_ONLY__
+// During compilation for a device _OPENMP may not be set, so avoid throwing an error if
+// __SYCL_DEVICE_ONLY__ found
 #if ONEDPL_USE_OPENMP_BACKEND && !_ONEDPL_OPENMP_AVAILABLE && !defined(__SYCL_DEVICE_ONLY__)
 #    error "Parallel execution policies with OpenMP* support are enabled, \
         but OpenMP headers are not found or the compiler does not support OpenMP"
