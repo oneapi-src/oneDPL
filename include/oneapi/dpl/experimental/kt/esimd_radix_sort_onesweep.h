@@ -320,17 +320,16 @@ struct radix_sort_onesweep_slm_reorder_kernel
 
             static_assert(BIN_COUNT % BIN_WIDTH == 0);
 
-            simd<hist_t, BIN_WIDTH> thread_grf_hist_summary;
+            simd<hist_t, BIN_WIDTH> thread_grf_hist_summary(0);
             if (local_tid < BIN_SUMMARY_GROUP_SIZE)
             {
                 uint32_t slm_bin_hist_summary_offset = local_tid * BIN_WIDTH * sizeof(hist_t);
-                thread_grf_hist_summary = utils::BlockLoad<hist_t, BIN_WIDTH>(slm_bin_hist_summary_offset);
-                slm_bin_hist_summary_offset += HIST_STRIDE;
-                for (uint32_t s = 1; s < _WorkGroupSize; s++, slm_bin_hist_summary_offset += HIST_STRIDE)
+                for (uint32_t s = 0; s < _WorkGroupSize; s++, slm_bin_hist_summary_offset += HIST_STRIDE)
                 {
                     thread_grf_hist_summary += utils::BlockLoad<hist_t, BIN_WIDTH>(slm_bin_hist_summary_offset);
                     utils::BlockStore(slm_bin_hist_summary_offset, thread_grf_hist_summary);
                 }
+
                 utils::BlockStore(slm_bin_hist_group_incoming + local_tid * BIN_WIDTH * sizeof(hist_t),
                                   utils::scan<hist_t, hist_t>(thread_grf_hist_summary));
                 if (wg_id != 0)
