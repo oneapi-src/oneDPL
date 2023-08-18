@@ -36,28 +36,18 @@ namespace experimental {
     class async_wait_t {
     public:
       virtual void wait() = 0;
-      virtual wait_type get_native() const = 0;
+      virtual wait_type unwrap() const = 0;
       virtual ~async_wait_t() {}
     };
     using waiter_container_t = util::concurrent_queue<async_wait_t *>;
 
     template<typename PropertyHandle>
     class async_wait_impl_t : public async_wait_t {
-      PropertyHandle p_;
       wait_type w_;
-      std::shared_ptr<std::atomic<bool>> wait_reported_;
     public:
-
-      async_wait_impl_t(PropertyHandle p, sycl::event e) : p_(p), w_(e),
-                                                           wait_reported_{std::make_shared<std::atomic<bool>>(false)} { };
-
-      wait_type get_native() const override {
-        return w_;
-      }
-
-      void wait() override {
-        w_.wait();
-      }
+      async_wait_impl_t(sycl::event e) : w_(e) { };
+      wait_type unwrap() const override { return w_; }
+      void wait() override { w_.wait(); }
     };
 
     std::mutex global_rank_mutex_;
@@ -75,30 +65,25 @@ namespace experimental {
       }
     }
 
-
     template<typename SelectionHandle, typename Function, typename ...Args>
-    auto submit(SelectionHandle h, Function&& f, Args&&... args) {
-      using PropertyHandle = typename SelectionHandle::property_handle_t;
-      auto q = h.get_native();
-      auto prop = h.get_property_handle();
-      if constexpr(PropertyHandle::should_report_task_submission || PropertyHandle::should_report_task_completion){
-        if constexpr (PropertyHandle::should_report_task_submission) {
-            oneapi::dpl::experimental::property::report(prop, oneapi::dpl::experimental::property::task_submission);
-        }
+    auto submit(SelectionHandle s, Function&& f, Args&&... args) {
+      auto q = unwrap(s);
+      if constexpr (report_execution_info_v<SelectionHandle, execution_info::task_submission_t>) {
+        report(s, execution_info::task_submission);
+      }
+      if constexpr(report_execution_info_v<SelectionHandle, execution_info::task_completion_t>) {
         auto e1 = f(q, std::forward<Args>(args)...);
         auto e2 = q.submit([=](sycl::handler& h){
             h.depends_on(e1);
             h.host_task([=](){
-                if constexpr (PropertyHandle::should_report_task_completion) {
-                    property::report(prop, property::task_completion);
-                }
+              report(s, execution_info::task_completion);
             });
         });
-        auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), e2);
+        auto w = new async_wait_impl_t<SelectionHandle>(e2);
         waiters_.push(w);
         return *w;
-      }else{
-        auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), f(h.get_native(), std::forward<Args>(args)...));
+      } else {
+        auto w = new async_wait_impl_t<SelectionHandle>(f(unwrap(s), std::forward<Args>(args)...));
         waiters_.push(w);
         return *w;
       }
@@ -129,9 +114,13 @@ namespace experimental {
       return global_rank_;
     }
 
-    auto set_universe(const resource_container_t &gr) noexcept {
+    template<typename NativeUniverseVector>
+    auto set_universe(const NativeUniverseVector &gr) noexcept {
       std::unique_lock<std::mutex> l(global_rank_mutex_);
-      global_rank_ = gr;
+      global_rank_.clear();
+      for (auto e : gr) {
+        global_rank_.push_back(e);
+      }
     }
 
   };

@@ -383,7 +383,7 @@ int test_select(UniverseContainer u, ResourceFunction&& f) {
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
     auto h = select(p);
-    if (h.get_native() != test_resource) {
+    if (oneapi::dpl::experimental::unwrap(h) != test_resource) {
          pass = false;
     }
     ecount += i;
