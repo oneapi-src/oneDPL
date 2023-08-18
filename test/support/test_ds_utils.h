@@ -72,7 +72,7 @@ int test_submit_and_wait_on_policy(UniverseContainer u, ResourceFunction&& f) {
 }
 
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
-int test_submit_and_get_wait_list(UniverseContainer u, ResourceFunction&& f) {
+int test_submit_and_get_submission_group(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};
 
@@ -94,7 +94,7 @@ int test_submit_and_get_wait_list(UniverseContainer u, ResourceFunction&& f) {
                          return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                      });
   }
-  auto wlist=oneapi::dpl::experimental::get_wait_list(p);
+  auto wlist=oneapi::dpl::experimental::get_submission_group(p);
   oneapi::dpl::experimental::wait(wlist);
   int count = ecount.load();
   if (count != N*(N+1)/2) {
@@ -105,12 +105,12 @@ int test_submit_and_get_wait_list(UniverseContainer u, ResourceFunction&& f) {
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "submit_and_get_wait_list: OK\n";
+  std::cout << "submit_and_get_submission_group: OK\n";
   return 0;
 }
 
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
-int test_submit_and_get_wait_list_single_element(UniverseContainer u, ResourceFunction&& f) {
+int test_submit_and_get_submission_group_single_element(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};
 
@@ -132,7 +132,7 @@ int test_submit_and_get_wait_list_single_element(UniverseContainer u, ResourceFu
                          return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                      });
   }
-  auto wlist=oneapi::dpl::experimental::get_wait_list(p);
+  auto wlist=oneapi::dpl::experimental::get_submission_group(p);
   oneapi::dpl::experimental::wait(wlist);
   int count = ecount.load();
   if (count != 1) {
@@ -143,12 +143,12 @@ int test_submit_and_get_wait_list_single_element(UniverseContainer u, ResourceFu
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "submit_and_get_wait_list single element: OK\n";
+  std::cout << "submit_and_get_submission_group single element: OK\n";
   return 0;
 }
 
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
-int test_submit_and_get_wait_list_empty(UniverseContainer u, ResourceFunction&& f) {
+int test_submit_and_get_submission_group_empty(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;
   my_policy_t p{u};
 
@@ -170,7 +170,7 @@ int test_submit_and_get_wait_list_empty(UniverseContainer u, ResourceFunction&& 
                          return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
                      });
   }
-  auto wlist=oneapi::dpl::experimental::get_wait_list(p);
+  auto wlist=oneapi::dpl::experimental::get_submission_group(p);
   oneapi::dpl::experimental::wait(wlist);
   int count = ecount.load();
   if (count != 0) {
@@ -181,7 +181,7 @@ int test_submit_and_get_wait_list_empty(UniverseContainer u, ResourceFunction&& 
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
   }
-  std::cout << "submit_and_get_wait_list empty list: OK\n";
+  std::cout << "submit_and_get_submission_group empty list: OK\n";
   return 0;
 }
 

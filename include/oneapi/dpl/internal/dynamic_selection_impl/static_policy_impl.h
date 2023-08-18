@@ -75,8 +75,8 @@ namespace experimental {
       return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }
 
-    auto get_wait_list() {
-      return backend_->get_wait_list();
+    auto get_submission_group() {
+      return backend_->get_submission_group();
     }
 
     auto wait() {

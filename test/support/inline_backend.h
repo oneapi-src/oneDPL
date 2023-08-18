@@ -76,7 +76,7 @@ struct int_inline_backend_t {
     return *w;
   }
 
-  auto get_wait_list(){
+  auto get_submission_group(){
     std::list<async_wait_t*> wlist;
     waiters_.pop_all(wlist);
     return wlist;

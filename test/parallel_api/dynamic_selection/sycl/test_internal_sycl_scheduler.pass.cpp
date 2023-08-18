@@ -198,13 +198,13 @@ int test_properties() {
 
   std::cout << "UNIVERSE SIZE " << v.size() << std::endl;
   s.set_universe(v);
-  auto v2 = s.get_universe();
+  auto v2 = s.get_resources();
   auto v2s = v2.size();
   if (v != v2) {
     std::cout << "ERROR: reported universe and queried universe are not equal\n";
     return 1;
   }
-  auto us = s.get_universe_size();
+  auto us = s.get_resources_size();
   if (v2s != us) {
     std::cout << "ERROR: queried universe size inconsistent with queried universe\n";
     return 1;
