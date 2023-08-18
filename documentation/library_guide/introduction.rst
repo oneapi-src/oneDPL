@@ -98,6 +98,7 @@ Known Limitations
   vector execution policies when building a program with GCC 10 and using ``-O0`` option.
 * Compiling ``reduce`` and ``transform_reduce`` algorithms with the Intel DPC++ Compiler, versions 2021 and older,
   may result in a runtime error. To fix this issue, use an Intel DPC++ Compiler version 2022 or newer.
+* Compilation on Windows requires the addtion of the option ``/EHsc`` to the compile line in order to avoid errors about oneDPL's experimental ranges support throwing exceptions.
 * The use of |onedpl_short| together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
   compilation errors (caused by oneTBB API changes).
   Using libstdc++ version 9 requires TBB version 2020 for the header file. This may result in compilation errors when
