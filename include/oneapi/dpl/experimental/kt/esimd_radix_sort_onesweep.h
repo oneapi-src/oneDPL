@@ -410,8 +410,8 @@ struct radix_sort_onesweep_slm_reorder_kernel
         // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
         // change slm to reuse
 
-        uint32_t slm_bin_hist_this_thread = local_tid * BIN_COUNT * sizeof(hist_t);
-        uint32_t slm_lookup_subgroup = local_tid * sizeof(hist_t) * BIN_COUNT;
+        const uint32_t slm_bin_hist_this_thread = local_tid * BIN_COUNT * sizeof(hist_t);
+        const uint32_t slm_lookup_subgroup = local_tid * sizeof(hist_t) * BIN_COUNT;
 
         simd<hist_t, BIN_COUNT> bin_offset;
         simd<hist_t, _DataPerWorkItem> ranks;
