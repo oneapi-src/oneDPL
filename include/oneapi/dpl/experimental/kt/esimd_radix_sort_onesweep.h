@@ -554,7 +554,7 @@ struct __radix_sort_onesweep_scan_submitter<
                                              [=](sycl::nd_item<1> __nd_item)
                                              {
                                                  uint32_t __offset = __nd_item.get_global_id(0);
-                                                 auto __g = __nd_item.get_group();
+                                                 const auto __g = __nd_item.get_group();
                                                  uint32_t __count = __global_offset_data[__offset];
                                                  uint32_t __presum = sycl::exclusive_scan_over_group(
                                                      __g, __count, sycl::plus<::std::uint32_t>());
