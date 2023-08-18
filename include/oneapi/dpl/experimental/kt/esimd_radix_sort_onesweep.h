@@ -419,7 +419,7 @@ struct radix_sort_onesweep_slm_reorder_kernel
         simd<bin_t, _DataPerWorkItem> bins;
         simd<device_addr_t, DATA_PER_STEP> lane_id(0, 1);
 
-        device_addr_t io_offset = _DataPerWorkItem * (wg_id * wg_size + local_tid);
+        const device_addr_t io_offset = _DataPerWorkItem * (wg_id * wg_size + local_tid);
         constexpr _KeyT default_key = utils::__sort_identity<_KeyT, _IsAscending>();
 
         LoadKeys(io_offset, keys, default_key);
