@@ -9,30 +9,25 @@
 
 #include "oneapi/dpl/dynamic_selection"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
-
 #include <atomic>
 #include <iostream>
 
 class fake_selection_handle_t {
   sycl::queue q_;
 public:
-  using property_handle_t = oneapi::dpl::experimental::basic_property_handle_t;
-  using native_context_t = sycl::queue;
-
-  fake_selection_handle_t(native_context_t q = sycl::queue(sycl::default_selector{})) : q_(q) {}
-  native_context_t get_native() { return q_; }
-  property_handle_t get_property_handle() { return oneapi::dpl::experimental::basic_property_handle; }
+  fake_selection_handle_t(sycl::queue q = sycl::queue(sycl::default_selector{})) : q_(q) {}
+  auto unwrap() { return q_; }
 };
 
 int test_cout() {
-  oneapi::dpl::experimental::sycl_scheduler s;
-  oneapi::dpl::experimental::sycl_scheduler::execution_resource_t e;
+  oneapi::dpl::experimental::sycl_backend s;
+  oneapi::dpl::experimental::sycl_backend::execution_resource_t e;
   return 0;
 }
 
 int test_submit_and_wait_on_scheduler() {
   const int N = 100;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::sycl_backend s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -56,7 +51,7 @@ int test_submit_and_wait_on_scheduler() {
 
 int test_submit_and_wait_on_scheduler_single_element() {
   const int N = 1;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::sycl_backend s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -80,7 +75,7 @@ int test_submit_and_wait_on_scheduler_single_element() {
 
 int test_submit_and_wait_on_scheduler_empty() {
   const int N = 0;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::sycl_backend s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -104,7 +99,7 @@ int test_submit_and_wait_on_scheduler_empty() {
 
 int test_submit_and_wait_on_sync() {
   const int N = 100;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::sycl_backend s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -129,7 +124,7 @@ int test_submit_and_wait_on_sync() {
 
 int test_submit_and_wait_on_sync_single_element() {
   const int N = 1;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::sycl_backend s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -154,7 +149,7 @@ int test_submit_and_wait_on_sync_single_element() {
 
 int test_submit_and_wait_on_sync_empty() {
   const int N = 0;
-  oneapi::dpl::experimental::sycl_scheduler s;
+  oneapi::dpl::experimental::sycl_backend s;
   fake_selection_handle_t h;
 
   std::atomic<int> ecount = 0;
@@ -178,8 +173,8 @@ int test_submit_and_wait_on_sync_empty() {
 }
 
 int test_properties() {
-  oneapi::dpl::experimental::sycl_scheduler s;
-  oneapi::dpl::experimental::sycl_scheduler::universe_container_t v;
+  oneapi::dpl::experimental::sycl_backend s;
+  std::vector<sycl::queue> v;
   //= { sycl::queue(sycl::cpu_selector{}), sycl::queue(sycl::gpu_selector{}) };
   try {
     sycl::cpu_selector ds_cpu;
@@ -198,16 +193,17 @@ int test_properties() {
 
   std::cout << "UNIVERSE SIZE " << v.size() << std::endl;
   s.set_universe(v);
-  auto v2 = s.get_universe();
+  auto v2 = s.get_resources();
   auto v2s = v2.size();
-  if (v != v2) {
-    std::cout << "ERROR: reported universe and queried universe are not equal\n";
+  if (v2s != v.size()) {
+    std::cout << "ERROR: reported universe and queried universe are not equal in size\n";
     return 1;
   }
-  auto us = s.get_universe_size();
-  if (v2s != us) {
-    std::cout << "ERROR: queried universe size inconsistent with queried universe\n";
-    return 1;
+  for (int i = 0; i < v2s; ++i) {
+    if (v[i] != unwrap(v2[i])) {
+      std::cout << "ERROR: reported universe and queried universe are not equal\n";
+      return 1;
+    }
   }
   std::cout << "properties: OK\n";
   return 0;

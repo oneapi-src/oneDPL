@@ -12,6 +12,7 @@
 #include "oneapi/dpl/dynamic_selection"
 #include "support/test_ds_utils.h"
 #include "support/sycl_sanity.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 
 int main() {
   using policy_t = oneapi::dpl::experimental::round_robin_policy;
@@ -33,9 +34,9 @@ int main() {
       || test_submit_and_wait<policy_t>(u, f)
       || test_submit_and_wait_on_policy<policy_t>(u, f)
       || test_submit_and_wait_on_sync<policy_t>(u, f)
-      || test_submit_and_get_wait_list<policy_t>(u, f)
-      || test_submit_and_get_wait_list_single_element<policy_t>(u, f)
-      || test_submit_and_get_wait_list_empty<policy_t>(u, f)
+      || test_submit_and_get_submission_group<policy_t>(u, f)
+      || test_submit_and_get_submission_group_single_element<policy_t>(u, f)
+      || test_submit_and_get_submission_group_empty<policy_t>(u, f)
       || test_select<policy_t>(u, f)
       || test_select_and_wait_on_policy<policy_t>(u, f)
       || test_select_and_wait_on_sync<policy_t>(u, f)

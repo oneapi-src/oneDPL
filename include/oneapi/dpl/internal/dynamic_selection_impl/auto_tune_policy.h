@@ -16,21 +16,21 @@
 #include <mutex>
 #include <utility>
 #include <vector>
-#include "oneapi/dpl/internal/dynamic_selection_impl/sycl_scheduler.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 
 namespace oneapi {
 namespace dpl {
 namespace experimental {
 
-  template <typename Scheduler=sycl_scheduler, typename... KeyArgs>
+  template <typename Backend=sycl_backend, typename... KeyArgs>
   class auto_tune_policy {
 
     static constexpr double never_resample = 0.0;
     static constexpr int deferred_initialization = -1;
     static constexpr int use_best_resource = -1;
 
-    using wrapped_resource_t = typename std::decay<Scheduler>::type::execution_resource_t;
-    using size_type = typename std::vector<typename Scheduler::resource_type>::size_type;
+    using wrapped_resource_t = typename std::decay<Backend>::type::execution_resource_t;
+    using size_type = typename std::vector<typename Backend::resource_type>::size_type;
 
     using timing_t = uint64_t;
 
@@ -110,7 +110,7 @@ namespace experimental {
 
     // Needed by Policy Traits
     using resource_type = decltype(unwrap(std::declval<wrapped_resource_t>()));
-    using wait_type = typename Scheduler::wait_type;
+    using wait_type = typename Backend::wait_type;
 
     class selection_type {
       resource_with_offset_t resource_;
@@ -124,7 +124,7 @@ namespace experimental {
 
       //template<typename Info> void report(const Info&) { }
 
-      void report(const execution_info::execution_time_t&, const typename execution_info::execution_time_t::value_type& v) {
+      void report(const execution_info::task_time_t&, const typename execution_info::task_time_t::value_type& v) {
         tuner_->add_new_timing(resource_, v);
       }
     };
@@ -142,12 +142,12 @@ namespace experimental {
     }
    
     void initialize(double resample_time=never_resample) {
-      sched_ = std::make_shared<Scheduler>();
+      backend_ = std::make_shared<Backend>();
       initialize_impl(resample_time);
     }
 
     void initialize(const std::vector<resource_type>& u, double resample_time=never_resample) {
-      sched_ = std::make_shared<Scheduler>(u);
+      backend_ = std::make_shared<Backend>(u);
       initialize_impl(resample_time);
     }
 
@@ -166,23 +166,15 @@ namespace experimental {
 
     template<typename Function, typename ...Args>
     auto submit(selection_type e, Function&& f, Args&&... args) {
-      return sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
+      return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }
 
     auto get_resources() {
-       return sched_->get_universe();
-    }
-
-    auto get_universe() {
-       return sched_->get_universe();
-    }
-
-    auto get_universe_size() {
-       return resources_with_offset_.size();
+       return backend_->get_resources();
     }
 
     auto get_submission_group() {
-      return sched_->get_submission_group();
+      return backend_->get_submission_group();
     }
 
   private:
@@ -199,7 +191,7 @@ namespace experimental {
     // member variables
     //
 
-    std::shared_ptr<Scheduler> sched_;
+    std::shared_ptr<Backend> backend_;
 
     std::vector<resource_with_offset_t> resources_with_offset_;
 

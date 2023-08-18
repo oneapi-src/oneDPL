@@ -16,71 +16,71 @@ namespace oneapi {
 namespace dpl {
 namespace experimental {
 
-  template <typename Scheduler>
+  template <typename Backend>
   struct static_policy_impl {
-    using scheduler_t = Scheduler;
-    using universe_container_t = typename scheduler_t::universe_container_t;
-    using execution_resource_t = typename scheduler_t::execution_resource_t;
+    using backend_t = Backend;
+    using resource_container_t = typename backend_t::resource_container_t;
+    using execution_resource_t = typename backend_t::execution_resource_t;
 
     //policy traits
-    using resource_type = typename scheduler_t::resource_type;
+    using resource_type = typename backend_t::resource_type;
     using selection_type = oneapi::dpl::experimental::basic_selection_handle_t<execution_resource_t>;
-    using wait_type = typename scheduler_t::wait_type;
-    std::shared_ptr<scheduler_t> sched_;
+    using wait_type = typename backend_t::wait_type;
+    std::shared_ptr<backend_t> backend_;
 
 
     struct unit_t{
-        universe_container_t universe_;
+        resource_container_t resources_;
     };
 
     std::shared_ptr<unit_t> unit_;
 
-    static_policy_impl() : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()}  {
-      unit_->universe_ = get_universe();
+    static_policy_impl() : backend_{std::make_shared<backend_t>()}, unit_{std::make_shared<unit_t>()}  {
+      unit_->resources_ = get_resources();
     }
 
-    static_policy_impl(universe_container_t u) : sched_{std::make_shared<scheduler_t>()}, unit_{std::make_shared<unit_t>()} {
-      sched_->set_universe(u);
-      unit_->universe_ = get_universe();
+    static_policy_impl(resource_container_t u) : backend_{std::make_shared<backend_t>()}, unit_{std::make_shared<unit_t>()} {
+      backend_->set_universe(u);
+      unit_->resources_ = get_resources();
     }
 
     template<typename ...Args>
-    static_policy_impl(Args&&... args) : sched_{std::make_shared<scheduler_t>(std::forward<Args>(args)...)}, unit_{std::make_shared<unit_t>()} {
-      unit_->universe_ = get_universe();
+    static_policy_impl(Args&&... args) : backend_{std::make_shared<backend_t>(std::forward<Args>(args)...)}, unit_{std::make_shared<unit_t>()} {
+      unit_->resources_ = get_resources();
     }
 
     //
     // Support for property queries
     //
 
-    auto get_universe()  const noexcept {
-      return sched_->get_universe();
+    auto get_resources()  const noexcept {
+      return backend_->get_resources();
     }
 
     template<typename ...Args>
     auto set_universe(Args&&... args) {
-        return sched_->set_universe(std::forward<Args>(args)...);
+        return backend_->set_universe(std::forward<Args>(args)...);
     }
 
     template<typename ...Args>
     selection_type select(Args&&...) {
-      if(!unit_->universe_.empty()) {
-          return selection_type{unit_->universe_[0]};
+      if(!unit_->resources_.empty()) {
+          return selection_type{unit_->resources_[0]};
       }
       return selection_type{};
     }
 
     template<typename Function, typename ...Args>
     auto submit(selection_type e, Function&& f, Args&&... args) {
-      return sched_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
+      return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
     }
 
-    auto get_wait_list() {
-      return sched_->get_wait_list();
+    auto get_submission_group() {
+      return backend_->get_submission_group();
     }
 
     auto wait() {
-      sched_->wait();
+      backend_->wait();
     }
   };
 } //namespace experimental
