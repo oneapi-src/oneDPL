@@ -46,6 +46,9 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
     constexpr uint32_t HIST_BUFFER_SIZE = STAGES * BIN_COUNT;
     constexpr uint32_t HIST_DATA_PER_WORK_ITEM = HIST_BUFFER_SIZE / WORK_GROUP_SIZE;
 
+    static_assert(DATA_PER_WORK_ITEM % DATA_PER_STEP == 0);
+    static_assert(BIN_COUNT * STAGES_PER_BLOCK % DATA_PER_STEP == 0);
+
     simd<_KeyT, DATA_PER_WORK_ITEM> keys;
     simd<bin_t, DATA_PER_WORK_ITEM> bins;
 
@@ -222,6 +225,9 @@ struct radix_sort_onesweep_slm_reorder_kernel
     {
         using namespace __dpl_esimd_ns;
         using namespace __dpl_esimd_ens;
+
+        static_assert(_DataPerWorkItem % DATA_PER_STEP == 0);
+
         bool is_full_block = (io_offset + _DataPerWorkItem) < n;
         if (is_full_block)
         {
@@ -260,6 +266,7 @@ struct radix_sort_onesweep_slm_reorder_kernel
         using namespace __dpl_esimd_ens;
 
         constexpr int BinsPerStep = 32;
+        static_assert(_DataPerWorkItem % BinsPerStep == 0);
 
         constexpr uint32_t BIN_COUNT = 1 << _RadixBits;
         simd<uint32_t, _DataPerWorkItem> ranks;
@@ -293,6 +300,7 @@ struct radix_sort_onesweep_slm_reorder_kernel
     {
         using namespace __dpl_esimd_ns;
         using namespace __dpl_esimd_ens;
+
         /*
         first do column scan by group, each thread do 32c,
         then last row do exclusive scan as group incoming offset
@@ -309,6 +317,8 @@ struct radix_sort_onesweep_slm_reorder_kernel
             barrier();
             constexpr uint32_t BIN_SUMMARY_GROUP_SIZE = 8;
             constexpr uint32_t BIN_WIDTH = BIN_COUNT / BIN_SUMMARY_GROUP_SIZE;
+
+            static_assert(BIN_COUNT % BIN_WIDTH == 0);
 
             simd<hist_t, BIN_WIDTH> thread_grf_hist_summary;
             if (local_tid < BIN_SUMMARY_GROUP_SIZE)
