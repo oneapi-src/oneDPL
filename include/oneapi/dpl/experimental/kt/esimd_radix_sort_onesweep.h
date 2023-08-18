@@ -52,7 +52,7 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
     simd<_KeyT, DATA_PER_WORK_ITEM> keys;
     simd<bin_t, DATA_PER_WORK_ITEM> bins;
 
-    uint32_t local_id = idx.get_local_linear_id();
+    const uint32_t local_id = idx.get_local_linear_id();
     uint32_t global_id = idx.get_global_linear_id();
 
     // 0. Early exit for threads without work
