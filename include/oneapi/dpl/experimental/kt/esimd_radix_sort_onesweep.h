@@ -403,8 +403,8 @@ struct radix_sort_onesweep_slm_reorder_kernel
 
         const uint32_t local_tid = idx.get_local_linear_id();
         const uint32_t wg_id = idx.get_group(0);
-        uint32_t wg_size = idx.get_local_range(0);
-        uint32_t wg_count = idx.get_group_range(0);
+        const uint32_t wg_size = idx.get_local_range(0);
+        const uint32_t wg_count = idx.get_group_range(0);
 
         // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  _DataPerWorkItem = 256, BIN_COUNT = 256
         // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
