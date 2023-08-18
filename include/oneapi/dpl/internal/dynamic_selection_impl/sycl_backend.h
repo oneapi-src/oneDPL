@@ -7,13 +7,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_SYCL_SCHEDULER_IMPL_H
-#define _ONEDPL_SYCL_SCHEDULER_IMPL_H
+#ifndef _ONEDPL_SYCL_BACKEND_IMPL_H
+#define _ONEDPL_SYCL_BACKEND_IMPL_H
 
 #include <CL/sycl.hpp>
 #include "oneapi/dpl/internal/dynamic_selection.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
-#include "oneapi/dpl/internal/dynamic_selection_impl/scheduler_defs.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/backend_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
 
 #include <atomic>
@@ -25,13 +25,13 @@ namespace oneapi {
 namespace dpl {
 namespace experimental {
 
-  struct sycl_scheduler {
+  struct sycl_backend {
 
     using resource_type = sycl::queue;
     using wait_type = sycl::event;
 
     using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
-    using universe_container_t = std::vector<execution_resource_t>;
+    using resource_container_t = std::vector<execution_resource_t>;
 
     class async_wait_t {
     public:
@@ -67,15 +67,15 @@ namespace experimental {
     };
 
     std::mutex global_rank_mutex_;
-    universe_container_t global_rank_;
+    resource_container_t global_rank_;
     waiter_container_t waiters_;
 
-    sycl_scheduler() = default;
+    sycl_backend() = default;
 
-    sycl_scheduler(const sycl_scheduler& v) = delete;
+    sycl_backend(const sycl_backend& v) = delete;
 
     template<typename NativeUniverseVector, typename ...Args>
-    sycl_scheduler(const NativeUniverseVector& v, Args&&... args) {
+    sycl_backend(const NativeUniverseVector& v, Args&&... args) {
       for (auto e : v) {
         global_rank_.push_back(e);
       }
@@ -104,7 +104,7 @@ namespace experimental {
       }
     }
 
-    auto get_universe()  noexcept {
+    auto get_resources()  noexcept {
       std::unique_lock<std::mutex> l(global_rank_mutex_);
       if (global_rank_.empty()) {
         auto devices = sycl::device::get_devices();
@@ -115,7 +115,7 @@ namespace experimental {
       return global_rank_;
     }
 
-    auto set_universe(const universe_container_t &gr) noexcept {
+    auto set_universe(const resource_container_t &gr) noexcept {
       std::unique_lock<std::mutex> l(global_rank_mutex_);
       global_rank_ = gr;
     }
@@ -126,4 +126,4 @@ namespace experimental {
 } //namespace dpl
 } //namespace oneapi
 
-#endif /*_ONEDPL_SYCL_SCHEDULER_IMPL_H*/
+#endif /*_ONEDPL_SYCL_BACKEND_IMPL_H*/

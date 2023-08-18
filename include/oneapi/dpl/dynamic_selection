@@ -13,27 +13,20 @@
 #include "oneapi/dpl/internal/common_config.h"
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
-// Check the user-defined macro for parallel policies
-// define _DS_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
-#if !defined(_DS_BACKEND_SYCL)
-#    if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
-#        define _DS_BACKEND_SYCL 1
-#    else
-#        define _DS_BACKEND_SYCL 0
-#    endif // CL_SYCL_LANGUAGE_VERSION
-#endif
 
+#define _DS_BACKEND_SYCL 1
 #include "oneapi/dpl/internal/dynamic_selection.h"
 namespace oneapi {
 namespace dpl {
 namespace experimental {
 
 #if _DS_BACKEND_SYCL != 0
-  using static_policy = static_policy_impl<sycl_scheduler>;
-  using round_robin_policy = round_robin_policy_impl<sycl_scheduler>;
+  using static_policy = static_policy_impl<sycl_backend>;
+  using round_robin_policy = round_robin_policy_impl<sycl_backend>;
 #endif
   template<typename S> using static_policy_t = static_policy_impl<S>;
   template<typename S> using round_robin_policy_t = round_robin_policy_impl<S>;
+
 } //namespace experimental
 } //namespace dpl
 } //namespace oneapi

@@ -27,7 +27,7 @@ int test_properties(UniverseContainer u, typename UniverseContainer::value_type 
   auto u2 = oneapi::dpl::experimental::get_resources(p);
   auto u2s = u2.size();
   if (!std::equal(std::begin(u2), std::end(u2), std::begin(u))) {
-    std::cout << "ERROR: reported universe and queried universe are not equal\n";
+    std::cout << "ERROR: reported resources and queried resources are not equal\n";
     return 1;
   }
   std::cout << "properties: OK\n";
