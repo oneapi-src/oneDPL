@@ -57,12 +57,6 @@ namespace experimental {
 
       void wait() override {
         w_.wait();
-        if (wait_reported_->exchange(true) == false) {
-          if constexpr (PropertyHandle::should_report_task_completion) {
-            property::report(p_, property::task_completion);
-          }
-        }
-
       }
     };
 
@@ -85,9 +79,29 @@ namespace experimental {
     template<typename SelectionHandle, typename Function, typename ...Args>
     auto submit(SelectionHandle h, Function&& f, Args&&... args) {
       using PropertyHandle = typename SelectionHandle::property_handle_t;
-      auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), f(h.get_native(), std::forward<Args>(args)...));
-      waiters_.push(w);
-      return *w;
+      auto q = h.get_native();
+      auto prop = h.get_property_handle();
+      if constexpr(PropertyHandle::should_report_task_submission || PropertyHandle::should_report_task_completion){
+        if constexpr (PropertyHandle::should_report_task_submission) {
+            oneapi::dpl::experimental::property::report(prop, oneapi::dpl::experimental::property::task_submission);
+        }
+        auto e1 = f(q, std::forward<Args>(args)...);
+        auto e2 = q.submit([=](sycl::handler& h){
+            h.depends_on(e1);
+            h.host_task([=](){
+                if constexpr (PropertyHandle::should_report_task_completion) {
+                    property::report(prop, property::task_completion);
+                }
+            });
+        });
+        auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), e2);
+        waiters_.push(w);
+        return *w;
+      }else{
+        auto w = new async_wait_impl_t<PropertyHandle>(h.get_property_handle(), f(h.get_native(), std::forward<Args>(args)...));
+        waiters_.push(w);
+        return *w;
+      }
     }
 
     auto get_submission_group(){
