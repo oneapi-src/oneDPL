@@ -401,7 +401,7 @@ struct radix_sort_onesweep_slm_reorder_kernel
 
         slm_init(128 * 1024);
 
-        uint32_t local_tid = idx.get_local_linear_id();
+        const uint32_t local_tid = idx.get_local_linear_id();
         uint32_t wg_id = idx.get_group(0);
         uint32_t wg_size = idx.get_local_range(0);
         uint32_t wg_count = idx.get_group_range(0);
