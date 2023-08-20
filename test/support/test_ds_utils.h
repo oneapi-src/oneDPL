@@ -34,6 +34,40 @@ int test_properties(UniverseContainer u, typename UniverseContainer::value_type 
   return 0;
 }
 
+template<typename Policy, typename UniverseContainer>
+int test_initialization(UniverseContainer u) {
+  using my_policy_t = Policy;
+
+  // initialize
+  my_policy_t p{u};
+  auto u2 = oneapi::dpl::experimental::get_resources(p);
+  auto u2s = u2.size();
+  if (!std::equal(std::begin(u2), std::end(u2), std::begin(u))) {
+    std::cout << "ERROR: provided resources and queried resources are not equal\n";
+    return 1;
+  }
+
+  // deferred initialization
+  my_policy_t p2{oneapi::dpl::experimental::deferred_initialization};
+  try {
+    auto u3 = oneapi::dpl::experimental::get_resources(p2);
+    if (!u3.empty()) {
+      std::cout << "ERROR: deferred initialization not respected\n";
+      return 1;
+    }
+  } catch (...)  { }
+  p2.initialize(u); 
+  auto u3 = oneapi::dpl::experimental::get_resources(p);
+  auto u3s = u3.size();
+  if (!std::equal(std::begin(u3), std::end(u3), std::begin(u))) {
+    std::cout << "ERROR: reported resources and queried resources are not equal after deferred initialization\n";
+    return 1;
+  }
+
+  std::cout << "initialization: OK\n" << std::flush;
+  return 0;
+}
+
 template<typename Policy, typename UniverseContainer, typename ResourceFunction>
 int test_submit_and_wait_on_policy(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;

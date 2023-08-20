@@ -24,7 +24,7 @@ namespace experimental {
 
     //policy traits
     using resource_type = typename backend_t::resource_type;
-    using selection_type = oneapi::dpl::experimental::basic_selection_handle_t<execution_resource_t>;
+    using selection_type = oneapi::dpl::experimental::basic_selection_handle_t<static_policy_impl<Backend>, execution_resource_t>;
     using wait_type = typename backend_t::wait_type;
     std::shared_ptr<backend_t> backend_;
 
@@ -53,7 +53,7 @@ namespace experimental {
     // Support for property queries
     //
 
-    auto get_resources()  const noexcept {
+    auto get_resources()  const {
       return backend_->get_resources();
     }
 
@@ -65,9 +65,9 @@ namespace experimental {
     template<typename ...Args>
     selection_type select(Args&&...) {
       if(!unit_->resources_.empty()) {
-          return selection_type{unit_->resources_[0]};
+          return selection_type{*this, unit_->resources_[0]};
       }
-      return selection_type{};
+      return selection_type{*this};
     }
 
     template<typename Function, typename ...Args>

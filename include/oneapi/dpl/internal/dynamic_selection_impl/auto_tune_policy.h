@@ -11,6 +11,7 @@
 #define _ONEDPL_AUTO_TUNE_POLICY_H
 
 #include <atomic>
+#include <exception>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -26,7 +27,6 @@ namespace experimental {
   class auto_tune_policy {
 
     static constexpr double never_resample = 0.0;
-    static constexpr int deferred_initialization = -1;
     static constexpr int use_best_resource = -1;
 
     using wrapped_resource_t = typename std::decay<Backend>::type::execution_resource_t;
@@ -113,16 +113,18 @@ namespace experimental {
     using wait_type = typename Backend::wait_type;
 
     class selection_type {
+      using policy_t = auto_tune_policy<Backend, KeyArgs...>;
+      policy_t policy_; 
       resource_with_offset_t resource_;
       std::shared_ptr<tuner_t> tuner_;
 
     public:
-      selection_type(resource_with_offset_t r, std::shared_ptr<tuner_t> t) 
-        : resource_(r), tuner_(t) {}
+      selection_type(const policy_t& p, resource_with_offset_t r, std::shared_ptr<tuner_t> t) 
+        : policy_(p), resource_(r), tuner_(t) {}
 
       auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_.r_); }
 
-      //template<typename Info> void report(const Info&) { }
+      policy_t get_policy() { return policy_; };
 
       void report(const execution_info::task_time_t&, const typename execution_info::task_time_t::value_type& v) {
         tuner_->add_new_timing(resource_, v);
@@ -157,10 +159,10 @@ namespace experimental {
       auto t  = tuner_by_key_[k];
       auto offset = t->get_resource_to_profile();
       if (offset == use_best_resource) {
-        return selection_type{t->best_resource_, t}; 
+        return selection_type{*this, t->best_resource_, t}; 
       } else {
         auto r = resources_with_offset_[offset];
-        return selection_type{r, t}; 
+        return selection_type{*this, r, t}; 
       } 
     }
 
@@ -170,7 +172,11 @@ namespace experimental {
     }
 
     auto get_resources() {
-       return backend_->get_resources();
+       if (backend_) {
+         return backend_->get_resources();
+       } else {
+         throw std::runtime_error("Called get_resources before initialization\n");
+       }
     }
 
     auto get_submission_group() {
