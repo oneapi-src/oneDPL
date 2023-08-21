@@ -588,6 +588,42 @@ BlockStore(uint32_t slm_offset, __dpl_esimd_ns::simd<T, N> data)
                                   data.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE));
 }
 
+template <typename T, int NElts, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint8_t), int> = 0>
+constexpr int
+lsc_block_store_size_rounding()
+{
+    // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
+    // Allowed \c NElts values for  8 bit data are 4, 8, 12, 16, 32, 64, 128, 256, 512.
+
+    static_assert(NElts >= 1);
+
+    if constexpr (NElts < 8)
+        return 4;
+
+    if constexpr (NElts < 12)
+        return 8;
+
+    if constexpr (NElts < 16)
+        return 12;
+
+    if constexpr (NElts < 32)
+        return 16;
+
+    if constexpr (NElts < 64)
+        return 32;
+
+    if constexpr (NElts < 128)
+        return 64;
+
+    if constexpr (NElts < 256)
+        return 128;
+
+    if constexpr (NElts < 512)
+        return 256;
+
+    return 512;
+}
+
 template <typename T, int N, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
           __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
 inline std::enable_if_t<(N * sizeof(T) <= 256), void>
