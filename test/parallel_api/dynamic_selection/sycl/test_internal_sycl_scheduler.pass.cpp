@@ -192,7 +192,7 @@ int test_properties() {
   }
 
   std::cout << "UNIVERSE SIZE " << v.size() << std::endl;
-  s.set_universe(v);
+  s.initialize(v);
   auto v2 = s.get_resources();
   auto v2s = v2.size();
   if (v2s != v.size()) {

@@ -179,7 +179,7 @@ int test_submit_and_wait_on_sync_empty() {
 int test_properties() {
   TestUtils::int_inline_backend_t s;
   std::vector<int> v = {1,2};
-  s.set_universe(v);
+  s.initialize(v);
   auto v2 = s.get_resources();
   auto v2s = v2.size();
 

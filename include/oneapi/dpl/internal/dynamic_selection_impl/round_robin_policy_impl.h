@@ -50,7 +50,7 @@ namespace experimental{
     }
 
     round_robin_policy_impl(resource_container_t u) : backend_{std::make_shared<backend_t>()}, unit_{std::make_shared<unit_t>()}  {
-      backend_->set_universe(u);
+      backend_->initialize(u);
       unit_->resources_ = get_resources();
       unit_->num_contexts_ = unit_->resources_.size();
       unit_->next_context_ = 0;
@@ -72,8 +72,8 @@ namespace experimental{
     }
 
     template<typename ...Args>
-    auto set_universe(Args&&... args) {
-        return backend_->set_universe(std::forward<Args>(args)...);
+    auto initialize(Args&&... args) {
+        return backend_->initialize(std::forward<Args>(args)...);
     }
 
     template<typename ...Args>

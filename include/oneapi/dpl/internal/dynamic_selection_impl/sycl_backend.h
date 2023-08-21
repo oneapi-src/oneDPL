@@ -115,7 +115,7 @@ namespace experimental {
     }
 
     template<typename NativeUniverseVector>
-    auto set_universe(const NativeUniverseVector &gr) noexcept {
+    auto initialize(const NativeUniverseVector &gr) noexcept {
       std::unique_lock<std::mutex> l(global_rank_mutex_);
       global_rank_.clear();
       for (auto e : gr) {
