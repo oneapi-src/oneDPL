@@ -593,6 +593,11 @@ template <typename T, int N, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::c
 inline std::enable_if_t<(N * sizeof(T) <= 256), void>
 BlockStore(T* dst, __dpl_esimd_ns::simd<T, N> data)
 {
+    // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
+    // Allowed \c NElts values for 64 bit data are 1, 2, 3, 4, 8, 16, 32, 64.
+    // Allowed \c NElts values for 32 bit data are 1, 2, 3, 4, 8, 16, 32, 64, 128.
+    // Allowed \c NElts values for 16 bit data are 2, 4, 8, 16, 32, 64, 128, 256.
+    // Allowed \c NElts values for  8 bit data are 4, 8, 12, 16, 32, 64, 128, 256, 512.
     __dpl_esimd_ens::lsc_block_store<uint32_t, N, __dpl_esimd_ens::lsc_data_size::default_size, H1, H3>(
         dst, data.template bit_cast_view<uint32_t>(), 1);
 }
