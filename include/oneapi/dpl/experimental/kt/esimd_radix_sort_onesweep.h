@@ -712,10 +712,12 @@ onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
             __radix_sort_copyback_submitter<_KeyT, _EsimdRadixSortCopyback>()(__q, __out_rng, __rng, __n, event_chain);
     }
 
-    // TODO: required to remove this wait
-    event_chain.wait();
-
-    sycl::free(p_temp_memory, __q);
+    event_chain = __q.submit(
+        [&](sycl::handler& __cgh)
+        {
+            __cgh.depends_on(event_chain);
+            __cgh.host_task([&]() { sycl::free(p_temp_memory, __q); });
+        });
 
     return event_chain;
 }
