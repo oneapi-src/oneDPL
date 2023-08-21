@@ -62,7 +62,7 @@
         but OpenMP headers are not found or the compiler does not support OpenMP"
 #endif
 
-#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                           \
+#if (defined(SYCL_LANGUAGE_VERSION) || defined(CL_SYCL_LANGUAGE_VERSION)) && \
     (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
 #    define _ONEDPL_SYCL_AVAILABLE 1
 #endif
