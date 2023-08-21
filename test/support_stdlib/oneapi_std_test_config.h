@@ -19,8 +19,20 @@
 #include "../support/test_config.h"
 #include "../support/utils.h"
 
+#ifndef _USE_ONEAPI_STD
+#    define _USE_ONEAPI_STD 1
+#endif
+
 #define _ONEAPI_STD_TEST_STRING_AUX(X) #X
-#define _ONEAPI_STD_TEST_STRING(X) _ONEAPI_STD_TEST_STRING_AUX(oneapi/dpl/X)
+
+#if _USE_ONEAPI_STD
+#   define _ONEAPI_STD_TEST_STRING(X) _ONEAPI_STD_TEST_STRING_AUX(oneapi/dpl/X)
+#   define _ONEAPI_TEST_NAMESPACE oneapi::dpl
+#else
+#   define _ONEAPI_STD_TEST_STRING(X) _ONEAPI_STD_TEST_STRING_AUX(X)
+#   define _ONEAPI_TEST_NAMESPACE std
+#endif  // _USE_ONEAPI_STD
+
 //to support the optional including: <algorithm>, <iterator>, <numeric>, <array> 
 #define _ONEAPI_STD_TEST_HEADER(HEADER_ID) _ONEAPI_STD_TEST_STRING(HEADER_ID)
 namespace oneapi

@@ -5,13 +5,8 @@
 
 #include <iostream>
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(algorithm)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <algorithm>
-namespace s = std;
-#endif
+#include _ONEAPI_STD_TEST_HEADER(algorithm)
+namespace s = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
