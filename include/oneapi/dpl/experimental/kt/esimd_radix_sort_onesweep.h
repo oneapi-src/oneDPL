@@ -122,8 +122,9 @@ global_histogram(sycl::nd_item<1> idx, size_t __n, const InputT& input, uint32_t
     }
 
     // 4. Reduce group-local historgrams from SLM into global histograms in global memory
-    simd<global_hist_t, HIST_DATA_PER_WORK_ITEM> group_hist = utils::BlockLoad<global_hist_t, HIST_DATA_PER_WORK_ITEM>(
-        local_id * HIST_DATA_PER_WORK_ITEM * sizeof(global_hist_t));
+    simd<global_hist_t, HIST_DATA_PER_WORK_ITEM> group_hist =
+        utils::BlockLoadSlm<global_hist_t, HIST_DATA_PER_WORK_ITEM>(local_id * HIST_DATA_PER_WORK_ITEM *
+                                                                    sizeof(global_hist_t));
     simd<uint32_t, HIST_DATA_PER_WORK_ITEM> byte_offsets(0, sizeof(global_hist_t));
     lsc_atomic_update<atomic_op::add>(p_global_offset + local_id * HIST_DATA_PER_WORK_ITEM, byte_offsets, group_hist,
                                       simd_mask<HIST_DATA_PER_WORK_ITEM>(1));
@@ -326,7 +327,7 @@ struct radix_sort_onesweep_slm_reorder_kernel
                 uint32_t slm_bin_hist_summary_offset = local_tid * BIN_WIDTH * sizeof(hist_t);
                 for (uint32_t s = 0; s < _WorkGroupSize; s++, slm_bin_hist_summary_offset += HIST_STRIDE)
                 {
-                    thread_grf_hist_summary += utils::BlockLoad<hist_t, BIN_WIDTH>(slm_bin_hist_summary_offset);
+                    thread_grf_hist_summary += utils::BlockLoadSlm<hist_t, BIN_WIDTH>(slm_bin_hist_summary_offset);
                     utils::BlockStoreSlm(slm_bin_hist_summary_offset, thread_grf_hist_summary);
                 }
 
@@ -342,7 +343,7 @@ struct radix_sort_onesweep_slm_reorder_kernel
                 // this thread to group scan
                 simd<hist_t, BIN_COUNT> grf_hist_summary;
                 simd<hist_t, BIN_COUNT + 1> grf_hist_summary_scan;
-                grf_hist_summary = utils::BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming);
+                grf_hist_summary = utils::BlockLoadSlm<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming);
                 grf_hist_summary_scan[0] = 0;
                 grf_hist_summary_scan.template select<BIN_WIDTH, 1>(1) =
                     grf_hist_summary.template select<BIN_WIDTH, 1>(0);
@@ -383,11 +384,11 @@ struct radix_sort_onesweep_slm_reorder_kernel
             }
             barrier();
         }
-        auto group_incoming = utils::BlockLoad<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming);
-        global_fix = utils::BlockLoad<global_hist_t, BIN_COUNT>(slm_bin_hist_global_incoming) - group_incoming;
+        auto group_incoming = utils::BlockLoadSlm<hist_t, BIN_COUNT>(slm_bin_hist_group_incoming);
+        global_fix = utils::BlockLoadSlm<global_hist_t, BIN_COUNT>(slm_bin_hist_global_incoming) - group_incoming;
         if (local_tid > 0)
         {
-            subgroup_offset = group_incoming + utils::BlockLoad<hist_t, BIN_COUNT>((local_tid - 1) * HIST_STRIDE);
+            subgroup_offset = group_incoming + utils::BlockLoadSlm<hist_t, BIN_COUNT>((local_tid - 1) * HIST_STRIDE);
         }
         else
             subgroup_offset = group_incoming;
@@ -468,7 +469,7 @@ struct radix_sort_onesweep_slm_reorder_kernel
         }
         barrier();
         {
-            keys = utils::BlockLoad<_KeyT, _DataPerWorkItem>(local_tid * _DataPerWorkItem * sizeof(_KeyT));
+            keys = utils::BlockLoadSlm<_KeyT, _DataPerWorkItem>(local_tid * _DataPerWorkItem * sizeof(_KeyT));
 
             bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<_IsAscending>(keys), stage * _RadixBits);
 

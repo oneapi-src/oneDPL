@@ -542,7 +542,7 @@ template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
           int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
           ::std::enable_if_t<NElts == lsc_slm_block_size_rounding<NElts>(), int> = 0>
 inline __dpl_esimd_ns::simd<T, N>
-BlockLoad(uint32_t slm_offset)
+BlockLoadSlm(uint32_t slm_offset)
 {
     __dpl_esimd_ns::simd<T, N> result;
     result.template bit_cast_view<OpAlignedT>() = __dpl_esimd_ens::lsc_slm_block_load<OpAlignedT, NElts>(slm_offset);
@@ -553,15 +553,15 @@ template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
           int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
           ::std::enable_if_t<NElts != lsc_slm_block_size_rounding<NElts>(), int> = 0>
 inline __dpl_esimd_ns::simd<T, N>
-BlockLoad(uint32_t slm_offset)
+BlockLoadSlm(uint32_t slm_offset)
 {
     constexpr int BLOCK_SIZE_ROUNDED = lsc_slm_block_size_rounding<NElts>();
 
     __dpl_esimd_ns::simd<T, N> result;
     constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, BLOCK_SIZE_ROUNDED, T>();
-    result.template select<BLOCK_SIZE, 1>(0) = BlockLoad<T, BLOCK_SIZE>(slm_offset);
+    result.template select<BLOCK_SIZE, 1>(0) = BlockLoadSlm<T, BLOCK_SIZE>(slm_offset);
     result.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE) =
-        BlockLoad<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T));
+        BlockLoadSlm<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T));
     return result;
 }
 
