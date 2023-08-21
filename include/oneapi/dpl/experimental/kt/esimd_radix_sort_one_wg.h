@@ -98,7 +98,7 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
 #pragma unroll
             for (uint32_t s = 0; s < BIN_COUNT; s += 128)
             {
-                utils::BlockStore<uint32_t, 64>(
+                utils::BlockStoreSlm<uint32_t, 64>(
                     slm_bin_hist_this_thread + s * sizeof(hist_t),
                     bin_offset.template select<128, 1>(s).template bit_cast_view<uint32_t>());
             }
@@ -119,15 +119,15 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
                 {
                     tmp = utils::BlockLoad<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
                     thread_grf_hist_summary += tmp.template bit_cast_view<hist_t>();
-                    utils::BlockStore<uint32_t, BIN_WIDTH_UD>(
+                    utils::BlockStoreSlm<uint32_t, BIN_WIDTH_UD>(
                         slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
                     slm_bin_hist_summary_offset += HIST_STRIDE;
                 }
                 tmp = utils::BlockLoad<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
                 thread_grf_hist_summary += tmp.template bit_cast_view<hist_t>();
                 thread_grf_hist_summary = utils::scan<hist_t, hist_t>(thread_grf_hist_summary);
-                utils::BlockStore<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset,
-                                                          thread_grf_hist_summary.template bit_cast_view<uint32_t>());
+                utils::BlockStoreSlm<uint32_t, BIN_WIDTH_UD>(
+                    slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
             }
             barrier();
             if (local_tid == 0)
@@ -151,7 +151,7 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
 #pragma unroll
                 for (uint32_t s = 0; s < BIN_COUNT; s += 128)
                 {
-                    utils::BlockStore<uint32_t, 64>(
+                    utils::BlockStoreSlm<uint32_t, 64>(
                         BIN_HIST_SLM_SIZE + s * sizeof(hist_t),
                         grf_hist_summary_scan.template select<128, 1>(s).template bit_cast_view<uint32_t>());
                 }
