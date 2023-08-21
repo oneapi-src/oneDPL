@@ -333,8 +333,8 @@ struct radix_sort_onesweep_slm_reorder_kernel
                 utils::BlockStoreSlm(slm_bin_hist_group_incoming + local_tid * BIN_WIDTH * sizeof(hist_t),
                                      utils::scan<hist_t, hist_t>(thread_grf_hist_summary));
                 if (wg_id != 0)
-                    utils::BlockStoreTo<uint32_t, BIN_WIDTH>(p_global_bin_this_group + local_tid * BIN_WIDTH,
-                                                             thread_grf_hist_summary | HIST_UPDATED);
+                    utils::BlockStore<uint32_t, BIN_WIDTH>(p_global_bin_this_group + local_tid * BIN_WIDTH,
+                                                           thread_grf_hist_summary | HIST_UPDATED);
             }
             barrier();
             if (local_tid == BIN_SUMMARY_GROUP_SIZE + 1)
@@ -375,8 +375,8 @@ struct radix_sort_onesweep_slm_reorder_kernel
                 } while (is_not_accumulated.any() && wg_id != 0);
                 prev_group_hist_sum &= GLOBAL_OFFSET_MASK;
                 simd<global_hist_t, BIN_WIDTH> after_group_hist_sum = prev_group_hist_sum + thread_grf_hist_summary;
-                utils::BlockStoreTo<uint32_t, BIN_WIDTH>(p_global_bin_this_group + local_tid * BIN_WIDTH,
-                                                         after_group_hist_sum | HIST_UPDATED | GLOBAL_ACCUMULATED);
+                utils::BlockStore<uint32_t, BIN_WIDTH>(p_global_bin_this_group + local_tid * BIN_WIDTH,
+                                                       after_group_hist_sum | HIST_UPDATED | GLOBAL_ACCUMULATED);
 
                 utils::BlockStoreSlm<uint32_t, BIN_WIDTH>(
                     slm_bin_hist_global_incoming + local_tid * BIN_WIDTH * sizeof(global_hist_t), prev_group_hist_sum);
