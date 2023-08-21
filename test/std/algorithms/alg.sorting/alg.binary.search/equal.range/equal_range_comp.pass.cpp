@@ -6,14 +6,9 @@
 
 #include <iostream>
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(algorithm)
-#    include _ONEAPI_STD_TEST_HEADER(functional)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <algorithm>
-namespace s = std;
-#endif
+#include _ONEAPI_STD_TEST_HEADER(algorithm)
+#include _ONEAPI_STD_TEST_HEADER(functional)
+namespace s = _ONEAPI_TEST_NAMESPACE;
 
 // <algorithm>
 
