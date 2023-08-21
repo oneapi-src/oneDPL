@@ -730,8 +730,9 @@ lsc_block_store_size_rounding()
 }
 
 template <typename T, int N, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(N * sizeof(T) <= 256), void>
+          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none,
+          ::std::enable_if_t<N == lsc_block_store_size_rounding<T, N>(), int> = 0>
+void    // inline std::enable_if_t<(N * sizeof(T) <= 256), void>
 BlockStore(T* dst, __dpl_esimd_ns::simd<T, N> data)
 {
     // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
@@ -744,8 +745,9 @@ BlockStore(T* dst, __dpl_esimd_ns::simd<T, N> data)
 }
 
 template <typename T, int N, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(N * sizeof(T) > 256), void>
+          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none,
+          ::std::enable_if_t<N != lsc_block_store_size_rounding<T, N>(), int> = 0>
+void    // inline std::enable_if_t<(N * sizeof(T) > 256), void>
 BlockStore(T* dst, __dpl_esimd_ns::simd<T, N> data)
 {
     constexpr uint32_t BLOCK_SIZE = 64 * sizeof(uint32_t) / sizeof(T);
