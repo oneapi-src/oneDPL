@@ -145,8 +145,8 @@ __pattern_find_end(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2
 
     if (__rng1.size() == __rng2.size())
     {
-        const bool __res = __pattern_equal(::std::forward<_ExecutionPolicy>(__exec), __rng1,
-                                           ::std::forward<_Range2>(__rng2), __pred);
+        const bool __res =
+            __pattern_equal(::std::forward<_ExecutionPolicy>(__exec), __rng1, ::std::forward<_Range2>(__rng2), __pred);
         return __res ? 0 : __rng1.size();
     }
 
@@ -223,8 +223,8 @@ __pattern_search(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
     if (__rng1.size() == __rng2.size())
     {
         const bool __res = __pattern_equal(
-            __par_backend_hetero::make_wrapped_policy<equal_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
-            __rng1, ::std::forward<_Range2>(__rng2), __pred);
+            __par_backend_hetero::make_wrapped_policy<equal_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __rng1,
+            ::std::forward<_Range2>(__rng2), __pred);
         return __res ? 0 : __rng1.size();
     }
 
@@ -232,8 +232,8 @@ __pattern_search(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
     using _TagType = oneapi::dpl::__par_backend_hetero::__parallel_find_forward_tag<_Range1>;
 
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<oneapi::dpl::__par_backend_hetero::__find_policy_wrapper>
-            (::std::forward<_ExecutionPolicy>(__exec)),
+        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<
+            oneapi::dpl::__par_backend_hetero::__find_policy_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
 }
 
@@ -312,19 +312,18 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
 
     using _ReduceValueType = oneapi::dpl::__internal::__difference_t<_Range>;
 
-    auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
+    auto __reduce_fn = ::std::plus<_ReduceValueType>{};
     // int is being implicitly casted to difference_type
     // otherwise we can only pass the difference_type as a functor template parameter
-    auto __identity_transform_fn = [__predicate](auto __gidx, auto __acc) -> int {
+    auto __transform_fn = [__predicate](auto __gidx, auto __acc) -> int {
         return (__predicate(__acc[__gidx]) ? 1 : 0);
     };
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<
-               _ReduceValueType, decltype(__identity_reduce_fn), decltype(__identity_transform_fn),
-               ::std::true_type /*is_commutative*/>(::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn,
-                                                    __identity_transform_fn,
-                                                    unseq_backend::__no_init_value{}, // no initial value
-                                                    ::std::forward<_Range>(__rng))
+               _ReduceValueType, ::std::true_type /*is_commutative*/, decltype(__reduce_fn), decltype(__transform_fn)>(
+               ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+               unseq_backend::__no_init_value{}, // no initial value
+               ::std::forward<_Range>(__rng))
         .get();
 }
 
@@ -552,7 +551,7 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
 
     // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
     // not commutative.
-    auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) -> _ReduceValueType {
+    auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
         using ::std::get;
         if (__comp(get<1>(__b), get<1>(__a)))
         {
@@ -560,15 +559,12 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
         }
         return __a;
     };
-    auto __identity_transform_fn = [](auto __gidx, auto __acc) -> _ReduceValueType {
-        return _ReduceValueType{__gidx, __acc[__gidx]};
-    };
+    auto __transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
 
     auto __ret_idx =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
-                                                                       decltype(__identity_transform_fn),
-                                                                       ::std::false_type /*is_commutative*/>(
-            ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_transform_fn,
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<
+            _ReduceValueType, ::std::false_type /*is_commutative*/, decltype(__reduce_fn), decltype(__transform_fn)>(
+            ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
             unseq_backend::__no_init_value{}, // no initial value
             ::std::forward<_Range>(__rng))
             .get();
@@ -598,7 +594,7 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
 
     // This operator doesn't track the lowest found index in case of equal min. values and the highest found index in
     // case of equal max. values. Thus, this operator is not commutative.
-    auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) -> _ReduceValueType {
+    auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
         using ::std::get;
         auto __chosen_for_min = __a;
         auto __chosen_for_max = __b;
@@ -618,15 +614,14 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
     // TODO: Doesn't work with `zip_iterator`.
     //       In that case the first and the second arguments of `_ReduceValueType` will be
     //       a `tuple` of `difference_type`, not the `difference_type` itself.
-    auto __identity_transform_fn = [](auto __gidx, auto __acc) -> _ReduceValueType {
+    auto __transform_fn = [](auto __gidx, auto __acc) {
         return _ReduceValueType{__gidx, __gidx, __acc[__gidx], __acc[__gidx]};
     };
 
     _ReduceValueType __ret =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
-                                                                       decltype(__identity_transform_fn),
-                                                                       ::std::false_type /*is_commutative*/>(
-            ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_transform_fn,
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<
+            _ReduceValueType, ::std::false_type /*is_commutative*/, decltype(__reduce_fn), decltype(__transform_fn)>(
+            ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
             unseq_backend::__no_init_value{}, // no initial value
             ::std::forward<_Range>(__rng))
             .get();
@@ -695,12 +690,12 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
         __brick_copy<_ExecutionPolicy> __copy_range{};
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_keys_wrapper>(__exec),
-            __copy_range, ::std::forward<_Range1>(__keys), ::std::forward<_Range3>(__out_keys));
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_keys_wrapper>(__exec), __copy_range,
+            ::std::forward<_Range1>(__keys), ::std::forward<_Range3>(__out_keys));
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_values_wrapper>
-                (::std::forward<_ExecutionPolicy>(__exec)),
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_values_wrapper>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
             __copy_range, ::std::forward<_Range2>(__values), ::std::forward<_Range4>(__out_values));
 
         return 1;
