@@ -500,7 +500,7 @@ VectorStore(uint32_t offset, __dpl_esimd_ns::simd<T, VSize * LANES> data, __dpl_
 
 template <int NElts>
 constexpr int
-lsc_op_block_size_rounding()
+lsc_slm_block_size_rounding()
 {
     static_assert(NElts >= 1);
 
@@ -540,9 +540,9 @@ using lsc_op_aligned_t = ::std::conditional_t<sizeof(T) <= sizeof(::std::uint32_
 
 template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
           int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts == lsc_op_block_size_rounding<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts == lsc_slm_block_size_rounding<NElts>(), int> = 0>
 inline __dpl_esimd_ns::simd<T, N>
-BlockLoad(uint32_t slm_offset)
+BlockLoadSlm(uint32_t slm_offset)
 {
     __dpl_esimd_ns::simd<T, N> result;
     result.template bit_cast_view<OpAlignedT>() = __dpl_esimd_ens::lsc_slm_block_load<OpAlignedT, NElts>(slm_offset);
@@ -551,58 +551,210 @@ BlockLoad(uint32_t slm_offset)
 
 template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
           int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts != lsc_op_block_size_rounding<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts != lsc_slm_block_size_rounding<NElts>(), int> = 0>
 inline __dpl_esimd_ns::simd<T, N>
-BlockLoad(uint32_t slm_offset)
+BlockLoadSlm(uint32_t slm_offset)
 {
-    constexpr int BLOCK_SIZE_ROUNDED = lsc_op_block_size_rounding<NElts>();
+    constexpr int BLOCK_SIZE_ROUNDED = lsc_slm_block_size_rounding<NElts>();
 
     __dpl_esimd_ns::simd<T, N> result;
     constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, BLOCK_SIZE_ROUNDED, T>();
-    result.template select<BLOCK_SIZE, 1>(0) = BlockLoad<T, BLOCK_SIZE>(slm_offset);
+    result.template select<BLOCK_SIZE, 1>(0) = BlockLoadSlm<T, BLOCK_SIZE>(slm_offset);
     result.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE) =
-        BlockLoad<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T));
+        BlockLoadSlm<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T));
     return result;
 }
 
 template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
           int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts == lsc_op_block_size_rounding<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts == lsc_slm_block_size_rounding<NElts>(), int> = 0>
 void
-BlockStore(uint32_t slm_offset, __dpl_esimd_ns::simd<T, N> data)
+BlockStoreSlm(uint32_t slm_offset, __dpl_esimd_ns::simd<T, N> data)
 {
     __dpl_esimd_ens::lsc_slm_block_store<OpAlignedT, NElts>(slm_offset, data.template bit_cast_view<uint32_t>());
 }
 
 template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
           int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts != lsc_op_block_size_rounding<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts != lsc_slm_block_size_rounding<NElts>(), int> = 0>
 void
-BlockStore(uint32_t slm_offset, __dpl_esimd_ns::simd<T, N> data)
+BlockStoreSlm(uint32_t slm_offset, __dpl_esimd_ns::simd<T, N> data)
 {
-    constexpr int BLOCK_SIZE_ROUNDED = lsc_op_block_size_rounding<NElts>();
+    constexpr int BLOCK_SIZE_ROUNDED = lsc_slm_block_size_rounding<NElts>();
 
     constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, BLOCK_SIZE_ROUNDED, T>();
-    BlockStore<T, BLOCK_SIZE>(slm_offset, data.template select<BLOCK_SIZE, 1>(0));
-    BlockStore<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T),
-                                  data.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE));
+    BlockStoreSlm<T, BLOCK_SIZE>(slm_offset, data.template select<BLOCK_SIZE, 1>(0));
+    BlockStoreSlm<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T),
+                                     data.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE));
+}
+
+template <typename T, int NElts, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint8_t), int> = 0>
+constexpr int
+lsc_block_store_size_rounding()
+{
+    // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
+    // Allowed \c NElts values for  8 bit data are 4, 8, 12, 16, 32, 64, 128, 256, 512.
+
+    static_assert(NElts >= 1);
+
+    if constexpr (NElts < 8)
+        return 4;
+
+    if constexpr (NElts < 12)
+        return 8;
+
+    if constexpr (NElts < 16)
+        return 12;
+
+    if constexpr (NElts < 32)
+        return 16;
+
+    if constexpr (NElts < 64)
+        return 32;
+
+    if constexpr (NElts < 128)
+        return 64;
+
+    if constexpr (NElts < 256)
+        return 128;
+
+    if constexpr (NElts < 512)
+        return 256;
+
+    return 512;
+}
+
+template <typename T, int NElts, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint16_t), int> = 0>
+constexpr int
+lsc_block_store_size_rounding()
+{
+    // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
+    // Allowed \c NElts values for 16 bit data are 2, 4, 8, 16, 32, 64, 128, 256.
+
+    static_assert(NElts >= 1);
+
+    if constexpr (NElts < 2)
+        return 1;
+
+    if constexpr (NElts < 4)
+        return 2;
+
+    if constexpr (NElts < 8)
+        return 4;
+
+    if constexpr (NElts < 16)
+        return 8;
+
+    if constexpr (NElts < 32)
+        return 16;
+
+    if constexpr (NElts < 64)
+        return 32;
+
+    if constexpr (NElts < 128)
+        return 64;
+
+    if constexpr (NElts < 256)
+        return 128;
+
+    return 256;
+}
+
+template <typename T, int NElts, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint32_t), int> = 0>
+constexpr int
+lsc_block_store_size_rounding()
+{
+    // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
+    // Allowed \c NElts values for 32 bit data are 1, 2, 3, 4, 8, 16, 32, 64, 128.
+
+    static_assert(NElts >= 1);
+
+    if constexpr (NElts < 2)
+        return 1;
+
+    if constexpr (NElts < 3)
+        return 2;
+
+    if constexpr (NElts < 4)
+        return 3;
+
+    if constexpr (NElts < 8)
+        return 4;
+
+    if constexpr (NElts < 16)
+        return 8;
+
+    if constexpr (NElts < 32)
+        return 16;
+
+    if constexpr (NElts < 64)
+        return 32;
+
+    if constexpr (NElts < 128)
+        return 64;
+
+    return 128;
+}
+
+template <typename T, int NElts, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint64_t), int> = 0>
+constexpr int
+lsc_block_store_size_rounding()
+{
+    // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
+    // Allowed \c NElts values for 64 bit data are 1, 2, 3, 4, 8, 16, 32, 64.
+
+    static_assert(NElts >= 1);
+
+    if constexpr (NElts < 2)
+        return 1;
+
+    if constexpr (NElts < 3)
+        return 2;
+
+    if constexpr (NElts < 4)
+        return 3;
+
+    if constexpr (NElts < 8)
+        return 4;
+
+    if constexpr (NElts < 16)
+        return 8;
+
+    if constexpr (NElts < 32)
+        return 16;
+
+    if constexpr (NElts < 64)
+        return 32;
+
+    return 64;
 }
 
 template <typename T, int N, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(N * sizeof(T) <= 256), void>
+          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none,
+          ::std::enable_if_t<N == lsc_block_store_size_rounding<T, N>(), int> = 0>
+inline void
 BlockStore(T* dst, __dpl_esimd_ns::simd<T, N> data)
 {
+    // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
+    // Allowed \c NElts values for  8 bit data are          4, 8, 12, 16, 32, 64, 128, 256, 512.
+    // Allowed \c NElts values for 16 bit data are    2,    4, 8,     16, 32, 64, 128, 256.
+    // Allowed \c NElts values for 32 bit data are 1, 2, 3, 4, 8,     16, 32, 64, 128.
+    // Allowed \c NElts values for 64 bit data are 1, 2, 3, 4, 8,     16, 32, 64.
     __dpl_esimd_ens::lsc_block_store<uint32_t, N, __dpl_esimd_ens::lsc_data_size::default_size, H1, H3>(
         dst, data.template bit_cast_view<uint32_t>(), 1);
 }
 
 template <typename T, int N, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(N * sizeof(T) > 256), void>
+          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none,
+          ::std::enable_if_t<N != lsc_block_store_size_rounding<T, N>(), int> = 0>
+inline void
 BlockStore(T* dst, __dpl_esimd_ns::simd<T, N> data)
 {
     constexpr uint32_t BLOCK_SIZE = 64 * sizeof(uint32_t) / sizeof(T);
+
+    constexpr int BLOCK_SIZE_ROUNDED = lsc_block_store_size_rounding<T, N>();
+    static_assert(BLOCK_SIZE == BLOCK_SIZE_ROUNDED);
+
     BlockStore<T, BLOCK_SIZE>(dst, data.template select<BLOCK_SIZE, 1>(0));
     BlockStore<T, N - BLOCK_SIZE>(dst + BLOCK_SIZE, data.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE));
 }
