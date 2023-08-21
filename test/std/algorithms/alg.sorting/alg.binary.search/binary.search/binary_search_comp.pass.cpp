@@ -11,9 +11,9 @@
 #include <iostream>
 
 #ifdef USE_ONEAPI_STD
-#    include <oneapi/dpl/algorithm>
-#    include <oneapi/dpl/iterator>
-#    include <oneapi/dpl/functional>
+#    include _ONEAPI_STD_TEST_HEADER(algorithm)
+#    include _ONEAPI_STD_TEST_HEADER(iterator)
+#    include _ONEAPI_STD_TEST_HEADER(functional)
 namespace s = oneapi_cpp_ns;
 #else
 #    include <algorithm>
