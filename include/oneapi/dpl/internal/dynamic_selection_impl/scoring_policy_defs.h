@@ -13,12 +13,14 @@
 namespace oneapi {
 namespace dpl {
 namespace experimental {
-  template<typename Resource>
+  template<typename Policy, typename Resource>
   class basic_selection_handle_t {
+    Policy p_;
     Resource e_;
   public:
-    explicit basic_selection_handle_t(Resource e = Resource{}) : e_(e) {}
+    explicit basic_selection_handle_t(const Policy &p, Resource e = Resource{}) : p_(p), e_(e) {}
     auto unwrap() { return oneapi::dpl::experimental::unwrap(e_); }
+    Policy get_policy() { return p_; }
   };
 
 } // namespace experimental

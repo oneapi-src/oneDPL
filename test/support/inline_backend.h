@@ -48,7 +48,7 @@ struct int_inline_backend_t {
     }
     void wait() override {
       if (wait_reported_->exchange(true) == false) {
-        if constexpr (oneapi::dpl::experimental::report_execution_info_v<Selection, oneapi::dpl::experimental::execution_info::task_completion_t>) {
+        if constexpr (oneapi::dpl::experimental::report_info_v<Selection, oneapi::dpl::experimental::execution_info::task_completion_t>) {
           oneapi::dpl::experimental::report(s_, oneapi::dpl::experimental::execution_info::task_completion);
         }
       }
@@ -70,9 +70,16 @@ struct int_inline_backend_t {
 
   template<typename SelectionHandle, typename Function, typename ...Args>
   auto submit(SelectionHandle s, Function&& f, Args&&... args) {
+    std::chrono::high_resolution_clock::time_point t0;
+    if constexpr (oneapi::dpl::experimental::report_value_v<SelectionHandle, oneapi::dpl::experimental::execution_info::task_time_t>) {
+      t0 = std::chrono::high_resolution_clock::now();
+    }
     auto w = new async_wait_impl_t<SelectionHandle>(s, 
                                                     std::forward<Function>(f)(oneapi::dpl::experimental::unwrap(s), 
                                                     std::forward<Args>(args)...));
+    if constexpr (oneapi::dpl::experimental::report_value_v<SelectionHandle, oneapi::dpl::experimental::execution_info::task_time_t>) {
+      report(s, oneapi::dpl::experimental::execution_info::task_time, (std::chrono::high_resolution_clock::now()-t0).count());
+    }
     waiters_.push(w);
     return *w;
   }
