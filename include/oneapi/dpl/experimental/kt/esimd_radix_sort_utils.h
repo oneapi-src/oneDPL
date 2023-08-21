@@ -696,6 +696,39 @@ lsc_block_store_size_rounding()
     return 128;
 }
 
+template <typename T, int NElts, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint64_t), int> = 0>
+constexpr int
+lsc_block_store_size_rounding()
+{
+    // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
+    // Allowed \c NElts values for 64 bit data are 1, 2, 3, 4, 8, 16, 32, 64.
+
+    static_assert(NElts >= 1);
+
+    if constexpr (NElts < 2)
+        return 1;
+
+    if constexpr (NElts < 3)
+        return 2;
+
+    if constexpr (NElts < 4)
+        return 3;
+
+    if constexpr (NElts < 8)
+        return 4;
+
+    if constexpr (NElts < 16)
+        return 8;
+
+    if constexpr (NElts < 32)
+        return 16;
+
+    if constexpr (NElts < 64)
+        return 32;
+
+    return 64;
+}
+
 template <typename T, int N, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
           __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
 inline std::enable_if_t<(N * sizeof(T) <= 256), void>
