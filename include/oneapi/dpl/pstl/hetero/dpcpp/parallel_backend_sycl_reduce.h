@@ -143,7 +143,7 @@ __parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, const _Size __
     using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __reduce_small_kernel<::std::integral_constant<::std::uint8_t, __iters_per_work_item>, _CustomName>>;
 
-    return __parallel_transform_reduce_small_submitter<__work_group_size, __iters_per_work_item, _Tp, _ReduceKernel>()(
+    return __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __iters_per_work_item, _ReduceKernel>()(
         ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
         ::std::forward<_Ranges>(__rngs)...);
 }
@@ -193,7 +193,7 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_siz
 // Submits the second kernel of the parallel_transform_reduce for mid-sized arrays.
 // Uses a single work groups to reduce __n preliminary results stored in __temp and returns a future object with the
 // result buffer.
-template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_itemx, typename _KernelName>
+template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _KernelName>
 struct __parallel_transform_reduce_work_group_kernel_submitter;
 
 template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item,
@@ -272,13 +272,13 @@ __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _Redu
     sycl::buffer<_Tp> __temp{sycl::range<1>(__n_groups)};
 
     sycl::event __reduce_event =
-        __parallel_transform_reduce_device_kernel_submitter<__work_group_size, __iters_per_work_item_device_kernel, _Tp,
+        __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_size, __iters_per_work_item_device_kernel,
                                                             _ReduceDeviceKernel>()(
             __exec, __n, __reduce_op, __transform_op, __init, __temp, ::std::forward<_Ranges>(__rngs)...);
 
     __n = __n_groups; // Number of preliminary results from the device kernel.
     return __parallel_transform_reduce_work_group_kernel_submitter<
-        __work_group_size, __iters_per_work_item_work_group_kernel, _Tp, _ReduceWorkGroupKernel>()(
+        _Tp, __work_group_size, __iters_per_work_item_work_group_kernel, _ReduceWorkGroupKernel>()(
         ::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __n, __reduce_op, __transform_op, __init, __temp);
 }
 
