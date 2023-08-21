@@ -751,6 +751,10 @@ void    // inline std::enable_if_t<(N * sizeof(T) > 256), void>
 BlockStore(T* dst, __dpl_esimd_ns::simd<T, N> data)
 {
     constexpr uint32_t BLOCK_SIZE = 64 * sizeof(uint32_t) / sizeof(T);
+
+    constexpr int BLOCK_SIZE_ROUNDED = lsc_block_store_size_rounding<T, N>();
+    static_assert(BLOCK_SIZE == BLOCK_SIZE_ROUNDED);
+
     BlockStore<T, BLOCK_SIZE>(dst, data.template select<BLOCK_SIZE, 1>(0));
     BlockStore<T, N - BLOCK_SIZE>(dst + BLOCK_SIZE, data.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE));
 }
