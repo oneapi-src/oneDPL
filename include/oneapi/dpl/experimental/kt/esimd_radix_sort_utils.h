@@ -500,7 +500,7 @@ VectorStore(uint32_t offset, __dpl_esimd_ns::simd<T, VSize * LANES> data, __dpl_
 
 template <int NElts>
 constexpr int
-lsc_op_block_size_rounding()
+lsc_slm_block_size_rounding()
 {
     static_assert(NElts >= 1);
 
@@ -540,7 +540,7 @@ using lsc_op_aligned_t = ::std::conditional_t<sizeof(T) <= sizeof(::std::uint32_
 
 template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
           int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts == lsc_op_block_size_rounding<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts == lsc_slm_block_size_rounding<NElts>(), int> = 0>
 inline __dpl_esimd_ns::simd<T, N>
 BlockLoad(uint32_t slm_offset)
 {
@@ -551,11 +551,11 @@ BlockLoad(uint32_t slm_offset)
 
 template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
           int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts != lsc_op_block_size_rounding<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts != lsc_slm_block_size_rounding<NElts>(), int> = 0>
 inline __dpl_esimd_ns::simd<T, N>
 BlockLoad(uint32_t slm_offset)
 {
-    constexpr int BLOCK_SIZE_ROUNDED = lsc_op_block_size_rounding<NElts>();
+    constexpr int BLOCK_SIZE_ROUNDED = lsc_slm_block_size_rounding<NElts>();
 
     __dpl_esimd_ns::simd<T, N> result;
     constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, BLOCK_SIZE_ROUNDED, T>();
@@ -567,7 +567,7 @@ BlockLoad(uint32_t slm_offset)
 
 template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
           int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts == lsc_op_block_size_rounding<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts == lsc_slm_block_size_rounding<NElts>(), int> = 0>
 void
 BlockStoreSlm(uint32_t slm_offset, __dpl_esimd_ns::simd<T, N> data)
 {
@@ -576,11 +576,11 @@ BlockStoreSlm(uint32_t slm_offset, __dpl_esimd_ns::simd<T, N> data)
 
 template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
           int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts != lsc_op_block_size_rounding<NElts>(), int> = 0>
+          ::std::enable_if_t<NElts != lsc_slm_block_size_rounding<NElts>(), int> = 0>
 void
 BlockStoreSlm(uint32_t slm_offset, __dpl_esimd_ns::simd<T, N> data)
 {
-    constexpr int BLOCK_SIZE_ROUNDED = lsc_op_block_size_rounding<NElts>();
+    constexpr int BLOCK_SIZE_ROUNDED = lsc_slm_block_size_rounding<NElts>();
 
     constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, BLOCK_SIZE_ROUNDED, T>();
     BlockStoreSlm<T, BLOCK_SIZE>(slm_offset, data.template select<BLOCK_SIZE, 1>(0));
