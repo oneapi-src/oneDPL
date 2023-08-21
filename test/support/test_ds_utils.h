@@ -14,7 +14,6 @@
 template<typename Policy>
 int test_cout() {
   Policy p;
-  //std::cout << p << "\n";
   return 0;
 }
 

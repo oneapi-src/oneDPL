@@ -17,6 +17,7 @@
 #include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
 
 #include <atomic>
+#include <chrono>
 #include <vector>
 #include <memory>
 #include <list>
@@ -68,15 +69,23 @@ namespace experimental {
     template<typename SelectionHandle, typename Function, typename ...Args>
     auto submit(SelectionHandle s, Function&& f, Args&&... args) {
       auto q = unwrap(s);
-      if constexpr (report_execution_info_v<SelectionHandle, execution_info::task_submission_t>) {
+      if constexpr (report_info_v<SelectionHandle, execution_info::task_submission_t>) {
         report(s, execution_info::task_submission);
       }
-      if constexpr(report_execution_info_v<SelectionHandle, execution_info::task_completion_t>) {
+      if constexpr(report_info_v<SelectionHandle, execution_info::task_completion_t>
+                   || report_value_v<SelectionHandle, execution_info::task_time_t>) {
+        std::chrono::high_resolution_clock::time_point t0;
+        if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t>) {
+          t0 = std::chrono::high_resolution_clock::now();
+        }
         auto e1 = f(q, std::forward<Args>(args)...);
         auto e2 = q.submit([=](sycl::handler& h){
             h.depends_on(e1);
             h.host_task([=](){
-              report(s, execution_info::task_completion);
+              if constexpr(report_info_v<SelectionHandle, execution_info::task_completion_t>) 
+                report(s, execution_info::task_completion);
+              if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t>) 
+                s.report(execution_info::task_time, (std::chrono::high_resolution_clock::now() - t0).count());
             });
         });
         auto w = new async_wait_impl_t<SelectionHandle>(e2);

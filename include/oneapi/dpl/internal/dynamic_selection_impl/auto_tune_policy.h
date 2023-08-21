@@ -24,6 +24,35 @@ namespace dpl {
 namespace experimental {
 
   template <typename Backend=sycl_backend, typename... KeyArgs>
+  class auto_tune_policy;
+
+  namespace internal { 
+    template <typename Backend, typename Resource, typename Tuner, typename... KeyArgs>
+    class auto_tune_selection_type {
+      using policy_t = auto_tune_policy<Backend, KeyArgs...>;
+      policy_t policy_; 
+      using resource_with_offset_t = Resource;
+      resource_with_offset_t resource_;
+      using tuner_t = Tuner;
+      std::shared_ptr<tuner_t> tuner_;
+
+    public:
+      auto_tune_selection_type() : policy_(deferred_initialization) {} 
+
+      auto_tune_selection_type(const policy_t& p, resource_with_offset_t r, std::shared_ptr<tuner_t> t) 
+        : policy_(p), resource_(r), tuner_(t) {}
+
+      auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_.r_); }
+
+      policy_t get_policy() { return policy_; };
+
+      void report(const execution_info::task_time_t&, const typename execution_info::task_time_t::value_type& v) const {
+        tuner_->add_new_timing(resource_, v);
+      }
+    };
+  }
+
+  template <typename Backend, typename... KeyArgs>
   class auto_tune_policy {
 
     static constexpr double never_resample = 0.0;
@@ -111,25 +140,7 @@ namespace experimental {
     // Needed by Policy Traits
     using resource_type = decltype(unwrap(std::declval<wrapped_resource_t>()));
     using wait_type = typename Backend::wait_type;
-
-    class selection_type {
-      using policy_t = auto_tune_policy<Backend, KeyArgs...>;
-      policy_t policy_; 
-      resource_with_offset_t resource_;
-      std::shared_ptr<tuner_t> tuner_;
-
-    public:
-      selection_type(const policy_t& p, resource_with_offset_t r, std::shared_ptr<tuner_t> t) 
-        : policy_(p), resource_(r), tuner_(t) {}
-
-      auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_.r_); }
-
-      policy_t get_policy() { return policy_; };
-
-      void report(const execution_info::task_time_t&, const typename execution_info::task_time_t::value_type& v) {
-        tuner_->add_new_timing(resource_, v);
-      }
-    };
+    using selection_type = internal::auto_tune_selection_type<Backend, resource_with_offset_t, tuner_t, KeyArgs...>;
 
     auto_tune_policy(double resample_time=never_resample) {
       if (resample_time != deferred_initialization) {

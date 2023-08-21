@@ -198,7 +198,7 @@ namespace experimental {
   auto has_report_value_impl(...) -> std::false_type;
 
   template<typename S, typename Info>
-  auto has_report_value_impl(int) -> decltype(std::declval<S>().report(std::declval<Info>(), std::declval<typename Info::value_type>()), std::true_type{});
+  auto has_report_value_impl(int) -> decltype(std::declval<S>().report(std::declval<Info>(), 0), std::true_type{});
 
   template<typename S, typename Info>
   struct has_report_value : decltype(has_report_value_impl<S,Info>(0)) {};
@@ -211,12 +211,18 @@ namespace experimental {
   }
 
   template<typename S, typename Info>
-  struct report_execution_info {
-    static constexpr bool value = std::disjunction_v<has_report<S,Info>, has_report_value<S,Info>>;   
+  struct report_info {
+    static constexpr bool value = has_report<S,Info>::value;
   };
+  template<typename S, typename Info>
+  inline constexpr bool report_info_v = report_info<S,Info>::value;
 
   template<typename S, typename Info>
-  inline constexpr bool report_execution_info_v = report_execution_info<S,Info>::value;
+  struct report_value {
+    static constexpr bool value = has_report_value<S,Info>::value;
+  };
+  template<typename S, typename Info>
+  inline constexpr bool report_value_v = report_value<S,Info>::value;
 
 } // namespace experimental
 } // namespace dpl
