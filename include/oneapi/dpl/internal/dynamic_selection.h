@@ -136,10 +136,10 @@ namespace experimental {
       // t is a selection
       if constexpr (has_submit_and_wait_handle<decltype(std::declval<T>().get_policy()), T, Function, Args...>::value == true) {
         // policy has optional submit_and_wait(selection, f, args...)
-        return t.get_policy().submit_and_wait(t, std::forward<Function>(f), std::forward<Args>(args)...);
+        return t.get_policy().submit_and_wait(std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...);
       } else {   
         // policy does not have optional submit_and_wait for a selection
-        return wait(submit(t, std::forward<Function>(f), std::forward<Args>(args)...));
+        return wait(submit(std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...));
       } 
     } else {
       // t is a policy
