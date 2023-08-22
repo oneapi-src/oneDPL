@@ -13,31 +13,12 @@
 #include "oneapi/dpl/internal/common_config.h"
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
-
-//#if (ONEDPL_USE_DPCPP_BACKEND != 0)
 #if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
     #define _DS_BACKEND_SYCL 1
-    #pragma message("compiling with sycl compiler or backend")
 #else
     #define _DS_BACKEND_SYCL 0
-    #pragma message("non sycl compilation")
 #endif
 
 #include "oneapi/dpl/internal/dynamic_selection.h"
-/*
-namespace oneapi {
-namespace dpl {
-namespace experimental {
 
-#if _DS_BACKEND_SYCL != 0
-  using fixed_resource_policy = fixed_resource_policy_impl<sycl_backend>;
-  using round_robin_policy = round_robin_policy_impl<sycl_backend>;
-#endif
-  template<typename S> using fixed_resource_policy_t = fixed_resource_policy_impl<S>;
-  template<typename S> using round_robin_policy_t = round_robin_policy_impl<S>;
-
-} //namespace experimental
-} //namespace dpl
-} //namespace oneapi
-*/
 #endif /* ONEDPL_DYNAMIC_SELECTION */
