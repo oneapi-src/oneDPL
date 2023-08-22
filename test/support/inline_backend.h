@@ -108,7 +108,7 @@ struct int_inline_backend_t {
   }
 
   template<typename V>
-  auto set_universe(const V& u) noexcept {
+  auto initialize(const V& u) noexcept {
     resources_.clear();
     for (const auto& e : u)
       resources_.push_back(execution_resource_t{e});

@@ -31,70 +31,73 @@ namespace experimental{
     using resource_type = typename backend_t::resource_type;
     using wait_type = typename backend_t::wait_type;
 
-
     std::shared_ptr<backend_t> backend_;
 
-
-    struct unit_t{
+    struct state_t{
         resource_container_t resources_;
         resource_container_size_t num_contexts_;
         std::atomic<resource_container_size_t> next_context_;
+	int offset_;
     };
 
-    std::shared_ptr<unit_t> unit_;
+    std::shared_ptr<state_t> state_;
 
-    round_robin_policy_impl() : backend_{std::make_shared<backend_t>()}, unit_{std::make_shared<unit_t>()}  {
-      unit_->resources_ = get_resources();
-      unit_->num_contexts_ = unit_->resources_.size();
-      unit_->next_context_ = 0;
+    round_robin_policy_impl(int offset=0) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()}  {
+      state_->resources_ = get_resources();
+      state_->num_contexts_ = state_->resources_.size();
+      state_->offset_ = offset;
+      state_->next_context_ = state_->offset_;
     }
 
-    round_robin_policy_impl(resource_container_t u) : backend_{std::make_shared<backend_t>()}, unit_{std::make_shared<unit_t>()}  {
-      backend_->set_universe(u);
-      unit_->resources_ = get_resources();
-      unit_->num_contexts_ = unit_->resources_.size();
-      unit_->next_context_ = 0;
+    round_robin_policy_impl(resource_container_t u, int offset=0) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()}  {
+      backend_->initialize(u);
+      state_->resources_ = get_resources();
+      state_->num_contexts_ = state_->resources_.size();
+      state_->offset_ = offset;
+      state_->next_context_ = state_->offset_;
     }
 
     template<typename ...Args>
-    round_robin_policy_impl(Args&&... args) : backend_{std::make_shared<backend_t>(std::forward<Args>(args)...)}, unit_{std::make_shared<unit_t>()} {
-      unit_->resources_ = backend_->get_resources();
-      unit_->num_contexts_ = unit_->resources_.size();
-      unit_->next_context_ = 0;
+    round_robin_policy_impl(Args&&... args) : backend_{std::make_shared<backend_t>(std::forward<Args>(args)...)}, state_{std::make_shared<state_t>()} {
+      state_->resources_ = backend_->get_resources();
+      state_->num_contexts_ = state_->resources_.size();
+      state_->next_context_ = 0;
     }
-
-    //
-    // Support for property queries
-    //
 
     auto get_resources() const {
       return backend_->get_resources();
     }
 
-    template<typename ...Args>
-    auto set_universe(Args&&... args) {
-        return backend_->set_universe(std::forward<Args>(args)...);
+    void initialize(int offset=0) {
+      if (offset == deferred_initialization) return;
+      state_->offset_ = offset;
+      backend_->initialize();
+    }
+
+    void initialize(resource_container_t u, int offset=0) {
+      state_->offset_ = offset;
+      backend_->initialize(u);
     }
 
     template<typename ...Args>
     selection_type select(Args&&...) {
-      size_t i=0;
+      size_t i=state_->offset_;
       while(true){
-          resource_container_size_t current_context_ = unit_->next_context_.load();
+          resource_container_size_t current_context_ = state_->next_context_.load();
           resource_container_size_t new_context_;
           if(current_context_ == std::numeric_limits<resource_container_size_t>::max()){
-              new_context_ = (current_context_%unit_->num_contexts_)+1;
+              new_context_ = (current_context_%state_->num_contexts_)+1;
           }
           else{
-              new_context_ = (current_context_+1)%unit_->num_contexts_;
+              new_context_ = (current_context_+1)%state_->num_contexts_;
           }
 
-          if(unit_->next_context_.compare_exchange_weak(current_context_, new_context_)){
+          if(state_->next_context_.compare_exchange_weak(current_context_, new_context_)){
               i = current_context_;
               break;
           }
       }
-      auto &e = unit_->resources_[i];
+      auto &e = state_->resources_[i];
       return selection_type{*this, e};
     }
 
