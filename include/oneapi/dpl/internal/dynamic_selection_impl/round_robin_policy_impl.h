@@ -20,7 +20,7 @@ namespace oneapi {
 namespace dpl{
 namespace experimental{
 
-  template <typename Backend = sycl_backend>
+  template <typename Backend>
   struct round_robin_policy_impl {
     using backend_t = Backend;
     using resource_container_t = typename backend_t::resource_container_t;
