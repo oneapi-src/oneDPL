@@ -14,8 +14,14 @@
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
 
-#define _DS_BACKEND_SYCL 1
+#if (ONEDPL_USE_DPCPP_BACKEND != 0)
+    #define _DS_BACKEND_SYCL 1
+#else
+    #define _DS_BACKEND_SYCL 0
+#endif
+
 #include "oneapi/dpl/internal/dynamic_selection.h"
+/*
 namespace oneapi {
 namespace dpl {
 namespace experimental {
@@ -30,5 +36,5 @@ namespace experimental {
 } //namespace experimental
 } //namespace dpl
 } //namespace oneapi
-
+*/
 #endif /* ONEDPL_DYNAMIC_SELECTION */
