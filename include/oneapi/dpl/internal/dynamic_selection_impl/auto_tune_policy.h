@@ -112,7 +112,7 @@ namespace experimental {
           }
         }
       }
-
+ 
       // called to add new profile info
       void add_new_timing(resource_with_offset_t r, timing_t t) {
         std::unique_lock<std::mutex> l(m_);
@@ -155,33 +155,46 @@ namespace experimental {
     }
    
     void initialize(double resample_time=never_resample) {
-      backend_ = std::make_shared<Backend>();
-      state_ = std::make_shared<state_t>();
-      initialize_impl(resample_time);
+      if (!state_) {
+        state_ = std::make_shared<state_t>();
+        backend_ = std::make_shared<Backend>();
+        initialize_impl(resample_time);
+      }
     }
 
     void initialize(const std::vector<resource_type>& u, double resample_time=never_resample) {
-      backend_ = std::make_shared<Backend>(u);
-      state_ = std::make_shared<state_t>();
-      initialize_impl(resample_time);
+      if (!state_) {
+        state_ = std::make_shared<state_t>();
+        backend_ = std::make_shared<Backend>(u);
+        initialize_impl(resample_time);
+      }
     }
 
     template<typename Function, typename ...Args>
     selection_type select(Function&& f, Args&&...args) {
-      auto k =  make_task_key(std::forward<Function>(f), std::forward<Args>(args)...);
-      auto t  = state_->tuner_by_key_[k];
-      auto offset = t->get_resource_to_profile();
-      if (offset == use_best_resource) {
-        return selection_type{*this, t->best_resource_, t}; 
+      if (state_) {
+        std::unique_lock<std::mutex> l(state_->m_);
+        auto k =  make_task_key(std::forward<Function>(f), std::forward<Args>(args)...);
+        auto t  = state_->tuner_by_key_[k];
+        auto offset = t->get_resource_to_profile();
+        if (offset == use_best_resource) {
+          return selection_type{*this, t->best_resource_, t}; 
+        } else {
+          auto r = state_->resources_with_offset_[offset];
+          return selection_type{*this, r, t}; 
+        } 
       } else {
-        auto r = state_->resources_with_offset_[offset];
-        return selection_type{*this, r, t}; 
-      } 
+         throw std::runtime_error("Called select before initialization\n");
+      }
     }
 
     template<typename Function, typename ...Args>
     auto submit(selection_type e, Function&& f, Args&&... args) {
-      return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
+      if (backend_) {
+        return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
+      } else {
+         throw std::runtime_error("Called submit before initialization\n");
+      }
     }
 
     auto get_resources() {
@@ -193,7 +206,11 @@ namespace experimental {
     }
 
     auto get_submission_group() {
-      return backend_->get_submission_group();
+      if (backend_) {
+        return backend_->get_submission_group();
+       } else {
+         throw std::runtime_error("Called get_submission_group before initialization\n");
+       }
     }
 
   private:
@@ -212,6 +229,7 @@ namespace experimental {
     double resample_time_ = 0.0;
 
     struct state_t {
+      std::mutex m_;
       std::vector<resource_with_offset_t> resources_with_offset_;
       tuner_by_key_t tuner_by_key_;
     };
@@ -233,6 +251,7 @@ namespace experimental {
 
     template<typename Function, typename... Args>
     task_key_t make_task_key(Function&& f, Args&&... args) {
+      // called under lock
       task_key_t k = std::tuple_cat(std::tuple<void *>(&f), std::make_tuple(std::forward<Args>(args)...));
       if (state_->tuner_by_key_.count(k) == 0) {
         state_->tuner_by_key_[k] = std::make_shared<tuner_t>(state_->resources_with_offset_[0], state_->resources_with_offset_.size(), resample_time_);
