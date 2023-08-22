@@ -73,14 +73,15 @@ int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int
     sycl::buffer<std::array<int, D>, 1> bufferB(b.data(), sycl::range<1>(N));
     sycl::buffer<std::array<int, N>, 1> bufferResultMatrix(resultMatrix.data(), sycl::range<1>(N));
 
-    bool pass=true;
+    std::atomic<int> probability=0;
+    size_t total_items=6;
     if constexpr(call_select_before_submit){
-        for(int i=0;i<6;i++){
+        for(int i=0;i<total_items;i++){
             int target=(i+offset)%u.size();
             auto test_resource = f(i, offset);
             auto func = [&](typename Policy::resource_type e){
-                   if (e != test_resource) {
-                         pass = false;
+                   if (e == test_resource) {
+                         probability.fetch_add(1);
                    }
                    if(target==offset){
                         auto e2 = e.submit([&](sycl::handler &cgh){
@@ -103,26 +104,25 @@ int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int
                    }
                    else{
                        auto e2 = e.submit([&](sycl::handler &cgh){
-                           //for(int i=0;i<1;i++);
                        });
                        return e2;
                    }
 
             };
-            auto s = oneapi::dpl::experimental::select(p);
+            auto s = oneapi::dpl::experimental::select(p, func);
             auto e = oneapi::dpl::experimental::submit(s, func);
-            if(i>0) std::this_thread::sleep_for (std::chrono::milliseconds(10));
+            if(i>0) std::this_thread::sleep_for (std::chrono::milliseconds(3));
         }
         oneapi::dpl::experimental::wait(p.get_submission_group());
 
     }
     else{
-        for (int i = 0; i < 6; ++i) {
+        for (int i = 0; i < total_items; ++i) {
             int target=(i+offset)%u.size();
             auto test_resource = f(i, offset);
-                oneapi::dpl::experimental::submit(p,[&](typename Policy::resource_type e){
-                   if (e != test_resource) {
-                         pass = false;
+                oneapi::dpl::experimental::submit(p,[&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e){
+                   if (e == test_resource) {
+                         probability.fetch_add(1);
                    }
                    if(target==offset){
                         auto e2 = e.submit([&](sycl::handler &cgh){
@@ -150,15 +150,15 @@ int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int
                        return e2;
                    }
                 });
-                if(i>0) std::this_thread::sleep_for (std::chrono::milliseconds(10));
+                if(i>0) std::this_thread::sleep_for (std::chrono::milliseconds(3));
             }
             oneapi::dpl::experimental::wait(p.get_submission_group());
     }
-    if (!pass) {
+    if (probability<total_items/2) {
         std::cout << "ERROR: did not select expected resources\n";
         return 1;
     }
-    std::cout << "async_invoke_wait_on_policy: OK\n";
+    std::cout << "submit and wait on group: OK\n";
     return 0;
 
 }

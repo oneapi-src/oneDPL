@@ -49,7 +49,6 @@ int main() {
   };
 
   auto f2 = [test_resource, u, n](int i, int offset) {
-    std::cout<<"Ideal CPU : "<<offset<<"\n";
     return u[offset];
   };
   // should always pick first when waiting on sync in each iteration
