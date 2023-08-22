@@ -74,8 +74,11 @@ struct int_inline_backend_t {
     if constexpr (oneapi::dpl::experimental::report_value_v<SelectionHandle, oneapi::dpl::experimental::execution_info::task_time_t>) {
       t0 = std::chrono::high_resolution_clock::now();
     }
-    auto w = new async_wait_impl_t<SelectionHandle>(s, 
-                                                    std::forward<Function>(f)(oneapi::dpl::experimental::unwrap(s), 
+    if constexpr(oneapi::dpl::experimental::report_info_v<SelectionHandle, oneapi::dpl::experimental::execution_info::task_submission_t>){
+      s.report(oneapi::dpl::experimental::execution_info::task_submission);
+    }
+    auto w = new async_wait_impl_t<SelectionHandle>(s,
+                                                    std::forward<Function>(f)(oneapi::dpl::experimental::unwrap(s),
                                                     std::forward<Args>(args)...));
     if constexpr (oneapi::dpl::experimental::report_value_v<SelectionHandle, oneapi::dpl::experimental::execution_info::task_time_t>) {
       report(s, oneapi::dpl::experimental::execution_info::task_time, (std::chrono::high_resolution_clock::now()-t0).count());

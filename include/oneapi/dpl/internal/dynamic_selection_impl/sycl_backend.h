@@ -82,9 +82,10 @@ namespace experimental {
         auto e2 = q.submit([=](sycl::handler& h){
             h.depends_on(e1);
             h.host_task([=](){
-              if constexpr(report_info_v<SelectionHandle, execution_info::task_completion_t>) 
-                report(s, execution_info::task_completion);
-              if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t>) 
+              if constexpr(report_info_v<SelectionHandle, execution_info::task_completion_t>){
+                s.report(execution_info::task_completion);
+              }
+              if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t>)
                 s.report(execution_info::task_time, (std::chrono::high_resolution_clock::now() - t0).count());
             });
         });
