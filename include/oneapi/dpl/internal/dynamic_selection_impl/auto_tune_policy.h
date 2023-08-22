@@ -17,8 +17,9 @@
 #include <mutex>
 #include <utility>
 #include <vector>
-#include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
-
+#if _DS_BACKEND_SYCL != 0
+    #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
+#endif
 namespace oneapi {
 namespace dpl {
 namespace experimental {
