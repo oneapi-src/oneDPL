@@ -15,10 +15,12 @@
 
 
 //#if (ONEDPL_USE_DPCPP_BACKEND != 0)
-if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
+#if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
     #define _DS_BACKEND_SYCL 1
+    #pragma message("compiling with sycl compiler or backend")
 #else
     #define _DS_BACKEND_SYCL 0
+    #pragma message("non sycl compilation")
 #endif
 
 #include "oneapi/dpl/internal/dynamic_selection.h"
