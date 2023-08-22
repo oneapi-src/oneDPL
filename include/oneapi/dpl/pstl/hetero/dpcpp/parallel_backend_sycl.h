@@ -309,9 +309,8 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             return 16;
         case __algorithm_type::transform_scan:
             return 32;
-        default:
-            return 16;
         }
+        return 16;
     }
 
     static constexpr ::std::size_t
@@ -328,9 +327,9 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         case __algorithm_type::set_operation:
             return 512;
         case __algorithm_type::partition:
-        default:
             return ::std::numeric_limits<::std::size_t>::max();
         }
+        return ::std::numeric_limits<::std::size_t>::max();
     }
 
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,

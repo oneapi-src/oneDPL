@@ -50,12 +50,11 @@ namespace __internal
 
 enum class __algorithm_type
 {
-    transform_scan,
-    set_operation,
-    scan_copy,
-    partition,
-    unique,
-    other
+    transform_scan = 0,
+    set_operation = 1,
+    scan_copy = 2,
+    partition = 3,
+    unique = 4
 };
 
 template <typename Iterator>
