@@ -603,12 +603,11 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
         assert(get<1>(__a) < get<1>(__b));
 
         if (__comp(get<2>(__b), get<2>(__a)))
-            __chosen_for_min = __b;
+            __chosen_for_min = ::std::move(__b);
         if (__comp(get<3>(__b), get<3>(__a)))
-            __chosen_for_max = __a;
-        auto __result = _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
-                                         get<3>(__chosen_for_max)};
-        return __result;
+            __chosen_for_max = ::std::move(__a);
+        return _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
+                                get<3>(__chosen_for_max)};
     };
 
     // TODO: Doesn't work with `zip_iterator`.

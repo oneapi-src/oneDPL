@@ -452,12 +452,11 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
         assert(get<1>(__a) < get<1>(__b));
 
         if (__comp(get<2>(__b), get<2>(__a)))
-            __chosen_for_min = __b;
+            __chosen_for_min = ::std::move(__b);
         if (__comp(get<3>(__b), get<3>(__a)))
-            __chosen_for_max = __a;
-        auto __result = _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
-                                         get<3>(__chosen_for_max)};
-        return __result;
+            __chosen_for_max = ::std::move(__a);
+        return _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
+                                get<3>(__chosen_for_max)};
     };
 
     // TODO: Doesn't work with `zip_iterator`.
@@ -1293,8 +1292,8 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
         return __a * __is_mismatched + __b * !__is_mismatched;
     };
     auto __transform_fn = [__comp](auto __gidx, auto __acc1, auto __acc2) {
-        auto __s1_val = __acc1[__gidx];
-        auto __s2_val = __acc2[__gidx];
+        auto const& __s1_val = __acc1[__gidx];
+        auto const& __s2_val = __acc2[__gidx];
 
         ::std::int32_t __is_s1_val_less = __comp(__s1_val, __s2_val);
         ::std::int32_t __is_s1_val_greater = __comp(__s2_val, __s1_val);
