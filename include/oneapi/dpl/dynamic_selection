@@ -14,7 +14,8 @@
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
 
-#if (ONEDPL_USE_DPCPP_BACKEND != 0)
+//#if (ONEDPL_USE_DPCPP_BACKEND != 0)
+if (defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) && (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
     #define _DS_BACKEND_SYCL 1
 #else
     #define _DS_BACKEND_SYCL 0
