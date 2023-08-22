@@ -114,7 +114,6 @@ namespace experimental{
     selection_type select(Args&&...) {
       std::shared_ptr<resource_t> least_loaded = nullptr;
       int least_load = std::numeric_limits<load_t>::max();
-      //for (auto& r : state_->resources_) {
       int least;
       for(int i = 0;i<state_->resources_.size();i++){
         auto r = state_->resources_[(i+state_->offset)%state_->resources_.size()];
