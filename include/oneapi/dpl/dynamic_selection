@@ -21,10 +21,10 @@ namespace dpl {
 namespace experimental {
 
 #if _DS_BACKEND_SYCL != 0
-  using static_policy = static_policy_impl<sycl_backend>;
+  using fixed_resource_policy = fixed_resource_policy_impl<sycl_backend>;
   using round_robin_policy = round_robin_policy_impl<sycl_backend>;
 #endif
-  template<typename S> using static_policy_t = static_policy_impl<S>;
+  template<typename S> using fixed_resource_policy_t = fixed_resource_policy_impl<S>;
   template<typename S> using round_robin_policy_t = round_robin_policy_impl<S>;
 
 } //namespace experimental

@@ -14,7 +14,7 @@
 #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 
 int main() {
-  using policy_t = oneapi::dpl::experimental::static_policy;
+  using policy_t = oneapi::dpl::experimental::fixed_resource_policy;
   std::vector<sycl::queue> u;
   build_universe(u);
   std::cout << "UNIVERSE SIZE " << u.size() << std::endl;
