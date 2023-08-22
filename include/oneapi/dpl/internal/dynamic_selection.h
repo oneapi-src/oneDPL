@@ -123,8 +123,8 @@ namespace experimental {
   auto has_submit_and_wait_handle_impl(...) -> std::false_type;
 
   template<typename DSPolicy, typename SelectionHandle,  typename Function, typename... Args>
-  auto has_submit_and_wait_handle_impl(int) -> decltype(std::declval<DSPolicy>().submit_and_wait(std::declval<SelectionHandle>(), 
-                                                                                                 std::declval<Function>(), 
+  auto has_submit_and_wait_handle_impl(int) -> decltype(std::declval<DSPolicy>().submit_and_wait(std::declval<SelectionHandle>(),
+                                                                                                 std::declval<Function>(),
                                                                                                  std::declval<Args>()...), std::true_type{});
 
   template<typename DSPolicy, typename SelectionHandle, typename Function, typename... Args>
@@ -132,15 +132,15 @@ namespace experimental {
 
   template<typename T, typename Function, typename... Args>
   auto submit_and_wait(T&& t, Function&&f, Args&&... args) {
-    if constexpr (has_get_policy<T>::value == true) { 
+    if constexpr (has_get_policy<T>::value == true) {
       // t is a selection
       if constexpr (has_submit_and_wait_handle<decltype(std::declval<T>().get_policy()), T, Function, Args...>::value == true) {
         // policy has optional submit_and_wait(selection, f, args...)
         return t.get_policy().submit_and_wait(std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...);
-      } else {   
+      } else {
         // policy does not have optional submit_and_wait for a selection
         return wait(submit(std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...));
-      } 
+      }
     } else {
       // t is a policy
       if constexpr ( has_submit_and_wait<T, Function, Args...>::value == true) {
@@ -207,7 +207,7 @@ namespace experimental {
   void report(S&& s, const Info& i, const Value& v) {
     if constexpr(has_report_value<S,Info>::value == true) {
       std::forward<S>(s).report(i, v);
-    } 
+    }
   }
 
   template<typename S, typename Info>
@@ -232,6 +232,7 @@ namespace experimental {
 #include "oneapi/dpl/internal/dynamic_selection_impl/static_policy_impl.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy_impl.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/auto_tune_policy.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/dynamic_load_policy.h"
 
 #endif /*_ONEDPL_INTERNAL_DYNAMIC_SELECTION_H*/
 

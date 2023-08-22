@@ -55,7 +55,7 @@ int test_initialization(UniverseContainer u) {
       return 1;
     }
   } catch (...)  { }
-  p2.initialize(u); 
+  p2.initialize(u);
   auto u3 = oneapi::dpl::experimental::get_resources(p);
   auto u3s = u3.size();
   if (!std::equal(std::begin(u3), std::end(u3), std::begin(u))) {
@@ -417,7 +417,7 @@ int test_select(UniverseContainer u, ResourceFunction&& f) {
 
   for (int i = 1; i <= N; ++i) {
     auto test_resource = f(i);
-    if constexpr (AutoTune) { 
+    if constexpr (AutoTune) {
       auto h = select(p, function_key);
       if (oneapi::dpl::experimental::unwrap(h) != test_resource) {
          pass = false;
