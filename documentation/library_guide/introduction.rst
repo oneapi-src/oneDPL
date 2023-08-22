@@ -63,6 +63,8 @@ To use Parallel API with the device execution policies, you need to install the 
 Difference with Standard C++ Parallel Algorithms
 ************************************************
 
+* Function object parameters passed in to algorithms executed with device policies must provide `const` function call
+  operators, due to requirements of the SYCL specification.
 * oneDPL execution policies only result in parallel execution if random access iterators are provided,
   the execution will remain serial for other iterator types.
 * For the following algorithms, par_unseq and unseq policies do not result in vectorized execution:
@@ -91,8 +93,6 @@ When called with |dpcpp_short| execution policies, |onedpl_short| algorithms app
 Known Limitations
 *****************
 
-* Due to requirements of the SYCL specification, function object parameters passed in to algorithms executed with device
-  policies must provide `const` function call operators.
 * For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms the result of the unary operation should be
   convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
