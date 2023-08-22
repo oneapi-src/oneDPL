@@ -156,23 +156,25 @@ namespace experimental {
    
     void initialize(double resample_time=never_resample) {
       backend_ = std::make_shared<Backend>();
+      state_ = std::make_shared<state_t>();
       initialize_impl(resample_time);
     }
 
     void initialize(const std::vector<resource_type>& u, double resample_time=never_resample) {
       backend_ = std::make_shared<Backend>(u);
+      state_ = std::make_shared<state_t>();
       initialize_impl(resample_time);
     }
 
     template<typename Function, typename ...Args>
     selection_type select(Function&& f, Args&&...args) {
       auto k =  make_task_key(std::forward<Function>(f), std::forward<Args>(args)...);
-      auto t  = tuner_by_key_[k];
+      auto t  = state_->tuner_by_key_[k];
       auto offset = t->get_resource_to_profile();
       if (offset == use_best_resource) {
         return selection_type{*this, t->best_resource_, t}; 
       } else {
-        auto r = resources_with_offset_[offset];
+        auto r = state_->resources_with_offset_[offset];
         return selection_type{*this, r, t}; 
       } 
     }
@@ -200,7 +202,6 @@ namespace experimental {
     // types
     //
 
-
     using task_key_t = std::tuple<void *, KeyArgs...>;
     using tuner_by_key_t = std::map<task_key_t, std::shared_ptr<tuner_t>>;
 
@@ -208,15 +209,15 @@ namespace experimental {
     // member variables
     //
 
-    std::shared_ptr<Backend> backend_;
-
-    std::vector<resource_with_offset_t> resources_with_offset_;
-
-    resource_with_offset_t best_resource_;
-
-    tuner_by_key_t tuner_by_key_;
-
     double resample_time_ = 0.0;
+
+    struct state_t {
+      std::vector<resource_with_offset_t> resources_with_offset_;
+      tuner_by_key_t tuner_by_key_;
+    };
+
+    std::shared_ptr<Backend> backend_;
+    std::shared_ptr<state_t> state_;
 
     //
     // private member functions
@@ -226,15 +227,15 @@ namespace experimental {
       resample_time_ = resample_time;
       auto u = get_resources();
       for (size_type i = 0; i < u.size(); ++i) {
-        resources_with_offset_.push_back(resource_with_offset_t{u[i], i});
+        state_->resources_with_offset_.push_back(resource_with_offset_t{u[i], i});
       }
     }
 
     template<typename Function, typename... Args>
     task_key_t make_task_key(Function&& f, Args&&... args) {
       task_key_t k = std::tuple_cat(std::tuple<void *>(&f), std::make_tuple(std::forward<Args>(args)...));
-      if (tuner_by_key_.count(k) == 0) {
-        tuner_by_key_[k] = std::make_shared<tuner_t>(resources_with_offset_[0], resources_with_offset_.size(), resample_time_);
+      if (state_->tuner_by_key_.count(k) == 0) {
+        state_->tuner_by_key_[k] = std::make_shared<tuner_t>(state_->resources_with_offset_[0], state_->resources_with_offset_.size(), resample_time_);
       }
       return k;
     }
