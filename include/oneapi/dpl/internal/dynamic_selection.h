@@ -228,7 +228,9 @@ namespace experimental {
 } // namespace dpl
 } // namespace oneapi
 
-#include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
+#if _DS_BACKEND_SYCL != 0
+    #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
+#endif
 #include "oneapi/dpl/internal/dynamic_selection_impl/static_policy_impl.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy_impl.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/auto_tune_policy.h"
