@@ -24,7 +24,7 @@ namespace oneapi {
 namespace dpl {
 namespace experimental {
 
-  template <typename Backend=sycl_backend, typename... KeyArgs>
+  template <typename Backend, typename... KeyArgs>
   class auto_tune_policy;
 
   namespace internal { 
