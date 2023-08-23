@@ -380,7 +380,8 @@ __get_host_access(_Buf&& __buf)
 }
 
 template <typename _Acc>
-auto __get_accessor_ptr(const _Acc& __acc)
+auto 
+__get_accessor_ptr(const _Acc& __acc)
 {
 #if _ONEDPL_LIBSYCL_VERSION >= 70000
     return __acc.template get_multi_ptr<sycl::access::decorated::no>().get();
