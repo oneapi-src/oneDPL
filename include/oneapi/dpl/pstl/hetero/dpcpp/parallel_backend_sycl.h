@@ -1466,8 +1466,8 @@ struct __partial_merge_kernel
     }
 };
 
-//Searching for an intersection of virtual matrix (n1, n2) diagonal with the Merge Path to define sub-ranges
-//to serial merge. For example, a virtual matrix for [0,1,1,2,3] and [0,0,2,3] shown below:
+//Searching for an intersection of a merge matrix (n1, n2) diagonal with the Merge Path to define sub-ranges
+//to serial merge. For example, a merge matrix for [0,1,1,2,3] and [0,0,2,3] is shown below:
 //     0   1  1  2   3
 //    ------------------
 //   |--->
@@ -1478,81 +1478,88 @@ struct __partial_merge_kernel
 // 2 | 0   0  0  0 | 1
 //   |             ---->
 // 3 | 0   0  0  0   0 |
-template<typename Rng1, typename Rng2, typename _Index, typename _Index1, typename _Index2>
-auto __find_start_point(Rng1& __rng1, Rng2& __rng2, _Index __i_elem, _Index1 __n_1, _Index2 __n_2)
+template <typename _Rng1, typename _Rng2, typename _Index, typename _Index1, typename _Index2, typename _Compare>
+auto
+__find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _Index1 __n1, _Index2 __n2,
+                   _Compare __comp)
 {
-    _Index1 __end1 = 0;
-    _Index2 __end2 = 0;
-    if (__i_elem < __n_1) //a condition to specify upper or down part of the merge matrix to be processed
+    _Index1 __start1 = 0;
+    _Index2 __start2 = 0;
+    if (__i_elem < __n1) //a condition to specify upper or lower part of the merge matrix to be processed
     {
-        auto __q = __i_elem; //digonal index
-        auto __n_diag = __q < __n_2 ? __q : __n_2; //digonal size
+        auto __q = __i_elem; //diagonal index
+        auto __n_diag = ::std::min<_Index2>(__q, __n2); //diagonal size
 
+        //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
         oneapi::dpl::counting_iterator<_Index> __diag_it(0);
-        auto __res = std::lower_bound(__diag_it, __diag_it + __n_diag, 1, [&__rng1, &__rng2, __q](auto __v1, auto __v2)
+        auto __res = ::std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
+            [&__rng1, &__rng2, __q, __comp](const auto& __i_diag, const auto& __value)
             {
-                auto __val1 = __rng1[__q - __v1 - 1] < __rng2[__v1];
-                return __val1 < __v2;
+                auto __zero_or_one = __comp(__rng1[__q - __i_diag - 1], __rng2[__i_diag]);
+                return __zero_or_one < __value;
             });
-        __end1 = __q - *__res;
-        __end2 = *__res;
+        __start1 = __q - *__res;
+        __start2 = *__res;
     }
     else
     {
-        auto __q = __i_elem - __n_1; //diagonal index
+        auto __q = __i_elem - __n1; //diagonal index
 
-        auto __n_diag = __n_2 - __q;
-        __n_diag = __n_diag < __n_1 ? __n_diag : __n_1; //digonal size
+        auto __n_diag = ::std::min<_Index1>(__n2 - __q, __n1); //diagonal size
 
-        counting_iterator<_Index> __diag_it(0);
-        auto __res = std::lower_bound(__diag_it, __diag_it + __n_diag, 1, [&__rng1, &__rng2, __n_1, __q](auto __v1, auto __v2)
+        //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
+        oneapi::dpl::counting_iterator<_Index> __diag_it(0);
+        auto __res = ::std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
+            [&__rng1, &__rng2, __n1, __q, __comp](const auto& __i_diag, const auto& __value)
             {
-                auto __val1 = __rng1[__n_1 - __v1 - 1] < __rng2[__q + __v1];
-                return __val1 < __v2;
+                auto __zero_or_one = __comp(__rng1[__n1 - __i_diag - 1], __rng2[__q + __i_diag]);
+                return __zero_or_one < __value;
             });
 
-        __end1 = __n_1 - *__res;
-        __end2 = __q + *__res;
+        __start1 = __n1 - *__res;
+        __start2 = __q + *__res;
     }
-    return std::make_pair(__end1, __end2);
+    return std::make_pair(__start1, __start2);
 }
 
-template<typename _Rng1, typename _Rng2, typename _Rng3, typename _Index1, typename _Index2, typename _Index3,
-         typename _Size, typename _Size1, typename _Size2, typename _Compare>
+// Do serial merge of the data from rng1 (starting from start1) and rng2 (starting from start2) and writing
+// to rng3 (starting from start3) in 'chunk' steps, but do not exceed the total size of the sequences (n1 and n2)
+template <typename _Rng1, typename _Rng2, typename _Rng3, typename _Index1, typename _Index2, typename _Index3,
+          typename _Size1, typename _Size2, typename _Compare>
 void
 __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 __start1, _Index2 __start2,
-               _Index3 __start3, _Size __chunk, _Size1 __n1, _Size2 __n2, _Compare __comp)
+               _Index3 __start3, ::std::uint8_t __chunk, _Size1 __n1, _Size2 __n2, _Compare __comp)
 {
     if (__start1 >= __n1)
     {
-        //copying a residual of the the second seq
-        const auto __n = std::min<_Index2>(__n2 - __start2, __chunk);
+        //copying a residual of the second seq
+        const auto __n = ::std::min<_Index2>(__n2 - __start2, __chunk);
         _ONEDPL_PRAGMA_UNROLL
-        for (auto __i = 0; __i < __n; ++__i)
+        for (::std::uint8_t __i = 0; __i < __n; ++__i)
             __rng3[__start3 + __i] = __rng2[__start2 + __i];
     }
     else if (__start2 >= __n2)
     {
-        //copying a residual of the the first seq
-        const auto __n = std::min<_Index1>(__n1 - __start1, __chunk);
+        //copying a residual of the first seq
+        const auto __n = ::std::min<_Index1>(__n1 - __start1, __chunk);
         _ONEDPL_PRAGMA_UNROLL
-        for (auto __i = 0; __i < __n; ++__i)
+        for (::std::uint8_t __i = 0; __i < __n; ++__i)
             __rng3[__start3 + __i] = __rng1[__start1 + __i];
     }
     else
     {
-        const auto __n = std::min<_Index1>(__n1 + __n2 - __start3, __chunk);
+        const auto __n = ::std::min<_Index1>(__n1 + __n2 - __start3, __chunk);
         _ONEDPL_PRAGMA_UNROLL
-        for (auto __i = 0; __i < __n; ++__i)
+        for (::std::uint8_t __i = 0; __i < __n; ++__i)
         {
-            const auto __val1 = __rng1[__start1];
-            const auto __val2 = __rng2[__start2];
+            const auto& __val1 = __rng1[__start1];
+            const auto& __val2 = __rng2[__start2];
             if (__comp(__val2, __val1))
             {
                 __rng3[__start3 + __i] = __val2;
                   if(++__start2 == __n2)
                   {
-                      //copying a residual of the the first seq
+                      //copying a residual of the first seq
                       _ONEDPL_PRAGMA_UNROLL
                       for (++__i; __i < __n; ++__i)
                       {
@@ -1566,7 +1573,7 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
                 __rng3[__start3 + __i] = __val1;
                 if (++__start1 == __n1)
                 {
-                    //copying a residual of the the second seq
+                    //copying a residual of the second seq
                     _ONEDPL_PRAGMA_UNROLL
                     for (++__i; __i < __n; ++__i)
                     {
@@ -1592,24 +1599,25 @@ struct __parallel_merge_submitter<__internal::__optional_kernel_name<_Name...>>
     {
         using _Size = oneapi::dpl::__internal::__difference_t<_Range3>;
 
-        auto __n_1 = __rng1.size();
-        auto __n_2 = __rng2.size();
+        auto __n1 = __rng1.size();
+        auto __n2 = __rng2.size();
 
-        assert(__n_1 > 0 || __n_2 > 0);
+        assert(__n1 > 0 || __n2 > 0);
 
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
-        const unsigned int __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
-        const _Size __n = __n_1 + __n_2;
-        const _Size __steps = ((__n - 1) / __chunk) + 1;
+        const ::std::uint8_t __chunk = __exec.queue().get_device().is_cpu() ? 128 : 4;
+        const _Size __n = __n1 + __n2;
+        const _Size __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
         auto __event = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
 
-                const unsigned int __i_elem = __item_id.get_linear_id() * __chunk;
-                const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n_1, __n_2);
-                __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n_1, __n_2, __comp);
+                const ::std::uint32_t __i_elem = __item_id.get_linear_id() * __chunk;
+                const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
+                __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
+                               __comp);
             });
         });
         return __future(__event);
