@@ -610,7 +610,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 #else
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
-                    auto __lacc_ptr = __get_accessor_ptr(__lacc);
+                    auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
                     if constexpr (__can_use_subgroup_load_store)
                     {
                         _ONEDPL_PRAGMA_UNROLL
