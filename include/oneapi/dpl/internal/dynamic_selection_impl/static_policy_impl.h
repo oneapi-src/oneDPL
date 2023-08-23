@@ -18,7 +18,11 @@ namespace oneapi {
 namespace dpl {
 namespace experimental {
 
+#if _DS_BACKEND_SYCL != 0
+  template <typename Backend=sycl_backend>
+#else
   template <typename Backend>
+#endif
   struct fixed_resource_policy_impl {
     using backend_t = Backend;
     using resource_container_t = typename backend_t::resource_container_t;
