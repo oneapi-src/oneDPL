@@ -380,7 +380,7 @@ __get_host_access(_Buf&& __buf)
 }
 
 template <typename _Acc>
-auto 
+auto
 __get_accessor_ptr(const _Acc& __acc)
 {
 #if _ONEDPL_LIBSYCL_VERSION >= 70000
