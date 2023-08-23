@@ -15,7 +15,7 @@
 #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 
 int main() {
-  using policy_t = oneapi::dpl::experimental::round_robin_policy;
+  using policy_t = oneapi::dpl::experimental::round_robin_policy<oneapi::dpl::experimental::sycl_backend>;
   std::vector<sycl::queue> u;
   build_universe(u);
   if (u.empty()) {
