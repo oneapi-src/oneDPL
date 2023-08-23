@@ -168,7 +168,7 @@ struct __subgroup_radix_sort
 
                                 //1. "counting" phase
                                 //counter initialization
-                                auto __pcounter = __counter_lacc.get_pointer() + __wi;
+                                auto __pcounter = __dpl_sycl::__get_accessor_ptr(__counter_lacc) + __wi;
 
                                 _ONEDPL_PRAGMA_UNROLL
                                 for (uint16_t __i = 0; __i < __bin_count; ++__i)

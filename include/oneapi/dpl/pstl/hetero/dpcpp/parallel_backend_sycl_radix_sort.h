@@ -343,7 +343,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT __lacc)
         : __sgroup(__self_item.get_sub_group()), __self_lidx(__self_item.get_local_linear_id()),
-          __item_mask(~(~0u << (__self_lidx))), __atomic_peer_mask(*__lacc.get_pointer())
+          __item_mask(~(~0u << (__self_lidx))), __atomic_peer_mask(*__get_accessor_ptr(__lacc))
     {
     }
 
@@ -673,7 +673,7 @@ struct __parallel_radix_sort_iteration
 
         // work-group size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
-        __count_wg_size = 
+        __count_wg_size =
             sycl::max(oneapi::dpl::__internal::__dpl_bit_floor(__count_wg_size), ::std::size_t(__radix_states));
 
         // Compute the radix position for the given iteration
