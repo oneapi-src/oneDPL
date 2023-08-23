@@ -88,7 +88,7 @@ if (_fsycl_option)
 endif()
 
 # Exit with an error when DPCPP backend is explicitly set and SYCL is not supported
-if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$" AND NOT _sycl_support)
+if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only|pstl_offload)$" AND NOT _sycl_support)
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option or sycl.hpp is not available. It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
 endif()
 
@@ -147,11 +147,11 @@ else()
     message(STATUS "oneDPL: ONEDPL_ENABLE_SIMD is OFF, corresponding compiler flag is not used")
 endif()
 
-if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
+if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only|pstl_offload)$")
     string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
     set(SET_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
 
-    if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp)$")
+    if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|pstl_offload)$")
         find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
         message(STATUS "oneDPL uses oneTBB ${TBB_VERSION}")
         target_link_libraries(oneDPL INTERFACE TBB::tbb)
@@ -177,7 +177,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
         $<$<BOOL:${SET_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
         )
 
-    if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
+    if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only|pstl_offload)$")
         # Enable SYCL* with compilers/compiler drivers not passing -fsycl by default
         if (_sycl_support AND NOT CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp)(.exe)?$")
             message(STATUS "Adding -fsycl compiler option")
@@ -333,6 +333,20 @@ else()
         find_package(${ONEDPL_BACKEND} REQUIRED)
         target_link_libraries(oneDPL INTERFACE ${${ONEDPL_BACKEND}_IMPORTED_TARGETS})
     endif()
+endif()
+
+if (ONEDPL_BACKEND MATCHES "^(pstl_offload)$")
+    message(STATUS "Adding pstl_offload compilation flags")
+    # TODO: only special compiler option should be added after implementing pstl_offload support in the compiler
+    # target_compile_options(oneDPL INTERFACE "-fsycl-pstl-offload")
+    target_include_directories(oneDPL INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/pstl_offload)
+    target_compile_options(oneDPL INTERFACE "-D__SYCL_PSTL_OFFLOAD__=1")
+
+    add_library(pstloffload SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/pstl_offload.cpp)
+    target_compile_options(pstloffload PUBLIC "-fsycl")
+    target_include_directories(pstloffload PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    add_dependencies(oneDPL pstloffload)
+    target_link_libraries(oneDPL INTERFACE pstloffload)
 endif()
 
 target_include_directories(oneDPL
