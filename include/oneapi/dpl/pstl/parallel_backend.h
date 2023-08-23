@@ -47,7 +47,7 @@ namespace __par_backend =
 #elif _ONEDPL_PAR_BACKEND_SERIAL
     __serial_backend;
 #else
-#   error "Parallel backend was not specified"
+#    error "Parallel backend was not specified"
 #endif
 } // namespace dpl
 } // namespace oneapi
