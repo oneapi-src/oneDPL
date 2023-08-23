@@ -22,7 +22,11 @@ namespace oneapi {
 namespace dpl{
 namespace experimental{
 
+#if _DS_BACKEND_SYCL != 0
+  template <typename Backend=sycl_backend>
+#else
   template <typename Backend>
+#endif
   struct dynamic_load_policy {
     private:
     using backend_t = Backend;
