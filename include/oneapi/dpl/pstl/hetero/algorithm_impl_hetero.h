@@ -1210,7 +1210,7 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _Iterator1 __keys_first, _Itera
 {
     static_assert(::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator1>::value_type>
         && ::std::is_move_constructible_v<typename ::std::iterator_traits<_Iterator2>::value_type>,
-                  "The keys and values should be move constructible in case of parallel execution.");
+        "The keys and values should be move constructible in case of parallel execution.");
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
