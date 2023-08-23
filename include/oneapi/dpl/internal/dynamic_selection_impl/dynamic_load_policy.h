@@ -14,12 +14,19 @@
 #include <memory>
 #include <ostream>
 #include <vector>
+#if _DS_BACKEND_SYCL != 0
+    #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
+#endif
 
 namespace oneapi {
 namespace dpl{
 namespace experimental{
 
-  template <typename Backend = sycl_backend>
+#if _DS_BACKEND_SYCL != 0
+  template <typename Backend=sycl_backend>
+#else
+  template <typename Backend>
+#endif
   struct dynamic_load_policy {
     private:
     using backend_t = Backend;

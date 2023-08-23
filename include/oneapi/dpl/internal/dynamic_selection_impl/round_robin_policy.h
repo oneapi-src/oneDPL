@@ -12,13 +12,19 @@
 
 #include <atomic>
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
+#if _DS_BACKEND_SYCL != 0
+    #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
+#endif
 
 namespace oneapi {
 namespace dpl{
 namespace experimental{
-
-  template <typename Backend = sycl_backend>
-  struct round_robin_policy_impl {
+#if _DS_BACKEND_SYCL != 0
+  template <typename Backend=sycl_backend>
+#else
+  template <typename Backend>
+#endif
+  struct round_robin_policy {
     using backend_t = Backend;
     using resource_container_t = typename backend_t::resource_container_t;
     using resource_container_size_t = typename resource_container_t::size_type;
@@ -27,7 +33,7 @@ namespace experimental{
     using execution_resource_t = typename backend_t::execution_resource_t;
 
     //Policy Traits
-    using selection_type = oneapi::dpl::experimental::basic_selection_handle_t<round_robin_policy_impl<Backend>, execution_resource_t>;
+    using selection_type = oneapi::dpl::experimental::basic_selection_handle_t<round_robin_policy<Backend>, execution_resource_t>;
     using resource_type = typename backend_t::resource_type;
     using wait_type = typename backend_t::wait_type;
 
@@ -42,14 +48,14 @@ namespace experimental{
 
     std::shared_ptr<state_t> state_;
 
-    round_robin_policy_impl(int offset=0) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()}  {
+    round_robin_policy(int offset=0) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()}  {
       state_->resources_ = get_resources();
       state_->num_contexts_ = state_->resources_.size();
       state_->offset_ = offset;
       state_->next_context_ = state_->offset_;
     }
 
-    round_robin_policy_impl(resource_container_t u, int offset=0) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()}  {
+    round_robin_policy(resource_container_t u, int offset=0) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()}  {
       backend_->initialize(u);
       state_->resources_ = get_resources();
       state_->num_contexts_ = state_->resources_.size();
@@ -58,7 +64,7 @@ namespace experimental{
     }
 
     template<typename ...Args>
-    round_robin_policy_impl(Args&&... args) : backend_{std::make_shared<backend_t>(std::forward<Args>(args)...)}, state_{std::make_shared<state_t>()} {
+    round_robin_policy(Args&&... args) : backend_{std::make_shared<backend_t>(std::forward<Args>(args)...)}, state_{std::make_shared<state_t>()} {
       state_->resources_ = backend_->get_resources();
       state_->num_contexts_ = state_->resources_.size();
       state_->next_context_ = 0;

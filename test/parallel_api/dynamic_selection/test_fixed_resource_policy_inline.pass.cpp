@@ -13,7 +13,7 @@
 #include "support/test_ds_utils.h"
 
 int main() {
-  using policy_t = oneapi::dpl::experimental::fixed_resource_policy_t<TestUtils::int_inline_backend_t>;
+  using policy_t = oneapi::dpl::experimental::fixed_resource_policy<TestUtils::int_inline_backend_t>;
   std::vector<int> u{4, 5, 6, 7};
   int test_resource = 4;
   auto f = [test_resource](int i) { return test_resource; };
