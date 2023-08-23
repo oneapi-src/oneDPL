@@ -14,7 +14,7 @@
 #include "oneapi/dpl/internal/dynamic_selection.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/backend_defs.h"
-#include "oneapi/dpl/internal/dynamic_selection_impl/concurrent_queue.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/submission_group.h"
 
 #include <atomic>
 #include <chrono>
@@ -40,7 +40,7 @@ namespace experimental {
       virtual wait_type unwrap() const = 0;
       virtual ~async_wait_t() {}
     };
-    using waiter_container_t = util::concurrent_queue<async_wait_t *>;
+    using waiter_container_t = submission_group_t<async_wait_t *>;
 
     template<typename PropertyHandle>
     class async_wait_impl_t : public async_wait_t {
@@ -90,28 +90,21 @@ namespace experimental {
             });
         });
         auto w = new async_wait_impl_t<SelectionHandle>(e2);
-        waiters_.push(w);
+        waiters_.add_submission(w);
         return *w;
       } else {
         auto w = new async_wait_impl_t<SelectionHandle>(f(unwrap(s), std::forward<Args>(args)...));
-        waiters_.push(w);
+        waiters_.add_submission(w);
         return *w;
       }
     }
 
     auto get_submission_group(){
-       std::list<async_wait_t*> wlist;
-       waiters_.pop_all(wlist);
-       return wlist;
+       return waiters_;
     }
 
     void wait() {
-      while(!waiters_.empty()){
-        async_wait_t *w;
-        waiters_.pop(w);
-        w->wait();
-        delete w;
-      }
+        waiters_.wait();
     }
 
     auto get_resources()  noexcept {
