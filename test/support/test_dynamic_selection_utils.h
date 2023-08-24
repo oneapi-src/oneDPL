@@ -170,7 +170,7 @@ int test_submit_and_wait(UniverseContainer u, ResourceFunction&& f, int offset=0
   using my_policy_t = Policy;
   my_policy_t p{u, offset};
 
-  const int N = 6;
+  const int N = 100;
   std::atomic<int> ecount = 0;
   bool pass = true;
 
