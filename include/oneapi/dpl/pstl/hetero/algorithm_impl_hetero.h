@@ -1046,7 +1046,7 @@ struct __is_heap_check
     operator()(const _Idx __idx, const _Accessor& __acc) const
     {
         // Make sure that we have a signed integer here to avoid getting negative value when __idx == 0
-        using _SignedIdx = typename ::std::make_signed<_Idx>::type;
+        using _SignedIdx = ::std::make_signed_t<_Idx>;
         return __comp_(__acc[(static_cast<_SignedIdx>(__idx) - 1) / 2], __acc[__idx]);
     }
 };

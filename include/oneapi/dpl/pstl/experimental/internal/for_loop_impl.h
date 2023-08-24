@@ -59,7 +59,7 @@ template <typename _Ip>
 struct __difference<_Ip, ::std::enable_if_t<::std::is_integral<_Ip>::value>>
 {
     // Define the type similar to C++20's incrementable_traits
-    using __type = typename ::std::make_signed<decltype(::std::declval<_Ip>() - ::std::declval<_Ip>())>::type;
+    using __type = ::std::make_signed_t<decltype(::std::declval<_Ip>() - ::std::declval<_Ip>())>;
 };
 
 template <typename _Ip>

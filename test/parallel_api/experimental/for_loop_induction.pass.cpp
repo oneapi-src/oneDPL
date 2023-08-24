@@ -80,7 +80,7 @@ test_body_induction_strided(Policy&& exec, Iterator first, Iterator last, Iterat
         const T ind_init = n % 97;
         T lval_ind = ind_init;
 
-        using Ssize = typename ::std::make_signed<Size>::type;
+        using Ssize = ::std::make_signed_t<Size>;
 
         ::std::experimental::for_loop_n_strided(::std::forward<Policy>(exec), Ssize(0), Ssize(n), loop_stride,
                                               ::std::experimental::induction(lval_ind),

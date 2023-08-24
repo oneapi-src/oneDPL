@@ -399,7 +399,7 @@ __pstl_right_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __
 template <typename _IntType, typename _Acc>
 struct _ReverseCounter
 {
-    typedef typename ::std::make_signed<_IntType>::type difference_type;
+    typedef ::std::make_signed_t<_IntType> difference_type;
 
     _IntType __my_cn;
 
