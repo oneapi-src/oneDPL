@@ -83,7 +83,7 @@ class zip_forward_iterator
     typedef typename ::std::tuple<_Types...> __it_types;
 
   public:
-    typedef typename ::std::make_signed<::std::size_t>::type difference_type;
+    typedef ::std::make_signed_t<::std::size_t> difference_type;
     typedef ::std::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
     typedef ::std::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
     typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
@@ -153,7 +153,7 @@ class counting_iterator
     static_assert(::std::is_integral<_Ip>::value, "Cannot instantiate counting_iterator with a non-integer type");
 
   public:
-    typedef typename ::std::make_signed<_Ip>::type difference_type;
+    typedef ::std::make_signed_t<_Ip> difference_type;
     typedef _Ip value_type;
     typedef const _Ip* pointer;
     // There is no storage behind the iterator, so we return a value instead of reference.
@@ -269,7 +269,7 @@ class zip_iterator
     typedef oneapi::dpl::__internal::tuple<_Types...> __it_types;
 
   public:
-    typedef typename ::std::make_signed<::std::size_t>::type difference_type;
+    typedef ::std::make_signed_t<::std::size_t> difference_type;
     typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
     typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
     typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
