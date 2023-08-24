@@ -39,13 +39,12 @@ namespace oneapi
 {
 namespace dpl
 {
-namespace __par_backend =
 #if _ONEDPL_PAR_BACKEND_TBB
-    __tbb_backend;
+    namespace __par_backend = __tbb_backend;
 #elif _ONEDPL_PAR_BACKEND_OPENMP
-    __omp_backend;
+    namespace __par_backend = __omp_backend;
 #elif _ONEDPL_PAR_BACKEND_SERIAL
-    __serial_backend;
+    namespace __par_backend = __serial_backend;
 #else
 #    error "Parallel backend was not specified"
 #endif
