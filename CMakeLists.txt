@@ -345,6 +345,11 @@ if (ONEDPL_BACKEND MATCHES "^(pstl_offload)$")
     add_library(pstloffload SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/pstl_offload.cpp)
     target_compile_options(pstloffload PUBLIC "-fsycl")
     target_include_directories(pstloffload PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    set_target_properties(pstloffload PROPERTIES
+        VERSION 1.0.0
+        SOVERSION 1
+    )
+
     add_dependencies(oneDPL pstloffload)
     target_link_libraries(oneDPL INTERFACE pstloffload)
 endif()
