@@ -150,7 +150,7 @@ using access_mode = sycl::access_mode;
 
 // substitution for C++17 convenience types
 template <typename _T>
-using __decay_t = typename ::std::decay<_T>::type;
+using __decay_t = ::std::decay_t<_T>;
 template <bool __flag, typename _T = void>
 using __enable_if_t = typename ::std::enable_if<__flag, _T>::type;
 

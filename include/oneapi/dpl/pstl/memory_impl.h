@@ -118,7 +118,7 @@ struct __op_uninitialized_copy<_ExecutionPolicy>
     void
     operator()(_SourceT&& __source, _TargetT& __target) const
     {
-        using _TargetValueType = typename ::std::decay<_TargetT>::type;
+        using _TargetValueType = ::std::decay_t<_TargetT>;
 
         ::new (::std::addressof(__target)) _TargetValueType(::std::forward<_SourceT>(__source));
     }
@@ -135,7 +135,7 @@ struct __op_uninitialized_move<_ExecutionPolicy>
     void
     operator()(_SourceT&& __source, _TargetT& __target) const
     {
-        using _TargetValueType = typename ::std::decay<_TargetT>::type;
+        using _TargetValueType = ::std::decay_t<_TargetT>;
 
         ::new (::std::addressof(__target)) _TargetValueType(::std::move(__source));
     }
@@ -154,7 +154,7 @@ struct __op_uninitialized_fill<_SourceT, _ExecutionPolicy>
     void
     operator()(_TargetT& __target) const
     {
-        using _TargetValueType = typename ::std::decay<_TargetT>::type;
+        using _TargetValueType = ::std::decay_t<_TargetT>;
 
         ::new (::std::addressof(__target)) _TargetValueType(__source);
     }
@@ -171,7 +171,7 @@ struct __op_destroy<_ExecutionPolicy>
     void
     operator()(_TargetT& __target) const
     {
-        using _TargetValueType = typename ::std::decay<_TargetT>::type;
+        using _TargetValueType = ::std::decay_t<_TargetT>;
         __target.~_TargetValueType();
     }
 };
@@ -187,7 +187,7 @@ struct __op_uninitialized_default_construct<_ExecutionPolicy>
     void
     operator()(_TargetT& __target) const
     {
-        using _TargetValueType = typename ::std::decay<_TargetT>::type;
+        using _TargetValueType = ::std::decay_t<_TargetT>;
 
         ::new (::std::addressof(__target)) _TargetValueType;
     }
@@ -204,7 +204,7 @@ struct __op_uninitialized_value_construct<_ExecutionPolicy>
     void
     operator()(_TargetT& __target) const
     {
-        using _TargetValueType = typename ::std::decay<_TargetT>::type;
+        using _TargetValueType = ::std::decay_t<_TargetT>;
 
         ::new (::std::addressof(__target)) _TargetValueType();
     }
