@@ -43,7 +43,7 @@ namespace experimental{
         resource_container_t resources_;
         resource_container_size_t num_contexts_;
         std::atomic<resource_container_size_t> next_context_;
-	    int offset_;
+        int offset_;
     };
 
     std::shared_ptr<state_t> state_;
@@ -129,7 +129,11 @@ namespace experimental{
     }
 
     auto get_submission_group() {
-      return backend_->get_submission_group();
+      if(state_){
+        return backend_->get_submission_group();
+      }else{
+        throw std::runtime_error("Called get_submission_group before initialization\n");
+      }
     }
   };
 } // namespace experimental
