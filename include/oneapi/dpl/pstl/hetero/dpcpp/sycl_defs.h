@@ -95,7 +95,7 @@ using __plus = sycl::plus<_T>;
 template <typename _T = void>
 using __maximum = sycl::maximum<_T>;
 
-template <typename _T>
+template <typename _T = void>
 using __minimum = sycl::minimum<_T>;
 
 #else  // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
