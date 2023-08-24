@@ -101,11 +101,11 @@ struct test_one_policy
     }
 
     template <typename ExecutionPolicy, typename Iterator, typename Size>
-    typename ::std::enable_if<
+    ::std::enable_if_t<
         is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
         !::std::is_same<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy>::value &&
         ::std::is_same<typename ::std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>::value,
-        bool>::type
+        bool>
     check_move(ExecutionPolicy&& /* exec */, Iterator b, Iterator e, Size shift)
     {
         bool result = all_of(b, e, [](wrapper<float32_t>& a) {
@@ -117,11 +117,11 @@ struct test_one_policy
     }
 
     template <typename ExecutionPolicy, typename Iterator, typename Size>
-    typename ::std::enable_if<
+    ::std::enable_if_t<
         !(is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
         !::std::is_same<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy>::value &&
         ::std::is_same<typename ::std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>::value),
-        bool>::type
+        bool>
     check_move(ExecutionPolicy&& /* exec */, Iterator /* b */, Iterator /* e */, Size /* shift */)
     {
         return true;

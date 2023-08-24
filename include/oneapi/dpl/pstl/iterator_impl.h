@@ -584,19 +584,19 @@ class permutation_iterator
 
     permutation_iterator() = default;
 
-    template <typename _T = _Permutation, typename ::std::enable_if<!__internal::__is_functor<_T>, int>::type = 0>
+    template <typename _T = _Permutation, ::std::enable_if_t<!__internal::__is_functor<_T>, int> = 0>
     permutation_iterator(SourceIterator input1, _Permutation input2) : my_source_it(input1), my_index(input2)
     {
     }
 
-    template <typename _T = _Permutation, typename ::std::enable_if<__internal::__is_functor<_T>, int>::type = 0>
+    template <typename _T = _Permutation, ::std::enable_if_t<__internal::__is_functor<_T>, int> = 0>
     permutation_iterator(SourceIterator input1, _Permutation __f, difference_type __idx = 0)
         : my_source_it(input1), my_index(counting_iterator<difference_type>(__idx), __f)
     {
     }
 
   private:
-    template <typename _T = _Permutation, typename ::std::enable_if<__internal::__is_functor<_T>, int>::type = 0>
+    template <typename _T = _Permutation, ::std::enable_if_t<__internal::__is_functor<_T>, int> = 0>
     permutation_iterator(SourceIterator input1, IndexMap input2) : my_source_it(input1), my_index(input2)
     {
     }

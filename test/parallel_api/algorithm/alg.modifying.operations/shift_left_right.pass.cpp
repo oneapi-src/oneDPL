@@ -155,27 +155,21 @@ struct shift_left_algo
 struct shift_right_algo
 {
     template <typename Policy, typename It>
-    typename ::std::enable_if<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag,
-                            It>::value,
-                            It>::type
+    ::std::enable_if_t<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, It>::value, It>
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
         return std::shift_right(::std::forward<Policy>(exec), first, last, n);
     }
     //skip the test for non-bidirectional iterator (forward iterator, etc)
     template <typename Policy, typename It>
-    typename ::std::enable_if<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag,
-                            It>::value,
-                            It>::type
+    ::std::enable_if_t<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, It>::value, It>
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
         return first;
     }
 
     template <typename It, typename ItExp>
-    typename ::std::enable_if<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag,
-                            It>::value,
-                            void>::type
+    ::std::enable_if_t<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, It>::value, void>
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
         typename ::std::iterator_traits<It>::difference_type n)
     {
@@ -195,9 +189,7 @@ struct shift_right_algo
     }
     //skip the check for non-bidirectional iterator (forward iterator, etc)
     template <typename It, typename ItExp>
-    typename ::std::enable_if<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag,
-                            It>::value,
-                            void>::type
+    ::std::enable_if_t<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, It>::value, void>
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
         typename ::std::iterator_traits<It>::difference_type n)
     {

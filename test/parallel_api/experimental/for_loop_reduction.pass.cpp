@@ -127,8 +127,7 @@ struct test_body_predefined
 struct test_body_predefined_bits
 {
     template <typename Policy, typename Iterator, typename Size>
-    typename ::std::enable_if<!::std::is_floating_point<typename ::std::iterator_traits<Iterator>::value_type>::value,
-                            void>::type
+    ::std::enable_if_t<!::std::is_floating_point<typename ::std::iterator_traits<Iterator>::value_type>::value, void>
     operator()(Policy&& exec, Iterator first, Iterator last, Iterator /*expected_first*/, Iterator /*expected_last*/,
                Size /* n */)
     {
@@ -162,8 +161,7 @@ struct test_body_predefined_bits
     }
 
     template <typename Policy, typename Iterator, typename Size>
-    typename ::std::enable_if<::std::is_floating_point<typename ::std::iterator_traits<Iterator>::value_type>::value,
-                            void>::type
+    ::std::enable_if_t<::std::is_floating_point<typename ::std::iterator_traits<Iterator>::value_type>::value, void>
     operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Iterator /*expected_first*/, Iterator /*expected_last*/,
                Size /* n */)
     {

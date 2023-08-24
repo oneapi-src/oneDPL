@@ -177,17 +177,17 @@ struct __is_host_execution_policy<oneapi::dpl::execution::unsequenced_policy> : 
 };
 
 template <class _ExecPolicy, class _T>
-using __enable_if_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::execution::is_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>::type;
+using __enable_if_execution_policy = ::std::enable_if_t<
+    oneapi::dpl::execution::is_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
 template <class _ExecPolicy, class _T>
-using __enable_if_host_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>::type;
+using __enable_if_host_execution_policy = ::std::enable_if_t<
+    oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
 template <class _ExecPolicy, const bool __condition, class _T>
-using __enable_if_host_execution_policy_conditional = typename ::std::enable_if<
+using __enable_if_host_execution_policy_conditional = ::std::enable_if_t<
     oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value && __condition,
-    _T>::type;
+    _T>;
 
 template <typename _ExecPolicy, typename _T>
 struct __ref_or_copy_impl
