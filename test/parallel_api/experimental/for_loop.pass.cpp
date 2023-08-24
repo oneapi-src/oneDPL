@@ -108,7 +108,7 @@ test_body_for_loop_strided(Policy&& exec, Iterator first, Iterator last, Iterato
 
     ::std::experimental::for_loop_strided(exec, first, last, loop_stride, [&flip](Iterator iter) { flip(*iter); });
 
-    typename ::std::make_signed<Size>::type idx = 0;
+    ::std::make_signed_t<Size> idx = 0;
     for (auto iter = expected_first; iter != expected_last; ::std::advance(iter, single_stride), ++idx)
     {
         if (idx % loop_stride != 0)
@@ -238,7 +238,7 @@ test_body_for_loop_strided_neg(Policy&& exec, Iterator first, Iterator /* last *
 {
     assert(loop_stride < 0);
 
-    using Ssize = typename ::std::make_signed<Size>::type;
+    using Ssize = ::std::make_signed_t<Size>;
 
     // Test negative stride value with non-forward iterators on range (first - 1, first)
     auto new_first = first;
