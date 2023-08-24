@@ -58,9 +58,9 @@ private:
     static constexpr auto& __offload_device_selector =
 #if __SYCL_PSTL_OFFLOAD__ == 1
     sycl::default_selector_v;
-#elif
+#elif __SYCL_PSTL_OFFLOAD__ == 2
     sycl::cpu_selector_v;
-#elif
+#elif __SYCL_PSTL_OFFLOAD__ == 3
     sycl::gpu_selector_v;
 #else
 #error "Unsupported value of __SYCL_PSTL_OFFLOAD__ macro"
