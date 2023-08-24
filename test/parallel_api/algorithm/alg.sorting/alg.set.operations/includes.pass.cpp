@@ -72,7 +72,7 @@ template <typename T>
 struct test_with_compare
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<!TestUtils::isReverse<InputIterator1>::value, void>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
@@ -84,7 +84,7 @@ struct test_with_compare
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<TestUtils::isReverse<InputIterator1>::value, void>
     operator()(Policy&& /* exec */, InputIterator1 /* first1 */, InputIterator1 /* last1 */, InputIterator2 /* first2 */, InputIterator2 /* last2 */,
                Compare /* comp */)
     {

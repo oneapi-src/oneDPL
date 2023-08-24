@@ -476,7 +476,7 @@ using is_arithmetic_plus = ::std::integral_constant<
     bool, ::std::is_arithmetic<_Tp>::value&& ::std::is_same<_BinaryOperation, ::std::plus<_Tp>>::value>;
 
 template <typename _DifferenceType, typename _Tp, typename _BinaryOperation, typename _UnaryOperation>
-typename ::std::enable_if<is_arithmetic_plus<_Tp, _BinaryOperation>::value, _Tp>::type
+::std::enable_if_t<is_arithmetic_plus<_Tp, _BinaryOperation>::value, _Tp>
 __simd_transform_reduce(_DifferenceType __n, _Tp __init, _BinaryOperation, _UnaryOperation __f) noexcept
 {
     _ONEDPL_PRAGMA_SIMD_REDUCTION(+ : __init)
@@ -486,7 +486,7 @@ __simd_transform_reduce(_DifferenceType __n, _Tp __init, _BinaryOperation, _Unar
 }
 
 template <typename _Size, typename _Tp, typename _BinaryOperation, typename _UnaryOperation>
-typename ::std::enable_if<!is_arithmetic_plus<_Tp, _BinaryOperation>::value, _Tp>::type
+::std::enable_if_t<!is_arithmetic_plus<_Tp, _BinaryOperation>::value, _Tp>
 __simd_transform_reduce(_Size __n, _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __f) noexcept
 {
     const _Size __block_size = __lane_size / sizeof(_Tp);
@@ -543,7 +543,7 @@ __simd_transform_reduce(_Size __n, _Tp __init, _BinaryOperation __binary_op, _Un
 // Exclusive scan for "+" and arithmetic types
 template <class _InputIterator, class _Size, class _OutputIterator, class _UnaryOperation, class _Tp,
           class _BinaryOperation>
-typename ::std::enable_if<is_arithmetic_plus<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>::type
+::std::enable_if_t<is_arithmetic_plus<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>
 __simd_scan(_InputIterator __first, _Size __n, _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init,
             _BinaryOperation, /*Inclusive*/ ::std::false_type)
 {
@@ -581,7 +581,7 @@ struct _Combiner
 // Exclusive scan for other binary operations and types
 template <class _InputIterator, class _Size, class _OutputIterator, class _UnaryOperation, class _Tp,
           class _BinaryOperation>
-typename ::std::enable_if<!is_arithmetic_plus<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>::type
+::std::enable_if_t<!is_arithmetic_plus<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>
 __simd_scan(_InputIterator __first, _Size __n, _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init,
             _BinaryOperation __binary_op, /*Inclusive*/ ::std::false_type)
 {
@@ -604,7 +604,7 @@ __simd_scan(_InputIterator __first, _Size __n, _OutputIterator __result, _UnaryO
 // Inclusive scan for "+" and arithmetic types
 template <class _InputIterator, class _Size, class _OutputIterator, class _UnaryOperation, class _Tp,
           class _BinaryOperation>
-typename ::std::enable_if<is_arithmetic_plus<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>::type
+::std::enable_if_t<is_arithmetic_plus<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>
 __simd_scan(_InputIterator __first, _Size __n, _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init,
             _BinaryOperation, /*Inclusive*/ ::std::true_type)
 {
@@ -621,7 +621,7 @@ __simd_scan(_InputIterator __first, _Size __n, _OutputIterator __result, _UnaryO
 // Inclusive scan for other binary operations and types
 template <class _InputIterator, class _Size, class _OutputIterator, class _UnaryOperation, class _Tp,
           class _BinaryOperation>
-typename ::std::enable_if<!is_arithmetic_plus<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>::type
+::std::enable_if_t<!is_arithmetic_plus<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>
 __simd_scan(_InputIterator __first, _Size __n, _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init,
             _BinaryOperation __binary_op, ::std::true_type)
 {

@@ -404,14 +404,14 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T, typename TestName, typename TestBaseData>
-typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, TestName>::type
+::std::enable_if_t<::std::is_base_of<test_base<T>, TestName>::value, TestName>
 create_test_obj(TestBaseData& data)
 {
     return TestName(data);
 }
 
 template <typename T, typename TestName, typename TestBaseData>
-typename ::std::enable_if<!::std::is_base_of<test_base<T>, TestName>::value, TestName>::type
+::std::enable_if_t<!::std::is_base_of<test_base<T>, TestName>::value, TestName>
 create_test_obj(TestBaseData&)
 {
     return TestName();
@@ -420,7 +420,6 @@ create_test_obj(TestBaseData&)
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and one output sequences
 template <typename T, typename TestName>
-//typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, void>::type
 void
 test_algo_three_sequences()
 {
@@ -459,7 +458,6 @@ test_algo_three_sequences()
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and two output sequencess
 template <typename T, typename TestName>
-//typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, void>::type
 void
 test_algo_four_sequences()
 {

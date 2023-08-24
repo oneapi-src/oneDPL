@@ -173,7 +173,7 @@ struct is_zip : ::std::false_type
 };
 
 template <typename Iter> // for iterators defined as direct pass
-struct is_zip<Iter, typename ::std::enable_if<Iter::is_zip::value, void>::type> : ::std::true_type
+struct is_zip<Iter, ::std::enable_if_t<Iter::is_zip::value, void>> : ::std::true_type
 {
 };
 
@@ -183,7 +183,7 @@ struct is_permutation : ::std::false_type
 };
 
 template <typename Iter> // for permutation_iterators
-struct is_permutation<Iter, typename ::std::enable_if<Iter::is_permutation::value, void>::type> : ::std::true_type
+struct is_permutation<Iter, ::std::enable_if_t<Iter::is_permutation::value, void>> : ::std::true_type
 {
 };
 
@@ -428,7 +428,7 @@ struct __get_sycl_range
 
   private:
     template <typename _R, typename _Map, typename _Size,
-              typename ::std::enable_if<oneapi::dpl::__internal::__is_functor<_Map>, int>::type = 0>
+              ::std::enable_if_t<oneapi::dpl::__internal::__is_functor<_Map>, int> = 0>
     static auto
     __get_permutation_view(_R __r, _Map __m, _Size __s)
     {
@@ -437,7 +437,7 @@ struct __get_sycl_range
 
     template <
         typename _R, typename _Map, typename _Size,
-        typename ::std::enable_if<oneapi::dpl::__internal::__is_random_access_iterator<_Map>::value, int>::type = 0>
+        ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator<_Map>::value, int> = 0>
     auto
     __get_permutation_view(_R __r, _Map __m, _Size __s)
     {
@@ -447,7 +447,7 @@ struct __get_sycl_range
 
   public:
     //specialization for permutation_iterator using sycl_iterator as source
-    template <typename _It, typename _Map, typename ::std::enable_if<is_hetero_it<_It>::value, int>::type = 0>
+    template <typename _It, typename _Map, ::std::enable_if_t<is_hetero_it<_It>::value, int> = 0>
     auto
     operator()(oneapi::dpl::permutation_iterator<_It, _Map> __first,
                oneapi::dpl::permutation_iterator<_It, _Map> __last)
@@ -466,7 +466,7 @@ struct __get_sycl_range
     // TODO Add specialization for general case, e.g., permutation_iterator using host
     // or another fancy iterator.
     //specialization for permutation_iterator using USM pointer as source
-    template <typename _It, typename _Map, typename ::std::enable_if<!is_hetero_it<_It>::value, int>::type = 0>
+    template <typename _It, typename _Map, ::std::enable_if_t<!is_hetero_it<_It>::value, int> = 0>
     auto
     operator()(oneapi::dpl::permutation_iterator<_It, _Map> __first,
                oneapi::dpl::permutation_iterator<_It, _Map> __last)

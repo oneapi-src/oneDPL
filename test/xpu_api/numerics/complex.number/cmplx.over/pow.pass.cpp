@@ -28,7 +28,7 @@
 
 template <class T>
 double
-promote(T, typename std::enable_if<std::is_integral<T>::value>::type* = 0);
+promote(T, ::std::enable_if_t<std::is_integral<T>::value>* = 0);
 
 float promote(float);
 double promote(double);
@@ -63,7 +63,7 @@ test(const dpl::complex<T>& x, const dpl::complex<U>& y)
 
 template <class T, class U>
 void
-test(typename std::enable_if<std::is_integral<T>::value>::type* = 0, typename std::enable_if<!std::is_integral<U>::value>::type* = 0)
+test(::std::enable_if_t<std::is_integral<T>::value>* = 0, ::std::enable_if_t<!std::is_integral<U>::value>* = 0)
 {
     test(T(3), dpl::complex<U>(4, 5));
     test(dpl::complex<U>(3, 4), T(5));
@@ -71,7 +71,7 @@ test(typename std::enable_if<std::is_integral<T>::value>::type* = 0, typename st
 
 template <class T, class U>
 void
-test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0, typename std::enable_if<!std::is_integral<U>::value>::type* = 0)
+test(::std::enable_if_t<!std::is_integral<T>::value>* = 0, ::std::enable_if_t<!std::is_integral<U>::value>* = 0)
 {
     test(T(3), dpl::complex<U>(4, 5));
     test(dpl::complex<T>(3, 4), U(5));

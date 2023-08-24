@@ -139,7 +139,7 @@ class discard_block_engine
 
     // Function for state adjustment
     template <int _N>
-    typename ::std::enable_if<(_N == 0), scalar_type>::type
+    ::std::enable_if_t<(_N == 0), scalar_type>
     generate_internal_scalar()
     {
         if (n_ >= used_block)
@@ -152,7 +152,7 @@ class discard_block_engine
     };
 
     template <int N>
-    typename ::std::enable_if<(N > 0), scalar_type>::type
+    ::std::enable_if_t<(N > 0), scalar_type>
     generate_internal_scalar()
     {
         if (n_ >= used_block)
@@ -166,14 +166,14 @@ class discard_block_engine
 
     // Generate implementation
     template <int _N>
-    typename ::std::enable_if<(_N == 0), result_type>::type
+    ::std::enable_if_t<(_N == 0), result_type>
     generate_internal()
     {
         return generate_internal_scalar<internal::type_traits_t<result_type>::num_elems>();
     }
 
     template <int _N>
-    typename ::std::enable_if<(_N > 0), result_type>::type
+    ::std::enable_if_t<(_N > 0), result_type>
     generate_internal()
     {
         result_type __res;
@@ -193,7 +193,7 @@ class discard_block_engine
     }
 
     template <int _N>
-    typename ::std::enable_if<(_N > 0), result_type>::type
+    ::std::enable_if_t<(_N > 0), result_type>
     generate_internal(unsigned int __random_nums)
     {
         if (__random_nums >= _N)

@@ -31,9 +31,9 @@ namespace unseq_backend
 {
 // helpers to encapsulate void and other types
 template <typename _Tp>
-using void_type = typename ::std::enable_if<::std::is_void<_Tp>::value, _Tp>::type;
+using void_type = ::std::enable_if_t<::std::is_void<_Tp>::value, _Tp>;
 template <typename _Tp>
-using non_void_type = typename ::std::enable_if<!::std::is_void<_Tp>::value, _Tp>::type;
+using non_void_type = ::std::enable_if_t<!::std::is_void<_Tp>::value, _Tp>;
 
 #if _USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
 //This optimization depends on Intel(R) oneAPI DPC++ Compiler implementation such as support of binary operators from std namespace.
@@ -565,8 +565,8 @@ struct __global_scan_functor
             // an initial value precedes the first group for the exclusive scan
             __item_idx += __shift;
             auto __bin_op_result = __binary_op(__wg_sums_acc[__wg_sums_idx], __out_acc[__item_idx]);
-            using __out_type = typename ::std::decay<decltype(__out_acc[__item_idx])>::type;
-            using __in_type = typename ::std::decay<decltype(__bin_op_result)>::type;
+            using __out_type = ::std::decay_t<decltype(__out_acc[__item_idx])>;
+            using __in_type = ::std::decay_t<decltype(__bin_op_result)>;
             __out_acc[__item_idx] =
                 static_cast<typename __internal::__get_tuple_type<__in_type, __out_type>::__type>(__bin_op_result);
         }

@@ -151,7 +151,7 @@ using access_mode = sycl::access_mode;
 template <typename _T>
 using __decay_t = ::std::decay_t<_T>;
 template <bool __flag, typename _T = void>
-using __enable_if_t = typename ::std::enable_if<__flag, _T>::type;
+using __enable_if_t = ::std::enable_if_t<__flag, _T>;
 
 // function to simplify zip_iterator creation
 template <typename... T>
