@@ -88,7 +88,7 @@ int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int
                             auto accessorA = bufferA.get_access<sycl::access::mode::read>(cgh);
                             auto accessorB = bufferB.get_access<sycl::access::mode::read>(cgh);
                             auto accessorResultMatrix = bufferResultMatrix.get_access<sycl::access::mode::write>(cgh);
-                           cgh.parallel_for(
+                           cgh.parallel_for<TestUtils::unique_kernel_name<class load2, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
                                 sycl::range<1>(N),
                                 [=](sycl::item<1> item) {
                                 for (size_t j = 0; j < N; ++j) {
@@ -129,7 +129,7 @@ int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int
                             auto accessorA = bufferA.get_access<sycl::access::mode::read>(cgh);
                             auto accessorB = bufferB.get_access<sycl::access::mode::read>(cgh);
                             auto accessorResultMatrix = bufferResultMatrix.get_access<sycl::access::mode::write>(cgh);
-                           cgh.parallel_for(
+                           cgh.parallel_for<TestUtils::unique_kernel_name<class load1, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
                                 sycl::range<1>(N),
                                 [=](sycl::item<1> item) {
                                 for (size_t j = 0; j < N; ++j) {
