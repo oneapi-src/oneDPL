@@ -136,14 +136,14 @@ class subtract_with_carry_engine
 
     // Generate implementation
     template <int _N>
-    typename ::std::enable_if<(_N == 0), result_type>::type
+    ::std::enable_if_t<(_N == 0), result_type>
     generate_internal()
     {
         return generate_internal_scalar();
     }
 
     template <int _N>
-    typename ::std::enable_if<(_N > 0), result_type>::type
+    ::std::enable_if_t<(_N > 0), result_type>
     generate_internal()
     {
         result_type __res;
@@ -156,7 +156,7 @@ class subtract_with_carry_engine
 
     // result_portion implementation
     template <int _N>
-    typename ::std::enable_if<(_N > 0), result_type>::type
+    ::std::enable_if_t<(_N > 0), result_type>
     result_portion_internal(unsigned int __random_nums)
     {
         result_type __part_vec;

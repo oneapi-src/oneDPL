@@ -18,7 +18,7 @@
 
 template <class T, int x>
 void
-test(typename std::enable_if<std::is_integral<T>::value>::type* = 0)
+test(::std::enable_if_t<std::is_integral<T>::value>* = 0)
 {
     static_assert((std::is_same<decltype(dpl::imag(T(x))), double>::value), "");
     assert(dpl::imag(x) == 0);
@@ -31,7 +31,7 @@ test(typename std::enable_if<std::is_integral<T>::value>::type* = 0)
 
 template <class T, int x>
 void
-test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0)
+test(::std::enable_if_t<!std::is_integral<T>::value>* = 0)
 {
     static_assert((std::is_same<decltype(dpl::imag(T(x))), T>::value), "");
     assert(dpl::imag(x) == 0);

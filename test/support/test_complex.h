@@ -68,7 +68,7 @@ run_test()
 // Example:
 //     template <class T>
 //     void
-//     test(T x, typename std::enable_if<std::is_integral<T>::value>::type* = 0)
+//     test(T x, ::std::enable_if_t<std::is_integral<T>::value>* = 0)
 //     {
 //         static_assert((std::is_same<decltype(dpl::conj(x)), dpl::complex<double>>::value), "");
 //
