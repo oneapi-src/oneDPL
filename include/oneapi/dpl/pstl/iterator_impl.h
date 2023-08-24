@@ -421,7 +421,7 @@ class transform_iterator
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
     typedef decltype(__my_unary_func_(::std::declval<typename ::std::iterator_traits<_Iter>::reference>())) reference;
-    typedef typename ::std::remove_reference<reference>::type value_type;
+    typedef ::std::remove_reference_t<reference> value_type;
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
