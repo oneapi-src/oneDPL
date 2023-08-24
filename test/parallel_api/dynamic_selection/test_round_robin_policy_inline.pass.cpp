@@ -9,27 +9,41 @@
 
 #include <iostream>
 #include "oneapi/dpl/dynamic_selection"
-#include "support/test_ds_utils.h"
+#include "support/test_dynamic_selection_utils.h"
 #include "support/inline_backend.h"
 
 int main() {
   using policy_t = oneapi::dpl::experimental::round_robin_policy<TestUtils::int_inline_backend_t>;
   std::vector<int> u{4, 5, 6, 7};
-  int test_resource = 5;
-  auto f = [test_resource, u](int i) { return u[(i-1)%4]; };
+  auto f = [u](int i, int offset) { return u[(i+offset-1)%4]; };
 
-  if (test_cout<policy_t>()
-      || test_properties<policy_t>(u, test_resource)
-      || test_submit_and_wait<policy_t>(u, f)
-      || test_submit_and_wait_on_policy<policy_t>(u, f)
-      || test_submit_and_wait_on_sync<policy_t>(u, f)
-      || test_submit_and_get_submission_group<policy_t>(u, f)
-      || test_submit_and_get_submission_group_single_element<policy_t>(u, f)
-      || test_submit_and_get_submission_group_empty<policy_t>(u, f)
-      || test_select<policy_t>(u, f)
-      || test_select_and_wait_on_policy<policy_t>(u, f)
-      || test_select_and_wait_on_sync<policy_t>(u, f)
-      || test_select_submit_and_wait<policy_t>(u, f)
+  constexpr bool just_call_submit = false;
+  constexpr bool call_select_before_submit = true;
+  if ( test_initialization<policy_t, int>(u)
+       || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f)
+       || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f, 1)
+       || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f, 2)
+       || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f, 3)
+       || test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, f)
+       || test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, f, 1)
+       || test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, f, 2)
+       || test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, f, 3)
+       || test_submit_and_wait<just_call_submit, policy_t>(u, f)
+       || test_submit_and_wait<just_call_submit, policy_t>(u, f, 1)
+       || test_submit_and_wait<just_call_submit, policy_t>(u, f, 2)
+       || test_submit_and_wait<just_call_submit, policy_t>(u, f, 3)
+       || test_submit_and_wait<call_select_before_submit, policy_t>(u, f)
+       || test_submit_and_wait<call_select_before_submit, policy_t>(u, f, 1)
+       || test_submit_and_wait<call_select_before_submit, policy_t>(u, f, 2)
+       || test_submit_and_wait<call_select_before_submit, policy_t>(u, f, 3)
+       || test_submit_and_wait_on_group<just_call_submit, policy_t>(u, f)
+       || test_submit_and_wait_on_group<just_call_submit, policy_t>(u, f, 1)
+       || test_submit_and_wait_on_group<just_call_submit, policy_t>(u, f, 2)
+       || test_submit_and_wait_on_group<just_call_submit, policy_t>(u, f, 3)
+       || test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f)
+       || test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f, 1)
+       || test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f, 2)
+       || test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f, 3)
      ) {
     std::cout << "FAIL\n";
     return 1;

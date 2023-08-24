@@ -59,7 +59,6 @@ int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int
     bool pass=true;
     if constexpr(call_select_before_submit){
         for(int i=1;i<=N;i++){
-            int target=(i+offset)%u.size();
             auto test_resource = f(i, offset);
             auto func = [&](typename Policy::resource_type e){
                    if (e != test_resource) {
@@ -98,7 +97,7 @@ int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int
         std::cout << "ERROR: did not select expected resources\n";
         return 1;
     }
-    std::cout << "async_invoke_wait_on_policy: OK\n";
+    std::cout << "submit_and_wait_on_group: OK\n";
     return 0;
 
 }
@@ -108,7 +107,7 @@ int test_submit_and_wait_on_event(UniverseContainer u, ResourceFunction&& f, int
   using my_policy_t = Policy;
   my_policy_t p{u, offset};
 
-  const int N = 6;
+  const int N = 100;
   bool pass = true;
 
   std::atomic<int> ecount = 0;
