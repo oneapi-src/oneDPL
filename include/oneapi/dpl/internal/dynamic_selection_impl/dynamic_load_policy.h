@@ -80,7 +80,7 @@ namespace experimental{
 
     std::shared_ptr<state_t> state_;
 
-    void initialize(int offset){
+    void initialize(int offset=0){
         if(!state_){
             backend_ = std::make_shared<backend_t>();
             state_= std::make_shared<state_t>();

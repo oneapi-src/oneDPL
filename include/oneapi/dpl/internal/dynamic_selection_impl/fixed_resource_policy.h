@@ -60,7 +60,7 @@ namespace experimental {
     }
 
     auto get_resources()  const {
-      if(state_){
+      if(backend_){
           return backend_->get_resources();
       }else{
           throw std::runtime_error("Called select before initialization\n");
@@ -101,7 +101,7 @@ namespace experimental {
 
     template<typename Function, typename ...Args>
     auto submit(selection_type e, Function&& f, Args&&... args) {
-      if(state_){
+      if(backend_){
           return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
       }else{
           throw std::runtime_error("Called submit before initialization\n");
@@ -109,15 +109,11 @@ namespace experimental {
     }
 
     auto get_submission_group() {
-      if(state_){
+      if(backend_){
           return backend_->get_submission_group();
       }else{
           throw std::runtime_error("Called submission group before initialization\n");
       }
-    }
-
-    auto wait() {
-      backend_->wait();
     }
 
   };
