@@ -283,7 +283,7 @@ template <class _ExecutionPolicy, class _ForwardIterator1, class _Size, class _F
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 copy_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _Size __n, _ForwardIterator2 __result)
 {
-    using _DecayedExecutionPolicy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _DecayedExecutionPolicy = ::std::decay_t<_ExecutionPolicy>;
 
     return oneapi::dpl::__internal::__pattern_walk2_brick_n(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
@@ -806,7 +806,7 @@ template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterato
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __d_first)
 {
-    using _DecayedExecutionPolicy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _DecayedExecutionPolicy = ::std::decay_t<_ExecutionPolicy>;
 
     return oneapi::dpl::__internal::__pattern_walk2_brick(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,

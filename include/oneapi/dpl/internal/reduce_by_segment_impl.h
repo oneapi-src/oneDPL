@@ -80,7 +80,7 @@ class Reduce4;
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<Policy>::type,
+oneapi::dpl::__internal::__enable_if_host_execution_policy<::std::decay_t<Policy>,
                                                            ::std::pair<OutputIterator1, OutputIterator2>>
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
@@ -110,7 +110,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     typedef uint64_t FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef uint64_t CountType;
-    typedef typename ::std::decay<Policy>::type policy_type;
+    typedef ::std::decay_t<Policy> policy_type;
 
     // buffer that is used to store a flag indicating if the associated key is not equal to
     // the next key, and thus its associated sum should be part of the final result
@@ -578,7 +578,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value,
+    oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>::value,
     ::std::pair<OutputIterator1, OutputIterator2>>::type
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
