@@ -11,6 +11,7 @@
 #include <thread>
 #include "oneapi/dpl/dynamic_selection"
 #include "support/test_ds_utils.h"
+#include "support/sycl_sanity.h"
 
 int test_auto_initialization(const std::vector<sycl::queue>& u) {
   // initialize
