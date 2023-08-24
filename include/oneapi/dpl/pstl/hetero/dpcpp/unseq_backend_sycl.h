@@ -57,7 +57,9 @@ using __has_known_identity =
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>>>;
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<void>>,
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<void>>>>;
 #    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
 
 #else //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
