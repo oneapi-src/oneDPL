@@ -16,8 +16,10 @@
 #ifndef _ONEDPL_parallel_backend_sycl_scan_H
 #define _ONEDPL_parallel_backend_sycl_scan_H
 
-namespace oneapi::dpl::experimental::igpu
+namespace oneapi::dpl::experimental::kt
 {
+
+inline namespace igpu {
 
 template<typename _T>
 struct __scan_status_flag
@@ -69,28 +71,36 @@ struct __scan_status_flag
     _AtomicRefT atomic_flag;
 };
 
-template <bool _Inclusive, typename _Policy, typename _InRange, typename _OutRange, typename _BinaryOp>
+template <typename _KernelParam, bool _Inclusive, typename _InRange, typename _OutRange, typename _BinaryOp>
 void
-single_pass_scan_impl(_Policy&& __exec, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op)
+single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op)
 {
     using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
 
-    const ::std::size_t n = __in_rng.size();
-    auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
-    std::size_t num_wgs = __max_cu;
+    static_assert(_Inclusive, "Single-pass scan only available for inclusive scan");
 
-    std::size_t wgsize = n/__max_cu;
+    const ::std::size_t n = __in_rng.size();
+    auto __max_cu = __queue.get_device().template get_info<sycl::info::device::max_compute_units>();
+    //std::size_t num_wgs = __max_cu;
+    std::size_t num_wgs = 64;
+
+    // TODO: use wgsize and iters per item from _KernelParam
+    std::size_t wgsize = n/num_wgs;
 
     std::uint32_t status_flags_buf_size = num_wgs+1;
     sycl::buffer<uint32_t, 1> status_flags_buf(status_flags_buf_size);
 
     // TODO: this probably isn't the best way to do this
+    {
     sycl::host_accessor<std::uint32_t, 1> status_flags(status_flags_buf);
     for (std::size_t i = 0; i < status_flags_buf_size; ++i)
         status_flags[i] = 0;
+    }
+
+//    printf("launching kernel items=%lu wgs=%lu wgsize=%lu max_cu=%lu\n", n, num_wgs, wgsize, __max_cu);
 
 
-    auto event = __exec.queue().submit([&](sycl::handler& hdl) {
+    auto event = __queue.submit([&](sycl::handler& hdl) {
         auto status_flags = sycl::accessor<std::uint32_t, 1, sycl::access_mode::read_write>(status_flags_buf, hdl);
         auto tile_id_lacc = sycl::accessor<std::uint32_t, 1, sycl::access_mode::read_write, sycl::target::local>(sycl::range<1>{1}, hdl);
 
@@ -121,6 +131,7 @@ single_pass_scan_impl(_Policy&& __exec, _InRange&& __in_rng, _OutRange&& __out_r
 			flag.set_partial(local_sum);
 
             auto prev_sum = flag.lookback(tile_id, status_flags.get_pointer());
+            //auto prev_sum = 0;
             flag.set_full(prev_sum + local_sum);
 
             sycl::joint_inclusive_scan(group, in_begin, in_end, out_begin, __binary_op, prev_sum);
@@ -130,9 +141,18 @@ single_pass_scan_impl(_Policy&& __exec, _InRange&& __in_rng, _OutRange&& __out_r
     event.wait();
 }
 
-template <typename _Policy, typename _InIterator, typename _OutIterator, typename _BinaryOp>
+// The generic structure for configuring a kernel
+template <std::uint16_t DataPerWorkItem, std::uint16_t WorkGroupSize, typename KernelName>
+struct kernel_param
+{
+    static constexpr std::uint16_t data_per_workitem = DataPerWorkItem;
+    static constexpr std::uint16_t workgroup_size = WorkGroupSize;
+    using kernel_name = KernelName;
+};
+
+template <typename _KernelParam, typename _InIterator, typename _OutIterator, typename _BinaryOp>
 void
-single_pass_inclusive_scan(_Policy&& __exec, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin, _BinaryOp __binary_op)
+single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin, _BinaryOp __binary_op)
 {
     auto __n = __in_end - __in_begin;
     auto __keep1 =
@@ -142,9 +162,11 @@ single_pass_inclusive_scan(_Policy&& __exec, _InIterator __in_begin, _InIterator
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
     auto __buf2 = __keep2(__out_begin, __out_begin + __n);
 
-    single_pass_scan_impl<true>(__exec, __buf1.all_view(), __buf2.all_view(), __binary_op);
+    single_pass_scan_impl<_KernelParam, true>(__queue, __buf1.all_view(), __buf2.all_view(), __binary_op);
 }
 
-} // namespace oneapi::dpl::experimental::igpu
+} // inline namespace igpu
+
+} // namespace oneapi::dpl::experimental::kt
 
 #endif /* _ONEDPL_parallel_backend_sycl_scan_H */
