@@ -18,7 +18,7 @@
 #include <cstdint>
 #include <sycl/sycl.hpp>
 
-#include <pstl_offload/internal/usm_memory_common.h>
+#include <pstl_offload/internal/usm_memory_replacement_common.h>
 
 #if __linux__
 
@@ -26,121 +26,115 @@
 #include <string.h>
 #include <unistd.h>
 
-namespace oneapi {
-namespace dpl {
-namespace pstl_offload {
+namespace __pstl_offload {
 
-auto get_original_free() {
-    using free_type = void (*)(void*);
+auto __get_original_free() {
+    using _free_type = void (*)(void*);
 
-    static free_type orig_free = free_type(dlsym(RTLD_NEXT, "free"));
-    return orig_free;
+    static _free_type __orig_free = _free_type(dlsym(RTLD_NEXT, "free"));
+    return __orig_free;
 }
 
-auto get_original_msize() {
-    using msize_type = std::size_t (*)(void*);
+auto __get_original_msize() {
+    using _msize_type = std::size_t (*)(void*);
 
-    static msize_type orig_msize = msize_type(dlsym(RTLD_NEXT, "malloc_usable_size"));
-    return orig_msize;
+    static _msize_type __orig_msize = _msize_type(dlsym(RTLD_NEXT, "malloc_usable_size"));
+    return __orig_msize;
 }
 
-void internal_free(void* user_ptr) {
-    if (!user_ptr)
+void __internal_free(void* __user_ptr) {
+    if (!__user_ptr)
         return;
 
-    BlockHeader* header = reinterpret_cast<BlockHeader*>(user_ptr) - 1;
+    __block_header* __header = reinterpret_cast<__block_header*>(__user_ptr) - 1;
 
-    if (same_memory_page(user_ptr, header) && header->uniq_const == UNIQ_TYPE_CONST) {
+    if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const) {
         // Only USM pointers has headers
-        assert(header->device);
-        sycl::context context = header->device->get_platform().ext_oneapi_get_default_context();
-        void* original_pointer = header->original_pointer;
-        header->~BlockHeader();
-        sycl::free(original_pointer, context);
+        assert(header->_M_device);
+        sycl::context __context = __header->_M_device->get_platform().ext_oneapi_get_default_context();
+        sycl::free(__header->_M_original_pointer, __context);
     } else {
         // A regular pointer without a header
-        get_original_free()(user_ptr);
+        __get_original_free()(__user_ptr);
     }
 }
 
-std::size_t internal_msize(void* user_ptr) {
-    if (!user_ptr)
+std::size_t __internal_msize(void* __user_ptr) {
+    if (!__user_ptr)
         return 0;
 
-    BlockHeader* header = reinterpret_cast<BlockHeader*>(user_ptr) - 1;
+    __block_header* __header = reinterpret_cast<__block_header*>(__user_ptr) - 1;
 
-    if (same_memory_page(user_ptr, header) && header->uniq_const == UNIQ_TYPE_CONST) {
-        return header->requested_number_of_bytes;
+    if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const) {
+        return __header->_M_requested_number_of_bytes;
     }
-    return get_original_msize()(user_ptr);
+    return __get_original_msize()(__user_ptr);
 }
 
-} // namespace pstl_offload
-} // namespace dpl
-} // namespace oneapi
+} // namespace __pstl_offload
 
 extern "C" {
 
-void free(void* ptr) {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void free(void* __ptr) {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
-void __libc_free(void *ptr) {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void __libc_free(void *__ptr) {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
-void* realloc(void* ptr, std::size_t new_size) {
-    return oneapi::dpl::pstl_offload::internal_realloc(ptr, new_size);
+void* realloc(void* __ptr, std::size_t __new_size) {
+    return ::__pstl_offload::__internal_realloc(__ptr, __new_size);
 }
 
-void* __libc_realloc(void* ptr, std::size_t new_size) {
-    return oneapi::dpl::pstl_offload::internal_realloc(ptr, new_size);
+void* __libc_realloc(void* __ptr, std::size_t __new_size) {
+    return ::__pstl_offload::__internal_realloc(__ptr, __new_size);
 }
 
-std::size_t malloc_usable_size(void* ptr) noexcept {
-    return oneapi::dpl::pstl_offload::internal_msize(ptr);
+std::size_t malloc_usable_size(void* __ptr) noexcept {
+    return ::__pstl_offload::__internal_msize(__ptr);
 }
 
 } // extern "C"
 
-void operator delete(void* ptr) noexcept {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void operator delete(void* __ptr) noexcept {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete[](void* ptr) noexcept {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void operator delete[](void* __ptr) noexcept {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete(void* ptr, std::size_t) noexcept {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void operator delete(void* __ptr, std::size_t) noexcept {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete[](void* ptr, std::size_t) noexcept {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void operator delete[](void* __ptr, std::size_t) noexcept {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete(void* ptr, std::size_t, std::align_val_t) noexcept {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void operator delete(void* __ptr, std::size_t, std::align_val_t) noexcept {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete[](void* ptr, std::size_t, std::align_val_t) noexcept {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void operator delete[](void* __ptr, std::size_t, std::align_val_t) noexcept {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete(void* ptr, const std::nothrow_t&) noexcept {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void operator delete(void* __ptr, const std::nothrow_t&) noexcept {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete[](void* ptr, const std::nothrow_t&) noexcept {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void operator delete[](void* __ptr, const std::nothrow_t&) noexcept {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete(void* ptr, std::align_val_t) noexcept {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void operator delete(void* __ptr, std::align_val_t) noexcept {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete[](void* ptr, std::align_val_t) noexcept {
-    oneapi::dpl::pstl_offload::internal_free(ptr);
+void operator delete[](void* __ptr, std::align_val_t) noexcept {
+    ::__pstl_offload::__internal_free(__ptr);
 }
 
 #endif // __linux__

@@ -29,116 +29,109 @@
 
 #include <oneapi/dpl/execution>
 
-#include "usm_memory_common.h"
+#include "usm_memory_replacement_common.h"
 
-namespace oneapi {
-namespace dpl {
-namespace pstl_offload {
+namespace __pstl_offload {
 
-static const auto& get_device_selector() {
-#if __SYCL_PSTL_OFFLOAD__ == 1
-    return sycl::default_selector_v;
-#elif __SYCL_PSTL_OFFLOAD__ == 2
-    return sycl::cpu_selector_v;
-#elif __SYCL_PSTL_OFFLOAD__ == 3
-    return sycl::gpu_selector_v;
-#else
-#error "Unsupported value of __SYCL_PSTL_OFFLOAD__ macro"
-#endif // __SYCL_PSTL_OFFLOAD__
+static std::atomic<sycl::device*> __active_device = nullptr;
+
+static void __set_active_device(sycl::device* __new_active_device) {
+    __active_device.store(__new_active_device, std::memory_order_release);
 }
 
-static void set_active_device(sycl::device*);
-
-class OffloadPolicyHolder {
+class __offload_policy_holder_type {
 public:
-    OffloadPolicyHolder()
-        : offload_device(get_device_selector())
-        , offload_policy(offload_device)
+    __offload_policy_holder_type()
+        : _M_offload_device(__offload_device_selector)
+        , _M_offload_policy(_M_offload_device)
     {
-        set_active_device(&offload_device);
+        __set_active_device(&_M_offload_device);
     }
 
-    ~OffloadPolicyHolder()
+    ~__offload_policy_holder_type()
     {
-        set_active_device(nullptr);
+        __set_active_device(nullptr);
     }
 
-    auto& get_policy() { return offload_policy; }
+    auto __get_policy() { return _M_offload_policy; }
 private:
-    sycl::device offload_device;
-    oneapi::dpl::execution::device_policy<> offload_policy;
-}; // class OffloadPolicyHolder
+    static constexpr auto& __offload_device_selector =
+#if __SYCL_PSTL_OFFLOAD__ == 1
+    sycl::default_selector_v;
+#elif
+    sycl::cpu_selector_v;
+#elif
+    sycl::gpu_selector_v;
+#else
+#error "Unsupported value of __SYCL_PSTL_OFFLOAD__ macro"
+#endif
 
-static OffloadPolicyHolder offload_policy_holder;
+    sycl::device _M_offload_device;
+    oneapi::dpl::execution::device_policy<> _M_offload_policy;
+}; // class __offload_policy_holder_type
+
+static __offload_policy_holder_type __offload_policy_holder;
 
 #if __linux__
-static auto get_original_aligned_alloc() {
-    using aligned_alloc_type = void* (*)(std::size_t, std::size_t);
+inline auto __get_original_aligned_alloc() {
+    using _aligned_alloc_type = void* (*)(std::size_t, std::size_t);
 
-    static aligned_alloc_type orig_aligned_alloc = aligned_alloc_type(dlsym(RTLD_NEXT, "aligned_alloc"));
-    return orig_aligned_alloc;
+    static _aligned_alloc_type __orig_aligned_alloc = _aligned_alloc_type(dlsym(RTLD_NEXT, "aligned_alloc"));
+    return __orig_aligned_alloc;
 }
 #endif // __linux__
 
-static std::atomic<sycl::device*> active_device = nullptr;
+static void* __internal_aligned_alloc(std::size_t __size, std::size_t __alignment) {
+    sycl::device* __device = __active_device.load(std::memory_order_acquire);
+    void* __res = nullptr;
 
-static void set_active_device(sycl::device* new_active_device) {
-    active_device.store(new_active_device, std::memory_order_release);
-}
-
-static void* usm_aligned_alloc(std::size_t size, std::size_t alignment) {
-    sycl::device* device = active_device.load(std::memory_order_acquire);
-    void* res = nullptr;
-
-    if (device) {
-        res = allocate_from_device(device, size, alignment);
+    if (__device) {
+        __res = __allocate_from_device(__device, __size, __alignment);
     } else {
-        res = get_original_aligned_alloc()(alignment, size);
+        __res = __get_original_aligned_alloc()(__alignment, __size);
     }
 
-    if (!res)
+    if (!__res)
         return nullptr;
 
-    assert(std::uintptr_t(res) % alignment == 0);
-    return res;
+    assert(std::uintptr_t(__res) % __alignment == 0);
+    return __res;
 }
 
-static void* errno_handling_usm_aligned_alloc(std::size_t size, std::size_t alignment) {
-    void* ptr = usm_aligned_alloc(size, alignment);
-    if (!ptr) {
+static void* __errno_handling_internal_aligned_alloc(std::size_t __size, std::size_t __alignment) {
+    void* __ptr = __internal_aligned_alloc(__size, __alignment);
+    if (!__ptr) {
         errno = ENOMEM;
         return nullptr;
     }
-    return ptr;
+    return __ptr;
 }
 
-static void* internal_operator_new(std::size_t size, std::size_t alignment = alignof(std::max_align_t)) {
-    void* res = usm_aligned_alloc(size, alignment);
+static void* __internal_operator_new(std::size_t __size, std::size_t __alignment = alignof(std::max_align_t)) {
+    void* __res = __internal_aligned_alloc(__size, __alignment);
 
-    while(!res) {
-        std::new_handler handler = std::get_new_handler();
-        if (handler) {
-            handler();
+    while(!__res) {
+        std::new_handler __handler = std::get_new_handler();
+        if (__handler) {
+            __handler();
         } else {
             throw std::bad_alloc{};
         }
-        res = usm_aligned_alloc(size, alignment);
+        __res = __internal_aligned_alloc(__size, __alignment);
     }
 
-    return res;
+    return __res;
 }
 
-static void* internal_operator_new(const std::nothrow_t&, std::size_t size, std::size_t alignment = alignof(std::max_align_t)) noexcept {
-    void* res = nullptr;
+static void* __internal_operator_new(const std::nothrow_t&, std::size_t __size, std::size_t __alignment = alignof(std::max_align_t)) noexcept {
+    void* __res = nullptr;
     try {
-        res = internal_operator_new(size, alignment);
+        __res = __internal_operator_new(__size, __alignment);
     } catch(...) {}
-    return res;
+    return __res;
 }
 
-} // namespace pstl_offload
-} // namespace dpl
-} // namespace oneapi
+} // namespace __pstl_offload
 
 #if __linux__
 
@@ -147,31 +140,31 @@ static void* internal_operator_new(const std::nothrow_t&, std::size_t size, std:
 
 extern "C" {
 
-inline void* __attribute__((always_inline)) malloc(std::size_t size) {
-    return oneapi::dpl::pstl_offload::errno_handling_usm_aligned_alloc(size, alignof(std::max_align_t));
+inline void* __attribute__((always_inline)) malloc(std::size_t __size) {
+    return ::__pstl_offload::__errno_handling_internal_aligned_alloc(__size, alignof(std::max_align_t));
 }
 
-inline void* __attribute__((always_inline)) calloc(std::size_t num, std::size_t size) {
-    char* res = static_cast<char*>(oneapi::dpl::pstl_offload::errno_handling_usm_aligned_alloc(num * size, alignof(std::max_align_t)));
-    return res ? memset(res, 0, num * size) : nullptr;
+inline void* __attribute__((always_inline)) calloc(std::size_t __num, std::size_t __size) {
+    void* __res = ::__pstl_offload::__errno_handling_internal_aligned_alloc(__num * __size, alignof(std::max_align_t));
+    return __res ? std::memset(__res, 0, __num * __size) : nullptr;
 }
 
-inline void* __attribute__((always_inline)) realloc(void* ptr, std::size_t size) {
-    return oneapi::dpl::pstl_offload::internal_realloc(ptr, size);
+inline void* __attribute__((always_inline)) realloc(void* __ptr, std::size_t __size) {
+    return ::__pstl_offload::__internal_realloc(__ptr, __size);
 }
 
-inline void* __attribute__((always_inline)) memalign(std::size_t alignment, std::size_t size) noexcept {
-    return oneapi::dpl::pstl_offload::errno_handling_usm_aligned_alloc(size, alignment);
+inline void* __attribute__((always_inline)) memalign(std::size_t __alignment, std::size_t __size) noexcept {
+    return ::__pstl_offload::__errno_handling_internal_aligned_alloc(__size, __alignment);
 }
 
-inline int __attribute__((always_inline)) posix_memalign(void** memptr, std::size_t alignment, std::size_t size) noexcept {
-    if (alignment == 0 || (alignment & alignment - 1) != 0) // alignment is not a power of two
+inline int __attribute__((always_inline)) posix_memalign(void** __memptr, std::size_t __alignment, std::size_t __size) noexcept {
+    if (__alignment == 0 || (__alignment & __alignment - 1) != 0) // alignment is not a power of two
         return EINVAL;
 
-    void* ptr = oneapi::dpl::pstl_offload::usm_aligned_alloc(size, alignment);
+    void* __ptr = ::__pstl_offload::__internal_aligned_alloc(__size, __alignment);
 
-    if (ptr) {
-        *memptr = ptr;
+    if (__ptr) {
+        *__memptr = __ptr;
         return 0;
     }
     return ENOMEM;
@@ -181,24 +174,24 @@ inline int __attribute__((always_inline)) mallopt(int /*param*/, int /*value*/) 
     return 1;
 }
 
-inline void* __attribute__((always_inline)) aligned_alloc(std::size_t alignment, std::size_t size) {
-    return oneapi::dpl::pstl_offload::errno_handling_usm_aligned_alloc(size, alignment);
+inline void* __attribute__((always_inline)) aligned_alloc(std::size_t __alignment, std::size_t __size) {
+    return ::__pstl_offload::__errno_handling_internal_aligned_alloc(__size, __alignment);
 }
 
-inline void* __attribute__((always_inline)) __libc_malloc(std::size_t size) {
-    return malloc(size);
+inline void* __attribute__((always_inline)) __libc_malloc(std::size_t __size) {
+    return malloc(__size);
 }
 
-inline void* __attribute__((always_inline)) __libc_calloc(std::size_t num, std::size_t size) {
-    return calloc(num, size);
+inline void* __attribute__((always_inline)) __libc_calloc(std::size_t __num, std::size_t __size) {
+    return calloc(__num, __size);
 }
 
-inline void* __attribute__((always_inline)) __libc_memalign(std::size_t alignment, std::size_t size) {
-    return memalign(alignment, size);
+inline void* __attribute__((always_inline)) __libc_memalign(std::size_t __alignment, std::size_t __size) {
+    return memalign(__alignment, __size);
 }
 
-inline void* __attribute__((always_inline)) __libc_realloc(void *ptr, std::size_t size) {
-    return realloc(ptr, size);
+inline void* __attribute__((always_inline)) __libc_realloc(void *__ptr, std::size_t __size) {
+    return realloc(__ptr, __size);
 }
 
 } // extern "C"
@@ -206,36 +199,36 @@ inline void* __attribute__((always_inline)) __libc_realloc(void *ptr, std::size_
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winline-new-delete"
 
-inline void* __attribute__((always_inline)) operator new(std::size_t size) {
-    return oneapi::dpl::pstl_offload::internal_operator_new(size);
+inline void* __attribute__((always_inline)) operator new(std::size_t __size) {
+    return ::__pstl_offload::__internal_operator_new(__size);
 }
 
-inline void* __attribute__((always_inline)) operator new[](std::size_t size) {
-    return oneapi::dpl::pstl_offload::internal_operator_new(size);
+inline void* __attribute__((always_inline)) operator new[](std::size_t __size) {
+    return ::__pstl_offload::__internal_operator_new(__size);
 }
 
-inline void* __attribute__((always_inline)) operator new(std::size_t size, const std::nothrow_t&) noexcept {
-    return oneapi::dpl::pstl_offload::internal_operator_new(std::nothrow, size);
+inline void* __attribute__((always_inline)) operator new(std::size_t __size, const std::nothrow_t&) noexcept {
+    return ::__pstl_offload::__internal_operator_new(std::nothrow, __size);
 }
 
-inline void* __attribute__((always_inline)) operator new[](std::size_t size, const std::nothrow_t&) noexcept {
-    return oneapi::dpl::pstl_offload::internal_operator_new(std::nothrow, size);
+inline void* __attribute__((always_inline)) operator new[](std::size_t __size, const std::nothrow_t&) noexcept {
+    return ::__pstl_offload::__internal_operator_new(std::nothrow, __size);
 }
 
-inline void* __attribute__((always_inline)) operator new(std::size_t size, std::align_val_t al) {
-    return oneapi::dpl::pstl_offload::internal_operator_new(size, std::size_t(al));
+inline void* __attribute__((always_inline)) operator new(std::size_t __size, std::align_val_t __al) {
+    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al));
 }
 
-inline void* __attribute__((always_inline)) operator new[](std::size_t size, std::align_val_t al) {
-    return oneapi::dpl::pstl_offload::internal_operator_new(size, std::size_t(al));
+inline void* __attribute__((always_inline)) operator new[](std::size_t __size, std::align_val_t __al) {
+    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al));
 }
 
-inline void* __attribute__((always_inline)) operator new(std::size_t size, std::align_val_t al, const std::nothrow_t&) noexcept {
-    return oneapi::dpl::pstl_offload::internal_operator_new(std::nothrow, size, std::size_t(al));
+inline void* __attribute__((always_inline)) operator new(std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept {
+    return ::__pstl_offload::__internal_operator_new(std::nothrow, __size, std::size_t(__al));
 }
 
-inline void* __attribute__((always_inline)) operator new[](std::size_t size, std::align_val_t al, const std::nothrow_t&) noexcept {
-    return oneapi::dpl::pstl_offload::internal_operator_new(std::nothrow, size, std::size_t(al));
+inline void* __attribute__((always_inline)) operator new[](std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept {
+    return ::__pstl_offload::__internal_operator_new(std::nothrow, __size, std::size_t(__al));
 }
 
 #pragma GCC diagnostic pop

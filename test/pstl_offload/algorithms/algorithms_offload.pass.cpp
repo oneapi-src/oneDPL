@@ -26,7 +26,7 @@
 // results in a low-level call to oneapi::dpl::algorithm_name(device_policy<KernelName>, ...)
 // and hence the offload to the correct device happends
 
-// To check that special overloads for oneapi::dpl:: algortihms added
+// To check that special overloads for oneapi::dpl:: algorithms added
 // BEFORE including the oneDPL and any standard header, because in __SYCL_PSTL_OFFLOAD mode
 // each standard header inclusion results in inclusion of oneDPL
 
@@ -207,7 +207,7 @@ enum class algorithm_id {
     ADJACENT_DIFFERENCE_BINARYOP
 };
 
-algorithm_id algorithm_id_state = algorithm_id::EMPTY_ID;
+static algorithm_id algorithm_id_state = algorithm_id::EMPTY_ID;
 
 template <typename _ExecutionPolicy>
 void check_policy(const _ExecutionPolicy& exec);
@@ -1463,7 +1463,7 @@ void check_policy(const _ExecutionPolicy& __policy) {
 
 template <algorithm_id _AlgorithmId, typename _RunAlgorithmBody, typename... _AlgorithmArgs>
 void test_algorithm(_RunAlgorithmBody __run_algorithm, _AlgorithmArgs&&... __args) {
-    EXPECT_TRUE(algorithm_id_state == algorithm_id::EMPTY_ID, "algorithm_id was not resetted");
+    EXPECT_TRUE(algorithm_id_state == algorithm_id::EMPTY_ID, "algorithm_id was not reset");
     __run_algorithm(std::execution::par_unseq, std::forward<_AlgorithmArgs>(__args)...);
 
     EXPECT_TRUE(algorithm_id_state == _AlgorithmId, "Algorithm was not redirected to the device version or incorrect low-level algorithm was called");
@@ -1473,11 +1473,11 @@ void test_algorithm(_RunAlgorithmBody __run_algorithm, _AlgorithmArgs&&... __arg
 #define RUN_LAMBDA(ALGORITHM_NAME) [](const auto& policy, auto... args) { std::ALGORITHM_NAME(policy, args...); }
 
 int main() {
-    std::size_t rng = 0;
     not_iterator iter;
     auto binary_predicate = [](int, int) { return true; };
     auto unary_predicate = [](int) { return true; };
     auto function = [](int) {};
+    auto rng = []() { return 1; };
 
     // Testing <algorithm>
     test_algorithm<algorithm_id::ANY_OF>(RUN_LAMBDA(any_of), iter, iter, binary_predicate);
