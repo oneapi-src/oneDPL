@@ -91,7 +91,7 @@ struct __lvref_or_val
 template <typename _Tp>
 struct __lvref_or_val<_Tp, false>
 {
-    using __type = typename ::std::remove_reference<_Tp>::type;
+    using __type = ::std::remove_reference_t<_Tp>;
 };
 
 template <typename T>
