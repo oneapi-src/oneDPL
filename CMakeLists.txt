@@ -348,6 +348,8 @@ if (ONEDPL_BACKEND MATCHES "^(pstl_offload)$")
     set_target_properties(pstloffload PROPERTIES
         VERSION 1.0.0
         SOVERSION 1
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN ON
     )
 
     add_dependencies(oneDPL pstloffload)

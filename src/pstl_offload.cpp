@@ -16,6 +16,8 @@
 
 #if __linux__
 
+#define _PSTL_OFFLOAD_EXPORT __attribute__((visibility("default")))
+
 #include <dlfcn.h>
 #include <string.h>
 #include <unistd.h>
@@ -69,65 +71,65 @@ std::size_t __internal_msize(void* __user_ptr) {
 
 extern "C" {
 
-void free(void* __ptr) {
+_PSTL_OFFLOAD_EXPORT void free(void* __ptr) {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-void __libc_free(void *__ptr) {
+_PSTL_OFFLOAD_EXPORT void __libc_free(void *__ptr) {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-void* realloc(void* __ptr, std::size_t __new_size) {
+_PSTL_OFFLOAD_EXPORT void* realloc(void* __ptr, std::size_t __new_size) {
     return ::__pstl_offload::__internal_realloc(__ptr, __new_size);
 }
 
-void* __libc_realloc(void* __ptr, std::size_t __new_size) {
+_PSTL_OFFLOAD_EXPORT void* __libc_realloc(void* __ptr, std::size_t __new_size) {
     return ::__pstl_offload::__internal_realloc(__ptr, __new_size);
 }
 
-std::size_t malloc_usable_size(void* __ptr) noexcept {
+_PSTL_OFFLOAD_EXPORT std::size_t malloc_usable_size(void* __ptr) noexcept {
     return ::__pstl_offload::__internal_msize(__ptr);
 }
 
 } // extern "C"
 
-void operator delete(void* __ptr) noexcept {
+_PSTL_OFFLOAD_EXPORT void operator delete(void* __ptr) noexcept {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete[](void* __ptr) noexcept {
+_PSTL_OFFLOAD_EXPORT void operator delete[](void* __ptr) noexcept {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete(void* __ptr, std::size_t) noexcept {
+_PSTL_OFFLOAD_EXPORT void operator delete(void* __ptr, std::size_t) noexcept {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete[](void* __ptr, std::size_t) noexcept {
+_PSTL_OFFLOAD_EXPORT void operator delete[](void* __ptr, std::size_t) noexcept {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete(void* __ptr, std::size_t, std::align_val_t) noexcept {
+_PSTL_OFFLOAD_EXPORT void operator delete(void* __ptr, std::size_t, std::align_val_t) noexcept {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete[](void* __ptr, std::size_t, std::align_val_t) noexcept {
+_PSTL_OFFLOAD_EXPORT void operator delete[](void* __ptr, std::size_t, std::align_val_t) noexcept {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete(void* __ptr, const std::nothrow_t&) noexcept {
+_PSTL_OFFLOAD_EXPORT void operator delete(void* __ptr, const std::nothrow_t&) noexcept {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete[](void* __ptr, const std::nothrow_t&) noexcept {
+_PSTL_OFFLOAD_EXPORT void operator delete[](void* __ptr, const std::nothrow_t&) noexcept {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete(void* __ptr, std::align_val_t) noexcept {
+_PSTL_OFFLOAD_EXPORT void operator delete(void* __ptr, std::align_val_t) noexcept {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
-void operator delete[](void* __ptr, std::align_val_t) noexcept {
+_PSTL_OFFLOAD_EXPORT void operator delete[](void* __ptr, std::align_val_t) noexcept {
     ::__pstl_offload::__internal_free(__ptr);
 }
 
