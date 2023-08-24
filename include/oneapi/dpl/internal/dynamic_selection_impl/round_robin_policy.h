@@ -11,6 +11,7 @@
 #define _ONEDPL_ROUND_ROBIN_POLICY_IMPL_H
 
 #include <atomic>
+#include <vector>
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
@@ -25,18 +26,21 @@ namespace experimental{
   template <typename Backend>
 #endif
   struct round_robin_policy {
+  private:
     using backend_t = Backend;
     using resource_container_t = typename backend_t::resource_container_t;
     using resource_container_size_t = typename resource_container_t::size_type;
-    using waiter_container_t = typename backend_t::waiter_container_t;
+    using wrapped_resource_t = typename std::decay<Backend>::type::execution_resource_t;
 
     using execution_resource_t = typename backend_t::execution_resource_t;
 
+  public:
     //Policy Traits
     using selection_type = oneapi::dpl::experimental::basic_selection_handle_t<round_robin_policy<Backend>, execution_resource_t>;
-    using resource_type = typename backend_t::resource_type;
+    using resource_type = decltype(unwrap(std::declval<wrapped_resource_t>()));
     using wait_type = typename backend_t::wait_type;
 
+  private:
     std::shared_ptr<backend_t> backend_;
 
     struct state_t{
@@ -48,6 +52,7 @@ namespace experimental{
 
     std::shared_ptr<state_t> state_;
 
+    public:
     auto get_resources() const {
         if(backend_){
             return backend_->get_resources();
@@ -72,13 +77,12 @@ namespace experimental{
           backend_ = std::make_shared<backend_t>(u);
           state_= std::make_shared<state_t>();
           for(auto x : u){
-              state_->resources_.emplace_back(x);
+              state_->resources_.push_back(x);
           }
           state_->num_contexts_ = state_->resources_.size();
           state_->offset_ = offset;
           state_->next_context_=state_->offset_;
       }
-
     }
 
    round_robin_policy(int offset=0) {
@@ -135,6 +139,7 @@ namespace experimental{
         throw std::runtime_error("Called get_submission_group before initialization\n");
       }
     }
+
   };
 } // namespace experimental
 
