@@ -369,7 +369,7 @@ struct __sycl_scan_by_segment_impl
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
           typename BinaryPredicate, typename Operator, typename Inclusive>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<::std::decay_t<Policy>, OutputIterator>
 __scan_by_segment_impl_common(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                               OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op, Inclusive)
 {
