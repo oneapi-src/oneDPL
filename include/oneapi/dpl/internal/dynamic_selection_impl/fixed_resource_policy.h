@@ -10,7 +10,7 @@
 #ifndef _ONEDPL_STATIC_POLICY_IMPL_H
 #define _ONEDPL_STATIC_POLICY_IMPL_H
 
-#include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
+//#include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 #endif
@@ -24,14 +24,19 @@ namespace experimental {
   template <typename Backend>
 #endif
   struct fixed_resource_policy {
+  private:
     using backend_t = Backend;
     using resource_container_t = typename backend_t::resource_container_t;
     using execution_resource_t = typename backend_t::execution_resource_t;
+    using wrapped_resource_t = typename std::decay<Backend>::type::execution_resource_t;
 
+  public:
     //policy traits
-    using resource_type = typename backend_t::resource_type;
+    using resource_type = decltype(unwrap(std::declval<wrapped_resource_t>()));
     using selection_type = oneapi::dpl::experimental::basic_selection_handle_t<fixed_resource_policy<Backend>, execution_resource_t>;
     using wait_type = typename backend_t::wait_type;
+
+  private:
     std::shared_ptr<backend_t> backend_;
 
     struct state_t {
@@ -41,20 +46,16 @@ namespace experimental {
 
     std::shared_ptr<state_t> state_;
 
-    fixed_resource_policy(int offset) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()}  {
+  public:
+    fixed_resource_policy(int offset=0) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()}  {
       state_->resources_ = get_resources();
       state_->offset_ = offset;
     }
 
-    fixed_resource_policy(resource_container_t u, int offset) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()} {
+    fixed_resource_policy(const std::vector<resource_type>& u, int offset=0) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()} {
       backend_->initialize(u);
       state_->resources_ = get_resources();
       state_->offset_ = offset;
-    }
-
-    template<typename ...Args>
-    fixed_resource_policy(Args&&... args) : backend_{std::make_shared<backend_t>(std::forward<Args>(args)...)}, state_{std::make_shared<state_t>()} {
-      state_->resources_ = get_resources();
     }
 
     auto get_resources()  const {
@@ -67,7 +68,7 @@ namespace experimental {
       backend_->initialize();
     }
 
-    void initialize(resource_container_t u, int offset=0) {
+    void initialize(const std::vector<resource_type>& u, int offset=0) {
       state_->offset_ = offset;
       backend_->initialize(u);
     }
@@ -92,6 +93,7 @@ namespace experimental {
     auto wait() {
       backend_->wait();
     }
+    
   };
 } //namespace experimental
 } //namespace dpl
