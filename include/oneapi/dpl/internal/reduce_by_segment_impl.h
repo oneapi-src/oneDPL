@@ -326,8 +326,8 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
             __seg_reduce_offset_kernel,
 #endif
             sycl::nd_range<1>{__wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
-                auto __beg = __seg_ends_acc.get_pointer();
-                auto __out_beg = __seg_ends_scan_acc.get_pointer();
+                auto __beg = __dpl_sycl::__get_accessor_ptr(__seg_ends_acc);
+                auto __out_beg = __dpl_sycl::__get_accessor_ptr(__seg_ends_scan_acc);
                 __dpl_sycl::__joint_exclusive_scan(__item.get_group(), __beg, __beg + __n_groups, __out_beg,
                                                    __diff_type(0), sycl::plus<__diff_type>());
             });

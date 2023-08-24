@@ -444,8 +444,8 @@ struct __parallel_transform_scan_dynamic_single_group_submitter<_Inclusive,
                         __lacc[__idx] = __unary_op(__in_rng[__idx]);
                     }
 
-                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n,
-                                                              __lacc.get_pointer(), __bin_op, __init);
+                    auto __ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __ptr, __ptr + __n, __ptr, __bin_op, __init);
 
                     for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += __wg_size)
                     {
@@ -505,6 +505,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
 
+                    auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
                     if constexpr (__can_use_subgroup_load_store)
                     {
                         _ONEDPL_PRAGMA_UNROLL
@@ -512,7 +513,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                         {
                             auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
                             auto __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
-                            __subgroup.store(__lacc.get_pointer() + __idx, __val);
+                            __subgroup.store(__lacc_ptr + __idx, __val);
                         }
                     }
                     else
@@ -524,8 +525,8 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                         }
                     }
 
-                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc.get_pointer(), __lacc.get_pointer() + __n,
-                                                              __lacc.get_pointer(), __bin_op, __init);
+                    __scan_work_group<_ValueType, _Inclusive>(__group, __lacc_ptr, __lacc_ptr + __n,
+                                                              __lacc_ptr, __bin_op, __init);
 
                     if constexpr (__can_use_subgroup_load_store)
                     {
@@ -533,7 +534,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                         for (::std::uint16_t __i = 0; __i < _ElemsPerItem; ++__i)
                         {
                             auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
-                            auto __val = __subgroup.load(__lacc.get_pointer() + __idx);
+                            auto __val = __subgroup.load(__lacc_ptr + __idx);
                             __subgroup.store(__out_rng.begin() + __idx, __val);
                         }
                     }
@@ -609,7 +610,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 #else
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
-
+                    auto __lacc_ptr = __dpl_sycl::__get_accessor_ptr(__lacc);
                     if constexpr (__can_use_subgroup_load_store)
                     {
                         _ONEDPL_PRAGMA_UNROLL
@@ -617,7 +618,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                         {
                             auto __idx = __i * _WGSize + __subgroup_id * __subgroup_size;
                             uint16_t __val = __unary_op(__subgroup.load(__in_rng.begin() + __idx));
-                            __subgroup.store(__lacc.get_pointer() + __idx, __val);
+                            __subgroup.store(__lacc_ptr + __idx, __val);
                         }
                     }
                     else
@@ -630,8 +631,8 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     }
 
                     __scan_work_group<_ValueType, /* _Inclusive */ false>(
-                        __group, __lacc.get_pointer(), __lacc.get_pointer() + __elems_per_wg,
-                        __lacc.get_pointer() + __elems_per_wg, __bin_op, __init);
+                        __group, __lacc_ptr, __lacc_ptr + __elems_per_wg, __lacc_ptr + __elems_per_wg, __bin_op,
+                         __init);
 
                     _ONEDPL_PRAGMA_UNROLL
                     for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
@@ -1140,9 +1141,9 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
                     auto __local_idx = __item_id.get_local_id(0);
 
                     __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
-                        *__temp_acc.get_pointer());
+                        *__dpl_sycl::__get_accessor_ptr(__temp_acc));
                     __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::local_space> __found_local(
-                        *__temp_local.get_pointer());
+                        *__dpl_sycl::__get_accessor_ptr(__temp_local));
 
                     // 1. Set initial value to local atomic
                     if (__local_idx == 0)

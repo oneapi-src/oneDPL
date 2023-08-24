@@ -360,12 +360,12 @@ struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
 };
 #endif // _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
 
-template <typename DataT, int Dimensions = 1>
+template <typename _DataT, int _Dimensions = 1>
 using __local_accessor =
 #if _ONEDPL_LIBSYCL_VERSION >= 60000
-    sycl::local_accessor<DataT, Dimensions>;
+    sycl::local_accessor<_DataT, _Dimensions>;
 #else
-    sycl::accessor<DataT, Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
+    sycl::accessor<_DataT, _Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
 #endif
 
 template <typename _Buf>
@@ -376,6 +376,17 @@ __get_host_access(_Buf&& __buf)
     return ::std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
 #else
     return ::std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
+#endif
+}
+
+template <typename _Acc>
+auto
+__get_accessor_ptr(const _Acc& __acc)
+{
+#if _ONEDPL_LIBSYCL_VERSION >= 70000
+    return __acc.template get_multi_ptr<sycl::access::decorated::no>().get();
+#else
+    return __acc.get_pointer();
 #endif
 }
 
