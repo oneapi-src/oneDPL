@@ -15,7 +15,7 @@
 
 static inline void build_dl_universe(std::vector<sycl::queue> &u) {
   try {
-    auto device_cpu1 = sycl::device(sycl::cpu_selector());
+    auto device_cpu1 = sycl::device(sycl::cpu_selector_v);
     sycl::queue cpu1_queue(device_cpu1);
     run_sycl_sanity_test(cpu1_queue);
     u.push_back(cpu1_queue);
@@ -23,7 +23,7 @@ static inline void build_dl_universe(std::vector<sycl::queue> &u) {
     std::cout << "SKIPPED: Unable to run with cpu_selector\n";
   }
   try {
-    auto device_cpu2 = sycl::device(sycl::cpu_selector());
+    auto device_cpu2 = sycl::device(sycl::cpu_selector_v);
     sycl::queue cpu2_queue(device_cpu2);
     run_sycl_sanity_test(cpu2_queue);
     u.push_back(cpu2_queue);
