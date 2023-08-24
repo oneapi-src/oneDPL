@@ -152,7 +152,7 @@ inline void* __attribute__((always_inline)) memalign(std::size_t __alignment, st
 }
 
 inline int __attribute__((always_inline)) posix_memalign(void** __memptr, std::size_t __alignment, std::size_t __size) noexcept {
-    if (__alignment == 0 || (__alignment & __alignment - 1) != 0) // alignment is not a power of two
+    if (!__pstl_offload::__is_power_of_two(__alignment))
         return EINVAL;
 
     void* __ptr = ::__pstl_offload::__internal_aligned_alloc(__size, __alignment);

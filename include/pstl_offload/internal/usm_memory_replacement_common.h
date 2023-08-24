@@ -38,19 +38,24 @@ static_assert(sizeof(__block_header) <= __header_offset);
 
 #if __linux__
 
-inline std::size_t __get_memory_page_size()
-{
+inline constexpr bool __is_power_of_two(std::size_t __number) {
+    return __number != 0 && (__number & __number - 1) == 0;
+}
+
+inline std::size_t __get_memory_page_size() {
     static std::size_t __memory_page_size = sysconf(_SC_PAGESIZE);
+    assert(__is_power_of_two(__memory_page_size));
     return __memory_page_size;
 }
 
 inline void* __allocate_from_device(sycl::device* __device, std::size_t __size, std::size_t __alignment) {
-    std::size_t __base_offset = std::max(__alignment, __header_offset);
     // Unsupported alignment - impossible to guarantee that the returned pointer and memory header
     // would be on the same memory page if the alignment for more than a memory page is requested
     if (__alignment >= __get_memory_page_size()) {
         return nullptr;
     }
+
+    std::size_t __base_offset = std::max(__alignment, __header_offset);
 
     // Memory block allocated with sycl::aligned_alloc_shared should be aligned to at least HEADER_OFFSET * 2
     // to guarantee that header and header + HEADER_OFFSET (user pointer) would be placed in one memory page
