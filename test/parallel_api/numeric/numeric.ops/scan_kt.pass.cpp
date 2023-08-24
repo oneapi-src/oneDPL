@@ -22,9 +22,35 @@ int
 main()
 {
     int n = 1 << 16;
+    std::vector<int> v(n, 1);
     sycl::queue q;
     int* in_ptr = sycl::malloc_device<int>(n, q);
     int* out_ptr = sycl::malloc_device<int>(n, q);
-    oneapi::dpl::experimental::igpu::single_pass_inclusive_scan(oneapi::dpl::execution::dpcpp_default, in_ptr, in_ptr+n, out_ptr, ::std::plus<int>());
-    return 0;
+
+
+    q.copy(v.data(), in_ptr, n);
+    using KernelParams = oneapi::dpl::experimental::kt::kernel_param<128, 2, class ScanKernel>;
+    oneapi::dpl::experimental::kt::single_pass_inclusive_scan<KernelParams>(q, in_ptr, in_ptr+n, out_ptr, ::std::plus<int>());
+
+    std::vector<int> tmp(n, 0);
+    q.copy(out_ptr, tmp.data(), n);
+
+    std::inclusive_scan(v.begin(), v.end(), v.begin());
+
+    bool passed = true;
+    for (size_t i  = 0; i < n; ++i)
+    {
+        if (tmp[i] != v[i])
+        {
+            passed = false;
+            std::cout << "expected " << i << ' ' << v[i] << ' ' << tmp[i] << '\n';
+        }
+    }
+
+    if (passed)
+        std::cout << "passed" << std::endl;
+    else
+        std::cout << "failed" << std::endl;
+
+    return !passed;
 }
