@@ -92,7 +92,7 @@ using __has_known_identity = sycl::ONEAPI::has_known_identity<_BinaryOp, _T>;
 template <typename _T = void>
 using __plus = sycl::plus<_T>;
 
-template <typename _T>
+template <typename _T = void>
 using __maximum = sycl::maximum<_T>;
 
 template <typename _T>
