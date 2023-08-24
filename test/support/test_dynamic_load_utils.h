@@ -15,6 +15,7 @@
 #include<chrono>
 #include<random>
 #include<algorithm>
+#include "support/sycl_sanity.h"
 
 int test_dl_initialization(const std::vector<sycl::queue>& u) {
   // initialize
