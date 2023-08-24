@@ -15,7 +15,7 @@
 class fake_selection_handle_t {
   sycl::queue q_;
 public:
-  fake_selection_handle_t(sycl::queue q = sycl::queue(sycl::default_selector{})) : q_(q) {}
+  fake_selection_handle_t(sycl::queue q = sycl::queue(sycl::default_selector_v)) : q_(q) {}
   auto unwrap() { return q_; }
 };
 
@@ -177,15 +177,13 @@ int test_properties() {
   std::vector<sycl::queue> v;
   //= { sycl::queue(sycl::cpu_selector{}), sycl::queue(sycl::gpu_selector{}) };
   try {
-    sycl::cpu_selector ds_cpu;
-    sycl::queue cpu_queue(ds_cpu);
+    sycl::queue cpu_queue{sycl::cpu_selector_v};
     v.push_back(cpu_queue);
   } catch (sycl::exception) {
     std::cout << "SKIPPED: Unable to use cpu selector\n";
   }
   try {
-    sycl::gpu_selector ds_gpu;
-    sycl::queue gpu_queue(ds_gpu);
+    sycl::queue gpu_queue{sycl::gpu_selector_v};
     v.push_back(gpu_queue);
   } catch (sycl::exception) {
     std::cout << "SKIPPED: Unable to use gpu selector\n";
