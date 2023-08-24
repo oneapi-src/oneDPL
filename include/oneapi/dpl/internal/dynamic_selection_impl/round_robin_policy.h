@@ -25,6 +25,7 @@ namespace experimental{
   template <typename Backend>
 #endif
   struct round_robin_policy {
+    private:
     using backend_t = Backend;
     using resource_container_t = typename backend_t::resource_container_t;
     using resource_container_size_t = typename resource_container_t::size_type;
@@ -33,10 +34,12 @@ namespace experimental{
     using execution_resource_t = typename backend_t::execution_resource_t;
 
     //Policy Traits
+    public:
     using selection_type = oneapi::dpl::experimental::basic_selection_handle_t<round_robin_policy<Backend>, execution_resource_t>;
     using resource_type = typename backend_t::resource_type;
     using wait_type = typename backend_t::wait_type;
 
+    private:
     std::shared_ptr<backend_t> backend_;
 
     struct state_t{
@@ -47,7 +50,7 @@ namespace experimental{
     };
 
     std::shared_ptr<state_t> state_;
-
+    public:
     round_robin_policy(int offset=0) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()}  {
       state_->resources_ = get_resources();
       state_->num_contexts_ = state_->resources_.size();

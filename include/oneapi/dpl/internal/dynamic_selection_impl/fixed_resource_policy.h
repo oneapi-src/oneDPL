@@ -47,53 +47,79 @@ namespace experimental {
     std::shared_ptr<state_t> state_;
 
   public:
-    fixed_resource_policy(int offset=0) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()}  {
-      state_->resources_ = get_resources();
-      state_->offset_ = offset;
+    fixed_resource_policy(int offset=0) {
+        if(offset!=deferred_initialization){
+            initialize(offset);
+        }
     }
 
-    fixed_resource_policy(const std::vector<resource_type>& u, int offset=0) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()} {
-      backend_->initialize(u);
-      state_->resources_ = get_resources();
-      state_->offset_ = offset;
+    fixed_resource_policy(const std::vector<resource_type>& u, int offset=0) {
+        if(offset!=deferred_initialization){
+            initialize(u, offset);
+        }
     }
 
     auto get_resources()  const {
-      return backend_->get_resources();
+      if(state_){
+          return backend_->get_resources();
+      }else{
+          throw std::runtime_error("Called select before initialization\n");
+      }
     }
 
     void initialize(int offset=0) {
-      if (offset == deferred_initialization) return;
-      state_->offset_ = offset;
-      backend_->initialize();
+      if(!state_){
+           backend_ = std::make_shared<backend_t>();
+           state_= std::make_shared<state_t>();
+           state_->resources_ = get_resources();
+           state_->offset_ = offset;
+      }
     }
 
     void initialize(const std::vector<resource_type>& u, int offset=0) {
-      state_->offset_ = offset;
-      backend_->initialize(u);
+      if(!state_){
+           backend_ = std::make_shared<backend_t>(u);
+           state_= std::make_shared<state_t>();
+           for(auto x : u){
+              state_->resources_.emplace_back(x);
+           }
+           state_->offset_ = offset;
+      }
     }
 
     template<typename ...Args>
     selection_type select(Args&&...) {
-      if(!state_->resources_.empty()) {
-          return selection_type{*this, state_->resources_[state_->offset_]};
+      if(state_){
+          if(!state_->resources_.empty()) {
+              return selection_type{*this, state_->resources_[state_->offset_]};
+          }
+          return selection_type{*this};
+      }else{
+          throw std::runtime_error("Called select before initialization\n");
       }
-      return selection_type{*this};
     }
 
     template<typename Function, typename ...Args>
     auto submit(selection_type e, Function&& f, Args&&... args) {
-      return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
+      if(state_){
+          return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
+      }else{
+          throw std::runtime_error("Called submit before initialization\n");
+      }
     }
 
     auto get_submission_group() {
-      return backend_->get_submission_group();
+      if(state_){
+          return backend_->get_submission_group();
+      }else{
+          throw std::runtime_error("Called submission group before initialization\n");
+      }
     }
 
     auto wait() {
       backend_->wait();
     }
-    
+
   };
 } //namespace experimental
 } //namespace dpl
