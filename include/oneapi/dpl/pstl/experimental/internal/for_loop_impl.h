@@ -102,7 +102,7 @@ class __reduction_pack
 {
     // No matter how the Ts objects are provided(lvalue or rvalue) we need to store copies of them,
     // to avoid modification of the original ones.
-    ::std::tuple<typename ::std::remove_cv<typename ::std::remove_reference<_Ts>::type>::type...> __objects_;
+    ::std::tuple<typename ::std::remove_cv<::std::remove_reference_t<_Ts>>::type...> __objects_;
 
     template <typename _Fp, typename _Ip, typename _Position, ::std::size_t... _Is>
     void
