@@ -18,4 +18,4 @@
 #    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_STDLIB_H
 #    include "internal/usm_memory_replacement.h"
 #    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NEW
+#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_STDLIB_H
