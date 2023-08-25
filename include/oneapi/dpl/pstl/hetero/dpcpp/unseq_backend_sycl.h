@@ -54,7 +54,9 @@ using __has_known_identity =
                                ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
                                ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<void>>,
                                ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<_Tp>>,
-                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<_Tp>>>>>;
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<void>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<void>>>>>;
 #    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
