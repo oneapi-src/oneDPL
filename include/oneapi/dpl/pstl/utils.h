@@ -50,7 +50,7 @@ namespace __internal
 
 template <typename Iterator>
 using is_const_iterator =
-    typename ::std::is_const<typename ::std::remove_pointer<typename ::std::iterator_traits<Iterator>::pointer>::type>;
+    typename ::std::is_const<::std::remove_pointer_t<typename ::std::iterator_traits<Iterator>::pointer>>;
 
 template <typename _Fp>
 auto
