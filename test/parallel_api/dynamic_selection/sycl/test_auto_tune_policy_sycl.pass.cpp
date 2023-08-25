@@ -11,6 +11,7 @@
 #include <thread>
 #include "oneapi/dpl/dynamic_selection"
 #include "support/test_ds_utils.h"
+#include "support/sycl_sanity.h"
 
 int test_auto_initialization(const std::vector<sycl::queue>& u) {
   // initialize
@@ -85,7 +86,7 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
                    }
                    ecount += i;
                    return q.submit([=](sycl::handler& h) {
-                     h.parallel_for(1000000, [=](sycl::id<1> idx) {
+                     h.parallel_for<TestUtils::unique_kernel_name<class tune1, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
                        for (int j0 = 0; j0 < *j; ++j0) {
                          v[idx] += idx;
                        }
@@ -113,7 +114,7 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
                    }
                    ecount += i;
                    return q.submit([=](sycl::handler& h) {
-                     h.parallel_for(1000000, [=](sycl::id<1> idx) {
+                     h.parallel_for<TestUtils::unique_kernel_name<class tune2, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
                        for (int j0 = 0; j0 < *j; ++j0) {
                          v[idx] += idx;
                        }
@@ -183,7 +184,7 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
                    }
                    ecount += i;
                    return q.submit([=](sycl::handler& h) {
-                     h.parallel_for(1000000, [=](sycl::id<1> idx) {
+                     h.parallel_for<TestUtils::unique_kernel_name<class tune3, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
                        for (int j0 = 0; j0 < *j; ++j0) {
                          v[idx] += idx;
                        }
@@ -211,7 +212,7 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
                    }
                    ecount += i;
                    return q.submit([=](sycl::handler& h) {
-                     h.parallel_for(1000000, [=](sycl::id<1> idx) {
+                     h.parallel_for<TestUtils::unique_kernel_name<class tune4, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
                        for (int j0 = 0; j0 < *j; ++j0) {
                          v[idx] += idx;
                        }
@@ -281,7 +282,7 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
                    }
                    ecount += i;
                    return q.submit([=](sycl::handler& h) {
-                     h.parallel_for(1000000, [=](sycl::id<1> idx) {
+                     h.parallel_for<TestUtils::unique_kernel_name<class tune5, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
                        for (int j0 = 0; j0 < *j; ++j0) {
                          v[idx] += idx;
                        }
@@ -308,7 +309,7 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
                    }
                    ecount += i;
                    return q.submit([=](sycl::handler& h) {
-                     h.parallel_for(1000000, [=](sycl::id<1> idx) {
+                     h.parallel_for<TestUtils::unique_kernel_name<class tune6, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
                        for (int j0 = 0; j0 < *j; ++j0) {
                          v[idx] += idx;
                        }
