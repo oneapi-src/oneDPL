@@ -48,7 +48,7 @@ inline std::size_t __get_memory_page_size() {
     return __memory_page_size;
 }
 
-inline void* __allocate_from_device(sycl::device* __device, std::size_t __size, std::size_t __alignment) {
+inline void* __allocate_shared_for_device(sycl::device* __device, std::size_t __size, std::size_t __alignment) {
     // Unsupported alignment - impossible to guarantee that the returned pointer and memory header
     // would be on the same memory page if the alignment for more than a memory page is requested
     if (__alignment >= __get_memory_page_size()) {
@@ -101,7 +101,7 @@ static void* __internal_realloc(void* __user_ptr, std::size_t __new_size) {
     if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const) {
         if (__header->_M_requested_number_of_bytes < __new_size) {
             assert(__header->_M_device);
-            void* __new_ptr = __allocate_from_device(__header->_M_device, __new_size, alignof(std::max_align_t));
+            void* __new_ptr = __allocate_shared_for_device(__header->_M_device, __new_size, alignof(std::max_align_t));
 
             if (!__new_ptr) {
                 errno = ENOMEM;

@@ -80,7 +80,7 @@ static void* __internal_aligned_alloc(std::size_t __size, std::size_t __alignmen
     void* __res = nullptr;
 
     if (__device) {
-        __res = __allocate_from_device(__device, __size, __alignment);
+        __res = __allocate_shared_for_device(__device, __size, __alignment);
     } else {
         __res = __get_original_aligned_alloc()(__alignment, __size);
     }
