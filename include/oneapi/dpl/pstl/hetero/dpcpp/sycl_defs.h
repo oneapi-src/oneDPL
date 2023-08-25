@@ -93,10 +93,44 @@ template <typename _T = void>
 using __plus = sycl::plus<_T>;
 
 template <typename _T = void>
+using __multiplies = sycl::multiplies<_T>;
+
+template <typename _T = void>
+using __bit_and = sycl::bit_and<_T>;
+
+template <typename _T = void>
+using __bit_or = sycl::bit_or<_T>;
+
+template <typename _T = void>
+using __bit_xor = sycl::bit_xor<_T>;
+
+template <typename _T = void>
+using __logical_and = sycl::logical_and<_T>;
+
+// TODO how to implement this?
+//template <>
+//using __logical_and<void> = sycl::logical_and<>;
+
+template <typename _T = void>
+using __logical_or = sycl::logical_or<_T>;
+
+// TODO how to implement this?
+//template <>
+//using __logical_or<void> = sycl::logical_or<>;
+
+template <typename _T = void>
 using __maximum = sycl::maximum<_T>;
+
+// TODO how to implement this?
+//template <>
+//using __maximum<void> = sycl::maximum<>;
 
 template <typename _T = void>
 using __minimum = sycl::minimum<_T>;
+
+// TODO how to implement this?
+//template <>
+//using __minimum<void> = sycl::minimum<>;
 
 #else  // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 template <typename _T>
