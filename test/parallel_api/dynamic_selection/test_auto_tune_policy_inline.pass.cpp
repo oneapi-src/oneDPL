@@ -10,7 +10,7 @@
 #include <iostream>
 #include <thread>
 #include "oneapi/dpl/dynamic_selection"
-#include "support/test_ds_utils.h"
+#include "support/test_dynamic_selection_utils.h"
 #include "support/inline_backend.h"
 
 template<typename Policy, typename UniverseContainer, bool do_select=false>
