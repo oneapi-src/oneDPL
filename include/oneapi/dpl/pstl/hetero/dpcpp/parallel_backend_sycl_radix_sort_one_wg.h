@@ -37,14 +37,15 @@ struct __subgroup_radix_sort
     operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj)
     {
         using __wg_size_t = ::std::integral_constant<::std::uint16_t, __wg_size>;
+        using __sg_size_t = ::std::integral_constant<::std::uint16_t, __req_sub_group_size>;
         using __block_size_t = ::std::integral_constant<::std::uint16_t, __block_size>;
         using __call_0_t = ::std::integral_constant<::std::uint16_t, 0>;
         using __call_1_t = ::std::integral_constant<::std::uint16_t, 1>;
 
         using _SortKernelLoc = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_0_t>>;
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __sg_size_t, __block_size_t, __call_0_t>>;
         using _SortKernelGlob = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_1_t>>;
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __sg_size_t, __block_size_t, __call_1_t>>;
 
         using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
         //check SLM size
