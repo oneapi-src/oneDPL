@@ -50,16 +50,7 @@ namespace experimental {
     return std::forward<DSPolicy>(dp).select(std::forward<Args>(args)...);
   }
 
-  //
-  // this is deprcated and should be removed
-  //
-  template<typename DSPolicy, typename Function, typename... Args>
-  auto submit(DSPolicy&& dp, typename policy_traits<DSPolicy>::selection_type e, Function&&f, Args&&... args) {
-    return std::forward<DSPolicy>(dp).submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
-  }
-
-  // optional interfaces
-
+ namespace internal {
   template<typename T>
   auto has_unwrap_impl(...) -> std::false_type;
 
@@ -68,15 +59,6 @@ namespace experimental {
 
   template<typename T>
   struct has_unwrap : decltype(has_unwrap_impl<T>(0)) {};
-
-  template<typename T>
-  auto unwrap(T&& v) {
-    if constexpr(has_unwrap<T>::value == true) {
-        return std::forward<T>(v).unwrap();
-    } else {
-        return v;
-    }
-  }
 
   template<typename T>
   auto has_get_policy_impl(...) -> std::false_type;
@@ -96,19 +78,6 @@ namespace experimental {
   template<typename DSPolicy, typename Function, typename... Args>
   struct has_submit : decltype(has_submit_impl<DSPolicy, Function, Args...>(0)) {};
 
-  template<typename T, typename Function, typename... Args>
-  auto submit(T&& t, Function&&f, Args&&... args) {
-    if constexpr(has_get_policy<T>::value == true) {
-      // t is a selection
-      return t.get_policy().submit(std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...);
-    } else if constexpr(has_submit<T, Function, Args...>::value == true) {
-      // t is a policy and policy has optional submit(f, args...)
-      return std::forward<T>(t).submit(std::forward<Function>(f), std::forward<Args>(args)...);
-    } else {
-      // t is a policy and policy does not have optional submit(f, args...)
-      return submit(std::forward<T>(t), t.select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
-    }
-  }
 
   template<typename DSPolicy, typename Function, typename... Args>
   auto has_submit_and_wait_impl(...) -> std::false_type;
@@ -129,6 +98,58 @@ namespace experimental {
 
   template<typename DSPolicy, typename SelectionHandle, typename Function, typename... Args>
   struct has_submit_and_wait_handle : decltype(has_submit_and_wait_handle_impl<DSPolicy, SelectionHandle , Function, Args...>(0)) {};
+
+  template<typename S, typename Info>
+  auto has_report_impl(...) -> std::false_type;
+
+  template<typename S, typename Info>
+  auto has_report_impl(int) -> decltype(std::declval<S>().report(std::declval<Info>()), std::true_type{});
+
+  template<typename S, typename Info>
+  struct has_report : decltype(has_report_impl<S,Info>(0)) {};
+
+
+  template<typename S, typename Info>
+  auto has_report_value_impl(...) -> std::false_type;
+
+  template<typename S, typename Info>
+  auto has_report_value_impl(int) -> decltype(std::declval<S>().report(std::declval<Info>(), 0), std::true_type{});
+
+  template<typename S, typename Info>
+  struct has_report_value : decltype(has_report_value_impl<S,Info>(0)) {};
+
+
+ } //namespace internal
+
+
+  // optional interfaces
+
+using namespace internal;
+
+  template<typename T>
+  auto unwrap(T&& v) {
+    if constexpr(has_unwrap<T>::value == true) {
+        return std::forward<T>(v).unwrap();
+    } else {
+        return v;
+    }
+  }
+
+
+  template<typename T, typename Function, typename... Args>
+  auto submit(T&& t, Function&&f, Args&&... args) {
+    if constexpr(has_get_policy<T>::value == true) {
+      // t is a selection
+      return t.get_policy().submit(std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...);
+    } else if constexpr(has_submit<T, Function, Args...>::value == true) {
+      // t is a policy and policy has optional submit(f, args...)
+      return std::forward<T>(t).submit(std::forward<Function>(f), std::forward<Args>(args)...);
+    } else {
+      // t is a policy and policy does not have optional submit(f, args...)
+      return submit(std::forward<T>(t), t.select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
+    }
+  }
+
 
   template<typename T, typename Function, typename... Args>
   auto submit_and_wait(T&& t, Function&&f, Args&&... args) {
@@ -179,29 +200,12 @@ namespace experimental {
   } // namespace execution_info
 
   template<typename S, typename Info>
-  auto has_report_impl(...) -> std::false_type;
-
-  template<typename S, typename Info>
-  auto has_report_impl(int) -> decltype(std::declval<S>().report(std::declval<Info>()), std::true_type{});
-
-  template<typename S, typename Info>
-  struct has_report : decltype(has_report_impl<S,Info>(0)) {};
-
-  template<typename S, typename Info>
   void report(S&& s, const Info& i) {
     if constexpr(has_report<S,Info>::value == true) {
       std::forward<S>(s).report(i);
     }
   }
 
-  template<typename S, typename Info>
-  auto has_report_value_impl(...) -> std::false_type;
-
-  template<typename S, typename Info>
-  auto has_report_value_impl(int) -> decltype(std::declval<S>().report(std::declval<Info>(), 0), std::true_type{});
-
-  template<typename S, typename Info>
-  struct has_report_value : decltype(has_report_value_impl<S,Info>(0)) {};
 
   template<typename S, typename Info, typename Value>
   void report(S&& s, const Info& i, const Value& v) {
