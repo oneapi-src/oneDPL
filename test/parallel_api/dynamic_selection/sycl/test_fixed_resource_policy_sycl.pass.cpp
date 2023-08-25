@@ -22,11 +22,12 @@ int main() {
     std::cout << "PASS\n";
     return 0;
   }
-  auto f = [u](int i, int offset) { return u[offset]; };
+  auto f = [u](int i, int offset=0) { return u[offset]; };
 
   constexpr bool just_call_submit = false;
   constexpr bool call_select_before_submit = true;
   if ( test_initialization<policy_t, sycl::queue>(u)
+       || test_select<policy_t, decltype(u), decltype(f)&, false>(u, f)
        || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f)
        || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f, 1)
        || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f, 2)

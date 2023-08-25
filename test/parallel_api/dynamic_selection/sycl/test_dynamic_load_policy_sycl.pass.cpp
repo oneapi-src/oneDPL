@@ -11,6 +11,7 @@
 #include <iostream>
 #include "oneapi/dpl/dynamic_selection"
 #include "support/test_dynamic_load_utils.h"
+#include "support/test_dynamic_selection_utils.h"
 #include "support/sycl_sanity.h"
 
 static inline void build_dl_universe(std::vector<sycl::queue> &u) {
@@ -37,18 +38,17 @@ int main() {
   std::vector<sycl::queue> u;
   build_dl_universe(u);
 
-  sycl::queue test_resource = u[0];
   auto n = u.size();
 
   // should be similar to round_robin when waiting on policy
-  auto f = [test_resource, u, n](int i, int offset) {
+  auto f = [u, n](int i, int offset) {
     if(i==offset) {
         return u[offset];
     }
     return u[(i+offset)%u.size()];
   };
 
-  auto f2 = [test_resource, u, n](int i, int offset) {
+  auto f2 = [u, n](int i, int offset=0) {
     return u[offset];
   };
   // should always pick first when waiting on sync in each iteration
@@ -57,6 +57,7 @@ int main() {
     constexpr bool just_call_submit = false;
     constexpr bool call_select_before_submit = true;
   if ( test_dl_initialization(u)
+       || test_select<policy_t, decltype(u), decltype(f2)&, false>(u, f2)
        || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f2)
        || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f2, 1)
        || test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, f2)
