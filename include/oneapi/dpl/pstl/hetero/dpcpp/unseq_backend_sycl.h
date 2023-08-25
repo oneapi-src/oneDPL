@@ -45,17 +45,25 @@ using non_void_type = typename ::std::enable_if<!::std::is_void<_Tp>::value, _Tp
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity =
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
-    typename ::std::conjunction<
-        ::std::is_arithmetic<_Tp>, __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
-        ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<_Tp>>>>;
+    typename ::std::disjunction<
+        __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
+        ::std::conjunction<
+            ::std::is_arithmetic<_Tp>,
+            ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<void>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<void>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<void>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<void>>>>>;
 #    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>>>;
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<void>>,
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<void>>>>;
 #    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
 
 #else //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
