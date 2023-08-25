@@ -767,9 +767,9 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     using _RadixSortKernel = typename __decay_t<_ExecutionPolicy>::kernel_name;
 
     // Not all devices support sub-group size of 16. We need to add a run-time check for this on affected
-    // input sizes.
+    // input sizes to choose the appropriate kernel.
     auto sg_szs = __exec.queue().get_device().template get_info<sycl::info::device::sub_group_sizes>();
-    auto sup_sg_sz16 = ::std::find(sg_szs.begin(), sg_szs.end(), 16) != sg_szs.end();
+    bool sup_sg_sz16 = ::std::find(sg_szs.begin(), sg_szs.end(), 16) != sg_szs.end();
 
     if (__n <= 64 && __wg_size <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size, 1, __radix_bits, __is_ascending>{}(
