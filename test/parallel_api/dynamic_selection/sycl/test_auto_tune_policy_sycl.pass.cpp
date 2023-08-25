@@ -60,7 +60,7 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
   bool pass = true;
 
   for (int i = 1; i <= N; ++i) {
-    if (i <= n_samples && i-1 != best_resource) {
+    if (i <= 2*n_samples && i-1 != best_resource) {
         *j = 10000;
     } else {
         *j = 1;
@@ -72,9 +72,9 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
     // The unwrapped wait type should be equal to the resource 
     if constexpr (call_select_before_submit) {
       auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (q != u[i-1]) {
+                     if (q != u[(i-1)%n_samples]) {
                        std::cout << i << ": mismatch during rr phase\n" << std::flush;
                        pass = false;
                      }
@@ -100,9 +100,9 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
       // it's ok to capture by reference since we are waiting on each call
       auto s = oneapi::dpl::experimental::submit(p,
                  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (q != u[i-1]) {
+                     if (q != u[(i-1)%n_samples]) {
                        std::cout << i << ": mismatch during rr phase\n" << std::flush;
                        pass = false;
                      }
@@ -158,7 +158,7 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
   bool pass = true;
 
   for (int i = 1; i <= N; ++i) {
-    if (i <= n_samples && i-1 != best_resource) {
+    if (i <= 2*n_samples && i-1 != best_resource) {
         *j = 10000;
     } else {
         *j = 1;
@@ -170,9 +170,9 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
     // The unwrapped wait type should be equal to the resource 
     if constexpr (call_select_before_submit) {
       auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (q != u[i-1]) {
+                     if (q != u[(i-1)%n_samples]) {
                        std::cout << i << ": mismatch during rr phase\n" << std::flush;
                        pass = false;
                      }
@@ -198,9 +198,9 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
       // it's ok to capture by reference since we are waiting on each call
       auto s = oneapi::dpl::experimental::submit(p,
                  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (q != u[i-1]) {
+                     if (q != u[(i-1)%n_samples]) {
                        std::cout << i << ": mismatch during rr phase\n" << std::flush;
                        pass = false;
                      }
@@ -256,7 +256,7 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
   bool pass = true;
 
   for (int i = 1; i <= N; ++i) {
-    if (i <= n_samples && i-1 != best_resource) {
+    if (i <= 2*n_samples && i-1 != best_resource) {
         *j = 10000;
     } else {
         *j = 1;
@@ -268,9 +268,9 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
     // The unwrapped wait type should be equal to the resource 
     if constexpr (call_select_before_submit) {
       auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (q != u[i-1]) {
+                     if (q != u[(i-1)%n_samples]) {
                        std::cout << i << ": mismatch during rr phase\n" << std::flush;
                        pass = false;
                      }
@@ -295,9 +295,9 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
       // it's ok to capture by reference since we are waiting on each call
       oneapi::dpl::experimental::submit_and_wait(p,
                  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (q != u[i-1]) {
+                     if (q != u[(i-1)%n_samples]) {
                        std::cout << i << ": mismatch during rr phase\n" << std::flush;
                        pass = false;
                      }
@@ -346,8 +346,8 @@ int main() {
   std::vector<sycl::queue> u = {q1, q2, q3, q4};
 
   auto f = [u](int i) { 
-             if (i <= 4)
-               return u[i-1]; 
+             if (i <= 8)
+               return u[(i-1)%4]; 
              else
                return u[0]; 
            };
