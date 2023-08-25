@@ -163,7 +163,7 @@ template <>
 struct get_impl<0>
 {
     template <typename... T>
-    using ret_type = typename ::std::tuple_element<0, oneapi::dpl::__internal::tuple<T...>>::type;
+    using ret_type = ::std::tuple_element_t<0, oneapi::dpl::__internal::tuple<T...>>;
 
     template <typename... T>
     constexpr ret_type<T...>&
@@ -645,27 +645,27 @@ using __decay_with_tuple_specialization_t = typename __decay_with_tuple_speciali
 namespace std
 {
 template <size_t _Idx, typename... _Tp>
-constexpr typename ::std::tuple_element<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>::type&
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&
 get(oneapi::dpl::__internal::tuple<_Tp...>& __a)
 {
     return __a.template get<_Idx>();
 }
 
 template <size_t _Idx, typename... _Tp>
-constexpr typename ::std::tuple_element<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>::type const&
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&
 get(const oneapi::dpl::__internal::tuple<_Tp...>& __a)
 {
     return __a.template get<_Idx>();
 }
 template <size_t _Idx, typename... _Tp>
-constexpr typename ::std::tuple_element<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>::type&&
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&&
 get(oneapi::dpl::__internal::tuple<_Tp...>&& __a)
 {
     return ::std::move(__a).template get<_Idx>();
 }
 
 template <size_t _Idx, typename... _Tp>
-constexpr typename ::std::tuple_element<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>::type const&&
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&&
 get(const oneapi::dpl::__internal::tuple<_Tp...>&& __a)
 {
     return ::std::move(__a).template get<_Idx>();
