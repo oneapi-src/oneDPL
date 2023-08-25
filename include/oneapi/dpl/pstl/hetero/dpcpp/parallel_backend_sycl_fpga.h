@@ -107,7 +107,7 @@ __parallel_transform_reduce_sync(_ExecutionPolicy&& __exec, _ReduceOp __reduce_o
         __device_policy, __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
 }
 
-template <typename _Tp, typename _ReduceOp, typename _TransformOp, typename _Commutative, typename _ExecutionPolicy,
+template <typename _Tp, typename _Commutative, typename _ExecutionPolicy, typename _ReduceOp, typename _TransformOp,
           typename _InitType, oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0,
           typename... _Ranges>
 auto
