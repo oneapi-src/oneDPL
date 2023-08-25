@@ -181,9 +181,9 @@ __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __o
 template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
     _ExecutionPolicy,
-    typename ::std::conditional<::std::is_same<_BrickTag, __parallel_or_tag>::value, bool,
-                                oneapi::dpl::__internal::__difference_t<
-                                    typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>::type>
+    ::std::conditional_t<::std::is_same<_BrickTag, __parallel_or_tag>::value, bool,
+                         oneapi::dpl::__internal::__difference_t<
+                             typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>>
 __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
     using _Policy = ::std::decay_t<_ExecutionPolicy>;
