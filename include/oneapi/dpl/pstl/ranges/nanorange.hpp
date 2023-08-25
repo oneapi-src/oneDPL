@@ -5508,9 +5508,9 @@ namespace common_iterator_
 template <typename I, typename S>
 class common_iterator
 {
-    static_assert(input_or_output_iterator<I>, "");
-    static_assert(sentinel_for<S, I>, "");
-    static_assert(!same_as<I, S>, "");
+    static_assert(input_or_output_iterator<I>);
+    static_assert(sentinel_for<S, I>);
+    static_assert(!same_as<I, S>);
 
     template <typename II, typename SS>
     friend class common_iterator;
@@ -5739,8 +5739,8 @@ template <typename D>
 class view_interface : public view_base
 {
 
-    static_assert(::std::is_class<D>::value, "");
-    static_assert(same_as<D, ::std::remove_cv_t<D>>, "");
+    static_assert(::std::is_class<D>::value);
+    static_assert(same_as<D, ::std::remove_cv_t<D>>);
 
   private:
     constexpr D&
@@ -6039,7 +6039,7 @@ class subrange : public view_interface<subrange<I, S, K>>
 {
     static_assert(input_or_output_iterator<I>);
     static_assert(sentinel_for<S, I>);
-    static_assert(K == subrange_kind::sized || !sized_sentinel_for<S, I>, "");
+    static_assert(K == subrange_kind::sized || !sized_sentinel_for<S, I>);
 
   private:
     static constexpr bool StoreSize = K == subrange_kind::sized && !sized_sentinel_for<S, I>;
@@ -7770,7 +7770,7 @@ namespace counted_iterator_
 template <typename I>
 class counted_iterator
 {
-    static_assert(input_or_output_iterator<I>, "");
+    static_assert(input_or_output_iterator<I>);
 
     template <typename I2>
     friend class counted_iterator;
@@ -15321,7 +15321,7 @@ template <typename R>
 class ref_view : public view_interface<ref_view<R>>
 {
 
-    static_assert(range<R> && ::std::is_object<R>::value, "");
+    static_assert(range<R> && ::std::is_object<R>::value);
 
     R* r_ = nullptr;
 
@@ -15475,7 +15475,7 @@ template <typename V>
 class common_view : public view_interface<common_view<V>>
 {
 
-    static_assert(view<V> && !common_range<V>, "");
+    static_assert(view<V> && !common_range<V>);
 
     template <typename VV>
     using random_and_sized_t = ::std::integral_constant<bool, random_access_range<VV> && sized_range<VV>>;
@@ -16420,7 +16420,7 @@ namespace empty_view_
 template <typename T>
 class empty_view : view_interface<empty_view<T>>
 {
-    static_assert(::std::is_object<T>::value, "");
+    static_assert(::std::is_object<T>::value);
 
   public:
     static constexpr T*

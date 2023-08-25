@@ -27,6 +27,7 @@
 #include <cassert>
 
 #if !_PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN
+#    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg) static_assert(arg)
 #    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg, msg) static_assert(arg, msg)
 #else
 #    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg, msg) assert(arg)
@@ -71,7 +72,7 @@ run_test()
 //     void
 //     test(T x, ::std::enable_if_t<std::is_integral<T>::value>* = 0)
 //     {
-//         static_assert((std::is_same_v<decltype(dpl::conj(x)), dpl::complex<double>>), "");
+//         static_assert((std::is_same_v<decltype(dpl::conj(x)), dpl::complex<double>>));
 // 
 //         // HERE IS THE CODE WHICH CALL WE SHOULD AVOID IF DOUBLE IS NOT SUPPORTED ON DEVICE
 //         assert(dpl::conj(x) == dpl::conj(dpl::complex<double>(x, 0)));
