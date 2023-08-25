@@ -380,8 +380,7 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
         return __last;
 
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
-    using _IndexValueType =
-        typename ::std::make_unsigned<typename ::std::iterator_traits<_Iterator>::difference_type>::type;
+    using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
 
     // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
@@ -437,8 +436,7 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
         return ::std::make_pair(__first, __first);
 
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
-    using _IndexValueType =
-        typename ::std::make_unsigned<typename ::std::iterator_traits<_Iterator>::difference_type>::type;
+    using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = ::std::tuple<_IndexValueType, _IndexValueType, _IteratorValueType, _IteratorValueType>;
 
     // This operator doesn't track the lowest found index in case of equal min. values and the highest found index in
