@@ -10,7 +10,7 @@
 #include <iostream>
 #include <thread>
 #include "oneapi/dpl/dynamic_selection"
-#include "support/test_ds_utils.h"
+#include "support/test_dynamic_selection_utils.h"
 #include "support/inline_backend.h"
 
 template<typename Policy, typename UniverseContainer, bool do_select=false>
@@ -31,9 +31,9 @@ int test_auto_submit(UniverseContainer u, int best_resource) {
     if constexpr (do_select) {
       auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (e != u[i-1]) {
+                     if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
@@ -50,9 +50,9 @@ int test_auto_submit(UniverseContainer u, int best_resource) {
       oneapi::dpl::experimental::submit(p,
                  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (e != u[i-1]) {
+                     if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
@@ -99,9 +99,9 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
     if constexpr (do_select) {
       auto f =  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (e != u[i-1]) {
+                     if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
@@ -120,9 +120,9 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
       auto e = oneapi::dpl::experimental::submit(p,
                  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (e != u[i-1]) {
+                     if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
@@ -137,10 +137,10 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
       e_val = oneapi::dpl::experimental::unwrap(e);
     }
 
-    if (i <= n_samples && e_val != u[i-1]) {
+    if (i <= 2*n_samples && e_val != u[(i-1)%n_samples]) {
       std::cout << "ERROR: wrong value in unwrapped wait_type when sampling " << i << ": " << e_val << " != " << u[i-1] << "\n";
       return 1;
-    } else if (i > n_samples && e_val != best_resource) {
+    } else if (i > 2*n_samples && e_val != best_resource) {
       std::cout << "ERROR: wrong value in unwrapped wait_type " << i << ": " << e_val << " != " << best_resource << "\n";
       return 1;
     } 
@@ -175,9 +175,9 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
     if constexpr (do_select) {
       auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (e != u[i-1]) {
+                     if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
@@ -194,9 +194,9 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
       oneapi::dpl::experimental::submit(p,
                  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (e != u[i-1]) {
+                     if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
@@ -242,9 +242,9 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
     if constexpr (do_select) {
       auto f =  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (e != u[i-1]) {
+                     if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
@@ -261,9 +261,9 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
       oneapi::dpl::experimental::submit_and_wait(p,
                  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   if (i <= n_samples) {
+                   if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     if (e != u[i-1]) {
+                     if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
@@ -299,8 +299,8 @@ int run_tests(std::vector<int> u, int best_resource) {
   // So the first 4 are round-robin and then afterwards, with no better
   // info, the first resource is used.
   auto f = [u](int i) { 
-             if (i <= 4)
-               return u[i-1]; 
+             if (i <= 8)
+               return u[(i-1)%4]; 
              else
                return u[0]; 
            };

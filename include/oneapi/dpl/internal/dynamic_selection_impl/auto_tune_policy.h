@@ -101,8 +101,9 @@ class auto_tune_policy;
 
       size_type get_resource_to_profile() {
         std::unique_lock<std::mutex> l(m_);
-        if (next_resource_to_profile_ < max_resource_to_profile_) {
-          return next_resource_to_profile_++;
+        if (next_resource_to_profile_ < 2*max_resource_to_profile_) {
+          // do everything twice
+          return next_resource_to_profile_++ % max_resource_to_profile_;
         } else if (resample_time_ == never_resample) {
           return use_best_resource;
         } else {
@@ -123,7 +124,8 @@ class auto_tune_policy;
         auto offset = r.offset_;
         timing_t new_value = t;
         if (time_by_offset_.count(offset) == 0) {
-          time_by_offset_[offset] = time_data_t{1, t};
+          // ignore the 1st timing to cover for JIT compilation
+          time_by_offset_[offset] = time_data_t{0, std::numeric_limits<timing_t>::max()};
         } else {
           auto &td = time_by_offset_[offset];
           auto n = td.num_timings_;

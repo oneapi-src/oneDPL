@@ -9,7 +9,7 @@
 
 #ifndef _ONEDPL_STATIC_POLICY_IMPL_H
 #define _ONEDPL_STATIC_POLICY_IMPL_H
-
+#include <vector>
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
@@ -24,14 +24,19 @@ namespace experimental {
   template <typename Backend>
 #endif
   struct fixed_resource_policy {
+  private:
     using backend_t = Backend;
     using resource_container_t = typename backend_t::resource_container_t;
     using execution_resource_t = typename backend_t::execution_resource_t;
+    using wrapped_resource_t = typename std::decay<Backend>::type::execution_resource_t;
 
+  public:
     //policy traits
-    using resource_type = typename backend_t::resource_type;
+    using resource_type = decltype(unwrap(std::declval<wrapped_resource_t>()));
     using selection_type = oneapi::dpl::experimental::basic_selection_handle_t<fixed_resource_policy<Backend>, execution_resource_t>;
     using wait_type = typename backend_t::wait_type;
+
+  private:
     std::shared_ptr<backend_t> backend_;
 
     struct state_t {
@@ -41,57 +46,76 @@ namespace experimental {
 
     std::shared_ptr<state_t> state_;
 
-    fixed_resource_policy(int offset) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()}  {
-      state_->resources_ = get_resources();
-      state_->offset_ = offset;
+  public:
+    fixed_resource_policy(int offset=0) {
+        if(offset!=deferred_initialization){
+            initialize(offset);
+        }
     }
 
-    fixed_resource_policy(resource_container_t u, int offset) : backend_{std::make_shared<backend_t>()}, state_{std::make_shared<state_t>()} {
-      backend_->initialize(u);
-      state_->resources_ = get_resources();
-      state_->offset_ = offset;
-    }
-
-    template<typename ...Args>
-    fixed_resource_policy(Args&&... args) : backend_{std::make_shared<backend_t>(std::forward<Args>(args)...)}, state_{std::make_shared<state_t>()} {
-      state_->resources_ = get_resources();
+    fixed_resource_policy(const std::vector<resource_type>& u, int offset=0) {
+        if(offset!=deferred_initialization){
+            initialize(u, offset);
+        }
     }
 
     auto get_resources()  const {
-      return backend_->get_resources();
+      if(backend_){
+          return backend_->get_resources();
+      }else{
+          throw std::runtime_error("Called select before initialization\n");
+      }
     }
 
     void initialize(int offset=0) {
-      if (offset == deferred_initialization) return;
-      state_->offset_ = offset;
-      backend_->initialize();
+      if(!state_){
+           backend_ = std::make_shared<backend_t>();
+           state_= std::make_shared<state_t>();
+           state_->resources_ = get_resources();
+           state_->offset_ = offset;
+      }
     }
 
-    void initialize(resource_container_t u, int offset=0) {
-      state_->offset_ = offset;
-      backend_->initialize(u);
+    void initialize(const std::vector<resource_type>& u, int offset=0) {
+      if(!state_){
+           backend_ = std::make_shared<backend_t>(u);
+           state_= std::make_shared<state_t>();
+           for(auto x : u){
+              state_->resources_.emplace_back(x);
+           }
+           state_->offset_ = offset;
+      }
     }
 
     template<typename ...Args>
     selection_type select(Args&&...) {
-      if(!state_->resources_.empty()) {
-          return selection_type{*this, state_->resources_[state_->offset_]};
+      if(state_){
+          if(!state_->resources_.empty()) {
+              return selection_type{*this, state_->resources_[state_->offset_]};
+          }
+          return selection_type{*this};
+      }else{
+          throw std::runtime_error("Called select before initialization\n");
       }
-      return selection_type{*this};
     }
 
     template<typename Function, typename ...Args>
     auto submit(selection_type e, Function&& f, Args&&... args) {
-      return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
+      if(backend_){
+          return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
+      }else{
+          throw std::runtime_error("Called submit before initialization\n");
+      }
     }
 
     auto get_submission_group() {
-      return backend_->get_submission_group();
+      if(backend_){
+          return backend_->get_submission_group();
+      }else{
+          throw std::runtime_error("Called submission group before initialization\n");
+      }
     }
 
-    auto wait() {
-      backend_->wait();
-    }
   };
 } //namespace experimental
 } //namespace dpl
