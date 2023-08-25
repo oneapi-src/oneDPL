@@ -46,7 +46,7 @@ void __internal_free(void* __user_ptr) {
 
     if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const) {
         // Only USM pointers has headers
-        assert(header->_M_device);
+        assert(__header->_M_device);
         sycl::context __context = __header->_M_device->get_platform().ext_oneapi_get_default_context();
         sycl::free(__header->_M_original_pointer, __context);
     } else {

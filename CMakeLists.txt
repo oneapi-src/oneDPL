@@ -88,7 +88,7 @@ if (_fsycl_option)
 endif()
 
 # Exit with an error when DPCPP backend is explicitly set and SYCL is not supported
-if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only|pstl_offload)$" AND NOT _sycl_support)
+if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$" AND NOT _sycl_support)
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support -fsycl option or sycl.hpp is not available. It is required if ONEDPL_BACKEND=${ONEDPL_BACKEND}")
 endif()
 
@@ -101,6 +101,18 @@ if (NOT ONEDPL_BACKEND)
     endif()
     string(TOUPPER ${ONEDPL_BACKEND} ONEDPL_BACKEND)
     message(STATUS "Using ${ONEDPL_BACKEND} as default backend")
+endif()
+
+if (NOT ONEDPL_ENABLE_PSTL_OFFLOAD)
+    set(ONEDPL_ENABLE_PSTL_OFFLOAD FALSE)
+else()
+    if (ONEDPL_BACKEND MATCHES "^(dpcpp|)$")
+        if (NOT ONEDPL_PSTL_OFFLOAD_DEVICE)
+            set(ONEDPL_PSTL_OFFLOAD_DEVICE "default")
+        endif()
+    else()
+        message(FATAL_ERROR "${ONEDPL_BACKEND} doesn't support pstl offload, dpcpp backend required")
+    endif()
 endif()
 
 ###############################################################################
@@ -147,11 +159,11 @@ else()
     message(STATUS "oneDPL: ONEDPL_ENABLE_SIMD is OFF, corresponding compiler flag is not used")
 endif()
 
-if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only|pstl_offload)$")
+if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
     string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
     set(SET_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
 
-    if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|pstl_offload)$")
+    if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp)$")
         find_package(TBB 2021 REQUIRED tbb OPTIONAL_COMPONENTS tbbmalloc)
         message(STATUS "oneDPL uses oneTBB ${TBB_VERSION}")
         target_link_libraries(oneDPL INTERFACE TBB::tbb)
@@ -177,7 +189,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only|pstl_offload)$")
         $<$<BOOL:${SET_BACKEND_TBB}>:ONEDPL_USE_DPCPP_BACKEND=0>
         )
 
-    if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only|pstl_offload)$")
+    if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
         # Enable SYCL* with compilers/compiler drivers not passing -fsycl by default
         if (_sycl_support AND NOT CMAKE_CXX_COMPILER MATCHES ".*(dpcpp-cl|dpcpp)(.exe)?$")
             message(STATUS "Adding -fsycl compiler option")
@@ -335,12 +347,34 @@ else()
     endif()
 endif()
 
-if (ONEDPL_BACKEND MATCHES "^(pstl_offload)$")
-    message(STATUS "Adding pstl_offload compilation flags")
-    # TODO: only special compiler option should be added after implementing pstl_offload support in the compiler
-    # target_compile_options(oneDPL INTERFACE "-fsycl-pstl-offload")
-    target_include_directories(oneDPL INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/pstl_offload)
-    target_compile_options(oneDPL INTERFACE "-D__SYCL_PSTL_OFFLOAD__=1")
+if (ONEDPL_ENABLE_PSTL_OFFLOAD)
+    if (ONEDPL_PSTL_OFFLOAD_DEVICE STREQUAL default)
+        set(FSYCL_PSTL_OFFLOAD_OPTION "-fsycl-pstl-offload")
+    else()
+        set(FSYCL_PSTL_OFFLOAD_OPTION "-fsycl-pstl-offload=${ONEDPL_PSTL_OFFLOAD_DEVICE}")
+    endif()
+
+    check_cxx_compiler_flag(${FSYCL_PSTL_OFFLOAD_OPTION}, _fsycl_pstl_offload_option)
+    if (_fsycl_pstl_offload_option)
+        message(STATUS "Adding ${FSYCL_PSTL_OFFLOAD_OPTION} compiler option")
+        target_compile_options(oneDPL INTERFACE ${FSYCL_PSTL_OFFLOAD_OPTION})
+    else()
+        # TODO: remove this "manual" -fsycl-pstl-offload suboption substitution and replace with FATAL_ERROR
+        # message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support ${FSYCL_PSTL_OFFLOAD_OPTION}")
+        message(STATUS "Adding manual ${FSYCL_PSTL_OFFLOAD_OPTION} compiler options")
+        if (ONEDPL_PSTL_OFFLOAD_DEVICE STREQUAL default)
+            set(__SYCL_PSTL_OFFLOAD__MACRO_VALUE 1)
+        elseif (ONEDPL_PSTL_OFFLOAD_DEVICE STREQUAL cpu)
+            set(__SYCL_PSTL_OFFLOAD__MACRO_VALUE 2)
+        elseif (ONEDPL_PSTL_OFFLOAD_DEVICE STREQUAL gpu)
+            set(__SYCL_PSTL_OFFLOAD__MACRO_VALUE 3)
+        else()
+            message(FATAL_ERROR "Unsupported value of ONEDPL_PSTL_OFFLOAD_DEVICE = ${ONEDPL_PSTL_OFFLOAD_DEVICE}")
+        endif()
+
+        target_include_directories(oneDPL INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/pstl_offload)
+        target_compile_options(oneDPL INTERFACE "-D__SYCL_PSTL_OFFLOAD__=${__SYCL_PSTL_OFFLOAD__MACRO_VALUE}")
+    endif()
 
     add_library(pstloffload SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/pstl_offload.cpp)
     target_compile_options(pstloffload PUBLIC "-fsycl")
@@ -353,6 +387,7 @@ if (ONEDPL_BACKEND MATCHES "^(pstl_offload)$")
     )
 
     add_dependencies(oneDPL pstloffload)
+    # TODO remove explicit linkage with libpstloffload
     target_link_libraries(oneDPL INTERFACE pstloffload)
 endif()
 
