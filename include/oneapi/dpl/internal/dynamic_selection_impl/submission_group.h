@@ -35,9 +35,12 @@ namespace experimental {
     void wait() {
       while(!submission_container->empty()){
         T w;
-        submission_container->pop(w);
-        w->wait();
-        delete w;
+        if(submission_container->pop_if_present(w)){
+            w->wait();
+            delete w;
+        } else {
+            throw std::runtime_error("Submission container empty\n");
+        }
       }
     }
   };

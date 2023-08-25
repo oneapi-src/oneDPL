@@ -14,6 +14,7 @@
 #include <queue>
 #include <mutex>
 #include <deque>
+#include <atomic>
 #include <condition_variable>
 
 namespace oneapi {
@@ -25,15 +26,18 @@ namespace util{
     {
     public:
 
-        void pop(T& item)
+        bool pop_if_present(T& item)
         {
-            std::unique_lock<std::mutex> mlock(mutex_);
-            while (queue_.empty())
+            while(locked.exchange(true)){}
+            if (!queue_.empty())
             {
-                cond_.wait(mlock);
+                item = queue_.front();
+                queue_.pop_front();
+                locked.store(false);
+                return true;
             }
-            item = queue_.front();
-            queue_.pop_front();
+            locked.store(false);
+            return false;
         }
 
         void push(T item)
@@ -59,6 +63,7 @@ namespace util{
         concurrent_queue& operator=(const concurrent_queue& q) = delete;
 
     private:
+        std::atomic<bool> locked = false;
         std::deque<T> queue_;
         std::mutex mutex_;
         std::condition_variable cond_;
