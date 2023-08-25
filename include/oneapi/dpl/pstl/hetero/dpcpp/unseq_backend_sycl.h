@@ -45,16 +45,123 @@ using non_void_type = typename ::std::enable_if<!::std::is_void<_Tp>::value, _Tp
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity =
 #    if _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
-    typename ::std::conjunction<
-        ::std::is_arithmetic<_Tp>, __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
-        ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<void>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<void>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<void>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<void>>>>;
+    // Inplemenation of rules from SYCL 2020 specification, table https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#table.identities
+    typename ::std::disjunction<
+
+        __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
+
+        // Operator: sycl::plus
+        //      Available Only When: std::is_arithmetic_v<AccumulatorT> || std::is_same_v<std::remove_cv_t<AccumulatorT>, sycl::half>
+        ::std::conjunction<
+            ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>,
+            ::std::disjunction<::std::is_arithmetic<_Tp>,
+                               ::std::is_same<::std::remove_cv_t<_Tp>, sycl::half>>
+        >,
+
+        // Operator: sycl::multiplies
+        //      Available Only When: std::is_arithmetic_v<AccumulatorT> || std::is_same_v<std::remove_cv_t<AccumulatorT>, sycl::half>
+        ::std::conjunction<
+            ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::multiplies<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, ::std::multiplies<void>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__multiplies<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__multiplies<void>>>,
+            ::std::disjunction<::std::is_arithmetic<_Tp>,
+                               ::std::is_same<::std::remove_cv_t<_Tp>, sycl::half>>
+        >,
+
+        // Operator: sycl::bit_and
+        //      Available Only When: std::is_integral_v<AccumulatorT>
+        ::std::conjunction<
+            ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::bit_and<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, ::std::bit_and<void>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__bit_and<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__bit_and<void>>>,
+            ::std::is_integral<_Tp>
+        >,
+
+        // Operator: sycl::bit_or
+        //      Available Only When: std::is_integral_v<AccumulatorT>
+        ::std::conjunction<
+            ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::bit_or<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, ::std::bit_or<void>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__bit_or<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__bit_or<void>>>,
+            ::std::is_integral<_Tp>
+        >,
+
+        // Operator: sycl::bit_xor
+        //      Available Only When: std::is_integral_v<AccumulatorT>
+        ::std::conjunction<
+            ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::bit_xor<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, ::std::bit_xor<void>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__bit_xor<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__bit_xor<void>>>,
+            ::std::is_integral<_Tp>
+        >,
+
+        // ------------------------------------------------------
+        // Current unavailable in Intel(R) oneAPI DPC++ Compiler
+        // ------------------------------------------------------
+        // Operator: sycl::logical_and
+        //      Available Only When: std::is_same_v<std::remove_cv_t<AccumulatorT>, bool>
+        //::std::conjunction<
+        //    ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::logical_and<_Tp>>,
+        //                       ::std::is_same<::std::decay_t<_BinaryOp>, ::std::logical_and<void>>,
+        //                       ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__logical_and<_Tp>>,
+        //                       ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__logical_and<void>>>,
+        //    ::std::is_same<::std::remove_cv_t<_Tp>, bool>
+        //>,
+
+        // ------------------------------------------------------
+        // Current unavailable in Intel(R) oneAPI DPC++ Compiler
+        // ------------------------------------------------------
+        // Operator: sycl::logical_or
+        //      Available Only When: std::is_same_v<std::remove_cv_t<AccumulatorT>, bool>
+        //::std::conjunction<
+        //    ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::logical_or<_Tp>>,
+        //                       ::std::is_same<::std::decay_t<_BinaryOp>, ::std::logical_or<void>>,
+        //                       ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__logical_or<_Tp>>,
+        //                       ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__logical_or<void>>>,
+        //    ::std::is_same<::std::remove_cv_t<_Tp>, bool>
+        //>,
+
+        // Operator: sycl::minimum
+        //      Available Only When: std::is_integral_v<AccumulatorT>
+        ::std::conjunction<
+            ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>>,
+            ::std::is_integral<_Tp>
+        >,
+
+        // Operator: sycl::minimum
+        //      Available Only When: std::is_floating_point_v<AccumulatorT> || std::is_same_v<std::remove_cv_t<AccumulatorT>, sycl::half>
+        ::std::conjunction<
+            ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>>,
+            ::std::disjunction<::std::is_floating_point<_Tp>,
+                               ::std::is_same<::std::remove_cv<_Tp>, sycl::half>>
+        >,
+
+        // Operator: sycl::maximum
+        //      Available Only When: std::is_integral_v<AccumulatorT>
+        ::std::conjunction<
+            ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>,
+            ::std::is_integral<_Tp>
+        >,
+
+        // Operator: sycl::maximum
+        //      Available Only When: std::is_floating_point_v<AccumulatorT> || std::is_same_v<std::remove_cv_t<AccumulatorT>, sycl::half>
+        ::std::conjunction<
+            ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
+                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>,
+            ::std::disjunction<::std::is_floating_point<_Tp>,
+                               ::std::is_same<::std::remove_cv_t<_Tp>, sycl::half>>
+        >
+    >;
 #    elif _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>, __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
