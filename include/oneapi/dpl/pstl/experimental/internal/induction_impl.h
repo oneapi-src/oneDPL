@@ -34,7 +34,7 @@ namespace __internal
 template <typename _Tp>
 using __induction_value_type = typename ::std::conditional<
     ::std::is_lvalue_reference<_Tp>::value && !::std::is_const<::std::remove_reference_t<_Tp>>::value, _Tp,
-    ::std::remove_cv_t<typename ::std::remove_reference<_Tp>::type>>::type;
+    ::std::remove_cv_t<::std::remove_reference_t<_Tp>>>::type;
 
 // Definition of induction_object structure to represent "induction" object.
 
