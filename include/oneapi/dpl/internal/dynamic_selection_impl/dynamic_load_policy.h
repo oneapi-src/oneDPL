@@ -80,7 +80,7 @@ namespace experimental{
 
     std::shared_ptr<state_t> state_;
 
-    void initialize(int offset){
+    void initialize(int offset=0){
         if(!state_){
             backend_ = std::make_shared<backend_t>();
             state_= std::make_shared<state_t>();
@@ -128,14 +128,12 @@ namespace experimental{
           std::unique_lock<std::mutex> l(state_->m_);
           std::shared_ptr<resource_t> least_loaded = nullptr;
           int least_load = std::numeric_limits<load_t>::max();
-          int least;
           for(int i = 0;i<state_->resources_.size();i++){
             auto r = state_->resources_[(i+state_->offset)%state_->resources_.size()];
             load_t v = r->load_.load();
               if (least_loaded == nullptr || v < least_load) {
                 least_load = v;
                 least_loaded = r;
-                least=(i+state_->offset)%state_->resources_.size();
               }
           }
           return selection_type{dynamic_load_policy<Backend>(*this), least_loaded};
