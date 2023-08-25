@@ -133,7 +133,7 @@ class bernoulli_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Static asserts
-    static_assert(::std::is_same<scalar_type, bool>::value,
+    static_assert(::std::is_same_v<scalar_type, bool>,
                   "oneapi::dpl::bernoulli_distribution. Error: unsupported data type");
 
     // Distribution parameters

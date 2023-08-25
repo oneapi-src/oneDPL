@@ -65,8 +65,8 @@ gcd(_Mn __m, _Nn __n)
 {
     static_assert((::std::is_integral<_Mn>::value && ::std::is_integral<_Nn>::value),
                   "Arguments to gcd must be integer types");
-    static_assert((!::std::is_same<::std::remove_cv_t<_Mn>, bool>::value), "First argument to gcd cannot be bool");
-    static_assert((!::std::is_same<::std::remove_cv_t<_Nn>, bool>::value), "Second argument to gcd cannot be bool");
+    static_assert((!::std::is_same_v<::std::remove_cv_t<_Mn>, bool>), "First argument to gcd cannot be bool");
+    static_assert((!::std::is_same_v<::std::remove_cv_t<_Nn>, bool>), "Second argument to gcd cannot be bool");
     using _Rp = ::std::common_type_t<_Mn, _Nn>;
     using _Wp = ::std::make_unsigned_t<_Rp>;
     _Wp __m1 = static_cast<_Wp>(oneapi::dpl::internal::__get_abs<_Rp>(__m));
@@ -88,8 +88,8 @@ lcm(_Mn __m, _Nn __n)
 {
     static_assert((::std::is_integral<_Mn>::value && ::std::is_integral<_Nn>::value),
                   "Arguments to lcm must be integer types");
-    static_assert((!::std::is_same<::std::remove_cv_t<_Mn>, bool>::value), "First argument to lcm cannot be bool");
-    static_assert((!::std::is_same<::std::remove_cv_t<_Nn>, bool>::value), "Second argument to lcm cannot be bool");
+    static_assert((!::std::is_same_v<::std::remove_cv_t<_Mn>, bool>), "First argument to lcm cannot be bool");
+    static_assert((!::std::is_same_v<::std::remove_cv_t<_Nn>, bool>), "Second argument to lcm cannot be bool");
     if (__m == 0 || __n == 0)
         return 0;
     using _Rp = ::std::common_type_t<_Mn, _Nn>;

@@ -527,8 +527,7 @@ namespace detail
 {
 
 template <typename T, typename U>
-constexpr bool same_decayed_v =
-    ::std::is_same<T, ::std::decay_t<T>>::value&& ::std::is_same<U, ::std::decay_t<U>>::value;
+constexpr bool same_decayed_v = ::std::is_same_v<T, ::std::decay_t<T>>&& ::std::is_same_v<U, ::std::decay_t<U>>;
 
 template <typename T, typename U>
 using ternary_return_t = ::std::decay_t<decltype(false ? ::std::declval<T>() : ::std::declval<U>())>;
@@ -1828,8 +1827,8 @@ struct legacy_iterator_category : iterator_category<T>
 };
 
 template <typename T>
-struct legacy_iterator_category<
-    T, ::std::enable_if_t<::std::is_same<iterator_category_t<T>, contiguous_iterator_tag>::value>>
+struct legacy_iterator_category<T,
+                                ::std::enable_if_t<::std::is_same_v<iterator_category_t<T>, contiguous_iterator_tag>>>
 {
     using type = random_access_iterator_tag;
 };
