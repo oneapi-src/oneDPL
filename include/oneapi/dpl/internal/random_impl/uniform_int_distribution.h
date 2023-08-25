@@ -151,7 +151,7 @@ class uniform_int_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Type of real distribution
-    using RealType = typename ::std::conditional<size_of_type_ == 0, double, sycl::vec<double, size_of_type_>>::type;
+    using RealType = ::std::conditional_t<size_of_type_ == 0, double, sycl::vec<double, size_of_type_>>;
 
     // Static asserts
     static_assert(::std::is_integral<scalar_type>::value,

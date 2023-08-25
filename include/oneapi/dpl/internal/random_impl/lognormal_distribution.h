@@ -147,8 +147,8 @@ class lognormal_distribution
     // Size of type
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
-    using normal_distr = oneapi::dpl::normal_distribution<
-        typename ::std::conditional<(size_of_type_ <= 3), scalar_type, result_type>::type>;
+    using normal_distr =
+        oneapi::dpl::normal_distribution<::std::conditional_t<(size_of_type_ <= 3), scalar_type, result_type>>;
     using normal_distr_param_type = typename normal_distr::param_type;
 
     // Static asserts

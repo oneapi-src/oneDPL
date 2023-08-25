@@ -449,7 +449,7 @@ struct _ReverseCounter
 
     class __private_class;
 
-    operator typename ::std::conditional<decltype(__check_braces<_Acc>(0))::value, sycl::id<1>, __private_class>::type()
+    operator ::std::conditional_t<decltype(__check_braces<_Acc>(0))::value, sycl::id<1>, __private_class>()
     {
         return sycl::id<1>(__my_cn);
     }
@@ -561,7 +561,7 @@ struct __conjunction<_B1> : _B1
 };
 
 template <typename _B1, typename... _Bs>
-struct __conjunction<_B1, _Bs...> : ::std::conditional<!bool(_B1::value), _B1, __conjunction<_Bs...>>::type
+struct __conjunction<_B1, _Bs...> : ::std::conditional_t<!bool(_B1::value), _B1, __conjunction<_Bs...>>
 {
 };
 

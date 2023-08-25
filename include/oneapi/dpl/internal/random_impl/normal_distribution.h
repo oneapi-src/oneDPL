@@ -166,7 +166,7 @@ class normal_distribution
 
     // Type of real distribution
     using uniform_result_type =
-        typename ::std::conditional<size_of_type_ % 2, sycl::vec<scalar_type, size_of_type_ + 1>, result_type>::type;
+        ::std::conditional_t<size_of_type_ % 2, sycl::vec<scalar_type, size_of_type_ + 1>, result_type>;
 
     // Distribution parameters
     scalar_type mean_;

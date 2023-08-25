@@ -285,8 +285,8 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredic
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, adjacent_find_fn<_BinaryPredicate>>;
     using _TagType =
-        typename ::std::conditional<__is__or_semantic(), oneapi::dpl::__par_backend_hetero::__parallel_or_tag,
-                                    oneapi::dpl::__par_backend_hetero::__parallel_find_forward_tag<_Range>>::type;
+        ::std::conditional_t<__is__or_semantic(), oneapi::dpl::__par_backend_hetero::__parallel_or_tag,
+                             oneapi::dpl::__par_backend_hetero::__parallel_find_forward_tag<_Range>>;
 
     auto __rng1 = __rng | oneapi::dpl::experimental::ranges::views::take(__rng.size() - 1);
     auto __rng2 = __rng | oneapi::dpl::experimental::ranges::views::drop(1);

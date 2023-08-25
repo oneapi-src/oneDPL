@@ -67,8 +67,8 @@ struct __is_random_access_iterator_impl<_IteratorType,
 /* iterator */
 template <typename _IteratorType, typename... _OtherIteratorTypes>
 struct __is_random_access_iterator
-    : ::std::conditional<__is_random_access_iterator_impl<_IteratorType>::value,
-                         __is_random_access_iterator<_OtherIteratorTypes...>, ::std::false_type>::type
+    : ::std::conditional_t<__is_random_access_iterator_impl<_IteratorType>::value,
+                           __is_random_access_iterator<_OtherIteratorTypes...>, ::std::false_type>
 {
 };
 

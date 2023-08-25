@@ -218,8 +218,8 @@ struct __optional_kernel_name;
 template <typename _CustomName>
 using __kernel_name_provider =
 #if __SYCL_UNNAMED_LAMBDA__
-    typename ::std::conditional<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
-                                __optional_kernel_name<_CustomName>>::type;
+    ::std::conditional_t<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
+                         __optional_kernel_name<_CustomName>>;
 #else
     __optional_kernel_name<_CustomName>;
 #endif
