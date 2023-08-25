@@ -1045,9 +1045,8 @@ struct __early_exit_find_or
         for (_IterSize __i = 0; __i < __n_iter; ++__i)
         {
             //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
-            using _ShiftedIdxType =
-                typename ::std::conditional<_OrTagType::value, decltype(__init_index + __i * __shift),
-                                            decltype(__found_local.load())>::type;
+            using _ShiftedIdxType = ::std::conditional_t<_OrTagType::value, decltype(__init_index + __i * __shift),
+                                                         decltype(__found_local.load())>;
 
             _IterSize __current_iter = __i;
             if constexpr (_BackwardTagType::value)
@@ -1080,9 +1079,9 @@ struct __early_exit_find_or
 template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<
     _ExecutionPolicy,
-    typename ::std::conditional<::std::is_same<_BrickTag, __parallel_or_tag>::value, bool,
-                                oneapi::dpl::__internal::__difference_t<
-                                    typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>::type>
+    ::std::conditional_t<::std::is_same<_BrickTag, __parallel_or_tag>::value, bool,
+                         oneapi::dpl::__internal::__difference_t<
+                             typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>>
 __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
     using _Policy = ::std::decay_t<_ExecutionPolicy>;
@@ -1238,9 +1237,8 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last
     auto __s_keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
     auto __s_buf = __s_keep(__s_first, __s_last);
 
-    using _TagType =
-        typename ::std::conditional<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
-                                    __parallel_find_backward_tag<decltype(__buf.all_view())>>::type;
+    using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
+                                          __parallel_find_backward_tag<decltype(__buf.all_view())>>;
     return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
@@ -1257,9 +1255,8 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    using _TagType =
-        typename ::std::conditional<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
-                                    __parallel_find_backward_tag<decltype(__buf.all_view())>>::type;
+    using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
+                                          __parallel_find_backward_tag<decltype(__buf.all_view())>>;
     return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),

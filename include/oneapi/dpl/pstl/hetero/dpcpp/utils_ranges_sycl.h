@@ -53,7 +53,7 @@ template <typename _T, sycl::access::mode _AccMode = sycl::access::mode::read,
           sycl::access::placeholder _Placeholder = sycl::access::placeholder::true_t>
 class all_view
 {
-    using __return_t = typename ::std::conditional<_AccMode == sycl::access::mode::read, const _T, _T>::type;
+    using __return_t = ::std::conditional_t<_AccMode == sycl::access::mode::read, const _T, _T>;
     using __diff_type = typename ::std::iterator_traits<_T*>::difference_type;
     using __accessor_t = sycl::accessor<_T, 1, _AccMode, _Target, _Placeholder>;
 
