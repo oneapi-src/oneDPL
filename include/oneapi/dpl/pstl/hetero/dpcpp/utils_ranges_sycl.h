@@ -201,9 +201,9 @@ struct is_temp_buff : ::std::false_type
 };
 
 template <typename _Iter>
-struct is_temp_buff<_Iter, typename ::std::enable_if<!is_hetero_it<_Iter>::value && !::std::is_pointer<_Iter>::value &&
-                                                         !is_passed_directly_it<_Iter>::value,
-                                                     void>::type> : ::std::true_type
+struct is_temp_buff<_Iter, ::std::enable_if_t<!is_hetero_it<_Iter>::value && !::std::is_pointer<_Iter>::value &&
+                                                  !is_passed_directly_it<_Iter>::value,
+                                              void>> : ::std::true_type
 {
 };
 
@@ -500,8 +500,7 @@ struct __get_sycl_range
 
     // for raw pointers and direct pass objects (for example, counting_iterator, iterator of USM-containers)
     template <typename _Iter>
-    typename ::std::enable_if<is_passed_directly_it<_Iter>::value,
-                              __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>>::type
+    ::std::enable_if_t<is_passed_directly_it<_Iter>::value, __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>>
     operator()(_Iter __first, _Iter __last)
     {
         assert(__first < __last);
@@ -513,8 +512,8 @@ struct __get_sycl_range
     template <typename _Iter>
     auto
     operator()(_Iter __first, _Iter __last) ->
-        typename ::std::enable_if<is_hetero_it<_Iter>::value,
-                                  __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>::type
+        ::std::enable_if_t<is_hetero_it<_Iter>::value,
+                                  __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
         assert(__first < __last);
         using value_type = val_t<_Iter>;
@@ -533,8 +532,8 @@ struct __get_sycl_range
     template <typename _Iter>
     auto
     operator()(_Iter __first, _Iter __last) ->
-        typename ::std::enable_if<is_temp_buff<_Iter>::value && !is_zip<_Iter>::value && !is_permutation<_Iter>::value,
-                                  __buffer_holder<val_t<_Iter>, AccMode>>::type
+        ::std::enable_if_t<is_temp_buff<_Iter>::value && !is_zip<_Iter>::value && !is_permutation<_Iter>::value,
+                           __buffer_holder<val_t<_Iter>, AccMode>>
     {
         static_assert(!oneapi::dpl::__internal::is_const_iterator<_Iter>::value || AccMode == sycl::access::mode::read,
                       "Should be non-const iterator for a modifying algorithm.");

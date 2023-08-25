@@ -230,9 +230,9 @@ struct test_for_loop_impl
 };
 
 template <typename Policy, typename Iterator, typename Size, typename S>
-typename ::std::enable_if<
+::std::enable_if_t<
     !::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>::value,
-    void>::type
+    void>
 test_body_for_loop_strided_neg(Policy&& exec, Iterator first, Iterator /* last */, Iterator expected_first,
                                Iterator /* expected_last */, Size n, S loop_stride)
 {
@@ -256,9 +256,9 @@ test_body_for_loop_strided_neg(Policy&& exec, Iterator first, Iterator /* last *
 }
 
 template <typename Policy, typename Iterator, typename Size, typename S>
-typename ::std::enable_if<
+::std::enable_if_t<
     ::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>::value,
-    void>::type
+    void>
 test_body_for_loop_strided_neg(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Iterator /* expected_first */,
                                Iterator /* expected_last */, Size /* n */, S /* loop_stride */)
 {
