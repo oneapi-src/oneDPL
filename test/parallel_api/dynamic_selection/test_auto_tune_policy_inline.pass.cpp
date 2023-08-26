@@ -92,9 +92,9 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
   for (int i = 1; i <= N; ++i) {
     // we can capture all by reference
     // the inline_scheduler reports timings in submit
-    // We wait but it should return immediately, since inline 
-    // scheduler does the work "inline". 
-    // The unwrapped wait type should be equal to the resource 
+    // We wait but it should return immediately, since inline
+    // scheduler does the work "inline".
+    // The unwrapped wait type should be equal to the resource
     int e_val = -1;
     if constexpr (do_select) {
       auto f =  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
@@ -143,7 +143,7 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
     } else if (i > 2*n_samples && e_val != best_resource) {
       std::cout << "ERROR: wrong value in unwrapped wait_type " << i << ": " << e_val << " != " << best_resource << "\n";
       return 1;
-    } 
+    }
 
     int count = ecount.load();
     if (count != i*(i+1)/2) {
@@ -217,7 +217,7 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
   // this has no effect for inline_scheduler, so nothing to test other than the call
   // doesn't fail
   oneapi::dpl::experimental::wait(p.get_submission_group());
-  
+
   if (!pass) {
     std::cout << "ERROR: did not select expected resources\n";
     return 1;
@@ -294,25 +294,25 @@ template<typename Policy>
 int run_tests(std::vector<int> u, int best_resource) {
   using policy_t = Policy;
 
-  // We know there are 4 resources. We know that without submitting, 
+  // We know there are 4 resources. We know that without submitting,
   // that auto_tune acts like round-robin until sampling is done.
   // So the first 4 are round-robin and then afterwards, with no better
   // info, the first resource is used.
-  auto f = [u](int i) { 
+  auto f = [u](int i) {
              if (i <= 8)
-               return u[(i-1)%4]; 
+               return u[(i-1)%4];
              else
-               return u[0]; 
+               return u[0];
            };
-  
-  return test_initialization<policy_t>(u) 
-         || test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f) 
+
+  return test_initialization<policy_t>(u)
+         || test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f)
          || test_auto_submit<policy_t>(u, best_resource)
          || test_auto_submit_wait_on_event<policy_t>(u, best_resource)
          || test_auto_submit_wait_on_group<policy_t>(u, best_resource)
          || test_auto_submit_and_wait<policy_t>(u, best_resource)
          // now select then submits
-         || test_auto_submit<policy_t, decltype(u), true>(u, best_resource) 
+         || test_auto_submit<policy_t, decltype(u), true>(u, best_resource)
          || test_auto_submit_wait_on_event<policy_t,  decltype(u), true>(u, best_resource)
          || test_auto_submit_wait_on_group<policy_t, decltype(u), true>(u, best_resource)
          || test_auto_submit_and_wait<policy_t, decltype(u), true>(u, best_resource);
@@ -320,11 +320,11 @@ int run_tests(std::vector<int> u, int best_resource) {
 
 int main() {
   using policy_t = oneapi::dpl::experimental::auto_tune_policy<TestUtils::int_inline_backend_t>;
-  std::vector<int> first_resources = { 1, 10, 11, 12 };  
-  std::vector<int> second_resources = { 12, 2, 11, 10 };  
-  std::vector<int> third_resources = { 11, 10, 3, 12 };  
-  std::vector<int> fourth_resources = { 12, 10, 11, 4 };  
- 
+  std::vector<int> first_resources = { 1, 10, 11, 12 };
+  std::vector<int> second_resources = { 12, 2, 11, 10 };
+  std::vector<int> third_resources = { 11, 10, 3, 12 };
+  std::vector<int> fourth_resources = { 12, 10, 11, 4 };
+
   if (run_tests<policy_t>(first_resources, 1)
       || run_tests<policy_t>(second_resources, 2)
       || run_tests<policy_t>(third_resources, 3)

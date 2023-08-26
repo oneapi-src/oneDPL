@@ -17,14 +17,15 @@ int main() {
   std::vector<int> u{4, 5, 6, 7};
 
   // should be similar to round_robin when waiting on policy
-  auto f = [u](int i, int offset) { return u[(i+offset-1)%4]; };
+  auto f = [u](int i, int offset=0) { return u[(i+offset-1)%4]; };
 
   // should always pick first when waiting on sync in each iteration
-  auto f2 = [u](int i, int offset) { return u[offset]; };
+  auto f2 = [u](int i, int offset=0) { return u[offset]; };
 
   constexpr bool just_call_submit = false;
   constexpr bool call_select_before_submit = true;
   if ( test_initialization<policy_t, int>(u)
+       || test_select<policy_t, decltype(u), decltype(f2)&, false>(u, f2)
        || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f2)
        || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f2, 1)
        || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f2, 2)

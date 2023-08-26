@@ -48,6 +48,45 @@ int test_dl_initialization(const std::vector<sycl::queue>& u) {
   return 0;
 }
 
+template<typename Policy, typename UniverseContainer, typename ResourceFunction, bool AutoTune=false>
+int test_select(UniverseContainer u, ResourceFunction&& f) {
+  using my_policy_t = Policy;
+  my_policy_t p{u};
+
+  const int N = 100;
+  std::atomic<int> ecount = 0;
+  bool pass = true;
+
+  auto function_key = [](){};
+
+  for (int i = 1; i <= N; ++i) {
+    auto test_resource = f(i);
+    if constexpr (AutoTune) {
+      auto h = select(p, function_key);
+      if (oneapi::dpl::experimental::unwrap(h) != test_resource) {
+         pass = false;
+      }
+    } else {
+      auto h = select(p);
+      if (oneapi::dpl::experimental::unwrap(h) != test_resource) {
+         pass = false;
+      }
+    }
+    ecount += i;
+    int count = ecount.load();
+    if (count != i*(i+1)/2) {
+      std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
+      return 1;
+    }
+  }
+  if (!pass) {
+    std::cout << "ERROR: did not select expected resources\n";
+    return 1;
+  }
+  std::cout << "select: OK\n";
+  return 0;
+}
+
 template<bool call_select_before_submit, typename Policy, typename UniverseContainer, typename ResourceFunction>
 int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int offset=0) {
     using my_policy_t = Policy;
