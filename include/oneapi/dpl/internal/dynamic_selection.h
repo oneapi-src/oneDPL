@@ -100,13 +100,6 @@ namespace internal {
     return std::forward<WaitObject>(w).wait();
   }
 
-  template<typename WaitObject>
-  auto wait(std::list<WaitObject> l) {
-    for (auto h : l) {
-       wait(*h);
-    }
-  }
-
   template<typename DSPolicy>
   auto  get_submission_group(DSPolicy&& dp){
     return std::forward<DSPolicy>(dp).get_submission_group();
@@ -127,7 +120,6 @@ namespace internal {
         return v;
     }
   }
-
 
   template<typename T, typename Function, typename... Args>
   auto submit(T&& t, Function&&f, Args&&... args) {

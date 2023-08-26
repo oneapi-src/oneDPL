@@ -43,7 +43,7 @@ int test_submit_and_wait_on_scheduler() {
            }, i
     );
   }
-  s.wait();
+  s.get_submission_group().wait();
   int count = ecount.load();
   if (count != N*(N+1)/2) {
     std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
@@ -67,7 +67,7 @@ int test_submit_and_wait_on_scheduler_single_element() {
            }, i
     );
   }
-  s.wait();
+  s.get_submission_group().wait();
   int count = ecount.load();
   if (count != 1) {
     std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
@@ -91,7 +91,7 @@ int test_submit_and_wait_on_scheduler_empty() {
            }, i
     );
   }
-  s.wait();
+  s.get_submission_group().wait();
   int count = ecount.load();
   if (count != 0) {
     std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
@@ -177,9 +177,8 @@ int test_submit_and_wait_on_sync_empty() {
 }
 
 int test_properties() {
-  TestUtils::int_inline_backend_t s;
   std::vector<int> v = {1,2};
-  s.initialize(v);
+  TestUtils::int_inline_backend_t s(v);
   auto v2 = s.get_resources();
   auto v2s = v2.size();
 
