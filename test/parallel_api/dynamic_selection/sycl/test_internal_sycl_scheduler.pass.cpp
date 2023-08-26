@@ -39,7 +39,7 @@ int test_submit_and_wait_on_scheduler() {
            }, i
     );
   }
-  s.wait();
+  s.get_submission_group().wait();
   int count = ecount.load();
   if (count != N*(N+1)/2) {
     std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
@@ -63,7 +63,7 @@ int test_submit_and_wait_on_scheduler_single_element() {
            }, i
     );
   }
-  s.wait();
+  s.get_submission_group().wait();
   int count = ecount.load();
   if (count != 1) {
     std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
@@ -87,7 +87,7 @@ int test_submit_and_wait_on_scheduler_empty() {
            }, i
     );
   }
-  s.wait();
+  s.get_submission_group().wait();
   int count = ecount.load();
   if (count != 0) {
     std::cout << "ERROR: scheduler did not execute all tasks exactly once\n";
@@ -173,7 +173,6 @@ int test_submit_and_wait_on_sync_empty() {
 }
 
 int test_properties() {
-  oneapi::dpl::experimental::sycl_backend s;
   std::vector<sycl::queue> v;
   //= { sycl::queue(sycl::cpu_selector{}), sycl::queue(sycl::gpu_selector{}) };
   try {
@@ -190,7 +189,7 @@ int test_properties() {
   }
 
   std::cout << "UNIVERSE SIZE " << v.size() << std::endl;
-  s.initialize(v);
+  oneapi::dpl::experimental::sycl_backend s(v);
   auto v2 = s.get_resources();
   auto v2s = v2.size();
   if (v2s != v.size()) {

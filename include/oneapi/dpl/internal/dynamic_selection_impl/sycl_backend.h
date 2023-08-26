@@ -26,44 +26,50 @@ namespace oneapi {
 namespace dpl {
 namespace experimental {
 
-  struct sycl_backend {
-
+  class sycl_backend {
+  public:
     using resource_type = sycl::queue;
     using wait_type = sycl::event;
-
     using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
     using resource_container_t = std::vector<execution_resource_t>;
 
-    class async_wait_t {
-    public:
-      virtual void wait() = 0;
-      virtual wait_type unwrap() const = 0;
-      virtual ~async_wait_t() {}
-    };
-    using waiter_container_t = util::concurrent_queue<async_wait_t *>;
+  private:
 
-    template<typename PropertyHandle>
-    class async_wait_impl_t : public async_wait_t {
-      wait_type w_;
-    public:
-      async_wait_impl_t(sycl::event e) : w_(e) { };
-      wait_type unwrap() const override { return w_; }
-      void wait() override { w_.wait(); }
+    class async_waiter {
+      sycl::event e_;
+      public:
+        async_waiter(sycl::event e) : e_(e) {}
+        sycl::event unwrap() { return e_; }
+        void wait() { e_.wait(); }
     };
 
-    std::mutex global_rank_mutex_;
-    resource_container_t global_rank_;
-    waiter_container_t waiters_;
+    class submission_group {
+      resource_container_t resources_;
+    public:
+      submission_group(const resource_container_t& v) : resources_(v) { }
 
-    sycl_backend() = default;
+      void wait() {
+        for (auto& r : resources_) {
+          unwrap(r).wait();
+        }
+      }
+    };
+
+  public:
 
     sycl_backend(const sycl_backend& v) = delete;
 
-    template<typename NativeUniverseVector, typename ...Args>
-    sycl_backend(const NativeUniverseVector& v, Args&&... args) {
+    sycl_backend() {
+      initialize_default_resources();
+      sgroup_ptr_ = std::make_unique<submission_group>(global_rank_);
+    }
+
+    template<typename NativeUniverseVector>
+    sycl_backend(const NativeUniverseVector& v) {
       for (auto e : v) {
         global_rank_.push_back(e);
       }
+      sgroup_ptr_ = std::make_unique<submission_group>(global_rank_);
     }
 
     template<typename SelectionHandle, typename Function, typename ...Args>
@@ -89,51 +95,30 @@ namespace experimental {
                 s.report(execution_info::task_time, (std::chrono::high_resolution_clock::now() - t0).count());
             });
         });
-        auto w = new async_wait_impl_t<SelectionHandle>(e2);
-        waiters_.push(w);
-        return *w;
+        return async_waiter{e2};
       } else {
-        auto w = new async_wait_impl_t<SelectionHandle>(f(unwrap(s), std::forward<Args>(args)...));
-        waiters_.push(w);
-        return *w;
+        return async_waiter{f(unwrap(s), std::forward<Args>(args)...)};
       }
     }
 
     auto get_submission_group(){
-       std::list<async_wait_t*> wlist;
-       waiters_.pop_all(wlist);
-       return wlist;
-    }
-
-    void wait() {
-      while(!waiters_.empty()){
-        async_wait_t *w;
-        waiters_.pop(w);
-        w->wait();
-        delete w;
-      }
+      return *sgroup_ptr_;
     }
 
     auto get_resources()  noexcept {
-      std::unique_lock<std::mutex> l(global_rank_mutex_);
-      if (global_rank_.empty()) {
-        auto devices = sycl::device::get_devices();
-        for(auto x : devices){
-          global_rank_.push_back(sycl::queue{x});
-        }
-      }
       return global_rank_;
     }
 
-    template<typename NativeUniverseVector>
-    auto initialize(const NativeUniverseVector &gr) noexcept {
-      std::unique_lock<std::mutex> l(global_rank_mutex_);
-      global_rank_.clear();
-      for (auto e : gr) {
-        global_rank_.push_back(e);
+  private:
+    resource_container_t global_rank_;
+    std::unique_ptr<submission_group> sgroup_ptr_;
+
+    void initialize_default_resources() {
+      auto devices = sycl::device::get_devices();
+      for(auto x : devices){
+        global_rank_.push_back(sycl::queue{x});
       }
     }
-
   };
 
 } //namespace experimental
