@@ -23,13 +23,6 @@
 namespace oneapi {
 namespace dpl {
 namespace experimental {
-/*#if _DS_BACKEND_SYCL != 0
-  template <typename Backend=sycl_backend, typename... KeyArgs>
-#else
-  template <typename Backend, typename... KeyArgs>
-#endif
-class auto_tune_policy;
-*/
   template <typename Backend=sycl_backend, typename... KeyArgs>
   class auto_tune_policy {
 
