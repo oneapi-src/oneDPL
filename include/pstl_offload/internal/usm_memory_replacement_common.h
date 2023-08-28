@@ -25,15 +25,14 @@
 namespace __pstl_offload {
 
 inline constexpr std::size_t __uniq_type_const = 0x23499abc405a9bccLLU;
+inline constexpr std::size_t __header_offset = 32;
 
-struct __block_header {
+struct alignas(__header_offset) __block_header {
     std::size_t _M_uniq_const;
     void* _M_original_pointer;
-    std::size_t _M_requested_number_of_bytes;
     sycl::device* _M_device;
+    std::size_t _M_requested_number_of_bytes;
 }; // struct __block_header
-
-inline constexpr std::size_t __header_offset = 32;
 
 static_assert(sizeof(__block_header) <= __header_offset);
 
@@ -78,7 +77,7 @@ inline void* __allocate_shared_for_device(sycl::device* __device, std::size_t __
 
     void* __res = static_cast<char*>(__ptr) + __base_offset;
     __block_header* __header = static_cast<__block_header*>(__res) - 1;
-    *__header = __block_header{__uniq_type_const, __ptr, __size, __device};
+    *__header = __block_header{__uniq_type_const, __ptr, __device, __size};
     return __res;
 }
 

@@ -48,6 +48,7 @@ void __internal_free(void* __user_ptr) {
         // Only USM pointers has headers
         assert(__header->_M_device);
         sycl::context __context = __header->_M_device->get_platform().ext_oneapi_get_default_context();
+        __header->_M_uniq_const = 0;
         sycl::free(__header->_M_original_pointer, __context);
     } else {
         // A regular pointer without a header
