@@ -230,7 +230,7 @@ struct iterator_traits_
 };
 
 template <typename Iter> // For iterators
-struct iterator_traits_<Iter, ::std::enable_if_t<!::std::is_void<typename Iter::iterator_category>::value, void>>
+struct iterator_traits_<Iter, ::std::enable_if_t<!::std::is_void_v<typename Iter::iterator_category>, void>>
 {
     typedef typename Iter::iterator_category iterator_category;
 };

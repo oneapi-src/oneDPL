@@ -31,9 +31,9 @@ namespace unseq_backend
 {
 // helpers to encapsulate void and other types
 template <typename _Tp>
-using void_type = ::std::enable_if_t<::std::is_void<_Tp>::value, _Tp>;
+using void_type = ::std::enable_if_t<::std::is_void_v<_Tp>, _Tp>;
 template <typename _Tp>
-using non_void_type = ::std::enable_if_t<!::std::is_void<_Tp>::value, _Tp>;
+using non_void_type = ::std::enable_if_t<!::std::is_void_v<_Tp>, _Tp>;
 
 #if _USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
 //This optimization depends on Intel(R) oneAPI DPC++ Compiler implementation such as support of binary operators from std namespace.
