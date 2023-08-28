@@ -260,7 +260,7 @@ DEFINE_TEST(test_destroy)
 
         ::std::destroy(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec), first1 + (n / 3),
                        first1 + (n / 2));
-        if (!::std::is_trivially_destructible<T1>::value)
+        if (!::std::is_trivially_destructible_v<T1>)
             value = T1{-2};
         wait_and_throw(exec);
 
@@ -287,7 +287,7 @@ DEFINE_TEST(test_destroy_n)
         host_keys.update_data();
 
         ::std::destroy_n(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec), first1, n);
-        if(!::std::is_trivially_destructible<T1>::value)
+        if(!::std::is_trivially_destructible_v<T1>)
             value = T1{-2};
         wait_and_throw(exec);
 
