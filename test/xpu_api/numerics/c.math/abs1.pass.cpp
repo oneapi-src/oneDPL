@@ -48,7 +48,7 @@ ONEDPL_TEST_NUM_MAIN
 {
     // On some systems char is unsigned.
     // If that is the case, we should just test signed char twice.
-    typedef ::std::conditional_t<std::is_signed<char>::value, char, signed char> SignedChar;
+    typedef ::std::conditional_t<std::is_signed_v<char>, char, signed char> SignedChar;
 
     // All types less than or equal to and not greater than int are promoted to int.
     test_abs<short int, int>();
