@@ -151,7 +151,7 @@ namespace internal {
       if constexpr ( internal::has_submit_and_wait<T, Function, Args...>::value == true) {
         // has the optional submit_and_wait(f, args...)
         return std::forward<T>(t).submit_and_wait(std::forward<Function>(f), std::forward<Args>(args)...);
-      } else if constexpr ( internal::has_submit_and_wait_handle<T, typename std::decay<T>::type::selection_type, Function, Args...>::value == true) {
+      } else if constexpr ( internal::has_submit_and_wait_handle<T, typename std::decay_t<T>::selection_type, Function, Args...>::value == true) {
         // has the optional submit_and_wait for a selection, so select and call
         return submit_and_wait(std::forward<T>(t).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
       } else {

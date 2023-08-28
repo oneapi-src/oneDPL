@@ -25,25 +25,25 @@ namespace dpl {
 namespace experimental {
 #if _DS_BACKEND_SYCL != 0
   template <typename Backend=sycl_backend, typename... KeyArgs>
-#else 
+#else
   template <typename Backend, typename... KeyArgs>
 #endif
 class auto_tune_policy;
 
-  namespace internal { 
+  namespace internal {
     template <typename Backend, typename Resource, typename Tuner, typename... KeyArgs>
     class auto_tune_selection_type {
       using policy_t = auto_tune_policy<Backend, KeyArgs...>;
-      policy_t policy_; 
+      policy_t policy_;
       using resource_with_offset_t = Resource;
       resource_with_offset_t resource_;
       using tuner_t = Tuner;
       std::shared_ptr<tuner_t> tuner_;
 
     public:
-      auto_tune_selection_type() : policy_(deferred_initialization) {} 
+      auto_tune_selection_type() : policy_(deferred_initialization) {}
 
-      auto_tune_selection_type(const policy_t& p, resource_with_offset_t r, std::shared_ptr<tuner_t> t) 
+      auto_tune_selection_type(const policy_t& p, resource_with_offset_t r, std::shared_ptr<tuner_t> t)
         : policy_(p), resource_(r), tuner_(t) {}
 
       auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_.r_); }
@@ -62,14 +62,14 @@ class auto_tune_policy;
     static constexpr double never_resample = 0.0;
     static constexpr int use_best_resource = -1;
 
-    using wrapped_resource_t = typename std::decay<Backend>::type::execution_resource_t;
+    using wrapped_resource_t = typename std::decay_t<Backend>::execution_resource_t;
     using size_type = typename std::vector<typename Backend::resource_type>::size_type;
 
     using timing_t = uint64_t;
 
     struct resource_with_offset_t {
       wrapped_resource_t r_;
-      size_type offset_; 
+      size_type offset_;
     };
 
     struct time_data_t {
@@ -93,9 +93,9 @@ class auto_tune_policy;
 
       double resample_time_ = 0;
 
-      tuner_t(resource_with_offset_t br, size_type resources_size, double rt) 
-        : t0_(std::chrono::high_resolution_clock::now()), 
-          best_resource_(br), 
+      tuner_t(resource_with_offset_t br, size_type resources_size, double rt)
+        : t0_(std::chrono::high_resolution_clock::now()),
+          best_resource_(br),
           max_resource_to_profile_(resources_size),
           resample_time_(rt) {}
 
@@ -117,7 +117,7 @@ class auto_tune_policy;
           }
         }
       }
- 
+
       // called to add new profile info
       void add_new_timing(resource_with_offset_t r, timing_t t) {
         std::unique_lock<std::mutex> l(m_);
@@ -137,7 +137,7 @@ class auto_tune_policy;
           best_timing_ = new_value;
           best_resource_ = r;
         }
-      } 
+      }
 
     };
 
@@ -159,7 +159,7 @@ class auto_tune_policy;
         initialize(u, resample_time);
       }
     }
-   
+
     void initialize(double resample_time=never_resample) {
       if (!state_) {
         state_ = std::make_shared<state_t>();
@@ -184,11 +184,11 @@ class auto_tune_policy;
         auto t  = state_->tuner_by_key_[k];
         auto offset = t->get_resource_to_profile();
         if (offset == use_best_resource) {
-          return selection_type{*this, t->best_resource_, t}; 
+          return selection_type{*this, t->best_resource_, t};
         } else {
           auto r = state_->resources_with_offset_[offset];
-          return selection_type{*this, r, t}; 
-        } 
+          return selection_type{*this, r, t};
+        }
       } else {
          throw std::runtime_error("Called select before initialization\n");
       }
