@@ -150,7 +150,7 @@ namespace dpl
 template <typename _Ip>
 class counting_iterator
 {
-    static_assert(::std::is_integral<_Ip>::value, "Cannot instantiate counting_iterator with a non-integer type");
+    static_assert(::std::is_integral_v<_Ip>, "Cannot instantiate counting_iterator with a non-integer type");
 
   public:
     typedef ::std::make_signed_t<_Ip> difference_type;

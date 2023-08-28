@@ -154,7 +154,7 @@ class uniform_int_distribution
     using RealType = ::std::conditional_t<size_of_type_ == 0, double, sycl::vec<double, size_of_type_>>;
 
     // Static asserts
-    static_assert(::std::is_integral<scalar_type>::value,
+    static_assert(::std::is_integral_v<scalar_type>,
                   "oneapi::dpl::uniform_int_distribution. Error: unsupported data type");
 
     // Distribution parameters
