@@ -43,7 +43,7 @@ void test_random_iterator(const RandomIt& it) {
         [[maybe_unused]] auto t4 = typename RandomIt::iterator_category{};
     }
 
-    static_assert(::std::is_default_constructible<RandomIt>::value, "iterator is not default constructible");
+    static_assert(::std::is_default_constructible_v<RandomIt>, "iterator is not default constructible");
 
     EXPECT_TRUE(  it == it,      "== returned false negative");
     EXPECT_TRUE(!(it == it + 1), "== returned false positive");
