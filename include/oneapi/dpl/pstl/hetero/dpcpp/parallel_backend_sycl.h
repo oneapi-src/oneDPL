@@ -1364,7 +1364,7 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _I
     _Index2 __start2 = 0;
     if (__i_elem < __n1) //a condition to specify upper or lower part of the merge matrix to be processed
     {
-        auto __q = __i_elem; //diagonal index
+        auto __q = __i_elem;                            //diagonal index
         auto __n_diag = ::std::min<_Index2>(__q, __n2); //diagonal size
 
         //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
@@ -1380,7 +1380,7 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _I
     }
     else
     {
-        auto __q = __i_elem - __n1; //diagonal index
+        auto __q = __i_elem - __n1;                            //diagonal index
 
         auto __n_diag = ::std::min<_Index1>(__n2 - __q, __n1); //diagonal size
 
@@ -1434,7 +1434,7 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
             if (__comp(__val2, __val1))
             {
                 __rng3[__start3 + __i] = __val2;
-                  if(++__start2 == __n2)
+                  if (++__start2 == __n2)
                   {
                       //copying a residual of the first seq
                       _ONEDPL_PRAGMA_UNROLL
