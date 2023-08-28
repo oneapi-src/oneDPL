@@ -527,8 +527,8 @@ using __is_const_callable_object =
 struct __next_to_last
 {
     template <typename _Iterator>
-    ::std::enable_if_t<::std::is_base_of<::std::random_access_iterator_tag,
-                                         typename ::std::iterator_traits<_Iterator>::iterator_category>::value,
+    ::std::enable_if_t<::std::is_base_of_v<::std::random_access_iterator_tag,
+                                           typename ::std::iterator_traits<_Iterator>::iterator_category>,
                        _Iterator>
     operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
     {
@@ -536,8 +536,8 @@ struct __next_to_last
     }
 
     template <typename _Iterator>
-    ::std::enable_if_t<!::std::is_base_of<::std::random_access_iterator_tag,
-                                          typename ::std::iterator_traits<_Iterator>::iterator_category>::value,
+    ::std::enable_if_t<!::std::is_base_of_v<::std::random_access_iterator_tag,
+                                            typename ::std::iterator_traits<_Iterator>::iterator_category>,
                        _Iterator>
     operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
     {
