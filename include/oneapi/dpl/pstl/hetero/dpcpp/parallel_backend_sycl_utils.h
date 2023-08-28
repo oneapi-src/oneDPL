@@ -652,18 +652,26 @@ class __future : private std::tuple<_Args...>
     }
 };
 
-// Only use USM host allocations on Intel GPUs. Other devices show significant slowdowns.
+// Only use USM host allocations on L0 GPUs. Other devices show significant slowdowns and will use a buffer instead.
 inline bool
 __use_USM_host_allocations(sycl::queue __queue)
 {
+#if _ONEDPL_SYCL_INTEL_COMPILER
+    // The Intel 2023.2 compiler doesn't support the unified future above. A future on top of a buffer is used instead.
+#    if __SYCL_COMPILER_VERSION >= 20230622 && __SYCL_COMPILER_VERSION < 20230822
+    return false;
+#    endif
     auto __device = __queue.get_device();
     if (!__device.is_gpu())
         return false;
     if (!__device.has(sycl::aspect::usm_host_allocations))
         return false;
-    if (__device.get_info<sycl::info::device::vendor_id>() != 32902)
+    if (__device.get_backend() != sycl::backend::ext_oneapi_level_zero)
         return false;
     return true;
+#else
+    return false;
+#endif
 }
 
 // Invoke a callable and pass a compile-time integer based on a provided run-time integer.
