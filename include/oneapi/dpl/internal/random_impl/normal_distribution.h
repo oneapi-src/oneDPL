@@ -176,7 +176,7 @@ class normal_distribution
     scalar_type saved_u2_;
 
     // Static asserts
-    static_assert(::std::is_floating_point<scalar_type>::value,
+    static_assert(::std::is_floating_point_v<scalar_type>,
                   "oneapi::dpl::normal_distribution. Error: unsupported data type");
 
     // Real distribution for the conversion
