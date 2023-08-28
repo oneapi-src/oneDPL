@@ -512,11 +512,32 @@ using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::va
 template <typename _T>
 struct __accessor
 {
+  private:
     using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
                                         sycl::access::placeholder::false_t>;
     __accessor_t m_acc;
-    _T* m_ptr;
-    bool m_usm;
+    _T* m_ptr = nullptr;
+    bool m_usm = false;
+
+  public:
+// Compilers before 2023.1 don't provide a default constructor for sycl::accessor. Fallback to a buffer instead.
+#if __SYCL_COMPILER_VERSION == 20230320 || __SYCL_COMPILER_VERSION > 20230822
+    __accessor(sycl::handler& __cgh, bool __usm, ::std::shared_ptr<sycl::buffer<_T, 1>> m_sycl_buf,
+               ::std::shared_ptr<_T> m_usm_buf)
+        : m_usm(__usm)
+    {
+        if (m_usm)
+            m_ptr = m_usm_buf.get();
+        else
+            m_acc = sycl::accessor(*m_sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+    }
+#else
+    __accessor(sycl::handler& __cgh, bool __usm, ::std::shared_ptr<sycl::buffer<_T, 1>> m_sycl_buf,
+               ::std::shared_ptr<_T> m_usm_buf)
+        : m_usm(__usm), m_acc(sycl::accessor(*m_sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+    {
+    }
+#endif
 
     auto
     get_pointer() const //should be cached within a kernel
@@ -550,18 +571,7 @@ struct __storage
     auto
     get_acc(sycl::handler& __cgh)
     {
-        __accessor<_T> acc;
-        if (m_usm)
-        {
-            acc.m_usm = true;
-            acc.m_ptr = m_usm_buf.get();
-        }
-        else
-        {
-            acc.m_usm = false;
-            acc.m_acc = sycl::accessor(*m_sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
-        }
-        return acc;
+        return __accessor<_T>(__cgh, m_usm, m_sycl_buf, m_usm_buf);
     }
 
     auto
@@ -570,7 +580,7 @@ struct __storage
         return m_usm ? *(m_usm_buf.get() + idx) : m_sycl_buf->get_host_access(sycl::read_only)[idx];
     }
 
-    bool
+    const bool
     get_usm()
     {
         return m_usm;
@@ -656,11 +666,9 @@ class __future : private std::tuple<_Args...>
 inline bool
 __use_USM_host_allocations(sycl::queue __queue)
 {
-#if _ONEDPL_SYCL_INTEL_COMPILER
-    // The Intel 2023.2 compiler doesn't support the unified future above. A future on top of a buffer is used instead.
-#    if __SYCL_COMPILER_VERSION >= 20230622 && __SYCL_COMPILER_VERSION < 20230822
-    return false;
-#    endif
+// The unified future above is currently only supported by DPCPP 2023.1 and compilers starting from 20230822.
+// A future on top of a buffer is used on other compilers.
+#if __SYCL_COMPILER_VERSION == 20230320 || __SYCL_COMPILER_VERSION > 20230822
     auto __device = __queue.get_device();
     if (!__device.is_gpu())
         return false;
