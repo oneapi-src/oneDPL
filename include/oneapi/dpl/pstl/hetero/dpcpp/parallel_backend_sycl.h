@@ -1536,11 +1536,11 @@ struct __leaf_sort_kernel
 };
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _LeafSortName, typename _GlobalSortName, typename _CopyBackName>
+template <typename _IdType, typename _LeafSortName, typename _GlobalSortName, typename _CopyBackName>
 struct __parallel_sort_submitter;
 
-template <typename... _LeafSortName, typename... _GlobalSortName, typename... _CopyBackName>
-struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortName...>,
+template <typename _IdType, typename... _LeafSortName, typename... _GlobalSortName, typename... _CopyBackName>
+struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_LeafSortName...>,
                                  __internal::__optional_kernel_name<_GlobalSortName...>,
                                  __internal::__optional_kernel_name<_CopyBackName...>>
 {
@@ -1564,8 +1564,8 @@ struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortNam
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
             __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
             {
-                const ::std::uint32_t i_elem = __item_id.get_linear_id() * __leaf;
-                __leaf_sort_kernel()(__rng, i_elem, std::min<::std::uint32_t>(i_elem + __leaf, __n), __comp);
+                const _IdType __i_elem = __item_id.get_linear_id() * __leaf;
+                __leaf_sort_kernel()(__rng, __i_elem, std::min<_IdType>(__i_elem + __leaf, __n), __comp);
             });
         });
 
@@ -1589,28 +1589,28 @@ struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortNam
 
                 __cgh.parallel_for<_GlobalSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
                     {
-                        const ::std::uint32_t i_elem = __item_id.get_linear_id() * __chunk;
-                        const auto i_elem_local = i_elem % (__n_sorted*2);
+                        const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
+                        const auto __i_elem_local = __i_elem % (__n_sorted*2);
 
-                        const auto offset = ::std::min<::std::uint32_t>((i_elem / (__n_sorted * 2)) * (__n_sorted * 2), __n);
-                        const auto __n1 = ::std::min<::std::uint32_t>(offset + __n_sorted, __n) - offset;
-                        const auto __n2 = ::std::min<::std::uint32_t>(offset + __n1 + __n_sorted, __n) - (offset + __n1);
+                        const auto __offset = ::std::min<_IdType>((__i_elem / (__n_sorted * 2)) * (__n_sorted * 2), __n);
+                        const auto __n1 = ::std::min<_IdType>(__offset + __n_sorted, __n) - __offset;
+                        const auto __n2 = ::std::min<_IdType>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
 
                         if(__data_in_temp)
                         {
-                            const auto& __rng1 = oneapi::dpl::__ranges::drop_view_simple(__dst, offset);
-                            const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__dst, offset + __n1);
+                            const auto& __rng1 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset);
+                            const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset + __n1);
 
-                            const auto start = __find_start_point(__rng1, __rng2, i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __rng/*__rng3*/, start.first, start.second, i_elem, __chunk, __n1, __n2, __comp);
+                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __rng/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
                         }
                         else
                         {
-                            const auto& __rng1 = oneapi::dpl::__ranges::drop_view_simple(__rng, offset);
-                            const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__rng, offset + __n1);
+                            const auto& __rng1 = oneapi::dpl::__ranges::drop_view_simple(__rng, __offset);
+                            const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__rng, __offset + __n1);
 
-                            const auto start = __find_start_point(__rng1, __rng2, i_elem_local, __n1, __n2, __comp);
-                            __serial_merge(__rng1, __rng2, __dst/*__rng3*/, start.first, start.second, i_elem, __chunk, __n1, __n2, __comp);
+                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __dst/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
                         }
                     });
                 });
@@ -1637,10 +1637,10 @@ struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortNam
     }
 };
 
-template <typename _ExecutionPolicy, typename _Range, typename _Compare,
+template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
-__parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+__parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
@@ -1651,8 +1651,13 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
     using _CopyBackKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
-    return __parallel_sort_submitter<_LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __comp);
+    const auto __n = __rng.size();
+    if(__n <= std::numeric_limits<::std::uint32_t>::max())
+        return __parallel_sort_submitter<::std::uint32_t, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __merge, __comp);
+    else
+        return __parallel_sort_submitter<::std::uint64_t, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __merge, __comp);
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
