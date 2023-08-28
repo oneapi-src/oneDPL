@@ -17,8 +17,8 @@
 #    include_next <ratio>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RATIO
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RATIO
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RATIO
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RATIO
 

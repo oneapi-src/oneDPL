@@ -17,8 +17,8 @@
 #    include_next <oneapi/tbb/task_scheduler_observer.h>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_TBB_TASK_SCHEDULER_OBSERVER_H
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_TBB_TASK_SCHEDULER_OBSERVER_H
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_TBB_TASK_SCHEDULER_OBSERVER_H
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_TBB_TASK_SCHEDULER_OBSERVER_H
 

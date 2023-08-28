@@ -17,8 +17,8 @@
 #    include_next <iomanip>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOMANIP
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOMANIP
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOMANIP
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOMANIP
 

@@ -17,9 +17,9 @@
 #    include_next <algorithm>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
 #        include "internal/algorithm_impl.h"
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
 

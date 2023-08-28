@@ -17,8 +17,8 @@
 #    include_next <unordered_set>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_UNORDERED_SET
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_UNORDERED_SET
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_UNORDERED_SET
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_UNORDERED_SET
 

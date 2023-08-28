@@ -17,8 +17,8 @@
 #    include_next <scoped_allocator>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SCOPED_ALLOCATOR
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SCOPED_ALLOCATOR
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SCOPED_ALLOCATOR
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SCOPED_ALLOCATOR
 

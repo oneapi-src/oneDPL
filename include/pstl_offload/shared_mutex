@@ -17,8 +17,8 @@
 #    include_next <shared_mutex>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SHARED_MUTEX
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SHARED_MUTEX
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SHARED_MUTEX
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SHARED_MUTEX
 

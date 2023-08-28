@@ -17,8 +17,8 @@
 #    include_next <cfloat>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CFLOAT
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CFLOAT
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CFLOAT
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CFLOAT
 

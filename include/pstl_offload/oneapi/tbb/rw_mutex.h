@@ -17,8 +17,8 @@
 #    include_next <oneapi/tbb/rw_mutex.h>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_TBB_RW_MUTEX_H
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_TBB_RW_MUTEX_H
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_TBB_RW_MUTEX_H
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_TBB_RW_MUTEX_H
 

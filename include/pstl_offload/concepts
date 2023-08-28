@@ -17,8 +17,8 @@
 #    include_next <concepts>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CONCEPTS
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CONCEPTS
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CONCEPTS
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CONCEPTS
 

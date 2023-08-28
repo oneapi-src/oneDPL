@@ -17,8 +17,8 @@
 #    include_next <sycl/sycl.hpp>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
 

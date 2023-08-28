@@ -17,8 +17,8 @@
 #    include_next <cfenv>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CFENV
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CFENV
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CFENV
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_CFENV
 

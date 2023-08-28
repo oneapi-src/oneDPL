@@ -17,8 +17,8 @@
 #    include_next <regex>
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_REGEX
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_REGEX
 #        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_REGEX
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_REGEX
 
