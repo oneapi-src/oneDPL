@@ -152,7 +152,7 @@ class lognormal_distribution
     using normal_distr_param_type = typename normal_distr::param_type;
 
     // Static asserts
-    static_assert(::std::is_floating_point<scalar_type>::value,
+    static_assert(::std::is_floating_point_v<scalar_type>,
                   "oneapi::dpl::lognormal_distribution. Error: unsupported data type");
 
     // Distribution parameters
