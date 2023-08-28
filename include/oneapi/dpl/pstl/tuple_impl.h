@@ -266,7 +266,7 @@ struct __value_holder
 
 // Necessary to make tuple trivially_copy_assignable. This type decided
 // if it's needed to have user-defined operator=.
-template <typename _Tp, bool = ::std::is_trivially_copy_assignable<oneapi::dpl::__internal::__value_holder<_Tp>>::value>
+template <typename _Tp, bool = ::std::is_trivially_copy_assignable_v<oneapi::dpl::__internal::__value_holder<_Tp>>>
 struct __copy_assignable_holder : oneapi::dpl::__internal::__value_holder<_Tp>
 {
     using oneapi::dpl::__internal::__value_holder<_Tp>::__value_holder;
