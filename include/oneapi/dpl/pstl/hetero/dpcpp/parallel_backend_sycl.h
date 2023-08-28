@@ -1425,7 +1425,7 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
     }
     else
     {
-        const auto __n = __chunk;
+        ::std::uint8_t __n = __chunk;
         _ONEDPL_PRAGMA_UNROLL
         for (::std::uint8_t __i = 0; __i < __n; ++__i)
         {
@@ -1438,11 +1438,8 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
                   {
                       //copying a residual of the first seq
                       _ONEDPL_PRAGMA_UNROLL
-                      for (++__i; __i < __n; ++__i)
-                      {
+                      for (++__i; __i < __n && __start1 < __n1; ++__i, ++__start1)
                           __rng3[__start3 + __i] = __rng1[__start1];
-                          ++__start1;
-                      }
                   }
             }
             else
@@ -1452,11 +1449,8 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
                 {
                     //copying a residual of the second seq
                     _ONEDPL_PRAGMA_UNROLL
-                    for (++__i; __i < __n; ++__i)
-                    {
+                    for (++__i; __i < __n && __start2 < __n2; ++__i, ++__start2)
                         __rng3[__start3 + __i] = __rng2[__start2];
-                        ++__start2;
-                    }
                 }
             }
         }
