@@ -15,6 +15,7 @@
 #endif
 
 #include <cstdlib>
+#include <atomic>
 #include <cassert>
 #include <cerrno>
 #include <optional>
@@ -25,12 +26,22 @@
 
 #include "usm_memory_replacement_common.h"
 
+#if _WIN64
+#    include <corecrt.h>
+#    pragma comment(lib, "pstloffload.lib")
+#endif
+
 namespace __pstl_offload
 {
 
 // allocation can be requested before static ctor or after static dtor runs, have a flag for that
 // keep it out of __offload_policy_holder_type to not access object before ctor or after dtor
 static std::atomic_bool __device_ready;
+
+// Under Windows, we must not use functions with explicit alignment for malloc replacement, as
+// an allocated memory would be released by free() replacement, that has no alignment argument.
+// Mark such allocations with special alignment. Use 0, as this is not valid alignment.
+static constexpr std::size_t __ignore_alignment = 0;
 
 static void
 __set_device_status(bool __ready)
@@ -173,7 +184,7 @@ static __offload_policy_holder_type __offload_policy_holder{__get_offload_device
 inline void*
 __original_aligned_alloc(std::size_t __alignment, std::size_t __size)
 {
-    using __aligned_alloc_func_type = void* (*)(std::size_t, std::size_t);
+    using __aligned_alloc_func_type = void* (*)(std::size_t alignment, std::size_t size);
 
     static __aligned_alloc_func_type __orig_aligned_alloc =
         __aligned_alloc_func_type(dlsym(RTLD_NEXT, "aligned_alloc"));
@@ -189,13 +200,24 @@ __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
         if (__sycl_device_shared_ptr __dev = __offload_policy_holder_type::__get_device_ptr(__offload_policy_holder))
         {
             void* __res = __allocate_shared_for_device(std::move(__dev), __size, __alignment);
-            assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
+            if (__res && __alignment)
+                assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
             return __res;
         }
     }
-    void* __res = __original_aligned_alloc(__alignment, __size);
-
-    assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
+    // note size/alignment args order for aligned allocation between Windows/Linux
+#if _WIN64
+    // Under Windows, memory with explicitly set alignment must not be released by free() function,
+    // but rather with _aligned_free(), so have to use malloc() for non-extended alignment allocations.
+    void* __res = (__ignore_alignment == __alignment) ? __original_malloc(__size)
+                                                      : __original_aligned_alloc(__size, __alignment);
+#else
+    // can always use aligned allocation, not interop issue with free()
+    void* __res = __original_aligned_alloc((__ignore_alignment == __alignment) ? alignof(std::max_align_t) : __alignment,
+                                           __size);
+#endif
+    if (__res && __alignment)
+        assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
     return __res;
 }
 
@@ -248,19 +270,28 @@ __internal_operator_new(std::size_t __size, std::size_t __alignment, const std::
     return __res;
 }
 
+static bool
+__verify_aligned_new_param(std::size_t __alignment)
+{
+    if (!__is_power_of_two(__alignment))
+    {
+#if _WIN64
+        errno = EINVAL;
+        _invalid_parameter_noinfo();
+#endif
+        return false;
+    }
+    return true;
+}
+
 } // namespace __pstl_offload
-
-#if __linux__
-
-// valloc, pvalloc, __libc_valloc and __libc_pvalloc are not supported
-// due to unsupported alignment on memory page
 
 extern "C"
 {
 
 inline void* __attribute__((always_inline)) malloc(std::size_t __size)
 {
-    return ::__pstl_offload::__errno_handling_internal_aligned_alloc(__size, alignof(std::max_align_t));
+    return ::__pstl_offload::__errno_handling_internal_aligned_alloc(__size, __pstl_offload::__ignore_alignment);
 }
 
 inline void* __attribute__((always_inline)) calloc(std::size_t __num, std::size_t __size)
@@ -279,7 +310,8 @@ inline void* __attribute__((always_inline)) calloc(std::size_t __num, std::size_
     }
     else
     {
-        __res = ::__pstl_offload::__errno_handling_internal_aligned_alloc(__allocate_size, alignof(std::max_align_t));
+        __res = ::__pstl_offload::__errno_handling_internal_aligned_alloc(__allocate_size,
+                                                                          __pstl_offload::__ignore_alignment);
     }
 
     return __res ? std::memset(__res, 0, __allocate_size) : nullptr;
@@ -289,6 +321,11 @@ inline void* __attribute__((always_inline)) realloc(void* __ptr, std::size_t __s
 {
     return ::__pstl_offload::__internal_realloc(__ptr, __size);
 }
+
+#if __linux__
+
+// valloc, pvalloc, __libc_valloc and __libc_pvalloc are not supported
+// due to unsupported alignment on memory page
 
 inline void* __attribute__((always_inline)) memalign(std::size_t __alignment, std::size_t __size) noexcept
 {
@@ -345,6 +382,30 @@ inline void* __attribute__((always_inline)) __libc_realloc(void* __ptr, std::siz
     return realloc(__ptr, __size);
 }
 
+#elif _WIN64
+
+inline void* __attribute__((always_inline)) _aligned_malloc(std::size_t __size, std::size_t __alignment)
+{
+    // _aligned_malloc should reject zero or not power of two alignments
+    if (!::__pstl_offload::__verify_aligned_new_param(__alignment))
+    {
+        return nullptr;
+    }
+    return ::__pstl_offload::__errno_handling_internal_aligned_alloc(__size, __alignment);
+}
+
+inline void* __attribute__((always_inline)) _aligned_realloc(void* __ptr, std::size_t __size, std::size_t __alignment)
+{
+    // _aligned_realloc should reject zero or not power of two alignments, but not when it calls _aligned_free
+    if (__size && !::__pstl_offload::__verify_aligned_new_param(__alignment))
+    {
+        return nullptr;
+    }
+    return ::__pstl_offload::__internal_aligned_realloc(__ptr, __size, __alignment);
+}
+
+#endif
+
 } // extern "C"
 
 #pragma GCC diagnostic push
@@ -353,53 +414,67 @@ inline void* __attribute__((always_inline)) __libc_realloc(void* __ptr, std::siz
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size)
 {
-    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t));
+    return ::__pstl_offload::__internal_operator_new(__size, __pstl_offload::__ignore_alignment);
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size)
 {
-    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t));
+    return ::__pstl_offload::__internal_operator_new(__size, __pstl_offload::__ignore_alignment);
 }
 
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size, const std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t), std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, __pstl_offload::__ignore_alignment, std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size, const std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t), std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, __pstl_offload::__ignore_alignment, std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size, std::align_val_t __al)
 {
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al)))
+    {
+        throw std::bad_alloc();
+    }
     return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al));
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size, std::align_val_t __al)
 {
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al)))
+    {
+        throw std::bad_alloc();
+    }
     return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al));
 }
 
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept
 {
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al)))
+    {
+        return nullptr;
+    }
     return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept
 {
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al)))
+    {
+        return nullptr;
+    }
     return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), std::nothrow);
 }
 
 #pragma GCC diagnostic pop
-
-#endif // __linux__
 
 #endif // _ONEDPL_PSTL_OFFLOAD_INTERNAL_USM_MEMORY_REPLACEMENT_H
