@@ -18,7 +18,7 @@
 
 #    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC
-#        include "internal/numeric_impl"
+#        include "internal/numeric_impl.h"
 #        include "internal/usm_memory_replacement.h"
 #        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC
