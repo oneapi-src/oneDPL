@@ -37,24 +37,37 @@ struct __subgroup_radix_sort
     operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj)
     {
         using __wg_size_t = ::std::integral_constant<::std::uint16_t, __wg_size>;
-        using __sg_size_t = ::std::integral_constant<::std::uint16_t, __req_sub_group_size>;
         using __block_size_t = ::std::integral_constant<::std::uint16_t, __block_size>;
         using __call_0_t = ::std::integral_constant<::std::uint16_t, 0>;
         using __call_1_t = ::std::integral_constant<::std::uint16_t, 1>;
 
-        using _SortKernelLoc = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __sg_size_t, __block_size_t, __call_0_t>>;
-        using _SortKernelGlob = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __sg_size_t, __block_size_t, __call_1_t>>;
+        using _SortKernelLocReqdSgSz = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_0_t, __call_0_t>>;
+        using _SortKernelGlobReqdSgSz = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_1_t, __call_0_t>>;
+        using _SortKernelGlobReqdSgSz = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_1_t, __call_0_t>>;
+        using _SortKernelLocNoReqdSgSz = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_0_t, __call_1_t>>;
+        using _SortKernelGlobNoReqdSgSz = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_1_t, __call_1_t>>;
 
         using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
+        bool __can_use_slm = __check_slm_size<_KeyT>(__q, __src.size());
+        bool __can_use_tuned_sg_size = __check_sg_size(__q);
         //check SLM size
-        if (__check_slm_size<_KeyT>(__q, __src.size()))
-            return __one_group_submitter<_SortKernelLoc>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                           std::true_type{} /*SLM*/);
+        if (__can_use_slm && __can_use_tuned_sg_size)
+            return __one_group_submitter<_SortKernelLocReqdSgSz>()(__q, ::std::forward<_RangeIn>(__src), __proj,
+                                                                   std::true_type{} /*SLM*/, std::true_type{} /*REQD SG SZ*/);
+        else if (!__can_use_slm && __can_use_tuned_sg_size) 
+            return __one_group_submitter<_SortKernelGlobReqdSgSz>()(__q, ::std::forward<_RangeIn>(__src), __proj,
+                                                                    std::false_type{} /*No SLM*/, std::true_type{} /*REQD SG SZ*/);
+        else if (__can_use_slm && !__can_use_tuned_sg_size) 
+            return __one_group_submitter<_SortKernelLocNoReqdSgSz>()(__q, ::std::forward<_RangeIn>(__src), __proj,
+                                                                     std::true_type{} /*No SLM*/, std::false_type{} /*REQD SG SZ*/);
         else
-            return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                            std::false_type{} /*No SLM*/);
+            return __one_group_submitter<_SortKernelGlobNoReqdSgSz>()(__q, ::std::forward<_RangeIn>(__src), __proj,
+                                                                      std::false_type{} /*No SLM*/, std::false_type{} /*REQD SG SZ*/);
     }
 
   private:
@@ -123,15 +136,172 @@ struct __subgroup_radix_sort
         return __req_slm_size_val + __req_slm_size_counters <= __max_slm_size; //counters should be placed in SLM
     }
 
+    bool
+    __check_sg_size(sycl::queue __q)
+    {
+        auto __sup_sub_group_szs = __q.get_device().get_info<sycl::info::device::sub_group_sizes>();
+        return ::std::find(__sup_sub_group_szs.begin(), __sup_sub_group_szs.end(), __req_sub_group_size)
+                    != __sup_sub_group_szs.end();
+    }
+
     template <typename _KernelName>
     struct __one_group_submitter;
 
     template <typename... _Name>
     struct __one_group_submitter<__internal::__optional_kernel_name<_Name...>>
     {
-        template <typename _RangeIn, typename _Proj, typename _SLM_tag>
+      private:
+        template <typename _NDItem, typename _RangeIn, typename _Proj, typename _ExchangeLacc, typename _CountLacc>
+        static void __one_group_kernel_impl(_NDItem __it, uint16_t __n, _RangeIn&& __src,
+            _Proj __proj, _ExchangeLacc __exchange_lacc, _CountLacc __counter_lacc)
+        {
+            using _ValT = oneapi::dpl::__internal::__value_t<_RangeIn>;
+            using _KeyT = oneapi::dpl::__internal::__key_t<_Proj, _RangeIn>;
+
+            union __storage { _ValT __v[__block_size]; __storage(){} } __values;
+            uint16_t __wi = __it.get_local_linear_id();
+            uint16_t __begin_bit = 0;
+            constexpr uint16_t __end_bit = sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
+
+            //copy(move) values construction
+            __block_load<_ValT>(__wi, __src, __values.__v, __n);
+
+            __dpl_sycl::__group_barrier(__it);
+            while (true)
+            {
+                uint16_t __indices[__block_size]; //indices for indirect access in the "re-order" phase
+                {
+                    //pointers(by performance reasons) to bucket's counters
+                    uint32_t* __counters[__block_size];
+
+                    //1. "counting" phase
+                    //counter initialization
+                    auto __pcounter = __dpl_sycl::__get_accessor_ptr(__counter_lacc) + __wi;
+
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (uint16_t __i = 0; __i < __bin_count; ++__i)
+                        __pcounter[__i * __wg_size] = 0;
+
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (uint16_t __i = 0; __i < __block_size; ++__i)
+                    {
+                        const uint16_t __idx = __wi * __block_size + __i;
+                        const uint16_t __bin = __idx < __n ? __get_bucket</*mask*/ __bin_count - 1>(
+                            __order_preserving_cast<__is_asc>(__proj(__values.__v[__i])), __begin_bit)
+                            : __bin_count - 1/*default bin for out of range elements (when idx >= n)*/;
+
+                        //"counting" and local offset calculation
+                        __counters[__i] = &__pcounter[__bin * __wg_size];
+                        __indices[__i] = *__counters[__i];
+                        *__counters[__i] = __indices[__i] + 1;
+                    }
+                    __dpl_sycl::__group_barrier(__it);
+
+                    //2. scan phase
+                    {
+                        //TODO: probably can be further optimized
+
+                        //scan contiguous numbers
+                        uint16_t __bin_sum[__bin_count];
+                        __bin_sum[0] = __counter_lacc[__wi * __bin_count];
+
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (uint16_t __i = 1; __i < __bin_count; ++__i)
+                            __bin_sum[__i] = __bin_sum[__i - 1] + __counter_lacc[__wi * __bin_count + __i];
+
+                        __dpl_sycl::__group_barrier(__it);
+                        //exclusive scan local sum
+                        uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
+                            __it.get_group(), __bin_sum[__bin_count - 1], __dpl_sycl::__plus<uint16_t>());
+                        //add to local sum, generate exclusive scan result
+                        _ONEDPL_PRAGMA_UNROLL
+                        for (uint16_t __i = 0; __i < __bin_count; ++__i)
+                            __counter_lacc[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
+
+                        if (__wi == 0)
+                            __counter_lacc[0] = 0;
+                        __dpl_sycl::__group_barrier(__it);
+                    }
+
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (uint16_t __i = 0; __i < __block_size; ++__i)
+                    {
+                        // a global index is a local offset plus a global base index
+                        __indices[__i] += *__counters[__i];
+                    }
+                }
+
+                __begin_bit += __radix;
+
+                //3. "re-order" phase
+                __dpl_sycl::__group_barrier(__it);
+                if (__begin_bit >= __end_bit)
+                {
+                    // the last iteration - writing out the result
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (uint16_t __i = 0; __i < __block_size; ++__i)
+                    {
+                        const uint16_t __r = __indices[__i];
+                        if (__r < __n)
+                        {
+                            //move the values to source range and destroy the values
+                            __src[__r] = ::std::move(__values.__v[__i]);
+                            __values.__v[__i].~_ValT();
+                        }
+                    }
+
+                    //destroy values in exchange buffer
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (uint16_t __i = 0; __i < __block_size; ++__i)
+                    {
+                        const uint16_t __idx = __wi * __block_size + __i;
+                        if (__idx < __n)
+                            __exchange_lacc[__idx].~_ValT();
+                    }
+
+                    return;
+                }
+
+                //3.1 data exchange
+                if (__begin_bit == __radix) //the first sort iteration
+                {
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (uint16_t __i = 0; __i < __block_size; ++__i)
+                    {
+                        const uint16_t __r = __indices[__i];
+                        if (__r < __n)
+                            new (&__exchange_lacc[__r]) _ValT(::std::move(__values.__v[__i]));
+                    }
+                }
+                else
+                {
+                    _ONEDPL_PRAGMA_UNROLL
+                    for (uint16_t __i = 0; __i < __block_size; ++__i)
+                    {
+                        const uint16_t __r = __indices[__i];
+                        if (__r < __n)
+                            __exchange_lacc[__r] = ::std::move(__values.__v[__i]);
+                    }
+                }
+
+                __dpl_sycl::__group_barrier(__it);
+
+                _ONEDPL_PRAGMA_UNROLL
+                for (uint16_t __i = 0; __i < __block_size; ++__i)
+                {
+                    const uint16_t __idx = __wi * __block_size + __i;
+                    if (__idx < __n)
+                        __values.__v[__i] = ::std::move(__exchange_lacc[__idx]);
+                }
+
+                __dpl_sycl::__group_barrier(__it);
+            }
+
+        }
+public:
+        template <typename _RangeIn, typename _Proj, typename _SLM_tag, typename _Reqd_sg_sz>
         auto
-        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag)
+        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag, _Reqd_sg_sz)
         {
             uint16_t __n = __src.size();
             assert(__n <= __block_size * __wg_size);
@@ -149,147 +319,20 @@ struct __subgroup_radix_sort
                 auto __exchange_lacc = __buf_val.get_acc(__cgh);
                 auto __counter_lacc = __buf_count.get_acc(__cgh);
 
-                __cgh.parallel_for<_Name...>(
-                    __range, ([=](sycl::nd_item<1> __it)[[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]] {
-                        union __storage { _ValT __v[__block_size]; __storage(){} } __values;
-                        uint16_t __wi = __it.get_local_linear_id();
-                        uint16_t __begin_bit = 0;
-                        constexpr uint16_t __end_bit = sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
-
-                        //copy(move) values construction
-                        __block_load<_ValT>(__wi, __src, __values.__v, __n);
-
-                        __dpl_sycl::__group_barrier(__it);
-                        while (true)
-                        {
-                            uint16_t __indices[__block_size]; //indices for indirect access in the "re-order" phase
-                            {
-                                //pointers(by performance reasons) to bucket's counters
-                                uint32_t* __counters[__block_size];
-
-                                //1. "counting" phase
-                                //counter initialization
-                                auto __pcounter = __dpl_sycl::__get_accessor_ptr(__counter_lacc) + __wi;
-
-                                _ONEDPL_PRAGMA_UNROLL
-                                for (uint16_t __i = 0; __i < __bin_count; ++__i)
-                                    __pcounter[__i * __wg_size] = 0;
-
-                                _ONEDPL_PRAGMA_UNROLL
-                                for (uint16_t __i = 0; __i < __block_size; ++__i)
-                                {
-                                    const uint16_t __idx = __wi * __block_size + __i;
-                                    const uint16_t __bin = __idx < __n ? __get_bucket</*mask*/ __bin_count - 1>(
-                                        __order_preserving_cast<__is_asc>(__proj(__values.__v[__i])), __begin_bit)
-                                        : __bin_count - 1/*default bin for out of range elements (when idx >= n)*/;
-
-                                    //"counting" and local offset calculation
-                                    __counters[__i] = &__pcounter[__bin * __wg_size];
-                                    __indices[__i] = *__counters[__i];
-                                    *__counters[__i] = __indices[__i] + 1;
-                                }
-                                __dpl_sycl::__group_barrier(__it);
-
-                                //2. scan phase
-                                {
-                                    //TODO: probably can be further optimized
-
-                                    //scan contiguous numbers
-                                    uint16_t __bin_sum[__bin_count];
-                                    __bin_sum[0] = __counter_lacc[__wi * __bin_count];
-
-                                    _ONEDPL_PRAGMA_UNROLL
-                                    for (uint16_t __i = 1; __i < __bin_count; ++__i)
-                                        __bin_sum[__i] = __bin_sum[__i - 1] + __counter_lacc[__wi * __bin_count + __i];
-
-                                    __dpl_sycl::__group_barrier(__it);
-                                    //exclusive scan local sum
-                                    uint16_t __sum_scan = __dpl_sycl::__exclusive_scan_over_group(
-                                        __it.get_group(), __bin_sum[__bin_count - 1], __dpl_sycl::__plus<uint16_t>());
-                                    //add to local sum, generate exclusive scan result
-                                    _ONEDPL_PRAGMA_UNROLL
-                                    for (uint16_t __i = 0; __i < __bin_count; ++__i)
-                                        __counter_lacc[__wi * __bin_count + __i + 1] = __sum_scan + __bin_sum[__i];
-
-                                    if (__wi == 0)
-                                        __counter_lacc[0] = 0;
-                                    __dpl_sycl::__group_barrier(__it);
-                                }
-
-                                _ONEDPL_PRAGMA_UNROLL
-                                for (uint16_t __i = 0; __i < __block_size; ++__i)
-                                {
-                                    // a global index is a local offset plus a global base index
-                                    __indices[__i] += *__counters[__i];
-                                }
-                            }
-
-                            __begin_bit += __radix;
-
-                            //3. "re-order" phase
-                            __dpl_sycl::__group_barrier(__it);
-                            if (__begin_bit >= __end_bit)
-                            {
-                                // the last iteration - writing out the result
-                                _ONEDPL_PRAGMA_UNROLL
-                                for (uint16_t __i = 0; __i < __block_size; ++__i)
-                                {
-                                    const uint16_t __r = __indices[__i];
-                                    if (__r < __n)
-                                    {
-                                        //move the values to source range and destroy the values
-                                        __src[__r] = ::std::move(__values.__v[__i]);
-                                        __values.__v[__i].~_ValT();
-                                    }
-                                }
-
-                                //destroy values in exchange buffer
-                                _ONEDPL_PRAGMA_UNROLL
-                                for (uint16_t __i = 0; __i < __block_size; ++__i)
-                                {
-                                    const uint16_t __idx = __wi * __block_size + __i;
-                                    if (__idx < __n)
-                                        __exchange_lacc[__idx].~_ValT();
-                                }
-
-                                return;
-                            }
-
-                            //3.1 data exchange
-                            if (__begin_bit == __radix) //the first sort iteration
-                            {
-                                _ONEDPL_PRAGMA_UNROLL
-                                for (uint16_t __i = 0; __i < __block_size; ++__i)
-                                {
-                                    const uint16_t __r = __indices[__i];
-                                    if (__r < __n)
-                                        new (&__exchange_lacc[__r]) _ValT(::std::move(__values.__v[__i]));
-                                }
-                            }
-                            else
-                            {
-                                _ONEDPL_PRAGMA_UNROLL
-                                for (uint16_t __i = 0; __i < __block_size; ++__i)
-                                {
-                                    const uint16_t __r = __indices[__i];
-                                    if (__r < __n)
-                                        __exchange_lacc[__r] = ::std::move(__values.__v[__i]);
-                                }
-                            }
-
-                            __dpl_sycl::__group_barrier(__it);
-
-                            _ONEDPL_PRAGMA_UNROLL
-                            for (uint16_t __i = 0; __i < __block_size; ++__i)
-                            {
-                                const uint16_t __idx = __wi * __block_size + __i;
-                                if (__idx < __n)
-                                    __values.__v[__i] = ::std::move(__exchange_lacc[__idx]);
-                            }
-
-                            __dpl_sycl::__group_barrier(__it);
-                        }
+                if constexpr (_Reqd_sg_sz::value)
+                {
+                    __cgh.parallel_for<_Name...>(
+                        __range, ([=](sycl::nd_item<1> __it)[[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]] {
+                        __one_group_kernel_impl(__it, __n, __src, __proj, __exchange_lacc, __counter_lacc);
                     }));
+                }
+                else
+                {
+                    __cgh.parallel_for<_Name...>(
+                        __range, ([=](sycl::nd_item<1> __it) {
+                        __one_group_kernel_impl(__it, __n, __src, __proj, __exchange_lacc, __counter_lacc);
+                    }));
+                }
             });
         }
     };
