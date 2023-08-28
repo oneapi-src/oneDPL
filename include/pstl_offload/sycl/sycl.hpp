@@ -7,15 +7,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
-#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
 
-#include_next <sycl/sycl.hpp>
+#    ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
+#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
-#ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
-#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
-#    include "internal/usm_memory_replacement.h"
-#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    include_next <sycl/sycl.hpp>
+
+#    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
+#        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP
+
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_SYCL_SYCL_HPP

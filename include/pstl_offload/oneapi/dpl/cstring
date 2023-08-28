@@ -7,15 +7,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_CSTRING
-#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_CSTRING
 
-#include_next <oneapi/dpl/cstring>
+#    ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_CSTRING
+#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
-#ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_CSTRING
-#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_CSTRING
-#    include "internal/usm_memory_replacement.h"
-#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    include_next <oneapi/dpl/cstring>
+
+#    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_CSTRING
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_CSTRING
+#        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_CSTRING
+
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_CSTRING

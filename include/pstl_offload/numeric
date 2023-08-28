@@ -7,16 +7,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC
-#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC
 
-#include_next <numeric>
+#    ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC
+#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
-#ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC
-#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC
-#    include "internal/numeric_impl.h"
-#    include "internal/usm_memory_replacement.h"
-#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    include_next <numeric>
+
+#    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC
+#        include "internal/numeric_impl"
+#        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC
+
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_NUMERIC

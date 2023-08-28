@@ -7,15 +7,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_STOP_TOKEN
-#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_STOP_TOKEN
 
-#include_next <stop_token>
+#    ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_STOP_TOKEN
+#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
-#ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_STOP_TOKEN
-#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_STOP_TOKEN
-#    include "internal/usm_memory_replacement.h"
-#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    include_next <stop_token>
+
+#    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_STOP_TOKEN
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_STOP_TOKEN
+#        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_STOP_TOKEN
+
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_STOP_TOKEN

@@ -7,16 +7,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_ALGORITHM
-#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_ALGORITHM
 
-#include_next <oneapi/dpl/algorithm>
+#    ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_ALGORITHM
+#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
-#ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_ALGORITHM
-#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_ALGORITHM
-#    include "internal/algorithm_impl.h"
-#    include "internal/usm_memory_replacement.h"
-#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    include_next <oneapi/dpl/algorithm>
+
+#    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_ALGORITHM
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_ALGORITHM
+#        include "internal/algorithm_impl"
+#        include "internal/usm_memory_replacement.h"
+#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_ALGORITHM
+
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_ALGORITHM
