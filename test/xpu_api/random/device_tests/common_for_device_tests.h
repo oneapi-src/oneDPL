@@ -35,7 +35,7 @@ int comparison(Fp* r0, Fp* r1, std::uint32_t length) {
     Fp coeff;
     int numErrors = 0;
     for (size_t i = 0; i < length; ++i) {
-        if constexpr (std::is_integral<Fp>::value) {
+        if constexpr (std::is_integral_v<Fp>) {
             if (((int)r0[i] - (int)r1[i]) > 1 || ((int)r1[i] - (int)r0[i]) > 1) {
                 std::cout << "mismatch in " << i << " element: " << r0[i] << " " << r1[i] << std::endl;
                 ++numErrors;
