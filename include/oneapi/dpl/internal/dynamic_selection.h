@@ -125,7 +125,7 @@ namespace internal {
   auto submit(T&& t, Function&&f, Args&&... args) {
     if constexpr(internal::has_get_policy<T>::value == true) {
       // t is a selection
-      return submit(std::forward<T>(t).get_policy(), std::forward<Function>(f), std::forward<Args>(args)...);
+      return submit(t.get_policy(), std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...);
     } else if constexpr(internal::has_submit<T, Function, Args...>::value == true) {
       // t is a policy and policy has optional submit(f, args...)
       return std::forward<T>(t).submit(std::forward<Function>(f), std::forward<Args>(args)...);
