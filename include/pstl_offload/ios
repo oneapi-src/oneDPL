@@ -9,17 +9,17 @@
 
 #ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOS
 
-#    ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOS
-#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOS
+#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
-#    include_next <ios>
+#include_next <ios>
 
-#    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOS
-#        include "internal/usm_memory_replacement.h"
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOS
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOS
+#ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOS
+#    include "internal/usm_memory_replacement.h"
+#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOS
+#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOS
 
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_IOS

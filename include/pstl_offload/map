@@ -9,17 +9,17 @@
 
 #ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_MAP
 
-#    ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_MAP
-#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_MAP
+#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
-#    include_next <map>
+#include_next <map>
 
-#    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_MAP
-#        include "internal/usm_memory_replacement.h"
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_MAP
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_MAP
+#ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_MAP
+#    include "internal/usm_memory_replacement.h"
+#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_MAP
+#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_MAP
 
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_MAP

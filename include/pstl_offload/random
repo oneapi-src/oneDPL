@@ -9,17 +9,17 @@
 
 #ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RANDOM
 
-#    ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RANDOM
-#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RANDOM
+#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
-#    include_next <random>
+#include_next <random>
 
-#    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RANDOM
-#        include "internal/usm_memory_replacement.h"
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RANDOM
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RANDOM
+#ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RANDOM
+#    include "internal/usm_memory_replacement.h"
+#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RANDOM
+#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RANDOM
 
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_RANDOM

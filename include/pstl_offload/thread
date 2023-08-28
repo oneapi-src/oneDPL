@@ -9,17 +9,17 @@
 
 #ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_THREAD
 
-#    ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_THREAD
-#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_THREAD
+#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
-#    include_next <thread>
+#include_next <thread>
 
-#    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_THREAD
-#        include "internal/usm_memory_replacement.h"
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_THREAD
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_THREAD
+#ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_THREAD
+#    include "internal/usm_memory_replacement.h"
+#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_THREAD
+#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_THREAD
 
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_THREAD

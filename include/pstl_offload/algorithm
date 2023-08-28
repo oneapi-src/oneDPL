@@ -9,18 +9,18 @@
 
 #ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
 
-#    ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
-#        define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#ifndef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
+#    define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
-#    include_next <algorithm>
+#include_next <algorithm>
 
-#    ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
-#        include "internal/algorithm_impl.h"
-#        include "internal/usm_memory_replacement.h"
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
-#        undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#    endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
+#ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
+#    include "internal/algorithm_impl.h"
+#    include "internal/usm_memory_replacement.h"
+#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
+#    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
 
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ALGORITHM
