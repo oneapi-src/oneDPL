@@ -373,28 +373,28 @@ test4buffers(int mult = kDefaultMultValue)
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value, void>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>, void>
 test1buffer()
 {
     test1buffer<alloc_type, typename TestName::UsedValueType, TestName>();
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value, void>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>, void>
 test2buffers()
 {
     test2buffers<alloc_type, typename TestName::UsedValueType, TestName>();
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value, void>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>, void>
 test3buffers(int mult = kDefaultMultValue)
 {
     test3buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value, void>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>, void>
 test4buffers(int mult = kDefaultMultValue)
 {
     test4buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);

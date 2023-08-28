@@ -404,14 +404,14 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T, typename TestName, typename TestBaseData>
-::std::enable_if_t<::std::is_base_of<test_base<T>, TestName>::value, TestName>
+::std::enable_if_t<::std::is_base_of_v<test_base<T>, TestName>, TestName>
 create_test_obj(TestBaseData& data)
 {
     return TestName(data);
 }
 
 template <typename T, typename TestName, typename TestBaseData>
-::std::enable_if_t<!::std::is_base_of<test_base<T>, TestName>::value, TestName>
+::std::enable_if_t<!::std::is_base_of_v<test_base<T>, TestName>, TestName>
 create_test_obj(TestBaseData&)
 {
     return TestName();
@@ -447,7 +447,7 @@ test_algo_three_sequences()
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestName>
-::std::enable_if_t<::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value, void>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>, void>
 test_algo_three_sequences()
 {
     test_algo_three_sequences<typename TestName::UsedValueType, TestName>();
@@ -486,7 +486,7 @@ test_algo_four_sequences()
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestName>
-::std::enable_if_t<::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value, void>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>, void>
 test_algo_four_sequences()
 {
     test_algo_four_sequences<typename TestName::UsedValueType, TestName>();
