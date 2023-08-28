@@ -472,8 +472,9 @@ __simd_adjacent_find(_Index __first, _Index __last, _BinaryPredicate __pred, boo
 
 // It was created to reduce the code inside ::std::enable_if
 template <typename _Tp, typename _BinaryOperation>
-using is_arithmetic_plus = ::std::integral_constant<
-    bool, ::std::is_arithmetic<_Tp>::value&& ::std::is_same<_BinaryOperation, ::std::plus<_Tp>>::value>;
+using is_arithmetic_plus = ::std::integral_constant<bool, ::std::is_arithmetic<_Tp>::value &&
+                                       (::std::is_same<_BinaryOperation, ::std::plus<_Tp>>::value ||
+                                        ::std::is_same<_BinaryOperation, ::std::plus<void>>::value)>;
 
 template <typename _DifferenceType, typename _Tp, typename _BinaryOperation, typename _UnaryOperation>
 typename ::std::enable_if<is_arithmetic_plus<_Tp, _BinaryOperation>::value, _Tp>::type
