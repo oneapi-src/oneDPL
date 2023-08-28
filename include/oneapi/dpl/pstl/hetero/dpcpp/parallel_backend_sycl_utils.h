@@ -17,9 +17,9 @@
 #define _ONEDPL_PARALLEL_BACKEND_SYCL_UTILS_H
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
+#include <memory>
 #include <type_traits>
 #include <tuple>
-#include <functional>
 
 #include "../../iterator_impl.h"
 
@@ -509,19 +509,76 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
+template <typename _T>
+struct __accessor
+{
     using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
                                         sycl::access::placeholder::false_t>;
-    _ExecutionPolicy m_exec;
+    __accessor_t m_acc;
+    _T* m_ptr;
+    bool m_usm;
+
+    auto
+    get_pointer() const //should be cached within a kernel
+    {
+        return m_usm ? m_ptr : &m_acc[0];
+    }
+};
+
+template <typename _ExecutionPolicy, typename _T>
+struct __storage
+{
+  private:
+    using __sycl_buffer_t = sycl::buffer<_T, 1>;
+    ::std::shared_ptr<__sycl_buffer_t> m_sycl_buf;
+    ::std::shared_ptr<_T> m_usm_buf;
+    bool m_usm;
+
+  public:
     __storage(_ExecutionPolicy& __exec, bool __usm, ::std::size_t __n) : m_usm(__usm)
+    {
+        if (m_usm)
+        {
+            m_usm_buf = std::shared_ptr<_T>(
                 __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__n),
                 __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
+        }
+        else
+            m_sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__n));
     }
-    __storage(const __storage& __s) : m_usm(__s.m_usm), m_usm_buf(__s.m_usm_buf), m_sycl_buf(__s.m_sycl_buf)
+
+    auto
+    get_acc(sycl::handler& __cgh)
     {
+        __accessor<_T> acc;
+        if (m_usm)
+        {
+            acc.m_usm = true;
+            acc.m_ptr = m_usm_buf.get();
+        }
+        else
+        {
+            acc.m_usm = false;
             acc.m_acc = sycl::accessor(*m_sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
-            __cgh.require(acc.m_acc);
-//A contract for future class: <sycl::event or other event, a value or sycl::buffers...>
-//Impl details: inheretance (private) instead of aggregation for enabling the empty base optimization.
+        }
+        return acc;
+    }
+
+    auto
+    get_value(size_t idx = 0)
+    {
+        return m_usm ? *(m_usm_buf.get() + idx) : m_sycl_buf->get_host_access(sycl::read_only)[idx];
+    }
+
+    bool
+    get_usm()
+    {
+        return m_usm;
+    }
+};
+
+//A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __storage (USM or buffer)>
+//Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
 {
@@ -533,6 +590,16 @@ class __future : private std::tuple<_Args...>
     {
         //according to a contract, returned value is one-element sycl::buffer
         return __buf.get_host_access(sycl::read_only)[0];
+    }
+
+    template <typename _ExecutionPolicy, typename _T>
+    constexpr auto
+    __wait_and_get_value(__storage<_ExecutionPolicy, _T>& __buf)
+    {
+        // Explicit wait in case of USM memory. Buffer accessors are synchronous.
+        if (__buf.get_usm())
+            wait();
+        return __buf.get_value();
     }
 
     template <typename _T>
@@ -586,92 +653,61 @@ class __future : private std::tuple<_Args...>
 };
 
 // Only use USM host allocations on Intel GPUs. Other devices show significant slowdowns.
-__has_usm_host_allocations(sycl::queue __queue)
+inline bool
+__use_USM_host_allocations(sycl::queue __queue)
+{
+    auto __device = __queue.get_device();
+    if (!__device.is_gpu())
+        return false;
     if (!__device.has(sycl::aspect::usm_host_allocations))
+        return false;
+    if (__device.get_info<sycl::info::device::vendor_id>() != 32902)
+        return false;
+    return true;
+}
 
-// A contract for a future class for reduce: <execution policy, sycl::event, USM host memory for the reduced value>
+// Invoke a callable and pass a compile-time integer based on a provided run-time integer.
+// The compile-time integer that will be provided to the callable is defined as the smallest
+// value in the integer_sequence not less than the run-time integer. For example:
+//
+//   __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, 2, 4, 8, 16>::__dispatch(f, 3);
+//
+// will call f<4>(), since 4 is the smallest value in the sequence not less than 3.
+//
+// If there are no values in the sequence less than the run-time integer, the last value in
+// the sequence will be used.
+//
 // Note that the integers provided in the integer_sequence must be monotonically increasing
 template <typename>
 class __static_monotonic_dispatcher;
 
 template <::std::uint16_t _X, ::std::uint16_t... _Xs>
 class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X, _Xs...>>
-    _ExecutionPolicy __my_exec;
-    _Event __my_event;
-    ::std::unique_ptr<sycl::buffer<_Res>> __res_buf;
-    using ResPointer = ::std::unique_ptr<_Res, ResDeleter>;
-    ResPointer __my_res;
+{
+    template <::std::uint16_t... _Vals>
+    using _Head = typename ::std::conditional_t<
+        sizeof...(_Vals) != 0,
         ::std::tuple_element<0, ::std::tuple<::std::integral_constant<::std::uint32_t, _Vals>...>>,
         ::std::integral_constant<::std::uint32_t, ::std::numeric_limits<::std::uint32_t>::max()>>::type;
+
     static_assert(_X < _Head<_Xs...>::value, "Sequence must be monotonically increasing");
 
-    __reduce_future(_ExecutionPolicy&& __exec, _Event&& __e, ::std::unique_ptr<sycl::buffer<_Res>>&& __buf, _Res* __res)
-        : __my_exec(::std::forward<_ExecutionPolicy>(__exec)), __my_event(::std::forward<_Event>(__e))
-          __my_res(__res, __my_exec.queue())
-        auto queue = __my_exec.queue();
-          __res_buf(::std::move(__buf)), __res_ptr(__res, __my_exec.queue())
-    }
-
-        auto queue = __my_exec.queue();
-    {
-        if (__my_res.use_count() == 1)
-        __my_res = ResPointer(__res, [queue](_Res* __res) { ::sycl::free(__res, queue); });
-    }
-            sycl::free(*__my_res.get(), __my_exec.queue());
-        return __my_event;
-    void
-// A contract for a future class for reduce: <execution policy, sycl::event, USM host memory for the reduced value>
-template <typename _ExecutionPolicy, typename _Event, typename _Res>
-class __reduce_future
-{
-    _ExecutionPolicy __my_exec;
-    _Event __my_event;
-
-    struct ResDeleter
-    {
-        sycl::queue __queue;
-        ResDeleter(sycl::queue __q) : __queue(::std::move(__q)) {}
-
-        void
-        operator()(_Res* __res)
-        {
-            ::sycl::free(__res, __queue);
-        }
-    };
-
-    ::std::unique_ptr<sycl::buffer<_Res>> __res_buf;
-
-    using ResPointer = ::std::unique_ptr<_Res, ResDeleter>;
-    ResPointer __res_ptr;
-
   public:
-    __reduce_future(_ExecutionPolicy&& __exec, _Event&& __e, ::std::unique_ptr<sycl::buffer<_Res>>&& __buf, _Res* __res)
-        : __my_exec(::std::forward<_ExecutionPolicy>(__exec)), __my_event(::std::forward<_Event>(__e)),
-          __res_buf(::std::move(__buf)), __res_ptr(__res, __my_exec.queue())
+    template <typename _F, typename... _Args>
+    static auto
+    __dispatch(_F&& __f, ::std::uint16_t __x, _Args&&... args)
     {
-    }
-
-    auto
-    event() const
-    {
-        return __my_event;
-    }
-    operator _Event() const { return event(); }
-    void
-    wait()
-    {
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __my_event.wait_and_throw();
-#endif
-                    ::std::forward<_F>(__f), __x, ::std::forward<_Args>(args)...);
-        __my_event.wait_and_throw();
-        if (!__res_ptr)
+        if constexpr (sizeof...(_Xs) == 0)
         {
-            //according to a contract, returned value is one-element sycl::buffer
-            return __res_buf->get_host_access(sycl::read_only)[0];
+            return ::std::forward<_F>(__f).template operator()<_X>(::std::forward<_Args>(args)...);
         }
         else
         {
+            if (__x <= _X)
+                return ::std::forward<_F>(__f).template operator()<_X>(::std::forward<_Args>(args)...);
+            else
+                return __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _Xs...>>::__dispatch(
+                    ::std::forward<_F>(__f), __x, ::std::forward<_Args>(args)...);
         }
     }
 };
