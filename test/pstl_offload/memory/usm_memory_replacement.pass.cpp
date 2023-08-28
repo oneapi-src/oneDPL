@@ -13,6 +13,7 @@
 
 #include <new>
 #include <cstdlib>
+#include <limits>
 
 #include "sycl/sycl.hpp"
 
@@ -54,6 +55,10 @@ int main() {
             EXPECT_TRUE(*(reinterpret_cast<int*>(ptr) + i) == 0, "Memory was not filled with zeros by calloc");
         }
         free(ptr);
+
+        // Overflow test
+        ptr = calloc(std::numeric_limits<std::size_t>::max(), sizeof(int));
+        EXPECT_TRUE(ptr == nullptr, "Overflow was not handled by calloc");
     }
     {
         void* ptr = malloc(size);
@@ -104,9 +109,16 @@ int main() {
         free(ptr);
     }
     {
-        void* ptr = __libc_calloc(/*count = */1, size);
+        void* ptr = __libc_calloc(/*count = */num, size);
         EXPECT_TRUE(sycl::get_pointer_type(ptr, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating with __libc_calloc");
+        for (std::size_t i = 0; i < num; ++i) {
+            EXPECT_TRUE(*(reinterpret_cast<int*>(ptr) + i) == 0, "Memory was not filled with zeros by calloc");
+        }
         free(ptr);
+
+        // Overflow test
+        ptr = __libc_calloc(std::numeric_limits<std::size_t>::max(), sizeof(int));
+        EXPECT_TRUE(ptr == nullptr, "Overflow was not handled by __libc_calloc");
     }
     {
         void* ptr = __libc_malloc(size);
@@ -129,6 +141,13 @@ int main() {
     test_new_basic(size, std::align_val_t(alignment));
     test_new_basic(size, std::nothrow);
     test_new_basic(size, std::align_val_t(alignment), std::nothrow);
+
+    // Overflow test, replaced malloc always allocates more bytes than requested
+    {
+        void* ptr = malloc(std::numeric_limits<std::size_t>::max());
+        EXPECT_TRUE(ptr == nullptr, "Overflow in malloc was not handled");
+        EXPECT_TRUE(errno == ENOMEM, "Incorrect errno");
+    }
 
     return TestUtils::done();
 }

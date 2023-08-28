@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
+#include <limits>
 
 #if __linux__
 #include <dlfcn.h>
@@ -56,6 +57,11 @@ inline void* __allocate_shared_for_device(sycl::device* __device, std::size_t __
     }
 
     std::size_t __base_offset = std::max(__alignment, __header_offset);
+
+    // Check overflow on addition of __base_offset and __size
+    if (std::numeric_limits<std::size_t>::max() - __base_offset < __size) {
+        return nullptr;
+    }
 
     // Memory block allocated with sycl::aligned_alloc_shared should be aligned to at least HEADER_OFFSET * 2
     // to guarantee that header and header + HEADER_OFFSET (user pointer) would be placed in one memory page

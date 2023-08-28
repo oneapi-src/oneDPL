@@ -139,8 +139,20 @@ inline void* __attribute__((always_inline)) malloc(std::size_t __size) {
 }
 
 inline void* __attribute__((always_inline)) calloc(std::size_t __num, std::size_t __size) {
-    void* __res = ::__pstl_offload::__errno_handling_internal_aligned_alloc(__num * __size, alignof(std::max_align_t));
-    return __res ? std::memset(__res, 0, __num * __size) : nullptr;
+    // square root of maximal std::size_t value
+    constexpr std::size_t __overflow_multiplier = std::size_t(1) << (sizeof(std::size_t) * CHAR_BIT / 2);
+    std::size_t __full_size = __num * __size;
+
+    // Check overflow on multiplication
+    if (__num >= __overflow_multiplier || __size >= __overflow_multiplier) {
+        if (__num && __full_size / __num != __size) {
+            errno = ENOMEM;
+            return nullptr;
+        }
+    }
+
+    void* __res = ::__pstl_offload::__errno_handling_internal_aligned_alloc(__full_size, alignof(std::max_align_t));
+    return __res ? std::memset(__res, 0, __full_size) : nullptr;
 }
 
 inline void* __attribute__((always_inline)) realloc(void* __ptr, std::size_t __size) {
