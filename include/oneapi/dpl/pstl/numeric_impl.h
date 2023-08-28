@@ -194,7 +194,8 @@ __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
 template <typename _Tp, typename _BinaryOperation>
 using is_arithmetic_udop =
     ::std::integral_constant<bool, ::std::is_arithmetic<_Tp>::value &&
-                                       !::std::is_same<_BinaryOperation, ::std::plus<_Tp>>::value>;
+                                       !::std::is_same<_BinaryOperation, ::std::plus<_Tp>>::value &&
+                                       !::std::is_same<_BinaryOperation, ::std::plus<void>>::value>;
 
 // [restriction] - T shall be DefaultConstructible.
 // [violation] - default ctor of T shall set the identity value for binary_op.
