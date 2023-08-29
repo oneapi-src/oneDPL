@@ -215,9 +215,6 @@ namespace internal {
 } // namespace dpl
 } // namespace oneapi
 
-//#if _DS_BACKEND_SYCL != 0
-//    #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
-//#endif
 #include "oneapi/dpl/internal/dynamic_selection_impl/fixed_resource_policy.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/auto_tune_policy.h"
