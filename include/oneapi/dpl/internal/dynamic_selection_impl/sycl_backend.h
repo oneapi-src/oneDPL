@@ -11,15 +11,12 @@
 #define _ONEDPL_SYCL_BACKEND_IMPL_H
 
 #include <CL/sycl.hpp>
-//#include "oneapi/dpl/internal/dynamic_selection.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/backend_defs.h"
 
-//#include <atomic>
 #include <chrono>
 #include <vector>
-//#include <memory>
-//#include <list>
+#include <memory>
 
 namespace oneapi {
 namespace dpl {
