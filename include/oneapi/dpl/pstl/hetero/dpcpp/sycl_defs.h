@@ -63,6 +63,13 @@
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
 #endif
 
+// Macro to check if we are compiling for CUDA backend
+#if defined(__NVPTX__) && defined(__SYCL_DEVICE_ONLY__)
+#   define _ONEDPL_DETECT_NVPTX_COMPILATION 1
+#else
+#   define _ONEDPL_DETECT_NVPTX_COMPILATION 0
+#endif
+
 namespace __dpl_sycl
 {
 
