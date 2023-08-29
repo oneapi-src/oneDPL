@@ -11,7 +11,8 @@
 #define _ONEDPL_ROUND_ROBIN_POLICY_IMPL_H
 
 #include <atomic>
-#include <vector>
+#include <type_traits>
+//#include <vector>
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
