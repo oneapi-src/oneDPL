@@ -90,7 +90,7 @@ static void* __internal_aligned_alloc(std::size_t __size, std::size_t __alignmen
 }
 
 // This function is called by C allocation functions (malloc, calloc, etc)
-// and setts errno on failure consistently with original memory allocating behavior
+// and sets errno on failure consistently with original memory allocating behavior
 static void* __errno_handling_internal_aligned_alloc(std::size_t __size, std::size_t __alignment) {
     void* __ptr = __internal_aligned_alloc(__size, __alignment);
     if (__ptr == nullptr) {
