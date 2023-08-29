@@ -521,7 +521,7 @@ struct __accessor
 
   public:
 // Compilers before 2023.1 don't provide a default constructor for sycl::accessor. Fallback to a buffer instead.
-#if __SYCL_COMPILER_VERSION == 20230320 || __SYCL_COMPILER_VERSION > 20230822
+#if __SYCL_COMPILER_VERSION == 20230320 || __SYCL_COMPILER_VERSION >= 20230820
     __accessor(sycl::handler& __cgh, bool __usm, ::std::shared_ptr<sycl::buffer<_T, 1>> m_sycl_buf,
                ::std::shared_ptr<_T> m_usm_buf)
         : m_usm(__usm)
@@ -580,8 +580,8 @@ struct __storage
         return m_usm ? *(m_usm_buf.get() + idx) : m_sycl_buf->get_host_access(sycl::read_only)[idx];
     }
 
-    const bool
-    get_usm()
+    bool
+    get_usm() const
     {
         return m_usm;
     }
@@ -666,9 +666,9 @@ class __future : private std::tuple<_Args...>
 inline bool
 __use_USM_host_allocations(sycl::queue __queue)
 {
-// The unified future above is currently only supported by DPCPP 2023.1 and compilers starting from 20230822.
+// The unified future above is currently only supported by DPCPP 2023.1 and compilers starting from 20230820.
 // A future on top of a buffer is used on other compilers.
-#if __SYCL_COMPILER_VERSION == 20230320 || __SYCL_COMPILER_VERSION > 20230822
+#if __SYCL_COMPILER_VERSION == 20230320 || __SYCL_COMPILER_VERSION >= 20230820
     auto __device = __queue.get_device();
     if (!__device.is_gpu())
         return false;
