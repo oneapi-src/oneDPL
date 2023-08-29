@@ -11,7 +11,7 @@
 #define _ONEDPL_DYNAMIC_LOAD_POLICY_H
 
 #include <atomic>
-//#include <memory>
+#include <memory>
 #include <ostream>
 #include <vector>
 #include <exception>
