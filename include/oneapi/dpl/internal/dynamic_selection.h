@@ -11,9 +11,9 @@
 #ifndef _ONEDPL_INTERNAL_DYNAMIC_SELECTION_H
 #define _ONEDPL_INTERNAL_DYNAMIC_SELECTION_H
 
-#include <memory>
+//#include <memory>
 #include <utility>
-#include <list>
+//#include <list>
 #include "oneapi/dpl/internal/dynamic_selection_impl/policy_traits.h"
 
 namespace oneapi {
@@ -216,9 +216,9 @@ namespace internal {
 } // namespace dpl
 } // namespace oneapi
 
-#if _DS_BACKEND_SYCL != 0
-    #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
-#endif
+//#if _DS_BACKEND_SYCL != 0
+//    #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
+//#endif
 #include "oneapi/dpl/internal/dynamic_selection_impl/fixed_resource_policy.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/auto_tune_policy.h"
