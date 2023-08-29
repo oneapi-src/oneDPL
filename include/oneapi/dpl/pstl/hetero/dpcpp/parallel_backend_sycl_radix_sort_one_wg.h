@@ -163,7 +163,7 @@ struct __subgroup_radix_sort
 #if !_ONEDPL_DETECT_NVPTX_COMPILATION
                         [[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]]
 #endif
-                        {
+                    {
                         union __storage { _ValT __v[__block_size]; __storage(){} } __values;
                         uint16_t __wi = __it.get_local_linear_id();
                         uint16_t __begin_bit = 0;
