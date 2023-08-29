@@ -48,12 +48,15 @@ struct __subgroup_radix_sort
 
         using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
         //check SLM size
-        if (__check_slm_size<_KeyT>(__q, __src.size()))
+        const auto __SLM_available = __check_slm_size<_KeyT>(__q, __src.size());
+        if (__SLM_available.first && __SLM_available.second)
             return __one_group_submitter<_SortKernelLoc>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                           std::true_type{} /*SLM*/);
-        else
+                                                           ::std::true_type{} /*SLM*/, ::std::true_type{} /*SLM*/);
+        if (__SLM_available.second)
             return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                            std::false_type{} /*No SLM*/);
+                                                            ::std::false_type{} /*No SLM*/, ::std::true_type{} /*SLM*/);
+        return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
+                                                            ::std::false_type{} /*No SLM*/, ::std::false_type{} /*No SLM*/);
     }
 
   private:
@@ -61,7 +64,7 @@ struct __subgroup_radix_sort
     class _TempBuf;
 
     template <typename _KeyT>
-    class _TempBuf<_KeyT, std::true_type /*shared local memory buffer*/>
+    class _TempBuf<_KeyT, ::std::true_type /*shared local memory buffer*/>
     {
         uint16_t __buf_size;
 
@@ -75,7 +78,7 @@ struct __subgroup_radix_sort
     };
 
     template <typename _KeyT>
-    class _TempBuf<_KeyT, std::false_type /*global memory buffer*/>
+    class _TempBuf<_KeyT, ::std::false_type /*global memory buffer*/>
     {
         sycl::buffer<_KeyT> __buf;
 
@@ -106,20 +109,26 @@ struct __subgroup_radix_sort
     static constexpr uint16_t __counter_buf_sz = __wg_size * __bin_count + 1; //+1(init value) for exclusive scan result
 
     template <typename _T, typename _Size>
-    bool
+    auto
     __check_slm_size(sycl::queue __q, _Size __n)
     {
         assert(__n <= 1 << 16); //the kernel is designed for data size <= 64K
 
-        // Pessimistically only use half of the memory to take into account memory used by compiled kernel
+        const auto __req_slm_size_counters = __counter_buf_sz * sizeof(uint32_t);
+
+        // Pessimistically only use half of the memory to take into account
+        // a SYCL group algorithm might use a portion of SLM
         const ::std::size_t __max_slm_size =
             __q.get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
 
         const auto __n_uniform = 1 << (::std::uint32_t(log2(__n - 1)) + 1);
         const auto __req_slm_size_val = sizeof(_T) * __n_uniform;
-        const auto __req_slm_size_counters = __counter_buf_sz * sizeof(uint32_t);
 
-        return __req_slm_size_val + __req_slm_size_counters <= __max_slm_size; //counters should be placed in SLM
+        if (__req_slm_size_val + __req_slm_size_counters <= __max_slm_size)
+            return ::std::make_pair(true, true);  //the values and the counters are placed in SLM
+        if (__req_slm_size_counters <= __max_slm_size)
+            return ::std::make_pair(false, true); //the counters are placed in SLM, the values - in the global memory
+        return ::std::make_pair(false, false);    //the values and the counters are placed in the global memory
     }
 
     template <typename _KernelName>
@@ -128,9 +137,9 @@ struct __subgroup_radix_sort
     template <typename... _Name>
     struct __one_group_submitter<__internal::__optional_kernel_name<_Name...>>
     {
-        template <typename _RangeIn, typename _Proj, typename _SLM_tag>
+        template <typename _RangeIn, typename _Proj, typename _SLM_tag_val, typename _SLM_counter>
         auto
-        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag)
+        operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj, _SLM_tag_val, _SLM_counter)
         {
             uint16_t __n = __src.size();
             assert(__n <= __block_size * __wg_size);
@@ -138,8 +147,8 @@ struct __subgroup_radix_sort
             using _ValT = oneapi::dpl::__internal::__value_t<_RangeIn>;
             using _KeyT = oneapi::dpl::__internal::__key_t<_Proj, _RangeIn>;
 
-            _TempBuf<_ValT, _SLM_tag> __buf_val(__block_size * __wg_size);
-            _TempBuf<uint32_t, _SLM_tag> __buf_count(__counter_buf_sz);
+            _TempBuf<_ValT, _SLM_tag_val> __buf_val(__block_size * __wg_size);
+            _TempBuf<uint32_t, _SLM_counter> __buf_count(__counter_buf_sz);
 
             sycl::nd_range __range{sycl::range{__wg_size}, sycl::range{__wg_size}};
             return __q.submit([&](sycl::handler& __cgh) {
