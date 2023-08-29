@@ -19,16 +19,6 @@
 #include "test_config.h"
 #include <oneapi/dpl/complex>
 
-#if ONEDPL_TEST_PSTL_OFFLOAD
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#endif
-
-#include <oneapi/dpl/pstl/utils.h>
-
-#if ONEDPL_TEST_PSTL_OFFLOAD
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#endif
-
 #include "utils.h"
 #include "utils_invoke.h"
 #include "test_config.h"

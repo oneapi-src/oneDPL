@@ -11,7 +11,7 @@
 #define _ONEDPL_PSTL_OFFLOAD_INTERNAL_USM_MEMORY_REPLACEMENT_H
 
 #ifndef __SYCL_PSTL_OFFLOAD__
-#error "__SYCL_PSTL_OFFLOAD__ macro should be defined to include this header"
+#error "-fsycl-pstl-offload option should be passed to the compiler to use this header"
 #endif
 
 #include <atomic>
@@ -34,9 +34,20 @@ static void __set_active_device(sycl::device* __new_active_device) {
 }
 
 class __offload_policy_holder_type {
+    static constexpr auto& __get_offload_device_selector() {
+#if __SYCL_PSTL_OFFLOAD__ == 1
+        return sycl::default_selector_v;
+#elif __SYCL_PSTL_OFFLOAD__ == 2
+        return sycl::cpu_selector_v;
+#elif __SYCL_PSTL_OFFLOAD__ == 3
+        return sycl::gpu_selector_v;
+#else
+#error "PSTL offload is not enabled or the selected value is unsupported"
+#endif
+    }
 public:
     __offload_policy_holder_type()
-        : _M_offload_device(__offload_device_selector)
+        : _M_offload_device(__get_offload_device_selector())
         , _M_offload_policy(_M_offload_device)
     {
         __set_active_device(&_M_offload_device);
@@ -49,17 +60,6 @@ public:
 
     auto __get_policy() { return _M_offload_policy; }
 private:
-    static constexpr auto& __offload_device_selector =
-#if __SYCL_PSTL_OFFLOAD__ == 1
-    sycl::default_selector_v;
-#elif __SYCL_PSTL_OFFLOAD__ == 2
-    sycl::cpu_selector_v;
-#elif __SYCL_PSTL_OFFLOAD__ == 3
-    sycl::gpu_selector_v;
-#else
-#error "Unsupported value of __SYCL_PSTL_OFFLOAD__ macro"
-#endif
-
     sycl::device _M_offload_device;
     oneapi::dpl::execution::device_policy<> _M_offload_policy;
 }; // class __offload_policy_holder_type
@@ -79,34 +79,32 @@ static void* __internal_aligned_alloc(std::size_t __size, std::size_t __alignmen
     sycl::device* __device = __active_device.load(std::memory_order_acquire);
     void* __res = nullptr;
 
-    if (__device) {
+    if (__device != nullptr) {
         __res = __allocate_shared_for_device(__device, __size, __alignment);
     } else {
         __res = __get_original_aligned_alloc()(__alignment, __size);
     }
 
-    if (!__res)
-        return nullptr;
-
-    assert(std::uintptr_t(__res) % __alignment == 0);
+    assert(std::uintptr_t(__res) & (__alignment - 1) == 0);
     return __res;
 }
 
+// This function is called by C allocation functions (malloc, calloc, etc)
+// and setts errno on failure consistently with original memory allocating behavior
 static void* __errno_handling_internal_aligned_alloc(std::size_t __size, std::size_t __alignment) {
     void* __ptr = __internal_aligned_alloc(__size, __alignment);
-    if (!__ptr) {
+    if (__ptr == nullptr) {
         errno = ENOMEM;
-        return nullptr;
     }
     return __ptr;
 }
 
-static void* __internal_operator_new(std::size_t __size, std::size_t __alignment = alignof(std::max_align_t)) {
+static void* __internal_operator_new(std::size_t __size, std::size_t __alignment) {
     void* __res = __internal_aligned_alloc(__size, __alignment);
 
     while(!__res) {
         std::new_handler __handler = std::get_new_handler();
-        if (__handler) {
+        if (__handler != nullptr) {
             __handler();
         } else {
             throw std::bad_alloc{};
@@ -117,7 +115,7 @@ static void* __internal_operator_new(std::size_t __size, std::size_t __alignment
     return __res;
 }
 
-static void* __internal_operator_new(const std::nothrow_t&, std::size_t __size, std::size_t __alignment = alignof(std::max_align_t)) noexcept {
+static void* __internal_operator_new(std::size_t __size, std::size_t __alignment, const std::nothrow_t&) noexcept {
     void* __res = nullptr;
     try {
         __res = __internal_operator_new(__size, __alignment);
@@ -139,12 +137,12 @@ inline void* __attribute__((always_inline)) malloc(std::size_t __size) {
 }
 
 inline void* __attribute__((always_inline)) calloc(std::size_t __num, std::size_t __size) {
-    // square root of maximal std::size_t value
-    constexpr std::size_t __overflow_multiplier = std::size_t(1) << (sizeof(std::size_t) * CHAR_BIT / 2);
+    // Square root of maximal std::size_t value, values that are less never results in overflow during multiplication
+    constexpr std::size_t __min_overflow_multiplier = std::size_t(1) << (sizeof(std::size_t) * CHAR_BIT / 2);
     std::size_t __full_size = __num * __size;
 
     // Check overflow on multiplication
-    if (__num >= __overflow_multiplier || __size >= __overflow_multiplier) {
+    if (__num >= __min_overflow_multiplier || __size >= __min_overflow_multiplier) {
         if (__num && __full_size / __num != __size) {
             errno = ENOMEM;
             return nullptr;
@@ -164,16 +162,19 @@ inline void* __attribute__((always_inline)) memalign(std::size_t __alignment, st
 }
 
 inline int __attribute__((always_inline)) posix_memalign(void** __memptr, std::size_t __alignment, std::size_t __size) noexcept {
-    if (!__pstl_offload::__is_power_of_two(__alignment))
-        return EINVAL;
+    int __result = 0;
+    if (::__pstl_offload::__is_power_of_two(__alignment)) {
+        void* __ptr = ::__pstl_offload::__internal_aligned_alloc(__size, __alignment);
 
-    void* __ptr = ::__pstl_offload::__internal_aligned_alloc(__size, __alignment);
-
-    if (__ptr) {
-        *__memptr = __ptr;
-        return 0;
+        if (__ptr != nullptr) {
+            *__memptr = __ptr;
+        } else {
+            __result = ENOMEM;
+        }
+    } else {
+        __result = EINVAL;
     }
-    return ENOMEM;
+    return __result;
 }
 
 inline int __attribute__((always_inline)) mallopt(int /*param*/, int /*value*/) noexcept {
@@ -206,19 +207,19 @@ inline void* __attribute__((always_inline)) __libc_realloc(void *__ptr, std::siz
 #pragma GCC diagnostic ignored "-Winline-new-delete"
 
 inline void* __attribute__((always_inline)) operator new(std::size_t __size) {
-    return ::__pstl_offload::__internal_operator_new(__size);
+    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t));
 }
 
 inline void* __attribute__((always_inline)) operator new[](std::size_t __size) {
-    return ::__pstl_offload::__internal_operator_new(__size);
+    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t));
 }
 
 inline void* __attribute__((always_inline)) operator new(std::size_t __size, const std::nothrow_t&) noexcept {
-    return ::__pstl_offload::__internal_operator_new(std::nothrow, __size);
+    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t), std::nothrow);
 }
 
 inline void* __attribute__((always_inline)) operator new[](std::size_t __size, const std::nothrow_t&) noexcept {
-    return ::__pstl_offload::__internal_operator_new(std::nothrow, __size);
+    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t), std::nothrow);
 }
 
 inline void* __attribute__((always_inline)) operator new(std::size_t __size, std::align_val_t __al) {
@@ -230,11 +231,11 @@ inline void* __attribute__((always_inline)) operator new[](std::size_t __size, s
 }
 
 inline void* __attribute__((always_inline)) operator new(std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept {
-    return ::__pstl_offload::__internal_operator_new(std::nothrow, __size, std::size_t(__al));
+    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), std::nothrow);
 }
 
 inline void* __attribute__((always_inline)) operator new[](std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept {
-    return ::__pstl_offload::__internal_operator_new(std::nothrow, __size, std::size_t(__al));
+    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), std::nothrow);
 }
 
 #pragma GCC diagnostic pop

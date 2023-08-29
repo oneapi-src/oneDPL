@@ -8,12 +8,11 @@
 //===----------------------------------------------------------------------===//
 
 #ifndef __SYCL_PSTL_OFFLOAD__
-#error "__SYCL_PSTL_OFFLOAD__ macro should be defined to run this test"
+#error "-fsycl-pstl-offload option should be passed to the compiler to run this test"
 #endif
 
 #include <new>
 #include <cstdlib>
-
 
 #include "support/utils.h"
 

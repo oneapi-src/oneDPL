@@ -39,25 +39,23 @@ auto __get_original_msize() {
 }
 
 void __internal_free(void* __user_ptr) {
-    if (!__user_ptr)
+    if (__user_ptr == nullptr)
         return;
 
     __block_header* __header = reinterpret_cast<__block_header*>(__user_ptr) - 1;
 
     if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const) {
-        // Only USM pointers has headers
-        assert(__header->_M_device);
+        assert(__header->_M_device != nullptr);
         sycl::context __context = __header->_M_device->get_platform().ext_oneapi_get_default_context();
         __header->_M_uniq_const = 0;
         sycl::free(__header->_M_original_pointer, __context);
     } else {
-        // A regular pointer without a header
         __get_original_free()(__user_ptr);
     }
 }
 
 std::size_t __internal_msize(void* __user_ptr) {
-    if (!__user_ptr)
+    if (__user_ptr == nullptr)
         return 0;
 
     __block_header* __header = reinterpret_cast<__block_header*>(__user_ptr) - 1;

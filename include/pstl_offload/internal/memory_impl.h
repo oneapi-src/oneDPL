@@ -11,7 +11,7 @@
 #define _ONEDPL_PSTL_OFFLOAD_INTERNAL_MEMORY_IMPL_H
 
 #ifndef __SYCL_PSTL_OFFLOAD__
-#error "__SYCL_PSTL_OFFLOAD__ macro should be defined to include this header"
+#error "-fsycl-pstl-offload option should be passed to the compiler to use this header"
 #endif
 
 #include <execution>

@@ -38,8 +38,8 @@ static_assert(sizeof(__block_header) <= __header_offset);
 
 #if __linux__
 
-inline constexpr bool __is_power_of_two(std::size_t __number) {
-    return __number != 0 && (__number & __number - 1) == 0;
+constexpr bool __is_power_of_two(std::size_t __number) {
+    return (__number != 0) && ((__number & __number - 1) == 0);
 }
 
 inline std::size_t __get_memory_page_size() {
@@ -72,7 +72,7 @@ inline void* __allocate_shared_for_device(sycl::device* __device, std::size_t __
     sycl::context __context = __device->get_platform().ext_oneapi_get_default_context();
     void* __ptr = sycl::aligned_alloc_shared(__usm_alignment, __usm_size, *__device, __context);
 
-    if (!__ptr)
+    if (__ptr == nullptr)
         return nullptr;
 
     void* __res = static_cast<char*>(__ptr) + __base_offset;
@@ -97,7 +97,7 @@ inline auto __get_original_realloc() {
 }
 
 static void* __internal_realloc(void* __user_ptr, std::size_t __new_size) {
-    if (!__user_ptr) {
+    if (__user_ptr == nullptr) {
         return std::malloc(__new_size);
     }
 
@@ -105,10 +105,10 @@ static void* __internal_realloc(void* __user_ptr, std::size_t __new_size) {
 
     if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const) {
         if (__header->_M_requested_number_of_bytes < __new_size) {
-            assert(__header->_M_device);
+            assert(__header->_M_device != nullptr);
             void* __new_ptr = __allocate_shared_for_device(__header->_M_device, __new_size, alignof(std::max_align_t));
 
-            if (!__new_ptr) {
+            if (__new_ptr == nullptr) {
                 errno = ENOMEM;
                 return nullptr;
             }
@@ -118,6 +118,7 @@ static void* __internal_realloc(void* __user_ptr, std::size_t __new_size) {
             // Free previously allocated memory
             void* __original_pointer = __header->_M_original_pointer;
             sycl::context __context = __header->_M_device->get_platform().ext_oneapi_get_default_context();
+            __header->_M_uniq_const = 0;
             sycl::free(__original_pointer, __context);
             return __new_ptr;
         }
@@ -127,7 +128,7 @@ static void* __internal_realloc(void* __user_ptr, std::size_t __new_size) {
     return __get_original_realloc()(__user_ptr, __new_size);
 }
 
-#endif
+#endif // __linux__
 
 } // namespace __pstl_offload
 
