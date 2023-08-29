@@ -1544,9 +1544,9 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                                  __internal::__optional_kernel_name<_GlobalSortName...>,
                                  __internal::__optional_kernel_name<_CopyBackName...>>
 {
-    template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
+    template <typename _ExecutionPolicy, typename _Range, typename _Compare>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp) const
     {
         using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
@@ -1637,10 +1637,10 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
     }
 };
 
-template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare,
+template <typename _ExecutionPolicy, typename _Range, typename _Compare,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
-__parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
+__parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
@@ -1654,10 +1654,10 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, 
     const auto __n = __rng.size();
     if(__n <= std::numeric_limits<::std::uint32_t>::max())
         return __parallel_sort_submitter<::std::uint32_t, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __merge, __comp);
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __comp);
     else
         return __parallel_sort_submitter<::std::uint64_t, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __merge, __comp);
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __comp);
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
