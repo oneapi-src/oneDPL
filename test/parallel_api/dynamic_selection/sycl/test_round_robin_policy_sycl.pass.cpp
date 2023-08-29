@@ -12,7 +12,7 @@
 #include "oneapi/dpl/dynamic_selection"
 #include "support/test_dynamic_selection_utils.h"
 #include "support/sycl_sanity.h"
-#include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
+//#include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 
 int main() {
   using policy_t = oneapi::dpl::experimental::round_robin_policy<oneapi::dpl::experimental::sycl_backend>;
