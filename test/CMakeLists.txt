@@ -153,7 +153,7 @@ set(_regexp_pstl_offload_exclude "(test/parallel_api/algorithm/alg.sorting/alg.b
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
     if (_file MATCHES "${_regexp_pstl_offload_only}")
-        if (NOT _ONEDPL_PSTL_OFFLOAD off)
+        if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
             onedpl_add_test(${_file} true)
         else()
             continue()
