@@ -1427,7 +1427,7 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
     {
         ::std::uint8_t __n = __chunk;
         _ONEDPL_PRAGMA_UNROLL
-        for (::std::uint8_t __i = 0; __i < __n; ++__i)
+        for (::std::uint8_t __i = 0; __i < __n && __start1 < __n1 && __start2 < __n2; ++__i)
         {
             const auto& __val1 = __rng1[__start1];
             const auto& __val2 = __rng2[__start2];
