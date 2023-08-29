@@ -11,9 +11,11 @@
 #define _ONEDPL_DYNAMIC_LOAD_POLICY_H
 
 #include <atomic>
-#include <memory>
+//#include <memory>
 #include <ostream>
-#include <vector>
+//#include <vector>
+#include <exception>
+#include <type_traits>
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 #endif
