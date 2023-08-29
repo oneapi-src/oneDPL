@@ -18,7 +18,7 @@
 #include <utility>
 #include <chrono>
 #include <limits>
-//#include <vector>
+#include <vector>
 #include <type_traits>
 #include <tuple>
 #if _DS_BACKEND_SYCL != 0
