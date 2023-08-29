@@ -1458,11 +1458,11 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _Name>
+template <typename _IdType, typename _Name>
 struct __parallel_merge_submitter;
 
-template <typename... _Name>
-struct __parallel_merge_submitter<__internal::__optional_kernel_name<_Name...>>
+template <typename _IdType, typename... _Name>
+struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
@@ -1485,7 +1485,7 @@ struct __parallel_merge_submitter<__internal::__optional_kernel_name<_Name...>>
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
 
-                const ::std::uint32_t __i_elem = __item_id.get_linear_id() * __chunk;
+                const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                 const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
                 __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
                                __comp);
@@ -1495,6 +1495,9 @@ struct __parallel_merge_submitter<__internal::__optional_kernel_name<_Name...>>
     }
 };
 
+template <typename... _Name>
+class __merge_kernel_name;
+
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
@@ -1502,11 +1505,25 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
-    return __parallel_merge_submitter<_MergeKernel>()(::std::forward<_ExecutionPolicy>(__exec),
+    const auto __n = __rng1.size() + __rng2.size();
+    if(__n <= std::numeric_limits<::std::uint32_t>::max())
+    {
+        using _wi_index_type = ::std::uint32_t;
+        using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__merge_kernel_name<_CustomName, _wi_index_type>>;
+        return __parallel_merge_submitter<_wi_index_type, _MergeKernel>()(::std::forward<_ExecutionPolicy>(__exec),
                                                       ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
                                                       ::std::forward<_Range3>(__rng3), __comp);
+
+    }
+    else
+    {
+        using _wi_index_type = ::std::uint64_t;
+        using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__merge_kernel_name<_CustomName, _wi_index_type>>;
+        return __parallel_merge_submitter<_wi_index_type, _MergeKernel>()(::std::forward<_ExecutionPolicy>(__exec),
+                                                      ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+                                                      ::std::forward<_Range3>(__rng3), __comp);
+    }
 }
 
 //-----------------------------------------------------------------------
@@ -1644,20 +1661,32 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _LeafSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName>>;
-    using _GlobalSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName>>;
-    using _CopyBackKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
     const auto __n = __rng.size();
     if(__n <= std::numeric_limits<::std::uint32_t>::max())
-        return __parallel_sort_submitter<::std::uint32_t, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
+    {
+        using _wi_index_type = ::std::uint32_t;
+        using _LeafSortKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName, _wi_index_type>>;
+        using _GlobalSortKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName, _wi_index_type>>;
+        using _CopyBackKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName, _wi_index_type>>;
+        return __parallel_sort_submitter<_wi_index_type, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __comp);
+    }
     else
-        return __parallel_sort_submitter<::std::uint64_t, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
+    {
+        using _wi_index_type = ::std::uint64_t;
+        using _LeafSortKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName, _wi_index_type>>;
+        using _GlobalSortKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName, _wi_index_type>>;
+        using _CopyBackKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName, _wi_index_type>>;
+        return __parallel_sort_submitter<_wi_index_type, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __comp);
+    }
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
