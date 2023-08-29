@@ -13,6 +13,7 @@
 
 //#include <memory>
 #include <utility>
+#include <cstdint>
 //#include <list>
 #include "oneapi/dpl/internal/dynamic_selection_impl/policy_traits.h"
 
