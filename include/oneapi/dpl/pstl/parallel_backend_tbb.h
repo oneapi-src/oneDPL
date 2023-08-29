@@ -732,7 +732,7 @@ class __merge_func
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::common_type_t<_DifferenceType1, _DifferenceType2> _SizeType;
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::value_type _ValueType;
 
     _RandomAccessIterator1 _M_x_beg;
@@ -1112,7 +1112,7 @@ class __stable_sort_func
   public:
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::common_type_t<_DifferenceType1, _DifferenceType2> _SizeType;
 
   private:
     _RandomAccessIterator1 _M_xs, _M_xe, _M_x_beg;
@@ -1234,7 +1234,7 @@ operator()(__task* __self)
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::common_type_t<_DifferenceType1, _DifferenceType2> _SizeType;
     const _SizeType __n = (_M_xe - _M_xs) + (_M_ye - _M_ys);
     const _SizeType __merge_cut_off = _ONEDPL_MERGE_CUT_OFF;
     if (__n <= __merge_cut_off)
@@ -1275,7 +1275,7 @@ __parallel_merge(_ExecutionPolicy&&, _RandomAccessIterator1 __xs, _RandomAccessI
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::common_type_t<_DifferenceType1, _DifferenceType2> _SizeType;
     const _SizeType __n = (__xe - __xs) + (__ye - __ys);
     const _SizeType __merge_cut_off = _ONEDPL_MERGE_CUT_OFF;
     if (__n <= __merge_cut_off)
