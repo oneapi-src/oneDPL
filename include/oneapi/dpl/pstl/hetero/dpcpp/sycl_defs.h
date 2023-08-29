@@ -96,13 +96,13 @@ using __has_known_identity = sycl::ONEAPI::has_known_identity<_BinaryOp, _T>;
 #endif // _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
 
 #if _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
-template <typename _T>
+template <typename _T = void>
 using __plus = sycl::plus<_T>;
 
-template <typename _T>
+template <typename _T = void>
 using __maximum = sycl::maximum<_T>;
 
-template <typename _T>
+template <typename _T = void>
 using __minimum = sycl::minimum<_T>;
 
 #else  // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
