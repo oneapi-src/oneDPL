@@ -1690,75 +1690,103 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _GlobalSortName, typename _CopyBackName>
-struct __parallel_partial_sort_submitter;
+template <typename _IdType, typename _LeafSortName, typename _GlobalSortName, typename _CopyBackName>
+struct __parallel_sort_submitter;
 
-template <typename... _GlobalSortName, typename... _CopyBackName>
-struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_GlobalSortName...>,
-                                         __internal::__optional_kernel_name<_CopyBackName...>>
+template <typename _IdType, typename... _LeafSortName, typename... _GlobalSortName, typename... _CopyBackName>
+struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_LeafSortName...>,
+                                 __internal::__optional_kernel_name<_GlobalSortName...>,
+                                 __internal::__optional_kernel_name<_CopyBackName...>>
 {
-    template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
+    template <typename _ExecutionPolicy, typename _Range, typename _Compare>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp) const
     {
         using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
         using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
 
-        _Size __n = __rng.size();
+        const ::std::size_t __n = __rng.size();
         assert(__n > 1);
 
+        const bool __is_cpu = __exec.queue().get_device().is_cpu();
+        const ::std::uint32_t __leaf = __is_cpu ? 16 : 4;
+        _Size __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __leaf);
+
+        // 1. Perform sorting of the leaves of the merge sort tree
+        sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __rng);
+            __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
+            {
+                const _IdType __i_elem = __item_id.get_linear_id() * __leaf;
+                __leaf_sort_kernel()(__rng, __i_elem, std::min<_IdType>(__i_elem + __leaf, __n), __comp);
+            });
+        });
+
+        // 2. Merge sorting
         oneapi::dpl::__par_backend_hetero::__internal::__buffer<_Policy, _Tp> __temp_buf(__exec, __n);
         auto __temp = __temp_buf.get_buffer();
-        _PRINT_INFO_IN_DEBUG_MODE(__exec);
-
-        _Size __k = 1;
         bool __data_in_temp = false;
-        sycl::event __event1;
-        do
+        _IdType __n_sorted = __leaf;
+        const ::std::uint32_t __chunk = __is_cpu ? 32 : 4;
+        __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
+
+        const ::std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
+        const ::std::int64_t __n_iter = ::std::log2(__n_power2) - ::std::log2(__leaf);
+        for(auto i = 0; i < __n_iter; ++i)
         {
-            __event1 = __exec.queue().submit([&, __data_in_temp, __k](sycl::handler& __cgh) {
+            __event1 = __exec.queue().submit([&, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
                 __cgh.depends_on(__event1);
+
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-                auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
-                __cgh.parallel_for<_GlobalSortName...>(
-                    sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
-                        auto __global_idx = __item_id.get_linear_id();
+                sycl::accessor __dst(__temp, __cgh, sycl::read_write, sycl::no_init);
 
-                        _Size __start = 2 * __k * (__global_idx / (2 * __k));
-                        _Size __end_1 = sycl::min(__start + __k, __n);
-                        _Size __end_2 = sycl::min(__start + 2 * __k, __n);
+                __cgh.parallel_for<_GlobalSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
+                    {
+                        const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
+                        const auto __i_elem_local = __i_elem % (__n_sorted*2);
 
-                        if (!__data_in_temp)
+                        const auto __offset = ::std::min<_IdType>((__i_elem / (__n_sorted * 2)) * (__n_sorted * 2), __n);
+                        const auto __n1 = ::std::min<_IdType>(__offset + __n_sorted, __n) - __offset;
+                        const auto __n2 = ::std::min<_IdType>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
+
+                        if(__data_in_temp)
                         {
-                            __merge(__global_idx, __rng, __start, __end_1, __rng, __end_1, __end_2, __temp_acc, __start,
-                                    __comp);
+                            const auto& __rng1 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset);
+                            const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset + __n1);
+
+                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __rng/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
                         }
                         else
                         {
-                            __merge(__global_idx, __temp_acc, __start, __end_1, __temp_acc, __end_1, __end_2, __rng,
-                                    __start, __comp);
+                            const auto& __rng1 = oneapi::dpl::__ranges::drop_view_simple(__rng, __offset);
+                            const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__rng, __offset + __n1);
+
+                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __dst/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
                         }
                     });
-            });
+                });
+            __n_sorted *= 2;
             __data_in_temp = !__data_in_temp;
-            __k *= 2;
-        } while (__k < __n);
+        }
 
-        // if results are in temporary buffer then copy back those
+        // 3. If the data remained in the temporary buffer then copy it back
         if (__data_in_temp)
         {
             __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
                 __cgh.depends_on(__event1);
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
                 auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
-                // we cannot use __cgh.copy here because of zip_iterator usage
+                // We cannot use __cgh.copy here because of zip_iterator usage
                 __cgh.parallel_for<_CopyBackName...>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
-                    __rng[__item_id.get_linear_id()] = __temp_acc[__item_id];
+                    const _IdType idx = __item_id.get_linear_id();
+                    __rng[idx] = __temp_acc[idx];
                 });
             });
         }
-        // return future and extend lifetime of temporary buffer
+
         return __future(__event1, __temp);
     }
 };
