@@ -65,9 +65,9 @@
 
 // Macro to check if we are compiling for CUDA backend
 #if defined(__NVPTX__) && defined(__SYCL_DEVICE_ONLY__)
-#   define _ONEDPL_DETECT_NVPTX_COMPILATION 1
+#    define _ONEDPL_DETECT_NVPTX_COMPILATION 1
 #else
-#   define _ONEDPL_DETECT_NVPTX_COMPILATION 0
+#    define _ONEDPL_DETECT_NVPTX_COMPILATION 0
 #endif
 
 namespace __dpl_sycl
