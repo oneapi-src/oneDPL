@@ -11,10 +11,8 @@
 #ifndef _ONEDPL_INTERNAL_DYNAMIC_SELECTION_H
 #define _ONEDPL_INTERNAL_DYNAMIC_SELECTION_H
 
-//#include <memory>
 #include <utility>
 #include <cstdint>
-//#include <list>
 #include "oneapi/dpl/internal/dynamic_selection_impl/policy_traits.h"
 
 namespace oneapi {
