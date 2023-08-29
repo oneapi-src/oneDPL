@@ -13,7 +13,7 @@
 #include <atomic>
 //#include <memory>
 #include <ostream>
-//#include <vector>
+#include <vector>
 #include <exception>
 #include <type_traits>
 #if _DS_BACKEND_SYCL != 0
