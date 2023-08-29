@@ -14,6 +14,7 @@
 #include <mutex>
 #include <deque>
 #include <condition_variable>
+#include <list>
 
 namespace TestUtils{
     template <typename T>
