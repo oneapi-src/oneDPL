@@ -345,7 +345,7 @@ endif()
 
 if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
     if (_ONEDPL_PSTL_OFFLOAD STREQUAL default)
-        set(FSYCL_PSTL_OFFLOAD_DEVICE "-fsycl-pstl-offload")
+        set(FSYCL_PSTL_OFFLOAD_OPTION "-fsycl-pstl-offload")
     elseif(_ONEDPL_PSTL_OFFLOAD STREQUAL cpu OR _ONEDPL_PSTL_OFFLOAD STREQUAL gpu)
         set(FSYCL_PSTL_OFFLOAD_OPTION "-fsycl-pstl-offload=${_ONEDPL_PSTL_OFFLOAD}")
     else()

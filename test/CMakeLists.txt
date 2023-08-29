@@ -160,7 +160,7 @@ foreach (_file IN LISTS UNIT_TESTS)
         endif()
     endif()
 
-    if (ONEDPL_ENABLE_PSTL_OFFLOAD)
+    if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
         if (_file MATCHES "${_regexp_pstl_offload_additional}" AND NOT _file MATCHES "${_regexp_pstl_offload_exclude}")
             onedpl_add_test(${_file} true)
         endif()

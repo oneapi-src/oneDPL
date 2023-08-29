@@ -85,7 +85,7 @@ static void* __internal_aligned_alloc(std::size_t __size, std::size_t __alignmen
         __res = __get_original_aligned_alloc()(__alignment, __size);
     }
 
-    assert(std::uintptr_t(__res) & (__alignment - 1) == 0);
+    assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
     return __res;
 }
 
