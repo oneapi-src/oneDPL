@@ -13,7 +13,7 @@
 #include <atomic>
 #include <exception>
 #include <map>
-//#include <memory>
+#include <memory>
 #include <mutex>
 #include <utility>
 #include <chrono>
