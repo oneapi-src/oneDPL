@@ -24,46 +24,45 @@
 
 namespace __pstl_offload {
 
-auto __get_original_free() {
-    using _free_type = void (*)(void*);
+static auto __get_original_free() {
+    using __free_func_type = void (*)(void*);
 
-    static _free_type __orig_free = _free_type(dlsym(RTLD_NEXT, "free"));
+    static __free_func_type __orig_free = __free_func_type(dlsym(RTLD_NEXT, "free"));
     return __orig_free;
 }
 
-auto __get_original_msize() {
-    using _msize_type = std::size_t (*)(void*);
+static auto __get_original_msize() {
+    using __msize_func_type = std::size_t (*)(void*);
 
-    static _msize_type __orig_msize = _msize_type(dlsym(RTLD_NEXT, "malloc_usable_size"));
+    static __msize_func_type __orig_msize = __msize_func_type(dlsym(RTLD_NEXT, "malloc_usable_size"));
     return __orig_msize;
 }
 
-void __internal_free(void* __user_ptr) {
-    if (__user_ptr == nullptr)
-        return;
+static void __internal_free(void* __user_ptr) {
+    if (__user_ptr != nullptr) {
+        __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
 
-    __block_header* __header = reinterpret_cast<__block_header*>(__user_ptr) - 1;
-
-    if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const) {
-        assert(__header->_M_device != nullptr);
-        sycl::context __context = __header->_M_device->get_platform().ext_oneapi_get_default_context();
-        __header->_M_uniq_const = 0;
-        sycl::free(__header->_M_original_pointer, __context);
-    } else {
-        __get_original_free()(__user_ptr);
+        if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const) {
+            __free_original_pointer(__header);
+        } else {
+            __get_original_free()(__user_ptr);
+        }
     }
 }
 
-std::size_t __internal_msize(void* __user_ptr) {
-    if (__user_ptr == nullptr)
-        return 0;
+static std::size_t __internal_msize(void* __user_ptr) {
+    std::size_t __res = 0;
+    if (__user_ptr != nullptr) {
 
-    __block_header* __header = reinterpret_cast<__block_header*>(__user_ptr) - 1;
+        __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
 
-    if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const) {
-        return __header->_M_requested_number_of_bytes;
+        if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const) {
+            __res = __header->_M_requested_number_of_bytes;
+        } else {
+            __res = __get_original_msize()(__user_ptr);
+        }
     }
-    return __get_original_msize()(__user_ptr);
+    return __res;
 }
 
 } // namespace __pstl_offload

@@ -68,9 +68,9 @@ static __offload_policy_holder_type __offload_policy_holder;
 
 #if __linux__
 inline auto __get_original_aligned_alloc() {
-    using _aligned_alloc_type = void* (*)(std::size_t, std::size_t);
+    using __aligned_alloc_func_type = void* (*)(std::size_t, std::size_t);
 
-    static _aligned_alloc_type __orig_aligned_alloc = _aligned_alloc_type(dlsym(RTLD_NEXT, "aligned_alloc"));
+    static __aligned_alloc_func_type __orig_aligned_alloc = __aligned_alloc_func_type(dlsym(RTLD_NEXT, "aligned_alloc"));
     return __orig_aligned_alloc;
 }
 #endif // __linux__
@@ -102,7 +102,7 @@ static void* __errno_handling_internal_aligned_alloc(std::size_t __size, std::si
 static void* __internal_operator_new(std::size_t __size, std::size_t __alignment) {
     void* __res = __internal_aligned_alloc(__size, __alignment);
 
-    while(!__res) {
+    while(__res == nullptr) {
         std::new_handler __handler = std::get_new_handler();
         if (__handler != nullptr) {
             __handler();
@@ -137,20 +137,21 @@ inline void* __attribute__((always_inline)) malloc(std::size_t __size) {
 }
 
 inline void* __attribute__((always_inline)) calloc(std::size_t __num, std::size_t __size) {
+    void* __res = nullptr;
+
     // Square root of maximal std::size_t value, values that are less never results in overflow during multiplication
     constexpr std::size_t __min_overflow_multiplier = std::size_t(1) << (sizeof(std::size_t) * CHAR_BIT / 2);
-    std::size_t __full_size = __num * __size;
+    std::size_t __allocate_size = __num * __size;
 
     // Check overflow on multiplication
-    if (__num >= __min_overflow_multiplier || __size >= __min_overflow_multiplier) {
-        if (__num && __full_size / __num != __size) {
-            errno = ENOMEM;
-            return nullptr;
-        }
+    if ((__num >= __min_overflow_multiplier || __size >= __min_overflow_multiplier) &&
+        (__num != 0 && __allocate_size / __num != __size)) {
+        errno = ENOMEM;
+    } else {
+        __res = ::__pstl_offload::__errno_handling_internal_aligned_alloc(__allocate_size, alignof(std::max_align_t));
     }
 
-    void* __res = ::__pstl_offload::__errno_handling_internal_aligned_alloc(__full_size, alignof(std::max_align_t));
-    return __res ? std::memset(__res, 0, __full_size) : nullptr;
+    return __res ? std::memset(__res, 0, __allocate_size) : nullptr;
 }
 
 inline void* __attribute__((always_inline)) realloc(void* __ptr, std::size_t __size) {
