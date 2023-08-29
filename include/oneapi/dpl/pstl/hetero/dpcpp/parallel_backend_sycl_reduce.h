@@ -343,7 +343,7 @@ struct __parallel_transform_reduce_impl
                 __cgh.depends_on(__reduce_event);
 
                 // get an access to data under SYCL buffer
-                oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); 
+                oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
                 sycl::accessor __temp_acc{__temp, __cgh, sycl::read_write};
                 auto __res_acc = __res_container.get_acc(__cgh);
                 __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
