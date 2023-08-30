@@ -113,7 +113,7 @@ namespace internal {
 
   template<typename T>
   auto unwrap(T&& v) {
-    if constexpr(internal::has_unwrap<T>::value == true) {
+    if constexpr(internal::has_unwrap<T>::value) {
         return std::forward<T>(v).unwrap();
     } else {
         return v;
@@ -122,22 +122,23 @@ namespace internal {
 
   template<typename T, typename Function, typename... Args>
   auto submit(T&& t, Function&&f, Args&&... args) {
-    if constexpr(internal::has_get_policy<T>::value == true) {
+    if constexpr(internal::has_get_policy<T>::value) {
       // t is a selection
-      return submit(t.get_policy(), std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...);
-    } else if constexpr(internal::has_submit<T, Function, Args...>::value == true) {
+      return t.get_policy().submit(std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...);
+    } else if constexpr(internal::has_submit<T, Function, Args...>::value) {
       // t is a policy and policy has optional submit(f, args...)
       return std::forward<T>(t).submit(std::forward<Function>(f), std::forward<Args>(args)...);
     } else {
       // t is a policy and policy does not have optional submit(f, args...)
-      return submit(std::forward<T>(t), t.select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
+      return std::forward<T>(t).submit(t.select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
     }
   }
+
   template<typename T, typename Function, typename... Args>
   auto submit_and_wait(T&& t, Function&&f, Args&&... args) {
-    if constexpr (internal::has_get_policy<T>::value == true) {
+    if constexpr (internal::has_get_policy<T>::value) {
       // t is a selection
-      if constexpr (internal::has_submit_and_wait_handle<decltype(std::declval<T>().get_policy()), T, Function, Args...>::value == true) {
+      if constexpr (internal::has_submit_and_wait_handle<decltype(std::declval<T>().get_policy()), T, Function, Args...>::value) {
         // policy has optional submit_and_wait(selection, f, args...)
         return t.get_policy().submit_and_wait(std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...);
       } else {
@@ -146,10 +147,10 @@ namespace internal {
       }
     } else {
       // t is a policy
-      if constexpr ( internal::has_submit_and_wait<T, Function, Args...>::value == true) {
+      if constexpr ( internal::has_submit_and_wait<T, Function, Args...>::value) {
         // has the optional submit_and_wait(f, args...)
         return std::forward<T>(t).submit_and_wait(std::forward<Function>(f), std::forward<Args>(args)...);
-      } else if constexpr ( internal::has_submit_and_wait_handle<T, typename std::decay_t<T>::selection_type, Function, Args...>::value == true) {
+      } else if constexpr ( internal::has_submit_and_wait_handle<T, typename std::decay_t<T>::selection_type, Function, Args...>::value) {
         // has the optional submit_and_wait for a selection, so select and call
         return submit_and_wait(std::forward<T>(t).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
       } else {
@@ -183,7 +184,7 @@ namespace internal {
 
   template<typename S, typename Info>
   void report(S&& s, const Info& i) {
-    if constexpr(internal::has_report<S,Info>::value == true) {
+    if constexpr(internal::has_report<S,Info>::value) {
       std::forward<S>(s).report(i);
     }
   }
@@ -191,7 +192,7 @@ namespace internal {
 
   template<typename S, typename Info, typename Value>
   void report(S&& s, const Info& i, const Value& v) {
-    if constexpr(internal::has_report_value<S,Info>::value == true) {
+    if constexpr(internal::has_report_value<S,Info>::value) {
       std::forward<S>(s).report(i, v);
     }
   }
