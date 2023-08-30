@@ -11,9 +11,8 @@
 #ifndef _ONEDPL_INTERNAL_DYNAMIC_SELECTION_TRAITS_H
 #define _ONEDPL_INTERNAL_DYNAMIC_SELECTION_TRAITS_H
 
-#include <memory>
 #include <utility>
-#include <list>
+#include <cstdint>
 #include "oneapi/dpl/internal/dynamic_selection_impl/policy_traits.h"
 
 namespace oneapi {
@@ -214,7 +213,6 @@ namespace internal {
 } // namespace experimental
 } // namespace dpl
 } // namespace oneapi
-
 
 #endif /*_ONEDPL_INTERNAL_DYNAMIC_SELECTION_TRAITS_H*/
 

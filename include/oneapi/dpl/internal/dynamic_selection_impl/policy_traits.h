@@ -9,7 +9,7 @@
 
 #ifndef _ONEDPL_POLICY_TRAITS_H
 #define _ONEDPL_POLICY_TRAITS_H
-
+#include <type_traits>
 namespace oneapi {
 namespace dpl{
 namespace experimental{
