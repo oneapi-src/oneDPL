@@ -62,7 +62,7 @@ int main() {
     }
     {
         void* ptr = malloc(size);
-        EXPECT_TRUE(sycl::get_pointer_type(ptr, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating with aligned_alloc");
+        EXPECT_TRUE(sycl::get_pointer_type(ptr, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating with malloc");
         free(ptr);
     }
     {
@@ -98,7 +98,7 @@ int main() {
     }
     {
         void* ptr = memalign(alignment, size);
-        EXPECT_TRUE(sycl::get_pointer_type(ptr, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating with aligned_alloc");
+        EXPECT_TRUE(sycl::get_pointer_type(ptr, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating with memalign");
         free(ptr);
     }
     {
@@ -112,7 +112,7 @@ int main() {
         void* ptr = __libc_calloc(/*count = */num, size);
         EXPECT_TRUE(sycl::get_pointer_type(ptr, memory_context) == sycl::usm::alloc::shared, "Wrong pointer type while allocating with __libc_calloc");
         for (std::size_t i = 0; i < num; ++i) {
-            EXPECT_TRUE(*(reinterpret_cast<int*>(ptr) + i) == 0, "Memory was not filled with zeros by calloc");
+            EXPECT_TRUE(*(reinterpret_cast<int*>(ptr) + i) == 0, "Memory was not filled with zeros by __libc_calloc");
         }
         free(ptr);
 
