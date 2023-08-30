@@ -484,7 +484,7 @@ using is_arithmetic_plus =
                                         ::std::is_same_v<_BinaryOperation, __dpl_sycl::__plus<_Tp>> ||
                                         ::std::is_same_v<_BinaryOperation, __dpl_sycl::__plus<void>>)>;
 #else
-    ::std::integral_constant<bool, ::std::is_arithmetic_v<_Tp>::value &&
+    ::std::integral_constant<bool, ::std::is_arithmetic_v<_Tp> &&
                                        (::std::is_same_v<_BinaryOperation, ::std::plus<_Tp>> ||
                                         ::std::is_same_v<_BinaryOperation, ::std::plus<void>>)>;
 #endif // _ONEDPL_BACKEND_SYCL
