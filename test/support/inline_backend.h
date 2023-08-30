@@ -54,9 +54,9 @@ public:
 
   template<typename SelectionHandle, typename Function, typename ...Args>
   auto submit(SelectionHandle s, Function&& f, Args&&... args) {
-    std::chrono::high_resolution_clock::time_point t0;
+    std::chrono::steady_clock::time_point t0;
     if constexpr (oneapi::dpl::experimental::report_value_v<SelectionHandle, oneapi::dpl::experimental::execution_info::task_time_t>) {
-      t0 = std::chrono::high_resolution_clock::now();
+      t0 = std::chrono::steady_clock::now();
     }
     if constexpr(oneapi::dpl::experimental::report_info_v<SelectionHandle, oneapi::dpl::experimental::execution_info::task_submission_t>){
       s.report(oneapi::dpl::experimental::execution_info::task_submission);
@@ -67,7 +67,7 @@ public:
       oneapi::dpl::experimental::report(s, oneapi::dpl::experimental::execution_info::task_completion);
     }
     if constexpr (oneapi::dpl::experimental::report_value_v<SelectionHandle, oneapi::dpl::experimental::execution_info::task_time_t>) {
-      report(s, oneapi::dpl::experimental::execution_info::task_time, (std::chrono::high_resolution_clock::now()-t0).count());
+      report(s, oneapi::dpl::experimental::execution_info::task_time, (std::chrono::steady_clock::now()-t0).count());
     }
     return async_waiter{w};
   }

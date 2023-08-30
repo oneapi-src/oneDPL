@@ -77,9 +77,9 @@ namespace experimental {
       }
       if constexpr(report_info_v<SelectionHandle, execution_info::task_completion_t>
                    || report_value_v<SelectionHandle, execution_info::task_time_t>) {
-        std::chrono::high_resolution_clock::time_point t0;
+        std::chrono::steady_clock::time_point t0;
         if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t>) {
-          t0 = std::chrono::high_resolution_clock::now();
+          t0 = std::chrono::steady_clock::now();
         }
         auto e1 = f(q, std::forward<Args>(args)...);
         auto e2 = q.submit([=](sycl::handler& h){
@@ -89,7 +89,7 @@ namespace experimental {
                 s.report(execution_info::task_completion);
               }
               if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t>)
-                s.report(execution_info::task_time, (std::chrono::high_resolution_clock::now() - t0).count());
+                s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
             });
         });
         return async_waiter{e2};
