@@ -24,14 +24,14 @@ namespace TestUtils
   constexpr ::std::size_t
   uniq_kernel_index()
   {
-    return static_cast<typename ::std::underlying_type<sycl::usm::alloc>::type>(alloc_type);
+    return static_cast<typename ::std::underlying_type_t<sycl::usm::alloc>>(alloc_type);
   }
 
   template <typename Op, ::std::size_t CallNumber>
   struct unique_kernel_name;
 
   template <typename Policy, int idx>
-  using new_kernel_name = unique_kernel_name<typename ::std::decay<Policy>::type, idx>;
+  using new_kernel_name = unique_kernel_name<typename ::std::decay_t<Policy>, idx>;
 }
 
 
