@@ -1381,7 +1381,6 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _I
     else
     {
         auto __q = __i_elem - __n1;                            //diagonal index
-
         auto __n_diag = ::std::min<_Index1>(__n2 - __q, __n1); //diagonal size
 
         //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
@@ -1607,13 +1606,13 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
                 __cgh.parallel_for<_GlobalSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
                     {
                         const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
-                        const auto __i_elem_local = __i_elem % (__n_sorted*2);
+                        const auto __i_elem_local = __i_elem % (__n_sorted * 2);
 
                         const auto __offset = ::std::min<_IdType>((__i_elem / (__n_sorted * 2)) * (__n_sorted * 2), __n);
                         const auto __n1 = ::std::min<_IdType>(__offset + __n_sorted, __n) - __offset;
                         const auto __n2 = ::std::min<_IdType>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
 
-                        if(__data_in_temp)
+                        if (__data_in_temp)
                         {
                             const auto& __rng1 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset);
                             const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset + __n1);
