@@ -17,7 +17,6 @@ template<bool selection_option, typename Policy, typename UniverseContainer, typ
 int tests_with_offset(UniverseContainer u, ResourceFunction&& f, int universe_size) {
     bool cond = false;
     for(int offset=0;offset<universe_size;offset++){
-        std::cout<<"Condition : "<<selection_option<<" iteration : "<<offset<<"\n";
         cond = cond
                || test_submit_and_wait_on_event<selection_option, Policy>(u, f, offset)
                || test_submit_and_wait<selection_option, Policy>(u, f, offset)
