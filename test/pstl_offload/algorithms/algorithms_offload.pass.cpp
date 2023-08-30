@@ -11,7 +11,7 @@
 #error "-fsycl-pstl-offload option should be passed to the compiler to run this test"
 #endif
 
-// WARNING: don't include standard and oneDPL headers
+// WARNING: don't include unguarded standard and oneDPL headers
 // to guarantee that intercepting overloads of oneapi::dpl:: algorithms
 // appears before corresponding functions in oneDPL headers
 
@@ -24,24 +24,13 @@
 // BEFORE including the oneDPL and any standard header, because in __SYCL_PSTL_OFFLOAD mode
 // each standard header inclusion results in inclusion of oneDPL
 
-namespace std {
-
-template <typename T, typename U>
-struct pair;
-
-template <typename T>
-struct decay;
-
-template <bool B, typename T>
-struct enable_if;
-
-template <typename Iter>
-struct iterator_traits;
-
-} // namespace std
-
-template <typename T, typename U>
-const std::pair<T, U>& get_pair_ref(const T&, const U&);
+// Define guard to include only standard part of the header
+// without additional pstl offload part
+#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#include <type_traits>
+#include <utility>
+#include <iterator>
+#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
 namespace oneapi::dpl::execution {
 inline namespace v1 {
@@ -52,21 +41,17 @@ struct is_execution_policy;
 } // inline namespace v1
 } // namespace oneapi::dpl::execution
 
-struct not_iterator {};
-
-namespace std {
-
-template <>
-struct iterator_traits<not_iterator> {
+struct not_iterator {
     using difference_type = int;
     using value_type = int;
+    using pointer = int*;
+    using reference = int&;
+    using iterator_category = std::random_access_iterator_tag;
 };
 
-} // namespace std
-
 template <typename ExecutionPolicy, typename T>
-using test_enable_if_execution_policy = typename std::enable_if<
-    oneapi::dpl::execution::is_execution_policy<typename std::decay<ExecutionPolicy>::type>::value, T>::type;
+using test_enable_if_execution_policy = std::enable_if_t<
+    oneapi::dpl::execution::is_execution_policy<std::decay_t<ExecutionPolicy>>::value, T>;
 
 enum class algorithm_id {
     EMPTY_ID,
@@ -215,7 +200,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, bool>
 any_of(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Predicate __pred)
 {
     store_id(algorithm_id::ANY_OF);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -224,7 +209,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, bool>
 all_of(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Predicate __pred)
 {
     store_id(algorithm_id::ALL_OF);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -233,7 +218,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, bool>
 none_of(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Predicate __pred)
 {
     store_id(algorithm_id::NONE_OF);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -242,7 +227,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 for_each(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Function __f)
 {
     store_id(algorithm_id::FOR_EACH);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Size, typename _Function>
@@ -250,7 +235,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 for_each_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n, _Function __f)
 {
     store_id(algorithm_id::FOR_EACH_N);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Predicate>
@@ -258,7 +243,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 find_if(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Predicate __pred)
 {
     store_id(algorithm_id::FIND_IF);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -267,7 +252,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 find_if_not(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Predicate __pred)
 {
     store_id(algorithm_id::FIND_IF_NOT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -276,7 +261,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 find(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, const _Tp& __value)
 {
     store_id(algorithm_id::FIND);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -286,7 +271,7 @@ find_end(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _
          _ForwardIterator2 __s_last, _BinaryPredicate __pred)
 {
     store_id(algorithm_id::FIND_END_PREDICATE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -296,7 +281,7 @@ find_end(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _
          _ForwardIterator2 __s_last)
 {
     store_id(algorithm_id::FIND_END);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -306,7 +291,7 @@ find_first_of(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __la
               _ForwardIterator2 __s_first, _ForwardIterator2 __s_last, _BinaryPredicate __pred)
 {
     store_id(algorithm_id::FIND_FIRST_OF_PREDICATE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -316,7 +301,7 @@ find_first_of(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __la
               _ForwardIterator2 __s_first, _ForwardIterator2 __s_last)
 {
     store_id(algorithm_id::FIND_FIRST_OF);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -325,7 +310,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 adjacent_find(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::ADJACENT_FIND);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -334,7 +319,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 adjacent_find(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _BinaryPredicate __pred)
 {
     store_id(algorithm_id::ADJACENT_FIND_PREDICATE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -343,7 +328,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, typename std::iterator_traits<
 count(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, const _Tp& __value)
 {
     store_id(algorithm_id::COUNT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return 0;
 }
 
@@ -352,7 +337,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, typename std::iterator_traits<
 count_if(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Predicate __pred)
 {
     store_id(algorithm_id::COUNT_IF);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return 0;
 }
 
@@ -362,7 +347,7 @@ search(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last,
        _ForwardIterator2 __s_first, _ForwardIterator2 __s_last, _BinaryPredicate __pred)
 {
     store_id(algorithm_id::SEARCH_PREDICATE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -372,7 +357,7 @@ search(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last,
        _ForwardIterator2 __s_first, _ForwardIterator2 __s_last)
 {
     store_id(algorithm_id::SEARCH);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -382,7 +367,7 @@ search_n(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _
          const _Tp& __value, _BinaryPredicate __pred)
 {
     store_id(algorithm_id::SEARCH_N_PREDICATE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -392,7 +377,7 @@ search_n(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _
          const _Tp& __value)
 {
     store_id(algorithm_id::SEARCH_N);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -401,7 +386,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _ForwardIterator2 __result)
 {
     store_id(algorithm_id::COPY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -410,7 +395,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 copy_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n, _ForwardIterator2 __result)
 {
     store_id(algorithm_id::COPY_N);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -420,7 +405,7 @@ copy_if(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _F
         _Predicate __pred)
 {
     store_id(algorithm_id::COPY_IF);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -429,7 +414,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 swap_ranges(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1, _ForwardIterator2 __first2)
 {
     store_id(algorithm_id::SWAP_RANGES);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first2;
 }
 
@@ -439,7 +424,7 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterato
           not_iterator __result, _BinaryOperation __op)
 {
     store_id(algorithm_id::TRANSFORM_BINARY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -449,7 +434,7 @@ transform(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, 
           _UnaryOperation __op)
 {
     store_id(algorithm_id::TRANSFORM_UNARY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -459,7 +444,7 @@ replace_if(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last,
            const _Tp& __new_value)
 {
     store_id(algorithm_id::REPLACE_IF);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Tp>
@@ -468,7 +453,7 @@ replace(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, co
         const _Tp& __new_value)
 {
     store_id(algorithm_id::REPLACE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator2, typename _UnaryPredicate, typename _Tp>
@@ -477,7 +462,7 @@ replace_copy_if(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __
                 _ForwardIterator2 __result, _UnaryPredicate __pred, const _Tp& __new_value)
 {
     store_id(algorithm_id::REPLACE_COPY_IF);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -487,7 +472,7 @@ replace_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __las
              _ForwardIterator2 __result, const _Tp& __old_value, const _Tp& __new_value)
 {
     store_id(algorithm_id::REPLACE_COPY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -496,7 +481,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 fill(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, const _Tp& __value)
 {
     store_id(algorithm_id::FILL);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Size, typename _Tp>
@@ -504,7 +489,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 fill_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __count, const _Tp& __value)
 {
     store_id(algorithm_id::FILL_N);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -513,7 +498,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 generate(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Generator __g)
 {
     store_id(algorithm_id::GENERATE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Size, typename _Generator>
@@ -521,7 +506,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 generate_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __count, _Generator __g)
 {
     store_id(algorithm_id::GENERATE_N);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -531,7 +516,7 @@ remove_copy_if(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __l
                _ForwardIterator2 __result, _Predicate __pred)
 {
     store_id(algorithm_id::REMOVE_COPY_IF);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -541,7 +526,7 @@ remove_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last
             _ForwardIterator2 __result, const _Tp& __value)
 {
     store_id(algorithm_id::REMOVE_COPY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -550,7 +535,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 remove_if(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _UnaryPredicate __pred)
 {
     store_id(algorithm_id::REMOVE_IF);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -559,7 +544,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 remove(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, const _Tp& __value)
 {
     store_id(algorithm_id::REMOVE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -568,7 +553,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 unique(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _BinaryPredicate __pred)
 {
     store_id(algorithm_id::UNIQUE_PREDICATE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -577,7 +562,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 unique(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::UNIQUE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -587,7 +572,7 @@ unique_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last
             _BinaryPredicate __pred)
 {
     store_id(algorithm_id::UNIQUE_COPY_PREDICATE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -596,7 +581,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 unique_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _ForwardIterator2 __result)
 {
     store_id(algorithm_id::UNIQUE_COPY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -605,7 +590,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 reverse(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::REVERSE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy>
@@ -614,7 +599,7 @@ reverse_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __las
              not_iterator __d_first)
 {
     store_id(algorithm_id::REVERSE_COPY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __d_first;
 }
 
@@ -623,7 +608,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 rotate(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __middle, not_iterator __last)
 {
     store_id(algorithm_id::ROTATE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -633,7 +618,7 @@ rotate_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __midd
             _ForwardIterator2 __result)
 {
     store_id(algorithm_id::ROTATE_COPY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -642,7 +627,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, bool>
 is_partitioned(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _UnaryPredicate __pred)
 {
     store_id(algorithm_id::IS_PARTITIONED);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -651,7 +636,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 partition(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _UnaryPredicate __pred)
 {
     store_id(algorithm_id::PARTITION);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -660,19 +645,18 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 stable_partition(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _UnaryPredicate __pred)
 {
     store_id(algorithm_id::STABLE_PARTITION);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
-// Returning reference because std::pair was only forward declared in this place
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _UnaryPredicate>
-test_enable_if_execution_policy<_ExecutionPolicy, const std::pair<_ForwardIterator1, _ForwardIterator2>&>
+test_enable_if_execution_policy<_ExecutionPolicy, std::pair<_ForwardIterator1, _ForwardIterator2>>
 partition_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last,
                _ForwardIterator1 __out_true, _ForwardIterator2 __out_false, _UnaryPredicate __pred)
 {
     store_id(algorithm_id::PARTITION_COPY);
-    check_policy<_ExecutionPolicy>(__exec);
-    return get_pair_ref(__out_true, __out_false);
+    check_policy(__exec);
+    return std::make_pair(__first, __first);
 }
 
 template <typename _ExecutionPolicy, typename _Compare>
@@ -680,7 +664,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::SORT_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy>
@@ -688,7 +672,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::SORT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Compare>
@@ -696,7 +680,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 stable_sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::STABLE_SORT_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy>
@@ -704,50 +688,46 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 stable_sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::STABLE_SORT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
-// Returning reference because std::pair was only forward declared in this place
 template <typename _ExecutionPolicy, typename _ForwardIterator2, typename _BinaryPredicate>
-test_enable_if_execution_policy<_ExecutionPolicy, const std::pair<not_iterator, _ForwardIterator2>&>
+test_enable_if_execution_policy<_ExecutionPolicy, std::pair<not_iterator, _ForwardIterator2>>
 mismatch(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1,
          _ForwardIterator2 __first2, _ForwardIterator2 __last2, _BinaryPredicate __pred)
 {
     store_id(algorithm_id::MISMATCH_4ITERS_PREDICATE);
-    check_policy<_ExecutionPolicy>(__exec);
-    return get_pair_ref(__first1, __first2);
+    check_policy(__exec);
+    return std::make_pair(__first1, __first2);
 }
 
-// Returning reference because std::pair was only forward declared in this place
 template <typename _ExecutionPolicy, typename _ForwardIterator2, typename _BinaryPredicate>
-test_enable_if_execution_policy<_ExecutionPolicy, const std::pair<not_iterator, _ForwardIterator2>&>
+test_enable_if_execution_policy<_ExecutionPolicy, std::pair<not_iterator, _ForwardIterator2>>
 mismatch(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1,
          _ForwardIterator2 __first2, _BinaryPredicate __pred)
 {
     store_id(algorithm_id::MISMATCH_3ITERS_PREDICATE);
-    check_policy<_ExecutionPolicy>(__exec);
-    return get_pair_ref(__first1, __first2);
+    check_policy(__exec);
+    return std::make_pair(__first1, __first2);
 }
 
-// Returning reference because std::pair was only forward declared in this place
 template <typename _ExecutionPolicy, typename _ForwardIterator2>
-test_enable_if_execution_policy<_ExecutionPolicy, const std::pair<not_iterator, _ForwardIterator2>&>
+test_enable_if_execution_policy<_ExecutionPolicy, std::pair<not_iterator, _ForwardIterator2>>
 mismatch(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1,
          _ForwardIterator2 __first2, _ForwardIterator2 __last2)
 {
     store_id(algorithm_id::MISMATCH_4ITERS);
-    check_policy<_ExecutionPolicy>(__exec);
-    return get_pair_ref(__first1, __first2);
+    check_policy(__exec);
+    return std::make_pair(__first1, __first2);
 }
 
-// Returning reference because std::pair was only forward declared in this place
 template <typename _ExecutionPolicy, typename _ForwardIterator2>
-test_enable_if_execution_policy<_ExecutionPolicy, const std::pair<not_iterator, _ForwardIterator2>&>
+test_enable_if_execution_policy<_ExecutionPolicy, std::pair<not_iterator, _ForwardIterator2>>
 mismatch(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1, _ForwardIterator2 __first2)
 {
     store_id(algorithm_id::MISMATCH_3ITERS);
-    check_policy<_ExecutionPolicy>(__exec);
-    return get_pair_ref(__first1, __first2);
+    check_policy(__exec);
+    return std::make_pair(__first1, __first2);
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator2, typename _BinaryPredicate>
@@ -756,7 +736,7 @@ equal(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1,
       _ForwardIterator2 __first2, _BinaryPredicate __pred)
 {
     store_id(algorithm_id::EQUAL_3ITERS_PREDICATE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -765,7 +745,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, bool>
 equal(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1, _ForwardIterator2 __first2)
 {
     store_id(algorithm_id::EQUAL_3ITERS);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -775,7 +755,7 @@ equal(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1,
       _ForwardIterator2 __first2, _ForwardIterator2 __last2, _BinaryPredicate __pred)
 {
     store_id(algorithm_id::EQUAL_4ITERS_PREDICATE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -784,7 +764,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, bool>
 equal(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2)
 {
     store_id(algorithm_id::EQUAL_4ITERS);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -793,7 +773,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 move(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _ForwardIterator2 __d_first)
 {
     store_id(algorithm_id::MOVE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __d_first;
 }
 
@@ -803,7 +783,7 @@ partial_sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __mid
              _Compare __comp)
 {
     store_id(algorithm_id::PARTIAL_SORT_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy>
@@ -811,7 +791,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 partial_sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __middle, not_iterator __last)
 {
     store_id(algorithm_id::PARTIAL_SORT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Compare>
@@ -820,7 +800,7 @@ partial_sort_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator 
                   not_iterator __d_first, not_iterator __d_last, _Compare __comp)
 {
     store_id(algorithm_id::PARTIAL_SORT_COPY_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -830,7 +810,7 @@ partial_sort_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator 
                   not_iterator __d_first, not_iterator __d_last)
 {
     store_id(algorithm_id::PARTIAL_SORT_COPY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -839,7 +819,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 is_sorted_until(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::IS_SORTED_UNTIL_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -848,7 +828,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 is_sorted_until(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::IS_SORTED_UNTIL);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -857,7 +837,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, bool>
 is_sorted(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::IS_SORTED_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -866,7 +846,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, bool>
 is_sorted(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::IS_SORTED);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -876,7 +856,7 @@ merge(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 _
       _ForwardIterator2 __first2, _ForwardIterator2 __last2, not_iterator __d_first, _Compare __comp)
 {
     store_id(algorithm_id::MERGE_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __d_first;
 }
 
@@ -886,7 +866,7 @@ merge(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 _
       _ForwardIterator2 __first2, _ForwardIterator2 __last2, not_iterator __d_first)
 {
     store_id(algorithm_id::MERGE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __d_first;
 }
 
@@ -896,7 +876,7 @@ inplace_merge(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __mi
               not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::INPLACE_MERGE_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy>
@@ -905,7 +885,7 @@ inplace_merge(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __mi
               not_iterator __last)
 {
     store_id(algorithm_id::INPLACE_MERGE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator2, typename _Compare>
@@ -914,7 +894,7 @@ includes(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1,
          _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp)
 {
     store_id(algorithm_id::INCLUDES_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -924,7 +904,7 @@ includes(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1,
          _ForwardIterator2 __first2, _ForwardIterator2 __last2)
 {
     store_id(algorithm_id::INCLUDES);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -934,7 +914,7 @@ set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterato
           _ForwardIterator2 __first2, _ForwardIterator2 __last2, not_iterator __result, _Compare __comp)
 {
     store_id(algorithm_id::SET_UNION_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -944,7 +924,7 @@ set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterato
           _ForwardIterator2 __first2, _ForwardIterator2 __last2, not_iterator __result)
 {
     store_id(algorithm_id::SET_UNION);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -954,7 +934,7 @@ set_intersection(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forward
                  _ForwardIterator2 __first2, _ForwardIterator2 __last2, not_iterator __result, _Compare __comp)
 {
     store_id(algorithm_id::SET_INTERSECTION_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -964,7 +944,7 @@ set_intersection(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forward
                  _ForwardIterator2 __first2, _ForwardIterator2 __last2, not_iterator __result)
 {
     store_id(algorithm_id::SET_INTERSECTION);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -974,7 +954,7 @@ set_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
                _ForwardIterator2 __first2, _ForwardIterator2 __last2, not_iterator __result, _Compare __comp)
 {
     store_id(algorithm_id::SET_DIFFERENCE_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -984,7 +964,7 @@ set_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
                _ForwardIterator2 __first2, _ForwardIterator2 __last2, not_iterator __result)
 {
     store_id(algorithm_id::SET_DIFFERENCE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -994,7 +974,7 @@ set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, 
                          _ForwardIterator2 __first2, _ForwardIterator2 __last2, not_iterator __result, _Compare __comp)
 {
     store_id(algorithm_id::SET_SYMMETRIC_DIFFERENCE_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1004,7 +984,7 @@ set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, 
                          _ForwardIterator2 __first2, _ForwardIterator2 __last2, not_iterator __result)
 {
     store_id(algorithm_id::SET_SYMMETRIC_DIFFERENCE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1013,7 +993,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 is_heap_until(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::IS_HEAP_UNTIL_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -1022,7 +1002,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 is_heap_until(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::IS_HEAP_UNTIL);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -1031,7 +1011,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, bool>
 is_heap(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::IS_HEAP_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -1040,7 +1020,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, bool>
 is_heap(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::IS_HEAP);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -1049,7 +1029,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 min_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::MIN_ELEMENT_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -1058,7 +1038,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 min_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::MIN_ELEMENT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -1067,7 +1047,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 max_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::MAX_ELEMENT_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -1076,28 +1056,26 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 max_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::MAX_ELEMENT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
-// Returning reference because std::pair was only forward declared in this place
 template <typename _ExecutionPolicy, typename _Compare>
-test_enable_if_execution_policy<_ExecutionPolicy, const std::pair<not_iterator, not_iterator>&>
+test_enable_if_execution_policy<_ExecutionPolicy, std::pair<not_iterator, not_iterator>>
 minmax_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::MINMAX_ELEMENT_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
-    return get_pair_ref(__first, __first);
+    check_policy(__exec);
+    return std::make_pair(__first, __first);
 }
 
-// Returning reference because std::pair was only forward declared in this place
 template <typename _ExecutionPolicy>
-test_enable_if_execution_policy<_ExecutionPolicy, const std::pair<not_iterator, not_iterator>&>
+test_enable_if_execution_policy<_ExecutionPolicy, std::pair<not_iterator, not_iterator>>
 minmax_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::MINMAX_ELEMENT);
-    check_policy<_ExecutionPolicy>(__exec);
-    return get_pair_ref(__first, __first);
+    check_policy(__exec);
+    return std::make_pair(__first, __first);
 }
 
 template <typename _ExecutionPolicy, typename _Compare>
@@ -1105,7 +1083,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 nth_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __nth, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::NTH_ELEMENT_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy>
@@ -1113,7 +1091,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 nth_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __nth, not_iterator __last)
 {
     store_id(algorithm_id::NTH_ELEMENT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _ForwardIterator2, typename _Compare>
@@ -1122,7 +1100,7 @@ lexicographical_compare(_ExecutionPolicy&& __exec, not_iterator __first1, not_it
                         _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp)
 {
     store_id(algorithm_id::LEXICOGRAPHICAL_COMPARE_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -1132,7 +1110,7 @@ lexicographical_compare(_ExecutionPolicy&& __exec, not_iterator __first1, not_it
                         _ForwardIterator2 __first2, _ForwardIterator2 __last2)
 {
     store_id(algorithm_id::LEXICOGRAPHICAL_COMPARE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return true;
 }
 
@@ -1142,7 +1120,7 @@ shift_left(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last,
            typename std::iterator_traits<not_iterator>::difference_type __n)
 {
     store_id(algorithm_id::SHIFT_LEFT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -1152,7 +1130,7 @@ shift_right(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last
             typename std::iterator_traits<not_iterator>::difference_type __n)
 {
     store_id(algorithm_id::SHIFT_RIGHT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -1162,7 +1140,7 @@ uninitialized_copy(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
                    not_iterator __result)
 {
     store_id(algorithm_id::UNINITIALIZED_COPY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1171,7 +1149,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __n, not_iterator __result)
 {
     store_id(algorithm_id::UNINITIALIZED_COPY_N);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1181,7 +1159,7 @@ uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
                    not_iterator __result)
 {
     store_id(algorithm_id::UNINITIALIZED_MOVE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1190,7 +1168,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __n, not_iterator __result)
 {
     store_id(algorithm_id::UNINITIALIZED_MOVE_N);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1199,7 +1177,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_fill(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, const _Tp& __value)
 {
     store_id(algorithm_id::UNINITIALIZED_FILL);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Size, typename _Tp>
@@ -1207,7 +1185,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 uninitialized_fill_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n, const _Tp& __value)
 {
     store_id(algorithm_id::UNINITIALIZED_FILL_N);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __first;
 }
 
@@ -1216,7 +1194,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 destroy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::DESTROY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Size>
@@ -1224,7 +1202,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 destroy_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n)
 {
     store_id(algorithm_id::DESTROY_N);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy>
@@ -1232,7 +1210,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_default_construct(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::UNINITIALIZED_DEFAULT_CONSTRUCT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Size>
@@ -1240,7 +1218,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_default_construct_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n)
 {
     store_id(algorithm_id::UNINITIALIZED_DEFAULT_CONSTRUCT_N);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy>
@@ -1248,7 +1226,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_value_construct(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::UNINITIALIZED_VALUE_CONSTRUCT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Size>
@@ -1256,7 +1234,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, void>
 uninitialized_value_construct_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n)
 {
     store_id(algorithm_id::UNINITIALIZED_VALUE_CONSTRUCT_N);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
 }
 
 template <typename _ExecutionPolicy, typename _Tp, typename _BinaryOperation>
@@ -1264,7 +1242,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _Tp>
 reduce(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Tp __init, _BinaryOperation __binary_op)
 {
     store_id(algorithm_id::REDUCE_INIT_BINARYOP);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __init;
 }
 
@@ -1273,7 +1251,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _Tp>
 reduce(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Tp __init)
 {
     store_id(algorithm_id::REDUCE_INIT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __init;
 }
 
@@ -1282,7 +1260,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, typename std::iterator_traits<
 reduce(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::REDUCE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return 0;
 }
 
@@ -1292,7 +1270,7 @@ transform_reduce(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator 
                  _ForwardIterator2 __first2, _Tp __init)
 {
     store_id(algorithm_id::TRANSFORM_REDUCE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __init;
 }
 
@@ -1302,7 +1280,7 @@ transform_reduce(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator 
                  _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
     store_id(algorithm_id::TRANSFORM_REDUCE_BINARY_BINARY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __init;
 }
 
@@ -1312,7 +1290,7 @@ transform_reduce(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator _
                  _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
     store_id(algorithm_id::TRANSFORM_REDUCE_BINARY_UNARY);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __init;
 }
 
@@ -1322,7 +1300,7 @@ exclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __l
                _ForwardIterator2 __d_first, _Tp __init)
 {
     store_id(algorithm_id::EXCLUSIVE_SCAN_3ITERS_INIT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __d_first;
 }
 
@@ -1332,7 +1310,7 @@ exclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __l
                _ForwardIterator2 __d_first, _Tp __init, _BinaryOperation __binary_op)
 {
     store_id(algorithm_id::EXCLUSIVE_SCAN_3ITERS_INIT_BINARYOP);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __d_first;
 }
 
@@ -1342,7 +1320,7 @@ inclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __l
                _ForwardIterator2 __result)
 {
     store_id(algorithm_id::INCLUSIVE_SCAN_3ITERS);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1352,7 +1330,7 @@ inclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __l
                _ForwardIterator2 __result, _BinaryOperation __binary_op)
 {
     store_id(algorithm_id::INCLUSIVE_SCAN_3ITERS_BINARYOP);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1362,7 +1340,7 @@ inclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __l
                _ForwardIterator2 __result, _BinaryOperation __binary_op, _Tp __init)
 {
     store_id(algorithm_id::INCLUSIVE_SCAN_3ITERS_BINARYOP_INIT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1372,7 +1350,7 @@ transform_exclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_it
                          _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
     store_id(algorithm_id::TRANSFORM_EXCLUSIVE_SCAN);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1382,7 +1360,7 @@ transform_inclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_it
                          _ForwardIterator2 __result, _BinaryOperation __binary_op, _UnaryOperation __unary_op, _Tp __init)
 {
     store_id(algorithm_id::TRANSFORM_INCLUSIVE_SCAN_INIT);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1392,7 +1370,7 @@ transform_inclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_it
                          _ForwardIterator2 __result, _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
     store_id(algorithm_id::TRANSFORM_INCLUSIVE_SCAN);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __result;
 }
 
@@ -1402,7 +1380,7 @@ adjacent_difference(_ExecutionPolicy&& __exec, not_iterator __first, not_iterato
                     _ForwardIterator2 __d_first, _BinaryOperation __op)
 {
     store_id(algorithm_id::ADJACENT_DIFFERENCE_BINARYOP);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __d_first;
 }
 
@@ -1412,31 +1390,21 @@ adjacent_difference(_ExecutionPolicy&& __exec, not_iterator __first, not_iterato
                     _ForwardIterator2 __d_first)
 {
     store_id(algorithm_id::ADJACENT_DIFFERENCE);
-    check_policy<_ExecutionPolicy>(__exec);
+    check_policy(__exec);
     return __d_first;
 }
 
 } // namespace oneapi::dpl
 
-#include <oneapi/dpl/algorithm>
-#include <oneapi/dpl/memory>
-#include <oneapi/dpl/numeric>
 #include <oneapi/dpl/execution>
 
 #include <algorithm>
 #include <memory>
 #include <numeric>
 #include <execution>
-#include <utility>
 
 #include <support/utils.h>
 #include <support/utils_invoke.h>
-
-template <typename _T, typename _U>
-const std::pair<_T, _U>& get_pair_ref(const _T& __t, const _U& __u) {
-    static std::pair<_T, _U> pair(__t, __u);
-    return pair;
-}
 
 void store_id(algorithm_id __id) {
     EXPECT_TRUE(algorithm_id_state == algorithm_id::EMPTY_ID, "algorithm_id contains non empty value");
