@@ -17,8 +17,8 @@ REM
 
 if not defined SETVARS_CALL (
     echo:
-    echo :: ERROR: This script must be executed by setvars.bat.
-    echo:   Try '[install-dir]\setvars.bat --help' for help.
+    echo :: ERROR: This script must be executed by oneapi-vars.bat.
+    echo:   Try '[install-dir]\oneapi-vars.bat --help' for help.
     echo:
     exit /b 255
 )
@@ -26,7 +26,7 @@ if not defined SETVARS_CALL (
 if not defined ONEAPI_ROOT (
     echo:
     echo :: ERROR: This script requires that the ONEAPI_ROOT env variable is set."
-    echo:   Try '[install-dir]\setvars.bat --help' for help.
+    echo:   Try '[install-dir]\oneapi-vars.bat --help' for help.
     echo:
     exit /b 254
 )
@@ -34,5 +34,3 @@ if not defined ONEAPI_ROOT (
 set "VARSDIR=%~dp0"
 
 if not defined DPL_ROOT for /f "delims=" %%F in ("%VARSDIR%..") do set "DPL_ROOT=%%~fF"
-
-set "CMAKE_PREFIX_PATH=%DPL_ROOT%\lib\cmake\oneDPL;%CMAKE_PREFIX_PATH%"

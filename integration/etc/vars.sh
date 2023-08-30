@@ -17,8 +17,8 @@
 
 if [ -z "${SETVARS_CALL:-}" ] ; then
   >&2 echo " "
-  >&2 echo ":: ERROR: This script must be sourced by setvars.sh."
-  >&2 echo "   Try 'source <install-dir>/setvars.sh --help' for help."
+  >&2 echo ":: ERROR: This script must be sourced by oneapi-vars.sh."
+  >&2 echo "   Try 'source <install-dir>/oneapi-vars.sh --help' for help."
   >&2 echo " "
   return 255
 fi
@@ -26,7 +26,7 @@ fi
 if [ -z "${ONEAPI_ROOT:-}" ] ; then
   >&2 echo " "
   >&2 echo ":: ERROR: This script requires that the ONEAPI_ROOT env variable is set."
-  >&2 echo "   Try 'source <install-dir>\setvars.sh --help' for help."
+  >&2 echo "   Try 'source <install-dir>\oneapi-vars.sh --help' for help."
   >&2 echo " "
   return 254
 fi
@@ -160,7 +160,7 @@ elif [ "dash" = "$vars_script_shell" ] ; then # dash
   vars_script_name="$(expr "${vars_script_name:-}" : '^.*dash: [0-9]*: \(.*\):')" ;
 elif [ "sh" = "$vars_script_shell" ] ; then   # could be dash masquerading as /bin/sh
   # force a shell error msg; which should contain this script's path/filename
-  # sample error msg shown; assume this file is named "vars.sh"; as required by setvars.sh
+  # sample error msg shown; assume this file is named "vars.sh"; as required by oneapi-vars.sh
   vars_script_name="$( (echo "${.sh.file}") 2>&1 )" || : ;
   if [ "$(printf "%s" "$vars_script_name" | grep -Eq "sh: [0-9]+: .*vars\.sh: " ; echo $?)" -eq 0 ] ; then # dash as sh
     # sh: 155: /home/ubuntu/intel/oneapi/vars.sh: Bad substitution
@@ -168,7 +168,7 @@ elif [ "sh" = "$vars_script_shell" ] ; then   # could be dash masquerading as /b
   fi
 else  # unrecognized shell or dash being sourced from within a user's script
   # force a shell error msg; which should contain this script's path/filename
-  # sample error msg shown; assume this file is named "vars.sh"; as required by setvars.sh
+  # sample error msg shown; assume this file is named "vars.sh"; as required by oneapi-vars.sh
   vars_script_name="$( (echo "${.sh.file}") 2>&1 )" || : ;
   if [ "$(printf "%s" "$vars_script_name" | grep -Eq "^.+: [0-9]+: .*vars\.sh: " ; echo $?)" -eq 0 ] ; then # dash
     # .*: 164: intel/oneapi/vars.sh: Bad substitution
