@@ -27,6 +27,10 @@
 
 #include "parallel_backend.h"
 
+#if _ONEDPL_BACKEND_SYCL
+#    include "hetero/dpcpp/sycl_defs.h"
+#endif
+
 namespace oneapi
 {
 namespace dpl
@@ -193,9 +197,17 @@ __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
 // type is arithmetic and binary operation is a user defined operation.
 template <typename _Tp, typename _BinaryOperation>
 using is_arithmetic_udop =
-    ::std::integral_constant<bool, ::std::is_arithmetic<_Tp>::value &&
-                                       !::std::is_same<_BinaryOperation, ::std::plus<_Tp>>::value &&
-                                       !::std::is_same<_BinaryOperation, ::std::plus<void>>::value>;
+#if _ONEDPL_BACKEND_SYCL
+    ::std::integral_constant<bool, ::std::is_arithmetic_v<_Tp> &&
+                                       !::std::is_same_v<_BinaryOperation, ::std::plus<_Tp>> &&
+                                       !::std::is_same_v<_BinaryOperation, ::std::plus<void>> &&
+                                       !::std::is_same_v<_BinaryOperation, __dpl_sycl::__plus<_Tp>> &&
+                                       !::std::is_same_v<_BinaryOperation, __dpl_sycl::__plus<void>>>;
+#else
+    ::std::integral_constant<bool, ::std::is_arithmetic_v<_Tp> &&
+                                       !::std::is_same_v<_BinaryOperation, ::std::plus<_Tp>> &&
+                                       !::std::is_same_v<_BinaryOperation, ::std::plus<void>>>;
+#endif // _ONEDPL_BACKEND_SYCL
 
 // [restriction] - T shall be DefaultConstructible.
 // [violation] - default ctor of T shall set the identity value for binary_op.
