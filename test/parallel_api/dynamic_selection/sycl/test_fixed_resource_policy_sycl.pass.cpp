@@ -11,7 +11,6 @@
 #include "oneapi/dpl/dynamic_selection"
 #include "support/sycl_sanity.h"
 #include "support/test_dynamic_selection_utils.h"
-#include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 
 int main() {
   using policy_t = oneapi::dpl::experimental::fixed_resource_policy<oneapi::dpl::experimental::sycl_backend>;

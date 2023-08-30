@@ -10,13 +10,16 @@
 #ifndef _ONEDPL_AUTO_TUNE_POLICY_H
 #define _ONEDPL_AUTO_TUNE_POLICY_H
 
-#include <atomic>
 #include <exception>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <utility>
+#include <chrono>
+#include <limits>
 #include <vector>
+#include <type_traits>
+#include <tuple>
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 #endif

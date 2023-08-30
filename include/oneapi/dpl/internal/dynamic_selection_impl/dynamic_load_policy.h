@@ -12,8 +12,11 @@
 
 #include <atomic>
 #include <memory>
-#include <ostream>
+#include <limits>
+#include <mutex>
 #include <vector>
+#include <exception>
+#include <type_traits>
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 #endif
