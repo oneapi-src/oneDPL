@@ -477,17 +477,17 @@ __simd_adjacent_find(_Index __first, _Index __last, _BinaryPredicate __pred, boo
 // It was created to reduce the code inside ::std::enable_if
 template <typename _Tp, typename _BinaryOperation>
 using is_arithmetic_plus =
-#   if _ONEDPL_BACKEND_SYCL
+#if _ONEDPL_BACKEND_SYCL
     ::std::integral_constant<bool, ::std::is_arithmetic_v<_Tp> &&
                                        (::std::is_same_v<_BinaryOperation, ::std::plus<_Tp>> ||
                                         ::std::is_same_v<_BinaryOperation, ::std::plus<void>> ||
                                         ::std::is_same_v<_BinaryOperation, __dpl_sycl::__plus<_Tp>> ||
                                         ::std::is_same_v<_BinaryOperation, __dpl_sycl::__plus<void>>)>;
-#   else
+#else
     ::std::integral_constant<bool, ::std::is_arithmetic_v<_Tp>::value &&
                                        (::std::is_same_v<_BinaryOperation, ::std::plus<_Tp>> ||
                                         ::std::is_same_v<_BinaryOperation, ::std::plus<void>>)>;
-#   endif // _ONEDPL_BACKEND_SYCL
+#endif // _ONEDPL_BACKEND_SYCL
 
 template <typename _DifferenceType, typename _Tp, typename _BinaryOperation, typename _UnaryOperation>
 typename ::std::enable_if<is_arithmetic_plus<_Tp, _BinaryOperation>::value, _Tp>::type
