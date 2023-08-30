@@ -159,11 +159,7 @@ struct __subgroup_radix_sort
 
                 __cgh.parallel_for<_Name...>(
                     __range, ([=](sycl::nd_item<1> __it)
-                        // CUDA devices only support sg size of 32, so we disable this requirement
-#if !_ONEDPL_DETECT_NVPTX_COMPILATION
-                        [[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(__req_sub_group_size)]]
-#endif
-                    {
+                      [[_ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(__req_sub_group_size)]] {
                         union __storage { _ValT __v[__block_size]; __storage(){} } __values;
                         uint16_t __wi = __it.get_local_linear_id();
                         uint16_t __begin_bit = 0;

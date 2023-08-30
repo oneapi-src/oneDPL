@@ -57,17 +57,25 @@
 // TODO: determine which compiler configurations provide subgroup load/store
 #define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT false
 
+// Macro to check if we are compiling for Intel devices
+#if (defined(__SPIR__) || defined(__SPIRV__)) && defined(__SYCL_DEVICE_ONLY__)
+#    define _ONEDPL_DETECT_SPIRV_COMPILATION 1
+#else
+#    define _ONEDPL_DETECT_SPIRV_COMPILATION 0
+#endif
+
 #if _ONEDPL_LIBSYCL_VERSION >= 50300
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
 #else
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
 #endif
 
-// Macro to check if we are compiling for CUDA backend
-#if defined(__NVPTX__) && defined(__SYCL_DEVICE_ONLY__)
-#    define _ONEDPL_DETECT_NVPTX_COMPILATION 1
+// Only require a subgroup size if we are compiling to SPIRV. Otherwise, an empty
+// attribute will be provided.
+#if _ONEDPL_DETECT_SPIRV_COMPILATION
+#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(SIZE) _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE)
 #else
-#    define _ONEDPL_DETECT_NVPTX_COMPILATION 0
+#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(SIZE)
 #endif
 
 namespace __dpl_sycl
