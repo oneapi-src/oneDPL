@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 
 
-#ifndef _ONEDPL_INTERNAL_DYNAMIC_SELECTION_H
-#define _ONEDPL_INTERNAL_DYNAMIC_SELECTION_H
+#ifndef _ONEDPL_INTERNAL_DYNAMIC_SELECTION_TRAITS_H
+#define _ONEDPL_INTERNAL_DYNAMIC_SELECTION_TRAITS_H
 
 #include <utility>
 #include <cstdint>
@@ -124,7 +124,7 @@ namespace internal {
   auto submit(T&& t, Function&&f, Args&&... args) {
     if constexpr(internal::has_get_policy<T>::value == true) {
       // t is a selection
-      return t.get_policy().submit(std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...);
+      return submit(t.get_policy(), std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...);
     } else if constexpr(internal::has_submit<T, Function, Args...>::value == true) {
       // t is a policy and policy has optional submit(f, args...)
       return std::forward<T>(t).submit(std::forward<Function>(f), std::forward<Args>(args)...);
@@ -133,7 +133,6 @@ namespace internal {
       return submit(std::forward<T>(t), t.select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
     }
   }
-
   template<typename T, typename Function, typename... Args>
   auto submit_and_wait(T&& t, Function&&f, Args&&... args) {
     if constexpr (internal::has_get_policy<T>::value == true) {
@@ -150,7 +149,7 @@ namespace internal {
       if constexpr ( internal::has_submit_and_wait<T, Function, Args...>::value == true) {
         // has the optional submit_and_wait(f, args...)
         return std::forward<T>(t).submit_and_wait(std::forward<Function>(f), std::forward<Args>(args)...);
-      } else if constexpr ( internal::has_submit_and_wait_handle<T, typename std::decay<T>::type::selection_type, Function, Args...>::value == true) {
+      } else if constexpr ( internal::has_submit_and_wait_handle<T, typename std::decay_t<T>::selection_type, Function, Args...>::value == true) {
         // has the optional submit_and_wait for a selection, so select and call
         return submit_and_wait(std::forward<T>(t).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
       } else {
@@ -215,10 +214,5 @@ namespace internal {
 } // namespace dpl
 } // namespace oneapi
 
-#include "oneapi/dpl/internal/dynamic_selection_impl/fixed_resource_policy.h"
-#include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy.h"
-#include "oneapi/dpl/internal/dynamic_selection_impl/auto_tune_policy.h"
-#include "oneapi/dpl/internal/dynamic_selection_impl/dynamic_load_policy.h"
-
-#endif /*_ONEDPL_INTERNAL_DYNAMIC_SELECTION_H*/
+#endif /*_ONEDPL_INTERNAL_DYNAMIC_SELECTION_TRAITS_H*/
 
