@@ -28,7 +28,7 @@ namespace __omp_backend
 template <typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3,
           typename _Compare, typename _LeafMerge>
 void
-__parallel_merge_body(std::size_t __size_x, std::size_t __size_y, _RandomAccessIterator1 __xs,
+__parallel_merge_body(::std::size_t __size_x, ::std::size_t __size_y, _RandomAccessIterator1 __xs,
                       _RandomAccessIterator1 __xe, _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye,
                       _RandomAccessIterator3 __zs, _Compare __comp, _LeafMerge __leaf_merge)
 {
@@ -45,12 +45,12 @@ __parallel_merge_body(std::size_t __size_x, std::size_t __size_y, _RandomAccessI
     if (__size_x < __size_y)
     {
         __ym = __ys + (__size_y / 2);
-        __xm = std::upper_bound(__xs, __xe, *__ym, __comp);
+        __xm = ::std::upper_bound(__xs, __xe, *__ym, __comp);
     }
     else
     {
         __xm = __xs + (__size_x / 2);
-        __ym = std::lower_bound(__ys, __ye, *__xm, __comp);
+        __ym = ::std::lower_bound(__ys, __ye, *__xm, __comp);
     }
 
     auto __zm = __zs + (__xm - __xs) + (__ym - __ys);
@@ -76,8 +76,8 @@ __parallel_merge(_ExecutionPolicy&& /*__exec*/, _RandomAccessIterator1 __xs, _Ra
                  _LeafMerge __leaf_merge)
 
 {
-    std::size_t __size_x = __xe - __xs;
-    std::size_t __size_y = __ye - __ys;
+    ::std::size_t __size_x = __xe - __xs;
+    ::std::size_t __size_y = __ye - __ys;
 
     /*
      * Run the merge in parallel by chunking it up. Use the smaller range (if any) as the iteration range, and the

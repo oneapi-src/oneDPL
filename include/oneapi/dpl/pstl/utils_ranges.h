@@ -46,7 +46,7 @@ get_value_type(...)
 {
     //static_assert should always fail when this overload is chosen, so its condition must depend on
     //the template parameter and evaluate to false
-    static_assert(std::is_same_v<_R, void>,
+    static_assert(::std::is_same_v<_R, void>,
         "error: the range has no 'value_type'; define an alias or typedef named 'value_type' in the range class");
 }
 

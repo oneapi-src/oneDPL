@@ -94,7 +94,7 @@ __parallel_strict_scan_body(_Index __n, _Tp __initial, _Rp __reduce, _Cp __combi
     oneapi::dpl::__omp_backend::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __reduce,
                                           __combine);
 
-    std::size_t __k = __m + 1;
+    ::std::size_t __k = __m + 1;
     _Tp __t = __r[__k - 1];
     while ((__k &= __k - 1))
     {

@@ -34,7 +34,7 @@ struct __move_value
     void
     operator()(_Iterator __x, _OutputIterator __z) const
     {
-        *__z = std::move(*__x);
+        *__z = ::std::move(*__x);
     }
 };
 
@@ -42,26 +42,26 @@ template <typename _RandomAccessIterator, typename _OutputIterator>
 _OutputIterator
 __parallel_move_range(_RandomAccessIterator __first1, _RandomAccessIterator __last1, _OutputIterator __d_first)
 {
-    std::size_t __size = __last1 - __first1;
+    ::std::size_t __size = __last1 - __first1;
 
     // Perform serial moving of small chunks
 
     if (__size <= __default_chunk_size)
     {
-        return std::move(__first1, __last1, __d_first);
+        return ::std::move(__first1, __last1, __d_first);
     }
 
     // Perform parallel moving of larger chunks
     auto __policy = oneapi::dpl::__omp_backend::__chunk_partitioner(__first1, __last1);
 
     _PSTL_PRAGMA(omp taskloop)
-    for (std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
+    for (::std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
     {
         oneapi::dpl::__omp_backend::__process_chunk(__policy, __first1, __chunk,
                                                     [&](auto __chunk_first, auto __chunk_last) {
                                                         auto __chunk_offset = __chunk_first - __first1;
                                                         auto __output_it = __d_first + __chunk_offset;
-                                                        std::move(__chunk_first, __chunk_last, __output_it);
+                                                        ::std::move(__chunk_first, __chunk_last, __output_it);
                                                     });
     }
 
@@ -84,8 +84,8 @@ void
 __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp,
                             _LeafSort __leaf_sort)
 {
-    using _ValueType = typename std::iterator_traits<_RandomAccessIterator>::value_type;
-    using _VecType = typename std::vector<_ValueType>;
+    using _ValueType = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
+    using _VecType = typename ::std::vector<_ValueType>;
     using _OutputIterator = typename _VecType::iterator;
     using _MoveValue = oneapi::dpl::__omp_backend::__sort_details::__move_value;
     using _MoveRange = oneapi::dpl::__omp_backend::__sort_details::__move_range;
@@ -96,7 +96,7 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
     }
     else
     {
-        std::size_t __size = __xe - __xs;
+        ::std::size_t __size = __xe - __xs;
         auto __mid = __xs + (__size / 2);
         oneapi::dpl::__omp_backend::__parallel_invoke_body(
             [&]() { __parallel_stable_sort_body(__xs, __mid, __comp, __leaf_sort); },
@@ -124,9 +124,9 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
 template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
 __parallel_stable_sort(_ExecutionPolicy&& /*__exec*/, _RandomAccessIterator __xs, _RandomAccessIterator __xe,
-                       _Compare __comp, _LeafSort __leaf_sort, std::size_t __nsort = 0)
+                       _Compare __comp, _LeafSort __leaf_sort, ::std::size_t __nsort = 0)
 {
-    auto __count = static_cast<std::size_t>(__xe - __xs);
+    auto __count = static_cast<::std::size_t>(__xe - __xs);
     if (__count <= __default_chunk_size || __nsort < __count)
     {
         __leaf_sort(__xs, __xe, __comp);

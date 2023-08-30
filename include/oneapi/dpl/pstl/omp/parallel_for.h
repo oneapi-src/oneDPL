@@ -36,7 +36,7 @@ __parallel_for_body(_Index __first, _Index __last, _Fp __f)
 
     // To avoid over-subscription we use taskloop for the nested parallelism
     _PSTL_PRAGMA(omp taskloop untied mergeable)
-    for (std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
+    for (::std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
     {
         oneapi::dpl::__omp_backend::__process_chunk(__policy, __first, __chunk, __f);
     }

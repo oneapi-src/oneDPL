@@ -39,8 +39,8 @@ _Value
 __transform_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __last, _UnaryOp __unary_op, _Value __init,
                         _Combiner __combiner, _Reduction __reduction)
 {
-    const std::size_t __num_threads = omp_get_num_threads();
-    const std::size_t __size = __last - __first;
+    const ::std::size_t __num_threads = omp_get_num_threads();
+    const ::std::size_t __size = __last - __first;
 
     // Initial partition of the iteration space into chunks. If the range is too small,
     // this will result in a nonsense policy, so we check on the size as well below.
@@ -54,18 +54,18 @@ __transform_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __l
     // Here, we cannot use OpenMP UDR because we must store the init value in
     // the combiner and it will be used several times. Although there should be
     // the only one; we manually generate the identity elements for each thread.
-    std::vector<_Value> __accums;
+    ::std::vector<_Value> __accums;
     __accums.reserve(__num_threads);
 
     // initialize accumulators for all threads
-    for (std::size_t __i = 0; __i < __num_threads; ++__i)
+    for (::std::size_t __i = 0; __i < __num_threads; ++__i)
     {
         __accums.emplace_back(__unary_op(__first + __i));
     }
 
     // main loop
     _PSTL_PRAGMA(omp taskloop shared(__accums))
-    for (std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
+    for (::std::size_t __chunk = 0; __chunk < __policy.__n_chunks; ++__chunk)
     {
         oneapi::dpl::__omp_backend::__process_chunk(
             __policy, __first + __num_threads, __chunk, [&](auto __chunk_first, auto __chunk_last) {
@@ -75,7 +75,7 @@ __transform_reduce_body(_RandomAccessIterator __first, _RandomAccessIterator __l
     }
 
     // combine by accumulators
-    for (std::size_t __i = 0; __i < __num_threads; ++__i)
+    for (::std::size_t __i = 0; __i < __num_threads; ++__i)
     {
         __init = __combiner(__init, __accums[__i]);
     }

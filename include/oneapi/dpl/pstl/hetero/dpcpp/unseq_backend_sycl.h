@@ -35,8 +35,8 @@ namespace unseq_backend
 //We need to use _ONEDPL_SYCL_INTEL_COMPILER macro as a guard.
 
 //TODO: To change __has_known_identity implementation as soon as the Intel(R) oneAPI DPC++ Compiler implementation issues related to
-//std::multiplies, std::bit_or, std::bit_and and std::bit_xor operations will be fixed.
-//std::logical_and and std::logical_or are not supported in Intel(R) oneAPI DPC++ Compiler to be used in sycl::inclusive_scan_over_group and sycl::reduce_over_group
+//std::multiplies, ::std::bit_or, ::std::bit_and and ::std::bit_xor operations will be fixed.
+//std::logical_and and ::std::logical_or are not supported in Intel(R) oneAPI DPC++ Compiler to be used in sycl::inclusive_scan_over_group and sycl::reduce_over_group
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity =
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
@@ -63,7 +63,7 @@ using __has_known_identity =
 #else //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
 
 template <typename _BinaryOp, typename _Tp>
-using __has_known_identity = std::false_type;
+using __has_known_identity = ::std::false_type;
 
 #endif //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
 
@@ -240,7 +240,7 @@ struct reduce_over_group
     template <typename _NDItemId, typename _Size, typename _AccLocal>
     _Tp
     reduce_impl(const _NDItemId __item_id, const _Size __n, const _AccLocal& __local_mem,
-                std::true_type /*has_known_identity*/) const
+                ::std::true_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
         auto __global_idx = __item_id.get_global_id(0);
@@ -256,7 +256,7 @@ struct reduce_over_group
     template <typename _NDItemId, typename _Size, typename _AccLocal>
     _Tp
     reduce_impl(const _NDItemId __item_id, const _Size __n, const _AccLocal& __local_mem,
-                std::false_type /*has_known_identity*/) const
+                ::std::false_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
         auto __global_idx = __item_id.get_global_id(0);
@@ -594,7 +594,7 @@ struct __scan
     void
     scan_impl(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
               _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size, _ItersPerWG __iters_per_wg,
-              _InitType __init, std::false_type /*has_known_identity*/) const
+              _InitType __init, ::std::false_type /*has_known_identity*/) const
     {
         ::std::size_t __group_id = __item.get_group(0);
         ::std::size_t __global_id = __item.get_global_id(0);
@@ -675,7 +675,7 @@ struct __scan
     void
     scan_impl(_NDItemId __item, _Size __n, _AccLocal& __local_acc, const _InAcc& __acc, _OutAcc& __out_acc,
               _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size, _ItersPerWG __iters_per_wg,
-              _InitType __init, std::true_type /*has_known_identity*/) const
+              _InitType __init, ::std::true_type /*has_known_identity*/) const
     {
         auto __group_id = __item.get_group(0);
         auto __local_id = __item.get_local_id(0);

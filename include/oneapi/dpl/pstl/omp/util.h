@@ -59,15 +59,15 @@ __cancel_execution()
 template <typename _ExecutionPolicy, typename _Tp>
 class __buffer
 {
-    std::allocator<_Tp> __allocator_;
+    ::std::allocator<_Tp> __allocator_;
     _Tp* __ptr_;
-    const std::size_t __buf_size_;
+    const ::std::size_t __buf_size_;
     __buffer(const __buffer&) = delete;
     void
     operator=(const __buffer&) = delete;
 
   public:
-    __buffer(std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
+    __buffer(::std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
 
     operator bool() const { return __ptr_ != nullptr; }
 
@@ -80,15 +80,15 @@ class __buffer
 };
 
 // Preliminary size of each chunk: requires further discussion
-constexpr std::size_t __default_chunk_size = 2048;
+constexpr ::std::size_t __default_chunk_size = 2048;
 
 // Convenience function to determine when we should run serial.
 template <typename _Iterator, std::enable_if_t<!std::is_integral_v<_Iterator>, bool> = true>
 constexpr auto
 __should_run_serial(_Iterator __first, _Iterator __last) -> bool
 {
-    using _difference_type = typename std::iterator_traits<_Iterator>::difference_type;
-    auto __size = std::distance(__first, __last);
+    using _difference_type = typename ::std::iterator_traits<_Iterator>::difference_type;
+    auto __size = ::std::distance(__first, __last);
     return __size <= static_cast<_difference_type>(__default_chunk_size);
 }
 
@@ -103,13 +103,13 @@ __should_run_serial(_Index __first, _Index __last) -> bool
 
 struct __chunk_metrics
 {
-    std::size_t __n_chunks;
-    std::size_t __chunk_size;
-    std::size_t __first_chunk_size;
+    ::std::size_t __n_chunks;
+    ::std::size_t __chunk_size;
+    ::std::size_t __first_chunk_size;
 };
 
 // The iteration space partitioner according to __requested_chunk_size
-template <class _RandomAccessIterator, class _Size = std::size_t>
+template <class _RandomAccessIterator, class _Size = ::std::size_t>
 auto
 __chunk_partitioner(_RandomAccessIterator __first, _RandomAccessIterator __last,
                     _Size __requested_chunk_size = __default_chunk_size) -> __chunk_metrics

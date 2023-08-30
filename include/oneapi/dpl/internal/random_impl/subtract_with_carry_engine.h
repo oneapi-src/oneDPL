@@ -98,7 +98,7 @@ class subtract_with_carry_engine
     // Static asserts
     static_assert((0 < _S) && (_S < _R), "oneapi::dpl::subtract_with_carry_engine. Error: unsupported parameters");
 
-    static_assert((0 < _W) && (_W <= std::numeric_limits<scalar_type>::digits),
+    static_assert((0 < _W) && (_W <= ::std::numeric_limits<scalar_type>::digits),
                   "oneapi::dpl::subtract_with_carry_engine. Error: unsupported parameters");
     // Initialization function
     void

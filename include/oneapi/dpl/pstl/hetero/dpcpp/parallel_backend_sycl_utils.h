@@ -302,7 +302,7 @@ class __kernel_compiler
     {
         sycl::program __program(__exec.queue().get_context());
 
-        using __return_type = std::conditional_t<(__kernel_count > 1), __kernel_array_type, sycl::kernel>;
+        using __return_type = ::std::conditional_t<(__kernel_count > 1), __kernel_array_type, sycl::kernel>;
         return __return_type{
             (__program.build_with_kernel_type<_KernelNames>(), __program.get_kernel<_KernelNames>())...};
     }
@@ -590,7 +590,7 @@ struct __storage
 //A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __storage (USM or buffer)>
 //Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
-class __future : private std::tuple<_Args...>
+class __future : private ::std::tuple<_Args...>
 {
     _Event __my_event;
 
@@ -621,8 +621,8 @@ class __future : private std::tuple<_Args...>
     }
 
   public:
-    __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
-    __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
+    __future(_Event __e, _Args... __args) : ::std::tuple<_Args...>(__args...), __my_event(__e) {}
+    __future(_Event __e, ::std::tuple<_Args...> __t) : ::std::tuple<_Args...>(__t), __my_event(__e) {}
 
     auto
     event() const
@@ -643,7 +643,7 @@ class __future : private std::tuple<_Args...>
     {
         if constexpr (sizeof...(_Args) > 0)
         {
-            auto& __val = std::get<0>(*this);
+            auto& __val = ::std::get<0>(*this);
             return __wait_and_get_value(__val);
         }
         else
@@ -656,8 +656,8 @@ class __future : private std::tuple<_Args...>
     auto
     __make_future(_T __t) const
     {
-        auto new_val = std::tuple<_T>(__t);
-        auto new_tuple = std::tuple_cat(new_val, (std::tuple<_Args...>)*this);
+        auto new_val = ::std::tuple<_T>(__t);
+        auto new_tuple = ::std::tuple_cat(new_val, (::std::tuple<_Args...>)*this);
         return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
 };

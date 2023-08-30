@@ -103,13 +103,13 @@ class cauchy_distribution
     scalar_type
     min() const
     {
-        return std::numeric_limits<scalar_type>::lowest();
+        return ::std::numeric_limits<scalar_type>::lowest();
     }
 
     scalar_type
     max() const
     {
-        return std::numeric_limits<scalar_type>::max();
+        return ::std::numeric_limits<scalar_type>::max();
     }
 
     // Generate functions

@@ -84,8 +84,8 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
     using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using __parallel_for_name = __internal::__kernel_name_provider<typename _Policy::kernel_name>;
 
-    return __parallel_for_fpga_submitter<__parallel_for_name>()(std::forward<_ExecutionPolicy>(__exec), __brick,
-                                                                __count, std::forward<_Ranges>(__rngs)...);
+    return __parallel_for_fpga_submitter<__parallel_for_name>()(::std::forward<_ExecutionPolicy>(__exec), __brick,
+                                                                __count, ::std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
@@ -140,7 +140,7 @@ __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Ran
     using __kernel_name = typename _Policy::kernel_name;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_base(
-        std::move(__device_policy), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2), __binary_op,
+        ::std::move(__device_policy), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2), __binary_op,
         __init, __local_scan, __group_scan, __global_scan);
 }
 

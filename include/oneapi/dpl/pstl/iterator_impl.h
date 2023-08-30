@@ -278,7 +278,7 @@ class zip_iterator
 
     zip_iterator() : __my_it_() {}
     explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
-    explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
+    explicit zip_iterator(::std::tuple<_Types...> __arg) : __my_it_(__arg) {}
     zip_iterator(const zip_iterator& __input) : __my_it_(__input.__my_it_) {}
     zip_iterator&
     operator=(const zip_iterator& __input)
@@ -406,7 +406,7 @@ make_zip_iterator(_Tp... __args)
 
 template <typename... _Tp>
 zip_iterator<_Tp...>
-make_zip_iterator(std::tuple<_Tp...> __arg)
+make_zip_iterator(::std::tuple<_Tp...> __arg)
 {
     return zip_iterator<_Tp...>(__arg);
 }
@@ -570,7 +570,7 @@ template <typename SourceIterator, typename _Permutation>
 class permutation_iterator
 {
   public:
-    typedef std::conditional_t<
+    typedef ::std::conditional_t<
         !__internal::__is_functor<_Permutation>, _Permutation,
         transform_iterator<counting_iterator<typename ::std::iterator_traits<SourceIterator>::difference_type>,
                            _Permutation>>

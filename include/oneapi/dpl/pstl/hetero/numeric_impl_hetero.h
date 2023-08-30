@@ -99,9 +99,9 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
 template <typename T>
 struct ExecutionPolicyWrapper;
 
-// TODO In C++20 we may try to use std::equality_comparable
+// TODO In C++20 we may try to use ::std::equality_comparable
 template <typename _Iterator1, typename _Iterator2, typename = void>
-struct __is_equality_comparable : std::false_type
+struct __is_equality_comparable : ::std::false_type
 {
 };
 
@@ -109,8 +109,8 @@ struct __is_equality_comparable : std::false_type
 template <typename _Iterator1, typename _Iterator2>
 struct __is_equality_comparable<
     _Iterator1, _Iterator2,
-    std::void_t<decltype(::std::declval<::std::decay_t<_Iterator1>>() == ::std::declval<::std::decay_t<_Iterator2>>())>>
-    : std::true_type
+    ::std::void_t<decltype(::std::declval<::std::decay_t<_Iterator1>>() == ::std::declval<::std::decay_t<_Iterator2>>())>>
+    : ::std::true_type
 {
 };
 

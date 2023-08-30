@@ -111,7 +111,7 @@ class lognormal_distribution
     scalar_type
     max() const
     {
-        return std::numeric_limits<scalar_type>::max();
+        return ::std::numeric_limits<scalar_type>::max();
     }
 
     // Generate functions
