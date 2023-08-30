@@ -23,7 +23,6 @@
 namespace oneapi {
 namespace dpl {
 namespace experimental {
-  template <typename Backend=sycl_backend, typename... KeyArgs>
 #if _DS_BACKEND_SYCL != 0
   template <typename Backend=sycl_backend, typename... KeyArgs>
 #else
