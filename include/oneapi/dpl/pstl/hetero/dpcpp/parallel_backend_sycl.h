@@ -1269,130 +1269,6 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
 //------------------------------------------------------------------------
 // parallel_merge - async pattern
 //-----------------------------------------------------------------------
-struct __full_merge_kernel
-{
-    // this function is needed because it calls in different parallel patterns (parallel_merge, parallel_sort)
-    // and replacing with this function may affect performance for them.
-    template <typename _Idx, typename _Acc1, typename _Size1, typename _Acc2, typename _Size2, typename _Acc3,
-              typename _Size3, typename _Compare>
-    void
-    operator()(const _Idx __global_idx, const _Acc1& __in_acc1, const _Size1 __start_1, const _Size1 __end_1,
-               const _Acc2& __in_acc2, const _Size2 __start_2, const _Size2 __end_2, const _Acc3& __out_acc,
-               const _Size3 __out_shift, _Compare __comp, const ::std::size_t __chunk) const
-    {
-        // Borders of the sequences to merge within this call
-        const _Size1 __local_start_1 = sycl::min(static_cast<_Size1>(__global_idx + __start_1), __end_1);
-        const _Size1 __local_end_1 = sycl::min(static_cast<_Size1>(__local_start_1 + __chunk), __end_1);
-        const _Size2 __local_start_2 = sycl::min(static_cast<_Size2>(__global_idx + __start_2), __end_2);
-        const _Size2 __local_end_2 = sycl::min(static_cast<_Size2>(__local_start_2 + __chunk), __end_2);
-        // Borders of the sequences to search an offset
-        _Size1 __l_search_bound_1{};
-        _Size1 __r_search_bound_1{};
-        _Size2 __l_search_bound_2{};
-        _Size2 __r_search_bound_2{};
-
-        const _Size1 __local_size_1 = __local_end_1 - __local_start_1;
-        const _Size2 __local_size_2 = __local_end_2 - __local_start_2;
-
-        const auto __r_item_1 = __in_acc1[__end_1 - 1];
-        const auto __l_item_2 = __in_acc2[__start_2];
-
-        // Copy if the sequences are sorted respect to each other or merge otherwise
-        if (!__comp(__l_item_2, __r_item_1))
-        {
-            const _Size1 __out_shift_1 = __out_shift + __local_start_1 - __start_1;
-            const _Size2 __out_shift_2 = __out_shift + __end_1 - __start_1 + __local_start_2 - __start_2;
-            // TODO: check performance impact via a profiler: for vs memcpy
-            for (_Idx __i = 0; __i < __local_size_1; ++__i)
-            {
-                __out_acc[__out_shift_1 + __i] = __in_acc1[__local_start_1 + __i];
-            }
-            for (_Idx __i = 0; __i < __local_size_2; ++__i)
-            {
-                __out_acc[__out_shift_2 + __i] = __in_acc2[__local_start_2 + __i];
-            }
-        }
-        else if (__comp(__r_item_1, __l_item_2))
-        {
-            const _Size1 __out_shift_1 = __out_shift + __end_2 - __start_2 + __local_start_1 - __start_1;
-            const _Size2 __out_shift_2 = __out_shift + __local_start_2 - __start_2;
-            for (_Idx __i = 0; __i < __local_size_1; ++__i)
-            {
-                __out_acc[__out_shift_1 + __i] = __in_acc1[__local_start_1 + __i];
-            }
-            for (_Idx __i = 0; __i < __local_size_2; ++__i)
-            {
-                __out_acc[__out_shift_2 + __i] = __in_acc2[__local_start_2 + __i];
-            }
-        }
-        // Perform merging
-        else
-        {
-            // Process 1st sequence
-            if (__local_start_1 < __local_end_1)
-            {
-                // Reduce the range for searching within the 2nd sequence and handle bound items
-                const auto __local_l_item_1 = __in_acc1[__local_start_1];
-                __l_search_bound_2 = oneapi::dpl::__internal::__pstl_lower_bound(__in_acc2, __start_2, __end_2,
-                                                                                 __local_l_item_1, __comp);
-                const auto __l_shift_1 = __local_start_1 - __start_1;
-                const auto __l_shift_2 = __l_search_bound_2 - __start_2;
-                __out_acc[__out_shift + __l_shift_1 + __l_shift_2] = __local_l_item_1;
-                if (__local_end_1 - __local_start_1 > 1)
-                {
-                    const auto __local_r_item_1 = __in_acc1[__local_end_1 - 1];
-                    __r_search_bound_2 = oneapi::dpl::__internal::__pstl_lower_bound(__in_acc2, __l_search_bound_2,
-                                                                                     __end_2, __local_r_item_1, __comp);
-                    const auto __r_shift_1 = __local_end_1 - 1 - __start_1;
-                    const auto __r_shift_2 = __r_search_bound_2 - __start_2;
-                    __out_acc[__out_shift + __r_shift_1 + __r_shift_2] = __local_r_item_1;
-                }
-
-                // Handle intermediate items
-                for (auto __idx = __local_start_1 + 1; __idx < __local_end_1 - 1; ++__idx)
-                {
-                    const auto __intermediate_item_1 = __in_acc1[__idx];
-                    __l_search_bound_2 = oneapi::dpl::__internal::__pstl_lower_bound(
-                        __in_acc2, __l_search_bound_2, __r_search_bound_2, __intermediate_item_1, __comp);
-                    const auto __shift_1 = __idx - __start_1;
-                    const auto __shift_2 = __l_search_bound_2 - __start_2;
-                    __out_acc[__out_shift + __shift_1 + __shift_2] = __intermediate_item_1;
-                }
-            }
-            // Process 2nd sequence
-            if (__local_start_2 < __local_end_2)
-            {
-                // Reduce the range for searching within the 1st sequence and handle bound items
-                const auto __local_l_item_2 = __in_acc2[__local_start_2];
-                __l_search_bound_1 = oneapi::dpl::__internal::__pstl_upper_bound(__in_acc1, __start_1, __end_1,
-                                                                                 __local_l_item_2, __comp);
-                const auto __l_shift_1 = __l_search_bound_1 - __start_1;
-                const auto __l_shift_2 = __local_start_2 - __start_2;
-                __out_acc[__out_shift + __l_shift_1 + __l_shift_2] = __local_l_item_2;
-                if (__local_end_2 - __local_start_2 > 1)
-                {
-                    const auto __local_r_item_2 = __in_acc2[__local_end_2 - 1];
-                    __r_search_bound_1 = oneapi::dpl::__internal::__pstl_upper_bound(__in_acc1, __l_search_bound_1,
-                                                                                     __end_1, __local_r_item_2, __comp);
-                    const auto __r_shift_1 = __r_search_bound_1 - __start_1;
-                    const auto __r_shift_2 = __local_end_2 - 1 - __start_2;
-                    __out_acc[__out_shift + __r_shift_1 + __r_shift_2] = __local_r_item_2;
-                }
-
-                // Handle intermediate items
-                for (auto __idx = __local_start_2 + 1; __idx < __local_end_2 - 1; ++__idx)
-                {
-                    const auto __intermediate_item_2 = __in_acc2[__idx];
-                    __l_search_bound_1 = oneapi::dpl::__internal::__pstl_upper_bound(
-                        __in_acc1, __l_search_bound_1, __r_search_bound_1, __intermediate_item_2, __comp);
-                    const auto __shift_1 = __l_search_bound_1 - __start_1;
-                    const auto __shift_2 = __idx - __start_2;
-                    __out_acc[__out_shift + __shift_1 + __shift_2] = __intermediate_item_2;
-                }
-            }
-        }
-    }
-};
 
 // Partial merge implementation with O(log(k)) per routine complexity.
 // Note: the routine assumes that the 2nd sequence goes after the first one, meaning that end_1 == start_2.
@@ -1488,13 +1364,13 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _I
     _Index2 __start2 = 0;
     if (__i_elem < __n1) //a condition to specify upper or lower part of the merge matrix to be processed
     {
-        auto __q = __i_elem; //diagonal index
+        auto __q = __i_elem;                            //diagonal index
         auto __n_diag = ::std::min<_Index2>(__q, __n2); //diagonal size
 
         //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
         oneapi::dpl::counting_iterator<_Index> __diag_it(0);
         auto __res = ::std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
-            [&__rng1, &__rng2, __q, __comp](const auto& __i_diag, const auto& __value)
+            [&__rng1, &__rng2, __q, __comp](const auto& __i_diag, const auto& __value) mutable
             {
                 auto __zero_or_one = __comp(__rng1[__q - __i_diag - 1], __rng2[__i_diag]);
                 return __zero_or_one < __value;
@@ -1504,14 +1380,13 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _I
     }
     else
     {
-        auto __q = __i_elem - __n1; //diagonal index
-
+        auto __q = __i_elem - __n1;                            //diagonal index
         auto __n_diag = ::std::min<_Index1>(__n2 - __q, __n1); //diagonal size
 
         //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
         oneapi::dpl::counting_iterator<_Index> __diag_it(0);
         auto __res = ::std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
-            [&__rng1, &__rng2, __n1, __q, __comp](const auto& __i_diag, const auto& __value)
+            [&__rng1, &__rng2, __n1, __q, __comp](const auto& __i_diag, const auto& __value) mutable
             {
                 auto __zero_or_one = __comp(__rng1[__n1 - __i_diag - 1], __rng2[__q + __i_diag]);
                 return __zero_or_one < __value;
@@ -1549,24 +1424,21 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
     }
     else
     {
-        const auto __n = ::std::min<_Index1>(__n1 + __n2 - __start3, __chunk);
+        ::std::uint8_t __n = __chunk;
         _ONEDPL_PRAGMA_UNROLL
-        for (::std::uint8_t __i = 0; __i < __n; ++__i)
+        for (::std::uint8_t __i = 0; __i < __n && __start1 < __n1 && __start2 < __n2; ++__i)
         {
             const auto& __val1 = __rng1[__start1];
             const auto& __val2 = __rng2[__start2];
             if (__comp(__val2, __val1))
             {
                 __rng3[__start3 + __i] = __val2;
-                  if(++__start2 == __n2)
+                  if (++__start2 == __n2)
                   {
                       //copying a residual of the first seq
                       _ONEDPL_PRAGMA_UNROLL
-                      for (++__i; __i < __n; ++__i)
-                      {
+                      for (++__i; __i < __n && __start1 < __n1; ++__i, ++__start1)
                           __rng3[__start3 + __i] = __rng1[__start1];
-                          ++__start1;
-                      }
                   }
             }
             else
@@ -1576,11 +1448,8 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
                 {
                     //copying a residual of the second seq
                     _ONEDPL_PRAGMA_UNROLL
-                    for (++__i; __i < __n; ++__i)
-                    {
+                    for (++__i; __i < __n && __start2 < __n2; ++__i, ++__start2)
                         __rng3[__start3 + __i] = __rng2[__start2];
-                        ++__start2;
-                    }
                 }
             }
         }
@@ -1588,11 +1457,11 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _Name>
+template <typename _IdType, typename _Name>
 struct __parallel_merge_submitter;
 
-template <typename... _Name>
-struct __parallel_merge_submitter<__internal::__optional_kernel_name<_Name...>>
+template <typename _IdType, typename... _Name>
+struct __parallel_merge_submitter<_IdType, __internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
     auto
@@ -1615,7 +1484,7 @@ struct __parallel_merge_submitter<__internal::__optional_kernel_name<_Name...>>
             oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2, __rng3);
             __cgh.parallel_for<_Name...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
 
-                const ::std::uint32_t __i_elem = __item_id.get_linear_id() * __chunk;
+                const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
                 const auto __start = __find_start_point(__rng1, __rng2, __i_elem, __n1, __n2, __comp);
                 __serial_merge(__rng1, __rng2, __rng3, __start.first, __start.second, __i_elem, __chunk, __n1, __n2,
                                __comp);
@@ -1625,6 +1494,9 @@ struct __parallel_merge_submitter<__internal::__optional_kernel_name<_Name...>>
     }
 };
 
+template <typename... _Name>
+class __merge_kernel_name;
+
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
@@ -1632,11 +1504,25 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
-    return __parallel_merge_submitter<_MergeKernel>()(::std::forward<_ExecutionPolicy>(__exec),
+    const auto __n = __rng1.size() + __rng2.size();
+    if (__n <= std::numeric_limits<::std::uint32_t>::max())
+    {
+        using _wi_index_type = ::std::uint32_t;
+        using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__merge_kernel_name<_CustomName, _wi_index_type>>;
+        return __parallel_merge_submitter<_wi_index_type, _MergeKernel>()(::std::forward<_ExecutionPolicy>(__exec),
                                                       ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
                                                       ::std::forward<_Range3>(__rng3), __comp);
+
+    }
+    else
+    {
+        using _wi_index_type = ::std::uint64_t;
+        using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__merge_kernel_name<_CustomName, _wi_index_type>>;
+        return __parallel_merge_submitter<_wi_index_type, _MergeKernel>()(::std::forward<_ExecutionPolicy>(__exec),
+                                                      ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+                                                      ::std::forward<_Range3>(__rng3), __comp);
+    }
 }
 
 //-----------------------------------------------------------------------
@@ -1666,125 +1552,86 @@ struct __leaf_sort_kernel
 };
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _LeafSortName, typename _GlobalSortName, typename _CopyBackName>
+template <typename _IdType, typename _LeafSortName, typename _GlobalSortName, typename _CopyBackName>
 struct __parallel_sort_submitter;
 
-template <typename... _LeafSortName, typename... _GlobalSortName, typename... _CopyBackName>
-struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortName...>,
+template <typename _IdType, typename... _LeafSortName, typename... _GlobalSortName, typename... _CopyBackName>
+struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_LeafSortName...>,
                                  __internal::__optional_kernel_name<_GlobalSortName...>,
                                  __internal::__optional_kernel_name<_CopyBackName...>>
 {
-    template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
+    template <typename _ExecutionPolicy, typename _Range, typename _Compare>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
+    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp) const
     {
         using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
         using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
 
-        _Size __n = __rng.size();
+        const ::std::size_t __n = __rng.size();
         assert(__n > 1);
 
-        _PRINT_INFO_IN_DEBUG_MODE(__exec);
-
-        // __leaf: size of a block to sort using algorithm suitable for small sequences
-        // __optimal_chunk: best size of a block to merge duiring a step of the merge sort algorithm
-        // The coefficients were found experimentally
-        _Size __leaf = 4;
-        _Size __optimal_chunk = 4;
-        if (__exec.queue().get_device().is_cpu())
-        {
-            __leaf = 16;
-            __optimal_chunk = 32;
-        }
-        // Assume powers of 2
-        assert((__leaf & (__leaf - 1)) == 0);
-        assert((__optimal_chunk & (__optimal_chunk - 1)) == 0);
-
-        const _Size __leaf_steps = ((__n - 1) / __leaf) + 1;
+        const bool __is_cpu = __exec.queue().get_device().is_cpu();
+        const ::std::uint32_t __leaf = __is_cpu ? 16 : 4;
+        _Size __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __leaf);
 
         // 1. Perform sorting of the leaves of the merge sort tree
         sycl::event __event1 = __exec.queue().submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-            __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__leaf_steps),
-                                                 [=](sycl::item</*dim=*/1> __item_id) {
-                                                     const _Size __idx = __item_id.get_linear_id() * __leaf;
-                                                     const _Size __start = __idx;
-                                                     const _Size __end = sycl::min(__start + __leaf, __n);
-                                                     __leaf_sort_kernel()(__rng, __start, __end, __comp);
-                                                 });
+            __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
+            {
+                const _IdType __i_elem = __item_id.get_linear_id() * __leaf;
+                __leaf_sort_kernel()(__rng, __i_elem, std::min<_IdType>(__i_elem + __leaf, __n), __comp);
+            });
         });
 
-        _Size __sorted = __leaf;
-        // Chunk size cannot be bigger than size of a sorted sequence
-        _Size __chunk = ::std::min(__leaf, __optimal_chunk);
-
+        // 2. Merge sorting
         oneapi::dpl::__par_backend_hetero::__internal::__buffer<_Policy, _Tp> __temp_buf(__exec, __n);
         auto __temp = __temp_buf.get_buffer();
         bool __data_in_temp = false;
+        _IdType __n_sorted = __leaf;
+        const ::std::uint32_t __chunk = __is_cpu ? 32 : 4;
+        __steps = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk);
 
-        // 2. Perform merge sorting
-        // TODO: try to presort sequences with the same approach using local memory
-        while (__sorted < __n)
+        const ::std::size_t __n_power2 = oneapi::dpl::__internal::__dpl_bit_ceil(__n);
+        const ::std::int64_t __n_iter = ::std::log2(__n_power2) - ::std::log2(__leaf);
+        for (::std::int64_t __i = 0; __i < __n_iter; ++__i)
         {
-            // Number of steps is a number of work items required during a single merge sort stage.
-            // Each work item handles a pair of chunks:
-            // one chunk from the first sorted sequence and one chunk from the second sorted sequence.
-            // Both chunks are placed with the same offset regarding the beginning of a sorted sequence.
-            // Consider the following example:
-            //  * Sequence: 0 1 2 3 1 2 3 4 2 3 4 5 3 4 5 6 4 5 6 7 5
-            //  * Size of a sorted sequence: 4
-            //  * Size of a chunk: 2
-            //  Work item id and chunks it handles:   0     1     0     1      2     3     2     3      4     5    4
-            //  Sequence:                          [ 0 1 | 2 3 @ 1 2 | 3 4 ][ 2 3 | 4 5 @ 3 4 | 5 6 ][ 4 5 | 6 7 @ 5 ]
-            //  Legend:
-            //  * [] - border between pairs of sorted sequences which are to be merged
-            //  * @  - border between each sorted sequence in a pair
-            //  * || - border between chunks
-
-            _Size __sorted_pair = 2 * __sorted;
-            _Size __chunks_in_sorted = __sorted / __chunk;
-            _Size __full_pairs = __n / __sorted_pair;
-            _Size __incomplete_pair = __n - __sorted_pair * __full_pairs;
-            _Size __first_block_in_incomplete_pair = __incomplete_pair > __sorted ? __sorted : __incomplete_pair;
-            _Size __incomplete_last_chunk = __first_block_in_incomplete_pair % __chunk != 0;
-            _Size __incomplete_pair_steps = __first_block_in_incomplete_pair / __chunk + __incomplete_last_chunk;
-            _Size __full_pairs_steps = __full_pairs * __chunks_in_sorted;
-            _Size __steps = __full_pairs_steps + __incomplete_pair_steps;
-
-            __event1 = __exec.queue().submit([&, __data_in_temp, __sorted, __sorted_pair, __chunk, __chunks_in_sorted,
-                                              __steps](sycl::handler& __cgh) {
+            __event1 = __exec.queue().submit([&, __n_sorted, __data_in_temp](sycl::handler& __cgh) {
                 __cgh.depends_on(__event1);
+
                 oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-                auto __temp_acc = __temp.template get_access<__par_backend_hetero::access_mode::read_write>(__cgh);
-                __cgh.parallel_for<_GlobalSortName...>(
-                    sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id) {
-                        const _Size __idx = __item_id.get_linear_id();
-                        // Borders of the first and the second sorted sequences
-                        const _Size __start_1 = sycl::min(__sorted_pair * ((__idx * __chunk) / __sorted), __n);
-                        const _Size __end_1 = sycl::min(__start_1 + __sorted, __n);
-                        const _Size __start_2 = __end_1;
-                        const _Size __end_2 = sycl::min(__start_2 + __sorted, __n);
+                sycl::accessor __dst(__temp, __cgh, sycl::read_write, sycl::no_init);
 
-                        // Distance between the beginning of a sorted sequence and the beginning of a chunk
-                        const _Size __offset = __chunk * (__idx % __chunks_in_sorted);
+                __cgh.parallel_for<_GlobalSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
+                    {
+                        const _IdType __i_elem = __item_id.get_linear_id() * __chunk;
+                        const auto __i_elem_local = __i_elem % (__n_sorted * 2);
 
-                        if (!__data_in_temp)
+                        const auto __offset = ::std::min<_IdType>((__i_elem / (__n_sorted * 2)) * (__n_sorted * 2), __n);
+                        const auto __n1 = ::std::min<_IdType>(__offset + __n_sorted, __n) - __offset;
+                        const auto __n2 = ::std::min<_IdType>(__offset + __n1 + __n_sorted, __n) - (__offset + __n1);
+
+                        if (__data_in_temp)
                         {
-                            __merge(__offset, __rng, __start_1, __end_1, __rng, __start_2, __end_2, __temp_acc,
-                                    __start_1, __comp, __chunk);
+                            const auto& __rng1 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset);
+                            const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__dst, __offset + __n1);
+
+                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __rng/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
                         }
                         else
                         {
-                            __merge(__offset, __temp_acc, __start_1, __end_1, __temp_acc, __start_2, __end_2, __rng,
-                                    __start_1, __comp, __chunk);
+                            const auto& __rng1 = oneapi::dpl::__ranges::drop_view_simple(__rng, __offset);
+                            const auto& __rng2 = oneapi::dpl::__ranges::drop_view_simple(__rng, __offset + __n1);
+
+                            const auto start = __find_start_point(__rng1, __rng2, __i_elem_local, __n1, __n2, __comp);
+                            __serial_merge(__rng1, __rng2, __dst/*__rng3*/, start.first, start.second, __i_elem, __chunk, __n1, __n2, __comp);
                         }
                     });
-            });
+                });
+            __n_sorted *= 2;
             __data_in_temp = !__data_in_temp;
-            __sorted = __sorted_pair;
-            if (__chunk < __optimal_chunk)
-                __chunk *= 2;
         }
 
         // 3. If the data remained in the temporary buffer then copy it back
@@ -1796,7 +1643,8 @@ struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortNam
                 auto __temp_acc = __temp.template get_access<access_mode::read>(__cgh);
                 // We cannot use __cgh.copy here because of zip_iterator usage
                 __cgh.parallel_for<_CopyBackName...>(sycl::range</*dim=*/1>(__n), [=](sycl::item</*dim=*/1> __item_id) {
-                    __rng[__item_id.get_linear_id()] = __temp_acc[__item_id];
+                    const _IdType __idx = __item_id.get_linear_id();
+                    __rng[__idx] = __temp_acc[__idx];
                 });
             });
         }
@@ -1805,22 +1653,39 @@ struct __parallel_sort_submitter<__internal::__optional_kernel_name<_LeafSortNam
     }
 };
 
-template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare,
+template <typename _ExecutionPolicy, typename _Range, typename _Compare,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
-__parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
+__parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _LeafSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName>>;
-    using _GlobalSortKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName>>;
-    using _CopyBackKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
-    return __parallel_sort_submitter<_LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __merge, __comp);
+    const auto __n = __rng.size();
+    if (__n <= std::numeric_limits<::std::uint32_t>::max())
+    {
+        using _wi_index_type = ::std::uint32_t;
+        using _LeafSortKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName, _wi_index_type>>;
+        using _GlobalSortKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName, _wi_index_type>>;
+        using _CopyBackKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName, _wi_index_type>>;
+        return __parallel_sort_submitter<_wi_index_type, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __comp);
+    }
+    else
+    {
+        using _wi_index_type = ::std::uint64_t;
+        using _LeafSortKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_leaf_kernel<_CustomName, _wi_index_type>>;
+        using _GlobalSortKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName, _wi_index_type>>;
+        using _CopyBackKernel =
+            oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName, _wi_index_type>>;
+        return __parallel_sort_submitter<_wi_index_type, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __comp);
+    }
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
@@ -1951,9 +1816,7 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __com
     auto __cmp_f = [__comp, __proj](const auto& __a, const auto& __b) mutable {
         return __comp(__proj(__a), __proj(__b));
     };
-    return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                                // Pass special tag to choose 'full' merge subroutine at compile-time
-                                __full_merge_kernel(), __cmp_f);
+    return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __cmp_f);
 }
 
 //------------------------------------------------------------------------
