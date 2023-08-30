@@ -27,24 +27,40 @@ void test_alignment_allocation(AllocatingFunction allocate, DeallocatingFunction
     }
 }
 
-template <typename... NothrowArg>
-void test_new_alignment_basic(NothrowArg... nothrow_arg) {
-    EXPECT_TRUE(sizeof...(NothrowArg) == 0 || sizeof...(NothrowArg) == 1, "Incorrect test setup");
-    auto new_allocate = [nothrow_arg...](std::size_t size, std::size_t alignment) {
-        return ::operator new(size, std::align_val_t(alignment), nothrow_arg...);
+void test_new_alignment() {
+    auto new_allocate = [](std::size_t size, std::size_t alignment) {
+        return ::operator new(size, std::align_val_t(alignment));
     };
-    auto new_array_allocate = [nothrow_arg...](std::size_t size, std::size_t alignment) {
-        return ::operator new[](size, std::align_val_t(alignment), nothrow_arg...);
+    auto new_nothrow_allocate = [](std::size_t size, std::size_t alignment) {
+        return ::operator new(size, std::align_val_t(alignment), std::nothrow);
     };
-    auto delete_deallocate = [nothrow_arg...](void* ptr, std::size_t alignment) {
+
+    auto new_array_allocate = [](std::size_t size, std::size_t alignment) {
+        return ::operator new[](size, std::align_val_t(alignment));
+    };
+    auto new_array_nothrow_allocate = [](std::size_t size, std::size_t alignment) {
+        return ::operator new[](size, std::align_val_t(alignment), std::nothrow);
+    };
+
+    auto delete_deallocate = [](void* ptr, std::size_t alignment) {
         return ::operator delete(ptr, std::align_val_t(alignment));
     };
-    auto delete_array_deallocate = [nothrow_arg...](void* ptr, std::size_t alignment) {
+    auto delete_nothrow_deallocate = [](void* ptr, std::size_t alignment) {
+        return ::operator delete(ptr, std::align_val_t(alignment), std::nothrow);
+    };
+
+    auto delete_array_deallocate = [](void* ptr, std::size_t alignment) {
         return ::operator delete[](ptr, std::align_val_t(alignment));
+    };
+    auto delete_array_nothrow_deallocate = [](void* ptr, std::size_t alignment) {
+        return ::operator delete[](ptr, std::align_val_t(alignment), std::nothrow);
     };
 
     test_alignment_allocation(new_allocate, delete_deallocate);
     test_alignment_allocation(new_array_allocate, delete_array_deallocate);
+
+    test_alignment_allocation(new_nothrow_allocate, delete_nothrow_deallocate);
+    test_alignment_allocation(new_array_nothrow_allocate, delete_array_nothrow_deallocate);
 }
 
 int main() {
@@ -76,8 +92,7 @@ int main() {
     test_alignment_allocation(__libc_memalign_allocate, free_deallocate);
 #endif
 
-    test_new_alignment_basic();
-    test_new_alignment_basic(std::nothrow);
+    test_new_alignment();
 
     return TestUtils::done();
 }

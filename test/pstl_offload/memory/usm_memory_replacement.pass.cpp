@@ -23,7 +23,7 @@
 #include <malloc.h>
 #endif
 
-sycl::context memory_context = TestUtils::get_pstl_offload_device().get_platform().ext_oneapi_get_default_context();
+static sycl::context memory_context = TestUtils::get_pstl_offload_device().get_platform().ext_oneapi_get_default_context();
 
 template <typename... NewArgs>
 void test_new_basic(std::size_t count, NewArgs... new_args) {

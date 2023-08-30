@@ -21,8 +21,7 @@
 // and hence the offload to the correct device happends
 
 // To check that special overloads for oneapi::dpl:: algorithms added
-// BEFORE including the oneDPL and any standard header, because in __SYCL_PSTL_OFFLOAD mode
-// each standard header inclusion results in inclusion of oneDPL
+// BEFORE including the oneDPL
 
 // Define guard to include only standard part of the header
 // without additional pstl offload part
@@ -174,11 +173,11 @@ enum class algorithm_id {
     TRANSFORM_REDUCE,
     TRANSFORM_REDUCE_BINARY_BINARY,
     TRANSFORM_REDUCE_BINARY_UNARY,
-    EXCLUSIVE_SCAN_3ITERS_INIT_BINARYOP,
-    EXCLUSIVE_SCAN_3ITERS_INIT,
-    INCLUSIVE_SCAN_3ITERS,
-    INCLUSIVE_SCAN_3ITERS_BINARYOP,
-    INCLUSIVE_SCAN_3ITERS_BINARYOP_INIT,
+    EXCLUSIVE_SCAN_INIT_BINARYOP,
+    EXCLUSIVE_SCAN_INIT,
+    INCLUSIVE_SCAN,
+    INCLUSIVE_SCAN_BINARYOP,
+    INCLUSIVE_SCAN_BINARYOP_INIT,
     TRANSFORM_EXCLUSIVE_SCAN,
     TRANSFORM_INCLUSIVE_SCAN_INIT,
     TRANSFORM_INCLUSIVE_SCAN,
@@ -1299,7 +1298,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 exclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last,
                _ForwardIterator2 __d_first, _Tp __init)
 {
-    store_id(algorithm_id::EXCLUSIVE_SCAN_3ITERS_INIT);
+    store_id(algorithm_id::EXCLUSIVE_SCAN_INIT);
     check_policy(__exec);
     return __d_first;
 }
@@ -1309,7 +1308,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 exclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last,
                _ForwardIterator2 __d_first, _Tp __init, _BinaryOperation __binary_op)
 {
-    store_id(algorithm_id::EXCLUSIVE_SCAN_3ITERS_INIT_BINARYOP);
+    store_id(algorithm_id::EXCLUSIVE_SCAN_INIT_BINARYOP);
     check_policy(__exec);
     return __d_first;
 }
@@ -1319,7 +1318,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 inclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last,
                _ForwardIterator2 __result)
 {
-    store_id(algorithm_id::INCLUSIVE_SCAN_3ITERS);
+    store_id(algorithm_id::INCLUSIVE_SCAN);
     check_policy(__exec);
     return __result;
 }
@@ -1329,7 +1328,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 inclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last,
                _ForwardIterator2 __result, _BinaryOperation __binary_op)
 {
-    store_id(algorithm_id::INCLUSIVE_SCAN_3ITERS_BINARYOP);
+    store_id(algorithm_id::INCLUSIVE_SCAN_BINARYOP);
     check_policy(__exec);
     return __result;
 }
@@ -1339,7 +1338,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 inclusive_scan(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last,
                _ForwardIterator2 __result, _BinaryOperation __binary_op, _Tp __init)
 {
-    store_id(algorithm_id::INCLUSIVE_SCAN_3ITERS_BINARYOP_INIT);
+    store_id(algorithm_id::INCLUSIVE_SCAN_BINARYOP_INIT);
     check_policy(__exec);
     return __result;
 }
@@ -1428,11 +1427,11 @@ void test_algorithm(_RunAlgorithmBody __run_algorithm, _AlgorithmArgs&&... __arg
     EXPECT_TRUE(algorithm_id_state == algorithm_id::EMPTY_ID, "algorithm_id was not reset");
     __run_algorithm(std::execution::par_unseq, std::forward<_AlgorithmArgs>(__args)...);
 
-    EXPECT_TRUE(algorithm_id_state == _AlgorithmId, "Algorithm was not redirected to the device version or incorrect low-level algorithm was called");
+    EXPECT_TRUE(algorithm_id_state == _AlgorithmId, "Algorithm was not offloaded to the device or incorrect oneDPL algorithm was called");
     algorithm_id_state = algorithm_id::EMPTY_ID;
 }
 
-#define RUN_LAMBDA(ALGORITHM_NAME) [](const auto& policy, auto... args) { std::ALGORITHM_NAME(policy, args...); }
+#define RUN_LAMBDA(ALGORITHM_NAME) [](auto&& policy, auto... args) { std::ALGORITHM_NAME(policy, args...); }
 
 int main() {
     not_iterator iter;
@@ -1594,12 +1593,12 @@ int main() {
     test_algorithm<algorithm_id::TRANSFORM_REDUCE_BINARY_BINARY>(RUN_LAMBDA(transform_reduce), iter, iter, iter, 0, binary_predicate, binary_predicate);
     test_algorithm<algorithm_id::TRANSFORM_REDUCE_BINARY_UNARY>(RUN_LAMBDA(transform_reduce), iter, iter, 0, binary_predicate, unary_predicate);
 
-    test_algorithm<algorithm_id::EXCLUSIVE_SCAN_3ITERS_INIT>(RUN_LAMBDA(exclusive_scan), iter, iter, iter, 0);
-    test_algorithm<algorithm_id::EXCLUSIVE_SCAN_3ITERS_INIT_BINARYOP>(RUN_LAMBDA(exclusive_scan), iter, iter, iter, 0, binary_predicate);
+    test_algorithm<algorithm_id::EXCLUSIVE_SCAN_INIT>(RUN_LAMBDA(exclusive_scan), iter, iter, iter, 0);
+    test_algorithm<algorithm_id::EXCLUSIVE_SCAN_INIT_BINARYOP>(RUN_LAMBDA(exclusive_scan), iter, iter, iter, 0, binary_predicate);
 
-    test_algorithm<algorithm_id::INCLUSIVE_SCAN_3ITERS>(RUN_LAMBDA(inclusive_scan), iter, iter, iter);
-    test_algorithm<algorithm_id::INCLUSIVE_SCAN_3ITERS_BINARYOP>(RUN_LAMBDA(inclusive_scan), iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::INCLUSIVE_SCAN_3ITERS_BINARYOP_INIT>(RUN_LAMBDA(inclusive_scan), iter, iter, iter, binary_predicate, 0);
+    test_algorithm<algorithm_id::INCLUSIVE_SCAN>(RUN_LAMBDA(inclusive_scan), iter, iter, iter);
+    test_algorithm<algorithm_id::INCLUSIVE_SCAN_BINARYOP>(RUN_LAMBDA(inclusive_scan), iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::INCLUSIVE_SCAN_BINARYOP_INIT>(RUN_LAMBDA(inclusive_scan), iter, iter, iter, binary_predicate, 0);
 
     test_algorithm<algorithm_id::TRANSFORM_EXCLUSIVE_SCAN>(RUN_LAMBDA(transform_exclusive_scan), iter, iter, iter, 0, binary_predicate, unary_predicate);
     test_algorithm<algorithm_id::TRANSFORM_INCLUSIVE_SCAN>(RUN_LAMBDA(transform_inclusive_scan), iter, iter, iter, binary_predicate, unary_predicate);
