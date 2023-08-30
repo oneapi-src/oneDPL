@@ -32,7 +32,7 @@ int test_auto_initialization(const std::vector<sycl::queue>& u) {
       return 1;
     }
   } catch (...)  { }
-  p2.initialize(u); 
+  p2.initialize(u);
   auto u3 = oneapi::dpl::experimental::get_resources(p);
   auto u3s = u3.size();
   if (!std::equal(std::begin(u3), std::end(u3), std::begin(u))) {
@@ -67,9 +67,9 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
     }
     // we can capture all by reference
     // the inline_scheduler reports timings in submit
-    // We wait but it should return immediately, since inline 
-    // scheduler does the work "inline". 
-    // The unwrapped wait type should be equal to the resource 
+    // We wait but it should return immediately, since inline
+    // scheduler does the work "inline".
+    // The unwrapped wait type should be equal to the resource
     if constexpr (call_select_before_submit) {
       auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
                    if (i <= 2*n_samples) {
@@ -165,9 +165,9 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
     }
     // we can capture all by reference
     // the inline_scheduler reports timings in submit
-    // We wait but it should return immediately, since inline 
-    // scheduler does the work "inline". 
-    // The unwrapped wait type should be equal to the resource 
+    // We wait but it should return immediately, since inline
+    // scheduler does the work "inline".
+    // The unwrapped wait type should be equal to the resource
     if constexpr (call_select_before_submit) {
       auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
                    if (i <= 2*n_samples) {
@@ -263,9 +263,9 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
     }
     // we can capture all by reference
     // the inline_scheduler reports timings in submit
-    // We wait but it should return immediately, since inline 
-    // scheduler does the work "inline". 
-    // The unwrapped wait type should be equal to the resource 
+    // We wait but it should return immediately, since inline
+    // scheduler does the work "inline".
+    // The unwrapped wait type should be equal to the resource
     if constexpr (call_select_before_submit) {
       auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
                    if (i <= 2*n_samples) {
@@ -336,27 +336,61 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
   return 0;
 }
 
-int main() { 
-  using policy_t = oneapi::dpl::experimental::auto_tune_policy<oneapi::dpl::experimental::sycl_backend>; 
+static inline void build_auto_tune_universe(std::vector<sycl::queue> &u) {
+  try {
+    auto device_cpu1 = sycl::device(sycl::cpu_selector_v);
+    sycl::queue cpu1_queue(device_cpu1);
+    run_sycl_sanity_test(cpu1_queue);
+    u.push_back(cpu1_queue);
+  } catch (sycl::exception) {
+    std::cout << "SKIPPED: Unable to run with cpu_selector\n";
+  }
+  try {
+    auto device_cpu2 = sycl::device(sycl::cpu_selector_v);
+    sycl::queue cpu2_queue(device_cpu2);
+    run_sycl_sanity_test(cpu2_queue);
+    u.push_back(cpu2_queue);
+  } catch (sycl::exception) {
+    std::cout << "SKIPPED: Unable to run with cpu_selector\n";
+  }
+  try {
+    auto device_cpu3 = sycl::device(sycl::cpu_selector_v);
+    sycl::queue cpu3_queue(device_cpu3);
+    run_sycl_sanity_test(cpu3_queue);
+    u.push_back(cpu3_queue);
+  } catch (sycl::exception) {
+    std::cout << "SKIPPED: Unable to run with cpu_selector\n";
+  }
+  try {
+    auto device_cpu4 = sycl::device(sycl::cpu_selector_v);
+    sycl::queue cpu4_queue(device_cpu4);
+    run_sycl_sanity_test(cpu4_queue);
+    u.push_back(cpu4_queue);
+  } catch (sycl::exception) {
+    std::cout << "SKIPPED: Unable to run with cpu_selector\n";
+  }
+}
 
-  sycl::queue q1 = sycl::queue{sycl::cpu_selector_v};
-  sycl::queue q2 = sycl::queue{sycl::cpu_selector_v};
-  sycl::queue q3 = sycl::queue{sycl::cpu_selector_v};
-  sycl::queue q4 = sycl::queue{sycl::cpu_selector_v};
-  std::vector<sycl::queue> u = {q1, q2, q3, q4};
+int main() {
+  using policy_t = oneapi::dpl::experimental::auto_tune_policy<oneapi::dpl::experimental::sycl_backend>;
+  std::vector<sycl::queue> u;
+  build_auto_tune_universe(u);
 
-  auto f = [u](int i) { 
+  //If building the universe is not a success, return
+  if(u.size()==0) return 0;
+
+  auto f = [u](int i) {
              if (i <= 8)
-               return u[(i-1)%4]; 
+               return u[(i-1)%4];
              else
-               return u[0]; 
+               return u[0];
            };
 
   constexpr bool just_call_submit = false;
   constexpr bool call_select_before_submit = true;
 
   if (test_auto_initialization(u)
-      || test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f) 
+      || test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f)
       || test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 0)
       || test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 1)
       || test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 2)

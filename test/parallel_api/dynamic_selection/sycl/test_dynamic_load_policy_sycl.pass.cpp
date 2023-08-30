@@ -39,6 +39,9 @@ int main() {
 
   auto n = u.size();
 
+  //If building the universe is not a success, return
+  if(n==0) return 0;
+
   // should be similar to round_robin when waiting on policy
   auto f = [u, n](int i, int offset) {
     if(i==offset) {
