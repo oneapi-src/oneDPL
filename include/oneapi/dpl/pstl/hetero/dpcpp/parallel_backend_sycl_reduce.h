@@ -118,12 +118,12 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
 
         sycl::event __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
-            auto __res_acc = __res_container.get_acc(__cgh);
+            auto __res_acc = __res_container.__get_acc(__cgh);
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
             __cgh.parallel_for<_Name...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size), sycl::range<1>(__work_group_size)),
                 [=](sycl::nd_item<1> __item_id) {
-                    auto __res_ptr = __res_acc.get_pointer();
+                    auto __res_ptr = __res_acc.__get_pointer();
                     __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern,
                                                     __init, __temp_local, __res_ptr, __rngs...);
                 });
@@ -235,13 +235,13 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group
             __cgh.depends_on(__reduce_event);
 
             sycl::accessor __temp_acc{__temp, __cgh, sycl::read_only};
-            auto __res_acc = __res_container.get_acc(__cgh);
+            auto __res_acc = __res_container.__get_acc(__cgh);
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size2), __cgh);
 
             __cgh.parallel_for<_KernelName...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size2), sycl::range<1>(__work_group_size2)),
                 [=](sycl::nd_item<1> __item_id) {
-                    auto __res_ptr = __res_acc.get_pointer();
+                    auto __res_ptr = __res_acc.__get_pointer();
                     __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern,
                                                     __init, __temp_local, __res_ptr, __temp_acc);
                 });
@@ -345,7 +345,7 @@ struct __parallel_transform_reduce_impl
                 // get an access to data under SYCL buffer
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
                 sycl::accessor __temp_acc{__temp, __cgh, sycl::read_write};
-                auto __res_acc = __res_container.get_acc(__cgh);
+                auto __res_acc = __res_container.__get_acc(__cgh);
                 __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
 #if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
                 __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
@@ -357,7 +357,7 @@ struct __parallel_transform_reduce_impl
                     sycl::nd_range<1>(sycl::range<1>(__n_groups * __work_group_size),
                                       sycl::range<1>(__work_group_size)),
                     [=](sycl::nd_item<1> __item_id) {
-                        auto __res_ptr = __res_acc.get_pointer();
+                        auto __res_ptr = __res_acc.__get_pointer();
                         auto __local_idx = __item_id.get_local_id(0);
                         auto __group_idx = __item_id.get_group(0);
                         // 1. Initialization (transform part). Fill local memory

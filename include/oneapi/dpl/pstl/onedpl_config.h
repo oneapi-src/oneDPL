@@ -294,10 +294,4 @@
 #    define _ONEDPL_SYCL_INTEL_COMPILER 1
 #endif
 
-// The unified future supporting USM host memory and buffers is only supported by DPCPP 2023.1
-// and compilers starting from 20230820.
-#if (__SYCL_COMPILER_VERSION == 20230320 || __SYCL_COMPILER_VERSION >= 20230820)
-#    define _ONEDPL_USM_HOST_PRESENT 1
-#endif
-
 #endif // _ONEDPL_CONFIG_H

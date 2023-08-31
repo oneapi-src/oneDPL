@@ -515,34 +515,34 @@ struct __accessor
   private:
     using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
                                         sycl::access::placeholder::false_t>;
-    __accessor_t m_acc;
-    _T* m_ptr = nullptr;
-    bool m_usm = false;
+    __accessor_t __acc;
+    _T* __ptr = nullptr;
+    bool __usm = false;
 
   public:
 // A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
-#if _ONEDPL_USM_HOST_PRESENT
-    __accessor(sycl::handler& __cgh, bool __usm, ::std::shared_ptr<sycl::buffer<_T, 1>> m_sycl_buf,
-               ::std::shared_ptr<_T> m_usm_buf)
-        : m_usm(__usm)
+#if _ONEDPL_SYCL_USM_HOST_PRESENT
+    __accessor(sycl::handler& __cgh, bool __u, ::std::shared_ptr<sycl::buffer<_T, 1>> __sycl_buf,
+               ::std::shared_ptr<_T> __usm_buf)
+        : __usm(__u)
     {
-        if (m_usm)
-            m_ptr = m_usm_buf.get();
+        if (__usm)
+            __ptr = __usm_buf.get();
         else
-            m_acc = sycl::accessor(*m_sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+            __acc = sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
     }
 #else
-    __accessor(sycl::handler& __cgh, bool __usm, ::std::shared_ptr<sycl::buffer<_T, 1>> m_sycl_buf,
-               ::std::shared_ptr<_T> m_usm_buf)
-        : m_usm(false), m_acc(sycl::accessor(*m_sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+    __accessor(sycl::handler& __cgh, bool, ::std::shared_ptr<sycl::buffer<_T, 1>> __sycl_buf,
+               ::std::shared_ptr<_T> __usm_buf)
+        : __usm(false), __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
     {
     }
 #endif
 
     auto
-    get_pointer() const // should be cached within a kernel
+    __get_pointer() const // should be cached within a kernel
     {
-        return m_usm ? m_ptr : &m_acc[0];
+        return __usm ? __ptr : &__acc[0];
     }
 };
 
@@ -551,39 +551,39 @@ struct __storage
 {
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
-    ::std::shared_ptr<__sycl_buffer_t> m_sycl_buf;
-    ::std::shared_ptr<_T> m_usm_buf;
-    bool m_usm;
+    ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
+    ::std::shared_ptr<_T> __usm_buf;
+    bool __usm;
 
   public:
-    __storage(_ExecutionPolicy& __exec, bool __usm, ::std::size_t __n) : m_usm(__usm)
+    __storage(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n) : __usm(__u)
     {
-        if (m_usm)
+        if (__usm)
         {
-            m_usm_buf = std::shared_ptr<_T>(
+            __usm_buf = std::shared_ptr<_T>(
                 __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__n),
                 __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
         }
         else
-            m_sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__n));
+            __sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__n));
     }
 
     auto
-    get_acc(sycl::handler& __cgh)
+    __get_acc(sycl::handler& __cgh)
     {
-        return __accessor<_T>(__cgh, m_usm, m_sycl_buf, m_usm_buf);
+        return __accessor<_T>(__cgh, __usm, __sycl_buf, __usm_buf);
     }
 
     auto
-    get_value(size_t idx = 0)
+    __get_value(size_t idx = 0)
     {
-        return m_usm ? *(m_usm_buf.get() + idx) : m_sycl_buf->get_host_access(sycl::read_only)[idx];
+        return __usm ? *(__usm_buf.get() + idx) : __sycl_buf->get_host_access(sycl::read_only)[idx];
     }
 
     bool
-    get_usm() const
+    __get_usm() const
     {
-        return m_usm;
+        return __usm;
     }
 };
 
@@ -607,9 +607,9 @@ class __future : private std::tuple<_Args...>
     __wait_and_get_value(__storage<_ExecutionPolicy, _T>& __buf)
     {
         // Explicit wait in case of USM memory. Buffer accessors are synchronous.
-        if (__buf.get_usm())
+        if (__buf.__get_usm())
             wait();
-        return __buf.get_value();
+        return __buf.__get_value();
     }
 
     template <typename _T>
@@ -668,7 +668,7 @@ __use_USM_host_allocations(sycl::queue __queue)
 {
 // The unified future above is currently only supported by DPCPP 2023.1 and compilers starting from 20230820.
 // A future on top of a buffer is used on other compilers.
-#if _ONEDPL_USM_HOST_PRESENT
+#if _ONEDPL_SYCL_USM_HOST_PRESENT
     auto __device = __queue.get_device();
     if (!__device.is_gpu())
         return false;
