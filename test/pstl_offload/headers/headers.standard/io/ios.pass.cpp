@@ -7,10 +7,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <iosfwd>
 #include <ios>
 #include "support/utils.h"
 
 int main() {
-    // TODO: add ios sample;
+    [[maybe_unused]] volatile std::size_t r = sizeof(std::ios);
     return TestUtils::done();
 }

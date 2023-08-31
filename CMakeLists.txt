@@ -385,8 +385,11 @@ if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
     )
 
     add_dependencies(oneDPL pstloffload)
+
     # TODO remove explicit linkage with libpstloffload
-    target_link_libraries(oneDPL INTERFACE pstloffload)
+    if (NOT _fsycl_pstl_offload_option)
+        target_link_libraries(oneDPL INTERFACE pstloffload)
+    endif()
 endif()
 
 target_include_directories(oneDPL

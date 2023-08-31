@@ -7,10 +7,18 @@
 //
 //===----------------------------------------------------------------------===//
 
+#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#include <version>
+#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+
+#if __cpp_lib_span >= 202002L
 #include <span>
+#endif
 #include "support/utils.h"
 
 int main() {
-    // [[maybe_unused]] std::span<int> s;
+#if __cpp_lib_span >= 202002L
+    [[maybe_unused]] std::span<int> s;
+#endif
     return TestUtils::done();
 }

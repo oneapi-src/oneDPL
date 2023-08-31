@@ -11,7 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    oneapi::tbb::spin_mutex m;
-    oneapi::tbb::spin_mutex::scoped_lock l(m);
+    [[maybe_unused]] oneapi::tbb::spin_mutex m;
     return TestUtils::done();
 }

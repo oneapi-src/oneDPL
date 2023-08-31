@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    using type = wctrans_t;
+    [[maybe_unused]] volatile std::size_t r = sizeof(wctrans_t);
     return TestUtils::done();
 }

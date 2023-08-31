@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add collaborative_call_once sample
+    [[maybe_unused]] volatile std::size_t r = sizeof(oneapi::tbb::collaborative_once_flag);
     return TestUtils::done();
 }

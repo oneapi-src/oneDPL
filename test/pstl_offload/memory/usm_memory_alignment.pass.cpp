@@ -16,14 +16,36 @@
 
 #include "support/utils.h"
 
+static std::size_t get_page_size() {
+    static std::size_t page_size = sysconf(_SC_PAGESIZE);
+    return page_size;
+}
+
 template <typename AllocatingFunction, typename DeallocatingFunction>
 void test_alignment_allocation(AllocatingFunction allocate, DeallocatingFunction deallocate) {
-    std::size_t page_size = sysconf(_SC_PAGESIZE);
+    for (std::size_t alignment = 1; alignment < get_page_size(); alignment <<= 1) {
+        const std::size_t sizes[] = { 1, 2, 8, 24, alignment / 2, alignment, alignment * 2};
 
-    for (std::size_t alignment = 1; alignment < page_size; alignment = alignment << 1) {
-       void* ptr = allocate(/*size = */alignment, /*alignment = */alignment);
-       EXPECT_TRUE(std::uintptr_t(ptr) % alignment == 0, "The returned pointer is not properly aligned");
-       deallocate(ptr, alignment);
+        for (std::size_t size : sizes) {
+            void* ptr = allocate(size, alignment);
+            EXPECT_TRUE(std::uintptr_t(ptr) % alignment == 0, "The returned pointer is not properly aligned");
+            deallocate(ptr, alignment);
+        }
+    }
+}
+
+// aligned_alloc requires size to be integral multiple of alignment
+// test_alignment_allocation tests different sizes values because other functions
+// only requires the alignment to be power of two
+void test_aligned_alloc_alignment() {
+    for (std::size_t alignment = 1; alignment < get_page_size(); alignment <<= 1) {
+        const std::size_t sizes[] = { alignment, alignment * 2, alignment * 3};
+
+        for (std::size_t size : sizes) {
+            void* ptr = aligned_alloc(alignment, size);
+            EXPECT_TRUE(std::uintptr_t(ptr) % alignment == 0, "The returned pointer is not properly aligned");
+            free(ptr);
+        }
     }
 }
 
@@ -64,9 +86,6 @@ void test_new_alignment() {
 }
 
 int main() {
-    auto aligned_alloc_allocate = [](std::size_t size, std::size_t alignment) {
-        return aligned_alloc(alignment, size);
-    };
     auto memalign_allocate = [](std::size_t size, std::size_t alignment) {
         return memalign(alignment, size);
     };
@@ -85,12 +104,12 @@ int main() {
         free(ptr);
     };
 
-    test_alignment_allocation(aligned_alloc_allocate, free_deallocate);
     test_alignment_allocation(memalign_allocate, free_deallocate);
 #if __linux__
     test_alignment_allocation(posix_memalign_allocate, free_deallocate);
     test_alignment_allocation(__libc_memalign_allocate, free_deallocate);
 #endif
+    test_aligned_alloc_alignment();
 
     test_new_alignment();
 

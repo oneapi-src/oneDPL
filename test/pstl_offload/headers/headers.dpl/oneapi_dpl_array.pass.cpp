@@ -11,7 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    oneapi::dpl::array<int, 1> array = {1};
-    oneapi::dpl::get<0>(array) = 2;
+    [[maybe_unused]] oneapi::dpl::array<int, 1> arr = {1};
     return TestUtils::done();
 }

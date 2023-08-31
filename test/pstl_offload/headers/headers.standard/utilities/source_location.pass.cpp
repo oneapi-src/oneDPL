@@ -7,10 +7,18 @@
 //
 //===----------------------------------------------------------------------===//
 
+#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#include <version>
+#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+
+#if __cpp_lib_source_location >= 201907L
 #include <source_location>
+#endif
 #include "support/utils.h"
 
 int main() {
-    //TODO; add source_location sample
+#if __cpp_lib_source_location >= 201907L
+    [[maybe_unused]] volatile std::size_t r = sizeof(std::source_location);
+#endif
     return TestUtils::done();
 }

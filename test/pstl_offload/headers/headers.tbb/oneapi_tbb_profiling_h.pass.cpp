@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add profiling sample
+    [[maybe_unused]] volatile std::size_t r = sizeof(oneapi::tbb::profiling::event);
     return TestUtils::done();
 }

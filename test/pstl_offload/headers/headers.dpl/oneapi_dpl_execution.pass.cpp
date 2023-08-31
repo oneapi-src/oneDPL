@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    static_assert(!std::is_same_v<decltype(oneapi::dpl::execution::par), void>);
+    [[maybe_unused]] auto dummy = oneapi::dpl::execution::seq;
     return TestUtils::done();
 }

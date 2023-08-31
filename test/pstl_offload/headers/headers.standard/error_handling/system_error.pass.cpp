@@ -11,8 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    try {
-        throw std::system_error(std::error_code{});
-    } catch(...) {}
+    [[maybe_unused]] std::system_error err{std::error_code{}};
     return TestUtils::done();
 }

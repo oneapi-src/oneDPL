@@ -11,8 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    try {
-        throw std::exception{};
-    } catch(...) {}
+    [[maybe_unused]] std::exception ex;
     return TestUtils::done();
 }

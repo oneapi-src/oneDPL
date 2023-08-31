@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    [[maybe_unused]] auto is_equal = oneapi::tbb::cache_aligned_allocator<int>::is_always_equal::value;
+    [[maybe_unused]] oneapi::tbb::cache_aligned_allocator<int> alloc;
     return TestUtils::done();
 }

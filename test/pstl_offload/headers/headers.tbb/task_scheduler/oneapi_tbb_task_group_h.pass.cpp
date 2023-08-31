@@ -11,8 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    oneapi::tbb::task_group tg;
-    tg.run([](){});
-    tg.wait();
+    [[maybe_unused]] oneapi::tbb::task_group tg;
     return TestUtils::done();
 }

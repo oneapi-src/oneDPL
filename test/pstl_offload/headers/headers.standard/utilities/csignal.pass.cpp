@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    using type = sig_atomic_t;
+    [[maybe_unused]] volatile std::size_t r = sizeof(sig_atomic_t);
     return TestUtils::done();
 }

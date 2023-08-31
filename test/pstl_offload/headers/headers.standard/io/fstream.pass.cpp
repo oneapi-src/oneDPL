@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add fstream sample
+    [[maybe_unused]] std::fstream stream;
     return TestUtils::done();
 }

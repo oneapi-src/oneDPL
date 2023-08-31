@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    using type = va_list;
+    [[maybe_unused]] volatile std::size_t r = sizeof(va_list);
     return TestUtils::done();
 }

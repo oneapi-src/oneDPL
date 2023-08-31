@@ -11,7 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    int a = 1, b = 2;
-    oneapi::dpl::plus<int>{}(a, b);
+    [[maybe_unused]] auto res = oneapi::dpl::plus<int>{}(1, 2);
     return TestUtils::done();
 }

@@ -7,10 +7,18 @@
 //
 //===----------------------------------------------------------------------===//
 
+#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+#include <version>
+#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
+
+#if __cpp_lib_jthread >= 201911L
 #include <stop_token>
+#endif
 #include "support/utils.h"
 
 int main() {
-    // using type = std::stop_token;
+#if __cpp_lib_jthread >= 201911L
+    [[maybe_unused]] volatile std::size_t r = sizeof(std::stop_token);
+#endif
     return TestUtils::done();
 }

@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add iomanip sample
+    [[maybe_unused]] auto r = std::setw(0);
     return TestUtils::done();
 }

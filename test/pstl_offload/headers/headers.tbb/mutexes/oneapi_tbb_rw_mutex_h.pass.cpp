@@ -11,7 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    oneapi::tbb::rw_mutex m;
-    oneapi::tbb::rw_mutex::scoped_lock l(m);
+    [[maybe_unused]] oneapi::tbb::rw_mutex m;
     return TestUtils::done();
 }

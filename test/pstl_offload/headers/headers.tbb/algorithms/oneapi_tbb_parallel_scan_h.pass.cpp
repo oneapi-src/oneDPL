@@ -8,9 +8,11 @@
 //===----------------------------------------------------------------------===//
 
 #include <oneapi/tbb/parallel_scan.h>
+#include <oneapi/tbb/blocked_range.h>
 #include "support/utils.h"
 
 int main() {
-    //TODO: add parallel_scan sample
+    oneapi::tbb::blocked_range<int> range{0, 10};
+    oneapi::tbb::parallel_scan(range, 0, [](const auto&, int a, bool) { return a; }, [](int a, int) { return a; });
     return TestUtils::done();
 }

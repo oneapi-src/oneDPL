@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    oneapi::tbb::global_control gc(oneapi::tbb::global_control::max_allowed_parallelism, 1);
+    [[maybe_unused]] oneapi::tbb::global_control gc(oneapi::tbb::global_control::max_allowed_parallelism, 1);
     return TestUtils::done();
 }

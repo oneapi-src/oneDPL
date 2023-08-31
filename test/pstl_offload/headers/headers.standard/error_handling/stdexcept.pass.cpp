@@ -11,8 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    try {
-        throw std::logic_error{"error"};
-    } catch(...) {}
+    [[maybe_unused]] std::logic_error err{"error"};
     return TestUtils::done();
 }

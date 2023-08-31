@@ -11,6 +11,7 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add strstream sample
+    // TODO: header is deprecated in C++98
+    [[maybe_unused]] volatile std::size_t r = sizeof(std::strstream);
     return TestUtils::done();
 }

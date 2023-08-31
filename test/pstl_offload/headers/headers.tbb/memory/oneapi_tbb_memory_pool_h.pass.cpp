@@ -12,6 +12,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add memory_pool sample
+    [[maybe_unused]] volatile std::size_t r = sizeof(oneapi::tbb::fixed_pool);
     return TestUtils::done();
 }

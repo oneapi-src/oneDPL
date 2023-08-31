@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add task_arena sample
+    [[maybe_unused]] oneapi::tbb::task_arena arena;
     return TestUtils::done();
 }

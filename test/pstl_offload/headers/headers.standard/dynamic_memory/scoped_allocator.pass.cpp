@@ -8,9 +8,10 @@
 //===----------------------------------------------------------------------===//
 
 #include <scoped_allocator>
+#include <memory>
 #include "support/utils.h"
 
 int main() {
-    // TODO: add scoped_allocator example
+    [[maybe_unused]] std::scoped_allocator_adaptor<std::allocator<int>> scoped;
     return TestUtils::done();
 }

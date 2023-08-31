@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add sstream sample;
+    [[maybe_unused]] volatile std::size_t r = sizeof(std::stringbuf);
     return TestUtils::done();
 }

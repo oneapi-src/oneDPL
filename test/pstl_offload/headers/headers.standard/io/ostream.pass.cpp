@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add ostream sample;
+    [[maybe_unused]] volatile std::size_t r = sizeof(std::ostream);
     return TestUtils::done();
 }

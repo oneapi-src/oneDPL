@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    //TODO: add parallel_pipeline sample
+    [[maybe_unused]] volatile std::size_t r = sizeof(oneapi::tbb::filter<int, int>);
     return TestUtils::done();
 }

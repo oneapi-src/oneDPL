@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add task sample
+    [[maybe_unused]] auto r = oneapi::tbb::task::current_context();
     return TestUtils::done();
 }

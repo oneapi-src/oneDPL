@@ -11,7 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    int a = 1;
-    [[maybe_unused]] auto b = oneapi::dpl::move(a);
+    [[maybe_unused]] auto b = oneapi::dpl::make_pair(1, 2);
     return TestUtils::done();
 }

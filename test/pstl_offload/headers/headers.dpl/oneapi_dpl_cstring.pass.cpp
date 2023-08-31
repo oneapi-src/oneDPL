@@ -11,8 +11,7 @@
 #include "support/utils.h"
 
 int main() {
-    void* i = ::operator new(sizeof(int));
-    oneapi::dpl::memset(i, 0, 1);
-    ::operator delete(i);
+    unsigned char a = 1;
+    [[maybe_unused]] auto res = oneapi::dpl::memcmp(&a, &a, 1);
     return TestUtils::done();
 }

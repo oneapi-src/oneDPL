@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add streambuf sample;
+    [[maybe_unused]] volatile std::size_t r = sizeof(std::streambuf);
     return TestUtils::done();
 }

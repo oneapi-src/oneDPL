@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    //TODO: add ETS sample
+    [[maybe_unused]] oneapi::tbb::enumerable_thread_specific<int> ets;
     return TestUtils::done();
 }

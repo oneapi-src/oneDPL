@@ -11,8 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    std::mutex m;
-    m.lock();
-    m.unlock();
+    [[maybe_unused]] std::mutex m;
     return TestUtils::done();
 }

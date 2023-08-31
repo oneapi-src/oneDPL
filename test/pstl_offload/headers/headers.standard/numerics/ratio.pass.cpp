@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add ratio sample
+    [[maybe_unused]] std::ratio<1, 10> r;
     return TestUtils::done();
 }

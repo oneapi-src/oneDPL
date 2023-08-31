@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    using type = mbstate_t;
+    [[maybe_unused]] volatile std::size_t r = sizeof(mbstate_t);
     return TestUtils::done();
 }

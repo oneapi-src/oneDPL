@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    // TODO: add iostream sample;
+    [[maybe_unused]] std::ostream& stream = std::cout;
     return TestUtils::done();
 }

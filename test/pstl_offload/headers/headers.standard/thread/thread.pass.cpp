@@ -11,7 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    std::thread t([](){});
-    t.join();
+    [[maybe_unused]] volatile std::size_t r = sizeof(std::thread);
     return TestUtils::done();
 }

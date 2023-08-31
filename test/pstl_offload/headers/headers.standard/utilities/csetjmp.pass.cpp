@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    using type = jmp_buf;
+    [[maybe_unused]] volatile std::size_t r = sizeof(std::jmp_buf);
     return TestUtils::done();
 }
