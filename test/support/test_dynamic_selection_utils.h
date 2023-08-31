@@ -8,8 +8,8 @@
 //===----------------------------------------------------------------------===//
 
 
-#ifndef _ONEDPL_TEST_DYNAMIC_LOAD_UTILS_H
-#define _ONEDPL_TEST_DYNAMIC_LOAD_UTILS_H
+#ifndef _ONEDPL_TEST_DYNAMIC_SELECTION_UTILS_H
+#define _ONEDPL_TEST_DYNAMIC_SELECTION_UTILS_H
 
 #include<thread>
 #include<chrono>
@@ -260,4 +260,4 @@ int test_submit_and_wait(UniverseContainer u, ResourceFunction&& f, int offset=0
   return 0;
 }
 
-#endif /* _ONEDPL_TEST_DYNAMIC_LOAD_UTILS_H */
+#endif /* _ONEDPL_TEST_DYNAMIC_SELECTION_UTILS_H */
