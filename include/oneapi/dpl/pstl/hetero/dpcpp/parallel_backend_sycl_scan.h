@@ -82,56 +82,67 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     const ::std::size_t n = __in_rng.size();
     auto __max_cu = __queue.get_device().template get_info<sycl::info::device::max_compute_units>();
     //std::size_t num_wgs = __max_cu;
-    std::size_t num_wgs = 64;
+    std::size_t num_wgs = 256;
 
     // TODO: use wgsize and iters per item from _KernelParam
-    std::size_t wgsize = n/num_wgs;
+    //constexpr ::std::size_t __elems_per_item = _KernelParam::data_per_workitem;
+    constexpr ::std::size_t __elems_per_item = 2;
+    std::size_t wgsize = n/num_wgs/__elems_per_item;
+    std::size_t num_items = n/__elems_per_item;
 
-    std::uint32_t status_flags_buf_size = num_wgs+1;
-    sycl::buffer<uint32_t, 1> status_flags_buf(status_flags_buf_size);
 
-    // TODO: this probably isn't the best way to do this
-    {
-    sycl::host_accessor<std::uint32_t, 1> status_flags(status_flags_buf);
-    for (std::size_t i = 0; i < status_flags_buf_size; ++i)
-        status_flags[i] = 0;
-    }
+    std::uint32_t status_flags_size = num_wgs+1;
 
-//    printf("launching kernel items=%lu wgs=%lu wgsize=%lu max_cu=%lu\n", n, num_wgs, wgsize, __max_cu);
+    uint32_t* status_flags = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
+    __queue.memset(status_flags, 0, status_flags_size * sizeof(uint32_t));
 
+    //printf("launching kernel items=%lu wgs=%lu wgsize=%lu max_cu=%u\n", num_items, num_wgs, wgsize, __max_cu);
+    /*printf("launching kernel items=%lu wgs=%lu wgsize=%lu max_cu=%u\n", num_items, num_wgs, wgsize, __max_cu);
+
+    uint32_t* debug1 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
+    uint32_t* debug2 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
+    uint32_t* debug3 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
+    uint32_t* debug4 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
+    uint32_t* debug5 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);*/
 
     auto event = __queue.submit([&](sycl::handler& hdl) {
-        auto status_flags = sycl::accessor<std::uint32_t, 1, sycl::access_mode::read_write>(status_flags_buf, hdl);
-        auto tile_id_lacc = sycl::accessor<std::uint32_t, 1, sycl::access_mode::read_write, sycl::target::local>(sycl::range<1>{1}, hdl);
+        auto tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, hdl);
 
         oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng);
-        hdl.parallel_for(sycl::nd_range<1>(n, wgsize), [=](const sycl::nd_item<1>& item)  [[intel::reqd_sub_group_size(32)]] {
-            auto item_id = item.get_local_linear_id();
+        hdl.parallel_for(sycl::nd_range<1>(num_items, wgsize), [=](const sycl::nd_item<1>& item)  [[intel::reqd_sub_group_size(32)]] {
             auto group = item.get_group();
 
-            //std::uint32_t elems_in_tile = elems_per_item*wgsize;
-            std::uint32_t elems_in_tile = wgsize;
+            std::uint32_t elems_in_tile = wgsize*__elems_per_item;
 
             // Obtain unique ID for this work-group that will be used in decoupled lookback
             if (group.leader())
             {
-                sycl::atomic_ref<::std::uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::device, sycl::access::address_space::global_space> idx_atomic(status_flags[status_flags_buf_size-1]);
+                sycl::atomic_ref<::std::uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::device, sycl::access::address_space::global_space> idx_atomic(status_flags[status_flags_size-1]);
                 tile_id_lacc[0] = idx_atomic.fetch_add(1);
             }
             sycl::group_barrier(group);
             std::uint32_t tile_id = tile_id_lacc[0];
+            //debug5[group.get_local_id()] = tile_id;
 
-            auto in_begin = __in_rng.begin() + (tile_id*elems_in_tile);
-            auto in_end = __in_rng.begin() + ((tile_id+1)*elems_in_tile);
-            auto out_begin = __out_rng.begin() + (tile_id*elems_in_tile);
+            auto current_offset = (tile_id*elems_in_tile);
+            auto next_offset = ((tile_id+1)*elems_in_tile);
+            auto in_begin = __in_rng.begin() + current_offset;
+            auto in_end = __in_rng.begin() + next_offset;
+            auto out_begin = __out_rng.begin() + current_offset;
+
+            //debug3[tile_id] = current_offset;
+            //debug4[tile_id] = next_offset;
 
             auto local_sum = sycl::joint_reduce(group, in_begin, in_end, __binary_op);
+            //auto local_sum = 0;
+            ///debug1[tile_id] = local_sum;
 
-			__scan_status_flag<_Type> flag(status_flags.get_pointer(), tile_id);
+			__scan_status_flag<_Type> flag(status_flags, tile_id);
 			flag.set_partial(local_sum);
 
-            auto prev_sum = flag.lookback(tile_id, status_flags.get_pointer());
+            auto prev_sum = flag.lookback(tile_id, status_flags);
             //auto prev_sum = 0;
+            //debug2[tile_id] = prev_sum;
             flag.set_full(prev_sum + local_sum);
 
             sycl::joint_inclusive_scan(group, in_begin, in_end, out_begin, __binary_op, prev_sum);
@@ -139,6 +150,30 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     });
 
     event.wait();
+
+#if 0
+    std::vector<uint32_t> debug1v(status_flags_size);
+    std::vector<uint32_t> debug2v(status_flags_size);
+    std::vector<uint32_t> debug3v(status_flags_size);
+    std::vector<uint32_t> debug4v(status_flags_size);
+    std::vector<uint32_t> debug5v(status_flags_size);
+    __queue.memcpy(debug1v.data(), debug1, status_flags_size * sizeof(uint32_t));
+    __queue.memcpy(debug2v.data(), debug2, status_flags_size * sizeof(uint32_t));
+    __queue.memcpy(debug3v.data(), debug3, status_flags_size * sizeof(uint32_t));
+    __queue.memcpy(debug4v.data(), debug4, status_flags_size * sizeof(uint32_t));
+    __queue.memcpy(debug5v.data(), debug5, status_flags_size * sizeof(uint32_t));
+
+    for (int i = 0; i < status_flags_size-1; ++i)
+        std::cout << "local_sum " << i << " " << debug1v[i] << std::endl;
+    for (int i = 0; i < status_flags_size-1; ++i)
+        std::cout << "lookback " << i << " " << debug2v[i] << std::endl;
+    for (int i = 0; i < status_flags_size-1; ++i)
+        std::cout << "offset " << i << " " << debug3v[i] << std::endl;
+    for (int i = 0; i < status_flags_size-1; ++i)
+        std::cout << "end " << i << " " << debug4v[i] << std::endl;
+#endif
+
+    sycl::free(status_flags, __queue);
 }
 
 // The generic structure for configuring a kernel
