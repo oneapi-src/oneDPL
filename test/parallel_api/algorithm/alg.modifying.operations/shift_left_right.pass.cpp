@@ -47,7 +47,7 @@ struct test_shift
     template <typename Policy, typename It, typename Algo>
     std::enable_if_t<oneapi::dpl::__internal::__is_host_execution_policy<std::decay_t<Policy>>::value
 #if __SYCL_PSTL_OFFLOAD__
-                     || std::is_same<std::decay_t<Policy>, std::execution::parallel_unsequenced_policy>::value
+                     || std::is_same_v<std::decay_t<Policy>, std::execution::parallel_unsequenced_policy>
 #endif
                      , void>
     operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,

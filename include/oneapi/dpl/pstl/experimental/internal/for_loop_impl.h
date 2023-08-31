@@ -230,8 +230,8 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-::std::enable_if_t<::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                                  ::std::bidirectional_iterator_tag>::value,
+::std::enable_if_t<::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
+                                    ::std::bidirectional_iterator_tag>,
                    _IndexType>
 __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
 {
@@ -267,12 +267,11 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-::std::enable_if_t<
-    ::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                   ::std::forward_iterator_tag>::value ||
-        ::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                       ::std::input_iterator_tag>::value,
-    _IndexType>
+::std::enable_if_t<::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
+                                    ::std::forward_iterator_tag> ||
+                       ::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
+                                        ::std::input_iterator_tag>,
+                   _IndexType>
 __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
 {
     _IndexType __ordinal_position = 0;
