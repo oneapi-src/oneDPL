@@ -13,6 +13,7 @@
 
 #include <utility>
 #include <cstdint>
+#include <type_traits>
 #include "oneapi/dpl/internal/dynamic_selection_impl/policy_traits.h"
 
 namespace oneapi {
