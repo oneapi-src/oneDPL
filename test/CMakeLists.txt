@@ -59,6 +59,9 @@ add_custom_target(run-onedpl-tests
 
 macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
+    # treat optional arguments as additional source files
+    set (additional_file_args ${ARGN})
+
     set(_build_type_in_lower "unknown")
     if (CMAKE_BUILD_TYPE)
         string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
@@ -67,7 +70,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
 
-    add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}")
+    add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}" ${additional_file_args})
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
     if (MSVC)
         target_compile_options(${_test_name} PRIVATE /bigobj)
@@ -199,3 +202,9 @@ foreach (_file IN LISTS UNIT_TESTS)
     endif()
 
 endforeach()
+
+if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
+    file(GLOB_RECURSE _test_file "pstl_offload/memory/usm_memory_replacement.cpp")
+    file(GLOB_RECURSE _test_file1 "pstl_offload/memory/usm_memory_replacement_native_alloc.cpp")
+    onedpl_add_test(${_test_file} true ${_test_file1} ${_test_file2})
+endif()

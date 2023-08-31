@@ -19,6 +19,8 @@
 
 #include "support/utils.h"
 
+#include "system_allocations.h"
+
 #if __linux__
 #include <malloc.h>
 #endif
@@ -158,6 +160,97 @@ int main() {
         void* ptr = malloc(std::numeric_limits<std::size_t>::max());
         EXPECT_TRUE(ptr == nullptr, "Overflow in malloc was not handled");
         EXPECT_TRUE(errno == ENOMEM, "Incorrect errno");
+    }
+
+    // check that it's possible to release memory allocated via system allocation
+    {
+        system_allocs na;
+        perform_system_allocations(na);
+
+        EXPECT_TRUE(sycl::get_pointer_type(na.malloc_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.calloc_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.realloc_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.memalign_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.posix_memalign_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.aligned_alloc_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.libc_malloc_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.libc_calloc_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.libc_realloc_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.libc_memalign_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+
+        EXPECT_TRUE(sycl::get_pointer_type(na.new_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.arr_new_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.nothrow_new_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.arr_nothrow_new_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.aligned_new_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.aligned_nothrow_new_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.aligned_arr_new_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+        EXPECT_TRUE(sycl::get_pointer_type(na.aligned_nothrow_arr_new_ptr, memory_context) == sycl::usm::alloc::unknown,
+            "Expect pointer from system allocation");
+
+        perform_deallocations_impl(na);
+    }
+    // check that system deallocation able to release memory allocated via overloaded allocation
+    {
+        system_allocs na;
+        perform_allocations_impl(na);
+
+        EXPECT_TRUE(sycl::get_pointer_type(na.malloc_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.calloc_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.realloc_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.memalign_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.posix_memalign_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.aligned_alloc_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.libc_malloc_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.libc_calloc_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.libc_realloc_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.libc_memalign_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+
+        EXPECT_TRUE(sycl::get_pointer_type(na.new_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.arr_new_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.nothrow_new_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.arr_nothrow_new_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.aligned_new_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.aligned_nothrow_new_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.aligned_arr_new_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+        EXPECT_TRUE(sycl::get_pointer_type(na.aligned_nothrow_arr_new_ptr, memory_context) == sycl::usm::alloc::shared,
+            "Expect pointer from USM");
+
+        perform_system_deallocations(na);
     }
 
     return TestUtils::done();
