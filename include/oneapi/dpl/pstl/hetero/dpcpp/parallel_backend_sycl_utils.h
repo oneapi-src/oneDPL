@@ -520,8 +520,8 @@ struct __accessor
     bool m_usm = false;
 
   public:
-// Compilers before 2023.1 don't provide a default constructor for sycl::accessor. Fallback to a buffer instead.
-#if __SYCL_COMPILER_VERSION == 20230320 || __SYCL_COMPILER_VERSION >= 20230820
+// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
+#if _ONEDPL_USM_HOST_PRESENT
     __accessor(sycl::handler& __cgh, bool __usm, ::std::shared_ptr<sycl::buffer<_T, 1>> m_sycl_buf,
                ::std::shared_ptr<_T> m_usm_buf)
         : m_usm(__usm)
@@ -534,13 +534,13 @@ struct __accessor
 #else
     __accessor(sycl::handler& __cgh, bool __usm, ::std::shared_ptr<sycl::buffer<_T, 1>> m_sycl_buf,
                ::std::shared_ptr<_T> m_usm_buf)
-        : m_usm(__usm), m_acc(sycl::accessor(*m_sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+        : m_usm(false), m_acc(sycl::accessor(*m_sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
     {
     }
 #endif
 
     auto
-    get_pointer() const //should be cached within a kernel
+    get_pointer() const // should be cached within a kernel
     {
         return m_usm ? m_ptr : &m_acc[0];
     }
@@ -668,7 +668,7 @@ __use_USM_host_allocations(sycl::queue __queue)
 {
 // The unified future above is currently only supported by DPCPP 2023.1 and compilers starting from 20230820.
 // A future on top of a buffer is used on other compilers.
-#if __SYCL_COMPILER_VERSION == 20230320 || __SYCL_COMPILER_VERSION >= 20230820
+#if _ONEDPL_USM_HOST_PRESENT
     auto __device = __queue.get_device();
     if (!__device.is_gpu())
         return false;
