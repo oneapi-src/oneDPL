@@ -9,7 +9,7 @@
 
 #ifndef _ONEDPL_SCORING_POLICY_DEFS_H
 #define _ONEDPL_SCORING_POLICY_DEFS_H
-
+#incude "oneapi/dpl/internal/dynamic_selection_traits.h"
 namespace oneapi {
 namespace dpl {
 namespace experimental {
