@@ -13,7 +13,6 @@
 #include <CL/sycl.hpp>
 #include "oneapi/dpl/internal/dynamic_selection_traits.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
-#include "oneapi/dpl/internal/dynamic_selection_impl/backend_defs.h"
 
 #include <chrono>
 #include <vector>
@@ -27,7 +26,7 @@ namespace experimental {
   public:
     using resource_type = sycl::queue;
     using wait_type = sycl::event;
-    using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
+    using execution_resource_t = resource_type;
     using resource_container_t = std::vector<execution_resource_t>;
 
   private:
