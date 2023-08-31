@@ -215,9 +215,12 @@ struct __is_random_access_or_integral<
 {
 };
 
+template <typename _Ip>
+inline constexpr bool __is_random_access_or_integral_v = __is_random_access_or_integral<_Ip>::value;
+
 // Sequenced version of for_loop for RAI and integral types
 template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp, typename... _Rest>
-::std::enable_if_t<__is_random_access_or_integral<_Ip>::value>
+::std::enable_if_t<__is_random_access_or_integral_v<_Ip>>
 __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
                    /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
 {
@@ -290,7 +293,7 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 
 // Sequenced version of for_loop for non-RAI and non-integral types
 template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename... _Rest>
-::std::enable_if_t<!__is_random_access_or_integral<_Ip>::value>
+::std::enable_if_t<!__is_random_access_or_integral_v<_Ip>>
 __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, __single_stride_type,
                    /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
 {
@@ -308,7 +311,7 @@ __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, _
 }
 
 template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp, typename... _Rest>
-::std::enable_if_t<!__is_random_access_or_integral<_Ip>::value>
+::std::enable_if_t<!__is_random_access_or_integral_v<_Ip>>
 __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
                    /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
 {
