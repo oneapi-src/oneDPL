@@ -269,7 +269,7 @@ template <typename Policy, typename InputIterator, typename OutputIterator, type
           typename... Compare>
 std::enable_if_t<oneapi::dpl::__internal::__is_host_execution_policy<std::decay_t<Policy>>::value
 #if __SYCL_PSTL_OFFLOAD__
-                 || std::is_same<std::decay_t<Policy>, std::execution::parallel_unsequenced_policy>::value
+                 || std::is_same_v<std::decay_t<Policy>, std::execution::parallel_unsequenced_policy>
 #endif
                  >
 run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
