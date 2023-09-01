@@ -106,23 +106,17 @@ namespace experimental{
     template<typename ...Args>
     selection_type select(Args&&...) {
       if(state_){
-          size_t i=state_->offset_;
+          resource_container_size_t current_context_;
           while(true){
-              resource_container_size_t current_context_ = state_->next_context_.load();
+              current_context_ = state_->next_context_.load();
               resource_container_size_t new_context_;
-              if(current_context_ == std::numeric_limits<resource_container_size_t>::max()){
-                  new_context_ = (current_context_%state_->num_contexts_)+1;
-              }
-              else{
-                  new_context_ = (current_context_+1)%state_->num_contexts_;
-              }
+              new_context_ = (current_context_+1)%state_->num_contexts_;
 
               if(state_->next_context_.compare_exchange_weak(current_context_, new_context_)){
-                  i = current_context_;
                   break;
               }
           }
-          auto &e = state_->resources_[i];
+          auto &e = state_->resources_[current_context_];
           return selection_type{*this, e};
       }else{
         throw std::runtime_error("Called select before initialization\n");
