@@ -18,7 +18,7 @@
 // The idea of the test is to check that each standard parallel algorithm
 // call with std::execution::par_unseq policy results in
 // oneapi::dpl::algorithm_name(device_policy<KernelName>, ...) call
-// and hence the offload to the correct device happens
+// and hence the offload to the correct device would happen
 
 // To check that, special overloads for oneapi::dpl:: algorithms added
 // BEFORE including the oneDPL
@@ -1421,8 +1421,8 @@ struct is_device_policy : is_device_policy_impl<std::decay_t<T>> {};
 
 template <typename _ExecutionPolicy>
 void check_policy(const _ExecutionPolicy& __policy) {
-    static_assert(is_device_policy<std::decay_t<_ExecutionPolicy>>::value, "Algorithm was not offloaded to the device");
-    EXPECT_TRUE(__policy.queue().get_device() == TestUtils::get_pstl_offload_device(), "Algorithm was offloaded to the wrong device");
+    static_assert(is_device_policy<std::decay_t<_ExecutionPolicy>>::value, "Algorithm was redirected with not a device policy");
+    EXPECT_TRUE(__policy.queue().get_device() == TestUtils::get_pstl_offload_device(), "The passed policy is associated with the wrong device");
 }
 
 template <algorithm_id _AlgorithmId, typename _RunAlgorithmBody, typename... _AlgorithmArgs>
@@ -1430,7 +1430,8 @@ void test_algorithm(_RunAlgorithmBody __run_algorithm, _AlgorithmArgs&&... __arg
     EXPECT_TRUE(algorithm_id_state == algorithm_id::EMPTY_ID, "algorithm_id was not reset");
     __run_algorithm(std::execution::par_unseq, std::forward<_AlgorithmArgs>(__args)...);
 
-    EXPECT_TRUE(algorithm_id_state == _AlgorithmId, "Algorithm was not offloaded to the device or incorrect oneDPL algorithm was called");
+    EXPECT_TRUE(algorithm_id_state != algorithm_id::EMPTY_ID, "Algorithm was not redirected");
+    EXPECT_TRUE(algorithm_id_state == _AlgorithmId, "Algorithm was redirected to the wrong oneDPL algorithm");
     algorithm_id_state = algorithm_id::EMPTY_ID;
 }
 
@@ -1447,9 +1448,9 @@ int main() {
     test_algorithm<algorithm_id::NONE_OF>(ALGORITHM_WRAPPER(none_of), iter, iter, binary_predicate);
 
     {
-    auto function = [](int) {};
-    test_algorithm<algorithm_id::FOR_EACH>(ALGORITHM_WRAPPER(for_each), iter, iter, function);
-    test_algorithm<algorithm_id::FOR_EACH_N>(ALGORITHM_WRAPPER(for_each_n), iter, 5, function);
+        auto function = [](int) {};
+        test_algorithm<algorithm_id::FOR_EACH>(ALGORITHM_WRAPPER(for_each), iter, iter, function);
+        test_algorithm<algorithm_id::FOR_EACH_N>(ALGORITHM_WRAPPER(for_each_n), iter, 5, function);
     }
 
     test_algorithm<algorithm_id::FIND_IF>(ALGORITHM_WRAPPER(find_if), iter, iter, unary_predicate);
@@ -1486,9 +1487,9 @@ int main() {
     test_algorithm<algorithm_id::FILL_N>(ALGORITHM_WRAPPER(fill_n), iter, 5, 0);
 
     {
-    auto gen = []() { return 1; };
-    test_algorithm<algorithm_id::GENERATE>(ALGORITHM_WRAPPER(generate), iter, iter, gen);
-    test_algorithm<algorithm_id::GENERATE_N>(ALGORITHM_WRAPPER(generate_n), iter, 5, gen);
+        auto gen = []() { return 1; };
+        test_algorithm<algorithm_id::GENERATE>(ALGORITHM_WRAPPER(generate), iter, iter, gen);
+        test_algorithm<algorithm_id::GENERATE_N>(ALGORITHM_WRAPPER(generate_n), iter, 5, gen);
     }
 
     test_algorithm<algorithm_id::REMOVE_COPY_IF>(ALGORITHM_WRAPPER(remove_copy_if), iter, iter, iter, unary_predicate);

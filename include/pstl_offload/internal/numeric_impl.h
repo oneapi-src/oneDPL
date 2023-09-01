@@ -10,7 +10,7 @@
 #ifndef _ONEDPL_PSTL_OFFLOAD_INTERNAL_NUMERIC_IMPL_H
 #define _ONEDPL_PSTL_OFFLOAD_INTERNAL_NUMERIC_IMPL_H
 
-#ifndef __SYCL_PSTL_OFFLOAD__
+#if !__SYCL_PSTL_OFFLOAD__
 #error "PSTL offload compiler mode should be enabled to use this header"
 #endif
 
