@@ -109,13 +109,10 @@ namespace experimental {
 
     };
 
-    template <typename Resource, typename Tuner>
     class auto_tune_selection_type {
       using policy_t = auto_tune_policy<Backend, KeyArgs...>;
       policy_t policy_;
-      using wrapped_resource_t = Resource;
       wrapped_resource_t resource_;
-      using tuner_t = Tuner;
       std::shared_ptr<tuner_t> tuner_;
 
     public:
@@ -138,7 +135,7 @@ namespace experimental {
     // Needed by Policy Traits
     using resource_type = decltype(unwrap(std::declval<wrapped_resource_t>()));
     using wait_type = typename Backend::wait_type;
-    using selection_type = auto_tune_selection_type<wrapped_resource_t, tuner_t>;
+    using selection_type = auto_tune_selection_type;
 
     auto_tune_policy(double resample_time=never_resample) {
         initialize(resample_time);
