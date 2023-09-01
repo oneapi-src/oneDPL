@@ -54,7 +54,7 @@ namespace experimental {
         initialize();
     }
 
-    fixed_resource_policy(deferred_initialization) {}
+    fixed_resource_policy(deferred_initialization_t) {}
 
 
     fixed_resource_policy(const std::vector<resource_type>& u) {

@@ -103,7 +103,7 @@ namespace experimental{
         }
     }
 
-    dynamic_load_policy(deferred_initialization) {}
+    dynamic_load_policy(deferred_initialization_t) {}
 
     dynamic_load_policy() {
         initialize();

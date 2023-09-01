@@ -125,7 +125,7 @@ namespace experimental {
       std::shared_ptr<tuner_t> tuner_;
 
     public:
-      auto_tune_selection_type() : policy_(deferred_initialization()) {}
+      auto_tune_selection_type() : policy_(deferred_initialization) {}
 
       auto_tune_selection_type(const policy_t& p, resource_with_offset_t r, std::shared_ptr<tuner_t> t)
         : policy_(p), resource_(r), tuner_(t) {}
@@ -151,7 +151,7 @@ namespace experimental {
     }
 
 
-    auto_tune_policy(deferred_initialization) {}
+    auto_tune_policy(deferred_initialization_t) {}
 
     auto_tune_policy(const std::vector<resource_type>& u, double resample_time=never_resample) {
         initialize(u, resample_time);

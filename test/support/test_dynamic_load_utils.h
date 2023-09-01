@@ -28,7 +28,7 @@ int test_dl_initialization(const std::vector<sycl::queue>& u) {
   }
 
   // deferred initialization
- oneapi::dpl::experimental::dynamic_load_policy p2{oneapi::dpl::experimental::deferred_initialization()};
+ oneapi::dpl::experimental::dynamic_load_policy p2{oneapi::dpl::experimental::deferred_initialization};
   try {
     auto u3 = oneapi::dpl::experimental::get_resources(p2);
     if (!u3.empty()) {

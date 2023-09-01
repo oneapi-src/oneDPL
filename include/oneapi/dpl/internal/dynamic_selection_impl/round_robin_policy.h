@@ -91,7 +91,7 @@ namespace experimental{
         initialize();
     }
 
-    round_robin_policy(deferred_initialization) {}
+    round_robin_policy(deferred_initialization_t) {}
 
     round_robin_policy(const std::vector<resource_type>& u) {
         initialize(u);

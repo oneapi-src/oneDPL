@@ -86,7 +86,8 @@ namespace internal {
 
  } //namespace internal
 
-  struct deferred_initialization{};
+  struct deferred_initialization_t {};
+  inline constexpr deferred_initialization_t deferred_initialization;
 
   // required interfaces
   template<typename DSPolicy>

@@ -29,7 +29,7 @@ int test_initialization(const std::vector<T>& u) {
   }
 
   // deferred initialization
-  my_policy_t p2{oneapi::dpl::experimental::deferred_initialization()};
+  my_policy_t p2{oneapi::dpl::experimental::deferred_initialization};
   try {
     auto u3 = oneapi::dpl::experimental::get_resources(p2);
     if (!u3.empty()) {
