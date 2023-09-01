@@ -17,6 +17,7 @@
 #define _ONEDPL_PARALLEL_BACKEND_SYCL_UTILS_H
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
+#include <memory>
 #include <type_traits>
 #include <tuple>
 
@@ -508,8 +509,86 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
-//A contract for future class: <sycl::event or other event, a value or sycl::buffers...>
-//Impl details: inheretance (private) instead of aggregation for enabling the empty base optimization.
+template <typename _T>
+struct __accessor
+{
+  private:
+    using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
+                                        sycl::access::placeholder::false_t>;
+    __accessor_t __acc;
+    _T* __ptr = nullptr;
+    bool __usm = false;
+
+  public:
+// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
+#if _ONEDPL_SYCL_USM_HOST_PRESENT
+    __accessor(sycl::handler& __cgh, bool __u, ::std::shared_ptr<sycl::buffer<_T, 1>> __sycl_buf,
+               ::std::shared_ptr<_T> __usm_buf)
+        : __usm(__u)
+    {
+        if (__usm)
+            __ptr = __usm_buf.get();
+        else
+            __acc = sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+    }
+#else
+    __accessor(sycl::handler& __cgh, bool, ::std::shared_ptr<sycl::buffer<_T, 1>> __sycl_buf,
+               ::std::shared_ptr<_T> __usm_buf)
+        : __usm(false), __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+    {
+    }
+#endif
+
+    auto
+    __get_pointer() const // should be cached within a kernel
+    {
+        return __usm ? __ptr : &__acc[0];
+    }
+};
+
+template <typename _ExecutionPolicy, typename _T>
+struct __storage
+{
+  private:
+    using __sycl_buffer_t = sycl::buffer<_T, 1>;
+    ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
+    ::std::shared_ptr<_T> __usm_buf;
+    bool __usm;
+
+  public:
+    __storage(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n) : __usm(__u)
+    {
+        if (__usm)
+        {
+            __usm_buf = std::shared_ptr<_T>(
+                __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__n),
+                __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
+        }
+        else
+            __sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__n));
+    }
+
+    auto
+    __get_acc(sycl::handler& __cgh)
+    {
+        return __accessor<_T>(__cgh, __usm, __sycl_buf, __usm_buf);
+    }
+
+    auto
+    __get_value(size_t idx = 0)
+    {
+        return __usm ? *(__usm_buf.get() + idx) : __sycl_buf->get_host_access(sycl::read_only)[idx];
+    }
+
+    bool
+    __get_usm() const
+    {
+        return __usm;
+    }
+};
+
+//A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __storage (USM or buffer)>
+//Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
 {
@@ -521,6 +600,16 @@ class __future : private std::tuple<_Args...>
     {
         //according to a contract, returned value is one-element sycl::buffer
         return __buf.get_host_access(sycl::read_only)[0];
+    }
+
+    template <typename _ExecutionPolicy, typename _T>
+    constexpr auto
+    __wait_and_get_value(__storage<_ExecutionPolicy, _T>& __buf)
+    {
+        // Explicit wait in case of USM memory. Buffer accessors are synchronous.
+        if (__buf.__get_usm())
+            wait();
+        return __buf.__get_value();
     }
 
     template <typename _T>
@@ -572,6 +661,25 @@ class __future : private std::tuple<_Args...>
         return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
 };
+
+// Only use USM host allocations on L0 GPUs. Other devices show significant slowdowns and will use a buffer instead.
+inline bool
+__use_USM_host_allocations(sycl::queue __queue)
+{
+// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
+#if _ONEDPL_SYCL_USM_HOST_PRESENT
+    auto __device = __queue.get_device();
+    if (!__device.is_gpu())
+        return false;
+    if (!__device.has(sycl::aspect::usm_host_allocations))
+        return false;
+    if (__device.get_backend() != sycl::backend::ext_oneapi_level_zero)
+        return false;
+    return true;
+#else
+    return false;
+#endif
+}
 
 // Invoke a callable and pass a compile-time integer based on a provided run-time integer.
 // The compile-time integer that will be provided to the callable is defined as the smallest
