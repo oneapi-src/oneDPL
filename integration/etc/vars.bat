@@ -31,6 +31,6 @@ if not defined ONEAPI_ROOT (
     exit /b 254
 )
 
-set "VARSDIR=%~dp0"
+rem ############################################################################
 
-if not defined DPL_ROOT for /f "delims=" %%F in ("%VARSDIR%..") do set "DPL_ROOT=%%~fF"
+set "DPL_ROOT=%ONEAPI_ROOT%"
