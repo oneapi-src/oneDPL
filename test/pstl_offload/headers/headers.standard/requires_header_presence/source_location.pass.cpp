@@ -7,18 +7,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#include <version>
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-
-#if __cpp_lib_three_way_comparison >= 201907L
-#include <compare>
-#endif
+#include <source_location>
 #include "support/utils.h"
 
 int main() {
-#if __cpp_lib_three_way_comparison >= 201907L
-    [[maybe_unused]] auto ordering = std::strong_ordering::equal;
+#if __cpp_lib_source_location >= 201907L
+    [[maybe_unused]] std::size_t r = sizeof(std::source_location);
 #endif
     return TestUtils::done();
 }

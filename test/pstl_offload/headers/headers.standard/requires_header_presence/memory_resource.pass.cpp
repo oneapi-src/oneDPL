@@ -7,18 +7,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#include <version>
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-
-#if __cpp_lib_semaphore >= 201907L
-#include <semaphore>
-#endif
+#include <memory_resource>
 #include "support/utils.h"
 
 int main() {
-#if __cpp_lib_semaphore >= 201907L
-    [[maybe_unused]] auto max = std::binary_semaphore::max();
+#if __cpp_lib_memory_resource >= 201603L
+    [[maybe_unused]] std::pmr::memory_resource* res = std::pmr::get_default_resource();
 #endif
     return TestUtils::done();
 }

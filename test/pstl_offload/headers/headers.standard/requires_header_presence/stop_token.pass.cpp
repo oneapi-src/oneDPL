@@ -7,19 +7,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#include <version>
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-
-#if __cpp_lib_concepts >= 202002L
-#include <concepts>
-#endif
-
+#include <stop_token>
 #include "support/utils.h"
 
 int main() {
-#if __cpp_lib_concepts >= 202002L
-    [[maybe_unused]] bool b = std::same_as<int, float>;
+#if __cpp_lib_jthread >= 201911L
+    [[maybe_unused]] std::size_t r = sizeof(std::stop_token);
 #endif
     return TestUtils::done();
 }

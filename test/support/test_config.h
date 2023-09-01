@@ -16,12 +16,6 @@
 #ifndef _TEST_CONFIG_H
 #define _TEST_CONFIG_H
 
-#ifdef __SYCL_PSTL_OFFLOAD__
-#define ONEDPL_TEST_PSTL_OFFLOAD 1
-#else
-#define ONEDPL_TEST_PSTL_OFFLOAD 0
-#endif
-
 #define _PSTL_TEST_STRING(X) _PSTL_TEST_STRING_AUX(oneapi/dpl/X)
 #define _PSTL_TEST_STRING_AUX(X) #X
 //to support the optional including: <algorithm>, <memory>, <numeric> or <pstl/algorithm>, <pstl/memory>, <pstl/numeric>

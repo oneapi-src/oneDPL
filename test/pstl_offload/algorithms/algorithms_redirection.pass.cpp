@@ -7,20 +7,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __SYCL_PSTL_OFFLOAD__
-#error "-fsycl-pstl-offload option should be passed to the compiler to run this test"
+#if !__SYCL_PSTL_OFFLOAD__
+#error "PSTL offload compiler mode should be enabled to the compiler to run this test"
 #endif
 
-// WARNING: don't include unguarded standard and oneDPL headers
+// ATTENTION: don't include oneDPL and unguarded standard headers
 // to guarantee that intercepting overloads of oneapi::dpl:: algorithms
-// appears before corresponding functions in oneDPL headers
+// appear before corresponding functions in oneDPL headers
 
-// The idea of the test is to check that for each algorithm
-// the call to std::algorithm_name(std::par_unseq, ...)
-// results in a low-level call to oneapi::dpl::algorithm_name(device_policy<KernelName>, ...)
-// and hence the offload to the correct device happends
+// The idea of the test is to check that each standard parallel algorithm
+// call with std::execution::par_unseq policy results in
+// oneapi::dpl::algorithm_name(device_policy<KernelName>, ...) call
+// and hence the offload to the correct device happens
 
-// To check that special overloads for oneapi::dpl:: algorithms added
+// To check that, special overloads for oneapi::dpl:: algorithms added
 // BEFORE including the oneDPL
 
 // Define guard to include only standard part of the header
@@ -78,8 +78,8 @@ enum class algorithm_id {
     COPY_N,
     COPY_IF,
     SWAP_RANGES,
-    TRANSFORM_BINARY,
-    TRANSFORM_UNARY,
+    TRANSFORM_BINARYOP,
+    TRANSFORM_UNARYOP,
     REPLACE_IF,
     REPLACE,
     REPLACE_COPY_IF,
@@ -171,8 +171,8 @@ enum class algorithm_id {
     REDUCE_INIT,
     REDUCE_INIT_BINARYOP,
     TRANSFORM_REDUCE,
-    TRANSFORM_REDUCE_BINARY_BINARY,
-    TRANSFORM_REDUCE_BINARY_UNARY,
+    TRANSFORM_REDUCE_BINARYOP_BINARYOP,
+    TRANSFORM_REDUCE_BINARYOP_UNARYOP,
     EXCLUSIVE_SCAN_INIT_BINARYOP,
     EXCLUSIVE_SCAN_INIT,
     INCLUSIVE_SCAN,
@@ -422,7 +422,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, not_iterator>
 transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
           not_iterator __result, _BinaryOperation __op)
 {
-    store_id(algorithm_id::TRANSFORM_BINARY);
+    store_id(algorithm_id::TRANSFORM_BINARYOP);
     check_policy(__exec);
     return __result;
 }
@@ -432,7 +432,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 transform(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _ForwardIterator2 __result,
           _UnaryOperation __op)
 {
-    store_id(algorithm_id::TRANSFORM_UNARY);
+    store_id(algorithm_id::TRANSFORM_UNARYOP);
     check_policy(__exec);
     return __result;
 }
@@ -1278,7 +1278,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _Tp>
 transform_reduce(_ExecutionPolicy&& __exec, not_iterator __first1, not_iterator __last1, _ForwardIterator2 __first2,
                  _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
-    store_id(algorithm_id::TRANSFORM_REDUCE_BINARY_BINARY);
+    store_id(algorithm_id::TRANSFORM_REDUCE_BINARYOP_BINARYOP);
     check_policy(__exec);
     return __init;
 }
@@ -1288,7 +1288,7 @@ test_enable_if_execution_policy<_ExecutionPolicy, _Tp>
 transform_reduce(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Tp __init,
                  _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
-    store_id(algorithm_id::TRANSFORM_REDUCE_BINARY_UNARY);
+    store_id(algorithm_id::TRANSFORM_REDUCE_BINARYOP_UNARYOP);
     check_policy(__exec);
     return __init;
 }
@@ -1411,10 +1411,13 @@ void store_id(algorithm_id __id) {
 }
 
 template <typename _T>
-struct is_device_policy : std::false_type {};
+struct is_device_policy_impl : std::false_type {};
 
 template <typename _KernelName>
-struct is_device_policy<oneapi::dpl::execution::device_policy<_KernelName>> : std::true_type {};
+struct is_device_policy_impl<oneapi::dpl::execution::device_policy<_KernelName>> : std::true_type {};
+
+template <typename T>
+struct is_device_policy : is_device_policy_impl<std::decay_t<T>> {};
 
 template <typename _ExecutionPolicy>
 void check_policy(const _ExecutionPolicy& __policy) {
@@ -1431,181 +1434,185 @@ void test_algorithm(_RunAlgorithmBody __run_algorithm, _AlgorithmArgs&&... __arg
     algorithm_id_state = algorithm_id::EMPTY_ID;
 }
 
-#define RUN_LAMBDA(ALGORITHM_NAME) [](auto&& policy, auto... args) { std::ALGORITHM_NAME(policy, args...); }
+#define ALGORITHM_WRAPPER(ALGORITHM_NAME) [](auto&&... args) { std::ALGORITHM_NAME(std::forward<decltype(args)>(args)...); }
 
 int main() {
     not_iterator iter;
     auto binary_predicate = [](int, int) { return true; };
     auto unary_predicate = [](int) { return true; };
-    auto function = [](int) {};
-    auto rng = []() { return 1; };
 
     // Testing <algorithm>
-    test_algorithm<algorithm_id::ANY_OF>(RUN_LAMBDA(any_of), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::ALL_OF>(RUN_LAMBDA(all_of), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::NONE_OF>(RUN_LAMBDA(none_of), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::ANY_OF>(ALGORITHM_WRAPPER(any_of), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::ALL_OF>(ALGORITHM_WRAPPER(all_of), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::NONE_OF>(ALGORITHM_WRAPPER(none_of), iter, iter, binary_predicate);
 
-    test_algorithm<algorithm_id::FOR_EACH>(RUN_LAMBDA(for_each), iter, iter, function);
-    test_algorithm<algorithm_id::FOR_EACH_N>(RUN_LAMBDA(for_each_n), iter, 5, function);
+    {
+    auto function = [](int) {};
+    test_algorithm<algorithm_id::FOR_EACH>(ALGORITHM_WRAPPER(for_each), iter, iter, function);
+    test_algorithm<algorithm_id::FOR_EACH_N>(ALGORITHM_WRAPPER(for_each_n), iter, 5, function);
+    }
 
-    test_algorithm<algorithm_id::FIND_IF>(RUN_LAMBDA(find_if), iter, iter, unary_predicate);
-    test_algorithm<algorithm_id::FIND_IF_NOT>(RUN_LAMBDA(find_if_not), iter, iter, unary_predicate);
-    test_algorithm<algorithm_id::FIND>(RUN_LAMBDA(find), iter, iter, 1);
-    test_algorithm<algorithm_id::FIND_END_PREDICATE>(RUN_LAMBDA(find_end), iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::FIND_END>(RUN_LAMBDA(find_end), iter, iter, iter, iter);
-    test_algorithm<algorithm_id::FIND_FIRST_OF_PREDICATE>(RUN_LAMBDA(find_first_of), iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::FIND_FIRST_OF>(RUN_LAMBDA(find_first_of), iter, iter, iter, iter);
-    test_algorithm<algorithm_id::ADJACENT_FIND_PREDICATE>(RUN_LAMBDA(adjacent_find), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::ADJACENT_FIND>(RUN_LAMBDA(adjacent_find), iter, iter);
+    test_algorithm<algorithm_id::FIND_IF>(ALGORITHM_WRAPPER(find_if), iter, iter, unary_predicate);
+    test_algorithm<algorithm_id::FIND_IF_NOT>(ALGORITHM_WRAPPER(find_if_not), iter, iter, unary_predicate);
+    test_algorithm<algorithm_id::FIND>(ALGORITHM_WRAPPER(find), iter, iter, 1);
+    test_algorithm<algorithm_id::FIND_END_PREDICATE>(ALGORITHM_WRAPPER(find_end), iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::FIND_END>(ALGORITHM_WRAPPER(find_end), iter, iter, iter, iter);
+    test_algorithm<algorithm_id::FIND_FIRST_OF_PREDICATE>(ALGORITHM_WRAPPER(find_first_of), iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::FIND_FIRST_OF>(ALGORITHM_WRAPPER(find_first_of), iter, iter, iter, iter);
+    test_algorithm<algorithm_id::ADJACENT_FIND_PREDICATE>(ALGORITHM_WRAPPER(adjacent_find), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::ADJACENT_FIND>(ALGORITHM_WRAPPER(adjacent_find), iter, iter);
 
-    test_algorithm<algorithm_id::COUNT>(RUN_LAMBDA(count), iter, iter, 0);
-    test_algorithm<algorithm_id::COUNT_IF>(RUN_LAMBDA(count_if), iter, iter, unary_predicate);
-    test_algorithm<algorithm_id::SEARCH_PREDICATE>(RUN_LAMBDA(search), iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::SEARCH>(RUN_LAMBDA(search), iter, iter, iter, iter);
-    test_algorithm<algorithm_id::SEARCH_N_PREDICATE>(RUN_LAMBDA(search_n), iter, iter, 5, 0, binary_predicate);
-    test_algorithm<algorithm_id::SEARCH_N>(RUN_LAMBDA(search_n), iter, iter, 5, 0);
+    test_algorithm<algorithm_id::COUNT>(ALGORITHM_WRAPPER(count), iter, iter, 0);
+    test_algorithm<algorithm_id::COUNT_IF>(ALGORITHM_WRAPPER(count_if), iter, iter, unary_predicate);
+    test_algorithm<algorithm_id::SEARCH_PREDICATE>(ALGORITHM_WRAPPER(search), iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::SEARCH>(ALGORITHM_WRAPPER(search), iter, iter, iter, iter);
+    test_algorithm<algorithm_id::SEARCH_N_PREDICATE>(ALGORITHM_WRAPPER(search_n), iter, iter, 5, 0, binary_predicate);
+    test_algorithm<algorithm_id::SEARCH_N>(ALGORITHM_WRAPPER(search_n), iter, iter, 5, 0);
 
-    test_algorithm<algorithm_id::COPY>(RUN_LAMBDA(copy), iter, iter, iter);
-    test_algorithm<algorithm_id::COPY_N>(RUN_LAMBDA(copy_n), iter, 5, iter);
-    test_algorithm<algorithm_id::COPY_IF>(RUN_LAMBDA(copy_if), iter, iter, iter, unary_predicate);
-    test_algorithm<algorithm_id::SWAP_RANGES>(RUN_LAMBDA(swap_ranges), iter, iter, iter);
+    test_algorithm<algorithm_id::COPY>(ALGORITHM_WRAPPER(copy), iter, iter, iter);
+    test_algorithm<algorithm_id::COPY_N>(ALGORITHM_WRAPPER(copy_n), iter, 5, iter);
+    test_algorithm<algorithm_id::COPY_IF>(ALGORITHM_WRAPPER(copy_if), iter, iter, iter, unary_predicate);
+    test_algorithm<algorithm_id::SWAP_RANGES>(ALGORITHM_WRAPPER(swap_ranges), iter, iter, iter);
 
-    test_algorithm<algorithm_id::TRANSFORM_BINARY>(RUN_LAMBDA(transform), iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::TRANSFORM_UNARY>(RUN_LAMBDA(transform), iter, iter, iter, unary_predicate);
+    test_algorithm<algorithm_id::TRANSFORM_BINARYOP>(ALGORITHM_WRAPPER(transform), iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::TRANSFORM_UNARYOP>(ALGORITHM_WRAPPER(transform), iter, iter, iter, unary_predicate);
 
-    test_algorithm<algorithm_id::REPLACE_IF>(RUN_LAMBDA(replace_if), iter, iter, unary_predicate, 5);
-    test_algorithm<algorithm_id::REPLACE>(RUN_LAMBDA(replace), iter, iter, 5, 0);
-    test_algorithm<algorithm_id::REPLACE_COPY_IF>(RUN_LAMBDA(replace_copy_if), iter, iter, iter, unary_predicate, 5);
-    test_algorithm<algorithm_id::REPLACE_COPY>(RUN_LAMBDA(replace_copy), iter, iter, iter, 5, 0);
+    test_algorithm<algorithm_id::REPLACE_IF>(ALGORITHM_WRAPPER(replace_if), iter, iter, unary_predicate, 5);
+    test_algorithm<algorithm_id::REPLACE>(ALGORITHM_WRAPPER(replace), iter, iter, 5, 0);
+    test_algorithm<algorithm_id::REPLACE_COPY_IF>(ALGORITHM_WRAPPER(replace_copy_if), iter, iter, iter, unary_predicate, 5);
+    test_algorithm<algorithm_id::REPLACE_COPY>(ALGORITHM_WRAPPER(replace_copy), iter, iter, iter, 5, 0);
 
-    test_algorithm<algorithm_id::FILL>(RUN_LAMBDA(fill), iter, iter, 0);
-    test_algorithm<algorithm_id::FILL_N>(RUN_LAMBDA(fill_n), iter, 5, 0);
+    test_algorithm<algorithm_id::FILL>(ALGORITHM_WRAPPER(fill), iter, iter, 0);
+    test_algorithm<algorithm_id::FILL_N>(ALGORITHM_WRAPPER(fill_n), iter, 5, 0);
 
-    test_algorithm<algorithm_id::GENERATE>(RUN_LAMBDA(generate), iter, iter, rng);
-    test_algorithm<algorithm_id::GENERATE_N>(RUN_LAMBDA(generate_n), iter, 5, rng);
+    {
+    auto gen = []() { return 1; };
+    test_algorithm<algorithm_id::GENERATE>(ALGORITHM_WRAPPER(generate), iter, iter, gen);
+    test_algorithm<algorithm_id::GENERATE_N>(ALGORITHM_WRAPPER(generate_n), iter, 5, gen);
+    }
 
-    test_algorithm<algorithm_id::REMOVE_COPY_IF>(RUN_LAMBDA(remove_copy_if), iter, iter, iter, unary_predicate);
-    test_algorithm<algorithm_id::REMOVE_COPY>(RUN_LAMBDA(remove_copy), iter, iter, iter, 0);
-    test_algorithm<algorithm_id::REMOVE_IF>(RUN_LAMBDA(remove_if), iter, iter, unary_predicate);
-    test_algorithm<algorithm_id::REMOVE>(RUN_LAMBDA(remove), iter, iter, 5);
+    test_algorithm<algorithm_id::REMOVE_COPY_IF>(ALGORITHM_WRAPPER(remove_copy_if), iter, iter, iter, unary_predicate);
+    test_algorithm<algorithm_id::REMOVE_COPY>(ALGORITHM_WRAPPER(remove_copy), iter, iter, iter, 0);
+    test_algorithm<algorithm_id::REMOVE_IF>(ALGORITHM_WRAPPER(remove_if), iter, iter, unary_predicate);
+    test_algorithm<algorithm_id::REMOVE>(ALGORITHM_WRAPPER(remove), iter, iter, 5);
 
-    test_algorithm<algorithm_id::UNIQUE_PREDICATE>(RUN_LAMBDA(unique), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::UNIQUE>(RUN_LAMBDA(unique), iter, iter);
-    test_algorithm<algorithm_id::UNIQUE_COPY_PREDICATE>(RUN_LAMBDA(unique_copy), iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::UNIQUE_COPY>(RUN_LAMBDA(unique_copy), iter, iter, iter);
+    test_algorithm<algorithm_id::UNIQUE_PREDICATE>(ALGORITHM_WRAPPER(unique), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::UNIQUE>(ALGORITHM_WRAPPER(unique), iter, iter);
+    test_algorithm<algorithm_id::UNIQUE_COPY_PREDICATE>(ALGORITHM_WRAPPER(unique_copy), iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::UNIQUE_COPY>(ALGORITHM_WRAPPER(unique_copy), iter, iter, iter);
 
-    test_algorithm<algorithm_id::REVERSE>(RUN_LAMBDA(reverse), iter, iter);
-    test_algorithm<algorithm_id::REVERSE_COPY>(RUN_LAMBDA(reverse_copy), iter, iter, iter);
-    test_algorithm<algorithm_id::ROTATE>(RUN_LAMBDA(rotate), iter, iter, iter);
-    test_algorithm<algorithm_id::ROTATE_COPY>(RUN_LAMBDA(rotate_copy), iter, iter, iter, iter);
+    test_algorithm<algorithm_id::REVERSE>(ALGORITHM_WRAPPER(reverse), iter, iter);
+    test_algorithm<algorithm_id::REVERSE_COPY>(ALGORITHM_WRAPPER(reverse_copy), iter, iter, iter);
+    test_algorithm<algorithm_id::ROTATE>(ALGORITHM_WRAPPER(rotate), iter, iter, iter);
+    test_algorithm<algorithm_id::ROTATE_COPY>(ALGORITHM_WRAPPER(rotate_copy), iter, iter, iter, iter);
 
-    test_algorithm<algorithm_id::IS_PARTITIONED>(RUN_LAMBDA(is_partitioned), iter, iter, unary_predicate);
-    test_algorithm<algorithm_id::PARTITION>(RUN_LAMBDA(partition), iter, iter, unary_predicate);
-    test_algorithm<algorithm_id::STABLE_PARTITION>(RUN_LAMBDA(stable_partition), iter, iter, unary_predicate);
-    test_algorithm<algorithm_id::PARTITION_COPY>(RUN_LAMBDA(partition_copy), iter, iter, iter, iter, unary_predicate);
+    test_algorithm<algorithm_id::IS_PARTITIONED>(ALGORITHM_WRAPPER(is_partitioned), iter, iter, unary_predicate);
+    test_algorithm<algorithm_id::PARTITION>(ALGORITHM_WRAPPER(partition), iter, iter, unary_predicate);
+    test_algorithm<algorithm_id::STABLE_PARTITION>(ALGORITHM_WRAPPER(stable_partition), iter, iter, unary_predicate);
+    test_algorithm<algorithm_id::PARTITION_COPY>(ALGORITHM_WRAPPER(partition_copy), iter, iter, iter, iter, unary_predicate);
 
-    test_algorithm<algorithm_id::SORT_COMPARE>(RUN_LAMBDA(sort), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::SORT>(RUN_LAMBDA(sort), iter, iter);
-    test_algorithm<algorithm_id::STABLE_SORT_COMPARE>(RUN_LAMBDA(stable_sort), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::STABLE_SORT>(RUN_LAMBDA(stable_sort), iter, iter);
+    test_algorithm<algorithm_id::SORT_COMPARE>(ALGORITHM_WRAPPER(sort), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::SORT>(ALGORITHM_WRAPPER(sort), iter, iter);
+    test_algorithm<algorithm_id::STABLE_SORT_COMPARE>(ALGORITHM_WRAPPER(stable_sort), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::STABLE_SORT>(ALGORITHM_WRAPPER(stable_sort), iter, iter);
 
-    test_algorithm<algorithm_id::MISMATCH_4ITERS_PREDICATE>(RUN_LAMBDA(mismatch), iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::MISMATCH_3ITERS_PREDICATE>(RUN_LAMBDA(mismatch), iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::MISMATCH_4ITERS>(RUN_LAMBDA(mismatch), iter, iter, iter, iter);
-    test_algorithm<algorithm_id::MISMATCH_3ITERS>(RUN_LAMBDA(mismatch), iter, iter, iter);
+    test_algorithm<algorithm_id::MISMATCH_4ITERS_PREDICATE>(ALGORITHM_WRAPPER(mismatch), iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::MISMATCH_3ITERS_PREDICATE>(ALGORITHM_WRAPPER(mismatch), iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::MISMATCH_4ITERS>(ALGORITHM_WRAPPER(mismatch), iter, iter, iter, iter);
+    test_algorithm<algorithm_id::MISMATCH_3ITERS>(ALGORITHM_WRAPPER(mismatch), iter, iter, iter);
 
-    test_algorithm<algorithm_id::EQUAL_4ITERS_PREDICATE>(RUN_LAMBDA(equal), iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::EQUAL_3ITERS_PREDICATE>(RUN_LAMBDA(equal), iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::EQUAL_4ITERS>(RUN_LAMBDA(equal), iter, iter, iter, iter);
-    test_algorithm<algorithm_id::EQUAL_3ITERS>(RUN_LAMBDA(equal), iter, iter, iter);
+    test_algorithm<algorithm_id::EQUAL_4ITERS_PREDICATE>(ALGORITHM_WRAPPER(equal), iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::EQUAL_3ITERS_PREDICATE>(ALGORITHM_WRAPPER(equal), iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::EQUAL_4ITERS>(ALGORITHM_WRAPPER(equal), iter, iter, iter, iter);
+    test_algorithm<algorithm_id::EQUAL_3ITERS>(ALGORITHM_WRAPPER(equal), iter, iter, iter);
 
-    test_algorithm<algorithm_id::MOVE>(RUN_LAMBDA(move), iter, iter, iter);
+    test_algorithm<algorithm_id::MOVE>(ALGORITHM_WRAPPER(move), iter, iter, iter);
 
-    test_algorithm<algorithm_id::PARTIAL_SORT_COMPARE>(RUN_LAMBDA(partial_sort), iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::PARTIAL_SORT>(RUN_LAMBDA(partial_sort), iter, iter, iter);
-    test_algorithm<algorithm_id::PARTIAL_SORT_COPY_COMPARE>(RUN_LAMBDA(partial_sort_copy), iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::PARTIAL_SORT_COPY>(RUN_LAMBDA(partial_sort_copy), iter, iter, iter, iter);
+    test_algorithm<algorithm_id::PARTIAL_SORT_COMPARE>(ALGORITHM_WRAPPER(partial_sort), iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::PARTIAL_SORT>(ALGORITHM_WRAPPER(partial_sort), iter, iter, iter);
+    test_algorithm<algorithm_id::PARTIAL_SORT_COPY_COMPARE>(ALGORITHM_WRAPPER(partial_sort_copy), iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::PARTIAL_SORT_COPY>(ALGORITHM_WRAPPER(partial_sort_copy), iter, iter, iter, iter);
 
-    test_algorithm<algorithm_id::IS_SORTED_UNTIL_COMPARE>(RUN_LAMBDA(is_sorted_until), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::IS_SORTED_UNTIL>(RUN_LAMBDA(is_sorted_until), iter, iter);
-    test_algorithm<algorithm_id::IS_SORTED_COMPARE>(RUN_LAMBDA(is_sorted), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::IS_SORTED>(RUN_LAMBDA(is_sorted), iter, iter);
+    test_algorithm<algorithm_id::IS_SORTED_UNTIL_COMPARE>(ALGORITHM_WRAPPER(is_sorted_until), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::IS_SORTED_UNTIL>(ALGORITHM_WRAPPER(is_sorted_until), iter, iter);
+    test_algorithm<algorithm_id::IS_SORTED_COMPARE>(ALGORITHM_WRAPPER(is_sorted), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::IS_SORTED>(ALGORITHM_WRAPPER(is_sorted), iter, iter);
 
-    test_algorithm<algorithm_id::MERGE_COMPARE>(RUN_LAMBDA(merge), iter, iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::MERGE>(RUN_LAMBDA(merge), iter, iter, iter, iter, iter);
-    test_algorithm<algorithm_id::INPLACE_MERGE_COMPARE>(RUN_LAMBDA(inplace_merge), iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::INPLACE_MERGE>(RUN_LAMBDA(inplace_merge), iter, iter, iter);
+    test_algorithm<algorithm_id::MERGE_COMPARE>(ALGORITHM_WRAPPER(merge), iter, iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::MERGE>(ALGORITHM_WRAPPER(merge), iter, iter, iter, iter, iter);
+    test_algorithm<algorithm_id::INPLACE_MERGE_COMPARE>(ALGORITHM_WRAPPER(inplace_merge), iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::INPLACE_MERGE>(ALGORITHM_WRAPPER(inplace_merge), iter, iter, iter);
 
-    test_algorithm<algorithm_id::INCLUDES_COMPARE>(RUN_LAMBDA(includes), iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::INCLUDES>(RUN_LAMBDA(includes), iter, iter, iter, iter);
+    test_algorithm<algorithm_id::INCLUDES_COMPARE>(ALGORITHM_WRAPPER(includes), iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::INCLUDES>(ALGORITHM_WRAPPER(includes), iter, iter, iter, iter);
 
-    test_algorithm<algorithm_id::SET_UNION_COMPARE>(RUN_LAMBDA(set_union), iter, iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::SET_UNION>(RUN_LAMBDA(set_union), iter, iter, iter, iter, iter);
-    test_algorithm<algorithm_id::SET_INTERSECTION_COMPARE>(RUN_LAMBDA(set_intersection), iter, iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::SET_INTERSECTION>(RUN_LAMBDA(set_intersection), iter, iter, iter, iter, iter);
-    test_algorithm<algorithm_id::SET_DIFFERENCE_COMPARE>(RUN_LAMBDA(set_difference), iter, iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::SET_DIFFERENCE>(RUN_LAMBDA(set_difference), iter, iter, iter, iter, iter);
-    test_algorithm<algorithm_id::SET_SYMMETRIC_DIFFERENCE_COMPARE>(RUN_LAMBDA(set_symmetric_difference), iter, iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::SET_SYMMETRIC_DIFFERENCE>(RUN_LAMBDA(set_symmetric_difference), iter, iter, iter, iter, iter);
+    test_algorithm<algorithm_id::SET_UNION_COMPARE>(ALGORITHM_WRAPPER(set_union), iter, iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::SET_UNION>(ALGORITHM_WRAPPER(set_union), iter, iter, iter, iter, iter);
+    test_algorithm<algorithm_id::SET_INTERSECTION_COMPARE>(ALGORITHM_WRAPPER(set_intersection), iter, iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::SET_INTERSECTION>(ALGORITHM_WRAPPER(set_intersection), iter, iter, iter, iter, iter);
+    test_algorithm<algorithm_id::SET_DIFFERENCE_COMPARE>(ALGORITHM_WRAPPER(set_difference), iter, iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::SET_DIFFERENCE>(ALGORITHM_WRAPPER(set_difference), iter, iter, iter, iter, iter);
+    test_algorithm<algorithm_id::SET_SYMMETRIC_DIFFERENCE_COMPARE>(ALGORITHM_WRAPPER(set_symmetric_difference), iter, iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::SET_SYMMETRIC_DIFFERENCE>(ALGORITHM_WRAPPER(set_symmetric_difference), iter, iter, iter, iter, iter);
 
-    test_algorithm<algorithm_id::IS_HEAP_UNTIL_COMPARE>(RUN_LAMBDA(is_heap_until), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::IS_HEAP_UNTIL>(RUN_LAMBDA(is_heap_until), iter, iter);
-    test_algorithm<algorithm_id::IS_HEAP_COMPARE>(RUN_LAMBDA(is_heap), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::IS_HEAP>(RUN_LAMBDA(is_heap), iter, iter);
+    test_algorithm<algorithm_id::IS_HEAP_UNTIL_COMPARE>(ALGORITHM_WRAPPER(is_heap_until), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::IS_HEAP_UNTIL>(ALGORITHM_WRAPPER(is_heap_until), iter, iter);
+    test_algorithm<algorithm_id::IS_HEAP_COMPARE>(ALGORITHM_WRAPPER(is_heap), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::IS_HEAP>(ALGORITHM_WRAPPER(is_heap), iter, iter);
 
-    test_algorithm<algorithm_id::MIN_ELEMENT_COMPARE>(RUN_LAMBDA(min_element), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::MIN_ELEMENT>(RUN_LAMBDA(min_element), iter, iter);
-    test_algorithm<algorithm_id::MAX_ELEMENT_COMPARE>(RUN_LAMBDA(max_element), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::MAX_ELEMENT>(RUN_LAMBDA(max_element), iter, iter);
-    test_algorithm<algorithm_id::MINMAX_ELEMENT_COMPARE>(RUN_LAMBDA(minmax_element), iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::MINMAX_ELEMENT>(RUN_LAMBDA(minmax_element), iter, iter);
-    test_algorithm<algorithm_id::NTH_ELEMENT_COMPARE>(RUN_LAMBDA(nth_element), iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::NTH_ELEMENT>(RUN_LAMBDA(nth_element), iter, iter, iter);
+    test_algorithm<algorithm_id::MIN_ELEMENT_COMPARE>(ALGORITHM_WRAPPER(min_element), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::MIN_ELEMENT>(ALGORITHM_WRAPPER(min_element), iter, iter);
+    test_algorithm<algorithm_id::MAX_ELEMENT_COMPARE>(ALGORITHM_WRAPPER(max_element), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::MAX_ELEMENT>(ALGORITHM_WRAPPER(max_element), iter, iter);
+    test_algorithm<algorithm_id::MINMAX_ELEMENT_COMPARE>(ALGORITHM_WRAPPER(minmax_element), iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::MINMAX_ELEMENT>(ALGORITHM_WRAPPER(minmax_element), iter, iter);
+    test_algorithm<algorithm_id::NTH_ELEMENT_COMPARE>(ALGORITHM_WRAPPER(nth_element), iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::NTH_ELEMENT>(ALGORITHM_WRAPPER(nth_element), iter, iter, iter);
 
-    test_algorithm<algorithm_id::LEXICOGRAPHICAL_COMPARE_COMPARE>(RUN_LAMBDA(lexicographical_compare), iter, iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::LEXICOGRAPHICAL_COMPARE>(RUN_LAMBDA(lexicographical_compare), iter, iter, iter, iter);
+    test_algorithm<algorithm_id::LEXICOGRAPHICAL_COMPARE_COMPARE>(ALGORITHM_WRAPPER(lexicographical_compare), iter, iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::LEXICOGRAPHICAL_COMPARE>(ALGORITHM_WRAPPER(lexicographical_compare), iter, iter, iter, iter);
 
-    test_algorithm<algorithm_id::SHIFT_LEFT>(RUN_LAMBDA(shift_left), iter, iter, 0);
-    test_algorithm<algorithm_id::SHIFT_RIGHT>(RUN_LAMBDA(shift_right), iter, iter, 0);
+    test_algorithm<algorithm_id::SHIFT_LEFT>(ALGORITHM_WRAPPER(shift_left), iter, iter, 0);
+    test_algorithm<algorithm_id::SHIFT_RIGHT>(ALGORITHM_WRAPPER(shift_right), iter, iter, 0);
 
     // // Testing <memory>
-    test_algorithm<algorithm_id::UNINITIALIZED_COPY>(RUN_LAMBDA(uninitialized_copy), iter, iter, iter);
-    test_algorithm<algorithm_id::UNINITIALIZED_COPY_N>(RUN_LAMBDA(uninitialized_copy_n), iter, 0, iter);
-    test_algorithm<algorithm_id::UNINITIALIZED_MOVE>(RUN_LAMBDA(uninitialized_move), iter, iter, iter);
-    test_algorithm<algorithm_id::UNINITIALIZED_MOVE_N>(RUN_LAMBDA(uninitialized_move_n), iter, 0, iter);
-    test_algorithm<algorithm_id::UNINITIALIZED_FILL>(RUN_LAMBDA(uninitialized_fill), iter, iter, 0);
-    test_algorithm<algorithm_id::UNINITIALIZED_FILL_N>(RUN_LAMBDA(uninitialized_fill_n), iter, 0, 0);
+    test_algorithm<algorithm_id::UNINITIALIZED_COPY>(ALGORITHM_WRAPPER(uninitialized_copy), iter, iter, iter);
+    test_algorithm<algorithm_id::UNINITIALIZED_COPY_N>(ALGORITHM_WRAPPER(uninitialized_copy_n), iter, 0, iter);
+    test_algorithm<algorithm_id::UNINITIALIZED_MOVE>(ALGORITHM_WRAPPER(uninitialized_move), iter, iter, iter);
+    test_algorithm<algorithm_id::UNINITIALIZED_MOVE_N>(ALGORITHM_WRAPPER(uninitialized_move_n), iter, 0, iter);
+    test_algorithm<algorithm_id::UNINITIALIZED_FILL>(ALGORITHM_WRAPPER(uninitialized_fill), iter, iter, 0);
+    test_algorithm<algorithm_id::UNINITIALIZED_FILL_N>(ALGORITHM_WRAPPER(uninitialized_fill_n), iter, 0, 0);
 
-    test_algorithm<algorithm_id::DESTROY>(RUN_LAMBDA(destroy), iter, iter);
-    test_algorithm<algorithm_id::DESTROY_N>(RUN_LAMBDA(destroy_n), iter, 0);
+    test_algorithm<algorithm_id::DESTROY>(ALGORITHM_WRAPPER(destroy), iter, iter);
+    test_algorithm<algorithm_id::DESTROY_N>(ALGORITHM_WRAPPER(destroy_n), iter, 0);
 
-    test_algorithm<algorithm_id::UNINITIALIZED_DEFAULT_CONSTRUCT>(RUN_LAMBDA(uninitialized_default_construct), iter, iter);
-    test_algorithm<algorithm_id::UNINITIALIZED_DEFAULT_CONSTRUCT_N>(RUN_LAMBDA(uninitialized_default_construct_n), iter, 0);
-    test_algorithm<algorithm_id::UNINITIALIZED_VALUE_CONSTRUCT>(RUN_LAMBDA(uninitialized_value_construct), iter, iter);
-    test_algorithm<algorithm_id::UNINITIALIZED_VALUE_CONSTRUCT_N>(RUN_LAMBDA(uninitialized_value_construct_n), iter, 0);
+    test_algorithm<algorithm_id::UNINITIALIZED_DEFAULT_CONSTRUCT>(ALGORITHM_WRAPPER(uninitialized_default_construct), iter, iter);
+    test_algorithm<algorithm_id::UNINITIALIZED_DEFAULT_CONSTRUCT_N>(ALGORITHM_WRAPPER(uninitialized_default_construct_n), iter, 0);
+    test_algorithm<algorithm_id::UNINITIALIZED_VALUE_CONSTRUCT>(ALGORITHM_WRAPPER(uninitialized_value_construct), iter, iter);
+    test_algorithm<algorithm_id::UNINITIALIZED_VALUE_CONSTRUCT_N>(ALGORITHM_WRAPPER(uninitialized_value_construct_n), iter, 0);
 
     // // Testing <numeric>
-    test_algorithm<algorithm_id::REDUCE_INIT_BINARYOP>(RUN_LAMBDA(reduce), iter, iter, 0, binary_predicate);
-    test_algorithm<algorithm_id::REDUCE_INIT>(RUN_LAMBDA(reduce), iter, iter, 0);
-    test_algorithm<algorithm_id::REDUCE>(RUN_LAMBDA(reduce), iter, iter);
+    test_algorithm<algorithm_id::REDUCE_INIT_BINARYOP>(ALGORITHM_WRAPPER(reduce), iter, iter, 0, binary_predicate);
+    test_algorithm<algorithm_id::REDUCE_INIT>(ALGORITHM_WRAPPER(reduce), iter, iter, 0);
+    test_algorithm<algorithm_id::REDUCE>(ALGORITHM_WRAPPER(reduce), iter, iter);
 
-    test_algorithm<algorithm_id::TRANSFORM_REDUCE>(RUN_LAMBDA(transform_reduce), iter, iter, iter, 0);
-    test_algorithm<algorithm_id::TRANSFORM_REDUCE_BINARY_BINARY>(RUN_LAMBDA(transform_reduce), iter, iter, iter, 0, binary_predicate, binary_predicate);
-    test_algorithm<algorithm_id::TRANSFORM_REDUCE_BINARY_UNARY>(RUN_LAMBDA(transform_reduce), iter, iter, 0, binary_predicate, unary_predicate);
+    test_algorithm<algorithm_id::TRANSFORM_REDUCE>(ALGORITHM_WRAPPER(transform_reduce), iter, iter, iter, 0);
+    test_algorithm<algorithm_id::TRANSFORM_REDUCE_BINARYOP_BINARYOP>(ALGORITHM_WRAPPER(transform_reduce), iter, iter, iter, 0, binary_predicate, binary_predicate);
+    test_algorithm<algorithm_id::TRANSFORM_REDUCE_BINARYOP_UNARYOP>(ALGORITHM_WRAPPER(transform_reduce), iter, iter, 0, binary_predicate, unary_predicate);
 
-    test_algorithm<algorithm_id::EXCLUSIVE_SCAN_INIT>(RUN_LAMBDA(exclusive_scan), iter, iter, iter, 0);
-    test_algorithm<algorithm_id::EXCLUSIVE_SCAN_INIT_BINARYOP>(RUN_LAMBDA(exclusive_scan), iter, iter, iter, 0, binary_predicate);
+    test_algorithm<algorithm_id::EXCLUSIVE_SCAN_INIT>(ALGORITHM_WRAPPER(exclusive_scan), iter, iter, iter, 0);
+    test_algorithm<algorithm_id::EXCLUSIVE_SCAN_INIT_BINARYOP>(ALGORITHM_WRAPPER(exclusive_scan), iter, iter, iter, 0, binary_predicate);
 
-    test_algorithm<algorithm_id::INCLUSIVE_SCAN>(RUN_LAMBDA(inclusive_scan), iter, iter, iter);
-    test_algorithm<algorithm_id::INCLUSIVE_SCAN_BINARYOP>(RUN_LAMBDA(inclusive_scan), iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::INCLUSIVE_SCAN_BINARYOP_INIT>(RUN_LAMBDA(inclusive_scan), iter, iter, iter, binary_predicate, 0);
+    test_algorithm<algorithm_id::INCLUSIVE_SCAN>(ALGORITHM_WRAPPER(inclusive_scan), iter, iter, iter);
+    test_algorithm<algorithm_id::INCLUSIVE_SCAN_BINARYOP>(ALGORITHM_WRAPPER(inclusive_scan), iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::INCLUSIVE_SCAN_BINARYOP_INIT>(ALGORITHM_WRAPPER(inclusive_scan), iter, iter, iter, binary_predicate, 0);
 
-    test_algorithm<algorithm_id::TRANSFORM_EXCLUSIVE_SCAN>(RUN_LAMBDA(transform_exclusive_scan), iter, iter, iter, 0, binary_predicate, unary_predicate);
-    test_algorithm<algorithm_id::TRANSFORM_INCLUSIVE_SCAN>(RUN_LAMBDA(transform_inclusive_scan), iter, iter, iter, binary_predicate, unary_predicate);
-    test_algorithm<algorithm_id::TRANSFORM_INCLUSIVE_SCAN_INIT>(RUN_LAMBDA(transform_inclusive_scan), iter, iter, iter, binary_predicate, unary_predicate, 0);
+    test_algorithm<algorithm_id::TRANSFORM_EXCLUSIVE_SCAN>(ALGORITHM_WRAPPER(transform_exclusive_scan), iter, iter, iter, 0, binary_predicate, unary_predicate);
+    test_algorithm<algorithm_id::TRANSFORM_INCLUSIVE_SCAN>(ALGORITHM_WRAPPER(transform_inclusive_scan), iter, iter, iter, binary_predicate, unary_predicate);
+    test_algorithm<algorithm_id::TRANSFORM_INCLUSIVE_SCAN_INIT>(ALGORITHM_WRAPPER(transform_inclusive_scan), iter, iter, iter, binary_predicate, unary_predicate, 0);
 
-    test_algorithm<algorithm_id::ADJACENT_DIFFERENCE_BINARYOP>(RUN_LAMBDA(adjacent_difference), iter, iter, iter, binary_predicate);
-    test_algorithm<algorithm_id::ADJACENT_DIFFERENCE>(RUN_LAMBDA(adjacent_difference), iter, iter, iter);
+    test_algorithm<algorithm_id::ADJACENT_DIFFERENCE_BINARYOP>(ALGORITHM_WRAPPER(adjacent_difference), iter, iter, iter, binary_predicate);
+    test_algorithm<algorithm_id::ADJACENT_DIFFERENCE>(ALGORITHM_WRAPPER(adjacent_difference), iter, iter, iter);
 
     return TestUtils::done();
 }

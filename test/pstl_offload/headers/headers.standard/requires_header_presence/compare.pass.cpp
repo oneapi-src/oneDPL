@@ -7,18 +7,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#include <version>
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-
-#if __cpp_lib_span >= 202002L
-#include <span>
-#endif
+#include <compare>
 #include "support/utils.h"
 
 int main() {
-#if __cpp_lib_span >= 202002L
-    [[maybe_unused]] std::span<int> s;
+#if __cpp_lib_three_way_comparison >= 201907L
+    [[maybe_unused]] std::size_t r = sizeof(std::strong_ordering);
 #endif
     return TestUtils::done();
 }

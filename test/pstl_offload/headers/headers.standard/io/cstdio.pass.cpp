@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    using file = FILE;
+    [[maybe_unused]] std::size_t r = sizeof(stdout);
     return TestUtils::done();
 }

@@ -11,5 +11,6 @@
 #include "support/utils.h"
 
 int main() {
+    [[maybe_unused]] std::size_t r = TBB_VERSION_MAJOR;
     return TestUtils::done();
 }

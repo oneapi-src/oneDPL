@@ -11,7 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    void* ptr = operator new(1);
-    operator delete(ptr);
+    [[maybe_unused]] std::size_t r = sizeof(std::new_handler);
     return TestUtils::done();
 }

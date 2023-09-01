@@ -372,20 +372,6 @@ void stable_sort(const execution::parallel_unsequenced_policy&, _RandomAccessIte
     oneapi::dpl::stable_sort(::__pstl_offload::__offload_policy_holder.__get_policy(), __first, __last);
 }
 
-template <class _RandomAccessIterator1, class _RandomAccessIterator2, class _Compare>
-void sort_by_key(const execution::parallel_unsequenced_policy&, _RandomAccessIterator1 __keys_first, _RandomAccessIterator1 __keys_last,
-                 _RandomAccessIterator2 __values_first, _Compare __comp)
-{
-    oneapi::dpl::sort_by_key(::__pstl_offload::__offload_policy_holder.__get_policy(), __keys_first, __keys_last, __values_first, __comp);
-}
-
-template <class _RandomAccessIterator1, class _RandomAccessIterator2>
-void sort_by_key(const execution::parallel_unsequenced_policy&, _RandomAccessIterator1 __keys_first, _RandomAccessIterator1 __keys_last,
-                 _RandomAccessIterator2 __values_first)
-{
-    oneapi::dpl::sort_by_key(::__pstl_offload::__offload_policy_holder.__get_policy(), __keys_first, __keys_last, __values_first);
-}
-
 template <class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
 pair<_ForwardIterator1, _ForwardIterator2>
 mismatch(const execution::parallel_unsequenced_policy&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,

@@ -147,21 +147,35 @@ set(_regexp_dpcpp_backend_required "(xpu_api/algorithms|xpu_api/functional|xpu_a
 set(_regexp_switch_off_checked_it  "(test/general/header_order_ranges|test/parallel_api/algorithm/alg.sorting/alg.min.max|test/parallel_api/ranges|test/xpu_api/random/device_tests|test/xpu_api/random/interface_tests|test/xpu_api/random/statistics_tests|test/parallel_api/numeric/numeric.ops/transform_scan)")
 
 set(_regexp_pstl_offload_only "(test/pstl_offload)")
-set(_regexp_pstl_offload_additional "(test/xpu_api|test/parallel_api/algorithm|test/parallel_api/memory|test/parallel_api/numeric)")
+set(_regexp_pstl_offload_parallel_api "(test/xpu_api|test/parallel_api/algorithm|test/parallel_api/memory|test/parallel_api/numeric)")
 set(_regexp_pstl_offload_exclude "(test/parallel_api/algorithm/alg.sorting/alg.binary.search|test/parallel_api/numeric/numeric.ops/.*_by_segment)")
+
+# Some of the headers tests C++20/23 files that can or cannot be available in C++17 mode
+# So we need to check file presence and skip the test if no header available
+# The test should be placed in the special folder and the name should be the same as the header that is required to be present
+set(_regexp_pstl_offload_header_presence_required "(test/pstl_offload/headers/headers.standard/requires_header_presence)")
 
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
     if (_file MATCHES "${_regexp_pstl_offload_only}")
         if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
-            onedpl_add_test(${_file} true)
+            if (_file MATCHES "${_regexp_pstl_offload_header_presence_required}")
+                get_filename_component(_filename "${_file}" NAME_WE)
+                CHECK_INCLUDE_FILE_CXX(${_filename} _has_header_file)
+                if (_has_header_file)
+                    onedpl_add_test(${_file} true)
+                endif()
+                unset(_has_header_file CACHE)
+            else()
+                onedpl_add_test(${_file} true)
+            endif()
         else()
             continue()
         endif()
     endif()
 
     if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
-        if (_file MATCHES "${_regexp_pstl_offload_additional}" AND NOT _file MATCHES "${_regexp_pstl_offload_exclude}")
+        if (_file MATCHES "${_regexp_pstl_offload_parallel_api}" AND NOT _file MATCHES "${_regexp_pstl_offload_exclude}")
             onedpl_add_test(${_file} true)
         endif()
     else()

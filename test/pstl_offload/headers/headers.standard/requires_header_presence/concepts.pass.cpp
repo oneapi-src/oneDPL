@@ -7,19 +7,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#include <version>
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-
-#if __cpp_lib_latch >= 201907L
-#include <latch>
-#endif
+#include <concepts>
 #include "support/utils.h"
 
 int main() {
-#if __cpp_lib_latch >= 201907L
-    [[maybe_unused]] std::latch l(1);
+#if __cpp_lib_concepts >= 202002L
+    static_assert(!std::same_as<int, float>);
 #endif
-    //TODO: add latch sample
     return TestUtils::done();
 }

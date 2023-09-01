@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    using type = int8_t;
+    [[maybe_unused]] std::size_t r = sizeof(std::int8_t);
     return TestUtils::done();
 }

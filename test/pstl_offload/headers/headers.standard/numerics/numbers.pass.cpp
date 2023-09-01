@@ -7,14 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#include <version>
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-
-#if __cpp_lib_math_constants >= 201907L
 #include <numbers>
-#endif
-
 #include "support/utils.h"
 
 int main() {

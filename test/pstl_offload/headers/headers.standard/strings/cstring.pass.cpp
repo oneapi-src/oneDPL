@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    [[maybe_unused]] auto ptr = &std::strcpy;
+    using type = decltype(std::strcpy(nullptr, nullptr));
     return TestUtils::done();
 }

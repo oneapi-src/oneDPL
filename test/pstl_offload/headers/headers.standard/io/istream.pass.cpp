@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    [[maybe_unused]] volatile std::size_t r = sizeof(std::istream);
+    [[maybe_unused]] std::size_t r = sizeof(std::istream);
     return TestUtils::done();
 }

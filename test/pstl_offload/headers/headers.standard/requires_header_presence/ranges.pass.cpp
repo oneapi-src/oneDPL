@@ -7,13 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#include <version>
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-
-#if __cpp_lib_ranges >= 202302L
 #include <ranges>
-#endif
 #include "support/utils.h"
 
 int main() {

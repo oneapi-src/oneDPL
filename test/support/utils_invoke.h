@@ -92,13 +92,13 @@ struct invoke_on_all_host_policies
         invoke_on_all_iterator_types()(seq,       op, rest...);
         invoke_on_all_iterator_types()(unseq,     op, rest...);
         invoke_on_all_iterator_types()(par,       op, rest...);
-#if ONEDPL_TEST_PSTL_OFFLOAD
+#if __SYCL_PSTL_OFFLOAD__
         // If standard library does not provide the par_unseq policy, oneDPL would inject
         // oneDPL par_unseq policy into namespace STD and since std::execution::par_unseq
         // is a pstl offload policy - it should not be tested as a host policy
         if constexpr (!std::is_same_v<oneapi::dpl::execution::parallel_unsequenced_policy,
                                       std::execution::parallel_unsequenced_policy>)
-#endif // ONEDPL_TEST_PSTL_OFFLOAD
+#endif // __SYCL_PSTL_OFFLOAD__
             invoke_on_all_iterator_types()(par_unseq, op, ::std::forward<T>(rest)...);
 #endif
     }
@@ -198,15 +198,15 @@ struct invoke_on_all_hetero_policies
     }
 };
 
-#if ONEDPL_TEST_PSTL_OFFLOAD
+#if __SYCL_PSTL_OFFLOAD__
 
 static sycl::device get_pstl_offload_device() {
 #if __SYCL_PSTL_OFFLOAD__ == 1
-        return sycl::device{sycl::default_selector_v};
+    return sycl::device{sycl::default_selector_v};
 #elif __SYCL_PSTL_OFFLOAD__ == 2
-        return sycl::device{sycl::cpu_selector_v};
+    return sycl::device{sycl::cpu_selector_v};
 #elif __SYCL_PSTL_OFFLOAD__ == 3
-        return sycl::device{sycl::gpu_selector_v};
+    return sycl::device{sycl::gpu_selector_v};
 #else
 #error "PSTL offload is not enabled or the selected value is unsupported"
 #endif // __SYCL_PSTL_OFFLOAD__
@@ -228,7 +228,7 @@ struct invoke_on_all_pstl_offload_policies {
     }
 };
 
-#endif
+#endif // __SYCL_PSTL_OFFLOAD__
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -243,7 +243,7 @@ struct invoke_on_all_policies
 #if TEST_DPCPP_BACKEND_PRESENT
 
         invoke_on_all_host_policies()(op, rest...);
-#if ONEDPL_TEST_PSTL_OFFLOAD
+#if __SYCL_PSTL_OFFLOAD__
         invoke_on_all_pstl_offload_policies()(op, rest...);
 #endif
         invoke_on_all_hetero_policies<CallNumber>()(op, ::std::forward<T>(rest)...);

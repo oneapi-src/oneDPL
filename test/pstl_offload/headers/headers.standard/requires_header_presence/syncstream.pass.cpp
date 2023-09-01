@@ -7,19 +7,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#include <version>
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-
-#if __cpp_lib_endian >= 201907L
-#include <bit>
-#endif
-
+#include <syncstream>
 #include "support/utils.h"
 
 int main() {
-#if __cpp_lib_endian >= 201907L
-    [[maybe_unused]] auto endian = std::endian::native;
+#if __cpp_lib_syncbuf >= 201803L
+    [[maybe_unused]] std::size_t r = sizeof(std::syncbuf);
 #endif
     return TestUtils::done();
 }

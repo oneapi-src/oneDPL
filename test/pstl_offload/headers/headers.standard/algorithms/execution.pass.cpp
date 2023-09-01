@@ -11,5 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    [[maybe_unused]] auto& policy = std::execution::par;
+    static_assert(std::is_execution_policy_v<std::execution::sequenced_policy>);
+    return TestUtils::done();
 }

@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    [[maybe_unused]] volatile std::size_t r = sizeof(oneapi::tbb::numa_node_id);
+    [[maybe_unused]] std::size_t r = sizeof(oneapi::tbb::numa_node_id);
     return TestUtils::done();
 }

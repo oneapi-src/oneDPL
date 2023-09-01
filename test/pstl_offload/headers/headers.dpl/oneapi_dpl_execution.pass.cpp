@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    [[maybe_unused]] auto dummy = oneapi::dpl::execution::seq;
+    static_assert(oneapi::dpl::execution::is_execution_policy_v<oneapi::dpl::execution::sequenced_policy>);
     return TestUtils::done();
 }

@@ -12,6 +12,6 @@
 
 int main() {
     // TODO: header is deprecated in C++98
-    [[maybe_unused]] volatile std::size_t r = sizeof(std::strstream);
+    [[maybe_unused]] std::size_t r = sizeof(std::strstream);
     return TestUtils::done();
 }

@@ -7,18 +7,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#include <version>
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-
-#if __cpp_lib_memory_resource >= 201603L
-#include <memory_resource>
-#endif
+#include <span>
 #include "support/utils.h"
 
 int main() {
-#if __cpp_lib_memory_resource >= 201603L
-    [[maybe_unused]] std::pmr::memory_resource* res = std::pmr::get_default_resource();
+#if __cpp_lib_span >= 202002L
+    [[maybe_unused]] std::span<int> s;
 #endif
     return TestUtils::done();
 }

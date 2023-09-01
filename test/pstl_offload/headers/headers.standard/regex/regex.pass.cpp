@@ -11,6 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    [[maybe_unused]] volatile std::size_t r = sizeof(std::regex);
+    [[maybe_unused]] std::size_t r = sizeof(std::regex);
     return TestUtils::done();
 }

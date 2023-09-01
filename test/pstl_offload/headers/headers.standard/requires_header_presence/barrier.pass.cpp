@@ -7,18 +7,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#include <version>
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-
-#if __cpp_lib_syncbuf >= 201803L
-#include <syncstream>
-#endif
+#include <barrier>
 #include "support/utils.h"
 
 int main() {
-#if __cpp_lib_syncbuf >= 201803L
-    [[maybe_unused]] volatile std::size_t r = sizeof(std::syncbuf);
+#if __cpp_lib_barrier >= 202302L
+    [[maybe_unused]] auto m = std::barrier<>::max();
 #endif
     return TestUtils::done();
 }
