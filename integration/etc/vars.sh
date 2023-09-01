@@ -31,4 +31,6 @@ if [ -z "${ONEAPI_ROOT:-}" ] ; then
   return 254
 fi
 
-DPL_ROOT=$(dirname -- "${_onedpl_scrip_path}") ; export DPL_ROOT
+# ############################################################################
+
+DPL_ROOT=${ONEAPI_ROOT} ; export DPL_ROOT
