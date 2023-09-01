@@ -666,8 +666,7 @@ class __future : private std::tuple<_Args...>
 inline bool
 __use_USM_host_allocations(sycl::queue __queue)
 {
-// The unified future above is currently only supported by DPCPP 2023.1 and compilers starting from 20230820.
-// A future on top of a buffer is used on other compilers.
+// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
 #if _ONEDPL_SYCL_USM_HOST_PRESENT
     auto __device = __queue.get_device();
     if (!__device.is_gpu())

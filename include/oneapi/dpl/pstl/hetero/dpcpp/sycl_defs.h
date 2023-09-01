@@ -78,9 +78,9 @@
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(SIZE)
 #endif
 
-// The unified future supporting USM host memory and buffers is only supported by DPCPP 2023.1
-// and compilers starting from 20230820.
-#if (__SYCL_COMPILER_VERSION == 20230320 || __SYCL_COMPILER_VERSION >= 20230820)
+// The unified future supporting USM host memory and buffers is only supported after DPCPP 2023.1
+// but not by 2023.2.
+#if (_ONEDPL_LIBSYCL_VERSION >= 60100 && _ONEDPL_LIBSYCL_VERSION != 60200)
 #    define _ONEDPL_SYCL_USM_HOST_PRESENT 1
 #else
 #    define _ONEDPL_SYCL_USM_HOST_PRESENT 0
