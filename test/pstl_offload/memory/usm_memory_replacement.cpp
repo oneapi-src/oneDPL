@@ -173,6 +173,7 @@ int main() {
             "Expect pointer from system allocation");
         EXPECT_TRUE(sycl::get_pointer_type(na.realloc_ptr, memory_context) == sycl::usm::alloc::unknown,
             "Expect pointer from system allocation");
+#if __linux__
         EXPECT_TRUE(sycl::get_pointer_type(na.memalign_ptr, memory_context) == sycl::usm::alloc::unknown,
             "Expect pointer from system allocation");
         EXPECT_TRUE(sycl::get_pointer_type(na.posix_memalign_ptr, memory_context) == sycl::usm::alloc::unknown,
@@ -187,6 +188,7 @@ int main() {
             "Expect pointer from system allocation");
         EXPECT_TRUE(sycl::get_pointer_type(na.libc_memalign_ptr, memory_context) == sycl::usm::alloc::unknown,
             "Expect pointer from system allocation");
+#endif // __linux__
 
         EXPECT_TRUE(sycl::get_pointer_type(na.new_ptr, memory_context) == sycl::usm::alloc::unknown,
             "Expect pointer from system allocation");
@@ -218,6 +220,7 @@ int main() {
             "Expect pointer from USM");
         EXPECT_TRUE(sycl::get_pointer_type(na.realloc_ptr, memory_context) == sycl::usm::alloc::shared,
             "Expect pointer from USM");
+#if __linux__
         EXPECT_TRUE(sycl::get_pointer_type(na.memalign_ptr, memory_context) == sycl::usm::alloc::shared,
             "Expect pointer from USM");
         EXPECT_TRUE(sycl::get_pointer_type(na.posix_memalign_ptr, memory_context) == sycl::usm::alloc::shared,
@@ -232,6 +235,7 @@ int main() {
             "Expect pointer from USM");
         EXPECT_TRUE(sycl::get_pointer_type(na.libc_memalign_ptr, memory_context) == sycl::usm::alloc::shared,
             "Expect pointer from USM");
+#endif // __linux__
 
         EXPECT_TRUE(sycl::get_pointer_type(na.new_ptr, memory_context) == sycl::usm::alloc::shared,
             "Expect pointer from USM");

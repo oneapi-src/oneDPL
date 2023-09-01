@@ -10,6 +10,15 @@
 #ifndef _SYSTEM_ALLOCATIONS_H
 #define _SYSTEM_ALLOCATIONS_H
 
+extern "C" {
+struct _IO_FILE;
+typedef struct _IO_FILE FILE;
+
+extern FILE *stderr;
+int fprintf(FILE *stream, const char *format, ...);
+void exit(int status);
+}
+
 // to have native allocation, we must not include possibly overloaded header
 #if DO_STD_INJECTION
 namespace std {
@@ -20,6 +29,16 @@ struct nothrow_t {
 };
 extern const nothrow_t nothrow;
 } // namespace std
+
+static void check_true(bool expected, bool condition, const char* file, int line, const char* message) {
+    if (condition != expected) {
+        fprintf(stderr, "error at %s:%d - %s\n", file, line, message);
+        exit(1);
+    }
+}
+
+#define EXPECT_TRUE(condition, message) check_true(true, condition, __FILE__, __LINE__, message)
+
 #endif // DO_STD_INJECTION
 
 extern "C" {
@@ -30,6 +49,7 @@ void *memalign(std::size_t, std::size_t) noexcept;
 int posix_memalign(void**, std::size_t, std::size_t);
 void free (void *__ptr);
 void *aligned_alloc(std::size_t, std::size_t);
+std::size_t malloc_usable_size (void *ptr) noexcept (true);
 void *__libc_malloc(std::size_t);
 void *__libc_calloc(std::size_t, std::size_t);
 void *__libc_memalign(std::size_t, std::size_t);
@@ -66,12 +86,16 @@ struct system_allocs {
     char *aligned_nothrow_new_ptr;
     char *aligned_arr_new_ptr;
     char *aligned_nothrow_arr_new_ptr;
+
+    static const std::size_t malloc_size = 1024;
 };
 
 static inline void perform_allocations_impl(system_allocs& na) {
-    na.malloc_ptr = malloc(1024);
+    na.malloc_ptr = malloc(system_allocs::malloc_size);
     na.calloc_ptr = calloc(10, 10);
     na.realloc_ptr = realloc(nullptr, 10);
+#if __linux__
+    EXPECT_TRUE(malloc_usable_size(na.malloc_ptr) >= system_allocs::malloc_size, "Invalid object size");
     na.memalign_ptr = memalign(16, 10);
     posix_memalign(&na.posix_memalign_ptr, 16, 10);
     na.aligned_alloc_ptr = aligned_alloc(16, 10);
@@ -79,6 +103,7 @@ static inline void perform_allocations_impl(system_allocs& na) {
     na.libc_calloc_ptr = __libc_calloc(10, 10);
     na.libc_realloc_ptr = __libc_realloc(nullptr, 10);
     na.libc_memalign_ptr = __libc_memalign(16, 10);
+#endif
 
     na.new_ptr = new char;
     na.arr_new_ptr = new char[12];
@@ -91,9 +116,13 @@ static inline void perform_allocations_impl(system_allocs& na) {
 }
 
 static inline void perform_deallocations_impl(const system_allocs& na) {
+#if __linux__
+    EXPECT_TRUE(malloc_usable_size(na.malloc_ptr) >= system_allocs::malloc_size, "Invalid object size");
+#endif
     free(na.malloc_ptr);
     free(na.calloc_ptr);
     (void)realloc(na.realloc_ptr, 0);
+#if __linux__
     free(na.memalign_ptr);
     free(na.posix_memalign_ptr);
     free(na.aligned_alloc_ptr);
@@ -101,6 +130,7 @@ static inline void perform_deallocations_impl(const system_allocs& na) {
     free(na.libc_calloc_ptr);
     free(na.libc_realloc_ptr);
     free(na.libc_memalign_ptr);
+#endif
 
     delete na.new_ptr;
     delete[] na.arr_new_ptr;
