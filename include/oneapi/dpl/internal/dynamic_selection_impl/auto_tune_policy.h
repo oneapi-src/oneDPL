@@ -41,11 +41,6 @@ namespace experimental {
 
     using timing_t = uint64_t;
 
-    struct resource_with_offset_t {
-      wrapped_resource_t r_;
-      size_type offset_;
-    };
-
     struct time_data_t {
       uint64_t num_timings_ = 0;
       timing_t value_ = 0;
@@ -57,17 +52,17 @@ namespace experimental {
       std::chrono::steady_clock::time_point t0_;
 
       timing_t best_timing_ = std::numeric_limits<timing_t>::max();
-      resource_with_offset_t best_resource_;
+      wrapped_resource_t best_resource_;
 
       const size_type max_resource_to_profile_;
-      uint64_t next_resource_to_profile_ = 0; // as offset in resources
+      uint64_t next_resource_to_profile_ = 0; 
 
-      using time_by_offset_t = std::map<size_type, time_data_t>;
-      time_by_offset_t time_by_offset_;
+      using time_t = std::map<size_type, time_data_t>;
+      time_t time_;
 
       double resample_time_ = 0;
 
-      tuner_t(resource_with_offset_t br, size_type resources_size, double rt)
+      tuner_t(wrapped_resource_t br, size_type resources_size, double rt)
         : t0_(std::chrono::steady_clock::now()),
           best_resource_(br),
           max_resource_to_profile_(resources_size),
@@ -93,15 +88,14 @@ namespace experimental {
       }
 
       // called to add new profile info
-      void add_new_timing(resource_with_offset_t r, timing_t t) {
+      void add_new_timing(wrapped_resource_t r, timing_t t) {
         std::unique_lock<std::mutex> l(m_);
-        auto offset = r.offset_;
         timing_t new_value = t;
-        if (time_by_offset_.count(offset) == 0) {
+        if (time_.count(0) == 0) {
           // ignore the 1st timing to cover for JIT compilation
-          time_by_offset_[offset] = time_data_t{0, std::numeric_limits<timing_t>::max()};
+          time_[0] = time_data_t{0, std::numeric_limits<timing_t>::max()};
         } else {
-          auto &td = time_by_offset_[offset];
+          auto &td = time_[0];
           auto n = td.num_timings_;
           new_value = (n*td.value_+t)/(n+1);
           td.num_timings_ = n+1;
@@ -119,18 +113,18 @@ namespace experimental {
     class auto_tune_selection_type {
       using policy_t = auto_tune_policy<Backend, KeyArgs...>;
       policy_t policy_;
-      using resource_with_offset_t = Resource;
-      resource_with_offset_t resource_;
+      using wrapped_resource_t = Resource;
+      wrapped_resource_t resource_;
       using tuner_t = Tuner;
       std::shared_ptr<tuner_t> tuner_;
 
     public:
       auto_tune_selection_type() : policy_(deferred_initialization) {}
 
-      auto_tune_selection_type(const policy_t& p, resource_with_offset_t r, std::shared_ptr<tuner_t> t)
+      auto_tune_selection_type(const policy_t& p, wrapped_resource_t r, std::shared_ptr<tuner_t> t)
         : policy_(p), resource_(r), tuner_(t) {}
 
-      auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_.r_); }
+      auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_); }
 
       policy_t get_policy() { return policy_; };
 
@@ -144,7 +138,7 @@ namespace experimental {
     // Needed by Policy Traits
     using resource_type = decltype(unwrap(std::declval<wrapped_resource_t>()));
     using wait_type = typename Backend::wait_type;
-    using selection_type = auto_tune_selection_type<resource_with_offset_t, tuner_t>;
+    using selection_type = auto_tune_selection_type<wrapped_resource_t, tuner_t>;
 
     auto_tune_policy(double resample_time=never_resample) {
         initialize(resample_time);
@@ -179,11 +173,11 @@ namespace experimental {
         std::unique_lock<std::mutex> l(state_->m_);
         auto k =  make_task_key(std::forward<Function>(f), std::forward<Args>(args)...);
         auto t  = state_->tuner_by_key_[k];
-        auto offset = t->get_resource_to_profile();
-        if (offset == use_best_resource) {
+        auto i = t->get_resource_to_profile();
+        if (i == use_best_resource) {
           return selection_type{*this, t->best_resource_, t};
         } else {
-          auto r = state_->resources_with_offset_[offset];
+          auto r = state_->resources_[i];
           return selection_type{*this, r, t};
         }
       } else {
@@ -233,7 +227,7 @@ namespace experimental {
 
     struct state_t {
       std::mutex m_;
-      std::vector<resource_with_offset_t> resources_with_offset_;
+      std::vector<wrapped_resource_t> resources_;
       tuner_by_key_t tuner_by_key_;
     };
 
@@ -248,7 +242,7 @@ namespace experimental {
       resample_time_ = resample_time;
       auto u = get_resources();
       for (size_type i = 0; i < u.size(); ++i) {
-        state_->resources_with_offset_.push_back(resource_with_offset_t{u[i], i});
+        state_->resources_.push_back(u[i]);
       }
     }
 
@@ -257,7 +251,7 @@ namespace experimental {
       // called under lock
       task_key_t k = std::tuple_cat(std::tuple<void *>(&f), std::make_tuple(std::forward<Args>(args)...));
       if (state_->tuner_by_key_.count(k) == 0) {
-        state_->tuner_by_key_[k] = std::make_shared<tuner_t>(state_->resources_with_offset_[0], state_->resources_with_offset_.size(), resample_time_);
+        state_->tuner_by_key_[k] = std::make_shared<tuner_t>(state_->resources_[0], state_->resources_.size(), resample_time_);
       }
       return k;
     }
