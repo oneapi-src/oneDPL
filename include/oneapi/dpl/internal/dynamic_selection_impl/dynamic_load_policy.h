@@ -127,7 +127,7 @@ namespace experimental{
           std::shared_ptr<resource_t> least_loaded = nullptr;
           int least_load = std::numeric_limits<load_t>::max();
           for(int i = 0;i<state_->resources_.size();i++){
-            auto r = state_->resources_[i%state_->resources_.size()];
+            auto r = state_->resources_[i];
             load_t v = r->load_.load();
               if (least_loaded == nullptr || v < least_load) {
                 least_load = v;
