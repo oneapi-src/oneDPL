@@ -96,7 +96,7 @@ inline auto __get_original_realloc() {
     return __orig_realloc;
 }
 
-inline void __free_original_pointer(__block_header* __header) {
+inline void __free_usm_pointer(__block_header* __header) {
     assert(__header != nullptr);
     sycl::context __context = __header->_M_device->get_platform().ext_oneapi_get_default_context();
     __header->_M_uniq_const = 0;
@@ -122,7 +122,7 @@ inline void* __realloc_real_pointer(void* __user_ptr, std::size_t __new_size) {
                 std::memcpy(__new_ptr, __user_ptr, __header->_M_requested_number_of_bytes);
 
                 // Free previously allocated memory
-                __free_original_pointer(__header);
+                __free_usm_pointer(__header);
                 __result = __new_ptr;
             } else {
                 errno = ENOMEM;

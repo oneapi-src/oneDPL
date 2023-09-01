@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #if !__SYCL_PSTL_OFFLOAD__
-#error "PSTL offload compiler mode should be enabled to the compiler to run this test"
+#error "PSTL offload compiler mode should be enabled to run this test"
 #endif
 
 // ATTENTION: don't include oneDPL and unguarded standard headers

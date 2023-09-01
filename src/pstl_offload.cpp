@@ -43,7 +43,7 @@ static void __internal_free(void* __user_ptr) {
         __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
 
         if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const) {
-            __free_original_pointer(__header);
+            __free_usm_pointer(__header);
         } else {
             __get_original_free()(__user_ptr);
         }

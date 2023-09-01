@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #ifndef __SYCL_PSTL_OFFLOAD__
-#error "-fsycl-pstl-offload option should be passed to the compiler to run this test"
+#error "PSTL offload compiler mode should be enabled to run this test"
 #endif
 
 #include <new>

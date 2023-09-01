@@ -11,7 +11,7 @@
 #define _ONEDPL_PSTL_OFFLOAD_INTERNAL_NUMERIC_IMPL_H
 
 #ifndef __SYCL_PSTL_OFFLOAD__
-#error "-fsycl-pstl-offload option should be passed to the compiler to use this header"
+#error "PSTL offload compiler mode should be enabled to use this header"
 #endif
 
 #include <execution>
