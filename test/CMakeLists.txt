@@ -112,7 +112,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     if (DEFINED DEVICE_SELECTION_LINE)
         file(GLOB_RECURSE DS_TESTS "parallel_api/dynamic_selection/*.cpp")
-        if (NOT "${DS_TESTS}" MATCHES "${_test_name}") # do not set SYCL_DEVICE_FILTER for device selector tests
+        if (NOT "${DS_TESTS}" MATCHES "${_test_name}") # do not set SYCL_DEVICE_FILTER for dynamic selection tests
             set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
         endif()
     endif()

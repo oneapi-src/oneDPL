@@ -125,7 +125,7 @@ namespace experimental {
       std::shared_ptr<tuner_t> tuner_;
 
     public:
-      auto_tune_selection_type() : policy_(deferred_initialization) {}
+      auto_tune_selection_type() : policy_(deferred_initialization()) {}
 
       auto_tune_selection_type(const policy_t& p, resource_with_offset_t r, std::shared_ptr<tuner_t> t)
         : policy_(p), resource_(r), tuner_(t) {}
@@ -147,15 +147,14 @@ namespace experimental {
     using selection_type = auto_tune_selection_type<resource_with_offset_t, tuner_t>;
 
     auto_tune_policy(double resample_time=never_resample) {
-      if (resample_time != deferred_initialization) {
         initialize(resample_time);
-      }
     }
 
+
+    auto_tune_policy(deferred_initialization) {}
+
     auto_tune_policy(const std::vector<resource_type>& u, double resample_time=never_resample) {
-      if (resample_time != deferred_initialization) {
         initialize(u, resample_time);
-      }
     }
 
     void initialize(double resample_time=never_resample) {
@@ -188,7 +187,7 @@ namespace experimental {
           return selection_type{*this, r, t};
         }
       } else {
-         throw std::runtime_error("Called select before initialization\n");
+         throw std::logic_error("Called select before initialization\n");
       }
     }
 
@@ -197,7 +196,7 @@ namespace experimental {
       if (backend_) {
         return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
       } else {
-         throw std::runtime_error("Called submit before initialization\n");
+         throw std::logic_error("Called submit before initialization\n");
       }
     }
 
@@ -205,7 +204,7 @@ namespace experimental {
        if (backend_) {
          return backend_->get_resources();
        } else {
-         throw std::runtime_error("Called get_resources before initialization\n");
+         throw std::logic_error("Called get_resources before initialization\n");
        }
     }
 
@@ -213,7 +212,7 @@ namespace experimental {
       if (backend_) {
         return backend_->get_submission_group();
        } else {
-         throw std::runtime_error("Called get_submission_group before initialization\n");
+         throw std::logic_error("Called get_submission_group before initialization\n");
        }
     }
 

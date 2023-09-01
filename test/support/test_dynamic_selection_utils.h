@@ -29,7 +29,7 @@ int test_initialization(const std::vector<T>& u) {
   }
 
   // deferred initialization
-  my_policy_t p2{oneapi::dpl::experimental::deferred_initialization};
+  my_policy_t p2{oneapi::dpl::experimental::deferred_initialization()};
   try {
     auto u3 = oneapi::dpl::experimental::get_resources(p2);
     if (!u3.empty()) {
@@ -91,14 +91,14 @@ int test_select(UniverseContainer u, ResourceFunction&& f) {
 template<bool call_select_before_submit, typename Policy, typename UniverseContainer, typename ResourceFunction>
 int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int offset=0) {
     using my_policy_t = Policy;
-    my_policy_t p{u, offset};
+    my_policy_t p{u};
 
     int N=100;
   std::atomic<int> ecount = 0;
     bool pass=true;
     if constexpr(call_select_before_submit){
         for(int i=1;i<=N;i++){
-            auto test_resource = f(i, offset);
+            auto test_resource = f(i);
             auto func = [&](typename Policy::resource_type e){
                    if (e != test_resource) {
                          pass = false;
@@ -117,7 +117,7 @@ int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int
     }
     else{
             for (int i = 1; i <= N; ++i) {
-                auto test_resource = f(i, offset);
+                auto test_resource = f(i);
                 oneapi::dpl::experimental::submit(p,
                      [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                        if (e != test_resource) {
@@ -144,7 +144,7 @@ int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int
 template<bool call_select_before_submit, typename Policy, typename UniverseContainer, typename ResourceFunction>
 int test_submit_and_wait_on_event(UniverseContainer u, ResourceFunction&& f, int offset=0) {
   using my_policy_t = Policy;
-  my_policy_t p{u, offset};
+  my_policy_t p{u};
 
   const int N = 100;
   bool pass = true;
@@ -153,7 +153,7 @@ int test_submit_and_wait_on_event(UniverseContainer u, ResourceFunction&& f, int
 
   if constexpr(call_select_before_submit){
       for (int i = 1; i <= N; ++i) {
-        auto test_resource = f(i, offset);
+        auto test_resource = f(i);
         auto func =   [&pass,test_resource, &ecount, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
            if (e != test_resource) {
              pass = false;
@@ -176,7 +176,7 @@ int test_submit_and_wait_on_event(UniverseContainer u, ResourceFunction&& f, int
   }
   else{
       for (int i = 1; i <= N; ++i) {
-        auto test_resource = f(i, offset);
+        auto test_resource = f(i);
         auto w = oneapi::dpl::experimental::submit(p,
                                   [&pass,test_resource,&ecount,  i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                                     if (e != test_resource) {
@@ -207,7 +207,7 @@ int test_submit_and_wait_on_event(UniverseContainer u, ResourceFunction&& f, int
 template<bool call_select_before_submit, typename Policy, typename UniverseContainer, typename ResourceFunction>
 int test_submit_and_wait(UniverseContainer u, ResourceFunction&& f, int offset=0) {
   using my_policy_t = Policy;
-  my_policy_t p{u, offset};
+  my_policy_t p{u};
 
   const int N = 100;
   std::atomic<int> ecount = 0;
@@ -215,7 +215,7 @@ int test_submit_and_wait(UniverseContainer u, ResourceFunction&& f, int offset=0
 
   if constexpr(call_select_before_submit){
       for (int i = 1; i <= N; ++i) {
-        auto test_resource = f(i, offset);
+        auto test_resource = f(i);
         auto func =   [&pass,test_resource, &ecount, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
             if (e != test_resource) {
               pass = false;
@@ -233,7 +233,7 @@ int test_submit_and_wait(UniverseContainer u, ResourceFunction&& f, int offset=0
       }
   }else{
       for (int i = 1; i <= N; ++i) {
-        auto test_resource = f(i, offset);
+        auto test_resource = f(i);
         oneapi::dpl::experimental::submit_and_wait(p,
                    [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                      if (e != test_resource) {
