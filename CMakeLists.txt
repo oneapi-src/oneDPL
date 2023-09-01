@@ -103,14 +103,6 @@ if (NOT ONEDPL_BACKEND)
     message(STATUS "Using ${ONEDPL_BACKEND} as default backend")
 endif()
 
-if (NOT _ONEDPL_PSTL_OFFLOAD)
-    set(_ONEDPL_PSTL_OFFLOAD "off")
-else()
-    if (NOT ONEDPL_BACKEND MATCHES "^(dpcpp)$")
-        message(FATAL_ERROR "${ONEDPL_BACKEND} doesn't support pstl offload, dpcpp backend required")
-    endif()
-endif()
-
 ###############################################################################
 # Setup the oneDPL library target
 ###############################################################################
@@ -340,6 +332,14 @@ else()
     else()
         find_package(${ONEDPL_BACKEND} REQUIRED)
         target_link_libraries(oneDPL INTERFACE ${${ONEDPL_BACKEND}_IMPORTED_TARGETS})
+    endif()
+endif()
+
+if (NOT _ONEDPL_PSTL_OFFLOAD)
+    set(_ONEDPL_PSTL_OFFLOAD "off")
+else()
+    if (NOT ONEDPL_BACKEND MATCHES "^(dpcpp)$")
+        message(FATAL_ERROR "${ONEDPL_BACKEND} doesn't support pstl offload, dpcpp backend required")
     endif()
 endif()
 
