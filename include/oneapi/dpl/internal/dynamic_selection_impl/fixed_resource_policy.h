@@ -51,14 +51,14 @@ namespace experimental {
 
   public:
     fixed_resource_policy(size_t offset=0) {
-        initialize();
+        initialize(offset);
     }
 
     fixed_resource_policy(deferred_initialization) {}
 
 
-    fixed_resource_policy(const std::vector<resource_type>& u) {
-        initialize(u);
+    fixed_resource_policy(const std::vector<resource_type>& u,  size_t offset=0) {
+        initialize(u, offset);
     }
 
     auto get_resources()  const {
