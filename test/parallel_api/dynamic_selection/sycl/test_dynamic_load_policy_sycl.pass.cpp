@@ -44,9 +44,6 @@ int main() {
 
   // should be similar to round_robin when waiting on policy
   auto f = [u, n](int i) {
-    if(i==0) {
-        return u[0];
-    }
     return u[i%u.size()];
   };
 
