@@ -11,17 +11,32 @@
 #define _ONEDPL_INLINE_SCHEDULER_H
 
 #include "oneapi/dpl/dynamic_selection"
-#include "oneapi/dpl/internal/dynamic_selection_impl/backend_defs.h"
 
 #include <vector>
 #include <atomic>
 
 namespace TestUtils {
 class int_inline_backend_t {
+  template<typename Resource>
+  class basic_execution_resource_t {
+    using resource_t = Resource;
+    resource_t resource_;
+  public:
+    basic_execution_resource_t() : resource_(resource_t{}) {}
+    basic_execution_resource_t(resource_t r) : resource_(r) {}
+    resource_t unwrap() const { return resource_; }
+    bool operator==(const basic_execution_resource_t& e) const {
+      return resource_ == e.resource_;
+    }
+    bool operator==(const resource_t& e) const {
+      return resource_ == e;
+    }
+  };
+
 public:
   using resource_type = int;
   using wait_type = int;
-  using execution_resource_t = oneapi::dpl::experimental::basic_execution_resource_t<resource_type>;
+  using execution_resource_t = basic_execution_resource_t<resource_type>;
   using resource_container_t = std::vector<execution_resource_t>;
 
 private:
