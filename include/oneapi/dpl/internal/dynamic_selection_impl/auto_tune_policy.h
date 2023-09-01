@@ -10,7 +10,7 @@
 #ifndef _ONEDPL_AUTO_TUNE_POLICY_H
 #define _ONEDPL_AUTO_TUNE_POLICY_H
 
-#include <exception>
+#include <stdexcept>
 #include <map>
 #include <memory>
 #include <mutex>
