@@ -160,7 +160,7 @@ int test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f, int
         for (int i = 0; i < total_items; ++i) {
             int target=(i+offset)%u.size();
             auto test_resource = f(i, offset);
-                oneapi::dpl::experimental::submit(p,[&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e){
+                oneapi::dpl::experimental::submit(p,[&](oneapi::dpl::experimental::resource_t<Policy> e){
                    if (e == test_resource) {
                          probability.fetch_add(1);
                    }
@@ -216,12 +216,12 @@ int test_submit_and_wait_on_event(UniverseContainer u, ResourceFunction&& f, int
   if constexpr(call_select_before_submit){
       for (int i = 1; i <= N; ++i) {
         auto test_resource = f(i, offset);
-        auto func =   [&pass,test_resource, &ecount, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+        auto func =   [&pass,test_resource, &ecount, i](oneapi::dpl::experimental::resource_t<Policy> e) {
             if (e != test_resource) {
               pass = false;
             }
             ecount += i;
-            return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+            return typename oneapi::dpl::experimental::wait_t<Policy>{};
           };
         auto s = oneapi::dpl::experimental::select(p,func);
         auto w = oneapi::dpl::experimental::submit(s,func);
@@ -237,12 +237,12 @@ int test_submit_and_wait_on_event(UniverseContainer u, ResourceFunction&& f, int
       for (int i = 1; i <= N; ++i) {
         auto test_resource = f(i, offset);
         auto w = oneapi::dpl::experimental::submit(p,
-                                  [&pass,test_resource,&ecount,  i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+                                  [&pass,test_resource,&ecount,  i](oneapi::dpl::experimental::resource_t<Policy> e) {
                                     if (e != test_resource) {
                                       pass = false;
                                     }
                                     ecount += i;
-                                    return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+                                    return oneapi::dpl::experimental::wait_t<Policy>{};
                                   });
         oneapi::dpl::experimental::wait(w);
         int count = ecount.load();
@@ -272,12 +272,12 @@ int test_submit_and_wait(UniverseContainer u, ResourceFunction&& f, int offset=0
   if constexpr(call_select_before_submit){
       for (int i = 1; i <= N; ++i) {
         auto test_resource = f(i, offset);
-        auto func =   [&pass,test_resource, &ecount, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+        auto func =   [&pass,test_resource, &ecount, i](typename oneapi::dpl::experimental::resource_t<Policy> e) {
             if (e != test_resource) {
               pass = false;
             }
             ecount += i;
-            return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+            return typename oneapi::dpl::experimental::wait_t<Policy>{};
           };
         auto s = oneapi::dpl::experimental::select(p,func);
         oneapi::dpl::experimental::submit_and_wait(s, func);
@@ -291,15 +291,15 @@ int test_submit_and_wait(UniverseContainer u, ResourceFunction&& f, int offset=0
       for (int i = 1; i <= N; ++i) {
         auto test_resource = f(i, offset);
         oneapi::dpl::experimental::submit_and_wait(p,
-                   [&pass,&ecount,test_resource, i](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+                   [&pass,&ecount,test_resource, i](oneapi::dpl::experimental::resource_t<Policy> e) {
                      if (e != test_resource) {
                        pass = false;
                      }
                      ecount += i;
-                     if constexpr (std::is_same_v<typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
+                     if constexpr (std::is_same_v<oneapi::dpl::experimental::resource_t<Policy>, int>)
                        return e;
                      else
-                       return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+                       return oneapi::dpl::experimental::wait_t<Policy>{};
                    });
         int count = ecount.load();
         if (count != i*(i+1)/2) {

@@ -29,7 +29,7 @@ int test_auto_submit(UniverseContainer u, int best_resource) {
     // the inline_scheduler reports timings in submit
     // so we can treat this just like submit_and_wait
     if constexpr (do_select) {
-      auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+      auto f = [&](oneapi::dpl::experimental::resource_t<Policy> e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
@@ -42,13 +42,13 @@ int test_auto_submit(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+                   return typename oneapi::dpl::experimental::wait_t<Policy>{};
                };
       auto s = oneapi::dpl::experimental::select(p, f);
       oneapi::dpl::experimental::submit(s, f);
     } else {
       oneapi::dpl::experimental::submit(p,
-                 [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+                 [&](oneapi::dpl::experimental::resource_t<Policy> e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
@@ -61,7 +61,7 @@ int test_auto_submit(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+                   return oneapi::dpl::experimental::wait_t<Policy>{};
                  });
     }
     int count = ecount.load();
@@ -97,7 +97,7 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
     // The unwrapped wait type should be equal to the resource
     int e_val = -1;
     if constexpr (do_select) {
-      auto f =  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+      auto f =  [&](oneapi::dpl::experimental::resource_t<Policy> e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
@@ -118,7 +118,7 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
       e_val = oneapi::dpl::experimental::unwrap(e);
     } else {
       auto e = oneapi::dpl::experimental::submit(p,
-                 [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+                 [&](oneapi::dpl::experimental::resource_t<Policy> e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
@@ -173,7 +173,7 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
   for (int i = 1; i <= N; ++i) {
     // we can capture all by reference, since it should wait, no concurrency
     if constexpr (do_select) {
-      auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+      auto f = [&](oneapi::dpl::experimental::resource_t<Policy> e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
@@ -186,13 +186,13 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+                   return oneapi::dpl::experimental::wait_t<Policy>{};
                  };
       auto s = oneapi::dpl::experimental::select(p, f);
       auto e = oneapi::dpl::experimental::submit(s, f);
     } else {
       oneapi::dpl::experimental::submit(p,
-                 [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+                 [&](oneapi::dpl::experimental::resource_t<Policy> e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
@@ -205,7 +205,7 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+                   return oneapi::dpl::experimental::wait_t<Policy>{};
                  });
     }
     int count = ecount.load();
@@ -240,7 +240,7 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
   for (int i = 1; i <= N; ++i) {
     // we can capture all by reference, since it should wait, no concurrency
     if constexpr (do_select) {
-      auto f =  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+      auto f =  [&](oneapi::dpl::experimental::resource_t<Policy> e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
@@ -253,13 +253,13 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+                   return oneapi::dpl::experimental::wait_t<Policy>{};
                  };
       auto s = oneapi::dpl::experimental::select(p, f);
       oneapi::dpl::experimental::submit_and_wait(s, f);
     } else {
       oneapi::dpl::experimental::submit_and_wait(p,
-                 [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+                 [&](oneapi::dpl::experimental::resource_t<Policy> e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
@@ -272,7 +272,7 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+                   return oneapi::dpl::experimental::wait_t<Policy>{};
                  });
     }
     int count = ecount.load();
