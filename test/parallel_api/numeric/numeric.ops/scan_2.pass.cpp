@@ -147,7 +147,7 @@ DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     ::std::enable_if_t<
         oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>::value &&
-            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value,
+            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>,
         void>
     operator()(Policy&& exec,
                Iterator1 keys_first, Iterator1 keys_last,
@@ -195,7 +195,7 @@ DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     ::std::enable_if_t<
         !oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>::value &&
-            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value,
+            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>,
         void>
     operator()(Policy&& exec,
                Iterator1 keys_first, Iterator1 keys_last,
@@ -218,7 +218,7 @@ DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
 
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value, void>
+    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>, void>
     operator()(Policy&& exec,
                Iterator1 keys_first, Iterator1 keys_last,
                Iterator2 vals_first, Iterator2 vals_last,
@@ -235,7 +235,7 @@ DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
     template <typename Policy, typename Iterator1, typename Size>
     ::std::enable_if_t<
         !oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>::value &&
-            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value,
+            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>,
         void>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Size n)
     {
@@ -259,7 +259,7 @@ DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
     template <typename Policy, typename Iterator1, typename Size>
     ::std::enable_if_t<
         oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>::value &&
-            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value,
+            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>,
         void>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last,
                Size n)
@@ -289,7 +289,7 @@ DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
 
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value, void>
+    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>, void>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Size n)
     {
     }

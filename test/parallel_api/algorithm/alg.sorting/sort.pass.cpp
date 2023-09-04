@@ -313,7 +313,7 @@ struct test_sort_op
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename... Compare>
     ::std::enable_if_t<
-        TestUtils::is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value &&
+        TestUtils::is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator> &&
             (TestUtils::can_use_default_less_operator<T>::value || sizeof...(Compare) > 0),
         void>
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
@@ -326,7 +326,7 @@ struct test_sort_op
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename... Compare>
     ::std::enable_if_t<
-        !TestUtils::is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value ||
+        !TestUtils::is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator> ||
             !(TestUtils::can_use_default_less_operator<T>::value || sizeof...(Compare) > 0),
         void>
     operator()(Policy&& /* exec */, OutputIterator /* tmp_first */, OutputIterator /* tmp_last */,

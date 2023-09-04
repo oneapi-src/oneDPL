@@ -76,7 +76,7 @@ struct test_without_compare
 {
     // nth_element works only with random access iterators
     template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value &&
+    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1> &&
                            can_use_default_less_operator<Type>::value,
                        void>
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator1 first2, Iterator1 last2, Size n, Size m,
@@ -100,7 +100,7 @@ struct test_without_compare
     }
 
     template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2>
-    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value ||
+    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1> ||
                            !can_use_default_less_operator<Type>::value,
                        void>
     operator()(Policy&& /* exec */, Iterator1 /* first1 */, Iterator1 /* last1 */, Iterator1 /* first2 */, Iterator1 /* last2 */, Size /* n */, Size /* m */,
@@ -115,7 +115,7 @@ struct test_with_compare
     // nth_element works only with random access iterators
     template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>, void>
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator1 first2, Iterator1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2, Compare comp)
     {
@@ -138,7 +138,7 @@ struct test_with_compare
 
     template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value, void>
+    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>, void>
     operator()(Policy&& /* exec */, Iterator1 /* first1 */, Iterator1 /* last1 */, Iterator1 /* first2 */, Iterator1 /* last2 */, Size /* n */, Size /* m */,
                Generator1 /* generator1 */, Generator2 /* generator2 */, Compare /* comp */)
     {
