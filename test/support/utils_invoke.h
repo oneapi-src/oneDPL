@@ -28,7 +28,7 @@ template <sycl::usm::alloc alloc_type>
 constexpr ::std::size_t
 uniq_kernel_index()
 {
-    return static_cast<typename ::std::underlying_type<sycl::usm::alloc>::type>(alloc_type);
+    return static_cast<::std::underlying_type_t<sycl::usm::alloc>>(alloc_type);
 }
 
 template <typename Op, ::std::size_t CallNumber>

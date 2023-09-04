@@ -43,9 +43,9 @@ enum class UDTKind
 template <typename TEnum>
 auto
 enum_val_to_index(TEnum enumVal)
-    -> decltype(static_cast<typename ::std::underlying_type<TEnum>::type>(enumVal))
+    -> decltype(static_cast<::std::underlying_type_t<TEnum>>(enumVal))
 {
-    return static_cast<typename ::std::underlying_type<TEnum>::type>(enumVal);
+    return static_cast<::std::underlying_type_t<TEnum>>(enumVal);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
