@@ -248,6 +248,9 @@ using is_same_iterator_category = ::std::is_same<typename iterator_traits_<Iter>
 template <typename Tag, typename Iter>
 using is_base_of_iterator_category = ::std::is_base_of<Tag, typename iterator_traits_<Iter>::iterator_category>;
 
+template <typename Tag, typename Iter>
+inline constexpr bool is_base_of_iterator_category_v = is_base_of_iterator_category<Tag, Iter>::value;
+
 // if we run with reverse or const iterators we shouldn't test the large range
 template <typename IsReverse, typename IsConst>
 struct invoke_if_

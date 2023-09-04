@@ -102,7 +102,7 @@ struct test_one_policy
 
     template <typename ExecutionPolicy, typename Iterator, typename Size>
     ::std::enable_if_t<
-        is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
+        is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator> &&
         !::std::is_same_v<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy> &&
         ::std::is_same_v<typename ::std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>,
         bool>
@@ -118,7 +118,7 @@ struct test_one_policy
 
     template <typename ExecutionPolicy, typename Iterator, typename Size>
     ::std::enable_if_t<
-        !(is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
+        !(is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator> &&
         !::std::is_same_v<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy> &&
         ::std::is_same_v<typename ::std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>),
         bool>

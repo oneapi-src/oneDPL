@@ -71,7 +71,7 @@ template<typename T>
 struct test_partition
 {
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt>::value>
+    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>>
     operator()(Policy&& exec, BiDirIt first, BiDirIt last, BiDirIt /* exp_first */, BiDirIt /* exp_last */, Size /* n */,
                UnaryOp unary_op, Generator generator)
     {
@@ -82,7 +82,7 @@ struct test_partition
     }
 
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    ::std::enable_if_t<!is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt>::value>
+    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>>
     operator()(Policy&& /* exec */, BiDirIt /* first */, BiDirIt /* last */, BiDirIt /* exp_first */, BiDirIt /* exp_last */, Size /* n */,
                UnaryOp /* unary_op */, Generator /* generator */)
     {

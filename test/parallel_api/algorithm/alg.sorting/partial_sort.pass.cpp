@@ -58,7 +58,7 @@ template <typename Type>
 struct test_brick_partial_sort
 {
     template <typename Policy, typename InputIterator, typename Compare>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value>
+    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator>>
     operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
                InputIterator tmp_first, InputIterator tmp_last, Compare compare)
     {
@@ -101,14 +101,14 @@ struct test_brick_partial_sort
     }
 
     template <typename Policy, typename InputIterator, typename Compare>
-    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value>
+    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator>>
     operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */,
                InputIterator /* exp_last */, InputIterator /* tmp_first */, InputIterator /* tmp_last */, Compare /* compare */)
     {
     }
 
     template <typename Policy, typename InputIterator>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value &&
+    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator> &&
                            can_use_default_less_operator<Type>::value>
     operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
                InputIterator tmp_first, InputIterator tmp_last)
@@ -129,7 +129,7 @@ struct test_brick_partial_sort
     }
 
     template <typename Policy, typename InputIterator>
-    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value ||
+    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator> ||
                            !can_use_default_less_operator<Type>::value>
     operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */,
                InputIterator /* exp_last */, InputIterator /* tmp_first */, InputIterator /* tmp_last */)
