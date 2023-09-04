@@ -262,6 +262,9 @@ test_usm(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
 #endif // _PSTL_SYCL_TEST_USM
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
+// Additional check for std::execution::par_unseq is required because standard execution policy is
+// not a host execution policy in terms of oneDPL and the eligible overload of run_test would not be found
+// while testing PSTL offload
 template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
           typename... Compare>
 std::enable_if_t<oneapi::dpl::__internal::__is_host_execution_policy<std::decay_t<Policy>>::value

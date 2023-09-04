@@ -41,6 +41,9 @@ struct USM;
 
 struct test_shift
 {
+    // Additional check for std::execution::par_unseq is required because standard execution policy is
+    // not a host execution policy in terms of oneDPL and the eligible overload of operator() would not be found
+    // while testing PSTL offload
     template <typename Policy, typename It, typename Algo>
     std::enable_if_t<oneapi::dpl::__internal::__is_host_execution_policy<std::decay_t<Policy>>::value
 #if __SYCL_PSTL_OFFLOAD__
