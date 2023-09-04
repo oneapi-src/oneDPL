@@ -374,16 +374,7 @@ if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
         target_compile_options(oneDPL INTERFACE "-D__SYCL_PSTL_OFFLOAD__=${PSTL_OFFLOAD_MACRO_VALUE}")
     endif()
 
-    add_library(pstloffload SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/pstl_offload.cpp)
-    target_compile_options(pstloffload PUBLIC "-fsycl")
-    target_include_directories(pstloffload PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    set_target_properties(pstloffload PROPERTIES
-        VERSION 1.0.0
-        SOVERSION 1
-        CXX_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN ON
-    )
-
+    add_subdirectory(src)
     add_dependencies(oneDPL pstloffload)
 
     # TODO remove explicit linkage with libpstloffload

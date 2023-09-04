@@ -14,6 +14,10 @@
 
 #include <pstl_offload/internal/usm_memory_replacement_common.h>
 
+#define _PSTL_OFFLOAD_VERSION_MAJOR 1
+#define _PSTL_OFFLOAD_VERSION_MINOR 0
+#define _PSTL_OFFLOAD_VERSION_PATCH 0
+
 #if __linux__
 
 #define _PSTL_OFFLOAD_EXPORT __attribute__((visibility("default")))
