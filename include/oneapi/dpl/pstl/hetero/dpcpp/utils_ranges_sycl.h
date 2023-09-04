@@ -435,7 +435,7 @@ struct __get_sycl_range
     }
 
     template <typename _R, typename _Map, typename _Size,
-              ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator<_Map>::value, int> = 0>
+              ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator_v<_Map>, int> = 0>
     auto
     __get_permutation_view(_R __r, _Map __m, _Size __s)
     {

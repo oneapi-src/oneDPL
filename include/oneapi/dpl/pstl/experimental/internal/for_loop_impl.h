@@ -211,7 +211,7 @@ struct __is_random_access_or_integral<_Ip, ::std::enable_if_t<::std::is_integral
 
 template <typename _Ip>
 struct __is_random_access_or_integral<
-    _Ip, ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator<_Ip>::value>> : ::std::true_type
+    _Ip, ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator_v<_Ip>>> : ::std::true_type
 {
 };
 

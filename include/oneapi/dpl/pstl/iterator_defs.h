@@ -77,6 +77,9 @@ struct __is_random_access_iterator<_IteratorType> : __is_random_access_iterator_
 {
 };
 
+template <typename ..._IteratorTypes>
+inline constexpr bool __is_random_access_iterator_v = __is_random_access_iterator<_IteratorTypes...>::value;
+
 // struct for checking if iterator is heterogeneous or not
 template <typename Iter, typename Void = void> // for non-heterogeneous iterators
 struct is_hetero_iterator : ::std::false_type
