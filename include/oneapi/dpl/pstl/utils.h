@@ -524,6 +524,9 @@ template <typename _Tp>
 using __is_const_callable_object =
     ::std::integral_constant<bool, __is_callable_object<_Tp>::value && __is_pointer_to_const_member<_Tp>::value>;
 
+template <typename _Tp>
+inline constexpr bool __is_const_callable_object_v = __is_const_callable_object<_Tp>::value;
+
 struct __next_to_last
 {
     template <typename _Iterator>
