@@ -39,7 +39,7 @@ static sycl::device __get_offload_device() {
 #elif __SYCL_PSTL_OFFLOAD__ == 2
         return sycl::device{sycl::cpu_selector_v};
 #elif __SYCL_PSTL_OFFLOAD__ == 3
-        return sycl::device{gpu_selector_v};
+        return sycl::device{sycl::gpu_selector_v};
 #else
 #error "PSTL offload is not enabled or the selected value is unsupported"
 #endif
