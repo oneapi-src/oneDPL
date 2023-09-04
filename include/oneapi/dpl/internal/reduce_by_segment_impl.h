@@ -582,7 +582,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 ::std::enable_if_t<
-    oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>::value,
+    oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>>,
     ::std::pair<OutputIterator1, OutputIterator2>>
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
