@@ -109,7 +109,7 @@ struct test_brick_partial_sort
 
     template <typename Policy, typename InputIterator>
     ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator> &&
-                           can_use_default_less_operator<Type>::value,
+                           can_use_default_less_operator_v<Type>,
                        void>
     operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
                InputIterator tmp_first, InputIterator tmp_last)
@@ -131,7 +131,7 @@ struct test_brick_partial_sort
 
     template <typename Policy, typename InputIterator>
     ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator> ||
-                           !can_use_default_less_operator<Type>::value,
+                           !can_use_default_less_operator_v<Type>,
                        void>
     operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */,
                InputIterator /* exp_last */, InputIterator /* tmp_first */, InputIterator /* tmp_last */)
