@@ -115,20 +115,20 @@ template <typename _ExecutionPolicy, typename... _IteratorTypes>
 auto
 __is_vectorization_preferred(_ExecutionPolicy& __exec)
     -> decltype(__internal::__lazy_and(__exec.__allow_vector(),
-                                       typename __internal::__is_random_access_iterator<_IteratorTypes...>::type()))
+                                       __internal::__is_random_access_iterator_t<_IteratorTypes...>()))
 {
     return __internal::__lazy_and(__exec.__allow_vector(),
-                                  typename __internal::__is_random_access_iterator<_IteratorTypes...>::type());
+                                  __internal::__is_random_access_iterator_t<_IteratorTypes...>());
 }
 
 template <typename _ExecutionPolicy, typename... _IteratorTypes>
 auto
 __is_parallelization_preferred(_ExecutionPolicy& __exec)
     -> decltype(__internal::__lazy_and(__exec.__allow_parallel(),
-                                       typename __internal::__is_random_access_iterator<_IteratorTypes...>::type()))
+                                       __internal::__is_random_access_iterator_t<_IteratorTypes...>()))
 {
     return __internal::__lazy_and(__exec.__allow_parallel(),
-                                  typename __internal::__is_random_access_iterator<_IteratorTypes...>::type());
+                                  __internal::__is_random_access_iterator_t<_IteratorTypes...>());
 }
 
 template <typename policy, typename... _IteratorTypes>

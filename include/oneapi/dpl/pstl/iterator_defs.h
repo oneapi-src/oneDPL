@@ -77,6 +77,9 @@ struct __is_random_access_iterator<_IteratorType> : __is_random_access_iterator_
 {
 };
 
+template <typename... _IteratorTypes>
+using __is_random_access_iterator_t = typename __is_random_access_iterator<_IteratorTypes...>::type;
+
 template <typename ..._IteratorTypes>
 inline constexpr bool __is_random_access_iterator_v = __is_random_access_iterator<_IteratorTypes...>::value;
 
