@@ -98,7 +98,7 @@ test_body_for_loop_strided(Policy&& exec, Iterator first, Iterator last, Iterato
     using T = typename ::std::iterator_traits<Iterator>::value_type;
 
 #ifdef _PSTL_ICC_18_19_TEST_REVERSE_ITERATOR_WITH_STRIDE_BROKEN
-    if (isReverse<Iterator>::value)
+    if (is_reverse_v<Iterator>)
         return;
 #endif
 
@@ -186,7 +186,7 @@ test_body_for_loop_strided_n_integral(Policy&& exec, Iterator first, Iterator /*
     using T = typename ::std::iterator_traits<Iterator>::value_type;
 
 #ifdef _PSTL_ICC_18_19_TEST_REVERSE_ITERATOR_WITH_STRIDE_BROKEN
-    if (isReverse<Iterator>::value)
+    if (is_reverse_v<Iterator>)
         return;
 #endif
 

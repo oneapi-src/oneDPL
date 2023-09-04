@@ -157,6 +157,9 @@ struct isReverse<::std::reverse_iterator<Iterator>> : ::std::true_type
 {
 };
 
+template <typename Iterator>
+inline constexpr bool is_reverse_v = isReverse<Iterator>::value;
+
 // Reverse adapter
 template <typename Iterator, typename IsReverse>
 struct ReverseAdapter
