@@ -33,38 +33,46 @@ static void __set_active_device(sycl::device* __new_active_device) {
     __active_device.store(__new_active_device, std::memory_order_release);
 }
 
-class __offload_policy_holder_type {
-    static constexpr auto& __get_offload_device_selector() {
+static sycl::device __get_offload_device() {
 #if __SYCL_PSTL_OFFLOAD__ == 1
-        return sycl::default_selector_v;
+        return sycl::device{sycl::default_selector_v};
 #elif __SYCL_PSTL_OFFLOAD__ == 2
-        return sycl::cpu_selector_v;
+        return sycl::device{sycl::cpu_selector_v};
 #elif __SYCL_PSTL_OFFLOAD__ == 3
-        return sycl::gpu_selector_v;
+        return sycl::device{gpu_selector_v};
 #else
 #error "PSTL offload is not enabled or the selected value is unsupported"
 #endif
-    }
+}
+
+class __offload_policy_holder_type {
+    using __set_active_device_func_type = void (*)(sycl::device*);
 public:
-    __offload_policy_holder_type()
-        : _M_offload_device(__get_offload_device_selector())
+    // Since the global object of __offload_policy_holder_type is static but the constructor
+    // of the class is inline, we need to avoid calling static functions inside of the constructor
+    // and pass the pointer to exact function as an argument to guarantee that the correct __active_device
+    // would be stored in each translation unit
+    __offload_policy_holder_type(sycl::device&& __offload_device, __set_active_device_func_type __set_active_device_func)
+        : _M_offload_device(std::move(__offload_device))
         , _M_offload_policy(_M_offload_device)
+        , _M_set_active_device(__set_active_device_func)
     {
-        __set_active_device(&_M_offload_device);
+        _M_set_active_device(&_M_offload_device);
     }
 
     ~__offload_policy_holder_type()
     {
-        __set_active_device(nullptr);
+        _M_set_active_device(nullptr);
     }
 
     auto __get_policy() { return _M_offload_policy; }
 private:
     sycl::device _M_offload_device;
     oneapi::dpl::execution::device_policy<> _M_offload_policy;
+    __set_active_device_func_type _M_set_active_device;
 }; // class __offload_policy_holder_type
 
-static __offload_policy_holder_type __offload_policy_holder;
+static __offload_policy_holder_type __offload_policy_holder{__get_offload_device(), __set_active_device};
 
 #if __linux__
 inline auto __get_original_aligned_alloc() {
