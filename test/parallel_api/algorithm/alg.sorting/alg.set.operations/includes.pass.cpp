@@ -50,7 +50,7 @@ template <typename T>
 struct test_without_compare
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<!TestUtils::isReverse<InputIterator1>::value && can_use_default_less_operator_v<T>>
+    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1> && can_use_default_less_operator_v<T>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
     {
         auto expect_res = ::std::includes(first1, last1, first2, last2);
@@ -60,7 +60,7 @@ struct test_without_compare
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<TestUtils::isReverse<InputIterator1>::value || !can_use_default_less_operator_v<T>>
+    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1> || !can_use_default_less_operator_v<T>>
     operator()(Policy&& /* exec */, InputIterator1 /* first1 */, InputIterator1 /* last1 */, InputIterator2 /* first2 */, InputIterator2 /* last2 */)
     {
     }
@@ -70,7 +70,7 @@ template <typename T>
 struct test_with_compare
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<!TestUtils::isReverse<InputIterator1>::value>
+    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
@@ -82,7 +82,7 @@ struct test_with_compare
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<TestUtils::isReverse<InputIterator1>::value>
+    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& /* exec */, InputIterator1 /* first1 */, InputIterator1 /* last1 */, InputIterator2 /* first2 */, InputIterator2 /* last2 */,
                Compare /* comp */)
     {
