@@ -92,8 +92,8 @@ __allocate_shared_for_device(sycl::device* __device, std::size_t __size, std::si
     {
         void* __original_pointer = __ptr;
         __ptr = static_cast<char*>(__ptr) + __base_offset;
-        assert(__same_memory_page(__original_pointer, __ptr));
         __block_header* __header = static_cast<__block_header*>(__ptr) - 1;
+        assert(__same_memory_page(__ptr, __header));
         *__header = __block_header{__uniq_type_const, __original_pointer, __device, __size};
     }
 
