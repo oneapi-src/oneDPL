@@ -48,6 +48,9 @@ int main() {
     std::cout << "PASS\n";
     return 0;
   }
+#else
+    std::cout << "SKIPPED\n";
+    return 0;
 #endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 }
 
