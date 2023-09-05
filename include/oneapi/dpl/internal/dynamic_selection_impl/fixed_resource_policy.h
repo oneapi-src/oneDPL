@@ -66,7 +66,7 @@ namespace experimental {
       if(backend_){
           return backend_->get_resources();
       }else{
-          throw std::logic_error("Called select before initialization\n");
+          throw std::logic_error("Called get_resources before initialization\n");
       }
     }
 
