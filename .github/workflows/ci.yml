@@ -202,6 +202,8 @@ jobs:
             device_type: cpu
     steps:
       - uses: actions/checkout@v3
+      - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
+        run: $CONDA/bin/conda install -c intel tbb-devel
       - name: Install Intel® oneAPI DPC++/C++ Compiler
         run: $CONDA/bin/conda install -c intel dpcpp_linux-64
       - name: Run testing
