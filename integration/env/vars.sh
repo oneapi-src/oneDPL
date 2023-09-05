@@ -179,3 +179,10 @@ DPL_ROOT=$(dirname -- "${_onedpl_scrip_path}") ; export DPL_ROOT
 CPATH=$(prepend_path "${DPL_ROOT}/include" "${CPATH:-}") ; export CPATH
 PKG_CONFIG_PATH=$(prepend_path "${DPL_ROOT}/lib/pkgconfig" "${PKG_CONFIG_PATH:-}") ; export PKG_CONFIG_PATH
 CMAKE_PREFIX_PATH=$(prepend_path "${DPL_ROOT}/lib/cmake/oneDPL" "${CMAKE_PREFIX_PATH:-}") ; export CMAKE_PREFIX_PATH
+
+DPL_LIB_NAME="libpstloffload.so"
+
+if [ -e "$DPL_ROOT/lib/$DPL_LIB_NAME" ] ; then
+    LIBRARY_PATH=$(prepend_path "${DPL_ROOT}/lib" "${LIBRARY_PATH:-}") ; export LIBRARY_PATH
+    LD_LIBRARY_PATH=$(prepend_path "${DPL_ROOT}/lib" "${LD_LIBRARY_PATH:-}") ; export LD_LIBRARY_PATH
+fi

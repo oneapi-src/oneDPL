@@ -262,9 +262,16 @@ test_usm(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
 #endif // _PSTL_SYCL_TEST_USM
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
+// Additional check for std::execution::par_unseq is required because standard execution policy is
+// not a host execution policy in terms of oneDPL and the eligible overload of run_test would not be found
+// while testing PSTL offload
 template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
           typename... Compare>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, void>
+std::enable_if_t<oneapi::dpl::__internal::__is_host_execution_policy<std::decay_t<Policy>>::value
+#if __SYCL_PSTL_OFFLOAD__
+                 || std::is_same<std::decay_t<Policy>, std::execution::parallel_unsequenced_policy>::value
+#endif
+                 , void>
 run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
          OutputIterator2 expected_last, InputIterator first, InputIterator /*last*/, Size n, Compare ...compare)
 {
@@ -340,14 +347,14 @@ test_default_name_gen(Convert convert, size_t n)
     TestUtils::Sequence<T> expected(in);
     TestUtils::Sequence<T> tmp(in);
     auto my_policy = TestUtils::make_device_policy(TestUtils::get_test_queue());
-    
+
     TestUtils::iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
                 my_policy, test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(),
                     in.size(), ::std::greater<void>());
     TestUtils::iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
                 my_policy, test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(),
                     in.size(), ::std::less<void>());
-                    
+
 }
 #    endif //__SYCL_UNNAMED_LAMBDA__
 #endif //TEST_DPCPP_BACKEND_PRESENT

@@ -335,6 +335,54 @@ else()
     endif()
 endif()
 
+if (NOT _ONEDPL_PSTL_OFFLOAD)
+    set(_ONEDPL_PSTL_OFFLOAD "off")
+else()
+    if (NOT ONEDPL_BACKEND MATCHES "^(dpcpp)$")
+        message(FATAL_ERROR "${ONEDPL_BACKEND} doesn't support pstl offload, dpcpp backend required")
+    endif()
+endif()
+
+if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
+    if (_ONEDPL_PSTL_OFFLOAD STREQUAL default)
+        set(FSYCL_PSTL_OFFLOAD_OPTION "-fsycl-pstl-offload")
+    elseif(_ONEDPL_PSTL_OFFLOAD STREQUAL cpu OR _ONEDPL_PSTL_OFFLOAD STREQUAL gpu)
+        set(FSYCL_PSTL_OFFLOAD_OPTION "-fsycl-pstl-offload=${_ONEDPL_PSTL_OFFLOAD}")
+    else()
+        message(FATAL_ERROR "Unknown value of _ONEDPL_PSTL_OFFLOAD = ${_ONEDPL_PSTL_OFFLOAD}")
+    endif()
+
+    check_cxx_compiler_flag(${FSYCL_PSTL_OFFLOAD_OPTION}, _fsycl_pstl_offload_option)
+    if (_fsycl_pstl_offload_option)
+        message(STATUS "Adding ${FSYCL_PSTL_OFFLOAD_OPTION} compiler option")
+        target_compile_options(oneDPL INTERFACE ${FSYCL_PSTL_OFFLOAD_OPTION})
+    else()
+        # TODO: remove this "manual" -fsycl-pstl-offload suboption substitution and replace with FATAL_ERROR
+        # message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support ${FSYCL_PSTL_OFFLOAD_OPTION}")
+        message(STATUS "Adding manual ${FSYCL_PSTL_OFFLOAD_OPTION} compiler options")
+        if (_ONEDPL_PSTL_OFFLOAD STREQUAL default)
+            set(PSTL_OFFLOAD_MACRO_VALUE 1)
+        elseif (_ONEDPL_PSTL_OFFLOAD STREQUAL cpu)
+            set(PSTL_OFFLOAD_MACRO_VALUE 2)
+        elseif (_ONEDPL_PSTL_OFFLOAD STREQUAL gpu)
+            set(PSTL_OFFLOAD_MACRO_VALUE 3)
+        else()
+            message(FATAL_ERROR "Unknown value of _ONEDPL_PSTL_OFFLOAD = ${_ONEDPL_PSTL_OFFLOAD}")
+        endif()
+
+        target_include_directories(oneDPL INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/pstl_offload)
+        target_compile_options(oneDPL INTERFACE "-D__SYCL_PSTL_OFFLOAD__=${PSTL_OFFLOAD_MACRO_VALUE}")
+    endif()
+
+    add_subdirectory(src)
+    add_dependencies(oneDPL pstloffload)
+
+    # TODO remove explicit linkage with libpstloffload
+    if (NOT _fsycl_pstl_offload_option)
+        target_link_libraries(oneDPL INTERFACE pstloffload)
+    endif()
+endif()
+
 target_include_directories(oneDPL
     INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
