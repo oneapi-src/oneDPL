@@ -84,7 +84,8 @@ namespace experimental {
       if(!state_){
            backend_ = std::make_shared<backend_t>(u);
            state_= std::make_shared<state_t>();
-           for(auto x : u){
+           auto container = get_resources();
+           for(auto x : container){
               state_->resources_.emplace_back(x);
            }
            state_->offset_ = offset;

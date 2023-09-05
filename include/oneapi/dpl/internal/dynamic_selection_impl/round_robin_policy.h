@@ -81,7 +81,8 @@ namespace experimental{
       if(!state_){
           backend_ = std::make_shared<backend_t>(u);
           state_= std::make_shared<state_t>();
-          for(auto x : u){
+          auto container = get_resources();
+          for(auto x : container){
               state_->resources_.push_back(x);
           }
           state_->num_contexts_ = state_->resources_.size();
