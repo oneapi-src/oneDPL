@@ -17,6 +17,7 @@
 #include <exception>
 #include <limits>
 #include <utility>
+#include "oneapi/dpl/internal/dynamic_selection_traits.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
