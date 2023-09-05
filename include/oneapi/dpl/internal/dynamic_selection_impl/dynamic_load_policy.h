@@ -15,7 +15,7 @@
 #include <limits>
 #include <mutex>
 #include <vector>
-#include <exception>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include "oneapi/dpl/internal/dynamic_selection_traits.h"

@@ -12,7 +12,7 @@
 #include <vector>
 #include <type_traits>
 #include <memory>
-#include <exception>
+#include <stdexcept>
 #include <utility>
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #if _DS_BACKEND_SYCL != 0
