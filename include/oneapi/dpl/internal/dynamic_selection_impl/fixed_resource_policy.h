@@ -14,6 +14,7 @@
 #include <memory>
 #include <stdexcept>
 #include <utility>
+#include "oneapi/dpl/internal/dynamic_selection_traits.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
@@ -45,20 +46,20 @@ namespace experimental {
 
     struct state_t {
         resource_container_t resources_;
-        size_t offset_;
+        ::std::size_t offset_ = 0;
     };
 
     std::shared_ptr<state_t> state_;
 
   public:
-    fixed_resource_policy(size_t offset=0) {
+    fixed_resource_policy(::std::size_t offset=0) {
         initialize(offset);
     }
 
     fixed_resource_policy(deferred_initialization_t) {}
 
 
-    fixed_resource_policy(const std::vector<resource_type>& u,  size_t offset=0) {
+    fixed_resource_policy(const std::vector<resource_type>& u,  ::std::size_t offset=0) {
         initialize(u, offset);
     }
 
@@ -66,11 +67,11 @@ namespace experimental {
       if(backend_){
           return backend_->get_resources();
       }else{
-          throw std::logic_error("Called select before initialization\n");
+          throw std::logic_error("get_resources called before initialization\n");
       }
     }
 
-    void initialize(size_t offset=0) {
+    void initialize(::std::size_t offset=0) {
       if(!state_){
            backend_ = std::make_shared<backend_t>();
            state_= std::make_shared<state_t>();
@@ -79,11 +80,12 @@ namespace experimental {
       }
     }
 
-    void initialize(const std::vector<resource_type>& u, size_t offset=0) {
+    void initialize(const std::vector<resource_type>& u, ::std::size_t offset=0) {
       if(!state_){
            backend_ = std::make_shared<backend_t>(u);
            state_= std::make_shared<state_t>();
-           for(auto x : u){
+           auto container = get_resources();
+           for(auto x : container){
               state_->resources_.emplace_back(x);
            }
            state_->offset_ = offset;
@@ -98,7 +100,7 @@ namespace experimental {
           }
           return selection_type{*this};
       }else{
-          throw std::logic_error("Called select before initialization\n");
+          throw std::logic_error("select called before initialization\n");
       }
     }
 
@@ -107,7 +109,7 @@ namespace experimental {
       if(backend_){
           return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
       }else{
-          throw std::logic_error("Called submit before initialization\n");
+          throw std::logic_error("submit called before initialization\n");
       }
     }
 
@@ -115,7 +117,7 @@ namespace experimental {
       if(backend_){
           return backend_->get_submission_group();
       }else{
-          throw std::logic_error("Called submission group before initialization\n");
+          throw std::logic_error("get_submission_group called before initialization\n");
       }
     }
 

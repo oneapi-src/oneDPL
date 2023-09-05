@@ -56,6 +56,7 @@ namespace experimental {
   public:
 
     sycl_backend(const sycl_backend& v) = delete;
+    sycl_backend& operator=(const sycl_backend&) = delete;
 
     sycl_backend() {
       initialize_default_resources();
@@ -64,6 +65,7 @@ namespace experimental {
 
     template<typename NativeUniverseVector>
     sycl_backend(const NativeUniverseVector& v) {
+      global_rank_.reserve(v.size());
       for (auto e : v) {
         global_rank_.push_back(e);
       }
@@ -103,7 +105,7 @@ namespace experimental {
       return *sgroup_ptr_;
     }
 
-    auto get_resources()  noexcept {
+    auto get_resources() {
       return global_rank_;
     }
 

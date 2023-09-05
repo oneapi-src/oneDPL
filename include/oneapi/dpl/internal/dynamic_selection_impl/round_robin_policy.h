@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <limits>
 #include <utility>
+#include "oneapi/dpl/internal/dynamic_selection_traits.h"
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
@@ -62,7 +63,7 @@ namespace experimental{
         if(backend_){
             return backend_->get_resources();
         }else{
-            throw std::logic_error("Called get_resources before initialization\n");
+            throw std::logic_error("get_resources called before initialization\n");
         }
     }
 
@@ -80,7 +81,8 @@ namespace experimental{
       if(!state_){
           backend_ = std::make_shared<backend_t>(u);
           state_= std::make_shared<state_t>();
-          for(auto x : u){
+          auto container = get_resources();
+          for(auto x : container){
               state_->resources_.push_back(x);
           }
           state_->num_contexts_ = state_->resources_.size();
@@ -107,14 +109,14 @@ namespace experimental{
               resource_container_size_t new_context_;
               new_context_ = (current_context_+1)%state_->num_contexts_;
 
-              if(state_->next_context_.compare_exchange_weak(current_context_, new_context_)){
+              if(state_->next_context_.compare_exchange_strong(current_context_, new_context_)){
                   break;
               }
           }
           auto &e = state_->resources_[current_context_];
           return selection_type{*this, e};
       }else{
-        throw std::logic_error("Called select before initialization\n");
+        throw std::logic_error("select called before initialization\n");
       }
     }
 
@@ -123,7 +125,7 @@ namespace experimental{
       if(backend_){
         return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
       }else{
-        throw std::logic_error("Called submit before initialization\n");
+        throw std::logic_error("submit called before initialization\n");
       }
     }
 
@@ -131,7 +133,7 @@ namespace experimental{
       if(backend_){
         return backend_->get_submission_group();
       }else{
-        throw std::logic_error("Called get_submission_group before initialization\n");
+        throw std::logic_error("get_submission_group called before initialization\n");
       }
     }
 

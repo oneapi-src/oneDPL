@@ -15,7 +15,7 @@
 #include <memory>
 #include <ostream>
 #include <vector>
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 //TODO: Source from oneDPL
 namespace TestUtils
@@ -74,25 +74,25 @@ static inline void build_universe(std::vector<sycl::queue> &u) {
     sycl::queue default_queue(device_default);
     run_sycl_sanity_test(default_queue);
     u.push_back(default_queue);
-  } catch (sycl::exception) {
+  } catch (const sycl::exception&) {
     std::cout << "SKIPPED: Unable to run with default_selector\n";
   }
 
   try {
     auto device_gpu = sycl::device(sycl::gpu_selector_v);
-    cl::sycl::queue gpu_queue(device_gpu);
+    sycl::queue gpu_queue(device_gpu);
     run_sycl_sanity_test(gpu_queue);
     u.push_back(gpu_queue);
-  } catch (sycl::exception) {
+  } catch (const sycl::exception&) {
     std::cout << "SKIPPED: Unable to run with gpu_selector\n";
   }
 
   try {
     auto device_cpu = sycl::device(sycl::cpu_selector_v);
-    cl::sycl::queue cpu_queue(device_cpu);
+    sycl::queue cpu_queue(device_cpu);
     run_sycl_sanity_test(cpu_queue);
     u.push_back(cpu_queue);
-  } catch (sycl::exception) {
+  } catch (const sycl::exception&) {
     std::cout << "SKIPPED: Unable to run with cpu_selector\n";
   }
 }

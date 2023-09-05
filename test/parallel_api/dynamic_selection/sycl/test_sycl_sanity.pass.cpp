@@ -11,7 +11,6 @@
 #include <memory>
 #include <ostream>
 #include <vector>
-#include <CL/sycl.hpp>
 #include "support/sycl_sanity.h"
 
 int run_test(sycl::queue q) {
