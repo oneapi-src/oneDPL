@@ -79,52 +79,47 @@ namespace experimental{
 
     struct state_t{
         resource_container_t resources_;
-        int offset;
         std::mutex m_;
     };
 
     std::shared_ptr<state_t> state_;
 
-    void initialize(int offset=0){
+    void initialize(){
         if(!state_){
             backend_ = std::make_shared<backend_t>();
             state_= std::make_shared<state_t>();
-            state_->offset=offset;
             auto u =  get_resources();
             for(auto x : u){
               state_->resources_.push_back(std::make_shared<resource_t>(x));
             }
         }
-
     }
-    void initialize(const std::vector<resource_type> &u, int offset=0) {
+
+    void initialize(const std::vector<resource_type> &u) {
         if(!state_){
             backend_ = std::make_shared<backend_t>(u);
             state_= std::make_shared<state_t>();
-            state_->offset=offset;
             for(auto x : u){
               state_->resources_.push_back(std::make_shared<resource_t>(x));
             }
         }
     }
 
-    dynamic_load_policy(int offset=0) {
-        if(offset != deferred_initialization){
-            initialize(offset);
-        }
+    dynamic_load_policy(deferred_initialization_t) {}
+
+    dynamic_load_policy() {
+        initialize();
     }
 
-    dynamic_load_policy(const std::vector<resource_type>& u,int offset=0) {
-        if(offset != deferred_initialization){
-            initialize(u, offset);
-        }
+    dynamic_load_policy(const std::vector<resource_type>& u) {
+        initialize(u);
     }
 
     auto get_resources() {
         if(backend_)
             return backend_->get_resources();
         else
-           throw std::runtime_error("Called get_resources before initialization\n");
+           throw std::logic_error("Called get_resources before initialization\n");
     }
 
     template<typename ...Args>
@@ -134,7 +129,7 @@ namespace experimental{
           std::shared_ptr<resource_t> least_loaded = nullptr;
           int least_load = std::numeric_limits<load_t>::max();
           for(int i = 0;i<state_->resources_.size();i++){
-            auto r = state_->resources_[(i+state_->offset)%state_->resources_.size()];
+            auto r = state_->resources_[i];
             load_t v = r->load_.load();
               if (least_loaded == nullptr || v < least_load) {
                 least_load = v;
@@ -143,7 +138,7 @@ namespace experimental{
           }
           return selection_type{dynamic_load_policy<Backend>(*this), least_loaded};
       }else{
-        throw std::runtime_error("Called select before initialization\n");
+        throw std::logic_error("Called select before initialization\n");
       }
     }
 
@@ -152,7 +147,7 @@ namespace experimental{
       if(backend_)
         return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
       else
-          throw std::runtime_error("Called submit before initialization\n");
+          throw std::logic_error("Called submit before initialization\n");
     }
 
     auto get_submission_group() {
@@ -167,4 +162,4 @@ namespace experimental{
 } // namespace oneapi
 
 
-#endif //_ONEDPL_ROUND_ROBIN_POLICY_IMPL_H
+#endif //_ONEDPL_DYNAMIC_LOAD_POLICY_H

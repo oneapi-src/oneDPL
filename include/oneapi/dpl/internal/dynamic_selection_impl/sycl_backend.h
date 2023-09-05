@@ -10,7 +10,7 @@
 #ifndef _ONEDPL_SYCL_BACKEND_IMPL_H
 #define _ONEDPL_SYCL_BACKEND_IMPL_H
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include "oneapi/dpl/internal/dynamic_selection_traits.h"
 
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"

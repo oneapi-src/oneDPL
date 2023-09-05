@@ -53,7 +53,6 @@ namespace experimental{
         resource_container_t resources_;
         resource_container_size_t num_contexts_;
         std::atomic<resource_container_size_t> next_context_;
-        int offset_;
     };
 
     std::shared_ptr<state_t> state_;
@@ -63,22 +62,21 @@ namespace experimental{
         if(backend_){
             return backend_->get_resources();
         }else{
-            throw std::runtime_error("Called get_resources before initialization\n");
+            throw std::logic_error("Called get_resources before initialization\n");
         }
     }
 
-    void initialize(int offset=0) {
+    void initialize() {
       if(!state_){
           backend_ = std::make_shared<backend_t>();
           state_= std::make_shared<state_t>();
           state_->resources_ = get_resources();
           state_->num_contexts_ = state_->resources_.size();
-          state_->offset_ = offset;
-          state_->next_context_ = state_->offset_;
+          state_->next_context_ = 0;
       }
     }
 
-    void initialize(const std::vector<resource_type>& u, int offset=0) {
+    void initialize(const std::vector<resource_type>& u) {
       if(!state_){
           backend_ = std::make_shared<backend_t>(u);
           state_= std::make_shared<state_t>();
@@ -86,21 +84,18 @@ namespace experimental{
               state_->resources_.push_back(x);
           }
           state_->num_contexts_ = state_->resources_.size();
-          state_->offset_ = offset;
-          state_->next_context_=state_->offset_;
+          state_->next_context_=0;
       }
     }
 
-   round_robin_policy(int offset=0) {
-      if(offset!=deferred_initialization){
-        initialize(offset);
-      }
+    round_robin_policy() {
+        initialize();
     }
 
-    round_robin_policy(const std::vector<resource_type>& u, int offset=0) {
-      if(offset!=deferred_initialization){
-        initialize(u, offset);
-      }
+    round_robin_policy(deferred_initialization_t) {}
+
+    round_robin_policy(const std::vector<resource_type>& u) {
+        initialize(u);
     }
 
     template<typename ...Args>
@@ -119,7 +114,7 @@ namespace experimental{
           auto &e = state_->resources_[current_context_];
           return selection_type{*this, e};
       }else{
-        throw std::runtime_error("Called select before initialization\n");
+        throw std::logic_error("Called select before initialization\n");
       }
     }
 
@@ -128,7 +123,7 @@ namespace experimental{
       if(backend_){
         return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
       }else{
-        throw std::runtime_error("Called submit before initialization\n");
+        throw std::logic_error("Called submit before initialization\n");
       }
     }
 
@@ -136,7 +131,7 @@ namespace experimental{
       if(backend_){
         return backend_->get_submission_group();
       }else{
-        throw std::runtime_error("Called get_submission_group before initialization\n");
+        throw std::logic_error("Called get_submission_group before initialization\n");
       }
     }
 

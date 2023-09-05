@@ -43,15 +43,12 @@ int main() {
   if(n==0) return 0;
 
   // should be similar to round_robin when waiting on policy
-  auto f = [u, n](int i, int offset) {
-    if(i==offset) {
-        return u[offset];
-    }
-    return u[(i+offset)%u.size()];
+  auto f = [u, n](int i) {
+    return u[i%u.size()];
   };
 
-  auto f2 = [u, n](int i, int offset=0) {
-    return u[offset];
+  auto f2 = [u, n](int i) {
+    return u[0];
   };
   // should always pick first when waiting on sync in each iteration
   //auto fs = [test_resource, u](int i) { return u[0]; };
@@ -61,17 +58,11 @@ int main() {
   if ( test_dl_initialization(u)
        || test_select<policy_t, decltype(u), decltype(f2)&, false>(u, f2)
        || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f2)
-       || test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f2, 1)
        || test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, f2)
-       || test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, f2, 1)
        || test_submit_and_wait<just_call_submit, policy_t>(u, f2)
-       || test_submit_and_wait<just_call_submit, policy_t>(u, f2, 1)
        || test_submit_and_wait<call_select_before_submit, policy_t>(u, f2)
-       || test_submit_and_wait<call_select_before_submit, policy_t>(u, f2, 1)
        || test_submit_and_wait_on_group<just_call_submit, policy_t>(u, f)
-       || test_submit_and_wait_on_group<just_call_submit, policy_t>(u, f, 1)
        || test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f)
-       || test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f, 1)
 
      ) {
     std::cout << "FAIL\n";
