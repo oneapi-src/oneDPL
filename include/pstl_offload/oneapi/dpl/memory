@@ -17,7 +17,7 @@
 #include_next <oneapi/dpl/memory>
 
 #ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_MEMORY
-#    include "internal/memory_redirection_impl.h"
+#    include "internal/memory_impl.h"
 #    include "internal/usm_memory_replacement.h"
 #    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_MEMORY
 #    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL

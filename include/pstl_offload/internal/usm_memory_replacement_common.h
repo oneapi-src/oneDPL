@@ -22,7 +22,8 @@
 #include <unistd.h>
 #endif // __linux__
 
-namespace __pstl_offload {
+namespace __pstl_offload
+{
 
 constexpr bool
 __is_power_of_two(std::size_t __number)
@@ -163,7 +164,8 @@ __realloc_real_pointer(void* __user_ptr, std::size_t __new_size)
 }
 
 static void*
-__internal_realloc(void* __user_ptr, std::size_t __new_size) {
+__internal_realloc(void* __user_ptr, std::size_t __new_size)
+{
     return __user_ptr == nullptr ? std::malloc(__new_size) : __realloc_real_pointer(__user_ptr, __new_size);
 }
 

@@ -54,7 +54,7 @@ class __offload_policy_holder_type
 {
     using __set_active_device_func_type = void (*)(sycl::device*);
 
-public:
+  public:
     // Since the global object of __offload_policy_holder_type is static but the constructor
     // of the class is inline, we need to avoid calling static functions inside of the constructor
     // and pass the pointer to exact function as an argument to guarantee that the correct __active_device
@@ -69,11 +69,12 @@ public:
 
     ~__offload_policy_holder_type() { _M_set_active_device(nullptr); }
 
-    auto __get_policy()
+    auto
+    __get_policy()
     {
         return _M_offload_policy;
     }
-private:
+  private:
     sycl::device _M_offload_device;
     oneapi::dpl::execution::device_policy<> _M_offload_policy;
     __set_active_device_func_type _M_set_active_device;
@@ -130,7 +131,7 @@ __internal_operator_new(std::size_t __size, std::size_t __alignment)
 {
     void* __res = __internal_aligned_alloc(__size, __alignment);
 
-    while(__res == nullptr)
+    while (__res == nullptr)
     {
         std::new_handler __handler = std::get_new_handler();
         if (__handler != nullptr)
@@ -148,13 +149,14 @@ __internal_operator_new(std::size_t __size, std::size_t __alignment)
 }
 
 static void*
-__internal_operator_new(std::size_t __size, std::size_t __alignment, const std::nothrow_t&) noexcept {
+__internal_operator_new(std::size_t __size, std::size_t __alignment, const std::nothrow_t&) noexcept
+{
     void* __res = nullptr;
     try
     {
         __res = __internal_operator_new(__size, __alignment);
     }
-    catch(...)
+    catch (...)
     {
     }
     return __res;

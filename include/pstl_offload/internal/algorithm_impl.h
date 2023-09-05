@@ -184,8 +184,8 @@ search_n(const execution::parallel_unsequenced_policy&, _ForwardIterator __first
 
 template <class _ForwardIterator, class _Size, class _Tp>
 static _ForwardIterator
-search_n(const execution::parallel_unsequenced_policy&, _ForwardIterator __first, _ForwardIterator __last, _Size __count,
-         const _Tp& __value)
+search_n(const execution::parallel_unsequenced_policy&, _ForwardIterator __first, _ForwardIterator __last,
+         _Size __count, const _Tp& __value)
 {
     return oneapi::dpl::search_n(::__pstl_offload::__offload_policy_holder.__get_policy(), __first, __last, __count,
                                  __value);
@@ -201,8 +201,7 @@ copy(const execution::parallel_unsequenced_policy&, _ForwardIterator1 __first, _
 
 template <class _ForwardIterator1, class _Size, class _ForwardIterator2>
 static _ForwardIterator2
-copy_n(const execution::parallel_unsequenced_policy&, _ForwardIterator1 __first, _Size __n,
-       _ForwardIterator2 __result)
+copy_n(const execution::parallel_unsequenced_policy&, _ForwardIterator1 __first, _Size __n, _ForwardIterator2 __result)
 {
     return oneapi::dpl::copy_n(::__pstl_offload::__offload_policy_holder.__get_policy(), __first, __n, __result);
 }
@@ -436,8 +435,7 @@ stable_partition(const execution::parallel_unsequenced_policy&, _BidirectionalIt
 }
 
 template <class _ForwardIterator, class _ForwardIterator1, class _ForwardIterator2, class _UnaryPredicate>
-pair<_ForwardIterator1, _ForwardIterator2>
-static
+static pair<_ForwardIterator1, _ForwardIterator2>
 partition_copy(const execution::parallel_unsequenced_policy&, _ForwardIterator __first, _ForwardIterator __last,
                _ForwardIterator1 __out_true, _ForwardIterator2 __out_false, _UnaryPredicate __pred)
 {

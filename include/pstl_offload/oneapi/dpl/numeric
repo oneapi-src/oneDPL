@@ -17,7 +17,7 @@
 #include_next <oneapi/dpl/numeric>
 
 #ifdef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_NUMERIC
-#    include "internal/numeric_redirection_impl.h"
+#    include "internal/numeric_impl.h"
 #    include "internal/usm_memory_replacement.h"
 #    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_ONEAPI_DPL_NUMERIC
 #    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
