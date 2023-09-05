@@ -106,7 +106,7 @@ namespace internal {
   }
 
   template<typename DSPolicy, typename... Args>
-  selection_t<DSPolicy> select(DSPolicy&& dp, Args&&... args) {
+  typename policy_traits<DSPolicy>::selection_type select(DSPolicy&& dp, Args&&... args) {
     return std::forward<DSPolicy>(dp).select(std::forward<Args>(args)...);
   }
 

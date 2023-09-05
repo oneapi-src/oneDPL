@@ -71,7 +71,7 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
     // scheduler does the work "inline".
     // The unwrapped wait type should be equal to the resource
     if constexpr (call_select_before_submit) {
-      auto f = [&](oneapi::dpl::experimental::resource_t<Policy> q) {
+      auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
                      if (q != u[(i-1)%n_samples]) {
@@ -99,7 +99,7 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
     } else {
       // it's ok to capture by reference since we are waiting on each call
       auto s = oneapi::dpl::experimental::submit(p,
-                 [&](typename oneapi::dpl::experimental::resource_t<Policy> q) {
+                 [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
                      if (q != u[(i-1)%n_samples]) {
@@ -169,7 +169,7 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
     // scheduler does the work "inline".
     // The unwrapped wait type should be equal to the resource
     if constexpr (call_select_before_submit) {
-      auto f = [&](oneapi::dpl::experimental::resource_t<Policy> q) {
+      auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
                      if (q != u[(i-1)%n_samples]) {
@@ -197,7 +197,7 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
     } else {
       // it's ok to capture by reference since we are waiting on each call
       auto s = oneapi::dpl::experimental::submit(p,
-                 [&](oneapi::dpl::experimental::resource_t<Policy> q) {
+                 [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
                      if (q != u[(i-1)%n_samples]) {
@@ -267,7 +267,7 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
     // scheduler does the work "inline".
     // The unwrapped wait type should be equal to the resource
     if constexpr (call_select_before_submit) {
-      auto f = [&](oneapi::dpl::experimental::resource_t<Policy> q) {
+      auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
                      if (q != u[(i-1)%n_samples]) {
@@ -294,7 +294,7 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
     } else {
       // it's ok to capture by reference since we are waiting on each call
       oneapi::dpl::experimental::submit_and_wait(p,
-                 [&](oneapi::dpl::experimental::resource_t<Policy> q) {
+                 [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type q) {
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
                      if (q != u[(i-1)%n_samples]) {
