@@ -7,9 +7,9 @@
 ##===----------------------------------------------------------------------===##
 
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/pstl_offload.cpp _pstl_offload_version_info)
-string(REGEX REPLACE ".*#define _PSTL_OFFLOAD_VERSION_MAJOR ([0-9]+).*" "\\1" _pstl_offload_version_major "${_pstl_offload_version_info}")
-string(REGEX REPLACE ".*#define _PSTL_OFFLOAD_VERSION_MINOR ([0-9]+).*" "\\1" _pstl_offload_version_minor "${_pstl_offload_version_info}")
-string(REGEX REPLACE ".*#define _PSTL_OFFLOAD_VERSION_PATCH ([0-9]+).*" "\\1" _pstl_offload_version_patch "${_pstl_offload_version_info}")
+string(REGEX REPLACE ".*#define _PSTL_OFFLOAD_BINARY_VERSION_MAJOR ([0-9]+).*" "\\1" _pstl_offload_version_major "${_pstl_offload_version_info}")
+string(REGEX REPLACE ".*#define _PSTL_OFFLOAD_BINARY_VERSION_MINOR ([0-9]+).*" "\\1" _pstl_offload_version_minor "${_pstl_offload_version_info}")
+string(REGEX REPLACE ".*#define _PSTL_OFFLOAD_BINARY_VERSION_PATCH ([0-9]+).*" "\\1" _pstl_offload_version_patch "${_pstl_offload_version_info}")
 
 message(STATUS "PSTL_OFFLOAD version ${_pstl_offload_version_major}.${_pstl_offload_version_minor}.${_pstl_offload_version_patch}")
 
