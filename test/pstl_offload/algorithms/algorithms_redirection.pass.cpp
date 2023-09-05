@@ -1421,7 +1421,7 @@ struct is_device_policy : is_device_policy_impl<std::decay_t<T>> {};
 
 template <typename _ExecutionPolicy>
 void check_policy(const _ExecutionPolicy& __policy) {
-    static_assert(is_device_policy<std::decay_t<_ExecutionPolicy>>::value, "Algorithm was redirected with not a device policy");
+    static_assert(is_device_policy<std::decay_t<_ExecutionPolicy>>::value, "Algorithm was redirected with unexpected policy type");
     EXPECT_TRUE(__policy.queue().get_device() == TestUtils::get_pstl_offload_device(), "The passed policy is associated with the wrong device");
 }
 
