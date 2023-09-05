@@ -186,6 +186,43 @@ jobs:
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
 
+  linux-pstl-offload-testing:
+    name: pstl-offload ${{ matrix.device_type }},bknd=dpcpp,cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
+    runs-on: ['${{ matrix.os }}']
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
+            device_type: cpu
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Intel® oneAPI DPC++/C++ Compiler
+        run: $CONDA/bin/conda install -c intel dpcpp_linux-64
+      - name: Run testing
+        shell: bash
+        run: |
+          set -x
+          source $CONDA/bin/activate
+          export PATH=$CONDA/lib:$PATH
+          export CPATH=$CONDA/include:$CPATH
+          export OCL_ICD_FILENAMES=$CONDA/lib/libintelocl.so
+          echo "::warning::Compiler: $(cmake --version)"
+          echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
+
+          make_targets="build-onedpl-tests"
+
+          mkdir build && cd build
+          lscpu
+          cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=dpcpp -D_ONEDPL_PSTL_OFFLOAD=${{ matrix.device_type }} ..
+          make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
+
   windows-testing:
     name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
