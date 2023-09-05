@@ -11,8 +11,10 @@
 #include <iostream>
 #include "oneapi/dpl/dynamic_selection"
 #include "support/test_dynamic_load_utils.h"
-#include "support/sycl_sanity.h"
 #include "support/test_config.h"
+#if TEST_DYNAMIC_SELECTION_AVAILABLE
+#include "support/sycl_sanity.h"
+#endif
 
 static inline void build_dl_universe(std::vector<sycl::queue> &u) {
   try {
