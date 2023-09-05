@@ -23,6 +23,11 @@
 namespace std
 {
 
+// All the algorithms below get the policy from static __offload_policy_holder object.
+// They needs to be explicitly marked static because, otherwise, function templates behave
+// like inline that can result in using only one device in all translation units no matter which
+// PSTL offload option argument was used for the particular translation unit compilation
+
 template <class _InputIterator, class _ForwardIterator>
 static _ForwardIterator
 uninitialized_copy(const execution::parallel_unsequenced_policy&, _InputIterator __first, _InputIterator __last,
