@@ -10,6 +10,7 @@
 #include "oneapi/dpl/dynamic_selection"
 #include <atomic>
 #include <iostream>
+#include "support/test_config.h"
 
 class fake_selection_handle_t {
   sycl::queue q_;
@@ -206,6 +207,7 @@ int test_properties() {
 }
 
 int main() {
+#if TEST_DYNAMIC_SELECTION_AVAILABLE
   try {
     sycl::queue q;
   } catch (sycl::exception) {
@@ -228,6 +230,10 @@ int main() {
     std::cout << "PASS\n";
     return 0;
   }
+#else
+    std::cout << "SKIPPED\n";
+    return 0;
+#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 }
 
 

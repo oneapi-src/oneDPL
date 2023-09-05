@@ -11,9 +11,13 @@
 #include <iostream>
 #include "oneapi/dpl/dynamic_selection"
 #include "support/test_dynamic_selection_utils.h"
+#include "support/test_config.h"
+#if TEST_DYNAMIC_SELECTION_AVAILABLE
 #include "support/sycl_sanity.h"
+#endif
 
 int main() {
+#if TEST_DYNAMIC_SELECTION_AVAILABLE
   using policy_t = oneapi::dpl::experimental::round_robin_policy<oneapi::dpl::experimental::sycl_backend>;
   std::vector<sycl::queue> u;
   build_universe(u);
@@ -44,6 +48,10 @@ int main() {
     std::cout << "PASS\n";
     return 0;
   }
+#else
+    std::cout << "SKIPPED\n";
+    return 0;
+#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 }
 
 
