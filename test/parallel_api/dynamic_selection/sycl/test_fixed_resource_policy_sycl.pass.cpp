@@ -11,6 +11,7 @@
 #include "oneapi/dpl/dynamic_selection"
 #include "support/sycl_sanity.h"
 #include "support/test_dynamic_selection_utils.h"
+#include "support/test_config.h"
 
 int main() {
   #if TEST_DYNAMIC_SELECTION_AVAILABLE
