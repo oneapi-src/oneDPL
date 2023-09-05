@@ -51,7 +51,6 @@ int main() {
     return 0;
   }
   #endif // TEST_DYNAMIC_SELECTION_AVAILABLE
-  return TestUtils::done(TEST_DYNAMIC_SELECTION_AVAILABLE);
-}
+ }
 
 
