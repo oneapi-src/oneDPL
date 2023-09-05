@@ -53,6 +53,13 @@ __get_memory_page_size()
     return __memory_page_size;
 }
 
+inline bool
+__same_memory_page(void* __ptr1, void* __ptr2)
+{
+    std::uintptr_t __page_size = __get_memory_page_size();
+    return (std::uintptr_t(__ptr1) ^ std::uintptr_t(__ptr2)) < __page_size;
+}
+
 inline void*
 __allocate_shared_for_device(sycl::device* __device, std::size_t __size, std::size_t __alignment)
 {
@@ -85,21 +92,12 @@ __allocate_shared_for_device(sycl::device* __device, std::size_t __size, std::si
     {
         void* __original_pointer = __ptr;
         __ptr = static_cast<char*>(__ptr) + __base_offset;
+        assert(__same_memory_page(__original_pointer, __ptr));
         __block_header* __header = static_cast<__block_header*>(__ptr) - 1;
         *__header = __block_header{__uniq_type_const, __original_pointer, __device, __size};
     }
 
     return __ptr;
-}
-
-inline bool
-__same_memory_page(void* __ptr1, void* __ptr2)
-{
-    std::uintptr_t __page_size = __get_memory_page_size();
-    std::uintptr_t __page_mask = ~(__page_size - 1);
-    std::uintptr_t __ptr1_page_begin = std::uintptr_t(__ptr1) & __page_mask;
-    std::uintptr_t __ptr2_page_begin = std::uintptr_t(__ptr2) & __page_mask;
-    return __ptr1_page_begin == __ptr2_page_begin;
 }
 
 inline auto
