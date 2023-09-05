@@ -40,11 +40,14 @@ struct __subgroup_radix_sort
         using __block_size_t = ::std::integral_constant<::std::uint16_t, __block_size>;
         using __call_0_t = ::std::integral_constant<::std::uint16_t, 0>;
         using __call_1_t = ::std::integral_constant<::std::uint16_t, 1>;
+        using __call_2_t = ::std::integral_constant<::std::uint16_t, 2>;
 
         using _SortKernelLoc = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_0_t>>;
-        using _SortKernelGlob = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        using _SortKernelPartGlob = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_1_t>>;
+        using _SortKernelGlob = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_2_t>>;
 
         using _KeyT = oneapi::dpl::__internal::__value_t<_RangeIn>;
         //check SLM size
@@ -53,8 +56,9 @@ struct __subgroup_radix_sort
             return __one_group_submitter<_SortKernelLoc>()(__q, ::std::forward<_RangeIn>(__src), __proj,
                                                            ::std::true_type{} /*SLM*/, ::std::true_type{} /*SLM*/);
         if (__SLM_available.second)
-            return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                            ::std::false_type{} /*No SLM*/, ::std::true_type{} /*SLM*/);
+            return __one_group_submitter<_SortKernelPartGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
+                                                                ::std::false_type{} /*No SLM*/,
+                                                                ::std::true_type{} /*SLM*/);
         return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
                                                             ::std::false_type{} /*No SLM*/, ::std::false_type{} /*No SLM*/);
     }
