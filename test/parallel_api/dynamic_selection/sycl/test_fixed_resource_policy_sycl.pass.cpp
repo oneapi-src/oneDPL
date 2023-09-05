@@ -13,6 +13,7 @@
 #include "support/test_dynamic_selection_utils.h"
 
 int main() {
+  #if TEST_DYNAMIC_SELECTION_AVAILABLE
   using policy_t = oneapi::dpl::experimental::fixed_resource_policy<oneapi::dpl::experimental::sycl_backend>;
   std::vector<sycl::queue> u;
   build_universe(u);
@@ -46,6 +47,8 @@ int main() {
     std::cout << "PASS\n";
     return 0;
   }
+  #endif // TEST_DYNAMIC_SELECTION_AVAILABLE
+  return TestUtils::done(TEST_DYNAMIC_SELECTION_AVAILABLE);
 }
 
 
