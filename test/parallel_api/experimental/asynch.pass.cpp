@@ -74,7 +74,15 @@ void test1_with_buffers()
         auto my_policy8 = TestUtils::make_device_policy<class Sort>(my_policy);
         auto delta = oneapi::dpl::experimental::sort_async(my_policy8, oneapi::dpl::begin(y), oneapi::dpl::end(y), std::greater<int>(), gamma);
 
-        oneapi::dpl::experimental::wait_for_all(sycl::event{},beta,gamma,delta);
+        int small_nonzero_values[3] = {2, 3, 4};
+        sycl::buffer small_nonzero{small_nonzero_values, sycl::range{3}};
+
+        auto my_policy9 = TestUtils::make_device_policy<class Reduce3>(my_policy);
+        auto epsilon = oneapi::dpl::experimental::reduce_async(my_policy9, oneapi::dpl::begin(small_nonzero),
+                                                               oneapi::dpl::end(small_nonzero), 1,
+                                                               std::multiplies<int>()); // epsilon = 1 * 2 * 3 * 4 = 24
+
+        oneapi::dpl::experimental::wait_for_all(sycl::event{},beta,gamma,delta,epsilon);
         
         const int expected1 = (n * (n + 1) / 2) * ((n + 3) * (n + 4) / 2 - 6);
         const int expected2 = (n * (n + 1) / 2) * 10;
@@ -82,6 +90,10 @@ void test1_with_buffers()
         auto result2 = y.get_host_access(sycl::read_only)[0];
 
         EXPECT_TRUE(result1 == expected1 && result2 == expected2, "wrong effect from async test (I) with sycl buffer");
+
+        auto actual_epsilon = epsilon.get();
+        auto expected_epsilon = 1 * 2 * 3 * 4;
+        EXPECT_EQ(expected_epsilon, actual_epsilon, "wrong result for reduce_async with multiply binary_op");
     }
 }
 

@@ -17,7 +17,6 @@
 #define _TEST_COMPLEX_H
 
 #include <oneapi/dpl/complex>
-#include <oneapi/dpl/pstl/utils.h>
 
 #include "utils.h"
 #include "utils_invoke.h"
@@ -65,14 +64,14 @@ int                                                                             
 run_test()
 
 // We should use this macros to avoid runtime-error if type double doesn't supported on device.
-// 
+//
 // Example:
 //     template <class T>
 //     void
 //     test(T x, typename std::enable_if<std::is_integral<T>::value>::type* = 0)
 //     {
 //         static_assert((std::is_same<decltype(dpl::conj(x)), dpl::complex<double>>::value), "");
-// 
+//
 //         // HERE IS THE CODE WHICH CALL WE SHOULD AVOID IF DOUBLE IS NOT SUPPORTED ON DEVICE
 //         assert(dpl::conj(x) == dpl::conj(dpl::complex<double>(x, 0)));
 //     }

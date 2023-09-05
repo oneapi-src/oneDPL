@@ -8,6 +8,62 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.2.0
+===============
+
+New Features
+------------
+- Added ``sort_by_key`` algorithm for key-value sorting.
+- Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
+  ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
+- Improved performance of the ``reduce_by_segment``, ``inclusive_scan_by_segment``, and
+  ``exclusive_scan_by_segment`` algorithms for binary operators with known identities
+  when using DPC++ execution policies.
+- Added ``value_type`` to all views in ``oneapi::dpl::experimental::ranges``. 
+- Extended ``oneapi::dpl::experimental::ranges::sort`` to support projections applied to the range elements prior to comparison.
+
+Fixed Issues
+------------
+- The minimally required CMake version is raised to 3.11 on Linux and 3.20 on Windows.
+- Added new CMake package ``oneDPLIntelLLVMConfig.cmake`` to resolve issues using CMake 3.20+ on Windows for icx and icx-cl.
+- Fixed an error in the ``sort`` and ``stable_sort`` algorithms when performing a descending sort
+  on signed numeric types with negative values.
+- Fixed an error in ``reduce_by_segment`` algorithm when a non-commutative predicate is used.
+- Fixed an error in ``sort`` and ``stable_sort`` algorithms for integral types wider than 4 bytes.
+- Fixed an error for some compilers where OpenMP or SYCL backend was selected by CMake scripts without full compiler support.
+
+Known Issues and Limitations
+----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- Incorrect results may be produced with in-place scans using ``unseq`` and ``par_unseq`` policies on
+  CPUs with the Intel® C++ Compiler 2021.8.
+
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
+
+New in 2022.1.1
+===============
+
+New Features
+------------
+- Improved ``sort`` algorithm performance for the arithmetic data types with ``std::less`` or ``std::greater`` comparison operator and DPC++ policy.
+
+Fixes Issues
+------------
+- Fixed an error that caused segmentation faults in ``transform_reduce``, ``minmax_element``, and related algorithms when ran on CPU devices. 
+- Fixed a compilation error in ``transform_reduce``, ``minmax_element``, and related algorithms on FPGAs.
+- Fixed ``permutation_iterator`` to support C-style array as a permutation map.
+- Fixed a radix-sort issue with 64-bit signed integer types.
+
 New in 2022.1.0
 ===============
 
@@ -454,7 +510,7 @@ Known Issues and Limitations
 .. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
 .. _`oneDPL Guide`: https://oneapi-src.github.io/oneDPL/index.html
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-threading-building-blocks-release-notes.html
-.. _`restrictions and known limitations`: https://oneapi-src.github.io/oneDPL/overview.html#restrictions
+.. _`restrictions and known limitations`: https://oneapi-src.github.io/oneDPL/introduction.html#restrictions.
 .. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_sycl_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 .. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
 .. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/oneDPL_2022.0_changes.html

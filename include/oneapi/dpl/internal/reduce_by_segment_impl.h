@@ -122,7 +122,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     mask[n] = 1;
 
     // Identify where the first key in a sequence of equivalent keys is located
-    transform(::std::forward<Policy>(policy), first1, last1 - 1, first1 + 1, _mask.get() + 1,
+    transform(policy, first1, last1 - 1, first1 + 1, _mask.get() + 1,
               oneapi::dpl::__internal::__not_pred<BinaryPred>(binary_pred));
 
     // for example: _mask = { 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1}
@@ -232,36 +232,28 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
     constexpr ::std::uint16_t __vals_per_item =
         16; // Each work item serially processes 16 items. Best observed performance on gpu
 
-    ::std::size_t __wgroup_size =
-        oneapi::dpl::__internal::__max_work_group_size(::std::forward<_ExecutionPolicy>(__exec));
+    ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
     // adjust __wgroup_size according to local memory limit. Double the requirement on __val_type due to sycl group algorithm's use
     // of SLM.
     __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
-        ::std::forward<_ExecutionPolicy>(__exec), sizeof(__key_type) + 2 * sizeof(__val_type), __wgroup_size);
+        __exec, sizeof(__key_type) + 2 * sizeof(__val_type), __wgroup_size);
 
 #if _ONEDPL_COMPILE_KERNEL
     auto __seg_reduce_count_kernel =
-        __par_backend_hetero::__internal::__kernel_compiler<_SegReduceCountKernel>::__compile(
-            ::std::forward<_ExecutionPolicy>(__exec));
+        __par_backend_hetero::__internal::__kernel_compiler<_SegReduceCountKernel>::__compile(__exec);
     auto __seg_reduce_offset_kernel =
-        __par_backend_hetero::__internal::__kernel_compiler<_SegReduceOffsetKernel>::__compile(
-            ::std::forward<_ExecutionPolicy>(__exec));
-    auto __seg_reduce_wg_kernel = __par_backend_hetero::__internal::__kernel_compiler<_SegReduceWgKernel>::__compile(
-        ::std::forward<_ExecutionPolicy>(__exec));
+        __par_backend_hetero::__internal::__kernel_compiler<_SegReduceOffsetKernel>::__compile(__exec);
+    auto __seg_reduce_wg_kernel =
+        __par_backend_hetero::__internal::__kernel_compiler<_SegReduceWgKernel>::__compile(__exec);
     auto __seg_reduce_prefix_kernel =
-        __par_backend_hetero::__internal::__kernel_compiler<_SegReducePrefixKernel>::__compile(
-            ::std::forward<_ExecutionPolicy>(__exec));
+        __par_backend_hetero::__internal::__kernel_compiler<_SegReducePrefixKernel>::__compile(__exec);
     __wgroup_size =
         ::std::min({__wgroup_size,
-                    oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                      __seg_reduce_count_kernel),
-                    oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                      __seg_reduce_offset_kernel),
-                    oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                      __seg_reduce_wg_kernel),
-                    oneapi::dpl::__internal::__kernel_work_group_size(::std::forward<_ExecutionPolicy>(__exec),
-                                                                      __seg_reduce_prefix_kernel)});
+                    oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_count_kernel),
+                    oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_offset_kernel),
+                    oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_wg_kernel),
+                    oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_prefix_kernel)});
 #endif
 
     ::std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
@@ -334,8 +326,8 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
             __seg_reduce_offset_kernel,
 #endif
             sycl::nd_range<1>{__wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
-                auto __beg = __seg_ends_acc.get_pointer();
-                auto __out_beg = __seg_ends_scan_acc.get_pointer();
+                auto __beg = __dpl_sycl::__get_accessor_ptr(__seg_ends_acc);
+                auto __out_beg = __dpl_sycl::__get_accessor_ptr(__seg_ends_scan_acc);
                 __dpl_sycl::__joint_exclusive_scan(__item.get_group(), __beg, __beg + __n_groups, __out_beg,
                                                    __diff_type(0), sycl::plus<__diff_type>());
             });

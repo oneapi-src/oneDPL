@@ -327,13 +327,13 @@ main()
         test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
+#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
 #    if TEST_DPCPP_BACKEND_PRESENT
         test_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-#else
+#    else
         test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
 #    endif // TEST_DPCPP_BACKEND_PRESENT
-#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
+#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
     }
 
     {
@@ -351,13 +351,13 @@ main()
         test_flag_pred<sycl::usm::alloc::device, class KernelName8, dpl::complex<float>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
+#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
 #    if TEST_DPCPP_BACKEND_PRESENT
         test_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-#else
+#    else
         test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
 #    endif // TEST_DPCPP_BACKEND_PRESENT
-#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN
+#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
     }
 
     return TestUtils::done();

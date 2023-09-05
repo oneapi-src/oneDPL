@@ -45,17 +45,25 @@ using non_void_type = typename ::std::enable_if<!::std::is_void<_Tp>::value, _Tp
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity =
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
-    typename ::std::conjunction<
-        ::std::is_arithmetic<_Tp>, __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
-        ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<_Tp>>>>;
+    typename ::std::disjunction<
+        __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
+        ::std::conjunction<
+            ::std::is_arithmetic<_Tp>,
+            ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<void>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<void>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<void>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<void>>>>>;
 #    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
-                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>>>;
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<void>>,
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<void>>>>;
 #    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
 
 #else //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
@@ -68,7 +76,10 @@ using __has_known_identity = std::false_type;
 template <typename _BinaryOp, typename _Tp>
 struct __known_identity_for_plus
 {
-    static_assert(std::is_same_v<typename std::decay<_BinaryOp>::type, std::plus<_Tp>>);
+    static_assert(::std::is_same_v<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>> ||
+                  ::std::is_same_v<::std::decay_t<_BinaryOp>, ::std::plus<void>> ||
+                  ::std::is_same_v<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>> ||
+                  ::std::is_same_v<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>);
     static constexpr _Tp value = 0;
 };
 
@@ -937,7 +948,9 @@ struct __brick_reduce_idx
     auto
     reduce(_Idx __segment_begin, _Idx __segment_end, const _Values& __values) const
     {
-        auto __res = __values[__segment_begin];
+        using __ret_type = oneapi::dpl::__internal::__decay_with_tuple_specialization_t<decltype(__values[0])>;
+        __ret_type __res = __values[__segment_begin];
+
         for (++__segment_begin; __segment_begin < __segment_end; ++__segment_begin)
             __res = __binary_op(__res, __values[__segment_begin]);
         return __res;

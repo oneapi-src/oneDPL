@@ -75,12 +75,21 @@ if (EXISTS "${_onedpl_headers}")
         endif()
 
         if (NOT ONEDPL_PAR_BACKEND OR ONEDPL_PAR_BACKEND STREQUAL "openmp")  # Handle OpenMP backend
+            set(_openmp_minimum_version 4.5)
             find_package(OpenMP)
-            if (NOT OpenMP_CXX_FOUND AND ONEDPL_PAR_BACKEND STREQUAL "openmp")  # If OpenMP backend is requested explicitly, but not supported.
+            if (OpenMP_CXX_FOUND)
+                if (OpenMP_CXX_VERSION VERSION_LESS _openmp_minimum_version)
+                    message(STATUS "oneDPL: OpenMP version (${OpenMP_CXX_VERSION}) is less than minimum supported version (${_openmp_minimum_version}), disable OpenMP" )
+                else()
+                    set(_openmp_found_valid TRUE)
+                endif()
+            endif()
+
+            if (NOT _openmp_found_valid AND ONEDPL_PAR_BACKEND STREQUAL "openmp")  # If OpenMP backend is requested explicitly, but not supported.
                 message(STATUS "oneDPL: ONEDPL_PAR_BACKEND=${ONEDPL_PAR_BACKEND} requested, but not supported")
                 set(oneDPL_FOUND FALSE)
                 return()
-            elseif (OpenMP_CXX_FOUND)
+            elseif (_openmp_found_valid)
                 set(ONEDPL_PAR_BACKEND openmp)
                 message(STATUS "oneDPL: ONEDPL_PAR_BACKEND=${ONEDPL_PAR_BACKEND}, disable oneTBB backend")
                 # Due to minor correctness issues with -fiopenmp / -Qiopenmp, we are using -fopenmp / -Qopenmp until they are corrected.
