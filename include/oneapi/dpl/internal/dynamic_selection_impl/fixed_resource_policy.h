@@ -67,7 +67,7 @@ namespace experimental {
       if(backend_){
           return backend_->get_resources();
       }else{
-          throw std::logic_error("Called get_resources before initialization\n");
+          throw std::logic_error("get_resources called before initialization\n");
       }
     }
 
@@ -100,7 +100,7 @@ namespace experimental {
           }
           return selection_type{*this};
       }else{
-          throw std::logic_error("Called select before initialization\n");
+          throw std::logic_error("select called before initialization\n");
       }
     }
 
@@ -109,7 +109,7 @@ namespace experimental {
       if(backend_){
           return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
       }else{
-          throw std::logic_error("Called submit before initialization\n");
+          throw std::logic_error("submit called before initialization\n");
       }
     }
 
@@ -117,7 +117,7 @@ namespace experimental {
       if(backend_){
           return backend_->get_submission_group();
       }else{
-          throw std::logic_error("Called submission group before initialization\n");
+          throw std::logic_error("get_submission_group called before initialization\n");
       }
     }
 
