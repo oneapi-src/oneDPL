@@ -91,6 +91,12 @@ jobs:
             cxx_compiler: icpx
             std: 17
             build_type: release
+            backend: dpcpp
+            device_type: FPGA_EMU
+          - os: ubuntu-20.04
+            cxx_compiler: icpx
+            std: 17
+            build_type: release
             backend: tbb
             device_type: HOST
           - os: ubuntu-20.04
