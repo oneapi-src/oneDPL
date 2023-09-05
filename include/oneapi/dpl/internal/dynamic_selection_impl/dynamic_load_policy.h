@@ -119,7 +119,7 @@ namespace experimental{
         if(backend_)
             return backend_->get_resources();
         else
-           throw std::logic_error("get_resources called before initialization\n");
+           throw std::logic_error("get_resources called before initialization");
     }
 
     template<typename ...Args>
@@ -138,7 +138,7 @@ namespace experimental{
           }
           return selection_type{dynamic_load_policy<Backend>(*this), least_loaded};
       }else{
-        throw std::logic_error("select called before initialization\n");
+        throw std::logic_error("select called before initialization");
       }
     }
 
@@ -147,14 +147,14 @@ namespace experimental{
       if(backend_)
         return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
       else
-          throw std::logic_error("submit called before initialization\n");
+          throw std::logic_error("submit called before initialization");
     }
 
     auto get_submission_group() {
       if(backend_){
           return backend_->get_submission_group();
       }else{
-          throw std::logic_error("get_submission_group called before initialization\n");
+          throw std::logic_error("get_submission_group called before initialization");
       }
     }
 
