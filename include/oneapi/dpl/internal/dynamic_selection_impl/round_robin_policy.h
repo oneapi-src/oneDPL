@@ -107,7 +107,7 @@ namespace experimental{
               resource_container_size_t new_context_;
               new_context_ = (current_context_+1)%state_->num_contexts_;
 
-              if(state_->next_context_.compare_exchange_weak(current_context_, new_context_)){
+              if(state_->next_context_.compare_exchange_strong(current_context_, new_context_)){
                   break;
               }
           }

@@ -342,7 +342,7 @@ static inline void build_auto_tune_universe(std::vector<sycl::queue> &u) {
     sycl::queue cpu1_queue(device_cpu1);
     run_sycl_sanity_test(cpu1_queue);
     u.push_back(cpu1_queue);
-  } catch (sycl::exception) {
+  } catch (const sycl::exception&) {
     std::cout << "SKIPPED: Unable to run with cpu_selector\n";
   }
   try {
@@ -350,7 +350,7 @@ static inline void build_auto_tune_universe(std::vector<sycl::queue> &u) {
     sycl::queue cpu2_queue(device_cpu2);
     run_sycl_sanity_test(cpu2_queue);
     u.push_back(cpu2_queue);
-  } catch (sycl::exception) {
+  } catch (const sycl::exception&) {
     std::cout << "SKIPPED: Unable to run with cpu_selector\n";
   }
   try {
@@ -358,7 +358,7 @@ static inline void build_auto_tune_universe(std::vector<sycl::queue> &u) {
     sycl::queue cpu3_queue(device_cpu3);
     run_sycl_sanity_test(cpu3_queue);
     u.push_back(cpu3_queue);
-  } catch (sycl::exception) {
+  } catch (const sycl::exception&) {
     std::cout << "SKIPPED: Unable to run with cpu_selector\n";
   }
   try {
@@ -366,7 +366,7 @@ static inline void build_auto_tune_universe(std::vector<sycl::queue> &u) {
     sycl::queue cpu4_queue(device_cpu4);
     run_sycl_sanity_test(cpu4_queue);
     u.push_back(cpu4_queue);
-  } catch (sycl::exception) {
+  } catch (const sycl::exception&) {
     std::cout << "SKIPPED: Unable to run with cpu_selector\n";
   }
 }

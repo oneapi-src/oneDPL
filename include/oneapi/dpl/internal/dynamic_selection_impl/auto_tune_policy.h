@@ -56,12 +56,12 @@ namespace experimental {
       wrapped_resource_t best_resource_;
 
       const size_type max_resource_to_profile_;
-      uint64_t next_resource_to_profile_ = 0; 
+      uint64_t next_resource_to_profile_ = 0;
 
       using time_t = std::map<size_type, time_data_t>;
       time_t time_;
 
-      double resample_time_ = 0;
+      double resample_time_ = 0.0;
 
       tuner_t(wrapped_resource_t br, size_type resources_size, double rt)
         : t0_(std::chrono::steady_clock::now()),
@@ -70,7 +70,7 @@ namespace experimental {
           resample_time_(rt) {}
 
       size_type get_resource_to_profile() {
-        std::unique_lock<std::mutex> l(m_);
+        std::lock_guard<std::mutex> l(m_);
         if (next_resource_to_profile_ < 2*max_resource_to_profile_) {
           // do everything twice
           return next_resource_to_profile_++ % max_resource_to_profile_;
@@ -120,7 +120,7 @@ namespace experimental {
       auto_tune_selection_type() : policy_(deferred_initialization) {}
 
       auto_tune_selection_type(const policy_t& p, wrapped_resource_t r, std::shared_ptr<tuner_t> t)
-        : policy_(p), resource_(r), tuner_(t) {}
+        : policy_(p), resource_(r), tuner_(::std::move(t)) {}
 
       auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_); }
 

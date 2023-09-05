@@ -45,20 +45,20 @@ namespace experimental {
 
     struct state_t {
         resource_container_t resources_;
-        size_t offset_;
+        ::std::size_t offset_ = 0;
     };
 
     std::shared_ptr<state_t> state_;
 
   public:
-    fixed_resource_policy(size_t offset=0) {
+    fixed_resource_policy(::std::size_t offset=0) {
         initialize(offset);
     }
 
     fixed_resource_policy(deferred_initialization_t) {}
 
 
-    fixed_resource_policy(const std::vector<resource_type>& u,  size_t offset=0) {
+    fixed_resource_policy(const std::vector<resource_type>& u,  ::std::size_t offset=0) {
         initialize(u, offset);
     }
 
@@ -70,7 +70,7 @@ namespace experimental {
       }
     }
 
-    void initialize(size_t offset=0) {
+    void initialize(::std::size_t offset=0) {
       if(!state_){
            backend_ = std::make_shared<backend_t>();
            state_= std::make_shared<state_t>();
@@ -79,7 +79,7 @@ namespace experimental {
       }
     }
 
-    void initialize(const std::vector<resource_type>& u, size_t offset=0) {
+    void initialize(const std::vector<resource_type>& u, ::std::size_t offset=0) {
       if(!state_){
            backend_ = std::make_shared<backend_t>(u);
            state_= std::make_shared<state_t>();
