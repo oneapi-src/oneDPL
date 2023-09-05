@@ -187,7 +187,7 @@ int test_properties() {
   }
 
   for (int i = 0; i < v2s; ++i) {
-    if (v[i] != unwrap(v2[i])) {
+    if (v[i] != oneapi::dpl::experimental::unwrap(v2[i])) {
       std::cout << "ERROR: reported universe and queried universe are not equal\n";
       return 1;
     }

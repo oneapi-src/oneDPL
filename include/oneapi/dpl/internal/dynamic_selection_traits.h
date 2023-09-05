@@ -13,6 +13,7 @@
 
 #include <utility>
 #include <cstdint>
+#include <type_traits>
 #include "oneapi/dpl/internal/dynamic_selection_impl/policy_traits.h"
 
 namespace oneapi {
@@ -153,7 +154,7 @@ namespace internal {
         return std::forward<T>(t).submit_and_wait(std::forward<Function>(f), std::forward<Args>(args)...);
       } else if constexpr ( internal::has_submit_and_wait_handle<T, typename std::decay_t<T>::selection_type, Function, Args...>::value) {
         // has the optional submit_and_wait for a selection, so select and call
-        return submit_and_wait(std::forward<T>(t).select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
+        return std::forward<T>(t).submit_and_wait(t.select(f, args...), std::forward<Function>(f), std::forward<Args>(args)...);
       } else {
         // does not have the optional submit_and_wait(f, args...) or (s, f, args...)
         return wait(submit(std::forward<T>(t), std::forward<Function>(f), std::forward<Args>(args)...));

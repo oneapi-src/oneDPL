@@ -17,6 +17,8 @@
 #include <vector>
 #include <exception>
 #include <type_traits>
+#include <utility>
+#include "oneapi/dpl/internal/dynamic_selection_traits.h"
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 #endif
