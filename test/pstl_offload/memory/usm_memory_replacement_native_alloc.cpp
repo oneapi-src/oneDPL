@@ -7,6 +7,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !__SYCL_PSTL_OFFLOAD__
+#error "PSTL offload compiler mode should be enabled to run this test"
+#endif
+
 #define DO_STD_INJECTION 1
 #include "system_allocations.h"
 
