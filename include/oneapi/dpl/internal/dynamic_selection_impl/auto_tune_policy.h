@@ -126,7 +126,7 @@ namespace experimental {
       auto_tune_selection_type() : policy_(deferred_initialization) {}
 
       auto_tune_selection_type(const policy_t& p, resource_with_index_t r, std::shared_ptr<tuner_t> t)
-        : policy_(p), resource_(r), tuner_(t) {}
+        : policy_(p), resource_(r), tuner_(::std::move(t)) {}
 
       auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_.r_); }
 
