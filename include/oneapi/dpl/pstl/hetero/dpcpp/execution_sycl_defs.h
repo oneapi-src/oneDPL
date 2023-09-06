@@ -79,7 +79,7 @@ class device_policy
         return ::std::true_type{};
     }
 
-  private:
+  protected:
     mutable ::std::optional<sycl::queue> q;
 };
 
@@ -93,21 +93,26 @@ class fpga_policy : public device_policy<KernelName>
   public:
     static constexpr unsigned int unroll_factor = factor;
 
-    fpga_policy()
-        : base(sycl::queue(
+    fpga_policy() = default;
+    template <unsigned int other_factor, typename OtherName>
+    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
+    explicit fpga_policy(sycl::queue q) : base(q) {}
+    explicit fpga_policy(sycl::device d) : base(d) {}
+
+    operator sycl::queue() const { return queue(); }
+    sycl::queue
+    queue() const
+    {
+        if (!this->q)
+            this->q.emplace(
 #    if _ONEDPL_FPGA_EMU
               __dpl_sycl::__fpga_emulator_selector()
 #    else
               __dpl_sycl::__fpga_selector()
 #    endif // _ONEDPL_FPGA_EMU
-                  ))
-    {
+            );
+        return *this->q;
     }
-
-    template <unsigned int other_factor, typename OtherName>
-    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
-    explicit fpga_policy(sycl::queue q) : base(q) {}
-    explicit fpga_policy(sycl::device d) : base(d) {}
 };
 
 #endif // _ONEDPL_FPGA_DEVICE
