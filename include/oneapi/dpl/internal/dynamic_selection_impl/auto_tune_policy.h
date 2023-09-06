@@ -102,8 +102,8 @@ namespace experimental {
           td.num_timings_ = n+1;
           td.value_ = new_value;
         }
-        if (new_value < best_timing_) {
-          best_timing_ = new_value;
+        if (t < best_timing_) {
+          best_timing_ = t;
           best_resource_ = r;
         }
       }
