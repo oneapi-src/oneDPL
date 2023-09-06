@@ -631,14 +631,15 @@ struct __parallel_radix_sort_iteration
            _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event, _Proj __proj)
     {
         using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
-        using _RadixCountKernel =
-            __internal::__kernel_name_generator<__count_phase, _CustomName, __decay_t<_InRange>, __decay_t<_TmpBuf>>;
+        using _RadixCountKernel = __internal::__kernel_name_generator<__count_phase, _CustomName, _ExecutionPolicy,
+                                                                      __decay_t<_InRange>, __decay_t<_TmpBuf>>;
         using _RadixLocalScanKernel =
-            __internal::__kernel_name_generator<__local_scan_phase, _CustomName, __decay_t<_TmpBuf>>;
-        using _RadixReorderPeerKernel = __internal::__kernel_name_generator<__reorder_peer_phase, _CustomName,
-                                                                            __decay_t<_InRange>, __decay_t<_OutRange>>;
-        using _RadixReorderKernel = __internal::__kernel_name_generator<__reorder_phase, _CustomName,
-                                                                        __decay_t<_InRange>, __decay_t<_OutRange>>;
+             __internal::__kernel_name_generator<__local_scan_phase, _CustomName, _ExecutionPolicy, __decay_t<_TmpBuf>>;
+        using _RadixReorderPeerKernel =
+            __internal::__kernel_name_generator<__reorder_peer_phase, _CustomName, _ExecutionPolicy,
+                                                __decay_t<_InRange>, __decay_t<_OutRange>>;
+        using _RadixReorderKernel = __internal::__kernel_name_generator<__reorder_phase, _CustomName, _ExecutionPolicy,
+                                                                         __decay_t<_InRange>, __decay_t<_OutRange>>;
 
         ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
         ::std::size_t __reorder_sg_size = __max_sg_size;
