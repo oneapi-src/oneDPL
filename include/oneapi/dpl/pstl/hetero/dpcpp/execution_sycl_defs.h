@@ -51,12 +51,14 @@ class device_policy
     {
     }
     explicit device_policy(sycl::queue q_) : q(q_) {}
-    explicit device_policy(sycl::device d_) : q(d_) {}
-    operator sycl::queue() const { return q; }
+    explicit device_policy(sycl::device d_) { q.emplace(d_); }
+    operator sycl::queue() const { return queue(); }
     sycl::queue
     queue() const
     {
-        return q;
+        if (!q)
+            q.emplace();
+        return *q;
     }
 
     // For internal use only
@@ -78,7 +80,7 @@ class device_policy
     }
 
   private:
-    sycl::queue q;
+    mutable ::std::optional<sycl::queue> q;
 };
 
 #if _ONEDPL_FPGA_DEVICE
