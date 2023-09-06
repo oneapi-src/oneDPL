@@ -21,6 +21,8 @@
 
 #include "sycl_defs.h"
 
+#include <mutex>
+#include <optional>
 #include <type_traits>
 
 namespace oneapi
@@ -50,6 +52,20 @@ class device_policy
     device_policy(const device_policy<OtherName>& other) : q(other.queue())
     {
     }
+
+    device_policy(const device_policy& other) : q(other.queue()) {}
+    device_policy(device_policy&& other) : q(other.queue()) {}
+    device_policy& operator=(const device_policy& other)
+    {
+      q = other.queue();
+      return *this;
+    }
+    device_policy& operator=(device_policy&& other)
+    {
+      q.swap(other.q);
+      return *this;
+    }
+
     explicit device_policy(sycl::queue q_) : q(q_) {}
     explicit device_policy(sycl::device d_) { q.emplace(d_); }
     operator sycl::queue() const { return queue(); }
@@ -57,7 +73,11 @@ class device_policy
     queue() const
     {
         if (!q)
-            q.emplace();
+        {
+            ::std::scoped_lock lock{mtx};
+            if (!q)
+                q.emplace();
+        }
         return *q;
     }
 
@@ -81,6 +101,7 @@ class device_policy
 
   protected:
     mutable ::std::optional<sycl::queue> q;
+    mutable ::std::mutex mtx;
 };
 
 #if _ONEDPL_FPGA_DEVICE
@@ -104,13 +125,17 @@ class fpga_policy : public device_policy<KernelName>
     queue() const
     {
         if (!this->q)
-            this->q.emplace(
+        {
+            ::std::scoped_lock lock{this->mtx};
+            if (!this->q)
+                this->q.emplace(
 #    if _ONEDPL_FPGA_EMU
-                __dpl_sycl::__fpga_emulator_selector()
+                    __dpl_sycl::__fpga_emulator_selector()
 #    else
-                __dpl_sycl::__fpga_selector()
+                    __dpl_sycl::__fpga_selector()
 #    endif // _ONEDPL_FPGA_EMU
-            );
+                );
+        }
         return *this->q;
     }
 };
