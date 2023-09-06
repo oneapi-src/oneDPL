@@ -144,7 +144,6 @@ namespace experimental {
     using wait_type = typename Backend::wait_type;
     using selection_type = auto_tune_selection_type<resource_with_index_t, tuner_t>;
 
-
     auto_tune_policy(deferred_initialization_t) {}
 
     auto_tune_policy(double resample_time=never_resample) {
