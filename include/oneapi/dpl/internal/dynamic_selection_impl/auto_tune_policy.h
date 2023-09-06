@@ -10,7 +10,7 @@
 #ifndef _ONEDPL_AUTO_TUNE_POLICY_H
 #define _ONEDPL_AUTO_TUNE_POLICY_H
 
-#include <stdexcept>
+#include <exception>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -42,6 +42,11 @@ namespace experimental {
 
     using timing_t = uint64_t;
 
+    struct resource_with_index_t {
+      wrapped_resource_t r_;
+      size_type index_;
+    };
+
     struct time_data_t {
       uint64_t num_timings_ = 0;
       timing_t value_ = 0;
@@ -53,24 +58,24 @@ namespace experimental {
       std::chrono::steady_clock::time_point t0_;
 
       timing_t best_timing_ = std::numeric_limits<timing_t>::max();
-      wrapped_resource_t best_resource_;
+      resource_with_index_t best_resource_;
 
       const size_type max_resource_to_profile_;
-      uint64_t next_resource_to_profile_ = 0;
+      uint64_t next_resource_to_profile_ = 0; // as index in resources
 
-      using time_t = std::map<size_type, time_data_t>;
-      time_t time_;
+      using time_by_index_t = std::map<size_type, time_data_t>;
+      time_by_index_t time_by_index_;
 
-      double resample_time_ = 0.0;
+      double resample_time_ = 0;
 
-      tuner_t(wrapped_resource_t br, size_type resources_size, double rt)
+      tuner_t(resource_with_index_t br, size_type resources_size, double rt)
         : t0_(std::chrono::steady_clock::now()),
           best_resource_(br),
           max_resource_to_profile_(resources_size),
           resample_time_(rt) {}
 
       size_type get_resource_to_profile() {
-        std::lock_guard<std::mutex> l(m_);
+        std::unique_lock<std::mutex> l(m_);
         if (next_resource_to_profile_ < 2*max_resource_to_profile_) {
           // do everything twice
           return next_resource_to_profile_++ % max_resource_to_profile_;
@@ -89,40 +94,44 @@ namespace experimental {
       }
 
       // called to add new profile info
-      void add_new_timing(wrapped_resource_t r, timing_t t) {
+      void add_new_timing(resource_with_index_t r, timing_t t) {
         std::unique_lock<std::mutex> l(m_);
+        auto index = r.index_;
         timing_t new_value = t;
-        if (time_.count(0) == 0) {
+        if (time_by_index_.count(index) == 0) {
           // ignore the 1st timing to cover for JIT compilation
-          time_[0] = time_data_t{0, std::numeric_limits<timing_t>::max()};
+          time_by_index_[index] = time_data_t{0, std::numeric_limits<timing_t>::max()};
         } else {
-          auto &td = time_[0];
+          auto &td = time_by_index_[index];
           auto n = td.num_timings_;
           new_value = (n*td.value_+t)/(n+1);
           td.num_timings_ = n+1;
           td.value_ = new_value;
         }
-        if (t < best_timing_) {
-          best_timing_ = t;
+        if (new_value < best_timing_) {
+          best_timing_ = new_value;
           best_resource_ = r;
         }
       }
 
     };
 
+ //   template <typename Resource, typename Tuner>
     class auto_tune_selection_type {
       using policy_t = auto_tune_policy<Backend, KeyArgs...>;
       policy_t policy_;
-      wrapped_resource_t resource_;
+  //    using resource_with_index_t = Resource;
+      resource_with_index_t resource_;
+   //   using tuner_t = Tuner;
       std::shared_ptr<tuner_t> tuner_;
 
     public:
       auto_tune_selection_type() : policy_(deferred_initialization) {}
 
-      auto_tune_selection_type(const policy_t& p, wrapped_resource_t r, std::shared_ptr<tuner_t> t)
-        : policy_(p), resource_(r), tuner_(::std::move(t)) {}
+      auto_tune_selection_type(const policy_t& p, resource_with_index_t r, std::shared_ptr<tuner_t> t)
+        : policy_(p), resource_(r), tuner_(t) {}
 
-      auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_); }
+      auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_.r_); }
 
       policy_t get_policy() { return policy_; };
 
@@ -136,14 +145,14 @@ namespace experimental {
     // Needed by Policy Traits
     using resource_type = decltype(unwrap(std::declval<wrapped_resource_t>()));
     using wait_type = typename Backend::wait_type;
-    using selection_type = auto_tune_selection_type;
+    using selection_type = auto_tune_selection_type<resource_with_index_t, tuner_t>;
+
+
+    auto_tune_policy(deferred_initialization_t) {}
 
     auto_tune_policy(double resample_time=never_resample) {
         initialize(resample_time);
     }
-
-
-    auto_tune_policy(deferred_initialization_t) {}
 
     auto_tune_policy(const std::vector<resource_type>& u, double resample_time=never_resample) {
         initialize(u, resample_time);
@@ -171,15 +180,15 @@ namespace experimental {
         std::unique_lock<std::mutex> l(state_->m_);
         auto k =  make_task_key(std::forward<Function>(f), std::forward<Args>(args)...);
         auto t  = state_->tuner_by_key_[k];
-        auto i = t->get_resource_to_profile();
-        if (i == use_best_resource) {
+        auto index = t->get_resource_to_profile();
+        if (index == use_best_resource) {
           return selection_type{*this, t->best_resource_, t};
         } else {
-          auto r = state_->resources_[i];
+          auto r = state_->resources_with_index_[index];
           return selection_type{*this, r, t};
         }
       } else {
-         throw std::logic_error("select called before initialization");
+         throw std::runtime_error("Called select before initialization\n");
       }
     }
 
@@ -188,7 +197,7 @@ namespace experimental {
       if (backend_) {
         return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
       } else {
-         throw std::logic_error("submit called before initialization");
+         throw std::runtime_error("Called submit before initialization\n");
       }
     }
 
@@ -196,7 +205,7 @@ namespace experimental {
        if (backend_) {
          return backend_->get_resources();
        } else {
-         throw std::logic_error("get_resources called before initialization");
+         throw std::runtime_error("Called get_resources before initialization\n");
        }
     }
 
@@ -204,7 +213,7 @@ namespace experimental {
       if (backend_) {
         return backend_->get_submission_group();
        } else {
-         throw std::logic_error("get_submission_group called before initialization");
+         throw std::runtime_error("Called get_submission_group before initialization\n");
        }
     }
 
@@ -225,7 +234,7 @@ namespace experimental {
 
     struct state_t {
       std::mutex m_;
-      std::vector<wrapped_resource_t> resources_;
+      std::vector<resource_with_index_t> resources_with_index_;
       tuner_by_key_t tuner_by_key_;
     };
 
@@ -240,7 +249,7 @@ namespace experimental {
       resample_time_ = resample_time;
       auto u = get_resources();
       for (size_type i = 0; i < u.size(); ++i) {
-        state_->resources_.push_back(u[i]);
+        state_->resources_with_index_.push_back(resource_with_index_t{u[i], i});
       }
     }
 
@@ -249,7 +258,7 @@ namespace experimental {
       // called under lock
       task_key_t k = std::tuple_cat(std::tuple<void *>(&f), std::make_tuple(std::forward<Args>(args)...));
       if (state_->tuner_by_key_.count(k) == 0) {
-        state_->tuner_by_key_[k] = std::make_shared<tuner_t>(state_->resources_[0], state_->resources_.size(), resample_time_);
+        state_->tuner_by_key_[k] = std::make_shared<tuner_t>(state_->resources_with_index_[0], state_->resources_with_index_.size(), resample_time_);
       }
       return k;
     }
