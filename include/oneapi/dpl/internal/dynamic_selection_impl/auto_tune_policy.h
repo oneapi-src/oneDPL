@@ -10,7 +10,7 @@
 #ifndef _ONEDPL_AUTO_TUNE_POLICY_H
 #define _ONEDPL_AUTO_TUNE_POLICY_H
 
-#include <exception>
+#include <stdexcept>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -75,7 +75,7 @@ namespace experimental {
           resample_time_(rt) {}
 
       size_type get_resource_to_profile() {
-        std::unique_lock<std::mutex> l(m_);
+        std::lock_guard<std::mutex> l(m_);
         if (next_resource_to_profile_ < 2*max_resource_to_profile_) {
           // do everything twice
           return next_resource_to_profile_++ % max_resource_to_profile_;
@@ -188,7 +188,7 @@ namespace experimental {
           return selection_type{*this, r, t};
         }
       } else {
-         throw std::runtime_error("Called select before initialization\n");
+         throw std::logic_error("select called before initialization");
       }
     }
 
@@ -197,7 +197,7 @@ namespace experimental {
       if (backend_) {
         return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
       } else {
-         throw std::runtime_error("Called submit before initialization\n");
+         throw std::logic_error("submit called before initialization");
       }
     }
 
@@ -205,7 +205,7 @@ namespace experimental {
        if (backend_) {
          return backend_->get_resources();
        } else {
-         throw std::runtime_error("Called get_resources before initialization\n");
+         throw std::logic_error("get_resources called before initialization");
        }
     }
 
@@ -213,7 +213,7 @@ namespace experimental {
       if (backend_) {
         return backend_->get_submission_group();
        } else {
-         throw std::runtime_error("Called get_submission_group before initialization\n");
+         throw std::logic_error("get_submission_group called before initialization");
        }
     }
 
