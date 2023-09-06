@@ -66,7 +66,7 @@ namespace experimental {
       using time_by_index_t = std::map<size_type, time_data_t>;
       time_by_index_t time_by_index_;
 
-      double resample_time_ = 0;
+      double resample_time_ = 0.0;
 
       tuner_t(resource_with_index_t br, size_type resources_size, double rt)
         : t0_(std::chrono::steady_clock::now()),
@@ -116,13 +116,10 @@ namespace experimental {
 
     };
 
- //   template <typename Resource, typename Tuner>
     class auto_tune_selection_type {
       using policy_t = auto_tune_policy<Backend, KeyArgs...>;
       policy_t policy_;
-  //    using resource_with_index_t = Resource;
       resource_with_index_t resource_;
-   //   using tuner_t = Tuner;
       std::shared_ptr<tuner_t> tuner_;
 
     public:
