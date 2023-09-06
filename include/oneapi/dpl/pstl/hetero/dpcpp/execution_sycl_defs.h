@@ -44,26 +44,46 @@ struct DefaultKernelName;
 template <typename KernelName = DefaultKernelName>
 class device_policy
 {
+    // Needed for the copy constructor that rebinds the kernel name
+    template <typename>
+    friend class device_policy;
+
   public:
     using kernel_name = KernelName;
 
     device_policy() = default;
+
     template <typename OtherName>
-    device_policy(const device_policy<OtherName>& other) : q(other.queue())
+    device_policy(const device_policy<OtherName>& other)
     {
+        ::std::scoped_lock lock{other.mtx};
+        q = other.q;
     }
 
-    device_policy(const device_policy& other) : q(other.queue()) {}
-    device_policy(device_policy&& other) : q(other.queue()) {}
+    device_policy(const device_policy& other)
+    {
+        ::std::scoped_lock lock{other.mtx};
+        q = other.q;
+    }
+
+    device_policy(device_policy&& other)
+    {
+        ::std::scoped_lock lock{other.mtx};
+        q.swap(other.q);
+    }
+
     device_policy&
     operator=(const device_policy& other)
     {
-        q = other.queue();
+        ::std::scoped_lock lock{mtx, other.mtx};
+        q = other.q;
         return *this;
     }
+
     device_policy&
     operator=(device_policy&& other)
     {
+        ::std::scoped_lock lock{mtx, other.mtx};
         q.swap(other.q);
         return *this;
     }
@@ -74,11 +94,10 @@ class device_policy
     sycl::queue
     queue() const
     {
+        ::std::scoped_lock lock{mtx};
         if (!q)
         {
-            ::std::scoped_lock lock{mtx};
-            if (!q)
-                q.emplace();
+            q.emplace();
         }
         return *q;
     }
@@ -126,17 +145,16 @@ class fpga_policy : public device_policy<KernelName>
     sycl::queue
     queue() const
     {
+        ::std::scoped_lock lock{this->mtx};
         if (!this->q)
         {
-            ::std::scoped_lock lock{this->mtx};
-            if (!this->q)
-                this->q.emplace(
+            this->q.emplace(
 #    if _ONEDPL_FPGA_EMU
-                    __dpl_sycl::__fpga_emulator_selector()
+                __dpl_sycl::__fpga_emulator_selector()
 #    else
-                    __dpl_sycl::__fpga_selector()
+                __dpl_sycl::__fpga_selector()
 #    endif // _ONEDPL_FPGA_EMU
-                );
+            );
         }
         return *this->q;
     }
