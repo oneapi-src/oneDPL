@@ -55,15 +55,17 @@ class device_policy
 
     device_policy(const device_policy& other) : q(other.queue()) {}
     device_policy(device_policy&& other) : q(other.queue()) {}
-    device_policy& operator=(const device_policy& other)
+    device_policy&
+    operator=(const device_policy& other)
     {
-      q = other.queue();
-      return *this;
+        q = other.queue();
+        return *this;
     }
-    device_policy& operator=(device_policy&& other)
+    device_policy&
+    operator=(device_policy&& other)
     {
-      q.swap(other.q);
-      return *this;
+        q.swap(other.q);
+        return *this;
     }
 
     explicit device_policy(sycl::queue q_) : q(q_) {}
