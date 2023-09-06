@@ -106,9 +106,9 @@ class fpga_policy : public device_policy<KernelName>
         if (!this->q)
             this->q.emplace(
 #    if _ONEDPL_FPGA_EMU
-              __dpl_sycl::__fpga_emulator_selector()
+                __dpl_sycl::__fpga_emulator_selector()
 #    else
-              __dpl_sycl::__fpga_selector()
+                __dpl_sycl::__fpga_selector()
 #    endif // _ONEDPL_FPGA_EMU
             );
         return *this->q;
