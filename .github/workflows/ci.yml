@@ -238,10 +238,12 @@ jobs:
           mkdir build && cd build
           lscpu
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=dpcpp -D_ONEDPL_PSTL_OFFLOAD=default ..
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=dpcpp -D_ONEDPL_PSTL_OFFLOAD=${{ matrix.device_type }} ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
 
           sycl-ls
+
+          ./test/algorithm.pass
 
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure -R ${ctest_regex}
 
