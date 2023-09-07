@@ -101,12 +101,10 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     std::cout<<"resource type : "<<e<<" ideal type "<<u[(i-1)%n_samples]<<"\n";
                      if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<best_resource<<"\n";
                      if (e != best_resource) {
                        pass = false;
                      }
