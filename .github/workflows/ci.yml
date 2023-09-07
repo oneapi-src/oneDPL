@@ -240,6 +240,9 @@ jobs:
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=dpcpp -D_ONEDPL_PSTL_OFFLOAD=default ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
+
+          sycl-ls
+
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure -R ${ctest_regex}
 
   windows-testing:
