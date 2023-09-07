@@ -164,7 +164,9 @@ class fpga_policy : public device_policy<KernelName, QueueFactory>
 
     fpga_policy() = default;
     template <unsigned int other_factor, typename OtherName>
-    fpga_policy(const fpga_policy<other_factor, OtherName, QueueFactory>& other) : base(other.queue()){};
+    fpga_policy(const fpga_policy<other_factor, OtherName, QueueFactory>& other) : base(static_cast<const base&>(other))
+    {
+    }
     explicit fpga_policy(sycl::queue q) : base(::std::move(q)) {}
     explicit fpga_policy(sycl::device d) : base(::std::move(d)) {}
 
