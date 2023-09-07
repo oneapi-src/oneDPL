@@ -217,15 +217,21 @@ jobs:
           echo "::warning::Compiler: $(cmake --version)"
           echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
-          make_targets="build-onedpl-sycl_iterator-tests"
-          ctest_flags="-R \"(sycl_iterator_.*\.pass"
+          make_targets=""
+          ctest_flags="-R \"("
 
           for test in adjacent_find.pass copy_move.pass merge.pass minmax_element.pass partial_sort.pass remove_copy.pass \
                       transform_reduce.pass transform_scan.pass algorithm.pass execution.pass functional.pass \
                       algorithms_offload.pass usm_memory_replacement.pass
           do
-            make_targets+=" $test"
-            ctest_flags+="|$test"
+            if [ -n "$make_targets" ]
+            then
+              make_targets+=" "
+              ctest_flags+="|"
+            fi
+
+            make_targets+="$test"
+            ctest_flags+="$test"
           done
 
           ctest_flags+=")\""
