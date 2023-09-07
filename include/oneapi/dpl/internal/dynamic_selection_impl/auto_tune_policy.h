@@ -20,13 +20,16 @@
 #include <vector>
 #include <type_traits>
 #include <tuple>
+#include <unordered_map>
 #include "oneapi/dpl/internal/dynamic_selection_traits.h"
 #if _DS_BACKEND_SYCL != 0
     #include "oneapi/dpl/internal/dynamic_selection_impl/sycl_backend.h"
 #endif
+
 namespace oneapi {
 namespace dpl {
 namespace experimental {
+
 #if _DS_BACKEND_SYCL != 0
   template <typename Backend=sycl_backend, typename... KeyArgs>
 #else
@@ -34,13 +37,12 @@ namespace experimental {
 #endif
   class auto_tune_policy {
 
-    static constexpr double never_resample = 0.0;
-    static constexpr int use_best_resource = -1;
-
     using wrapped_resource_t = typename std::decay_t<Backend>::execution_resource_t;
     using size_type = typename std::vector<typename Backend::resource_type>::size_type;
-
     using timing_t = uint64_t;
+
+    static constexpr timing_t never_resample = 0;
+    static constexpr size_type use_best_resource = ~size_type(0);
 
     struct resource_with_index_t {
       wrapped_resource_t r_;
@@ -63,12 +65,12 @@ namespace experimental {
       const size_type max_resource_to_profile_;
       uint64_t next_resource_to_profile_ = 0; // as index in resources
 
-      using time_by_index_t = std::map<size_type, time_data_t>;
+      using time_by_index_t = std::unordered_map<size_type, time_data_t>;
       time_by_index_t time_by_index_;
 
-      double resample_time_ = 0.0;
+      timing_t resample_time_ = 0.0;
 
-      tuner_t(resource_with_index_t br, size_type resources_size, double rt)
+      tuner_t(resource_with_index_t br, size_type resources_size, timing_t rt)
         : t0_(std::chrono::steady_clock::now()),
           best_resource_(br),
           max_resource_to_profile_(resources_size),
@@ -88,7 +90,8 @@ namespace experimental {
             return use_best_resource;
           } else {
             t0_ = now;
-            return next_resource_to_profile_ = 0;
+            next_resource_to_profile_ = 0;
+            return next_resource_to_profile_++;
           }
         }
       }
@@ -123,8 +126,6 @@ namespace experimental {
       std::shared_ptr<tuner_t> tuner_;
 
     public:
-      auto_tune_selection_type() : policy_(deferred_initialization) {}
-
       auto_tune_selection_type(const policy_t& p, resource_with_index_t r, std::shared_ptr<tuner_t> t)
         : policy_(p), resource_(r), tuner_(::std::move(t)) {}
 
@@ -146,15 +147,15 @@ namespace experimental {
 
     auto_tune_policy(deferred_initialization_t) {}
 
-    auto_tune_policy(double resample_time=never_resample) {
+    auto_tune_policy(timing_t resample_time=never_resample) {
         initialize(resample_time);
     }
 
-    auto_tune_policy(const std::vector<resource_type>& u, double resample_time=never_resample) {
+    auto_tune_policy(const std::vector<resource_type>& u, timing_t resample_time=never_resample) {
         initialize(u, resample_time);
     }
 
-    void initialize(double resample_time=never_resample) {
+    void initialize(timing_t resample_time=never_resample) {
       if (!state_) {
         state_ = std::make_shared<state_t>();
         backend_ = std::make_shared<Backend>();
@@ -162,7 +163,7 @@ namespace experimental {
       }
     }
 
-    void initialize(const std::vector<resource_type>& u, double resample_time=never_resample) {
+    void initialize(const std::vector<resource_type>& u, timing_t resample_time=never_resample) {
       if (!state_) {
         state_ = std::make_shared<state_t>();
         backend_ = std::make_shared<Backend>(u);
@@ -172,6 +173,7 @@ namespace experimental {
 
     template<typename Function, typename ...Args>
     selection_type select(Function&& f, Args&&...args) {
+      static_assert(sizeof...(KeyArgs) == sizeof...(Args));
       if (state_) {
         std::unique_lock<std::mutex> l(state_->m_);
         auto k =  make_task_key(std::forward<Function>(f), std::forward<Args>(args)...);
@@ -226,7 +228,7 @@ namespace experimental {
     // member variables
     //
 
-    double resample_time_ = 0.0;
+    timing_t resample_time_ = 0;
 
     struct state_t {
       std::mutex m_;
@@ -241,7 +243,7 @@ namespace experimental {
     // private member functions
     //
 
-    void initialize_impl(double resample_time=never_resample) {
+    void initialize_impl(timing_t resample_time=never_resample) {
       resample_time_ = resample_time;
       auto u = get_resources();
       for (size_type i = 0; i < u.size(); ++i) {
@@ -252,7 +254,7 @@ namespace experimental {
     template<typename Function, typename... Args>
     task_key_t make_task_key(Function&& f, Args&&... args) {
       // called under lock
-      task_key_t k = std::tuple_cat(std::tuple<void *>(&f), std::make_tuple(std::forward<Args>(args)...));
+      task_key_t k = std::make_tuple(static_cast<void*>(&f), std::forward<Args>(args)...);
       if (state_->tuner_by_key_.count(k) == 0) {
         state_->tuner_by_key_[k] = std::make_shared<tuner_t>(state_->resources_with_index_[0], state_->resources_with_index_.size(), resample_time_);
       }
