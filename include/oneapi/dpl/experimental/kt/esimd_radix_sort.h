@@ -67,7 +67,7 @@ namespace oneapi::dpl::experimental::kt::esimd
 
 template <bool _IsAscending = true, std::uint8_t _RadixBits = 8, typename _KernelParam, typename _Range>
 sycl::event
-__radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param = {})
+radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param = {})
 {
     if (__rng.size() < 2)
         return {};
