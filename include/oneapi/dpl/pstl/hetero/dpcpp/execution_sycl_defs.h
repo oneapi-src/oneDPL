@@ -56,19 +56,19 @@ class device_policy
     template <typename OtherName>
     device_policy(const device_policy<OtherName>& other)
     {
-        ::std::scoped_lock lock{other.mtx};
+        ::std::lock_quard lock{other.mtx};
         q = other.q;
     }
 
     device_policy(const device_policy& other)
     {
-        ::std::scoped_lock lock{other.mtx};
+        ::std::lock_quard lock{other.mtx};
         q = other.q;
     }
 
     device_policy(device_policy&& other)
     {
-        ::std::scoped_lock lock{other.mtx};
+        ::std::lock_quard lock{other.mtx};
         q.swap(other.q);
     }
 
@@ -94,7 +94,7 @@ class device_policy
     sycl::queue
     queue() const
     {
-        ::std::scoped_lock lock{mtx};
+        ::std::lock_quard lock{mtx};
         if (!q)
         {
             q.emplace();
@@ -145,7 +145,7 @@ class fpga_policy : public device_policy<KernelName>
     sycl::queue
     queue() const
     {
-        ::std::scoped_lock lock{this->mtx};
+        ::std::lock_quard lock{this->mtx};
         if (!this->q)
         {
             this->q.emplace(
