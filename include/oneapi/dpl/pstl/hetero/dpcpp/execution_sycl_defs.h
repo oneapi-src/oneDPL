@@ -48,48 +48,52 @@ class device_policy
     template <typename>
     friend class device_policy;
 
+    template <typename T>
+    static auto
+    lock_and_forward(T&& t, std::mutex& mtx)
+    {
+        ::std::scoped_lock lock{mtx};
+        return std::forward<T>(t);
+    }
+
   public:
     using kernel_name = KernelName;
 
     device_policy() = default;
+    explicit device_policy(sycl::queue q_) : q(q_) {}
+    explicit device_policy(sycl::device d_) { q.emplace(d_); }
 
     template <typename OtherName>
-    device_policy(const device_policy<OtherName>& other)
+    device_policy(const device_policy<OtherName>& other) : q(device_policy::lock_and_forward(other.q, other.mtx))
     {
-        ::std::scoped_lock lock{other.mtx};
-        q = other.q;
     }
 
-    device_policy(const device_policy& other)
-    {
-        ::std::scoped_lock lock{other.mtx};
-        q = other.q;
-    }
+    device_policy(const device_policy& other) : q(device_policy::lock_and_forward(other.q, other.mtx)) {}
 
-    device_policy(device_policy&& other)
-    {
-        ::std::scoped_lock lock{other.mtx};
-        q.swap(other.q);
-    }
+    device_policy(device_policy&& other) : q(device_policy::lock_and_forward(::std::move(other.q), other.mtx)) {}
 
     device_policy&
     operator=(const device_policy& other)
     {
-        ::std::scoped_lock lock{mtx, other.mtx};
-        q = other.q;
+        if (this != &other)
+        {
+            ::std::scoped_lock lock{mtx, other.mtx};
+            q = other.q;
+        }
         return *this;
     }
 
     device_policy&
     operator=(device_policy&& other)
     {
-        ::std::scoped_lock lock{mtx, other.mtx};
-        q.swap(other.q);
+        if (this != &other)
+        {
+            ::std::scoped_lock lock{mtx, other.mtx};
+            q = ::std::move(other.q);
+        }
         return *this;
     }
 
-    explicit device_policy(sycl::queue q_) : q(q_) {}
-    explicit device_policy(sycl::device d_) { q.emplace(d_); }
     operator sycl::queue() const { return queue(); }
     sycl::queue
     queue() const
@@ -121,8 +125,8 @@ class device_policy
     }
 
   protected:
-    mutable ::std::optional<sycl::queue> q;
     mutable ::std::mutex mtx;
+    mutable ::std::optional<sycl::queue> q;
 };
 
 #if _ONEDPL_FPGA_DEVICE
@@ -137,7 +141,9 @@ class fpga_policy : public device_policy<KernelName>
 
     fpga_policy() = default;
     template <unsigned int other_factor, typename OtherName>
-    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
+    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue())
+    {
+    }
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
 
