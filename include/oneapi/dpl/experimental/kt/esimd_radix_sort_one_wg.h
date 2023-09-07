@@ -26,7 +26,7 @@ namespace oneapi::dpl::experimental::kt::esimd::__impl
 template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
           ::std::uint16_t _WorkGroupSize, typename _KeyT, typename InputT>
 void
-__one_wg_kernel(sycl::nd_item<1> idx, uint32_t __n, const InputT& __input)
+__one_wg_kernel(sycl::nd_item<1> __idx, uint32_t __n, const InputT& __input)
 {
     using namespace sycl;
     using namespace __dpl_esimd_ns;
@@ -50,7 +50,7 @@ __one_wg_kernel(sycl::nd_item<1> idx, uint32_t __n, const InputT& __input)
     // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
     slm_init(std::max(_REORDER_SLM_SIZE, _BIN_HIST_SLM_SIZE + _INCOMING_OFFSET_SLM_SIZE));
 
-    const uint32_t __local_tid = idx.get_local_linear_id();
+    const uint32_t __local_tid = __idx.get_local_linear_id();
 
     const uint32_t __slm_reorder_this_thread = __local_tid * _DataPerWorkItem * sizeof(_KeyT);
     const uint32_t __slm_bin_hist_this_thread = __local_tid * _HIST_STRIDE;

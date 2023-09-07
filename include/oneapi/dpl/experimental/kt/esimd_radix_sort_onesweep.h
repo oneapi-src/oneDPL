@@ -202,12 +202,12 @@ struct __radix_sort_onesweep_slm_reorder_kernel
     static constexpr uint32_t _INCOMING_OFFSET_SLM_SIZE = (_BIN_COUNT+1)*sizeof(_hist_t);
     static constexpr uint32_t _OFFSETS_SLM_SIZE = _BIN_HIST_SLM_SIZE + _GLOBAL_LOOKUP_SIZE + _INCOMING_OFFSET_SLM_SIZE;
 
-    //__slm allocation:
-    // first __stage, do subgroup __ranks, need _WorkGroupSize*_BIN_COUNT*sizeof(_hist_t)
+    // slm allocation:
+    // first stage, do subgroup ranks, need _WorkGroupSize*_BIN_COUNT*sizeof(_hist_t)
     // then do rank roll up in workgroup, need _WorkGroupSize*_BIN_COUNT*sizeof(_hist_t) + _BIN_COUNT*sizeof(_hist_t) + _BIN_COUNT*sizeof(_global_hist_t)
-    // after all these is done, update __ranks to workgroup __ranks, need _SUBGROUP_LOOKUP_SIZE
-    // then shuffle __keys to workgroup order in SLM, need _DataPerWorkItem * sizeof(_KeyT) * _WorkGroupSize
-    // then read reordered __slm and look up global fix, need _GLOBAL_LOOKUP_SIZE on top
+    // after all these is done, update ranks to workgroup ranks, need _SUBGROUP_LOOKUP_SIZE
+    // then shuffle keys to workgroup order in SLM, need _DataPerWorkItem * sizeof(_KeyT) * _WorkGroupSize
+    // then read reordered slm and look up global fix, need _GLOBAL_LOOKUP_SIZE on top
 
     const uint32_t __n;
     const uint32_t __stage;
@@ -438,13 +438,13 @@ struct __radix_sort_onesweep_slm_reorder_kernel
         simd<_hist_t, _BIN_COUNT> __subgroup_offset;
         simd<_global_hist_t, _BIN_COUNT> __global_fix;
 
-        _global_hist_t* p_global_bin_start_buffer_allstages = reinterpret_cast<_global_hist_t*>(__p_global_buffer);
-        _global_hist_t* _p_global_bin_start_buffer =
-            p_global_bin_start_buffer_allstages + _BIN_COUNT * _STAGES + _BIN_COUNT * __wg_count * __stage;
+        _global_hist_t* __p_global_bin_start_buffer_allstages = reinterpret_cast<_global_hist_t*>(__p_global_buffer);
+        _global_hist_t* __p_global_bin_start_buffer =
+            __p_global_bin_start_buffer_allstages + _BIN_COUNT * _STAGES + _BIN_COUNT * __wg_count * __stage;
 
-        _global_hist_t* __p_global_bin_this_group = _p_global_bin_start_buffer + _BIN_COUNT * __wg_id;
-        _global_hist_t* __p_global_bin_prev_group = _p_global_bin_start_buffer + _BIN_COUNT * (__wg_id - 1);
-        __p_global_bin_prev_group = (0 == __wg_id) ? (p_global_bin_start_buffer_allstages + _BIN_COUNT * __stage)
+        _global_hist_t* __p_global_bin_this_group = __p_global_bin_start_buffer + _BIN_COUNT * __wg_id;
+        _global_hist_t* __p_global_bin_prev_group = __p_global_bin_start_buffer + _BIN_COUNT * (__wg_id - 1);
+        __p_global_bin_prev_group = (0 == __wg_id) ? (__p_global_bin_start_buffer_allstages + _BIN_COUNT * __stage)
                                                : (__p_global_bin_this_group - _BIN_COUNT);
 
         _UpdateGroupRank(__local_tid, __wg_id, __subgroup_offset, __global_fix, __p_global_bin_prev_group,
@@ -453,19 +453,19 @@ struct __radix_sort_onesweep_slm_reorder_kernel
         {
             __bins = __utils::__get_bucket<_MASK>(__utils::__order_preserving_cast<_IsAscending>(__keys), __stage * _RadixBits);
 
-            _slm_lookup_t<_hist_t> subgroup_lookup(__slm_lookup_subgroup);
+            _slm_lookup_t<_hist_t> __subgroup_lookup(__slm_lookup_subgroup);
             simd<_hist_t, _DataPerWorkItem> __wg_offset =
-                __ranks + subgroup_lookup.template lookup<_DataPerWorkItem>(__subgroup_offset, __bins);
+                __ranks + __subgroup_lookup.template lookup<_DataPerWorkItem>(__subgroup_offset, __bins);
             barrier();
 
             __utils::_VectorStore<_KeyT, 1, _DataPerWorkItem>(simd<uint32_t, _DataPerWorkItem>(__wg_offset) * sizeof(_KeyT),
                                                            __keys);
         }
         barrier();
-        _slm_lookup_t<_global_hist_t> l(_REORDER_SLM_SIZE);
+        _slm_lookup_t<_global_hist_t> __global_fix_lookup(_REORDER_SLM_SIZE);
         if (__local_tid == 0)
         {
-            l.template setup(__global_fix);
+            __global_fix_lookup.template setup(__global_fix);
         }
         barrier();
         {
@@ -477,7 +477,7 @@ struct __radix_sort_onesweep_slm_reorder_kernel
                 __utils::__create_simd<_hist_t, _DataPerWorkItem>(__local_tid * _DataPerWorkItem, 1);
 
             simd<_device_addr_t, _DataPerWorkItem> __global_offset =
-                __group_offset + l.template lookup<_DataPerWorkItem>(__bins);
+                __group_offset + __global_fix_lookup.template lookup<_DataPerWorkItem>(__bins);
 
             __utils::_VectorStore<_KeyT, 1, _DataPerWorkItem>(__output, __global_offset * sizeof(_KeyT), __keys,
                                                            __global_offset < __n);
