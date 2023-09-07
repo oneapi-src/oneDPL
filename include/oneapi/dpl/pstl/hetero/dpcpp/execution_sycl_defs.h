@@ -96,11 +96,11 @@ class device_policy
     queue() const
     {
         ::std::lock_quard lock{mtx};
-        if (!q_opt)
+        if (!q_opt.has_value())
         {
             q_opt.emplace();
         }
-        return *q_opt;
+        return q_opt.value();
     }
 
     // For internal use only
@@ -147,7 +147,7 @@ class fpga_policy : public device_policy<KernelName>
     queue() const
     {
         ::std::lock_quard lock{this->mtx};
-        if (!this->q_opt)
+        if (!this->q_opt.has_value())
         {
             this->q_opt.emplace(
 #    if _ONEDPL_FPGA_EMU
@@ -157,7 +157,7 @@ class fpga_policy : public device_policy<KernelName>
 #    endif // _ONEDPL_FPGA_EMU
             );
         }
-        return *this->q_opt;
+        return this->q_opt.value();
     }
 };
 
