@@ -89,8 +89,8 @@ class device_policy
         return *this;
     }
 
-    explicit device_policy(sycl::queue q_) : q_opt(q_) {}
-    explicit device_policy(sycl::device d_) { q_opt.emplace(d_); }
+    explicit device_policy(sycl::queue q_) : q_opt(std::in_place_t{}, ::std::move(q_)) {}
+    explicit device_policy(sycl::device d_) : q_opt(std::in_place_t{}, ::std::move(d_)) {}
     operator sycl::queue() const { return queue(); }
     sycl::queue
     queue() const
@@ -139,8 +139,8 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy() = default;
     template <unsigned int other_factor, typename OtherName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
-    explicit fpga_policy(sycl::queue q) : base(q) {}
-    explicit fpga_policy(sycl::device d) : base(d) {}
+    explicit fpga_policy(sycl::queue q) : base(::std::move(q)) {}
+    explicit fpga_policy(sycl::device d) : base(::std::move(d)) {}
 
     operator sycl::queue() const { return queue(); }
     sycl::queue
