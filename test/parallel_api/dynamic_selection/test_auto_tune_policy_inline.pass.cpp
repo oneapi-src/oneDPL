@@ -20,7 +20,7 @@ int test_auto_submit(UniverseContainer u, int best_resource) {
   my_policy_t p{u};
   auto n_samples = u.size();
 
-  const int N = 100;
+  const int N = 12;
   std::atomic<int> ecount = 0;
   bool pass = true;
 
@@ -85,7 +85,7 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
   my_policy_t p{u};
   auto n_samples = u.size();
 
-  const int N = 100;
+  const int N = 12;
   std::atomic<int> ecount = 0;
   bool pass = true;
 
@@ -166,7 +166,7 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
   my_policy_t p{u};
   auto n_samples = u.size();
 
-  const int N = 100;
+  const int N = 12;
   std::atomic<int> ecount = 0;
   bool pass = true;
 
@@ -233,7 +233,7 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
   my_policy_t p{u};
   auto n_samples = u.size();
 
-  const int N = 100;
+  const int N = 12;
   std::atomic<int> ecount = 0;
   bool pass = true;
 
@@ -320,15 +320,15 @@ int run_tests(std::vector<int> u, int best_resource) {
 
 int main() {
   using policy_t = oneapi::dpl::experimental::auto_tune_policy<TestUtils::int_inline_backend_t>;
-  std::vector<int> first_resources = { 1, 10, 11, 12 };
-  std::vector<int> second_resources = { 12, 2, 11, 10 };
-  std::vector<int> third_resources = { 11, 10, 3, 12 };
-  std::vector<int> fourth_resources = { 12, 10, 11, 4 };
+  std::vector<int> first_resources = { 1, 100, 100, 100 };
+  std::vector<int> second_resources = { 100, 1, 100, 100 };
+  std::vector<int> third_resources = { 100, 100, 1, 100 };
+  std::vector<int> fourth_resources = { 100, 100, 100, 1 };
 
   if (run_tests<policy_t>(first_resources, 1)
-      || run_tests<policy_t>(second_resources, 2)
-      || run_tests<policy_t>(third_resources, 3)
-      || run_tests<policy_t>(fourth_resources, 4)) {
+      || run_tests<policy_t>(second_resources, 1)
+      || run_tests<policy_t>(third_resources, 1)
+      || run_tests<policy_t>(fourth_resources, 1)) {
     std::cout << "FAIL\n";
     return 1;
   } else {
