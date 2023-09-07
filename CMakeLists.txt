@@ -147,6 +147,14 @@ else()
     message(STATUS "oneDPL: ONEDPL_ENABLE_SIMD is OFF, corresponding compiler flag is not used")
 endif()
 
+if (NOT _ONEDPL_PSTL_OFFLOAD)
+    set(_ONEDPL_PSTL_OFFLOAD "off")
+else()
+    if (NOT ONEDPL_BACKEND MATCHES "^(dpcpp)$")
+        message(FATAL_ERROR "${ONEDPL_BACKEND} doesn't support pstl offload, dpcpp backend required")
+    endif()
+endif()
+
 if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
     string(TOUPPER "${ONEDPL_BACKEND}" ONEDPL_BACKEND_NAME)
     set(SET_BACKEND_${ONEDPL_BACKEND_NAME} TRUE)
@@ -184,7 +192,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             set(USE_FSYCL_OPTION TRUE)
         endif()
 
-        # check device type
+        # check device type for oneDPL test targets
         if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_EMU|FPGA_HW)$")
             message(STATUS "Using ${ONEDPL_DEVICE_TYPE} device type")
             set(ONEDPL_USE_DEVICE_${ONEDPL_DEVICE_TYPE} TRUE)
@@ -192,8 +200,11 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             message(FATAL_ERROR "Unsupported device type: ${ONEDPL_DEVICE_TYPE}.\n"
                 "Select one of the following devices: CPU, GPU, FPGA_EMU or FPGA_HW")
         else()
-            set(ONEDPL_DEVICE_TYPE "GPU")
-            message(STATUS "Using a default device type (GPU)")
+            # PSTL offload does device selection on its own
+            if (_ONEDPL_PSTL_OFFLOAD STREQUAL off)
+                set(ONEDPL_DEVICE_TYPE "GPU")
+                message(STATUS "Using a default device type (GPU)")
+            endif()
         endif()
 
         # check device backend
@@ -332,14 +343,6 @@ else()
     else()
         find_package(${ONEDPL_BACKEND} REQUIRED)
         target_link_libraries(oneDPL INTERFACE ${${ONEDPL_BACKEND}_IMPORTED_TARGETS})
-    endif()
-endif()
-
-if (NOT _ONEDPL_PSTL_OFFLOAD)
-    set(_ONEDPL_PSTL_OFFLOAD "off")
-else()
-    if (NOT ONEDPL_BACKEND MATCHES "^(dpcpp)$")
-        message(FATAL_ERROR "${ONEDPL_BACKEND} doesn't support pstl offload, dpcpp backend required")
     endif()
 endif()
 
