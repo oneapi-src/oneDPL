@@ -24,6 +24,7 @@
 #include <mutex>
 #include <optional>
 #include <type_traits>
+#include <utility>
 
 namespace oneapi
 {
@@ -69,7 +70,7 @@ class device_policy
     device_policy(device_policy&& other)
     {
         ::std::lock_quard lock{other.mtx};
-        q_opt.swap(other.q_opt);
+        q_opt = ::std::move(other.q_opt);
     }
 
     device_policy&
@@ -84,7 +85,7 @@ class device_policy
     operator=(device_policy&& other)
     {
         ::std::scoped_lock lock{mtx, other.mtx};
-        q_opt.swap(other.q_opt);
+        q_opt = ::std::move(other.q_opt);
         return *this;
     }
 
