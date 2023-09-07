@@ -219,9 +219,11 @@ jobs:
           make_targets=""
           ctest_regex="^("
 
-          for test in adjacent_find.pass copy_move.pass merge.pass partial_sort.pass remove_copy.pass \
-                      transform_reduce.pass transform_scan.pass algorithm.pass execution.pass functional.pass \
-                      algorithms_redirection.pass usm_memory_replacement.pass
+          test_list=adjacent_find.pass copy_move.pass merge.pass partial_sort.pass remove_copy.pass \
+                    transform_reduce.pass transform_scan.pass algorithm.pass execution.pass functional.pass \
+                    algorithms_redirection.pass usm_memory_replacement.pass
+
+          for test in $test_list
           do
             if [ -n "$make_targets" ]
             then
@@ -243,9 +245,12 @@ jobs:
 
           sycl-ls
 
-          ./test/algorithm.pass
+          for test in $test_list
+          do
+            ./test/$test
+          done
 
-          ctest --timeout ${TEST_TIMEOUT} --output-on-failure -R ${ctest_regex}
+          # ctest --timeout ${TEST_TIMEOUT} --output-on-failure -R ${ctest_regex}
 
   windows-testing:
     name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
