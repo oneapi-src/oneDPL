@@ -188,7 +188,7 @@ jobs:
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
 
   linux-pstl-offload-testing:
-    name: pstl-offload ${{ matrix.device_type }},bknd=dpcpp,cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
+    name: PSTL offload ${{ matrix.device_type }},bknd=dpcpp,cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=с++${{ matrix.std }},cfg=${{ matrix.build_type }}
     runs-on: ['${{ matrix.os }}']
     timeout-minutes: 60
     strategy:
@@ -217,7 +217,18 @@ jobs:
           echo "::warning::Compiler: $(cmake --version)"
           echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
-          make_targets="build-onedpl-tests"
+          make_targets="build-onedpl-sycl_iterator-tests"
+          ctest_flags="-R \"(sycl_iterator_.*\.pass"
+
+          for test in adjacent_find.pass copy_move.pass merge.pass minmax_element.pass partial_sort.pass remove_copy.pass \
+                      transform_reduce.pass transform_scan.pass algorithm.pass execution.pass functional.pass \
+                      algorithms_offload.pass usm_memory_replacement.pass
+          do
+            make_targets+=" $test"
+            ctest_flags+="|$test"
+          done
+
+          ctest_flags+=")\""
 
           mkdir build && cd build
           lscpu
