@@ -5,7 +5,6 @@ on:
     branches: [main]
   pull_request:
     branches:
-      - pstl-offload
       - release_oneDPL
       - main
       - 'release/**'
@@ -195,7 +194,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             cxx_compiler: icpx
             std: 17
             build_type: release
@@ -203,7 +202,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
-        run: $CONDA/bin/conda install -c intel tbb=2020.3
+        run: $CONDA/bin/conda install -c intel tbb-devel
       - name: Install Intel® oneAPI DPC++/C++ Compiler
         run: $CONDA/bin/conda install -c intel dpcpp_linux-64
       - name: Run testing
