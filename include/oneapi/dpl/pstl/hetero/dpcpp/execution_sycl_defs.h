@@ -57,26 +57,26 @@ class device_policy
     device_policy(const device_policy<OtherName>& other)
     {
         ::std::lock_quard lock{other.mtx};
-        q = other.q;
+        q_opt = other.q_opt;
     }
 
     device_policy(const device_policy& other)
     {
         ::std::lock_quard lock{other.mtx};
-        q = other.q;
+        q_opt = other.q_opt;
     }
 
     device_policy(device_policy&& other)
     {
         ::std::lock_quard lock{other.mtx};
-        q.swap(other.q);
+        q_opt.swap(other.q_opt);
     }
 
     device_policy&
     operator=(const device_policy& other)
     {
         ::std::scoped_lock lock{mtx, other.mtx};
-        q = other.q;
+        q_opt = other.q_opt;
         return *this;
     }
 
@@ -84,22 +84,22 @@ class device_policy
     operator=(device_policy&& other)
     {
         ::std::scoped_lock lock{mtx, other.mtx};
-        q.swap(other.q);
+        q_opt.swap(other.q_opt);
         return *this;
     }
 
-    explicit device_policy(sycl::queue q_) : q(q_) {}
-    explicit device_policy(sycl::device d_) { q.emplace(d_); }
+    explicit device_policy(sycl::queue q_) : q_opt(q_) {}
+    explicit device_policy(sycl::device d_) { q_opt.emplace(d_); }
     operator sycl::queue() const { return queue(); }
     sycl::queue
     queue() const
     {
         ::std::lock_quard lock{mtx};
-        if (!q)
+        if (!q_opt)
         {
-            q.emplace();
+            q_opt.emplace();
         }
-        return *q;
+        return *q_opt;
     }
 
     // For internal use only
@@ -121,7 +121,7 @@ class device_policy
     }
 
   protected:
-    mutable ::std::optional<sycl::queue> q;
+    mutable ::std::optional<sycl::queue> q_opt;
     mutable ::std::mutex mtx;
 };
 
@@ -146,9 +146,9 @@ class fpga_policy : public device_policy<KernelName>
     queue() const
     {
         ::std::lock_quard lock{this->mtx};
-        if (!this->q)
+        if (!this->q_opt)
         {
-            this->q.emplace(
+            this->q_opt.emplace(
 #    if _ONEDPL_FPGA_EMU
                 __dpl_sycl::__fpga_emulator_selector()
 #    else
@@ -156,7 +156,7 @@ class fpga_policy : public device_policy<KernelName>
 #    endif // _ONEDPL_FPGA_EMU
             );
         }
-        return *this->q;
+        return *this->q_opt;
     }
 };
 
