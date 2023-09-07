@@ -27,7 +27,7 @@ namespace oneapi::dpl::experimental::kt::esimd::__impl
 {
 
 // TODO: allow calling it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
-template <bool _IsAscending, std::uint8_t _RadixBits, typename _KernelParam, typename _Range>
+template <bool _IsAscending, ::std::uint8_t _RadixBits, typename _KernelParam, typename _Range>
 sycl::event
 __radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
 {
@@ -65,7 +65,7 @@ __radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
 namespace oneapi::dpl::experimental::kt::esimd
 {
 
-template <bool _IsAscending = true, std::uint8_t _RadixBits = 8, typename _KernelParam, typename _Range>
+template <bool _IsAscending = true, ::std::uint8_t _RadixBits = 8, typename _KernelParam, typename _Range>
 sycl::event
 radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param = {})
 {
@@ -75,7 +75,7 @@ radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param = {})
     return __impl::__radix_sort<_IsAscending, _RadixBits>(__q, ::std::forward<_Range>(__rng), __param);
 }
 
-template <bool _IsAscending = true, std::uint8_t _RadixBits = 8, typename _KernelParam, typename _Iterator>
+template <bool _IsAscending = true, ::std::uint8_t _RadixBits = 8, typename _KernelParam, typename _Iterator>
 sycl::event
 radix_sort(sycl::queue __q, _Iterator __first, _Iterator __last, _KernelParam __param = {})
 {
