@@ -37,12 +37,21 @@ inline namespace __dpl
 
 struct DefaultKernelName;
 
+struct QueueFactoryDevice
+{
+    static sycl::queue
+    create()
+    {
+        return sycl::queue();
+    }
+};
+
 //We can create device_policy object:
 // 1. from sycl::queue
 // 2. from sycl::device_selector (implicitly through sycl::queue)
 // 3. from sycl::device
 // 4. from other device_policy encapsulating the same queue type
-template <typename KernelName = DefaultKernelName>
+template <typename KernelName = DefaultKernelName, typename QueueFactory = QueueFactoryDevice>
 class device_policy
 {
     // Needed for the copy constructor that rebinds the kernel name
@@ -98,7 +107,7 @@ class device_policy
         ::std::lock_quard lock{mtx};
         if (!q_opt.has_value())
         {
-            q_opt.emplace();
+            q_opt.emplace(QueueFactory::create());
         }
         return q_opt.value();
     }
@@ -121,44 +130,45 @@ class device_policy
         return ::std::true_type{};
     }
 
-  protected:
-    mutable ::std::optional<sycl::queue> q_opt;
+  private:
     mutable ::std::mutex mtx;
+    mutable ::std::optional<sycl::queue> q_opt;
 };
 
 #if _ONEDPL_FPGA_DEVICE
-struct DefaultKernelNameFPGA;
-template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
-class fpga_policy : public device_policy<KernelName>
+
+struct QueueFactoryFPGA
 {
-    using base = device_policy<KernelName>;
+    static sycl::queue
+    create()
+    {
+        return sycl::queue(
+#    if _ONEDPL_FPGA_EMU
+            __dpl_sycl::__fpga_emulator_selector()
+#    else
+            __dpl_sycl::__fpga_selector()
+#    endif // _ONEDPL_FPGA_EMU
+        );
+    }
+};
+
+struct DefaultKernelNameFPGA;
+template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA,
+          typename QueueFactory = QueueFactoryFPGA>
+class fpga_policy : public device_policy<KernelName, QueueFactory>
+{
+    using base = device_policy<KernelName, QueueFactory>;
 
   public:
     static constexpr unsigned int unroll_factor = factor;
 
     fpga_policy() = default;
     template <unsigned int other_factor, typename OtherName>
-    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
+    fpga_policy(const fpga_policy<other_factor, OtherName, QueueFactory>& other) : base(other.queue()){};
     explicit fpga_policy(sycl::queue q) : base(::std::move(q)) {}
     explicit fpga_policy(sycl::device d) : base(::std::move(d)) {}
 
     operator sycl::queue() const { return queue(); }
-    sycl::queue
-    queue() const
-    {
-        ::std::lock_quard lock{this->mtx};
-        if (!this->q_opt.has_value())
-        {
-            this->q_opt.emplace(
-#    if _ONEDPL_FPGA_EMU
-                __dpl_sycl::__fpga_emulator_selector()
-#    else
-                __dpl_sycl::__fpga_selector()
-#    endif // _ONEDPL_FPGA_EMU
-            );
-        }
-        return this->q_opt.value();
-    }
 };
 
 #endif // _ONEDPL_FPGA_DEVICE
