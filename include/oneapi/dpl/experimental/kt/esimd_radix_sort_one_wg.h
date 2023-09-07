@@ -21,70 +21,70 @@
 #include <cstdint>
 #include <cassert>
 
-namespace oneapi::dpl::experimental::kt::esimd::impl
+namespace oneapi::dpl::experimental::kt::esimd::__impl
 {
 template <bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
           ::std::uint16_t _WorkGroupSize, typename _KeyT, typename InputT>
 void
-one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
+__one_wg_kernel(sycl::nd_item<1> __idx, uint32_t __n, const InputT& __input)
 {
     using namespace sycl;
     using namespace __dpl_esimd_ns;
     using namespace __dpl_esimd_ens;
 
-    using bin_t = uint16_t;
-    using hist_t = uint16_t;
-    using device_addr_t = uint32_t;
+    using _bin_t = uint16_t;
+    using _hist_t = uint16_t;
+    using _device_addr_t = uint32_t;
 
-    constexpr uint32_t BIN_COUNT = 1 << _RadixBits;
-    constexpr uint32_t NBITS = sizeof(_KeyT) * 8;
-    constexpr uint32_t STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(NBITS, _RadixBits);
-    constexpr bin_t MASK = BIN_COUNT - 1;
-    constexpr uint32_t HIST_STRIDE = sizeof(hist_t) * BIN_COUNT;
+    constexpr uint32_t _BIN_COUNT = 1 << _RadixBits;
+    constexpr uint32_t _NBITS = sizeof(_KeyT) * 8;
+    constexpr uint32_t _STAGES = oneapi::dpl::__internal::__dpl_ceiling_div(_NBITS, _RadixBits);
+    constexpr _bin_t _MASK = _BIN_COUNT - 1;
+    constexpr uint32_t _HIST_STRIDE = sizeof(_hist_t) * _BIN_COUNT;
 
-    constexpr uint32_t REORDER_SLM_SIZE = _DataPerWorkItem * sizeof(_KeyT) * _WorkGroupSize;
-    constexpr uint32_t BIN_HIST_SLM_SIZE = HIST_STRIDE * _WorkGroupSize;
-    constexpr uint32_t INCOMING_OFFSET_SLM_SIZE = (BIN_COUNT + 1) * sizeof(hist_t);
+    constexpr uint32_t _REORDER_SLM_SIZE = _DataPerWorkItem * sizeof(_KeyT) * _WorkGroupSize;
+    constexpr uint32_t _BIN_HIST_SLM_SIZE = _HIST_STRIDE * _WorkGroupSize;
+    constexpr uint32_t _INCOMING_OFFSET_SLM_SIZE = (_BIN_COUNT + 1) * sizeof(_hist_t);
 
-    // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  _DataPerWorkItem = 256, BIN_COUNT = 256
+    // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  _DataPerWorkItem = 256, _BIN_COUNT = 256
     // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
-    slm_init(std::max(REORDER_SLM_SIZE, BIN_HIST_SLM_SIZE + INCOMING_OFFSET_SLM_SIZE));
+    slm_init(std::max(_REORDER_SLM_SIZE, _BIN_HIST_SLM_SIZE + _INCOMING_OFFSET_SLM_SIZE));
 
-    const uint32_t local_tid = idx.get_local_linear_id();
+    const uint32_t __local_tid = __idx.get_local_linear_id();
 
-    const uint32_t slm_reorder_this_thread = local_tid * _DataPerWorkItem * sizeof(_KeyT);
-    const uint32_t slm_bin_hist_this_thread = local_tid * HIST_STRIDE;
+    const uint32_t __slm_reorder_this_thread = __local_tid * _DataPerWorkItem * sizeof(_KeyT);
+    const uint32_t __slm_bin_hist_this_thread = __local_tid * _HIST_STRIDE;
 
-    simd<hist_t, BIN_COUNT> bin_offset;
-    simd<device_addr_t, _DataPerWorkItem> write_addr;
-    simd<_KeyT, _DataPerWorkItem> keys;
-    simd<bin_t, _DataPerWorkItem> bins;
-    simd<device_addr_t, DATA_PER_STEP> lane_id(0, 1);
+    simd<_hist_t, _BIN_COUNT> __bin_offset;
+    simd<_device_addr_t, _DataPerWorkItem> __write_addr;
+    simd<_KeyT, _DataPerWorkItem> __keys;
+    simd<_bin_t, _DataPerWorkItem> __bins;
+    simd<_device_addr_t, _DATA_PER_STEP> __lane_id(0, 1);
 
-    const device_addr_t io_offset = _DataPerWorkItem * local_tid;
+    const _device_addr_t __io_offset = _DataPerWorkItem * __local_tid;
 
-    static_assert(_DataPerWorkItem % DATA_PER_STEP == 0);
-    static_assert(BIN_COUNT % 128 == 0);
-    static_assert(BIN_COUNT % 32 == 0);
+    static_assert(_DataPerWorkItem % _DATA_PER_STEP == 0);
+    static_assert(_BIN_COUNT % 128 == 0);
+    static_assert(_BIN_COUNT % 32 == 0);
 #pragma unroll
-    for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+    for (uint32_t __s = 0; __s < _DataPerWorkItem; __s += _DATA_PER_STEP)
     {
-        simd_mask<DATA_PER_STEP> m = (io_offset + lane_id + s) < n;
-        keys.template select<DATA_PER_STEP, 1>(s) =
-            merge(utils::gather<_KeyT, DATA_PER_STEP>(input, lane_id, io_offset + s, m),
-                  simd<_KeyT, DATA_PER_STEP>(utils::__sort_identity<_KeyT, _IsAscending>()), m);
+        simd_mask<_DATA_PER_STEP> __m = (__io_offset + __lane_id + __s) < __n;
+        __keys.template select<_DATA_PER_STEP, 1>(__s) =
+            merge(__utils::__gather<_KeyT, _DATA_PER_STEP>(__input, __lane_id, __io_offset + __s, __m),
+                  simd<_KeyT, _DATA_PER_STEP>(__utils::__sort_identity<_KeyT, _IsAscending>()), __m);
     }
 
-    for (uint32_t stage = 0; stage < STAGES; stage++)
+    for (uint32_t __stage = 0; __stage < _STAGES; __stage++)
     {
-        bins = utils::__get_bucket<MASK>(utils::__order_preserving_cast<_IsAscending>(keys), stage * _RadixBits);
+        __bins = __utils::__get_bucket<_MASK>(__utils::__order_preserving_cast<_IsAscending>(__keys), __stage * _RadixBits);
 
-        bin_offset = 0;
+        __bin_offset = 0;
 #pragma unroll
-        for (uint32_t s = 0; s < _DataPerWorkItem; s += 1)
+        for (uint32_t __s = 0; __s < _DataPerWorkItem; __s += 1)
         {
-            write_addr[s] = bin_offset[bins[s]];
-            bin_offset[bins[s]] += 1;
+            __write_addr[__s] = __bin_offset[__bins[__s]];
+            __bin_offset[__bins[__s]] += 1;
         }
 
         /*
@@ -96,83 +96,83 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
         {
             barrier();
 #pragma unroll
-            for (uint32_t s = 0; s < BIN_COUNT; s += 128)
+            for (uint32_t __s = 0; __s < _BIN_COUNT; __s += 128)
             {
-                utils::BlockStoreSlm<uint32_t, 64>(
-                    slm_bin_hist_this_thread + s * sizeof(hist_t),
-                    bin_offset.template select<128, 1>(s).template bit_cast_view<uint32_t>());
+                __utils::_BlockStoreSlm<uint32_t, 64>(
+                    __slm_bin_hist_this_thread + __s * sizeof(_hist_t),
+                    __bin_offset.template select<128, 1>(__s).template bit_cast_view<uint32_t>());
             }
             barrier();
-            constexpr uint32_t BIN_SUMMARY_GROUP_SIZE = 8;
-            if (local_tid < BIN_SUMMARY_GROUP_SIZE)
+            constexpr uint32_t _BIN_SUMMARY_GROUP_SIZE = 8;
+            if (__local_tid < _BIN_SUMMARY_GROUP_SIZE)
             {
-                constexpr uint32_t BIN_WIDTH = BIN_COUNT / BIN_SUMMARY_GROUP_SIZE;
-                constexpr uint32_t BIN_WIDTH_UD = BIN_WIDTH * sizeof(hist_t) / sizeof(uint32_t);
-                uint32_t slm_bin_hist_summary_offset = local_tid * BIN_WIDTH * sizeof(hist_t);
-                simd<hist_t, BIN_WIDTH> thread_grf_hist_summary;
-                simd<uint32_t, BIN_WIDTH_UD> tmp;
+                constexpr uint32_t _BIN_WIDTH = _BIN_COUNT / _BIN_SUMMARY_GROUP_SIZE;
+                constexpr uint32_t _BIN_WIDTH_UD = _BIN_WIDTH * sizeof(_hist_t) / sizeof(uint32_t);
+                uint32_t __slm_bin_hist_summary_offset = __local_tid * _BIN_WIDTH * sizeof(_hist_t);
+                simd<_hist_t, _BIN_WIDTH> ___thread_grf_hist_summary;
+                simd<uint32_t, _BIN_WIDTH_UD> __tmp;
 
-                thread_grf_hist_summary.template bit_cast_view<uint32_t>() =
-                    utils::BlockLoadSlm<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
-                slm_bin_hist_summary_offset += HIST_STRIDE;
-                for (uint32_t s = 1; s < _WorkGroupSize - 1; s++)
+                ___thread_grf_hist_summary.template bit_cast_view<uint32_t>() =
+                    __utils::_BlockLoadSlm<uint32_t, _BIN_WIDTH_UD>(__slm_bin_hist_summary_offset);
+                __slm_bin_hist_summary_offset += _HIST_STRIDE;
+                for (uint32_t __s = 1; __s < _WorkGroupSize - 1; __s++)
                 {
-                    tmp = utils::BlockLoadSlm<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
-                    thread_grf_hist_summary += tmp.template bit_cast_view<hist_t>();
-                    utils::BlockStoreSlm<uint32_t, BIN_WIDTH_UD>(
-                        slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
-                    slm_bin_hist_summary_offset += HIST_STRIDE;
+                    __tmp = __utils::_BlockLoadSlm<uint32_t, _BIN_WIDTH_UD>(__slm_bin_hist_summary_offset);
+                    ___thread_grf_hist_summary += __tmp.template bit_cast_view<_hist_t>();
+                    __utils::_BlockStoreSlm<uint32_t, _BIN_WIDTH_UD>(
+                        __slm_bin_hist_summary_offset, ___thread_grf_hist_summary.template bit_cast_view<uint32_t>());
+                    __slm_bin_hist_summary_offset += _HIST_STRIDE;
                 }
-                tmp = utils::BlockLoadSlm<uint32_t, BIN_WIDTH_UD>(slm_bin_hist_summary_offset);
-                thread_grf_hist_summary += tmp.template bit_cast_view<hist_t>();
-                thread_grf_hist_summary = utils::scan<hist_t, hist_t>(thread_grf_hist_summary);
-                utils::BlockStoreSlm<uint32_t, BIN_WIDTH_UD>(
-                    slm_bin_hist_summary_offset, thread_grf_hist_summary.template bit_cast_view<uint32_t>());
+                __tmp = __utils::_BlockLoadSlm<uint32_t, _BIN_WIDTH_UD>(__slm_bin_hist_summary_offset);
+                ___thread_grf_hist_summary += __tmp.template bit_cast_view<_hist_t>();
+                ___thread_grf_hist_summary = __utils::__scan<_hist_t, _hist_t>(___thread_grf_hist_summary);
+                __utils::_BlockStoreSlm<uint32_t, _BIN_WIDTH_UD>(
+                    __slm_bin_hist_summary_offset, ___thread_grf_hist_summary.template bit_cast_view<uint32_t>());
             }
             barrier();
-            if (local_tid == 0)
+            if (__local_tid == 0)
             {
-                simd<hist_t, BIN_COUNT> grf_hist_summary;
-                simd<hist_t, BIN_COUNT + 1> grf_hist_summary_scan;
+                simd<_hist_t, _BIN_COUNT> __grf_hist_summary;
+                simd<_hist_t, _BIN_COUNT + 1> __grf_hist_summary_scan;
 #pragma unroll
-                for (uint32_t s = 0; s < BIN_COUNT; s += 128)
+                for (uint32_t __s = 0; __s < _BIN_COUNT; __s += 128)
                 {
-                    grf_hist_summary.template select<128, 1>(s).template bit_cast_view<uint32_t>() =
-                        utils::BlockLoadSlm<uint32_t, 64>((_WorkGroupSize - 1) * HIST_STRIDE + s * sizeof(hist_t));
+                    __grf_hist_summary.template select<128, 1>(__s).template bit_cast_view<uint32_t>() =
+                        __utils::_BlockLoadSlm<uint32_t, 64>((_WorkGroupSize - 1) * _HIST_STRIDE + __s * sizeof(_hist_t));
                 }
-                grf_hist_summary_scan[0] = 0;
-                grf_hist_summary_scan.template select<32, 1>(1) = grf_hist_summary.template select<32, 1>(0);
+                __grf_hist_summary_scan[0] = 0;
+                __grf_hist_summary_scan.template select<32, 1>(1) = __grf_hist_summary.template select<32, 1>(0);
 #pragma unroll
-                for (uint32_t i = 32; i < BIN_COUNT; i += 32)
+                for (uint32_t __i = 32; __i < _BIN_COUNT; __i += 32)
                 {
-                    grf_hist_summary_scan.template select<32, 1>(i + 1) =
-                        grf_hist_summary.template select<32, 1>(i) + grf_hist_summary_scan[i];
+                    __grf_hist_summary_scan.template select<32, 1>(__i + 1) =
+                        __grf_hist_summary.template select<32, 1>(__i) + __grf_hist_summary_scan[__i];
                 }
 #pragma unroll
-                for (uint32_t s = 0; s < BIN_COUNT; s += 128)
+                for (uint32_t __s = 0; __s < _BIN_COUNT; __s += 128)
                 {
-                    utils::BlockStoreSlm<uint32_t, 64>(
-                        BIN_HIST_SLM_SIZE + s * sizeof(hist_t),
-                        grf_hist_summary_scan.template select<128, 1>(s).template bit_cast_view<uint32_t>());
+                    __utils::_BlockStoreSlm<uint32_t, 64>(
+                        _BIN_HIST_SLM_SIZE + __s * sizeof(_hist_t),
+                        __grf_hist_summary_scan.template select<128, 1>(__s).template bit_cast_view<uint32_t>());
                 }
             }
             barrier();
             {
 #pragma unroll
-                for (uint32_t s = 0; s < BIN_COUNT; s += 128)
+                for (uint32_t __s = 0; __s < _BIN_COUNT; __s += 128)
                 {
-                    bin_offset.template select<128, 1>(s).template bit_cast_view<uint32_t>() =
-                        utils::BlockLoadSlm<uint32_t, 64>(BIN_HIST_SLM_SIZE + s * sizeof(hist_t));
+                    __bin_offset.template select<128, 1>(__s).template bit_cast_view<uint32_t>() =
+                        __utils::_BlockLoadSlm<uint32_t, 64>(_BIN_HIST_SLM_SIZE + __s * sizeof(_hist_t));
                 }
-                if (local_tid > 0)
+                if (__local_tid > 0)
                 {
 #pragma unroll
-                    for (uint32_t s = 0; s < BIN_COUNT; s += 128)
+                    for (uint32_t __s = 0; __s < _BIN_COUNT; __s += 128)
                     {
-                        simd<hist_t, 128> group_local_sum;
-                        group_local_sum.template bit_cast_view<uint32_t>() =
-                            utils::BlockLoadSlm<uint32_t, 64>((local_tid - 1) * HIST_STRIDE + s * sizeof(hist_t));
-                        bin_offset.template select<128, 1>(s) += group_local_sum;
+                        simd<_hist_t, 128> __group_local_sum;
+                        __group_local_sum.template bit_cast_view<uint32_t>() =
+                            __utils::_BlockLoadSlm<uint32_t, 64>((__local_tid - 1) * _HIST_STRIDE + __s * sizeof(_hist_t));
+                        __bin_offset.template select<128, 1>(__s) += __group_local_sum;
                     }
                 }
             }
@@ -180,31 +180,31 @@ one_wg_kernel(sycl::nd_item<1> idx, uint32_t n, const InputT& input)
         }
 
 #pragma unroll
-        for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+        for (uint32_t __s = 0; __s < _DataPerWorkItem; __s += _DATA_PER_STEP)
         {
-            simd<uint16_t, DATA_PER_STEP> bins_uw = bins.template select<DATA_PER_STEP, 1>(s);
-            write_addr.template select<DATA_PER_STEP, 1>(s) += bin_offset.template iselect(bins_uw);
+            simd<uint16_t, _DATA_PER_STEP> __bins_uw = __bins.template select<_DATA_PER_STEP, 1>(__s);
+            __write_addr.template select<_DATA_PER_STEP, 1>(__s) += __bin_offset.template iselect(__bins_uw);
         }
 
-        if (stage != STAGES - 1)
+        if (__stage != _STAGES - 1)
         {
 #pragma unroll
-            for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+            for (uint32_t __s = 0; __s < _DataPerWorkItem; __s += _DATA_PER_STEP)
             {
-                utils::VectorStore<_KeyT, 1, DATA_PER_STEP>(
-                    write_addr.template select<DATA_PER_STEP, 1>(s) * sizeof(_KeyT),
-                    keys.template select<DATA_PER_STEP, 1>(s));
+                __utils::_VectorStore<_KeyT, 1, _DATA_PER_STEP>(
+                    __write_addr.template select<_DATA_PER_STEP, 1>(__s) * sizeof(_KeyT),
+                    __keys.template select<_DATA_PER_STEP, 1>(__s));
             }
             barrier();
-            keys = utils::BlockLoadSlm<_KeyT, _DataPerWorkItem>(slm_reorder_this_thread);
+            __keys = __utils::_BlockLoadSlm<_KeyT, _DataPerWorkItem>(__slm_reorder_this_thread);
         }
     }
 #pragma unroll
-    for (uint32_t s = 0; s < _DataPerWorkItem; s += DATA_PER_STEP)
+    for (uint32_t __s = 0; __s < _DataPerWorkItem; __s += _DATA_PER_STEP)
     {
-        utils::scatter<_KeyT, DATA_PER_STEP>(input, write_addr.template select<DATA_PER_STEP, 1>(s),
-                                             keys.template select<DATA_PER_STEP, 1>(s),
-                                             write_addr.template select<DATA_PER_STEP, 1>(s) < n);
+        __utils::__scatter<_KeyT, _DATA_PER_STEP>(__input, __write_addr.template select<_DATA_PER_STEP, 1>(__s),
+                                             __keys.template select<_DATA_PER_STEP, 1>(__s),
+                                             __write_addr.template select<_DATA_PER_STEP, 1>(__s) < __n);
     }
 }
 
@@ -235,7 +235,7 @@ struct __radix_sort_one_wg_submitter<_IsAscending, _RadixBits, _DataPerWorkItem,
                 auto __data = __rng.data();
                 __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
-                        one_wg_kernel<_IsAscending, _RadixBits, _DataPerWorkItem, _WorkGroupSize, _KeyT>(__nd_item, __n,
+                        __one_wg_kernel<_IsAscending, _RadixBits, _DataPerWorkItem, _WorkGroupSize, _KeyT>(__nd_item, __n,
                                                                                                          __data);
                     });
             });
@@ -245,7 +245,7 @@ struct __radix_sort_one_wg_submitter<_IsAscending, _RadixBits, _DataPerWorkItem,
 template <typename _KernelName, bool _IsAscending, ::std::uint8_t _RadixBits, ::std::uint16_t _DataPerWorkItem,
           ::std::uint16_t _WorkGroupSize, typename _Range>
 sycl::event
-one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
+__one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
 {
     using _KeyT = oneapi::dpl::__internal::__value_t<_Range>;
     using _EsimRadixSortKernel =
@@ -255,6 +255,6 @@ one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
                                          _EsimRadixSortKernel>()(__q, ::std::forward<_Range>(__rng), __n);
 }
 
-} // namespace oneapi::dpl::experimental::kt::esimd::impl
+} // namespace oneapi::dpl::experimental::kt::esimd::__impl
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_ONE_WG_H
