@@ -33,12 +33,10 @@ int test_auto_submit(UniverseContainer u, int best_resource) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     std::cout<<"resource type : "<<e<<" ideal type "<<u[(i-1)%n_samples]<<"\n";
                      if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<best_resource<<"\n";
                      if (e != best_resource) {
                        pass = false;
                      }
@@ -54,12 +52,10 @@ int test_auto_submit(UniverseContainer u, int best_resource) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     std::cout<<"resource type : "<<e<<" ideal type "<<u[(i-1)%n_samples]<<"\n";
                      if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<best_resource<<"\n";
                      if (e != best_resource) {
                        pass = false;
                      }
@@ -103,7 +99,6 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
     if constexpr (do_select) {
       auto f =  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   std::cout<<"Iteration : ";
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
                      std::cout<<"resource type : "<<e<<" ideal type "<<u[(i-1)%n_samples]<<"\n";
@@ -127,15 +122,12 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
       auto e = oneapi::dpl::experimental::submit(p,
                  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   std::cout<<"Iteration : ";
                    if (i <= 2*n_samples) {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<u[(i-1)%n_samples]<<"\n";
                      // we should be round-robining through the resources
                      if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<best_resource<<"\n";
                      if (e != best_resource) {
                        pass = false;
                      }
@@ -185,15 +177,12 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
     if constexpr (do_select) {
       auto f = [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   std::cout<<"Iteration : ";
                    if (i <= 2*n_samples) {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<u[(i-1)%n_samples]<<"\n";
                      // we should be round-robining through the resources
                      if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<best_resource<<"\n";
                      if (e != best_resource) {
                        pass = false;
                      }
@@ -207,15 +196,12 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
       oneapi::dpl::experimental::submit(p,
                  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   std::cout<<"Iteration : ";
                    if (i <= 2*n_samples) {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<u[(i-1)%n_samples]<<"\n";
                      // we should be round-robining through the resources
                      if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<best_resource<<"\n";
                      if (e != best_resource) {
                        pass = false;
                      }
@@ -258,15 +244,12 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
     if constexpr (do_select) {
       auto f =  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   std::cout<<"Iteration : ";
                    if (i <= 2*n_samples) {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<u[(i-1)%n_samples]<<"\n";
                      // we should be round-robining through the resources
                      if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<best_resource<<"\n";
                      if (e != best_resource) {
                        pass = false;
                      }
@@ -280,15 +263,12 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
       oneapi::dpl::experimental::submit_and_wait(p,
                  [&](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
                    std::this_thread::sleep_for(std::chrono::milliseconds(e));
-                   std::cout<<"Iteration : ";
                    if (i <= 2*n_samples) {
                      // we should be round-robining through the resources
-                     std::cout<<"resource type : "<<e<<" ideal type "<<u[(i-1)%n_samples]<<"\n";
                      if (e != u[(i-1)%n_samples]) {
                        pass = false;
                      }
                    } else {
-                     std::cout<<"resource type : "<<e<<" ideal type "<<best_resource<<"\n";
                      if (e != best_resource) {
                        pass = false;
                      }
