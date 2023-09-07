@@ -219,7 +219,7 @@ jobs:
           make_targets=""
           ctest_flags="-R \"("
 
-          for test in adjacent_find.pass copy_move.pass merge.pass min_element.pass partial_sort.pass remove_copy.pass \
+          for test in adjacent_find.pass copy_move.pass merge.pass minmax_element.pass partial_sort.pass remove_copy.pass \
                       transform_reduce.pass transform_scan.pass algorithm.pass execution.pass functional.pass \
                       algorithms_offload.pass usm_memory_replacement.pass
           do
