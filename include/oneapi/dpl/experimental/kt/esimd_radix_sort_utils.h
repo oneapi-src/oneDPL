@@ -21,164 +21,146 @@
 #include <type_traits>
 #include <limits>
 
-namespace oneapi::dpl::experimental::kt::esimd::impl
+namespace oneapi::dpl::experimental::kt::esimd::__impl
 {
-constexpr int DATA_PER_STEP = 16;
+constexpr int _DATA_PER_STEP = 16;
 
 namespace __dpl_esimd_ns = sycl::ext::intel::esimd;
 namespace __dpl_esimd_ens = sycl::ext::intel::experimental::esimd;
 
-namespace utils
+namespace __utils
 {
 
-// converts sizeof(T) to 32 bits, so that it could be used in operations with 32-bit SIMD without changing the type
-template <typename T>
-inline constexpr ::std::uint32_t size32 = sizeof(T);
+// converts sizeof(_T) to 32 bits, so that it could be used in operations with 32-bit SIMD without changing the type
+template <typename _T>
+inline constexpr ::std::uint32_t __size32 = sizeof(_T);
 
-template <typename T, int N>
+template <typename _T, int _N>
 void
-copy_from(const T* input, ::std::uint32_t base_offset, __dpl_esimd_ns::simd<T, N>& values)
+__copy_from(const _T* __input, ::std::uint32_t __base_offset, __dpl_esimd_ns::simd<_T, _N>& __values)
 {
-    values.copy_from(input + base_offset);
+    __values.copy_from(__input + __base_offset);
 }
 
-template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
+template <typename _T, int _N, sycl::access_mode _Mode, sycl::access::placeholder _P>
 void
-copy_from(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, ::std::uint32_t base_offset,
-          __dpl_esimd_ns::simd<T, N>& values)
+__copy_from(sycl::accessor<_T, 1, _Mode, sycl::target::device, _P> __input, ::std::uint32_t __base_offset,
+          __dpl_esimd_ns::simd<_T, _N>& __values)
 {
-    values.copy_from(input, base_offset * size32<T>);
+    __values.copy_from(__input, __base_offset * __size32<_T>);
 }
 
-template <typename T, int N>
+template <typename _T, int _N>
 void
-copy_to(T* output, ::std::uint32_t base_offset, const __dpl_esimd_ns::simd<T, N>& values)
+__copy_to(_T* __output, ::std::uint32_t __base_offset, const __dpl_esimd_ns::simd<_T, _N>& __values)
 {
-    values.copy_to(output + base_offset);
+    __values.copy_to(__output + __base_offset);
 }
 
-template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
+template <typename _T, int _N, sycl::access_mode _Mode, sycl::access::placeholder _P>
 void
-copy_to(sycl::accessor<T, 1, Mode, sycl::target::device, P> output, ::std::uint32_t base_offset,
-        const __dpl_esimd_ns::simd<T, N>& values)
+__copy_to(sycl::accessor<_T, 1, _Mode, sycl::target::device, _P> __output, ::std::uint32_t __base_offset,
+        const __dpl_esimd_ns::simd<_T, _N>& __values)
 {
-    values.copy_to(output, base_offset * size32<T>);
+    __values.copy_to(__output, __base_offset * __size32<_T>);
 }
 
-template <typename T, int N>
-__dpl_esimd_ns::simd<T, N>
-gather(const T* input, __dpl_esimd_ns::simd<::std::uint32_t, N> offsets, ::std::uint32_t base_offset,
-       __dpl_esimd_ns::simd_mask<N> mask = 1)
+template <typename _T, int _N>
+__dpl_esimd_ns::simd<_T, _N>
+__gather(const _T* __input, __dpl_esimd_ns::simd<::std::uint32_t, _N> __offsets, ::std::uint32_t __base_offset,
+       __dpl_esimd_ns::simd_mask<_N> __mask = 1)
 {
-    return __dpl_esimd_ns::gather(input + base_offset, offsets * size32<T>, mask);
+    return __dpl_esimd_ns::gather(__input + __base_offset, __offsets * __size32<_T>, __mask);
 }
 
-template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P,
-          ::std::enable_if_t<sizeof(T) <= sizeof(::std::uint32_t), int> = 0>
-__dpl_esimd_ns::simd<T, N>
-gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, __dpl_esimd_ns::simd<::std::uint32_t, N> offsets,
-       ::std::uint32_t base_offset, __dpl_esimd_ns::simd_mask<N> mask = 1)
+template <typename _T, int _N, sycl::access_mode _Mode, sycl::access::placeholder _P,
+          ::std::enable_if_t<sizeof(_T) <= sizeof(::std::uint32_t), int> = 0>
+__dpl_esimd_ns::simd<_T, _N>
+__gather(sycl::accessor<_T, 1, _Mode, sycl::target::device, _P> __input, __dpl_esimd_ns::simd<::std::uint32_t, _N> __offsets,
+       ::std::uint32_t __base_offset, __dpl_esimd_ns::simd_mask<_N> __mask = 1)
 {
-    return __dpl_esimd_ns::gather<T>(input, offsets * size32<T>, base_offset * size32<T>, mask);
+    return __dpl_esimd_ns::gather<_T>(__input, __offsets * __size32<_T>, __base_offset * __size32<_T>, __mask);
 }
 
-template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P,
-          ::std::enable_if_t<sizeof(T) == sizeof(::std::uint64_t), int> = 0>
-__dpl_esimd_ns::simd<T, N>
-gather(sycl::accessor<T, 1, Mode, sycl::target::device, P> input, __dpl_esimd_ns::simd<::std::uint32_t, N> offsets,
-       ::std::uint32_t base_offset, __dpl_esimd_ns::simd_mask<N> mask = 1)
+template <typename _T, int _N, sycl::access_mode _Mode, sycl::access::placeholder _P,
+          ::std::enable_if_t<sizeof(_T) == sizeof(::std::uint64_t), int> = 0>
+__dpl_esimd_ns::simd<_T, _N>
+__gather(sycl::accessor<_T, 1, _Mode, sycl::target::device, _P> __input, __dpl_esimd_ns::simd<::std::uint32_t, _N> __offsets,
+       ::std::uint32_t __base_offset, __dpl_esimd_ns::simd_mask<_N> __mask = 1)
 {
-    return __dpl_esimd_ens::lsc_gather<T>(input, offsets * size32<T> + base_offset * size32<T>, mask);
+    return __dpl_esimd_ens::lsc_gather<_T>(__input, __offsets * __size32<_T> + __base_offset * __size32<_T>, __mask);
 }
 
-template <typename T, int N>
+template <typename _T, int _N>
 void
-scatter(T* output, __dpl_esimd_ns::simd<::std::uint32_t, N> offsets, __dpl_esimd_ns::simd<T, N> values,
-        __dpl_esimd_ns::simd_mask<N> mask = 1)
+__scatter(_T* __output, __dpl_esimd_ns::simd<::std::uint32_t, _N> __offsets, __dpl_esimd_ns::simd<_T, _N> __values,
+        __dpl_esimd_ns::simd_mask<_N> __mask = 1)
 {
-    __dpl_esimd_ns::scatter(output, offsets * size32<T>, values, mask);
+    __dpl_esimd_ns::scatter(__output, __offsets * __size32<_T>, __values, __mask);
 }
 
-template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P,
-          ::std::enable_if_t<sizeof(T) <= sizeof(::std::uint32_t), int> = 0>
+template <typename _T, int _N, sycl::access_mode _Mode, sycl::access::placeholder _P,
+          ::std::enable_if_t<sizeof(_T) <= sizeof(::std::uint32_t), int> = 0>
 void
-scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> output, __dpl_esimd_ns::simd<::std::uint32_t, N> offsets,
-        __dpl_esimd_ns::simd<T, N> values, __dpl_esimd_ns::simd_mask<N> mask = 1)
+__scatter(sycl::accessor<_T, 1, _Mode, sycl::target::device, _P> __output, __dpl_esimd_ns::simd<::std::uint32_t, _N> __offsets,
+        __dpl_esimd_ns::simd<_T, _N> __values, __dpl_esimd_ns::simd_mask<_N> __mask = 1)
 {
-    __dpl_esimd_ns::scatter(output, offsets * size32<T>, values, /*global_offset*/ 0, mask);
+    __dpl_esimd_ns::scatter(__output, __offsets * __size32<_T>, __values, /*global_offset*/ 0, __mask);
 }
 
-template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P,
-          ::std::enable_if_t<sizeof(T) == sizeof(::std::uint64_t), int> = 0>
+template <typename _T, int _N, sycl::access_mode _Mode, sycl::access::placeholder _P,
+          ::std::enable_if_t<sizeof(_T) == sizeof(::std::uint64_t), int> = 0>
 void
-scatter(sycl::accessor<T, 1, Mode, sycl::target::device, P> output, __dpl_esimd_ns::simd<::std::uint32_t, N> offsets,
-        __dpl_esimd_ns::simd<T, N> values, __dpl_esimd_ns::simd_mask<N> mask = 1)
+__scatter(sycl::accessor<_T, 1, _Mode, sycl::target::device, _P> __output, __dpl_esimd_ns::simd<::std::uint32_t, _N> __offsets,
+        __dpl_esimd_ns::simd<_T, _N> __values, __dpl_esimd_ns::simd_mask<_N> __mask = 1)
 {
-    __dpl_esimd_ens::lsc_scatter<T>(output, offsets * size32<T>, values, mask);
+    __dpl_esimd_ens::lsc_scatter<_T>(__output, __offsets * __size32<_T>, __values, __mask);
 }
 
-template <typename T, uint32_t R, uint32_t C>
-class simd2d : public __dpl_esimd_ns::simd<T, R * C>
-{
-  public:
-    auto
-    row(uint16_t r)
-    {
-        return this->template bit_cast_view<T, R, C>().row(r);
-    }
-    template <int SizeY, int StrideY, int SizeX, int StrideX>
-    auto
-    select(uint16_t OffsetY = 0, uint16_t OffsetX = 0)
-    {
-        return this->template bit_cast_view<T, R, C>().template select<SizeY, StrideY, SizeX, StrideX>(OffsetY,
-                                                                                                       OffsetX);
-    }
-};
-
-template <typename RT, typename T>
+template <typename RT, typename _T>
 inline __dpl_esimd_ns::simd<RT, 32>
-scan(__dpl_esimd_ns::simd<T, 32> src, const T init = 0)
+__scan(__dpl_esimd_ns::simd<_T, 32> __src, const _T __init = 0)
 {
-    __dpl_esimd_ns::simd<RT, 32> result;
-    result.template select<8, 4>(0) = src.template select<8, 4>(0);
-    result[0] += init;
-    result.template select<8, 4>(1) = src.template select<8, 4>(1) + result.template select<8, 4>(0);
-    result.template select<8, 4>(2) = src.template select<8, 4>(2) + result.template select<8, 4>(1);
-    result.template select<8, 4>(3) = src.template select<8, 4>(3) + result.template select<8, 4>(2);
-    result.template select<4, 1>(4) = result.template select<4, 1>(4) + result[3];
-    result.template select<4, 1>(8) = result.template select<4, 1>(8) + result[7];
-    result.template select<4, 1>(12) = result.template select<4, 1>(12) + result[11];
-    result.template select<4, 1>(16) = result.template select<4, 1>(16) + result[15];
-    result.template select<4, 1>(20) = result.template select<4, 1>(20) + result[19];
-    result.template select<4, 1>(24) = result.template select<4, 1>(24) + result[23];
-    result.template select<4, 1>(28) = result.template select<4, 1>(28) + result[27];
-    return result;
+    __dpl_esimd_ns::simd<RT, 32> __res;
+    __res.template select<8, 4>(0) = __src.template select<8, 4>(0);
+    __res[0] += __init;
+    __res.template select<8, 4>(1) = __src.template select<8, 4>(1) + __res.template select<8, 4>(0);
+    __res.template select<8, 4>(2) = __src.template select<8, 4>(2) + __res.template select<8, 4>(1);
+    __res.template select<8, 4>(3) = __src.template select<8, 4>(3) + __res.template select<8, 4>(2);
+    __res.template select<4, 1>(4) = __res.template select<4, 1>(4) + __res[3];
+    __res.template select<4, 1>(8) = __res.template select<4, 1>(8) + __res[7];
+    __res.template select<4, 1>(12) = __res.template select<4, 1>(12) + __res[11];
+    __res.template select<4, 1>(16) = __res.template select<4, 1>(16) + __res[15];
+    __res.template select<4, 1>(20) = __res.template select<4, 1>(20) + __res[19];
+    __res.template select<4, 1>(24) = __res.template select<4, 1>(24) + __res[23];
+    __res.template select<4, 1>(28) = __res.template select<4, 1>(28) + __res[27];
+    return __res;
 }
 
-template <typename RT, typename T>
+template <typename RT, typename _T>
 inline __dpl_esimd_ns::simd<RT, 16>
-scan(__dpl_esimd_ns::simd<T, 16> src, const T init = 0)
+scan(__dpl_esimd_ns::simd<_T, 16> __src, const _T __init = 0)
 {
-    __dpl_esimd_ns::simd<RT, 16> result;
-    result.template select<4, 4>(0) = src.template select<4, 4>(0);
-    result[0] += init;
-    result.template select<4, 4>(1) = src.template select<4, 4>(1) + result.template select<4, 4>(0);
-    result.template select<4, 4>(2) = src.template select<4, 4>(2) + result.template select<4, 4>(1);
-    result.template select<4, 4>(3) = src.template select<4, 4>(3) + result.template select<4, 4>(2);
-    result.template select<4, 1>(4) = result.template select<4, 1>(4) + result[3];
-    result.template select<4, 1>(8) = result.template select<4, 1>(8) + result[7];
-    result.template select<4, 1>(12) = result.template select<4, 1>(12) + result[11];
-    return result;
+    __dpl_esimd_ns::simd<RT, 16> __res;
+    __res.template select<4, 4>(0) = __src.template select<4, 4>(0);
+    __res[0] += __init;
+    __res.template select<4, 4>(1) = __src.template select<4, 4>(1) + __res.template select<4, 4>(0);
+    __res.template select<4, 4>(2) = __src.template select<4, 4>(2) + __res.template select<4, 4>(1);
+    __res.template select<4, 4>(3) = __src.template select<4, 4>(3) + __res.template select<4, 4>(2);
+    __res.template select<4, 1>(4) = __res.template select<4, 1>(4) + __res[3];
+    __res.template select<4, 1>(8) = __res.template select<4, 1>(8) + __res[7];
+    __res.template select<4, 1>(12) = __res.template select<4, 1>(12) + __res[11];
+    return __res;
 }
 
-template <typename RT, typename T>
+template <typename RT, typename _T>
 inline __dpl_esimd_ns::simd<RT, 64>
-scan(__dpl_esimd_ns::simd<T, 64> src, const T init = 0)
+scan(__dpl_esimd_ns::simd<_T, 64> __src, const _T __init = 0)
 {
-    __dpl_esimd_ns::simd<RT, 64> result;
-    result.template select<32, 1>(0) = scan<RT, T>(src.template select<32, 1>(0), init);
-    result.template select<32, 1>(32) = scan<RT, T>(src.template select<32, 1>(32), result[31]);
-    return result;
+    __dpl_esimd_ns::simd<RT, 64> __res;
+    __res.template select<32, 1>(0) = scan<RT, _T>(__src.template select<32, 1>(0), __init);
+    __res.template select<32, 1>(32) = scan<RT, _T>(__src.template select<32, 1>(32), __res[31]);
+    return __res;
 }
 
 // get bits value (bucket) in a certain radix position
@@ -189,41 +171,41 @@ __get_bucket(__dpl_esimd_ns::simd<_T, _N> __value, ::std::uint32_t __radix_offse
     return __dpl_esimd_ns::simd<::std::uint16_t, _N>(__value >> __radix_offset) & __radix_mask;
 }
 
-template <typename T, bool __is_ascending, std::enable_if_t<::std::is_integral_v<T>, int> = 0>
-constexpr T
+template <typename _T, bool __is_ascending, std::enable_if_t<::std::is_integral_v<_T>, int> = 0>
+constexpr _T
 __sort_identity()
 {
     if constexpr (__is_ascending)
-        return ::std::numeric_limits<T>::max();
+        return ::std::numeric_limits<_T>::max();
     else
-        return ::std::numeric_limits<T>::lowest();
+        return ::std::numeric_limits<_T>::lowest();
 }
 
-// std::numeric_limits<T>::max and std::numeric_limits<T>::lowest cannot be used as an idenentity for
+// std::numeric_limits<_T>::max and std::numeric_limits<_T>::lowest cannot be used as an idenentity for
 // performing radix sort of floating point numbers.
 // They do not set the smallest exponent bit (i.e. the max is 7F7FFFFF for 32bit float),
 // thus such an identity is not guaranteed to be put at the end of the sorted sequence after each radix sort stage,
 // e.g. 00FF0000 numbers will be pushed out by 7F7FFFFF identities when sorting 16-23 bits.
-template <typename T, bool __is_ascending,
-          std::enable_if_t<::std::is_floating_point_v<T> && sizeof(T) == sizeof(::std::uint32_t), int> = 0>
-constexpr T
+template <typename _T, bool __is_ascending,
+          std::enable_if_t<::std::is_floating_point_v<_T> && sizeof(_T) == sizeof(::std::uint32_t), int> = 0>
+constexpr _T
 __sort_identity()
 {
     if constexpr (__is_ascending)
-        return sycl::bit_cast<T>(0x7FFF'FFFFu);
+        return sycl::bit_cast<_T>(0x7FFF'FFFFu);
     else
-        return sycl::bit_cast<T>(0xFFFF'FFFFu);
+        return sycl::bit_cast<_T>(0xFFFF'FFFFu);
 }
 
-template <typename T, bool __is_ascending,
-          std::enable_if_t<::std::is_floating_point_v<T> && sizeof(T) == sizeof(::std::uint64_t), int> = 0>
-constexpr T
+template <typename _T, bool __is_ascending,
+          std::enable_if_t<::std::is_floating_point_v<_T> && sizeof(_T) == sizeof(::std::uint64_t), int> = 0>
+constexpr _T
 __sort_identity()
 {
     if constexpr (__is_ascending)
-        return sycl::bit_cast<T>(0x7FFF'FFFF'FFFF'FFFFu);
+        return sycl::bit_cast<_T>(0x7FFF'FFFF'FFFF'FFFFu);
     else
-        return sycl::bit_cast<T>(0xFFFF'FFFF'FFFF'FFFFu);
+        return sycl::bit_cast<_T>(0xFFFF'FFFF'FFFF'FFFFu);
 }
 
 template <bool __is_ascending, int _N>
@@ -252,7 +234,7 @@ __dpl_esimd_ns::simd<::std::make_unsigned_t<_Int>, _N>
 __order_preserving_cast(__dpl_esimd_ns::simd<_Int, _N> __src)
 {
     using _UInt = ::std::make_unsigned_t<_Int>;
-    // mask: 100..0 for ascending, 011..1 for descending
+    // __mask: 100..0 for ascending, 011..1 for descending
     constexpr _UInt __mask =
         (__is_ascending) ? _UInt(1) << ::std::numeric_limits<_Int>::digits : ::std::numeric_limits<_UInt>::max() >> 1;
     return __src.template bit_cast_view<_UInt>() ^ __mask;
@@ -300,483 +282,483 @@ __order_preserving_cast(__dpl_esimd_ns::simd<_Float, _N> __src)
     return __uint64_src ^ __mask;
 }
 
-template <typename T, int VSize, int LANES, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(VSize <= 4), __dpl_esimd_ns::simd<T, VSize * LANES>>
-VectorLoad(const T* src, const __dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES, __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none>
+inline std::enable_if_t<(_VSize <= 4), __dpl_esimd_ns::simd<_T, _VSize * _LANES>>
+_VectorLoad(const _T* __src, const __dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    return __dpl_esimd_ens::lsc_gather<T, VSize, __dpl_esimd_ens::lsc_data_size::default_size, H1, H3, LANES>(
-        src, offset, mask);
+    return __dpl_esimd_ens::lsc_gather<_T, _VSize, __dpl_esimd_ens::lsc_data_size::default_size, _H1, _H3, _LANES>(
+        __src, __offset, __mask);
 }
 
-template <typename T, int VSize, int LANES, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(VSize > 4), __dpl_esimd_ns::simd<T, VSize * LANES>>
-VectorLoad(const T* src, const __dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES, __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none>
+inline std::enable_if_t<(_VSize > 4), __dpl_esimd_ns::simd<_T, _VSize * _LANES>>
+_VectorLoad(const _T* __src, const __dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    __dpl_esimd_ns::simd<T, VSize * LANES> result;
-    result.template select<4 * LANES, 1>(0) = VectorLoad<T, 4, LANES, H1, H3>(src, offset, mask);
-    result.template select<(VSize - 4) * LANES, 1>(4 * LANES) =
-        VectorLoad<T, VSize - 4, LANES, H1, H3>(src, offset + 4 * sizeof(T), mask);
-    return result;
+    __dpl_esimd_ns::simd<_T, _VSize * _LANES> __res;
+    __res.template select<4 * _LANES, 1>(0) = _VectorLoad<_T, 4, _LANES, _H1, _H3>(__src, __offset, __mask);
+    __res.template select<(_VSize - 4) * _LANES, 1>(4 * _LANES) =
+        _VectorLoad<_T, _VSize - 4, _LANES, _H1, _H3>(__src, __offset + 4 * sizeof(_T), __mask);
+    return __res;
 }
 
-template <typename T, int VSize, int LANES, int LaneStride = VSize,
-          __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline __dpl_esimd_ns::simd<T, VSize * LANES>
-VectorLoad(const T* src, uint32_t offset, __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES, int LaneStride = _VSize,
+          __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none>
+inline __dpl_esimd_ns::simd<_T, _VSize * _LANES>
+_VectorLoad(const _T* __src, uint32_t __offset, __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    return VectorLoad<T, VSize, LANES, H1, H3>(src, {offset, LaneStride * sizeof(T)}, mask);
+    return _VectorLoad<_T, _VSize, _LANES, _H1, _H3>(__src, {__offset, LaneStride * sizeof(_T)}, __mask);
 }
 
-template <typename T, int VSize, int LANES>
-inline std::enable_if_t<(VSize <= 4), __dpl_esimd_ns::simd<T, VSize * LANES>>
-VectorLoad(const __dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES>
+inline std::enable_if_t<(_VSize <= 4), __dpl_esimd_ns::simd<_T, _VSize * _LANES>>
+_VectorLoad(const __dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    return __dpl_esimd_ens::lsc_slm_gather<T, VSize, __dpl_esimd_ens::lsc_data_size::default_size, LANES>(offset, mask);
+    return __dpl_esimd_ens::lsc_slm_gather<_T, _VSize, __dpl_esimd_ens::lsc_data_size::default_size, _LANES>(__offset, __mask);
 }
 
-template <typename T, int VSize, int LANES>
-inline std::enable_if_t<(VSize > 4), __dpl_esimd_ns::simd<T, VSize * LANES>>
-VectorLoad(const __dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES>
+inline std::enable_if_t<(_VSize > 4), __dpl_esimd_ns::simd<_T, _VSize * _LANES>>
+_VectorLoad(const __dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    __dpl_esimd_ns::simd<T, VSize * LANES> result;
-    result.template select<4 * LANES, 1>(0) = VectorLoad<T, 4, LANES>(offset, mask);
-    result.template select<(VSize - 4) * LANES, 1>(4 * LANES) =
-        VectorLoad<T, VSize - 4, LANES>(offset + 4 * sizeof(T), mask);
-    return result;
+    __dpl_esimd_ns::simd<_T, _VSize * _LANES> __res;
+    __res.template select<4 * _LANES, 1>(0) = _VectorLoad<_T, 4, _LANES>(__offset, __mask);
+    __res.template select<(_VSize - 4) * _LANES, 1>(4 * _LANES) =
+        _VectorLoad<_T, _VSize - 4, _LANES>(__offset + 4 * sizeof(_T), __mask);
+    return __res;
 }
 
-template <typename T, int VSize, int LANES, int LaneStride = VSize>
-inline __dpl_esimd_ns::simd<T, VSize * LANES>
-VectorLoad(uint32_t offset, __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES, int LaneStride = _VSize>
+inline __dpl_esimd_ns::simd<_T, _VSize * _LANES>
+_VectorLoad(uint32_t __offset, __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    return VectorLoad<T, VSize, LANES>({offset, LaneStride * sizeof(T)}, mask);
+    return _VectorLoad<_T, _VSize, _LANES>({__offset, LaneStride * sizeof(_T)}, __mask);
 }
 
 template <typename TWhatEver>
-struct is_sycl_accessor : ::std::false_type
+struct __is_sycl_accessor : ::std::false_type
 {
 };
 
-template <typename T, int N, sycl::access_mode Mode, sycl::access::placeholder P>
-struct is_sycl_accessor<sycl::accessor<T, N, Mode, sycl::target::device, P>> : ::std::true_type
+template <typename _T, int _N, sycl::access_mode _Mode, sycl::access::placeholder _P>
+struct __is_sycl_accessor<sycl::accessor<_T, _N, _Mode, sycl::target::device, _P>> : ::std::true_type
 {
 };
 
 template <typename... _Tp>
-inline constexpr bool is_sycl_accessor_v = is_sycl_accessor<_Tp...>::value;
+inline constexpr bool is_sycl_accessor_v = __is_sycl_accessor<_Tp...>::value;
 
-template <typename T, int VSize, int LANES, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(VSize <= 4 && LANES <= 32), void>
-VectorStore(T* dest, __dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd<T, VSize * LANES> data,
-            __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES, __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none>
+inline std::enable_if_t<(_VSize <= 4 && _LANES <= 32), void>
+_VectorStore(_T* __dest, __dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data,
+            __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    __dpl_esimd_ens::lsc_scatter<T, VSize, __dpl_esimd_ens::lsc_data_size::default_size, H1, H3, LANES>(dest, offset,
-                                                                                                        data, mask);
+    __dpl_esimd_ens::lsc_scatter<_T, _VSize, __dpl_esimd_ens::lsc_data_size::default_size, _H1, _H3, _LANES>(__dest, __offset,
+                                                                                                        __data, __mask);
 }
 
-template <typename T, int VSize, int LANES, typename AccessorTy,
-          __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(is_sycl_accessor_v<AccessorTy> && VSize <= 4 && LANES <= 32), void>
-VectorStore(AccessorTy acc, __dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd<T, VSize * LANES> data,
-            __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES, typename _AccessorTy,
+          __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none>
+inline std::enable_if_t<(is_sycl_accessor_v<_AccessorTy> && _VSize <= 4 && _LANES <= 32), void>
+_VectorStore(_AccessorTy __acc, __dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data,
+            __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    __dpl_esimd_ens::lsc_scatter<T, VSize, __dpl_esimd_ens::lsc_data_size::default_size, H1, H3, LANES>(acc, offset,
-                                                                                                        data, mask);
+    __dpl_esimd_ens::lsc_scatter<_T, _VSize, __dpl_esimd_ens::lsc_data_size::default_size, _H1, _H3, _LANES>(__acc, __offset,
+                                                                                                        __data, __mask);
 }
 
-template <typename T, int VSize, int LANES, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(LANES > 32), void>
-VectorStore(T* dest, __dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd<T, VSize * LANES> data,
-            __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES, __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none>
+inline std::enable_if_t<(_LANES > 32), void>
+_VectorStore(_T* __dest, __dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data,
+            __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    VectorStore<T, VSize, 32>(dest, offset.template select<32, 1>(0), data.template select<VSize * 32, 1>(0),
-                              mask.template select<32, 1>(0));
-    VectorStore<T, VSize, LANES - 32>(dest, offset.template select<LANES - 32, 1>(32),
-                                      data.template select<VSize*(LANES - 32), 1>(32),
-                                      mask.template select<LANES - 32, 1>(32));
+    _VectorStore<_T, _VSize, 32>(__dest, __offset.template select<32, 1>(0), __data.template select<_VSize * 32, 1>(0),
+                              __mask.template select<32, 1>(0));
+    _VectorStore<_T, _VSize, _LANES - 32>(__dest, __offset.template select<_LANES - 32, 1>(32),
+                                      __data.template select<_VSize*(_LANES - 32), 1>(32),
+                                      __mask.template select<_LANES - 32, 1>(32));
 }
 
-template <typename T, int VSize, int LANES, typename AccessorTy,
-          __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(is_sycl_accessor_v<AccessorTy> && LANES > 32), void>
-VectorStore(AccessorTy acc, __dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd<T, VSize * LANES> data,
-            __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES, typename _AccessorTy,
+          __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none>
+inline std::enable_if_t<(is_sycl_accessor_v<_AccessorTy> && _LANES > 32), void>
+_VectorStore(_AccessorTy __acc, __dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data,
+            __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    VectorStore<T, VSize, 32>(acc, offset.template select<32, 1>(0), data.template select<VSize * 32, 1>(0),
-                              mask.template select<32, 1>(0));
-    VectorStore<T, VSize, LANES - 32>(acc, offset.template select<LANES - 32, 1>(32),
-                                      data.template select<VSize*(LANES - 32), 1>(32),
-                                      mask.template select<LANES - 32, 1>(32));
+    _VectorStore<_T, _VSize, 32>(__acc, __offset.template select<32, 1>(0), __data.template select<_VSize * 32, 1>(0),
+                              __mask.template select<32, 1>(0));
+    _VectorStore<_T, _VSize, _LANES - 32>(__acc, __offset.template select<_LANES - 32, 1>(32),
+                                      __data.template select<_VSize*(_LANES - 32), 1>(32),
+                                      __mask.template select<_LANES - 32, 1>(32));
 }
 
-template <typename T, int VSize, int LANES, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(VSize > 4 && LANES <= 32), void>
-VectorStore(T* dest, __dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd<T, VSize * LANES> data,
-            __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES, __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none>
+inline std::enable_if_t<(_VSize > 4 && _LANES <= 32), void>
+_VectorStore(_T* __dest, __dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data,
+            __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    VectorStore<T, 4, LANES>(dest, offset, data.template select<4 * LANES, 1>(0), mask);
-    VectorStore<T, VSize - 4, LANES>(dest, offset + 4 * sizeof(T),
-                                     data.template select<(VSize - 4) * LANES, 1>(4 * LANES), mask);
+    _VectorStore<_T, 4, _LANES>(__dest, __offset, __data.template select<4 * _LANES, 1>(0), __mask);
+    _VectorStore<_T, _VSize - 4, _LANES>(__dest, __offset + 4 * sizeof(_T),
+                                     __data.template select<(_VSize - 4) * _LANES, 1>(4 * _LANES), __mask);
 }
 
-template <typename T, int VSize, int LANES, typename AccessorTy,
-          __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(is_sycl_accessor_v<AccessorTy> && VSize > 4 && LANES <= 32), void>
-VectorStore(AccessorTy acc, __dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd<T, VSize * LANES> data,
-            __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES, typename _AccessorTy,
+          __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none>
+inline std::enable_if_t<(is_sycl_accessor_v<_AccessorTy> && _VSize > 4 && _LANES <= 32), void>
+_VectorStore(_AccessorTy __acc, __dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data,
+            __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    VectorStore<T, 4, LANES, AccessorTy>(acc, offset, data.template select<4 * LANES, 1>(0), mask);
-    VectorStore<T, VSize - 4, LANES, AccessorTy>(acc, offset + 4 * sizeof(T),
-                                                 data.template select<(VSize - 4) * LANES, 1>(4 * LANES), mask);
+    _VectorStore<_T, 4, _LANES, _AccessorTy>(__acc, __offset, __data.template select<4 * _LANES, 1>(0), __mask);
+    _VectorStore<_T, _VSize - 4, _LANES, _AccessorTy>(__acc, __offset + 4 * sizeof(_T),
+                                                 __data.template select<(_VSize - 4) * _LANES, 1>(4 * _LANES), __mask);
 }
 
-template <typename T, int VSize, int LANES, int LaneStride = VSize,
-          __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
+template <typename _T, int _VSize, int _LANES, int LaneStride = _VSize,
+          __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none>
 inline void
-VectorStore(T* dest, uint32_t offset, __dpl_esimd_ns::simd<T, VSize * LANES> data,
-            __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+_VectorStore(_T* __dest, uint32_t __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data,
+            __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    // optimization needed here, hard for compiler to optimize the offset vector calculation
-    VectorStore<T, VSize, LANES, H1, H3>(dest, {offset, LaneStride * sizeof(T)}, data, mask);
+    // optimization needed here, hard for compiler to optimize the __offset vector calculation
+    _VectorStore<_T, _VSize, _LANES, _H1, _H3>(__dest, {__offset, LaneStride * sizeof(_T)}, __data, __mask);
 }
 
-template <typename T, int VSize, int LANES, typename AccessorTy, int LaneStride = VSize,
-          __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none>
-inline std::enable_if_t<(is_sycl_accessor_v<AccessorTy>), void>
-VectorStore(AccessorTy acc, uint32_t offset, __dpl_esimd_ns::simd<T, VSize * LANES> data,
-            __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES, typename _AccessorTy, int LaneStride = _VSize,
+          __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none>
+inline std::enable_if_t<(is_sycl_accessor_v<_AccessorTy>), void>
+_VectorStore(_AccessorTy __acc, uint32_t __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data,
+            __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    // optimization needed here, hard for compiler to optimize the offset vector calculation
-    VectorStore<T, VSize, LANES, H1, H3>(acc, {offset, LaneStride * sizeof(T)}, data, mask);
+    // optimization needed here, hard for compiler to optimize the __offset vector calculation
+    _VectorStore<_T, _VSize, _LANES, _H1, _H3>(__acc, {__offset, LaneStride * sizeof(_T)}, __data, __mask);
 }
 
-template <typename T, int VSize, int LANES>
-inline std::enable_if_t<(VSize <= 4 && LANES <= 32), void>
-VectorStore(__dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd<T, VSize * LANES> data,
-            __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES>
+inline std::enable_if_t<(_VSize <= 4 && _LANES <= 32), void>
+_VectorStore(__dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data,
+            __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    __dpl_esimd_ens::lsc_slm_scatter<T, VSize>(offset, data, mask);
+    __dpl_esimd_ens::lsc_slm_scatter<_T, _VSize>(__offset, __data, __mask);
 }
 
-template <typename T, int VSize, int LANES>
-inline std::enable_if_t<(LANES > 32), void>
-VectorStore(__dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd<T, VSize * LANES> data,
-            __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES>
+inline std::enable_if_t<(_LANES > 32), void>
+_VectorStore(__dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data,
+            __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    VectorStore<T, VSize, 32>(offset.template select<32, 1>(0), data.template select<VSize * 32, 1>(0),
-                              mask.template select<32, 1>(0));
-    VectorStore<T, VSize, LANES - 32>(offset.template select<LANES - 32, 1>(32),
-                                      data.template select<VSize*(LANES - 32), 1>(32),
-                                      mask.template select<LANES - 32, 1>(32));
+    _VectorStore<_T, _VSize, 32>(__offset.template select<32, 1>(0), __data.template select<_VSize * 32, 1>(0),
+                              __mask.template select<32, 1>(0));
+    _VectorStore<_T, _VSize, _LANES - 32>(__offset.template select<_LANES - 32, 1>(32),
+                                      __data.template select<_VSize*(_LANES - 32), 1>(32),
+                                      __mask.template select<_LANES - 32, 1>(32));
 }
 
-template <typename T, int VSize, int LANES>
-inline std::enable_if_t<(VSize > 4 && LANES <= 32), void>
-VectorStore(__dpl_esimd_ns::simd<uint32_t, LANES> offset, __dpl_esimd_ns::simd<T, VSize * LANES> data,
-            __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+template <typename _T, int _VSize, int _LANES>
+inline std::enable_if_t<(_VSize > 4 && _LANES <= 32), void>
+_VectorStore(__dpl_esimd_ns::simd<uint32_t, _LANES> __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data,
+            __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    VectorStore<T, 4, LANES>(offset, data.template select<4 * LANES, 1>(0), mask);
-    VectorStore<T, VSize - 4, LANES>(offset + 4 * sizeof(T), data.template select<(VSize - 4) * LANES, 1>(4 * LANES),
-                                     mask);
+    _VectorStore<_T, 4, _LANES>(__offset, __data.template select<4 * _LANES, 1>(0), __mask);
+    _VectorStore<_T, _VSize - 4, _LANES>(__offset + 4 * sizeof(_T), __data.template select<(_VSize - 4) * _LANES, 1>(4 * _LANES),
+                                     __mask);
 }
 
-template <typename T, int VSize, int LANES, int LaneStride = VSize>
+template <typename _T, int _VSize, int _LANES, int LaneStride = _VSize>
 inline void
-VectorStore(uint32_t offset, __dpl_esimd_ns::simd<T, VSize * LANES> data, __dpl_esimd_ns::simd_mask<LANES> mask = 1)
+_VectorStore(uint32_t __offset, __dpl_esimd_ns::simd<_T, _VSize * _LANES> __data, __dpl_esimd_ns::simd_mask<_LANES> __mask = 1)
 {
-    return VectorStore<T, VSize, LANES>({offset, LaneStride * sizeof(T)}, data, mask);
+    return _VectorStore<_T, _VSize, _LANES>({__offset, LaneStride * sizeof(_T)}, __data, __mask);
 }
 
-template <int NElts>
+template <int _NElts>
 constexpr int
-lsc_slm_block_size_rounding()
+__lsc_slm_block_size_rounding()
 {
-    static_assert(NElts >= 1);
+    static_assert(_NElts >= 1);
 
-    if constexpr (NElts < 2)
+    if constexpr (_NElts < 2)
         return 1;
 
-    if constexpr (NElts < 3)
+    if constexpr (_NElts < 3)
         return 2;
 
-    if constexpr (NElts < 4)
+    if constexpr (_NElts < 4)
         return 3;
 
-    if constexpr (NElts < 8)
+    if constexpr (_NElts < 8)
         return 4;
 
-    if constexpr (NElts < 16)
+    if constexpr (_NElts < 16)
         return 8;
 
-    if constexpr (NElts < 32)
+    if constexpr (_NElts < 32)
         return 16;
 
-    if constexpr (NElts < 64)
+    if constexpr (_NElts < 64)
         return 32;
 
     return 64;
 }
 
-template <typename SrcType, int N, typename DestType>
+template <typename _SrcType, int _N, typename _DestType>
 constexpr int
-lsc_op_block_size()
+__lsc_op_block_size()
 {
-    return N * sizeof(SrcType) / sizeof(DestType);
+    return _N * sizeof(_SrcType) / sizeof(_DestType);
 }
 
-template <typename T>
-using lsc_op_aligned_t = ::std::conditional_t<sizeof(T) <= sizeof(::std::uint32_t), ::std::uint32_t, ::std::uint64_t>;
+template <typename _T>
+using lsc_op_aligned_t = ::std::conditional_t<sizeof(_T) <= sizeof(::std::uint32_t), ::std::uint32_t, ::std::uint64_t>;
 
-template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
-          int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts == lsc_slm_block_size_rounding<NElts>(), int> = 0>
-inline __dpl_esimd_ns::simd<T, N>
-BlockLoadSlm(uint32_t slm_offset)
+template <typename _T, int _N, typename OpAlignedT = lsc_op_aligned_t<_T>,
+          int _NElts = __lsc_op_block_size<_T, _N, OpAlignedT>(),
+          ::std::enable_if_t<_NElts == __lsc_slm_block_size_rounding<_NElts>(), int> = 0>
+inline __dpl_esimd_ns::simd<_T, _N>
+_BlockLoadSlm(uint32_t slm_offset)
 {
-    __dpl_esimd_ns::simd<T, N> result;
-    result.template bit_cast_view<OpAlignedT>() = __dpl_esimd_ens::lsc_slm_block_load<OpAlignedT, NElts>(slm_offset);
-    return result;
+    __dpl_esimd_ns::simd<_T, _N> __res;
+    __res.template bit_cast_view<OpAlignedT>() = __dpl_esimd_ens::lsc_slm_block_load<OpAlignedT, _NElts>(slm_offset);
+    return __res;
 }
 
-template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
-          int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts != lsc_slm_block_size_rounding<NElts>(), int> = 0>
-inline __dpl_esimd_ns::simd<T, N>
-BlockLoadSlm(uint32_t slm_offset)
+template <typename _T, int _N, typename OpAlignedT = lsc_op_aligned_t<_T>,
+          int _NElts = __lsc_op_block_size<_T, _N, OpAlignedT>(),
+          ::std::enable_if_t<_NElts != __lsc_slm_block_size_rounding<_NElts>(), int> = 0>
+inline __dpl_esimd_ns::simd<_T, _N>
+_BlockLoadSlm(uint32_t slm_offset)
 {
-    constexpr int BLOCK_SIZE_ROUNDED = lsc_slm_block_size_rounding<NElts>();
+    constexpr int BLOCK_SIZE_ROUNDED = __lsc_slm_block_size_rounding<_NElts>();
 
-    __dpl_esimd_ns::simd<T, N> result;
-    constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, BLOCK_SIZE_ROUNDED, T>();
-    result.template select<BLOCK_SIZE, 1>(0) = BlockLoadSlm<T, BLOCK_SIZE>(slm_offset);
-    result.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE) =
-        BlockLoadSlm<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T));
-    return result;
+    __dpl_esimd_ns::simd<_T, _N> __res;
+    constexpr int BLOCK_SIZE = __lsc_op_block_size<OpAlignedT, BLOCK_SIZE_ROUNDED, _T>();
+    __res.template select<BLOCK_SIZE, 1>(0) = _BlockLoadSlm<_T, BLOCK_SIZE>(slm_offset);
+    __res.template select<_N - BLOCK_SIZE, 1>(BLOCK_SIZE) =
+        _BlockLoadSlm<_T, _N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(_T));
+    return __res;
 }
 
-template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
-          int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts == lsc_slm_block_size_rounding<NElts>(), int> = 0>
+template <typename _T, int _N, typename OpAlignedT = lsc_op_aligned_t<_T>,
+          int _NElts = __lsc_op_block_size<_T, _N, OpAlignedT>(),
+          ::std::enable_if_t<_NElts == __lsc_slm_block_size_rounding<_NElts>(), int> = 0>
 void
-BlockStoreSlm(uint32_t slm_offset, __dpl_esimd_ns::simd<T, N> data)
+_BlockStoreSlm(uint32_t slm_offset, __dpl_esimd_ns::simd<_T, _N> __data)
 {
-    __dpl_esimd_ens::lsc_slm_block_store<OpAlignedT, NElts>(slm_offset, data.template bit_cast_view<uint32_t>());
+    __dpl_esimd_ens::lsc_slm_block_store<OpAlignedT, _NElts>(slm_offset, __data.template bit_cast_view<uint32_t>());
 }
 
-template <typename T, int N, typename OpAlignedT = lsc_op_aligned_t<T>,
-          int NElts = lsc_op_block_size<T, N, OpAlignedT>(),
-          ::std::enable_if_t<NElts != lsc_slm_block_size_rounding<NElts>(), int> = 0>
+template <typename _T, int _N, typename OpAlignedT = lsc_op_aligned_t<_T>,
+          int _NElts = __lsc_op_block_size<_T, _N, OpAlignedT>(),
+          ::std::enable_if_t<_NElts != __lsc_slm_block_size_rounding<_NElts>(), int> = 0>
 void
-BlockStoreSlm(uint32_t slm_offset, __dpl_esimd_ns::simd<T, N> data)
+_BlockStoreSlm(uint32_t slm_offset, __dpl_esimd_ns::simd<_T, _N> __data)
 {
-    constexpr int BLOCK_SIZE_ROUNDED = lsc_slm_block_size_rounding<NElts>();
+    constexpr int BLOCK_SIZE_ROUNDED = __lsc_slm_block_size_rounding<_NElts>();
 
-    constexpr int BLOCK_SIZE = lsc_op_block_size<OpAlignedT, BLOCK_SIZE_ROUNDED, T>();
-    BlockStoreSlm<T, BLOCK_SIZE>(slm_offset, data.template select<BLOCK_SIZE, 1>(0));
-    BlockStoreSlm<T, N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(T),
-                                     data.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE));
+    constexpr int BLOCK_SIZE = __lsc_op_block_size<OpAlignedT, BLOCK_SIZE_ROUNDED, _T>();
+    _BlockStoreSlm<_T, BLOCK_SIZE>(slm_offset, __data.template select<BLOCK_SIZE, 1>(0));
+    _BlockStoreSlm<_T, _N - BLOCK_SIZE>(slm_offset + BLOCK_SIZE * sizeof(_T),
+                                     __data.template select<_N - BLOCK_SIZE, 1>(BLOCK_SIZE));
 }
 
-template <typename T, int NElts, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint8_t), int> = 0>
+template <typename _T, int _NElts, ::std::enable_if_t<sizeof(_T) == sizeof(::std::uint8_t), int> = 0>
 constexpr int
 lsc_block_store_size_rounding()
 {
     // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
-    // Allowed \c NElts values for  8 bit data are 4, 8, 12, 16, 32, 64, 128, 256, 512.
+    // Allowed _NElts values for 8 bit data are 4, 8, 12, 16, 32, 64, 128, 256, 512.
 
-    static_assert(NElts >= 1);
+    static_assert(_NElts >= 1);
 
-    if constexpr (NElts < 8)
+    if constexpr (_NElts < 8)
         return 4;
 
-    if constexpr (NElts < 12)
+    if constexpr (_NElts < 12)
         return 8;
 
-    if constexpr (NElts < 16)
+    if constexpr (_NElts < 16)
         return 12;
 
-    if constexpr (NElts < 32)
+    if constexpr (_NElts < 32)
         return 16;
 
-    if constexpr (NElts < 64)
+    if constexpr (_NElts < 64)
         return 32;
 
-    if constexpr (NElts < 128)
+    if constexpr (_NElts < 128)
         return 64;
 
-    if constexpr (NElts < 256)
+    if constexpr (_NElts < 256)
         return 128;
 
-    if constexpr (NElts < 512)
+    if constexpr (_NElts < 512)
         return 256;
 
     return 512;
 }
 
-template <typename T, int NElts, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint16_t), int> = 0>
+template <typename _T, int _NElts, ::std::enable_if_t<sizeof(_T) == sizeof(::std::uint16_t), int> = 0>
 constexpr int
 lsc_block_store_size_rounding()
 {
     // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
-    // Allowed \c NElts values for 16 bit data are 2, 4, 8, 16, 32, 64, 128, 256.
+    // Allowed _NElts values for 16 bit data are 2, 4, 8, 16, 32, 64, 128, 256.
 
-    static_assert(NElts >= 1);
+    static_assert(_NElts >= 1);
 
-    if constexpr (NElts < 2)
+    if constexpr (_NElts < 2)
         return 1;
 
-    if constexpr (NElts < 4)
+    if constexpr (_NElts < 4)
         return 2;
 
-    if constexpr (NElts < 8)
+    if constexpr (_NElts < 8)
         return 4;
 
-    if constexpr (NElts < 16)
+    if constexpr (_NElts < 16)
         return 8;
 
-    if constexpr (NElts < 32)
+    if constexpr (_NElts < 32)
         return 16;
 
-    if constexpr (NElts < 64)
+    if constexpr (_NElts < 64)
         return 32;
 
-    if constexpr (NElts < 128)
+    if constexpr (_NElts < 128)
         return 64;
 
-    if constexpr (NElts < 256)
+    if constexpr (_NElts < 256)
         return 128;
 
     return 256;
 }
 
-template <typename T, int NElts, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint32_t), int> = 0>
+template <typename _T, int _NElts, ::std::enable_if_t<sizeof(_T) == sizeof(::std::uint32_t), int> = 0>
 constexpr int
 lsc_block_store_size_rounding()
 {
     // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
-    // Allowed \c NElts values for 32 bit data are 1, 2, 3, 4, 8, 16, 32, 64, 128.
+    // Allowed _NElts values for 32 bit data are 1, 2, 3, 4, 8, 16, 32, 64, 128.
 
-    static_assert(NElts >= 1);
+    static_assert(_NElts >= 1);
 
-    if constexpr (NElts < 2)
+    if constexpr (_NElts < 2)
         return 1;
 
-    if constexpr (NElts < 3)
+    if constexpr (_NElts < 3)
         return 2;
 
-    if constexpr (NElts < 4)
+    if constexpr (_NElts < 4)
         return 3;
 
-    if constexpr (NElts < 8)
+    if constexpr (_NElts < 8)
         return 4;
 
-    if constexpr (NElts < 16)
+    if constexpr (_NElts < 16)
         return 8;
 
-    if constexpr (NElts < 32)
+    if constexpr (_NElts < 32)
         return 16;
 
-    if constexpr (NElts < 64)
+    if constexpr (_NElts < 64)
         return 32;
 
-    if constexpr (NElts < 128)
+    if constexpr (_NElts < 128)
         return 64;
 
     return 128;
 }
 
-template <typename T, int NElts, ::std::enable_if_t<sizeof(T) == sizeof(::std::uint64_t), int> = 0>
+template <typename _T, int _NElts, ::std::enable_if_t<sizeof(_T) == sizeof(::std::uint64_t), int> = 0>
 constexpr int
 lsc_block_store_size_rounding()
 {
     // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
-    // Allowed \c NElts values for 64 bit data are 1, 2, 3, 4, 8, 16, 32, 64.
+    // Allowed _NElts values for 64 bit data are 1, 2, 3, 4, 8, 16, 32, 64.
 
-    static_assert(NElts >= 1);
+    static_assert(_NElts >= 1);
 
-    if constexpr (NElts < 2)
+    if constexpr (_NElts < 2)
         return 1;
 
-    if constexpr (NElts < 3)
+    if constexpr (_NElts < 3)
         return 2;
 
-    if constexpr (NElts < 4)
+    if constexpr (_NElts < 4)
         return 3;
 
-    if constexpr (NElts < 8)
+    if constexpr (_NElts < 8)
         return 4;
 
-    if constexpr (NElts < 16)
+    if constexpr (_NElts < 16)
         return 8;
 
-    if constexpr (NElts < 32)
+    if constexpr (_NElts < 32)
         return 16;
 
-    if constexpr (NElts < 64)
+    if constexpr (_NElts < 64)
         return 32;
 
     return 64;
 }
 
-template <typename T, int N, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none,
-          ::std::enable_if_t<N == lsc_block_store_size_rounding<T, N>(), int> = 0>
+template <typename _T, int _N, __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none,
+          ::std::enable_if_t<_N == lsc_block_store_size_rounding<_T, _N>(), int> = 0>
 inline void
-BlockStore(T* dst, __dpl_esimd_ns::simd<T, N> data)
+_BlockStore(_T* __dst, __dpl_esimd_ns::simd<_T, _N> __data)
 {
     // https://github.com/intel/llvm/blob/3dbc2c00c26e599e8a10d44e3168a45d3c496eeb/sycl/include/sycl/ext/intel/experimental/esimd/memory.hpp#L2067
-    // Allowed \c NElts values for  8 bit data are          4, 8, 12, 16, 32, 64, 128, 256, 512.
-    // Allowed \c NElts values for 16 bit data are    2,    4, 8,     16, 32, 64, 128, 256.
-    // Allowed \c NElts values for 32 bit data are 1, 2, 3, 4, 8,     16, 32, 64, 128.
-    // Allowed \c NElts values for 64 bit data are 1, 2, 3, 4, 8,     16, 32, 64.
-    __dpl_esimd_ens::lsc_block_store<uint32_t, N, __dpl_esimd_ens::lsc_data_size::default_size, H1, H3>(
-        dst, data.template bit_cast_view<uint32_t>(), 1);
+    // Allowed _NElts values for  8 bit data are          4, 8, 12, 16, 32, 64, 128, 256, 512.
+    // Allowed _NElts values for 16 bit data are    2,    4, 8,     16, 32, 64, 128, 256.
+    // Allowed _NElts values for 32 bit data are 1, 2, 3, 4, 8,     16, 32, 64, 128.
+    // Allowed _NElts values for 64 bit data are 1, 2, 3, 4, 8,     16, 32, 64.
+    __dpl_esimd_ens::lsc_block_store<uint32_t, _N, __dpl_esimd_ens::lsc_data_size::default_size, _H1, _H3>(
+        __dst, __data.template bit_cast_view<uint32_t>(), 1);
 }
 
-template <typename T, int N, __dpl_esimd_ens::cache_hint H1 = __dpl_esimd_ens::cache_hint::none,
-          __dpl_esimd_ens::cache_hint H3 = __dpl_esimd_ens::cache_hint::none,
-          ::std::enable_if_t<N != lsc_block_store_size_rounding<T, N>(), int> = 0>
+template <typename _T, int _N, __dpl_esimd_ens::cache_hint _H1 = __dpl_esimd_ens::cache_hint::none,
+          __dpl_esimd_ens::cache_hint _H3 = __dpl_esimd_ens::cache_hint::none,
+          ::std::enable_if_t<_N != lsc_block_store_size_rounding<_T, _N>(), int> = 0>
 inline void
-BlockStore(T* dst, __dpl_esimd_ns::simd<T, N> data)
+_BlockStore(_T* __dst, __dpl_esimd_ns::simd<_T, _N> __data)
 {
-    constexpr uint32_t BLOCK_SIZE = 64 * sizeof(uint32_t) / sizeof(T);
+    constexpr uint32_t BLOCK_SIZE = 64 * sizeof(uint32_t) / sizeof(_T);
 
-    constexpr int BLOCK_SIZE_ROUNDED = lsc_block_store_size_rounding<T, N>();
+    constexpr int BLOCK_SIZE_ROUNDED = lsc_block_store_size_rounding<_T, _N>();
     static_assert(BLOCK_SIZE == BLOCK_SIZE_ROUNDED);
 
-    BlockStore<T, BLOCK_SIZE>(dst, data.template select<BLOCK_SIZE, 1>(0));
-    BlockStore<T, N - BLOCK_SIZE>(dst + BLOCK_SIZE, data.template select<N - BLOCK_SIZE, 1>(BLOCK_SIZE));
+    _BlockStore<_T, BLOCK_SIZE>(__dst, __data.template select<BLOCK_SIZE, 1>(0));
+    _BlockStore<_T, _N - BLOCK_SIZE>(__dst + BLOCK_SIZE, __data.template select<_N - BLOCK_SIZE, 1>(BLOCK_SIZE));
 }
 
-template <typename T, int N>
-inline std::enable_if_t<(N > 16) && (N % 16 == 0), __dpl_esimd_ns::simd<T, N>>
-create_simd(T initial, T step)
+template <typename _T, int _N>
+inline std::enable_if_t<(_N > 16) && (_N % 16 == 0), __dpl_esimd_ns::simd<_T, _N>>
+__create_simd(_T initial, _T step)
 {
     using namespace __dpl_esimd_ns;
     using namespace __dpl_esimd_ens;
-    simd<T, N> ret;
-    ret.template select<16, 1>(0) = simd<T, 16>(0, 1) * step + initial;
+    simd<_T, _N> ret;
+    ret.template select<16, 1>(0) = simd<_T, 16>(0, 1) * step + initial;
     fence<fence_mask::sw_barrier>();
 #pragma unroll
-    for (int pos = 16; pos < N; pos += 16)
+    for (int pos = 16; pos < _N; pos += 16)
     {
         ret.template select<16, 1>(pos) = ret.template select<16, 1>(0) + pos * step;
     }
     return ret;
 }
 
-} // namespace utils
-} // namespace oneapi::dpl::experimental::kt::esimd::impl
+} // namespace __utils
+} // namespace oneapi::dpl::experimental::kt::esimd::__impl
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
