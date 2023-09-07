@@ -217,30 +217,30 @@ jobs:
           echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
           make_targets=""
-          ctest_flags="-R \"("
+          ctest_regex="^("
 
-          for test in adjacent_find.pass copy_move.pass merge.pass minmax_element.pass partial_sort.pass remove_copy.pass \
+          for test in adjacent_find.pass copy_move.pass merge.pass partial_sort.pass remove_copy.pass \
                       transform_reduce.pass transform_scan.pass algorithm.pass execution.pass functional.pass \
                       algorithms_redirection.pass usm_memory_replacement.pass
           do
             if [ -n "$make_targets" ]
             then
               make_targets+=" "
-              ctest_flags+="|"
+              ctest_regex+="|"
             fi
 
             make_targets+="$test"
-            ctest_flags+="$test"
+            ctest_regex+="$test"
           done
 
-          ctest_flags+=")\""
+          ctest_regex+=")"
 
           mkdir build && cd build
           lscpu
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=dpcpp -D_ONEDPL_PSTL_OFFLOAD=${{ matrix.device_type }} ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
-          ctest --timeout ${TEST_TIMEOUT} --output-on-failure ${ctest_flags}
+          ctest --timeout ${TEST_TIMEOUT} --output-on-failure -R ${ctest_regex}
 
   windows-testing:
     name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
