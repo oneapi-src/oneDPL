@@ -58,7 +58,7 @@
 #define _PSTL_SYCL_TEST_USM 1
 
 // Enable test when the DPC++ backend is available
-#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                          \
+#if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                         \
      (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))) &&                                             \
     (!defined(ONEDPL_USE_DPCPP_BACKEND) || ONEDPL_USE_DPCPP_BACKEND != 0)
 #define TEST_DPCPP_BACKEND_PRESENT 1
@@ -131,6 +131,8 @@
 #define _PSTL_CLANG_TEST_COMPLEX_ACOS_IS_NAN_CASE_BROKEN __clang__
 #define _PSTL_CLANG_TEST_COMPLEX_ATAN_IS_CASE_BROKEN __clang__
 #define _PSTL_CLANG_TEST_COMPLEX_SIN_IS_CASE_BROKEN __clang__
+
+#define TEST_DYNAMIC_SELECTION_AVAILABLE (__INTEL_LLVM_COMPILER >= 20230000)
 
 // oneAPI DPC++ compiler in 2023.2 release build crashes during optimization of reduce_by_segment.pass.cpp
 // with TBB backend.
