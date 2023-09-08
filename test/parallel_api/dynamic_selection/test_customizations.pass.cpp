@@ -20,23 +20,23 @@ test_no_customizations()
 
     trace = 0;
     auto s = oneapi::dpl::experimental::select(p);
-    EXPECT_EQ(t_select, trace, "ERROR: unexpected trace of select");
+    EXPECT_EQ((int)t_select, trace, "ERROR: unexpected trace of select");
 
     trace = 0;
     oneapi::dpl::experimental::submit(s, [](int i) { return i; });
-    EXPECT_EQ(t_submit_selection, trace, "ERROR: unexpected trace of submit selection");
+    EXPECT_EQ((int)t_submit_selection, trace, "ERROR: unexpected trace of submit selection");
 
     trace = 0;
     oneapi::dpl::experimental::submit(p, [](int i) { return i; });
-    EXPECT_EQ((t_select | t_submit_selection), trace, "ERROR: unexpected trace of submit function");
+    EXPECT_EQ((int)(t_select | t_submit_selection), trace, "ERROR: unexpected trace of submit function");
 
     trace = 0;
     oneapi::dpl::experimental::submit_and_wait(s, [](int i) { return i; });
-    EXPECT_EQ((t_submit_selection | t_wait), trace, "ERROR: unexpected trace of submit_and_wait selection");
+    EXPECT_EQ((int)(t_submit_selection | t_wait), trace, "ERROR: unexpected trace of submit_and_wait selection");
 
     trace = 0;
     oneapi::dpl::experimental::submit_and_wait(p, [](int i) { return i; });
-    EXPECT_EQ((t_select | t_submit_selection | t_wait), trace, "ERROR: unexpected trace of submit_and_wait function");
+    EXPECT_EQ((int)(t_select | t_submit_selection | t_wait), trace, "ERROR: unexpected trace of submit_and_wait function");
 
     std::cout << "test_no_customizations: OK\n";
 
@@ -51,23 +51,23 @@ test_all_customizations()
 
     trace = 0;
     auto s = oneapi::dpl::experimental::select(p);
-    EXPECT_EQ(t_select, trace, "ERROR: unexpected trace of select");
+    EXPECT_EQ((int)t_select, trace, "ERROR: unexpected trace of select");
 
     trace = 0;
     oneapi::dpl::experimental::submit(s, [](int i) { return i; });
-    EXPECT_EQ(t_submit_selection, trace, "ERROR: unexpected trace of submit selection");
+    EXPECT_EQ((int)t_submit_selection, trace, "ERROR: unexpected trace of submit selection");
 
     trace = 0;
     oneapi::dpl::experimental::submit(p, [](int i) { return i; });
-    EXPECT_EQ(t_submit_function, trace, "ERROR: unexpected trace of submit function");
+    EXPECT_EQ((int)t_submit_function, trace, "ERROR: unexpected trace of submit function");
 
     trace = 0;
     oneapi::dpl::experimental::submit_and_wait(s, [](int i) { return i; });
-    EXPECT_EQ(t_submit_and_wait_selection, trace, "ERROR: unexpected trace of submit_and_wait selection");
+    EXPECT_EQ((int)t_submit_and_wait_selection, trace, "ERROR: unexpected trace of submit_and_wait selection");
 
     trace = 0;
     oneapi::dpl::experimental::submit_and_wait(p, [](int i) { return i; });
-    EXPECT_EQ(t_submit_and_wait_function, trace, "ERROR: unexpected trace of submit_and_wait function");
+    EXPECT_EQ((int)t_submit_and_wait_function, trace, "ERROR: unexpected trace of submit_and_wait function");
 
     std::cout << "test_all_customizations: OK\n";
     return 0;
@@ -76,8 +76,10 @@ test_all_customizations()
 int
 main()
 {
-    EXPECT_EQ(0, test_no_customizations(), "");
-    EXPECT_EQ(0, test_all_customizations(), "");
+    auto actual = test_no_customizations();
+    EXPECT_EQ(0, actual, "");
+    actual = test_all_customizations();
+    EXPECT_EQ(0, actual, "");
 
     return TestUtils::done();
 }
