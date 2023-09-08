@@ -14,7 +14,7 @@
 #include "support/utils.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 #    include "support/sycl_sanity.h"
-#endif
+#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 
 int
 main()
@@ -34,12 +34,16 @@ main()
 
         constexpr bool just_call_submit = false;
         constexpr bool call_select_before_submit = true;
+
         EXPECT_EQ(0, test_initialization<policy_t, sycl::queue>(u), "");
         EXPECT_EQ(0, test_select<policy_t, decltype(u), decltype(f)&, false>(u, f), "");
+
         EXPECT_EQ(0, test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f), "");
         EXPECT_EQ(0, test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, f), "");
+
         EXPECT_EQ(0, test_submit_and_wait<just_call_submit, policy_t>(u, f), "");
         EXPECT_EQ(0, test_submit_and_wait<call_select_before_submit, policy_t>(u, f), "");
+
         EXPECT_EQ(0, test_submit_and_wait_on_group<just_call_submit, policy_t>(u, f), "");
         EXPECT_EQ(0, test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f), "");
 
