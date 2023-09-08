@@ -514,38 +514,65 @@ main()
         constexpr bool just_call_submit = false;
         constexpr bool call_select_before_submit = true;
 
-        EXPECT_EQ(0, test_auto_initialization(u), "");
-        EXPECT_EQ(0, test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f), "");
+        auto actual = test_auto_initialization(u);
+        EXPECT_EQ(0, actual, "");
 
-        EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 0), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 1), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 2), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 3), "");
+        actual = test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f);
+        EXPECT_EQ(0, actual, "");
 
-        EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 0), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 1), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 2), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 3), "");
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 0);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 1);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 2);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 3);
+        EXPECT_EQ(0, actual, "");
 
-        EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 0), "");
-        EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 1), "");
-        EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 2), "");
-        EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 3), "");
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 0);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 1);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 2);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 3);
+        EXPECT_EQ(0, actual, "");
+
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u, 0);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u, 1);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u, 2);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_and_wait<just_call_submit, policy_t>(u, 3);
+        EXPECT_EQ(0, actual, "");
 
         // now select then submits
-        EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 0), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 1), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 2), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 3), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 0), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 1), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 2), "");
-        EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 3), "");
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 0);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 1);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 2);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 3);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 0);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 1);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 2);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 3);
+        EXPECT_EQ(0, actual, "");
 
-        EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 0), "");
-        EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 1), "");
-        EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 2), "");
-        EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 3), "");
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 0);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 1);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 2);
+        EXPECT_EQ(0, actual, "");
+        actual = test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 3);
+        EXPECT_EQ(0, actual, "");
 
         bProcessed = true;
     }
