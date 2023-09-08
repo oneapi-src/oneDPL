@@ -356,6 +356,7 @@ if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
     if (_fsycl_pstl_offload_option)
         message(STATUS "Adding ${FSYCL_PSTL_OFFLOAD_OPTION} compiler option")
         target_compile_options(oneDPL INTERFACE ${FSYCL_PSTL_OFFLOAD_OPTION})
+        target_link_libraries(oneDPL INTERFACE ${FSYCL_PSTL_OFFLOAD_OPTION})
     else()
         # TODO: remove this "manual" -fsycl-pstl-offload suboption substitution and replace with FATAL_ERROR
         # message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support ${FSYCL_PSTL_OFFLOAD_OPTION}")
