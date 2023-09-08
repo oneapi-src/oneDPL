@@ -12,6 +12,7 @@
 #include <iostream>
 #include <vector>
 #include "support/test_config.h"
+#include "support/utils.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 #    include "support/sycl_sanity.h"
 
@@ -111,9 +112,8 @@ int
 main()
 {
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
-    return test_runner();
-#else
-    std::cout << "SKIPPED\n";
-    return 0;
+    EXPECT_EQ(0, test_runner(), "");
 #endif // TEST_DYNAMIC_SELECTION_AVAILABLE
+
+    return TestUtils::done(TEST_DYNAMIC_SELECTION_AVAILABLE);
 }
