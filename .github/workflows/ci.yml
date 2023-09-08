@@ -246,13 +246,6 @@ jobs:
             -DONEDPL_DEVICE_TYPE=${device_type^^}  -D_ONEDPL_PSTL_OFFLOAD=$device_type ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
 
-          sycl-ls
-
-          # for test in $test_list
-          # do
-          #   ./test/$test
-          # done
-
           ctest --timeout ${TEST_TIMEOUT} --output-on-failure -R ${ctest_regex}
 
   windows-testing:
