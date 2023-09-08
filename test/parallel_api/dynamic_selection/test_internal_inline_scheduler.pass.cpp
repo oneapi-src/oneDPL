@@ -208,14 +208,22 @@ test_properties()
 int
 main()
 {
-    EXPECT_EQ(0, test_cout(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_scheduler(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_scheduler_single_element(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_scheduler_empty(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_sync(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_sync_single_element(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_sync_empty(), "");
-    EXPECT_EQ(0, test_properties, "");
+    auto actual = test_cout();
+    EXPECT_EQ(0, actual, "");
+    actual = test_submit_and_wait_on_scheduler();
+    EXPECT_EQ(0, actual, "");
+    actual = test_submit_and_wait_on_scheduler_single_element();
+    EXPECT_EQ(0, actual, "");
+    actual = test_submit_and_wait_on_scheduler_empty();
+    EXPECT_EQ(0, actual, "");
+    actual = test_submit_and_wait_on_sync();
+    EXPECT_EQ(0, actual, "");
+    actual = test_submit_and_wait_on_sync_single_element();
+    EXPECT_EQ(0, actual, "");
+    actual = test_submit_and_wait_on_sync_empty();
+    EXPECT_EQ(0, actual, "");
+    actual = test_properties();
+    EXPECT_EQ(0, actual, "");
 
     return TestUtils::done();
 }
