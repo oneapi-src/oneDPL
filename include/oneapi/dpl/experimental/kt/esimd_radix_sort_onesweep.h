@@ -716,7 +716,7 @@ __onesweep(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
         [__event_chain, __p_temp_memory, __q](sycl::handler& __cgh)
         {
             __cgh.depends_on(__event_chain);
-            __cgh.host_task([&]() { sycl::free(__p_temp_memory, __q); });
+            __cgh.host_task([=]() { sycl::free(__p_temp_memory, __q); });
         });
 
     return __event_chain;
