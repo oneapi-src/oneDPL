@@ -106,8 +106,7 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                 else
                 {
                     return q.submit([=](sycl::handler& h) {
-                        h.parallel_for<TestUtils::unique_kernel_name<
-                            class tune1, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                        h.parallel_for<TestUtils::unique_kernel_name<class tune1, 0>>(
                             1000000, [=](sycl::id<1> idx) {
                                 for (int j0 = 0; j0 < *j; ++j0)
                                 {
@@ -151,8 +150,7 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                     else
                     {
                         return q.submit([=](sycl::handler& h) {
-                            h.parallel_for<TestUtils::unique_kernel_name<
-                                class tune2, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                            h.parallel_for<TestUtils::unique_kernel_name<class tune2, 0>>(
                                 1000000, [=](sycl::id<1> idx) {
                                     for (int j0 = 0; j0 < *j; ++j0)
                                     {
@@ -240,8 +238,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                 else
                 {
                     return q.submit([=](sycl::handler& h) {
-                        h.parallel_for<TestUtils::unique_kernel_name<
-                            class tune3, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                        h.parallel_for<TestUtils::unique_kernel_name<class tune3, 0>>(
                             1000000, [=](sycl::id<1> idx) {
                                 for (int j0 = 0; j0 < *j; ++j0)
                                 {
@@ -285,8 +282,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                     else
                     {
                         return q.submit([=](sycl::handler& h) {
-                            h.parallel_for<TestUtils::unique_kernel_name<
-                                class tune4, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                            h.parallel_for<TestUtils::unique_kernel_name<class tune4, 0>>(
                                 1000000, [=](sycl::id<1> idx) {
                                     for (int j0 = 0; j0 < *j; ++j0)
                                     {
@@ -374,8 +370,7 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                 else
                 {
                     return q.submit([=](sycl::handler& h) {
-                        h.parallel_for<TestUtils::unique_kernel_name<
-                            class tune5, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                        h.parallel_for<TestUtils::unique_kernel_name<class tune5, 0>>(
                             1000000, [=](sycl::id<1> idx) {
                                 for (int j0 = 0; j0 < *j; ++j0)
                                 {
@@ -418,8 +413,7 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                     else
                     {
                         return q.submit([=](sycl::handler& h) {
-                            h.parallel_for<TestUtils::unique_kernel_name<
-                                class tune6, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                            h.parallel_for<TestUtils::unique_kernel_name<class tune6, 0>>(
                                 1000000, [=](sycl::id<1> idx) {
                                     for (int j0 = 0; j0 < *j; ++j0)
                                     {

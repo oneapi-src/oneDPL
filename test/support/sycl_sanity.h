@@ -19,13 +19,6 @@
 //TODO: Source from oneDPL
 namespace TestUtils
 {
-template <sycl::usm::alloc alloc_type>
-constexpr ::std::size_t
-uniq_kernel_index()
-{
-    return static_cast<typename ::std::underlying_type_t<sycl::usm::alloc>>(alloc_type);
-}
-
 template <typename Op, ::std::size_t CallNumber>
 struct unique_kernel_name;
 
@@ -53,7 +46,7 @@ run_sycl_sanity_test(sycl::queue q)
             sycl::accessor b_(b_buf, h, sycl::read_only);
             sycl::accessor c_(c_buf, h, sycl::write_only);
             h.parallel_for<
-                TestUtils::unique_kernel_name<class sum3, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                TestUtils::unique_kernel_name<class sum3, 0>>(
                 num_items, [=](auto j) { c_[j] += a_[j] + b_[j]; });
         });
 
@@ -62,7 +55,7 @@ run_sycl_sanity_test(sycl::queue q)
              sycl::accessor b_(b_buf, h, sycl::read_only);
              sycl::accessor c_(c_buf, h, sycl::write_only);
              h.parallel_for<
-                 TestUtils::unique_kernel_name<class sum4, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                 TestUtils::unique_kernel_name<class sum4, 0>>(
                  num_items, [=](auto j) { c_[j] += a_[j] + b_[j]; });
          }).wait();
     }
