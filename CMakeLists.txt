@@ -199,12 +199,10 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
         elseif(DEFINED ONEDPL_DEVICE_BACKEND)
             message(FATAL_ERROR "Unsupported device type: ${ONEDPL_DEVICE_TYPE}.\n"
                 "Select one of the following devices: CPU, GPU, FPGA_EMU or FPGA_HW")
-        else()
+        elseif (_ONEDPL_PSTL_OFFLOAD STREQUAL off)
             # PSTL offload does device selection on its own
-            if (_ONEDPL_PSTL_OFFLOAD STREQUAL off)
-                set(ONEDPL_DEVICE_TYPE "GPU")
-                message(STATUS "Using a default device type (GPU)")
-            endif()
+            set(ONEDPL_DEVICE_TYPE "GPU")
+            message(STATUS "Using a default device type (GPU)")
         endif()
 
         # check device backend
