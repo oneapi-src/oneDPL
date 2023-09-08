@@ -236,31 +236,30 @@ test_properties()
 int
 main()
 {
-    bool bFinished = false;
+    bool bProcessed = false;
 
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
     try
     {
         sycl::queue q;
+
+        EXPECT_EQ(0, test_cout(), "");
+        EXPECT_EQ(0, test_submit_and_wait_on_scheduler(), "");
+        EXPECT_EQ(0, test_submit_and_wait_on_scheduler_single_element(), "");
+        EXPECT_EQ(0, test_submit_and_wait_on_scheduler_empty(), "");
+        EXPECT_EQ(0, test_submit_and_wait_on_sync(), "");
+        EXPECT_EQ(0, test_submit_and_wait_on_sync_single_element(), "");
+        EXPECT_EQ(0, test_submit_and_wait_on_sync_empty(), "");
+        EXPECT_EQ(0, test_properties(), "");
+
+        bProcessed = true;
     }
     catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to use sycl at all\n";
         return 0;
     }
-        
-
-    EXPECT_EQ(0, test_cout(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_scheduler(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_scheduler_single_element(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_scheduler_empty(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_sync(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_sync_single_element(), "");
-    EXPECT_EQ(0, test_submit_and_wait_on_sync_empty(), "");
-    EXPECT_EQ(0, test_properties(), "");
-
-    bFinished = true;
 #endif // TEST_DYNAMIC_SELECTION_AVAILABLE    
 
-    return TestUtils::done(bFinished);
+    return TestUtils::done(bProcessed);
 }
