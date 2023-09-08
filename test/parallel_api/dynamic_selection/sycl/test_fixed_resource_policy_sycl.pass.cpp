@@ -19,7 +19,8 @@
 int
 main()
 {
-    bool processed = false;
+    bool bProcessed = false;
+
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
     using policy_t = oneapi::dpl::experimental::fixed_resource_policy<oneapi::dpl::experimental::sycl_backend>;
     std::vector<sycl::queue> u;
@@ -47,9 +48,9 @@ main()
         EXPECT_EQ(0, test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f), "");
         EXPECT_EQ(0, test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f, 1), "");
 
-        processed = true;
+        bProcessed = true;
     }
 #endif    
 
-    return TestUtils::done(processed);
+    return TestUtils::done(bProcessed);
 }
