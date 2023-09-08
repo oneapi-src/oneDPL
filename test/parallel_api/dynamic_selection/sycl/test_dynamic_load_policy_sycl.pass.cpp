@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <iostream>
 #include "oneapi/dpl/dynamic_selection"
+#include <iostream>
 #include "support/test_dynamic_load_utils.h"
 #include "support/test_config.h"
 #include "support/utils.h"
