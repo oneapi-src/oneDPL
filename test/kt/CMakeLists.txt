@@ -15,8 +15,7 @@ function(generate_esimd_radix_sort_tests)
 
     set(_key_type_all "char" "uint16_t" "int" "uint64_t" "float" "double")
     set(_data_per_work_item_all "32" "64" "96" "128" "160" "192" "224" "256" "288" "320" "352" "384" "416" "448" "480" "512")
-    #set(_work_group_size_all "32" "64")
-    set(_work_group_size_all "64")
+    set(_work_group_size_all "32" "64")
 
     foreach (_key_type ${_key_type_all})
         foreach (_data_per_work_item ${_data_per_work_item_all})
