@@ -50,7 +50,7 @@ run_test(sycl::queue q)
             sycl::accessor b_(b_buf, h, sycl::read_only);
             sycl::accessor c_(c_buf, h, sycl::write_only);
             h.parallel_for<
-                TestUtils::unique_kernel_name<class sum1, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                TestUtils::unique_kernel_name<class sum1, 0>>(
                 num_items, [=](auto j) { c_[j] += a_[j] + b_[j]; });
         });
 
@@ -59,7 +59,7 @@ run_test(sycl::queue q)
              sycl::accessor b_(b_buf, h, sycl::read_only);
              sycl::accessor c_(c_buf, h, sycl::write_only);
              h.parallel_for<
-                 TestUtils::unique_kernel_name<class sum2, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                 TestUtils::unique_kernel_name<class sum2, 0>>(
                  num_items, [=](auto j) { c_[j] += a_[j] + b_[j]; });
          }).wait();
     }
