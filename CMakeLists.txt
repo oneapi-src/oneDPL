@@ -377,8 +377,10 @@ if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
     add_subdirectory(src)
     add_dependencies(oneDPL pstloffload)
 
-    # TODO remove explicit linkage with libpstloffload
-    if (NOT _fsycl_pstl_offload_option)
+    if (_fsycl_pstl_offload_option)
+        target_link_libraries(oneDPL INTERFACE ${FSYCL_PSTL_OFFLOAD_OPTION})
+    else()
+        # TODO remove explicit linkage with libpstloffload
         target_link_libraries(oneDPL INTERFACE pstloffload)
     endif()
 endif()
