@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-#include <iostream>
 #include "oneapi/dpl/dynamic_selection"
+#include <iostream>
 #include "support/inline_backend.h"
 #include "support/test_offset_utils.h"
 #include "support/utils.h"
