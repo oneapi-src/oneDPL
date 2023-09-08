@@ -499,54 +499,63 @@ build_auto_tune_universe(std::vector<sycl::queue>& u)
 int
 main()
 {
+    bool bProcessed = false;
+
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
     using policy_t = oneapi::dpl::experimental::auto_tune_policy<oneapi::dpl::experimental::sycl_backend>;
     std::vector<sycl::queue> u;
     build_auto_tune_universe(u);
 
     //If building the universe is not a success, return
-    if (u.size() == 0)
-        return 0;
+    if (u.size() != 0)
+    {
+        auto f = [u](int i)
+        {
+            if (i <= 8)
+                return u[(i - 1) % 4];
+            else
+                return u[0];
+        };
 
-    auto f = [u](int i) {
-        if (i <= 8)
-            return u[(i - 1) % 4];
-        else
-            return u[0];
-    };
+        constexpr bool just_call_submit = false;
+        constexpr bool call_select_before_submit = true;
 
-    constexpr bool just_call_submit = false;
-    constexpr bool call_select_before_submit = true;
+        EXPECT_EQ(0, test_auto_initialization(u), "");
+        EXPECT_EQ(0, test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f), "");
 
-    EXPECT_EQ(0, test_auto_initialization(u), "");
-    EXPECT_EQ(0, test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 0), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 1), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 2), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 3), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 0), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 1), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 2), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 3), "");
-    EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 0), "");
-    EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 1), "");
-    EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 2), "");
-    EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 3), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 0), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 1), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 2), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 3), "");
 
-    // now select then submits
-    EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 0), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 1), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 2), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 3), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 0), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 1), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 2), "");
-    EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 3), "");
-    EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 0), "");
-    EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 1), "");
-    EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 2), "");
-    EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 3), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 0), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 1), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 2), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_group<just_call_submit, policy_t>(u, 3), "");
+
+        EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 0), "");
+        EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 1), "");
+        EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 2), "");
+        EXPECT_EQ(0, test_auto_submit_and_wait<just_call_submit, policy_t>(u, 3), "");
+
+        // now select then submits
+        EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 0), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 1), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 2), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_event<call_select_before_submit, policy_t>(u, 3), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 0), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 1), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 2), "");
+        EXPECT_EQ(0, test_auto_submit_wait_on_group<call_select_before_submit, policy_t>(u, 3), "");
+
+        EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 0), "");
+        EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 1), "");
+        EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 2), "");
+        EXPECT_EQ(0, test_auto_submit_and_wait<call_select_before_submit, policy_t>(u, 3), "");
+
+        bProcessed = true;
+    }
 #endif // TEST_DYNAMIC_SELECTION_AVAILABLE    
 
-    return TestUtils::done(TEST_DYNAMIC_SELECTION_AVAILABLE);
+    return TestUtils::done(bProcessed);
 }
