@@ -12,6 +12,6 @@
 
 int main() {
     using namespace oneapi::dpl::experimental;
-    [[maybe_unused]] std::size_t r = sizeof(fixed_resource_policy<sycl_policy>);
+    [[maybe_unused]] std::size_t r = sizeof(fixed_resource_policy<sycl_backend>);
     return TestUtils::done();
 }
