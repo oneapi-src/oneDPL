@@ -14,7 +14,7 @@
 #include "support/utils.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 #    include "support/sycl_sanity.h"
-#endif
+#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 
 int
 main()
@@ -50,7 +50,7 @@ main()
 
         bProcessed = true;
     }
-#endif    
+#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 
     return TestUtils::done(bProcessed);
 }
