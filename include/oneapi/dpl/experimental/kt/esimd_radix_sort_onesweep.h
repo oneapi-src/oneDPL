@@ -260,35 +260,35 @@ struct __radix_sort_onesweep_slm_reorder_kernel
     }
 
     inline auto
-    RankSLM(__dpl_esimd_ns::simd<_BinT, __data_per_work_item> __bins, ::std::uint32_t __slm_counter_offset, ::std::uint32_t __local_tid) const
+    __rank_slm(__dpl_esimd_ns::simd<_BinT, __data_per_work_item> __bins, ::std::uint32_t __slm_counter_offset, ::std::uint32_t __local_tid) const
     {
         using namespace __dpl_esimd_ns;
         using namespace __dpl_esimd_ens;
 
-        constexpr int _BinsPerStep = 32;
-        static_assert(__data_per_work_item % _BinsPerStep == 0);
+        constexpr int __bins_per_step = 32;
+        static_assert(__data_per_work_item % __bins_per_step == 0);
 
         constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
         simd<::std::uint32_t, __data_per_work_item> __ranks;
         __utils::__block_store_slm<_HistT, __bin_count>(__slm_counter_offset, 0);
-        simd<::std::uint32_t, _BinsPerStep> __remove_right_lanes, __lane_id(0, 1);
-        __remove_right_lanes = 0x7fffffff >> (_BinsPerStep - 1 - __lane_id);
+        simd<::std::uint32_t, __bins_per_step> __remove_right_lanes, __lane_id(0, 1);
+        __remove_right_lanes = 0x7fffffff >> (__bins_per_step - 1 - __lane_id);
 #pragma unroll
-        for (::std::uint32_t __s = 0; __s < __data_per_work_item; __s += _BinsPerStep)
+        for (::std::uint32_t __s = 0; __s < __data_per_work_item; __s += __bins_per_step)
         {
-            simd<::std::uint32_t, _BinsPerStep> __this_bins = __bins.template select<_BinsPerStep, 1>(__s);
-            simd<::std::uint32_t, _BinsPerStep> __matched_bins = __match_bins<__radix_bits>(__this_bins, __local_tid); // 40 insts
-            simd<::std::uint32_t, _BinsPerStep> __pre_rank, __this_round_rank;
-            __pre_rank = __utils::__vector_load<_HistT, 1, _BinsPerStep>(__slm_counter_offset +
+            simd<::std::uint32_t, __bins_per_step> __this_bins = __bins.template select<__bins_per_step, 1>(__s);
+            simd<::std::uint32_t, __bins_per_step> __matched_bins = __match_bins<__radix_bits>(__this_bins, __local_tid); // 40 insts
+            simd<::std::uint32_t, __bins_per_step> __pre_rank, __this_round_rank;
+            __pre_rank = __utils::__vector_load<_HistT, 1, __bins_per_step>(__slm_counter_offset +
                                                                  __this_bins * sizeof(_HistT)); // 2 mad+load.__slm
             auto __matched_left_lanes = __matched_bins & __remove_right_lanes;
             __this_round_rank = cbit(__matched_left_lanes);
             auto __this_round_count = cbit(__matched_bins);
             auto __rank_after = __pre_rank + __this_round_rank;
             auto __is_leader = __this_round_rank == __this_round_count - 1;
-            __utils::__vector_store<_HistT, 1, _BinsPerStep>(__slm_counter_offset + __this_bins * sizeof(_HistT), __rank_after + 1,
+            __utils::__vector_store<_HistT, 1, __bins_per_step>(__slm_counter_offset + __this_bins * sizeof(_HistT), __rank_after + 1,
                                                        __is_leader);
-            __ranks.template select<_BinsPerStep, 1>(__s) = __rank_after;
+            __ranks.template select<__bins_per_step, 1>(__s) = __rank_after;
         }
         return __ranks;
     }
@@ -430,7 +430,7 @@ struct __radix_sort_onesweep_slm_reorder_kernel
 
         fence<fence_mask::local_barrier>();
 
-        __ranks = RankSLM(__bins, __slm_bin_hist_this_thread, __local_tid);
+        __ranks = __rank_slm(__bins, __slm_bin_hist_this_thread, __local_tid);
 
         barrier();
 
