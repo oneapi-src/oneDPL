@@ -14,10 +14,10 @@
 #define DO_STD_INJECTION 1
 #include "system_allocations.h"
 
-void perform_system_allocations(system_allocs& na) {
+void perform_system_allocations(allocs& na) {
     perform_allocations_impl(na);
 }
 
-void perform_system_deallocations(const system_allocs& na) {
+void perform_system_deallocations(const allocs& na) {
     perform_deallocations_impl(na);
 }
