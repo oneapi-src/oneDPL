@@ -179,7 +179,6 @@ struct test_set_intersection
             EXPECT_TRUE(zip_expect_res - zip_expect == zip_res - zip_out, "wrong result for zipped set_intersection");
             EXPECT_EQ_N(zip_expect, zip_out, ::std::distance(zip_out, zip_res), "wrong zipped set_intersection effect");
         }
-
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
