@@ -53,34 +53,57 @@ __get_offload_device()
 class __offload_policy_holder_type
 {
     using __set_active_device_func_type = void (*)(sycl::device*);
+    using __get_offload_device_func_type = sycl::device (*)();
 
   public:
     // Since the global object of __offload_policy_holder_type is static but the constructor
     // of the class is inline, we need to avoid calling static functions inside of the constructor
     // and pass the pointer to exact function as an argument to guarantee that the correct __active_device
     // would be stored in each translation unit
-    __offload_policy_holder_type(sycl::device&& __offload_device,
+    __offload_policy_holder_type(__get_offload_device_func_type __get_offload_device_func,
                                  __set_active_device_func_type __set_active_device_func)
-        : _M_offload_device(std::move(__offload_device)), _M_offload_policy(_M_offload_device),
-          _M_set_active_device(__set_active_device_func)
+        : _M_set_active_device(__set_active_device_func)
     {
-        _M_set_active_device(&_M_offload_device);
+        try
+        {
+            _M_offload_device = __get_offload_device_func();
+        } catch (const sycl::exception &e)
+        {
+            // e.code() == sycl::errc::runtime means occurs when unable to get offload device. Do not pass
+            // an exception, as ctor is called for a static object and the exception can't be processed.
+            // Remember the situation and re-throw exception when asked for the policy from user's code.
+            if (e.code() != sycl::errc::runtime)
+                throw;
+        }
+
+        if (_M_offload_device.has_value())
+        {
+            _M_set_active_device(&*_M_offload_device);
+            oneapi::dpl::execution::device_policy<> _offload_policy(*_M_offload_device);
+            _M_offload_policy = _offload_policy;
+        }
     }
 
-    ~__offload_policy_holder_type() { _M_set_active_device(nullptr); }
+    ~__offload_policy_holder_type()
+    {
+        if (_M_offload_device.has_value())
+            _M_set_active_device(nullptr);
+    }
 
     auto
     __get_policy()
     {
+        if (!_M_offload_device.has_value())
+            throw sycl::exception(sycl::errc::runtime);
         return _M_offload_policy;
     }
   private:
-    sycl::device _M_offload_device;
+    std::optional<sycl::device> _M_offload_device;
     oneapi::dpl::execution::device_policy<> _M_offload_policy;
     __set_active_device_func_type _M_set_active_device;
 }; // class __offload_policy_holder_type
 
-static __offload_policy_holder_type __offload_policy_holder{__get_offload_device(), __set_active_device};
+static __offload_policy_holder_type __offload_policy_holder{__get_offload_device, __set_active_device};
 
 #if __linux__
 inline auto
