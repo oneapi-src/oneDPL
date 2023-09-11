@@ -14,7 +14,6 @@
 #include "support/test_config.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 #include "support/sycl_sanity.h"
-#endif
 
 int test_auto_initialization(const std::vector<sycl::queue>& u) {
   // initialize
@@ -373,6 +372,7 @@ static inline void build_auto_tune_universe(std::vector<sycl::queue> &u) {
     std::cout << "SKIPPED: Unable to run with cpu_selector\n";
   }
 }
+#endif
 
 int main() {
 #if TEST_DYNAMIC_SELECTION_AVAILABLE

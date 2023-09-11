@@ -12,6 +12,7 @@
 #include <iostream>
 #include "support/test_config.h"
 
+#if TEST_DYNAMIC_SELECTION_AVAILABLE
 class fake_selection_handle_t {
   sycl::queue q_;
 public:
@@ -205,6 +206,7 @@ int test_properties() {
   std::cout << "properties: OK\n";
   return 0;
 }
+#endif
 
 int main() {
 #if TEST_DYNAMIC_SELECTION_AVAILABLE

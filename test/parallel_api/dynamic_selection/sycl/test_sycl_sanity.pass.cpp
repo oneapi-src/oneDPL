@@ -9,12 +9,11 @@
 
 #include <cstdio>
 #include <memory>
-#include <ostream>
+#include <iostream>
 #include <vector>
 #include "support/test_config.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 #include "support/sycl_sanity.h"
-#endif
 
 int run_test(sycl::queue q) {
   const int num_items = 1000000;
@@ -87,6 +86,7 @@ int test_runner() {
 
   return r;
 }
+#endif
 
 int main() {
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
