@@ -65,8 +65,8 @@ Difference with Standard C++ Parallel Algorithms
 
 * oneDPL execution policies only result in parallel execution if random access iterators are provided,
   the execution will remain serial for other iterator types.
-* Function object parameters passed in to algorithms executed with device policies must provide const function call
-  operators. The SYCL spec (4.12) states that writing to such an object during a SYCL kernel is undefined behavior.
+* Function objects passed in to algorithms executed with device policies must provide ``const``-qualified ``operator()``.
+  The SYCL specification states that writing to such an object during a SYCL kernel is undefined behavior.
 * For the following algorithms, par_unseq and unseq policies do not result in vectorized execution:
   ``includes``, ``inplace_merge``, ``merge``, ``set_difference``, ``set_intersection``,
   ``set_symmetric_difference``, ``set_union``, ``stable_partition``, ``unique``.
