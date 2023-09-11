@@ -32,9 +32,9 @@ namespace __internal
 // We're not interested in T&& here as the rvalue-ness is stripped from T before
 // construction the induction object
 template <typename _Tp>
-using __induction_value_type = ::std::conditional_t<::std::is_lvalue_reference<_Tp>::value &&
-                                                        !::std::is_const<::std::remove_reference_t<_Tp>>::value,
-                                                    _Tp, ::std::remove_cv_t<::std::remove_reference_t<_Tp>>>;
+using __induction_value_type = ::std::conditional_t<
+    ::std::is_lvalue_reference_v<_Tp> && !::std::is_const<::std::remove_reference_t<_Tp>>::value, _Tp,
+    ::std::remove_cv_t<::std::remove_reference_t<_Tp>>>;
 
 // Definition of induction_object structure to represent "induction" object.
 

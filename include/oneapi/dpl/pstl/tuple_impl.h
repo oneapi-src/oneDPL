@@ -82,7 +82,7 @@ get_tuple_tail(const ::std::tuple<T1, T...>& other)
 // Maps an incoming type for tuplewrapper to simplify tuple-related handling.
 // as it doesn't work well with rvalue refs.
 // T& -> T&, T&& -> T, T -> T
-template <typename _Tp, bool = ::std::is_lvalue_reference<_Tp>::value>
+template <typename _Tp, bool = ::std::is_lvalue_reference_v<_Tp>>
 struct __lvref_or_val
 {
     using __type = _Tp&&;
