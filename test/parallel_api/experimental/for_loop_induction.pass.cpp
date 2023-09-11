@@ -29,7 +29,7 @@ test_body_induction(Policy&& exec, Iterator /* first */, Iterator /* last */, It
                     Iterator /* expected_last */, Size n)
 {
     using T = typename ::std::iterator_traits<Iterator>::value_type;
-    static_assert(::std::is_arithmetic<T>::value, "Currently the testcase only works with arithmetic types");
+    static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
     // Init with different arbitrary values on each iteration
     const T ind_init = n % 97;
@@ -72,7 +72,7 @@ test_body_induction_strided(Policy&& exec, Iterator first, Iterator last, Iterat
                             Iterator /* expected_last */, Size n)
 {
     using T = typename ::std::iterator_traits<Iterator>::value_type;
-    static_assert(::std::is_arithmetic<T>::value, "Currently the testcase only works with arithmetic types");
+    static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
     for (int loop_stride : {-1, 1, 10, -5})
     {
