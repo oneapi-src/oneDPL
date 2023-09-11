@@ -107,7 +107,7 @@ struct invoke_on_all_host_policies
 #if TEST_DPCPP_BACKEND_PRESENT
 
 // Implemented in utils_sycl.h, required to include this file.
-sycl::queue& get_test_queue();
+sycl::queue get_test_queue();
 
 ////////////////////////////////////////////////////////////////////////////////
 // check fp16/fp64 support by a device
