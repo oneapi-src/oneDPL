@@ -22,7 +22,7 @@ template <class T>
 void
 test(T x, ::std::enable_if_t<std::is_integral<T>::value>* = 0)
 {
-    static_assert((std::is_same_v<decltype(dpl::proj(x)), dpl::complex<double>>), "");
+    static_assert((std::is_same_v<decltype(dpl::proj(x)), dpl::complex<double>>));
     assert(dpl::proj(x) == dpl::proj(dpl::complex<double>(x, 0)));
 }
 
@@ -30,7 +30,7 @@ template <class T>
 void
 test(T x, ::std::enable_if_t<std::is_floating_point<T>::value>* = 0)
 {
-    static_assert((std::is_same_v<decltype(dpl::proj(x)), dpl::complex<T>>), "");
+    static_assert((std::is_same_v<decltype(dpl::proj(x)), dpl::complex<T>>));
     assert(dpl::proj(x) == dpl::proj(dpl::complex<T>(x, 0)));
 }
 
@@ -38,7 +38,7 @@ template <class T>
 void
 test(T x, ::std::enable_if_t<!std::is_integral<T>::value && !std::is_floating_point<T>::value>* = 0)
 {
-    static_assert((std::is_same_v<decltype(dpl::proj(x)), dpl::complex<T>>), "");
+    static_assert((std::is_same_v<decltype(dpl::proj(x)), dpl::complex<T>>));
     assert(dpl::proj(x) == dpl::proj(dpl::complex<T>(x, 0)));
 }
 
