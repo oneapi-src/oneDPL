@@ -139,8 +139,7 @@ check_params(oneapi::dpl::extreme_value_distribution<T>& distr)
 }
 
 template <typename Distr>
-::std::enable_if_t<::std::is_same<Distr, oneapi::dpl::uniform_int_distribution<typename Distr::result_type>>::value,
-                   void>
+::std::enable_if_t<::std::is_same_v<Distr, oneapi::dpl::uniform_int_distribution<typename Distr::result_type>>, void>
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{0, 10};
@@ -148,8 +147,7 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-::std::enable_if_t<::std::is_same<Distr, oneapi::dpl::uniform_real_distribution<typename Distr::result_type>>::value,
-                   void>
+::std::enable_if_t<::std::is_same_v<Distr, oneapi::dpl::uniform_real_distribution<typename Distr::result_type>>, void>
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.0};
@@ -157,8 +155,7 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-::std::enable_if_t<::std::is_same<Distr, oneapi::dpl::exponential_distribution<typename Distr::result_type>>::value,
-                   void>
+::std::enable_if_t<::std::is_same_v<Distr, oneapi::dpl::exponential_distribution<typename Distr::result_type>>, void>
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5};
@@ -166,7 +163,7 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-::std::enable_if_t<::std::is_same<Distr, oneapi::dpl::bernoulli_distribution<typename Distr::result_type>>::value, void>
+::std::enable_if_t<::std::is_same_v<Distr, oneapi::dpl::bernoulli_distribution<typename Distr::result_type>>, void>
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{0.5};
@@ -174,7 +171,7 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-::std::enable_if_t<::std::is_same<Distr, oneapi::dpl::geometric_distribution<typename Distr::result_type>>::value, void>
+::std::enable_if_t<::std::is_same_v<Distr, oneapi::dpl::geometric_distribution<typename Distr::result_type>>, void>
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{0.5};
@@ -182,7 +179,7 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-::std::enable_if_t<::std::is_same<Distr, oneapi::dpl::weibull_distribution<typename Distr::result_type>>::value, void>
+::std::enable_if_t<::std::is_same_v<Distr, oneapi::dpl::weibull_distribution<typename Distr::result_type>>, void>
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.0};
@@ -190,7 +187,7 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-::std::enable_if_t<::std::is_same<Distr, oneapi::dpl::lognormal_distribution<typename Distr::result_type>>::value, void>
+::std::enable_if_t<::std::is_same_v<Distr, oneapi::dpl::lognormal_distribution<typename Distr::result_type>>, void>
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.5};
@@ -198,7 +195,7 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-::std::enable_if_t<::std::is_same<Distr, oneapi::dpl::normal_distribution<typename Distr::result_type>>::value, void>
+::std::enable_if_t<::std::is_same_v<Distr, oneapi::dpl::normal_distribution<typename Distr::result_type>>, void>
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.5};
@@ -206,7 +203,7 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-::std::enable_if_t<::std::is_same<Distr, oneapi::dpl::cauchy_distribution<typename Distr::result_type>>::value, void>
+::std::enable_if_t<::std::is_same_v<Distr, oneapi::dpl::cauchy_distribution<typename Distr::result_type>>, void>
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.5};
@@ -214,8 +211,7 @@ make_param(typename Distr::param_type& params1, typename Distr::param_type& para
 }
 
 template <typename Distr>
-::std::enable_if_t<::std::is_same<Distr, oneapi::dpl::extreme_value_distribution<typename Distr::result_type>>::value,
-                   void>
+::std::enable_if_t<::std::is_same_v<Distr, oneapi::dpl::extreme_value_distribution<typename Distr::result_type>>, void>
 make_param(typename Distr::param_type& params1, typename Distr::param_type& params2)
 {
     params1 = typename Distr::param_type{1.5, 3.5};

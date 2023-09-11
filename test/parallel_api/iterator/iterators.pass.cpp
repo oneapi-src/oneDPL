@@ -274,8 +274,8 @@ struct test_transform_iterator {
         auto test_lambda = [](T2& x){ return x + 1; };
         auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), test_lambda);
         EXPECT_TRUE(_it1.base() == in1.begin(), "wrong result from transform_iterator::base");
-        static_assert(::std::is_same<decltype(new_transform_iterator.functor()), decltype(test_lambda)>::value,
-            "wrong result from transform_iterator::functor");
+        static_assert(::std::is_same_v<decltype(new_transform_iterator.functor()), decltype(test_lambda)>,
+                      "wrong result from transform_iterator::functor");
         test_random_iterator(_it2);
     }
 };

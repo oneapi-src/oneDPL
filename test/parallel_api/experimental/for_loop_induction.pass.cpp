@@ -96,7 +96,7 @@ test_body_induction_strided(Policy&& exec, Iterator first, Iterator last, Iterat
 
         // Negative strides are not allowed with forward iterators
         if (loop_stride < 0 &&
-            ::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>::value)
+            ::std::is_same_v<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>)
             continue;
 
         auto new_first = first;

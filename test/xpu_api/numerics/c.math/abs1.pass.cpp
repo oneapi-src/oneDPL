@@ -28,7 +28,7 @@ void test_abs()
     Source pos_val = 5;
     Result res = 5;
 
-    static_assert(::std::is_same<decltype(dpl::abs(neg_val)), Result>::value);
+    static_assert(::std::is_same_v<decltype(dpl::abs(neg_val)), Result>);
 
     assert(dpl::abs(neg_val) == res);
     assert(dpl::abs(pos_val) == res);
