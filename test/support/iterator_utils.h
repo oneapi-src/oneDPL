@@ -340,7 +340,7 @@ struct iterator_invoker
     // A single iterator version which is used for non_const testcases
     template <typename Policy, typename Op, typename Iterator>
     ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag,
-                                                    Iterator>::value&& ::std::is_base_of<non_const_wrapper, Op>::value,
+                                                    Iterator>::value && ::std::is_base_of<non_const_wrapper, Op>::value,
                        void>
     operator()(Policy&& exec, Op op, Iterator iter)
     {
@@ -349,8 +349,8 @@ struct iterator_invoker
 
     // A version with 2 iterators which is used for non_const testcases
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value&& ::std::
-                           is_base_of<non_const_wrapper, Op>::value,
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value &&
+                           ::std::is_base_of<non_const_wrapper, Op>::value,
                        void>
     operator()(Policy&& exec, Op op, InputIterator input_iter, OutputIterator out_iter)
     {
@@ -432,7 +432,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     // A single iterator version which is used for non_const testcases
     template <typename Policy, typename Op, typename Iterator>
     ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag,
-                                                    Iterator>::value&& ::std::is_base_of<non_const_wrapper, Op>::value,
+                                                    Iterator>::value && ::std::is_base_of<non_const_wrapper, Op>::value,
                        void>
     operator()(Policy&& exec, Op op, Iterator iter)
     {
