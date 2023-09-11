@@ -72,7 +72,7 @@ test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> _a,  on
                 oneapi::dpl::extreme_value_distribution<RealType> distr(_a, _b);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine);
-                res.store(idx.get_linear_id(), acc.get_pointer());
+                res.store(idx.get_linear_id(), __dpl_sycl::__get_accessor_ptr(acc));
             });
         });
     }
@@ -118,7 +118,7 @@ test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType>
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine, part);
                 for (int i = 0; i < n_elems; ++i)
-                    acc.get_pointer()[offset + i] = res[i];
+                    __dpl_sycl::__get_accessor_ptr(acc)[offset + i] = res[i];
             });
         });
         queue.wait_and_throw();

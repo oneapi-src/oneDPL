@@ -70,7 +70,7 @@ int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<IntType> left
                 oneapi::dpl::uniform_int_distribution<IntType> distr(left, right);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<IntType>, num_elems> res = distr(engine);
-                res.store(idx.get_linear_id(), acc.get_pointer());
+                res.store(idx.get_linear_id(), __dpl_sycl::__get_accessor_ptr(acc));
             });
         });
         queue.wait();
@@ -114,7 +114,7 @@ int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<IntTy
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<IntType>, num_elems> res = distr(engine, part);
                 for(int i = 0; i < n_elems; ++i)
-                    acc.get_pointer()[offset + i] = res[i];
+                    __dpl_sycl::__get_accessor_ptr(acc)[offset + i] = res[i];
             });
         });
         queue.wait_and_throw();

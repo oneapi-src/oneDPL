@@ -87,7 +87,7 @@ int device_copyable_test(sycl::queue& queue) {
                 Distr device_distr(distr);
                 device_engine.discard(offset);
                 result_type res = device_distr(device_engine);
-                res.store(idx.get_linear_id(), acc.get_pointer());
+                res.store(idx.get_linear_id(), __dpl_sycl::__get_accessor_ptr(acc));
             });
         });
     }
