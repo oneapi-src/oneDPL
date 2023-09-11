@@ -17,12 +17,12 @@
 namespace oneapi::dpl::experimental::kt
 {
 
-template <std::uint16_t _DataPerWorkItem, std::uint16_t _WorkGroupSize,
+template <std::uint16_t __data_per_work_item, std::uint16_t __work_group_size,
           typename _KernelName = oneapi::dpl::execution::DefaultKernelName>
 struct kernel_param
 {
-    static constexpr std::uint16_t data_per_workitem = _DataPerWorkItem;
-    static constexpr std::uint16_t workgroup_size = _WorkGroupSize;
+    static constexpr std::uint16_t data_per_workitem = __data_per_work_item;
+    static constexpr std::uint16_t workgroup_size = __work_group_size;
     using kernel_name = _KernelName;
 };
 
