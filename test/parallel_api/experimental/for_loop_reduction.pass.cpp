@@ -29,7 +29,7 @@ test_body_reduction(Policy&& exec, Iterator first, Iterator last, Iterator /* ex
                     Iterator /* expected_last */, Size n)
 {
     using T = typename ::std::iterator_traits<Iterator>::value_type;
-    static_assert(::std::is_arithmetic<T>::value, "Currently the testcase only works with arithmetic types");
+    static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
     // Init with different arbitrary values on each iteration
     const T var1_init = n % 11;
@@ -90,7 +90,7 @@ struct test_body_predefined
                Size /* n */)
     {
         using T = typename ::std::iterator_traits<Iterator>::value_type;
-        static_assert(::std::is_arithmetic<T>::value, "Currently the testcase only works with arithmetic types");
+        static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
         // Initialize with arbitrary values
         T plus_var = 10, plus_exp = 10;
@@ -132,7 +132,7 @@ struct test_body_predefined_bits
                Size /* n */)
     {
         using T = typename ::std::iterator_traits<Iterator>::value_type;
-        static_assert(::std::is_arithmetic<T>::value, "Currently the testcase only works with arithmetic types");
+        static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
         // Initialize with arbitrary values
         T bit_or_var = 10, bit_or_exp = 10;
