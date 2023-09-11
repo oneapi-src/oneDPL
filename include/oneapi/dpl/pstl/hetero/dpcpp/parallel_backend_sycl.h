@@ -372,16 +372,19 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         }
 
         // 3. Final scan for whole range
-        auto __final_event = __exec.queue().submit([&](sycl::handler& __cgh) {
-            __cgh.depends_on(__submit_event);
-            oneapi::dpl::__ranges::__require_access(__cgh, __rng1, __rng2); //get an access to data under SYCL buffer
-            auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
-            __cgh.parallel_for<_PropagateScanName...>(
-                sycl::range<1>(__n_groups * __size_per_wg),
+        auto __final_event = __exec.queue().submit(
+            [&](sycl::handler& __cgh)
+            {
+                __cgh.depends_on(__submit_event);
+                oneapi::dpl::__ranges::__require_access(__cgh, __rng1,
+                                                        __rng2); //get an access to data under SYCL buffer
+                auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
+                __cgh.parallel_for<_PropagateScanName...>(
+                    sycl::range<1>(__n_groups * __size_per_wg),
                     __global_scan_caller<_GlobalScan, ::std::decay_t<_Range2>, ::std::decay_t<_Range1>,
                                          decltype(__wg_sums_acc), decltype(__n)>(__global_scan, __rng2, __rng1,
                                                                                  __wg_sums_acc, __n, __size_per_wg));
-        });
+            });
 
         return __future(__final_event, sycl::buffer(__wg_sums, sycl::id<1>(__n_groups - 1), sycl::range<1>(1)));
     }
