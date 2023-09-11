@@ -100,7 +100,7 @@ class input_iterator
     reference operator*() const { return *it_; }
     pointer operator->() const 
     {
-        if constexpr (::std::is_pointer<It>::value)
+        if constexpr (::std::is_pointer_v<It>)
         {
             return it_;
         }
@@ -184,7 +184,7 @@ class forward_iterator
     reference operator*() const { return *it_; }
     pointer operator->() const 
     {
-        if constexpr (::std::is_pointer<It>::value)
+        if constexpr (::std::is_pointer_v<It>)
         {
             return it_;
         }
@@ -268,7 +268,7 @@ class bidirectional_iterator
     reference operator*() const { return *it_; }
     pointer operator->() const 
     {
-        if constexpr (::std::is_pointer<It>::value)
+        if constexpr (::std::is_pointer_v<It>)
         {
             return it_;
         }
@@ -355,7 +355,7 @@ class random_access_iterator
     reference operator*() const { return *it_; }
     pointer operator->() const 
     {
-        if constexpr (::std::is_pointer<It>::value)
+        if constexpr (::std::is_pointer_v<It>)
         {
             return it_;
         }

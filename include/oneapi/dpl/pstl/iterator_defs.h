@@ -99,7 +99,7 @@ struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::val
 };
 
 template <typename Iter> // for pointers to objects on device
-struct is_passed_directly<Iter, ::std::enable_if_t<::std::is_pointer<Iter>::value>> : ::std::true_type
+struct is_passed_directly<Iter, ::std::enable_if_t<::std::is_pointer_v<Iter>>> : ::std::true_type
 {
 };
 

@@ -44,7 +44,7 @@ class ForwardIterator
     reference operator*() const { return *my_iterator; }
     pointer operator->() const
     {
-        if constexpr (::std::is_pointer<Iterator>::value)
+        if constexpr (::std::is_pointer_v<Iterator>)
         {
             return my_iterator;
         }
