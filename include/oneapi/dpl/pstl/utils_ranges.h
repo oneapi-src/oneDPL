@@ -97,7 +97,7 @@ struct pipeline_base
 template <typename Range>
 struct pipeline_base<Range, typename ::std::enable_if<is_pipeline_object<Range>::value>::type>
 {
-    using type = typename pipeline_base<::std::decay_t<decltype(::std::declval<Range>().base())>>::type;
+    using type = typename pipeline_base<typename ::std::decay<decltype(::std::declval<Range>().base())>::type>::type;
 };
 
 //pipeline_base_range

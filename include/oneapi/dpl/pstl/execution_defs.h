@@ -178,15 +178,15 @@ struct __is_host_execution_policy<oneapi::dpl::execution::unsequenced_policy> : 
 
 template <class _ExecPolicy, class _T>
 using __enable_if_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::execution::is_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>::type;
+    oneapi::dpl::execution::is_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
 
 template <class _ExecPolicy, class _T>
 using __enable_if_host_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>::type;
+    oneapi::dpl::__internal::__is_host_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
 
 template <class _ExecPolicy, const bool __condition, class _T>
 using __enable_if_host_execution_policy_conditional = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value && __condition,
+    oneapi::dpl::__internal::__is_host_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value && __condition,
     _T>::type;
 
 template <typename _ExecPolicy, typename _T>
@@ -197,7 +197,7 @@ struct __ref_or_copy_impl
 
 template <typename _ExecPolicy, typename _T>
 using __ref_or_copy =
-    typename oneapi::dpl::__internal::__ref_or_copy_impl<::std::decay_t<_ExecPolicy>, _T>::type;
+    typename oneapi::dpl::__internal::__ref_or_copy_impl<typename ::std::decay<_ExecPolicy>::type, _T>::type;
 
 // utilities for Range API
 template <typename _R>

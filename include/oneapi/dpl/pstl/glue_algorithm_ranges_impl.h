@@ -557,7 +557,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
 move(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
 {
-    using _DecayedExecutionPolicy = ::std::decay_t<_ExecutionPolicy>;
+    using _DecayedExecutionPolicy = typename ::std::decay<_ExecutionPolicy>::type;
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         ::std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::__internal::__brick_move<_DecayedExecutionPolicy>{},

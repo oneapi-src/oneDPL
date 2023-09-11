@@ -49,21 +49,21 @@ using __has_known_identity =
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
         ::std::conjunction<
             ::std::is_arithmetic<_Tp>,
-            ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<_Tp>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>;
+            ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<void>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<void>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__minimum<void>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<_Tp>>,
+                               ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__maximum<void>>>>>;
 #    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
-        ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>;
+        ::std::disjunction<::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<_Tp>>,
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, ::std::plus<void>>,
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<_Tp>>,
+                           ::std::is_same<typename ::std::decay<_BinaryOp>::type, __dpl_sycl::__plus<void>>>>;
 #    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
 
 #else //_USE_GROUP_ALGOS && _ONEDPL_SYCL_INTEL_COMPILER
@@ -475,8 +475,8 @@ struct __copy_by_mask
             auto __out_idx = get<N>(__in_acc[__item_idx]) - 1;
 
             using __tuple_type = typename __internal::__get_tuple_type<
-                ::std::decay_t<decltype(get<0>(__in_acc[__item_idx]))>,
-                ::std::decay_t<decltype(__out_acc[__out_idx])>>::__type;
+                typename ::std::decay<decltype(get<0>(__in_acc[__item_idx]))>::type,
+                typename ::std::decay<decltype(__out_acc[__out_idx])>::type>::__type;
 
             // calculation of position for copy
             if (__item_idx >= __size_per_wg)
@@ -519,7 +519,7 @@ struct __partition_by_mask
         if (__item_idx < __n)
         {
             using ::std::get;
-            using __in_type = ::std::decay_t<decltype(get<0>(__in_acc[__item_idx]))>;
+            using __in_type = typename ::std::decay<decltype(get<0>(__in_acc[__item_idx]))>::type;
             auto __wg_sums_idx = __item_idx / __size_per_wg;
             bool __not_first_wg = __item_idx >= __size_per_wg;
             if (get<1>(__in_acc[__item_idx]) &&
@@ -527,7 +527,7 @@ struct __partition_by_mask
             {
                 auto __out_idx = get<1>(__in_acc[__item_idx]) - 1;
                 using __tuple_type = typename __internal::__get_tuple_type<
-                    __in_type, ::std::decay_t<decltype(get<0>(__out_acc[__out_idx]))>>::__type;
+                    __in_type, typename ::std::decay<decltype(get<0>(__out_acc[__out_idx]))>::type>::__type;
 
                 if (__not_first_wg)
                     __out_idx = __binary_op(__out_idx, __wg_sums_acc[__wg_sums_idx - 1]);
@@ -537,7 +537,7 @@ struct __partition_by_mask
             {
                 auto __out_idx = __item_idx - get<1>(__in_acc[__item_idx]);
                 using __tuple_type = typename __internal::__get_tuple_type<
-                    __in_type, ::std::decay_t<decltype(get<1>(__out_acc[__out_idx]))>>::__type;
+                    __in_type, typename ::std::decay<decltype(get<1>(__out_acc[__out_idx]))>::type>::__type;
 
                 if (__not_first_wg)
                     __out_idx -= __wg_sums_acc[__wg_sums_idx - 1];
