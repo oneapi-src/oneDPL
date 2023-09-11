@@ -250,7 +250,7 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
 template <typename _ExecutionPolicy>
 auto
 __device_policy(_ExecutionPolicy&& __exec)
-    -> decltype(oneapi::dpl::execution::make_device_policy<::std::decay_t<_ExecutionPolicy>::kernel_name>(
+    -> decltype(oneapi::dpl::execution::make_device_policy<typename ::std::decay_t<_ExecutionPolicy>::kernel_name>(
         __exec.queue()))
 {
     using _Policy = ::std::decay_t<_ExecutionPolicy>;
