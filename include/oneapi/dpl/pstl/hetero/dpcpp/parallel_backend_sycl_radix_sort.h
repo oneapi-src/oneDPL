@@ -51,7 +51,7 @@ __order_preserving_cast(bool __val)
         return !__val;
 }
 
-template <bool __is_ascending, typename _UInt, __enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
+template <bool __is_ascending, typename _UInt, ::std::enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
 _UInt
 __order_preserving_cast(_UInt __val)
 {
@@ -62,7 +62,7 @@ __order_preserving_cast(_UInt __val)
 }
 
 template <bool __is_ascending, typename _Int,
-          __enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
+          ::std::enable_if_t<::std::is_integral_v<_Int>&& ::std::is_signed_v<_Int>, int> = 0>
 ::std::make_unsigned_t<_Int>
 __order_preserving_cast(_Int __val)
 {
@@ -74,7 +74,7 @@ __order_preserving_cast(_Int __val)
 }
 
 template <bool __is_ascending, typename _Float,
-          __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
+          ::std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
 ::std::uint32_t
 __order_preserving_cast(_Float __val)
 {
@@ -89,7 +89,7 @@ __order_preserving_cast(_Float __val)
 }
 
 template <bool __is_ascending, typename _Float,
-          __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t), int> = 0>
+          ::std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t), int> = 0>
 ::std::uint64_t
 __order_preserving_cast(_Float __val)
 {

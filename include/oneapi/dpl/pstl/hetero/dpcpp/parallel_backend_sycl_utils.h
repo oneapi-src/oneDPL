@@ -148,10 +148,6 @@ namespace __par_backend_hetero
 // aliases for faster access to modes
 using access_mode = sycl::access_mode;
 
-// substitution for C++17 convenience types
-template <bool __flag, typename _T = void>
-using __enable_if_t = ::std::enable_if_t<__flag, _T>;
-
 // function to simplify zip_iterator creation
 template <typename... T>
 oneapi::dpl::zip_iterator<T...>
