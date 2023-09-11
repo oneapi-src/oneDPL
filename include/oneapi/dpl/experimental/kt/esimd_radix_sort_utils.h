@@ -745,11 +745,9 @@ template <typename _T, int _N>
 inline std::enable_if_t<(_N > 16) && (_N % 16 == 0), __dpl_esimd_ns::simd<_T, _N>>
 __create_simd(_T initial, _T step)
 {
-    using namespace __dpl_esimd_ns;
-    using namespace __dpl_esimd_ens;
-    simd<_T, _N> ret;
-    ret.template select<16, 1>(0) = simd<_T, 16>(0, 1) * step + initial;
-    fence<fence_mask::sw_barrier>();
+    __dpl_esimd_ns::simd<_T, _N> ret;
+    ret.template select<16, 1>(0) = __dpl_esimd_ns::simd<_T, 16>(0, 1) * step + initial;
+    __dpl_esimd_ns::fence<__dpl_esimd_ns::fence_mask::sw_barrier>();
 #pragma unroll
     for (int pos = 16; pos < _N; pos += 16)
     {
