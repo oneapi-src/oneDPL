@@ -447,7 +447,7 @@ test_algo_three_sequences()
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestName>
-::std::enable_if_t<::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value, void>
+::std::enable_if_t<::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value>
 test_algo_three_sequences()
 {
     test_algo_three_sequences<typename TestName::UsedValueType, TestName>();
@@ -456,7 +456,7 @@ test_algo_three_sequences()
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and two output sequencess
 template <typename T, typename TestName>
-//::std::enable_if_t<::std::is_base_of<test_base<T>, TestName>::value, void>
+//::std::enable_if_t<::std::is_base_of<test_base<T>, TestName>::value>
 void
 test_algo_four_sequences()
 {
@@ -487,7 +487,7 @@ test_algo_four_sequences()
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestName>
-::std::enable_if_t<::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value, void>
+::std::enable_if_t<::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value>
 test_algo_four_sequences()
 {
     test_algo_four_sequences<typename TestName::UsedValueType, TestName>();

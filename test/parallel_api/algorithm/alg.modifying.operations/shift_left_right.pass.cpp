@@ -169,7 +169,7 @@ struct shift_right_algo
     }
 
     template <typename It, typename ItExp>
-    ::std::enable_if_t<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, It>::value, void>
+    ::std::enable_if_t<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, It>::value>
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
         typename ::std::iterator_traits<It>::difference_type n)
     {
@@ -189,7 +189,7 @@ struct shift_right_algo
     }
     //skip the check for non-bidirectional iterator (forward iterator, etc)
     template <typename It, typename ItExp>
-    ::std::enable_if_t<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, It>::value, void>
+    ::std::enable_if_t<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, It>::value>
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
         typename ::std::iterator_traits<It>::difference_type n)
     {

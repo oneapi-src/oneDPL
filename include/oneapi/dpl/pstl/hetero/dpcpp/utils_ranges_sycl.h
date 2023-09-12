@@ -173,7 +173,7 @@ struct is_zip : ::std::false_type
 };
 
 template <typename Iter> // for iterators defined as direct pass
-struct is_zip<Iter, ::std::enable_if_t<Iter::is_zip::value, void>> : ::std::true_type
+struct is_zip<Iter, ::std::enable_if_t<Iter::is_zip::value>> : ::std::true_type
 {
 };
 
@@ -183,7 +183,7 @@ struct is_permutation : ::std::false_type
 };
 
 template <typename Iter> // for permutation_iterators
-struct is_permutation<Iter, ::std::enable_if_t<Iter::is_permutation::value, void>> : ::std::true_type
+struct is_permutation<Iter, ::std::enable_if_t<Iter::is_permutation::value>> : ::std::true_type
 {
 };
 

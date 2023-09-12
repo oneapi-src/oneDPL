@@ -230,7 +230,7 @@ struct iterator_traits_
 };
 
 template <typename Iter> // For iterators
-struct iterator_traits_<Iter, ::std::enable_if_t<!::std::is_void<typename Iter::iterator_category>::value, void>>
+struct iterator_traits_<Iter, ::std::enable_if_t<!::std::is_void<typename Iter::iterator_category>::value>>
 {
     typedef typename Iter::iterator_category iterator_category;
 };
@@ -284,27 +284,27 @@ template <typename Op, typename IteratorTag, bool IsPositiveCondition = true>
 struct non_const_wrapper_tagged : non_const_wrapper
 {
     template <typename Policy, typename Iterator>
-    ::std::enable_if_t<IsPositiveCondition == is_same_iterator_category<Iterator, IteratorTag>::value, void>
+    ::std::enable_if_t<IsPositiveCondition == is_same_iterator_category<Iterator, IteratorTag>::value>
     operator()(Policy&& exec, Iterator iter)
     {
         Op()(exec, iter);
     }
 
     template <typename Policy, typename InputIterator, typename OutputIterator>
-    ::std::enable_if_t<IsPositiveCondition == is_same_iterator_category<OutputIterator, IteratorTag>::value, void>
+    ::std::enable_if_t<IsPositiveCondition == is_same_iterator_category<OutputIterator, IteratorTag>::value>
     operator()(Policy&& exec, InputIterator input_iter, OutputIterator out_iter)
     {
         Op()(exec, input_iter, out_iter);
     }
 
     template <typename Policy, typename Iterator>
-    ::std::enable_if_t<IsPositiveCondition != is_same_iterator_category<Iterator, IteratorTag>::value, void>
+    ::std::enable_if_t<IsPositiveCondition != is_same_iterator_category<Iterator, IteratorTag>::value>
     operator()(Policy&& /*exec*/, Iterator /*iter*/)
     {
     }
 
     template <typename Policy, typename InputIterator, typename OutputIterator>
-    ::std::enable_if_t<IsPositiveCondition != is_same_iterator_category<OutputIterator, IteratorTag>::value, void>
+    ::std::enable_if_t<IsPositiveCondition != is_same_iterator_category<OutputIterator, IteratorTag>::value>
     operator()(Policy&& /*exec*/, InputIterator /*input_iter*/, OutputIterator /*out_iter*/)
     {
     }
@@ -359,7 +359,7 @@ struct iterator_invoker
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::bidirectional_iterator_tag, Iterator>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::bidirectional_iterator_tag, Iterator>::value>
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n,
         Iterator expected, Rest&&... rest)
     {
@@ -367,7 +367,7 @@ struct iterator_invoker
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value>
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Rest&&... rest)
     {
         invoke_if<Iterator>()(n <= sizeLimit, op, exec, make_iterator<Iterator>()(begin), n,
@@ -386,7 +386,7 @@ struct iterator_invoker
     }
 
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator, typename... Rest>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator inputBegin, InputIterator inputEnd, OutputIterator outputBegin,
                Rest&&... rest)
     {
@@ -396,7 +396,7 @@ struct iterator_invoker
     }
 
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator, typename... Rest>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator inputBegin, InputIterator inputEnd, OutputIterator outputBegin,
                OutputIterator outputEnd, Rest&&... rest)
     {
@@ -408,7 +408,7 @@ struct iterator_invoker
 
     template <typename Policy, typename Op, typename InputIterator1, typename InputIterator2, typename OutputIterator,
               typename... Rest>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator1 inputBegin1, InputIterator1 inputEnd1, InputIterator2 inputBegin2,
                InputIterator2 inputEnd2, OutputIterator outputBegin, OutputIterator outputEnd, Rest&&... rest)
     {
@@ -451,7 +451,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value>
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Rest&&... rest)
     {
         if (n <= sizeLimit)
@@ -459,7 +459,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value>
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Iterator expected,
         Rest&&... rest)
     {
@@ -468,7 +468,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    ::std::enable_if_t<is_same_iterator_category<Iterator, ::std::bidirectional_iterator_tag>::value, void>
+    ::std::enable_if_t<is_same_iterator_category<Iterator, ::std::bidirectional_iterator_tag>::value>
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Iterator expected, Rest&&... rest)
     {
         if (n <= sizeLimit)
@@ -487,7 +487,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator, typename... Rest>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator inputBegin, InputIterator inputEnd, OutputIterator outputBegin,
                Rest&&... rest)
     {
@@ -497,7 +497,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator, typename... Rest>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator inputBegin, InputIterator inputEnd, OutputIterator outputBegin,
                OutputIterator outputEnd, Rest&&... rest)
     {
@@ -509,7 +509,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
 
     template <typename Policy, typename Op, typename InputIterator1, typename InputIterator2, typename OutputIterator,
               typename... Rest>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator1 inputBegin1, InputIterator1 inputEnd1, InputIterator2 inputBegin2,
                InputIterator2 inputEnd2, OutputIterator outputBegin, OutputIterator outputEnd, Rest&&... rest)
     {

@@ -218,7 +218,7 @@ DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
 
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value, void>
+    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value>
     operator()(Policy&& exec,
                Iterator1 keys_first, Iterator1 keys_last,
                Iterator2 vals_first, Iterator2 vals_last,
@@ -289,7 +289,7 @@ DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
 
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value, void>
+    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Size n)
     {
     }

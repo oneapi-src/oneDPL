@@ -111,7 +111,7 @@ DEFINE_TEST(test_lower_bound)
 
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value, void>
+    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value>
     operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator2 value_first, Iterator2 value_last,
                Iterator3 result_first, Iterator3 result_last, Size n)
     {

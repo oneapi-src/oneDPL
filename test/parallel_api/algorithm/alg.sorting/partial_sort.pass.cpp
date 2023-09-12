@@ -58,7 +58,7 @@ template <typename Type>
 struct test_brick_partial_sort
 {
     template <typename Policy, typename InputIterator, typename Compare>
-    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value, void>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value>
     operator()(Policy&& exec, InputIterator first, InputIterator last, InputIterator exp_first, InputIterator exp_last,
                InputIterator tmp_first, InputIterator tmp_last, Compare compare)
     {
@@ -101,7 +101,7 @@ struct test_brick_partial_sort
     }
 
     template <typename Policy, typename InputIterator, typename Compare>
-    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value, void>
+    ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value>
     operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, InputIterator /* exp_first */,
                InputIterator /* exp_last */, InputIterator /* tmp_first */, InputIterator /* tmp_last */, Compare /* compare */)
     {
