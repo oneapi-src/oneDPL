@@ -293,7 +293,7 @@ struct __subgroup_radix_sort
                             __dpl_sycl::__group_barrier(__it);
 
                             _ONEDPL_PRAGMA_UNROLL
-                            for (uint16_t __i = 0; __i < __block_size; ++__i)
+                            for (uint16_t __i= 0; __i < __block_size; ++__i)
                             {
                                 const uint16_t __idx = __wi * __block_size + __i;
                                 if (__idx < __n)
