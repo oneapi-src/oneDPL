@@ -38,7 +38,7 @@ class InclusiveScan1;
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<::std::decay_t<Policy>, OutputIterator>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, OutputIterator>
 pattern_inclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                   OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
 {
@@ -75,7 +75,7 @@ pattern_inclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputI
 #if _ONEDPL_BACKEND_SYCL
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<::std::decay_t<Policy>, OutputIterator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
 inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op,
                                ::std::true_type /* has_known_identity */)
@@ -88,7 +88,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<::std::decay_t<Policy>, OutputIterator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
 inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op,
                                ::std::false_type /* has_known_identity */)
@@ -127,7 +127,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<::std::decay_t<Policy>, OutputIterator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
 pattern_inclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                   OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
 {
