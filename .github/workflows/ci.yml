@@ -25,7 +25,7 @@ jobs:
           ref:  ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-python@v3
         with:
-          python-version: '3.9' 
+          python-version: '3.x' 
       - name: Get clang-format
         run: sudo apt-get install -yqq clang-format
       - name: Applying clang-format for changed files
