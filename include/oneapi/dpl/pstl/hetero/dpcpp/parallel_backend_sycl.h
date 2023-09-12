@@ -380,7 +380,7 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
                 sycl::range<1>(__n_groups * __size_per_wg),
                 __global_scan_caller<_GlobalScan, ::std::decay_t<_Range2>,
                                      ::std::decay_t<_Range1>, decltype(__wg_sums_acc), decltype(__n)>(
-                                         __global_scan, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg));
+                    __global_scan, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg));
         });
 
         return __future(__final_event, sycl::buffer(__wg_sums, sycl::id<1>(__n_groups - 1), sycl::range<1>(1)));
