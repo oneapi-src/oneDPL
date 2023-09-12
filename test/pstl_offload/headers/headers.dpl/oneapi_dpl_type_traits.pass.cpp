@@ -11,7 +11,6 @@
 #include "support/utils.h"
 
 int main() {
-    static_assert(oneapi::dpl::is_same<int, int>::value);
     static_assert(oneapi::dpl::is_same_v<int, int>);
     return TestUtils::done();
 }
