@@ -62,7 +62,7 @@ is_equal(Iterator first, Iterator last, Iterator d_first)
 
 template <typename Iterator>
 ::std::enable_if_t<!::std::is_trivial<typename ::std::iterator_traits<Iterator>::value_type>::value, bool>
-    is_equal(Iterator /* first */, Iterator /* last */, Iterator /* d_first */)
+is_equal(Iterator /* first */, Iterator /* last */, Iterator /* d_first */)
 {
     return true;
 }
