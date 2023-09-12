@@ -1,6 +1,5 @@
 BasedOnStyle: LLVM
 
----
 Standard: c++17
 
 IndentWidth: 4
