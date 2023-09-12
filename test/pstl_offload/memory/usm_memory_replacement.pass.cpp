@@ -18,7 +18,7 @@
 #include "sycl/sycl.hpp"
 
 #define TEST_DELETE_OVERLOAD 1
-#include "system_allocations.h"
+#include "allocation_utils.h"
 
 #if __linux__
 #include <malloc.h>
@@ -203,14 +203,14 @@ int main() {
         EXPECT_TRUE(errno == ENOMEM, "Incorrect errno");
     }
 
-    // check that it's possible to release memory allocated via system allocation
+    // check the ability to release system memory allocated by the translation unit without local allocator overload
     {
         allocs na;
         perform_system_allocations(na);
         check_memory_ownership(na, sycl::usm::alloc::unknown);
         perform_deallocations_impl(na);
     }
-    // check that system deallocation able to release memory allocated via overloaded allocation
+    // check the ability to release USM memory by the translation unit without allocation overload
     {
         allocs na;
         perform_allocations_impl(na);

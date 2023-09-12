@@ -14,7 +14,7 @@
 // in this translation unit we use system allocations while compiling with pstl offload option,
 // it should be no overload to USM
 
-#include "system_allocations.h"
+#include "allocation_utils.h"
 
 void perform_system_allocations(allocs& na) {
     perform_allocations_impl(na);
