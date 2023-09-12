@@ -17,8 +17,7 @@
 
 #include "sycl/sycl.hpp"
 
-#include "support/utils.h"
-
+#define TEST_DELETE_OVERLOAD 1
 #include "system_allocations.h"
 
 #if __linux__

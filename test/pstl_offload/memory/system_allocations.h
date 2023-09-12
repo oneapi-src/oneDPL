@@ -12,20 +12,9 @@
 
 #define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #include <new>
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #include <cstdlib>
 #include <malloc.h>
-
-static void check_true(bool expected, bool condition, const char* file, int line, const char* message) {
-    if (condition != expected) {
-        fprintf(stderr, "error at %s:%d - %s\n", file, line, message);
-        exit(1);
-    }
-}
-
-#ifndef EXPECT_TRUE
-#define EXPECT_TRUE(condition, message) check_true(true, condition, __FILE__, __LINE__, message)
-#endif
+#include "support/utils.h"
 
 extern "C"
 {
@@ -34,6 +23,13 @@ void *__libc_calloc(std::size_t, std::size_t);
 void *__libc_memalign(std::size_t, std::size_t);
 void *__libc_realloc(void *, std::size_t);
 }
+
+#if TEST_DELETE_OVERLOAD
+// Intel* oneAPI DPC++/C++ Compiler doesn't set __cpp_sized_deallocation,
+// so check for sized deallocation only in overloaded delete test case
+void operator delete(void* __ptr, std::size_t) noexcept;
+void operator delete[](void* __ptr, std::size_t) noexcept;
+#endif
 
 struct allocs {
     void *malloc_ptr;
@@ -104,10 +100,15 @@ static void perform_deallocations_impl(const allocs& na) {
     free(na.libc_memalign_ptr);
 #endif
 
-    delete na.new_ptr;
-    delete[] na.arr_new_ptr;
-    delete na.nothrow_new_ptr;
-    delete[] na.arr_nothrow_new_ptr;
+    operator delete(na.new_ptr);
+    operator delete[](na.arr_new_ptr);
+#if TEST_DELETE_OVERLOAD
+    operator delete(na.nothrow_new_ptr, sizeof(char));
+    operator delete[](na.arr_nothrow_new_ptr, allocs::array_size*sizeof(char));
+#else
+    operator delete(na.nothrow_new_ptr);
+    operator delete[](na.arr_nothrow_new_ptr);
+#endif
     operator delete(na.aligned_new_ptr, std::align_val_t(allocs::alignment));
     operator delete(na.aligned_nothrow_new_ptr, std::align_val_t(allocs::alignment));
     operator delete[](na.aligned_arr_new_ptr, std::align_val_t(allocs::alignment));

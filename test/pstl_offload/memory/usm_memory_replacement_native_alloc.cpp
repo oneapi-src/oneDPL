@@ -11,7 +11,9 @@
 #error "PSTL offload compiler mode should be enabled to run this test"
 #endif
 
-#define DO_STD_INJECTION 1
+// in this translation unit we use system allocations while compiling with pstl offload option,
+// it should be no overload to USM
+
 #include "system_allocations.h"
 
 void perform_system_allocations(allocs& na) {

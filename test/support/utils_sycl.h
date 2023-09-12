@@ -105,27 +105,27 @@ make_new_policy(_Policy&& __policy)
 #endif
 
 #if ONEDPL_FPGA_DEVICE
-    auto default_selector =
+inline auto default_selector =
 #    if ONEDPL_FPGA_EMULATOR
         __dpl_sycl::__fpga_emulator_selector();
 #    else
         __dpl_sycl::__fpga_selector();
 #    endif // ONEDPL_FPGA_EMULATOR
 
-    auto&& default_dpcpp_policy =
+inline auto&& default_dpcpp_policy =
 #    if ONEDPL_USE_PREDEFINED_POLICIES
         oneapi::dpl::execution::dpcpp_fpga;
 #    else
         TestUtils::make_fpga_policy(sycl::queue{default_selector});
 #    endif // ONEDPL_USE_PREDEFINED_POLICIES
 #else
-    auto default_selector =
+inline auto default_selector =
 #    if _ONEDPL_LIBSYCL_VERSION >= 60000
         sycl::default_selector_v;
 #    else
         sycl::default_selector{};
 #    endif
-    auto&& default_dpcpp_policy =
+inline auto&& default_dpcpp_policy =
 #    if ONEDPL_USE_PREDEFINED_POLICIES
         oneapi::dpl::execution::dpcpp_default;
 #    else
