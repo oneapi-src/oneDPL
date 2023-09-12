@@ -17,7 +17,7 @@ BraceWrapping:
   AfterNamespace:  true
   AfterObjCDeclaration: true
   AfterStruct:     true
-  AfterUnion:      false
+  AfterUnion:      true
   BeforeCatch:     true
   BeforeElse:      true
   BeforeLambdaBody: false
