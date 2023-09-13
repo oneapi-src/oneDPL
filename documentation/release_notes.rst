@@ -15,6 +15,8 @@ New Features
 ------------
 - Added support for passing zip iterators as segment value data in ``reduce_by_segment``,
   ``exclusive_scan_by_segment``, and ``inclusive_scan_by_segment``.
+- Improved performance of ``merge`` and ``sort`` (non-Radix case) algorithms on GPU devices.
+  Added new implementation based on ``Merge Path`` approach.
 - Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
   ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
 
@@ -23,6 +25,21 @@ Known Issues and Limitations
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
+- Incorrect results may be produced by ``set_intersection`` using DPC++ execution policies,
+  where elements are be copied from the second input range rather than the first input range. 
+
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
+- Incorrect results may be produced with in-place scans using ``unseq`` and ``par_unseq`` policies on
+  CPUs with the Intel® C++ Compiler 2021.8.
 
 New in 2022.2.0
 ===============
