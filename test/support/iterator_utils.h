@@ -148,17 +148,17 @@ struct BaseAdapter
 // Check if the iterator is reverse iterator
 // Note: it works only for iterators that created by ::std::reverse_iterator
 template <typename NotReverseIterator>
-struct isReverse : ::std::false_type
+struct is_reverse : ::std::false_type
 {
 };
 
 template <typename Iterator>
-struct isReverse<::std::reverse_iterator<Iterator>> : ::std::true_type
+struct is_reverse<::std::reverse_iterator<Iterator>> : ::std::true_type
 {
 };
 
 template <typename Iterator>
-inline constexpr bool is_reverse_v = isReverse<Iterator>::value;
+inline constexpr bool is_reverse_v = is_reverse<Iterator>::value;
 
 // Reverse adapter
 template <typename Iterator, typename IsReverse>
