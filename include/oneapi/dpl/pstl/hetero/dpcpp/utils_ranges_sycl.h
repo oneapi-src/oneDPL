@@ -196,6 +196,9 @@ inline constexpr bool is_hetero_it_v = is_hetero_it<_Iter>::value;
 template <typename _Iter>
 using is_passed_directly_it = oneapi::dpl::__internal::is_passed_directly<_Iter>;
 
+template <typename _Iter>
+inline constexpr bool is_passed_directly_it_v = is_passed_directly_it<_Iter>::value;
+
 //struct for checking if it needs to create a temporary SYCL buffer or not
 
 template <typename _Iter, typename Void = void>
@@ -205,7 +208,7 @@ struct is_temp_buff : ::std::false_type
 
 template <typename _Iter>
 struct is_temp_buff<_Iter, ::std::enable_if_t<!is_hetero_it_v<_Iter> && !::std::is_pointer_v<_Iter> &&
-                                              !is_passed_directly_it<_Iter>::value>> : ::std::true_type
+                                              !is_passed_directly_it_v<_Iter>>> : ::std::true_type
 {
 };
 
@@ -501,7 +504,7 @@ struct __get_sycl_range
 
     // for raw pointers and direct pass objects (for example, counting_iterator, iterator of USM-containers)
     template <typename _Iter>
-    ::std::enable_if_t<is_passed_directly_it<_Iter>::value, __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>>
+    ::std::enable_if_t<is_passed_directly_it_v<_Iter>, __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>>
     operator()(_Iter __first, _Iter __last)
     {
         assert(__first < __last);
