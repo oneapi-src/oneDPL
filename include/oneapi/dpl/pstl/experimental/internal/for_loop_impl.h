@@ -205,15 +205,13 @@ struct __is_random_access_or_integral : ::std::false_type
 };
 
 template <typename _Ip>
-struct __is_random_access_or_integral<_Ip, ::std::enable_if_t<::std::is_integral<_Ip>::value>>
-    : ::std::true_type
+struct __is_random_access_or_integral<_Ip, ::std::enable_if_t<::std::is_integral<_Ip>::value>> : ::std::true_type
 {
 };
 
 template <typename _Ip>
 struct __is_random_access_or_integral<
-    _Ip, ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator<_Ip>::value>>
-    : ::std::true_type
+    _Ip, ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator<_Ip>::value>> : ::std::true_type
 {
 };
 
@@ -267,12 +265,11 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-::std::enable_if_t<
-    ::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                   ::std::forward_iterator_tag>::value ||
-        ::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                       ::std::input_iterator_tag>::value,
-    _IndexType>
+::std::enable_if_t<::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
+                                  ::std::forward_iterator_tag>::value ||
+                       ::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
+                                      ::std::input_iterator_tag>::value,
+                   _IndexType>
 __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
 {
     _IndexType __ordinal_position = 0;

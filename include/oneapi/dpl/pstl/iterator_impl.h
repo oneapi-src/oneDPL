@@ -573,7 +573,8 @@ class permutation_iterator
     typedef std::conditional_t<
         !__internal::__is_functor<_Permutation>, _Permutation,
         transform_iterator<counting_iterator<typename ::std::iterator_traits<SourceIterator>::difference_type>,
-                           _Permutation>> IndexMap;
+                           _Permutation>>
+        IndexMap;
     typedef typename ::std::iterator_traits<SourceIterator>::difference_type difference_type;
     typedef typename ::std::iterator_traits<SourceIterator>::value_type value_type;
     typedef typename ::std::iterator_traits<SourceIterator>::pointer pointer;

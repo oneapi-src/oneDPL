@@ -42,16 +42,15 @@ using __has_known_identity =
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::disjunction<
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
-        ::std::conjunction<
-            ::std::is_arithmetic<_Tp>,
-            ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<_Tp>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
-                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>;
+        ::std::conjunction<::std::is_arithmetic<_Tp>,
+                           ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
+                                              ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
+                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
+                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>,
+                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<_Tp>>,
+                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
+                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
+                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>;
 #    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
@@ -469,9 +468,9 @@ struct __copy_by_mask
         {
             auto __out_idx = get<N>(__in_acc[__item_idx]) - 1;
 
-            using __tuple_type = typename __internal::__get_tuple_type<
-                ::std::decay_t<decltype(get<0>(__in_acc[__item_idx]))>,
-                ::std::decay_t<decltype(__out_acc[__out_idx])>>::__type;
+            using __tuple_type =
+                typename __internal::__get_tuple_type<::std::decay_t<decltype(get<0>(__in_acc[__item_idx]))>,
+                                                      ::std::decay_t<decltype(__out_acc[__out_idx])>>::__type;
 
             // calculation of position for copy
             if (__item_idx >= __size_per_wg)

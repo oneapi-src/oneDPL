@@ -1018,8 +1018,7 @@ __pattern_search_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ra
 // Sometimes a little duplication for sake of regularity is better than the alternative.
 
 template <typename _ExecutionPolicy>
-struct __brick_copy_n<_ExecutionPolicy,
-                      oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
+struct __brick_copy_n<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
 {
     template <typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2>
     _RandomAccessIterator2
@@ -1044,8 +1043,7 @@ struct __brick_copy_n<_ExecutionPolicy,
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy>
-struct __brick_copy<_ExecutionPolicy,
-                    oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
+struct __brick_copy<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
 {
 
     template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
@@ -1078,8 +1076,7 @@ struct __brick_copy<_ExecutionPolicy,
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy>
-struct __brick_move<_ExecutionPolicy,
-                    oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
+struct __brick_move<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
 {
 
     template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
@@ -2664,8 +2661,7 @@ __pattern_nth_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, 
 // fill, fill_n
 //------------------------------------------------------------------------
 template <typename _Tp, typename _ExecutionPolicy>
-struct __brick_fill<_Tp, _ExecutionPolicy,
-                    oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
+struct __brick_fill<_Tp, _ExecutionPolicy, oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
 {
     const _Tp& __value;
 

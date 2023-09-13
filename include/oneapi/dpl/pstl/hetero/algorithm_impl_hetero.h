@@ -306,8 +306,7 @@ __pattern_generate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forward
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy>
-struct __brick_copy_n<_ExecutionPolicy,
-                      oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
+struct __brick_copy_n<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     template <typename _SourceT, typename _TargetT>
     void
@@ -318,8 +317,7 @@ struct __brick_copy_n<_ExecutionPolicy,
 };
 
 template <typename _ExecutionPolicy>
-struct __brick_copy<_ExecutionPolicy,
-                    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
+struct __brick_copy<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     template <typename _SourceT, typename _TargetT>
     oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
@@ -330,8 +328,7 @@ struct __brick_copy<_ExecutionPolicy,
 };
 
 template <typename _ExecutionPolicy>
-struct __brick_move<_ExecutionPolicy,
-                    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
+struct __brick_move<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     template <typename _SourceT, typename _TargetT>
     oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>

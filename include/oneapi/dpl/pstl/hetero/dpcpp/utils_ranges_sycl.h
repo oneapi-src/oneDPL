@@ -434,9 +434,8 @@ struct __get_sycl_range
         return oneapi::dpl::__ranges::permutation_view_simple<_R, _Map>{__r, __m, __s};
     }
 
-    template <
-        typename _R, typename _Map, typename _Size,
-        ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator<_Map>::value, int> = 0>
+    template <typename _R, typename _Map, typename _Size,
+              ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator<_Map>::value, int> = 0>
     auto
     __get_permutation_view(_R __r, _Map __m, _Size __s)
     {
@@ -510,9 +509,9 @@ struct __get_sycl_range
     //specialization for hetero iterator
     template <typename _Iter>
     auto
-    operator()(_Iter __first, _Iter __last) ->
-        ::std::enable_if_t<is_hetero_it<_Iter>::value,
-                                  __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
+    operator()(_Iter __first, _Iter __last)
+        -> ::std::enable_if_t<is_hetero_it<_Iter>::value,
+                              __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
         assert(__first < __last);
         using value_type = val_t<_Iter>;
@@ -530,9 +529,9 @@ struct __get_sycl_range
     //specialization for a host iterator
     template <typename _Iter>
     auto
-    operator()(_Iter __first, _Iter __last) ->
-        ::std::enable_if_t<is_temp_buff<_Iter>::value && !is_zip<_Iter>::value && !is_permutation<_Iter>::value,
-                           __buffer_holder<val_t<_Iter>, AccMode>>
+    operator()(_Iter __first, _Iter __last)
+        -> ::std::enable_if_t<is_temp_buff<_Iter>::value && !is_zip<_Iter>::value && !is_permutation<_Iter>::value,
+                              __buffer_holder<val_t<_Iter>, AccMode>>
     {
         static_assert(!oneapi::dpl::__internal::is_const_iterator<_Iter>::value || AccMode == sycl::access::mode::read,
                       "Should be non-const iterator for a modifying algorithm.");
