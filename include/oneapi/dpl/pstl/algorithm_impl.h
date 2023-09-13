@@ -145,7 +145,7 @@ __pattern_walk1(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator _
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, __is_random_access_iterator<_RandomAccessIterator>::value, void>
+    _ExecutionPolicy, __is_random_access_iterator<_RandomAccessIterator>::value>
 __pattern_walk1(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Function __f,
                 _IsVector __is_vector,
                 /*parallel=*/::std::true_type)
@@ -160,7 +160,7 @@ __pattern_walk1(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rando
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, !__is_random_access_iterator<_ForwardIterator>::value, void>
+    _ExecutionPolicy, !__is_random_access_iterator<_ForwardIterator>::value>
 __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f, _IsVector,
                 /*parallel=*/::std::true_type)
 {
