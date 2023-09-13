@@ -288,7 +288,7 @@ template <typename _ExecPolicy, typename _T = void>
 using __enable_if_hetero_execution_policy =
     ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
-template <typename _ExecPolicy, typename _T>
+template <typename _ExecPolicy, typename _T = void>
 using __enable_if_fpga_execution_policy =
     ::std::enable_if_t<oneapi::dpl::__internal::__is_fpga_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
