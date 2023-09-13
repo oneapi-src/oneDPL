@@ -1,20 +1,37 @@
 BasedOnStyle: LLVM
 
-Language: Cpp
-Standard: Cpp11
+Standard: c++17
 
 IndentWidth: 4
 ColumnLimit: 120
 
+AllowShortIfStatementsOnASingleLine: false
 AlwaysBreakTemplateDeclarations: true
 AlwaysBreakAfterReturnType: All
-PointerAlignment: Left
-AllowShortIfStatementsOnASingleLine: false
-BreakBeforeBraces: Allman
+BraceWrapping:
+  AfterClass:      true
+  AfterControlStatement: Always
+  AfterEnum:       true
+  AfterExternBlock: true
+  AfterFunction:   true
+  AfterNamespace:  true
+  AfterObjCDeclaration: true
+  AfterStruct:     true
+  AfterUnion:      true
+  BeforeCatch:     true
+  BeforeElse:      true
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyNamespace: true
+  SplitEmptyRecord: true
 
-# Disable formatting options which may break tests.
-SortIncludes: false
-ReflowComments: false
-
+BreakBeforeBraces: Custom
 # Indent preprocessor directives
 IndentPPDirectives: AfterHash
+
+PointerAlignment: Left
+# Disable formatting options which may break tests.
+ReflowComments: false
+SortIncludes: false
