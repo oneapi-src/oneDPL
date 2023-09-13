@@ -67,7 +67,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
 
-    # add additional translation units, according to mask
+    # add additional translation units to current test according to mask
     get_filename_component(_test_path ${test_source_file} DIRECTORY)
     string(REPLACE "\.pass" "" _test_name_without_pass ${_test_name})
     file(GLOB_RECURSE additional_src_files "${_test_path}/${_test_name_without_pass}_*.cpp")
