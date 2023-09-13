@@ -46,7 +46,7 @@ uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
 // [uninitialized.fill]
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 uninitialized_fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value);
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp>
@@ -56,7 +56,7 @@ uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size 
 // [specialized.destroy]
 
 template <class _ExecutionPolicy, class _ForwardIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
@@ -66,7 +66,7 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n);
 // [uninitialized.construct.default]
 
 template <class _ExecutionPolicy, class _ForwardIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 uninitialized_default_construct(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size>
@@ -76,7 +76,7 @@ uninitialized_default_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __
 // [uninitialized.construct.value]
 
 template <class _ExecutionPolicy, class _ForwardIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 uninitialized_value_construct(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size>

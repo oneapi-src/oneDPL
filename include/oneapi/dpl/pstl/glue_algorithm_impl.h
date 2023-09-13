@@ -72,7 +72,7 @@ none_of(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
 // [alg.foreach]
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Function>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 for_each(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f)
 {
     oneapi::dpl::__internal::__pattern_walk1(
@@ -359,7 +359,7 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterato
 // [alg.replace]
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate, class _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 replace_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _UnaryPredicate __pred,
            const _Tp& __new_value)
 {
@@ -373,7 +373,7 @@ replace_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 replace(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __old_value,
         const _Tp& __new_value)
 {
@@ -417,7 +417,7 @@ replace_copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardItera
 // [alg.fill]
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value)
 {
     oneapi::dpl::__internal::__pattern_fill(
@@ -441,7 +441,7 @@ fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __count, const
 
 // [alg.generate]
 template <class _ExecutionPolicy, class _ForwardIterator, class _Generator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 generate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Generator __g)
 {
     oneapi::dpl::__internal::__pattern_generate(
@@ -551,7 +551,7 @@ unique_copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterat
 // [alg.reverse]
 
 template <class _ExecutionPolicy, class _BidirectionalIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 reverse(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last)
 {
     oneapi::dpl::__internal::__pattern_reverse(
@@ -649,7 +649,7 @@ partition_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIter
 // [alg.sort]
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _InputType;
@@ -661,7 +661,7 @@ sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIter
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last)
 {
     oneapi::dpl::sort(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
@@ -671,7 +671,7 @@ sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIter
 // [stable.sort]
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
 {
     oneapi::dpl::__internal::__pattern_stable_sort(
@@ -681,7 +681,7 @@ stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcc
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last)
 {
     oneapi::dpl::stable_sort(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
@@ -692,7 +692,7 @@ stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcc
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _RandomAccessIterator1 __keys_last,
             _RandomAccessIterator2 __values_first, _Compare __comp)
 {
@@ -705,7 +705,7 @@ sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _Ran
 }
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _RandomAccessIterator1 __keys_last,
             _RandomAccessIterator2 __values_first)
 {
@@ -818,7 +818,7 @@ move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __l
 // [partial.sort]
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
              _RandomAccessIterator __last, _Compare __comp)
 {
@@ -829,7 +829,7 @@ partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAc
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
              _RandomAccessIterator __last)
 {
@@ -928,7 +928,7 @@ merge(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 _
 }
 
 template <class _ExecutionPolicy, class _BidirectionalIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 inplace_merge(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __middle,
               _BidirectionalIterator __last, _Compare __comp)
 {
@@ -939,7 +939,7 @@ inplace_merge(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _Bidire
 }
 
 template <class _ExecutionPolicy, class _BidirectionalIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 inplace_merge(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __middle,
               _BidirectionalIterator __last)
 {
@@ -1167,7 +1167,7 @@ minmax_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIter
 // [alg.nth.element]
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 nth_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __nth,
             _RandomAccessIterator __last, _Compare __comp)
 {
@@ -1178,7 +1178,7 @@ nth_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcc
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 nth_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __nth,
             _RandomAccessIterator __last)
 {
