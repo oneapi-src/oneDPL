@@ -21,36 +21,44 @@
 int
 main()
 {
-    int n = 1 << 16;
-    std::vector<int> v(n, 1);
-    sycl::queue q;
-    int* in_ptr = sycl::malloc_device<int>(n, q);
-    int* out_ptr = sycl::malloc_device<int>(n, q);
+    bool all_passed = true;
 
-
-    q.copy(v.data(), in_ptr, n);
-    using KernelParams = oneapi::dpl::experimental::kt::kernel_param<128, 2, class ScanKernel>;
-    oneapi::dpl::experimental::kt::single_pass_inclusive_scan<KernelParams>(q, in_ptr, in_ptr+n, out_ptr, ::std::plus<int>());
-
-    std::vector<int> tmp(n, 0);
-    q.copy(out_ptr, tmp.data(), n);
-
-    std::inclusive_scan(v.begin(), v.end(), v.begin());
-
-    bool passed = true;
-    for (size_t i  = 0; i < n; ++i)
+    for (int logn : {4, 8, 11, 16, 19, 21})
     {
-        if (tmp[i] != v[i])
+        std::cout << "Testing 2^" << logn << '\n';
+        int n = 1 << logn;
+        std::vector<int> v(n, 1);
+        sycl::queue q;
+        int* in_ptr = sycl::malloc_device<int>(n, q);
+        int* out_ptr = sycl::malloc_device<int>(n, q);
+
+
+        q.copy(v.data(), in_ptr, n);
+        using KernelParams = oneapi::dpl::experimental::kt::kernel_param<128, 2, class ScanKernel>;
+        oneapi::dpl::experimental::kt::single_pass_inclusive_scan<KernelParams>(q, in_ptr, in_ptr+n, out_ptr, ::std::plus<int>());
+
+        std::vector<int> tmp(n, 0);
+        q.copy(out_ptr, tmp.data(), n);
+
+        std::inclusive_scan(v.begin(), v.end(), v.begin());
+
+        bool passed = true;
+        for (size_t i  = 0; i < n; ++i)
         {
-            passed = false;
-            std::cout << "expected " << i << ' ' << v[i] << ' ' << tmp[i] << '\n';
+            if (tmp[i] != v[i])
+            {
+                passed = false;
+                std::cout << "expected " << i << ' ' << v[i] << ' ' << tmp[i] << '\n';
+            }
         }
+
+        if (passed)
+            std::cout << "passed" << std::endl;
+        else
+            std::cout << "failed" << std::endl;
+
+        all_passed &= passed;
     }
 
-    if (passed)
-        std::cout << "passed" << std::endl;
-    else
-        std::cout << "failed" << std::endl;
-
-    return !passed;
+    return !all_passed;
 }
