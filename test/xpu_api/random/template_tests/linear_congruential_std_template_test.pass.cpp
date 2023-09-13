@@ -49,7 +49,7 @@ int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<UIntType> see
                 oneapi::dpl::linear_congruential_engine<UIntType, a, c, m> engine(seed, offset);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<UIntType>, num_elems> res = engine();
-                res.store(idx.get_linear_id(), __dpl_sycl::__get_accessor_ptr(dpstd_acc));
+                res.store(idx.get_linear_id(), dpstd_acc);
             });
         });
         queue.wait();
@@ -105,7 +105,7 @@ int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<UIntT
 
                 auto res = engine(part);
                 for(int i = 0; i < n_elems; ++i)
-                    __dpl_sycl::__get_accessor_ptr(dpstd_acc)[offset + i] = res[i];
+                    dpstd_acc[offset + i] = res[i];
             });
         });
         queue.wait();
