@@ -13,7 +13,9 @@
 #define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #include <new>
 #include <cstdlib>
+#if __linux__
 #include <malloc.h>
+#endif
 #include "support/utils.h"
 #undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 
@@ -25,16 +27,12 @@ void *__libc_memalign(std::size_t, std::size_t);
 void *__libc_realloc(void *, std::size_t);
 }
 
-#if __cpp_sized_deallocation
-#error "The test must be updated to cover a compiler with sized decallocation support."
-#endif
-
-#if TEST_DELETE_OVERLOAD
+#if !__cpp_sized_deallocation
 // Intel* oneAPI DPC++/C++ Compiler doesn't set __cpp_sized_deallocation,
-// so check for sized deallocation only in overloaded delete test case
+// so provide declaration, as we have sized deallocations in the global overload
 void operator delete(void* __ptr, std::size_t) noexcept;
 void operator delete[](void* __ptr, std::size_t) noexcept;
-#endif // TEST_DELETE_OVERLOAD
+#endif // __cpp_sized_deallocation
 
 struct allocs {
     void *malloc_ptr;
@@ -62,7 +60,6 @@ struct allocs {
 
     static const std::size_t alloc_size = 1024;
     static const std::size_t alignment = 16;
-    static const std::size_t array_size = 12;
 };
 
 static void perform_allocations_impl(allocs& na) {
@@ -108,13 +105,8 @@ static void perform_deallocations_impl(const allocs& na) {
 
     operator delete(na.new_ptr);
     operator delete[](na.arr_new_ptr);
-#if TEST_DELETE_OVERLOAD
     operator delete(na.nothrow_new_ptr, allocs::alloc_size);
-    operator delete[](na.arr_nothrow_new_ptr, allocs::array_size*allocs::alloc_size);
-#else
-    operator delete(na.nothrow_new_ptr);
-    operator delete[](na.arr_nothrow_new_ptr);
-#endif
+    operator delete[](na.arr_nothrow_new_ptr, allocs::alloc_size);
     operator delete(na.aligned_new_ptr, std::align_val_t(allocs::alignment));
     operator delete(na.aligned_nothrow_new_ptr, std::align_val_t(allocs::alignment));
     operator delete[](na.aligned_arr_new_ptr, std::align_val_t(allocs::alignment));

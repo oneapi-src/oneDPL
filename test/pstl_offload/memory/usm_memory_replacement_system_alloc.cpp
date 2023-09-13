@@ -11,8 +11,8 @@
 #error "PSTL offload compiler mode should be enabled to run this test"
 #endif
 
-// in this translation unit we use system allocations while compiling with pstl offload option,
-// it should be no overload to USM
+// in this translation unit (TU) we use system allocations while compiling with pstl offload option,
+// it should be no overload to USM, that is done in another TU
 
 #include "allocation_utils.h"
 
