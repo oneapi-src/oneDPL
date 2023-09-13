@@ -180,7 +180,7 @@ template <class _ExecPolicy, class _T = void>
 using __enable_if_execution_policy = ::std::enable_if_t<
     oneapi::dpl::execution::is_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
-template <class _ExecPolicy, class _T>
+template <class _ExecPolicy, class _T = void>
 using __enable_if_host_execution_policy = ::std::enable_if_t<
     oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
