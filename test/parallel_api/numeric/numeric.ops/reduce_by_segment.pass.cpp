@@ -129,8 +129,7 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
               typename Size>
     ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>::value &&
                            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value &&
-                           is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator4>::value,
-                       void>
+                           is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator4>::value>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {
@@ -196,8 +195,7 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         !oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>::value &&
 #endif
             is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value &&
-            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator4>::value,
-        void>
+            is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator4>::value>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {
@@ -232,8 +230,7 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
               typename Size>
     ::std::enable_if_t<!is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value ||
-                           !is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator4>::value,
-                       void>
+                           !is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator4>::value>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {

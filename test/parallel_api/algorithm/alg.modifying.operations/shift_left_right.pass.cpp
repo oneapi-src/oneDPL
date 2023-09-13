@@ -49,7 +49,7 @@ struct test_shift
 #if __SYCL_PSTL_OFFLOAD__
                      || std::is_same<std::decay_t<Policy>, std::execution::parallel_unsequenced_policy>::value
 #endif
-                     , void>
+                     >
     operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,
         It first_exp, typename ::std::iterator_traits<It>::difference_type n, Algo algo)
     {
