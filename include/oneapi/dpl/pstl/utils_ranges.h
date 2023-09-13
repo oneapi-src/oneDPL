@@ -254,7 +254,7 @@ class guard_view
 template <typename _R>
 struct reverse_view_simple
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
+    using value_type = oneapi::dpl::__internal::__value_t<_R>;
 
     _R __r;
 
@@ -291,7 +291,7 @@ struct reverse_view_simple
 template <typename _R, typename _Size>
 struct take_view_simple
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
+    using value_type = oneapi::dpl::__internal::__value_t<_R>;
 
     _R __r;
     _Size __n;
@@ -329,7 +329,7 @@ struct take_view_simple
 template <typename _R, typename _Size>
 struct drop_view_simple
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
+    using value_type = oneapi::dpl::__internal::__value_t<_R>;
 
     _R __r;
     _Size __n;
@@ -367,7 +367,7 @@ struct drop_view_simple
 template <typename _R, typename _Size>
 struct replicate_start_view_simple
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
+    using value_type = oneapi::dpl::__internal::__value_t<_R>;
 
     _R __r;
     _Size __repl_count;
@@ -461,7 +461,7 @@ struct permutation_view_simple;
 template <typename _R, typename _M>
 struct permutation_view_simple<_R, _M, ::std::enable_if_t<oneapi::dpl::__internal::__is_functor<_M>>>
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
+    using value_type = oneapi::dpl::__internal::__value_t<_R>;
     using _Size = oneapi::dpl::__internal::__difference_t<_R>;
 
     _R __r;
@@ -500,7 +500,7 @@ struct permutation_view_simple<_R, _M, ::std::enable_if_t<oneapi::dpl::__interna
 template <typename _R, typename _M>
 struct permutation_view_simple<_R, _M, ::std::enable_if_t<is_map_view<_M>::value>>
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
+    using value_type = oneapi::dpl::__internal::__value_t<_R>;
 
     zip_view<_R, _M> __data;
 
