@@ -271,7 +271,7 @@ std::enable_if_t<oneapi::dpl::__internal::__is_host_execution_policy<std::decay_
 #if __SYCL_PSTL_OFFLOAD__
                  || std::is_same<std::decay_t<Policy>, std::execution::parallel_unsequenced_policy>::value
 #endif
-                 , void>
+                 >
 run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
          OutputIterator2 expected_last, InputIterator first, InputIterator /*last*/, Size n, Compare ...compare)
 {
@@ -293,7 +293,7 @@ run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
 #if _PSTL_SYCL_TEST_USM
 template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
           typename... Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy>
 run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
             OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n, Compare ...compare)
 {
@@ -311,10 +311,10 @@ template <typename T>
 struct test_sort_op
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
-              typename ...Compare>
-    typename ::std::enable_if<TestUtils::is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value
-                          && (TestUtils::can_use_default_less_operator<T>::value || sizeof...(Compare) > 0),
-                              void>::type
+              typename... Compare>
+    ::std::enable_if_t<
+        TestUtils::is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value &&
+            (TestUtils::can_use_default_less_operator<T>::value || sizeof...(Compare) > 0)>
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n, Compare ...compare)
     {
@@ -323,10 +323,10 @@ struct test_sort_op
     }
 
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
-              typename ...Compare>
-    typename ::std::enable_if<!TestUtils::is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value
-                          || !(TestUtils::can_use_default_less_operator<T>::value || sizeof...(Compare) > 0),
-                              void>::type
+              typename... Compare>
+    ::std::enable_if_t<
+        !TestUtils::is_base_of_iterator_category<::std::random_access_iterator_tag, InputIterator>::value ||
+            !(TestUtils::can_use_default_less_operator<T>::value || sizeof...(Compare) > 0)>
     operator()(Policy&& /* exec */, OutputIterator /* tmp_first */, OutputIterator /* tmp_last */,
                OutputIterator2 /* expected_first */, OutputIterator2 /* expected_last */, InputIterator /* first */,
                InputIterator /* last */, Size /* n */, Compare .../*compare*/)

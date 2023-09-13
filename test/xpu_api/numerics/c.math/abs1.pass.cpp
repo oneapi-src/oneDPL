@@ -18,7 +18,7 @@
 template<class T>
 struct correct_size_int
 {
-    typedef typename std::conditional<sizeof(T) < sizeof(int), int, T>::type type;
+    typedef std::conditional_t<sizeof(T) < sizeof(int), int, T> type;
 };
 
 template <class Source, class Result>
@@ -48,9 +48,7 @@ ONEDPL_TEST_NUM_MAIN
 {
     // On some systems char is unsigned.
     // If that is the case, we should just test signed char twice.
-    typedef std::conditional<
-        std::is_signed<char>::value, char, signed char
-    >::type SignedChar;
+    typedef ::std::conditional_t<std::is_signed<char>::value, char, signed char> SignedChar;
 
     // All types less than or equal to and not greater than int are promoted to int.
     test_abs<short int, int>();

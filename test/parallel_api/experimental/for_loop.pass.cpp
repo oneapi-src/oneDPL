@@ -108,7 +108,7 @@ test_body_for_loop_strided(Policy&& exec, Iterator first, Iterator last, Iterato
 
     ::std::experimental::for_loop_strided(exec, first, last, loop_stride, [&flip](Iterator iter) { flip(*iter); });
 
-    typename ::std::make_signed<Size>::type idx = 0;
+    ::std::make_signed_t<Size> idx = 0;
     for (auto iter = expected_first; iter != expected_last; ::std::advance(iter, single_stride), ++idx)
     {
         if (idx % loop_stride != 0)
@@ -230,15 +230,14 @@ struct test_for_loop_impl
 };
 
 template <typename Policy, typename Iterator, typename Size, typename S>
-typename ::std::enable_if<
-    !::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>::value,
-    void>::type
+::std::enable_if_t<
+    !::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>::value>
 test_body_for_loop_strided_neg(Policy&& exec, Iterator first, Iterator /* last */, Iterator expected_first,
                                Iterator /* expected_last */, Size n, S loop_stride)
 {
     assert(loop_stride < 0);
 
-    using Ssize = typename ::std::make_signed<Size>::type;
+    using Ssize = ::std::make_signed_t<Size>;
 
     // Test negative stride value with non-forward iterators on range (first - 1, first)
     auto new_first = first;
@@ -256,9 +255,8 @@ test_body_for_loop_strided_neg(Policy&& exec, Iterator first, Iterator /* last *
 }
 
 template <typename Policy, typename Iterator, typename Size, typename S>
-typename ::std::enable_if<
-    ::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>::value,
-    void>::type
+::std::enable_if_t<
+    ::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>::value>
 test_body_for_loop_strided_neg(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Iterator /* expected_first */,
                                Iterator /* expected_last */, Size /* n */, S /* loop_stride */)
 {

@@ -150,9 +150,9 @@ using access_mode = sycl::access_mode;
 
 // substitution for C++17 convenience types
 template <typename _T>
-using __decay_t = typename ::std::decay<_T>::type;
+using __decay_t = ::std::decay_t<_T>;
 template <bool __flag, typename _T = void>
-using __enable_if_t = typename ::std::enable_if<__flag, _T>::type;
+using __enable_if_t = ::std::enable_if_t<__flag, _T>;
 
 // function to simplify zip_iterator creation
 template <typename... T>
@@ -219,8 +219,8 @@ struct __optional_kernel_name;
 template <typename _CustomName>
 using __kernel_name_provider =
 #if __SYCL_UNNAMED_LAMBDA__
-    typename ::std::conditional<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
-                                __optional_kernel_name<_CustomName>>::type;
+    ::std::conditional_t<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
+                         __optional_kernel_name<_CustomName>>;
 #else
     __optional_kernel_name<_CustomName>;
 #endif

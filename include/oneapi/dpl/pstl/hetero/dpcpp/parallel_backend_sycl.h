@@ -249,7 +249,7 @@ template <typename _ExecutionPolicy, typename _Fp, typename _Index,
 auto
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
@@ -378,9 +378,9 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
             auto __wg_sums_acc = __wg_sums.template get_access<access_mode::read>(__cgh);
             __cgh.parallel_for<_PropagateScanName...>(
                 sycl::range<1>(__n_groups * __size_per_wg),
-                __global_scan_caller<_GlobalScan, typename ::std::decay<_Range2>::type,
-                                     typename ::std::decay<_Range1>::type, decltype(__wg_sums_acc), decltype(__n)>(
-                    __global_scan, __rng2, __rng1, __wg_sums_acc, __n, __size_per_wg));
+                __global_scan_caller<_GlobalScan, ::std::decay_t<_Range2>, ::std::decay_t<_Range1>,
+                                     decltype(__wg_sums_acc), decltype(__n)>(__global_scan, __rng2, __rng1,
+                                                                             __wg_sums_acc, __n, __size_per_wg));
         });
 
         return __future(__final_event, sycl::buffer(__wg_sums, sycl::id<1>(__n_groups - 1), sycl::range<1>(1)));
@@ -747,7 +747,7 @@ __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _R
                                _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
                                _GroupScan __group_scan, _GlobalScan __global_scan)
 {
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
 
     using _PropagateKernel =
@@ -1045,9 +1045,8 @@ struct __early_exit_find_or
         for (_IterSize __i = 0; __i < __n_iter; ++__i)
         {
             //in case of find-semantic __shifted_idx must be the same type as the atomic for a correct comparison
-            using _ShiftedIdxType =
-                typename ::std::conditional<_OrTagType::value, decltype(__init_index + __i * __shift),
-                                            decltype(__found_local.load())>::type;
+            using _ShiftedIdxType = ::std::conditional_t<_OrTagType::value, decltype(__init_index + __i * __shift),
+                                                         decltype(__found_local.load())>;
 
             _IterSize __current_iter = __i;
             if constexpr (_BackwardTagType::value)
@@ -1080,12 +1079,12 @@ struct __early_exit_find_or
 template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<
     _ExecutionPolicy,
-    typename ::std::conditional<::std::is_same<_BrickTag, __parallel_or_tag>::value, bool,
-                                oneapi::dpl::__internal::__difference_t<
-                                    typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>::type>
+    ::std::conditional_t<::std::is_same<_BrickTag, __parallel_or_tag>::value, bool,
+                         oneapi::dpl::__internal::__difference_t<
+                             typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>>
 __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
     using _AtomicType = typename _BrickTag::_AtomicType;
     using _FindOrKernel =
@@ -1238,9 +1237,8 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last
     auto __s_keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
     auto __s_buf = __s_keep(__s_first, __s_last);
 
-    using _TagType =
-        typename ::std::conditional<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
-                                    __parallel_find_backward_tag<decltype(__buf.all_view())>>::type;
+    using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
+                                          __parallel_find_backward_tag<decltype(__buf.all_view())>>;
     return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
@@ -1257,9 +1255,8 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    using _TagType =
-        typename ::std::conditional<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
-                                    __parallel_find_backward_tag<decltype(__buf.all_view())>>::type;
+    using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
+                                          __parallel_find_backward_tag<decltype(__buf.all_view())>>;
     return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
@@ -1502,7 +1499,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 auto
 __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
 {
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
 
     const auto __n = __rng1.size() + __rng2.size();
@@ -1564,7 +1561,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
     auto
     operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp) const
     {
-        using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+        using _Policy = ::std::decay_t<_ExecutionPolicy>;
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
         using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
 
@@ -1658,7 +1655,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare,
 auto
 __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
 
     const auto __n = __rng.size();
@@ -1700,7 +1697,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
     auto
     operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
     {
-        using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+        using _Policy = ::std::decay_t<_ExecutionPolicy>;
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
         using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
 
@@ -1767,7 +1764,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename 
 auto
 __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
     using _GlobalSortKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName>>;

@@ -48,7 +48,7 @@ struct not_iterator {
     using iterator_category = std::random_access_iterator_tag;
 };
 
-template <typename ExecutionPolicy, typename T>
+template <typename ExecutionPolicy, typename T = void>
 using test_enable_if_execution_policy = std::enable_if_t<
     oneapi::dpl::execution::is_execution_policy<std::decay_t<ExecutionPolicy>>::value, T>;
 
@@ -222,7 +222,7 @@ none_of(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _P
 }
 
 template <typename _ExecutionPolicy, typename _Function>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 for_each(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Function __f)
 {
     store_id(algorithm_id::FOR_EACH);
@@ -230,7 +230,7 @@ for_each(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _
 }
 
 template <typename _ExecutionPolicy, typename _Size, typename _Function>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 for_each_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n, _Function __f)
 {
     store_id(algorithm_id::FOR_EACH_N);
@@ -438,7 +438,7 @@ transform(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, 
 }
 
 template <typename _ExecutionPolicy, typename _UnaryPredicate, typename _Tp>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 replace_if(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _UnaryPredicate __pred,
            const _Tp& __new_value)
 {
@@ -447,7 +447,7 @@ replace_if(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last,
 }
 
 template <typename _ExecutionPolicy, typename _Tp>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 replace(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, const _Tp& __old_value,
         const _Tp& __new_value)
 {
@@ -476,7 +476,7 @@ replace_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __las
 }
 
 template <typename _ExecutionPolicy, typename _Tp>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 fill(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, const _Tp& __value)
 {
     store_id(algorithm_id::FILL);
@@ -493,7 +493,7 @@ fill_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __count, const _Tp
 }
 
 template <typename _ExecutionPolicy, typename _Generator>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 generate(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Generator __g)
 {
     store_id(algorithm_id::GENERATE);
@@ -585,7 +585,7 @@ unique_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last
 }
 
 template <typename _ExecutionPolicy>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 reverse(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::REVERSE);
@@ -659,7 +659,7 @@ partition_copy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __l
 }
 
 template <typename _ExecutionPolicy, typename _Compare>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::SORT_COMPARE);
@@ -667,7 +667,7 @@ sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Comp
 }
 
 template <typename _ExecutionPolicy>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::SORT);
@@ -675,7 +675,7 @@ sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 }
 
 template <typename _ExecutionPolicy, typename _Compare>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 stable_sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::STABLE_SORT_COMPARE);
@@ -683,7 +683,7 @@ stable_sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last
 }
 
 template <typename _ExecutionPolicy>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 stable_sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::STABLE_SORT);
@@ -777,7 +777,7 @@ move(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, _Forw
 }
 
 template <typename _ExecutionPolicy, typename _Compare>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 partial_sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __middle, not_iterator __last,
              _Compare __comp)
 {
@@ -786,7 +786,7 @@ partial_sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __mid
 }
 
 template <typename _ExecutionPolicy>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 partial_sort(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __middle, not_iterator __last)
 {
     store_id(algorithm_id::PARTIAL_SORT);
@@ -870,7 +870,7 @@ merge(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 _
 }
 
 template <typename _ExecutionPolicy, typename _Compare>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 inplace_merge(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __middle,
               not_iterator __last, _Compare __comp)
 {
@@ -879,7 +879,7 @@ inplace_merge(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __mi
 }
 
 template <typename _ExecutionPolicy>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 inplace_merge(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __middle,
               not_iterator __last)
 {
@@ -1078,7 +1078,7 @@ minmax_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __l
 }
 
 template <typename _ExecutionPolicy, typename _Compare>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 nth_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __nth, not_iterator __last, _Compare __comp)
 {
     store_id(algorithm_id::NTH_ELEMENT_COMPARE);
@@ -1086,7 +1086,7 @@ nth_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __nth,
 }
 
 template <typename _ExecutionPolicy>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 nth_element(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __nth, not_iterator __last)
 {
     store_id(algorithm_id::NTH_ELEMENT);
@@ -1172,7 +1172,7 @@ uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
 }
 
 template <typename _ExecutionPolicy, typename _Tp>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 uninitialized_fill(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last, const _Tp& __value)
 {
     store_id(algorithm_id::UNINITIALIZED_FILL);
@@ -1189,7 +1189,7 @@ uninitialized_fill_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n,
 }
 
 template <typename _ExecutionPolicy>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 destroy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::DESTROY);
@@ -1197,7 +1197,7 @@ destroy(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 }
 
 template <typename _ExecutionPolicy, typename _Size>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 destroy_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n)
 {
     store_id(algorithm_id::DESTROY_N);
@@ -1205,7 +1205,7 @@ destroy_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n)
 }
 
 template <typename _ExecutionPolicy>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 uninitialized_default_construct(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::UNINITIALIZED_DEFAULT_CONSTRUCT);
@@ -1213,7 +1213,7 @@ uninitialized_default_construct(_ExecutionPolicy&& __exec, not_iterator __first,
 }
 
 template <typename _ExecutionPolicy, typename _Size>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 uninitialized_default_construct_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n)
 {
     store_id(algorithm_id::UNINITIALIZED_DEFAULT_CONSTRUCT_N);
@@ -1221,7 +1221,7 @@ uninitialized_default_construct_n(_ExecutionPolicy&& __exec, not_iterator __firs
 }
 
 template <typename _ExecutionPolicy>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 uninitialized_value_construct(_ExecutionPolicy&& __exec, not_iterator __first, not_iterator __last)
 {
     store_id(algorithm_id::UNINITIALIZED_VALUE_CONSTRUCT);
@@ -1229,7 +1229,7 @@ uninitialized_value_construct(_ExecutionPolicy&& __exec, not_iterator __first, n
 }
 
 template <typename _ExecutionPolicy, typename _Size>
-test_enable_if_execution_policy<_ExecutionPolicy, void>
+test_enable_if_execution_policy<_ExecutionPolicy>
 uninitialized_value_construct_n(_ExecutionPolicy&& __exec, not_iterator __first, _Size __n)
 {
     store_id(algorithm_id::UNINITIALIZED_VALUE_CONSTRUCT_N);

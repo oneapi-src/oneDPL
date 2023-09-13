@@ -91,7 +91,7 @@ struct __lvref_or_val
 template <typename _Tp>
 struct __lvref_or_val<_Tp, false>
 {
-    using __type = typename ::std::remove_reference<_Tp>::type;
+    using __type = ::std::remove_reference_t<_Tp>;
 };
 
 template <typename T>
@@ -163,7 +163,7 @@ template <>
 struct get_impl<0>
 {
     template <typename... T>
-    using ret_type = typename ::std::tuple_element<0, oneapi::dpl::__internal::tuple<T...>>::type;
+    using ret_type = ::std::tuple_element_t<0, oneapi::dpl::__internal::tuple<T...>>;
 
     template <typename... T>
     constexpr ret_type<T...>&
@@ -328,21 +328,21 @@ struct tuple<T1, T...>
     tuple() = default;
     tuple(const tuple& other) = default;
     tuple(tuple&& other) = default;
-    template <typename _U1, typename... _U, typename = typename ::std::enable_if<(sizeof...(_U) == sizeof...(T))>::type>
+    template <typename _U1, typename... _U, typename = ::std::enable_if_t<(sizeof...(_U) == sizeof...(T))>>
     tuple(const tuple<_U1, _U...>& other) : holder(other.template get<0>()), next(other.next)
     {
     }
 
-    template <typename _U1, typename... _U, typename = typename ::std::enable_if<(sizeof...(_U) == sizeof...(T))>::type>
+    template <typename _U1, typename... _U, typename = ::std::enable_if_t<(sizeof...(_U) == sizeof...(T))>>
     tuple(tuple<_U1, _U...>&& other) : holder(std::move(other).template get<0>()), next(std::move(other.next))
     {
     }
 
     template <typename _U1, typename... _U,
-              typename = typename ::std::enable_if<
+              typename = ::std::enable_if_t<
                   (sizeof...(_U) == sizeof...(T) &&
                    oneapi::dpl::__internal::__conjunction<::std::is_constructible<T1, _U1&&>,
-                                                          ::std::is_constructible<T, _U&&>...>::value)>::type>
+                                                          ::std::is_constructible<T, _U&&>...>::value)>>
     tuple(_U1&& _value, _U&&... _next) : holder(::std::forward<_U1>(_value)), next(::std::forward<_U>(_next)...)
     {
     }
@@ -645,27 +645,27 @@ using __decay_with_tuple_specialization_t = typename __decay_with_tuple_speciali
 namespace std
 {
 template <size_t _Idx, typename... _Tp>
-constexpr typename ::std::tuple_element<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>::type&
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&
 get(oneapi::dpl::__internal::tuple<_Tp...>& __a)
 {
     return __a.template get<_Idx>();
 }
 
 template <size_t _Idx, typename... _Tp>
-constexpr typename ::std::tuple_element<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>::type const&
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&
 get(const oneapi::dpl::__internal::tuple<_Tp...>& __a)
 {
     return __a.template get<_Idx>();
 }
 template <size_t _Idx, typename... _Tp>
-constexpr typename ::std::tuple_element<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>::type&&
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>&&
 get(oneapi::dpl::__internal::tuple<_Tp...>&& __a)
 {
     return ::std::move(__a).template get<_Idx>();
 }
 
 template <size_t _Idx, typename... _Tp>
-constexpr typename ::std::tuple_element<_Idx, oneapi::dpl::__internal::tuple<_Tp...>>::type const&&
+constexpr ::std::tuple_element_t<_Idx, oneapi::dpl::__internal::tuple<_Tp...>> const&&
 get(const oneapi::dpl::__internal::tuple<_Tp...>&& __a)
 {
     return ::std::move(__a).template get<_Idx>();
