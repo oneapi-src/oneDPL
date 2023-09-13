@@ -114,7 +114,7 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
     // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>::value &&
-                           is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value>
+                       is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator3>::value>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
     {
