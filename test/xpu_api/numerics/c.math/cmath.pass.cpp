@@ -90,10 +90,10 @@ void test_abs()
     static_assert((std::is_same_v<decltype(dpl::abs((char)0)), int>), "");
     IF_DOUBLE_SUPPORT(static_assert((std::is_same_v<decltype(dpl::abs(Ambiguous())), Ambiguous>), ""))
 
-    static_assert(!has_abs<unsigned>, "");
-    static_assert(!has_abs<unsigned long>, "");
-    static_assert(!has_abs<unsigned long long>, "");
-    static_assert(!has_abs<size_t>, "");
+    static_assert(!has_abs<unsigned>::value, "");
+    static_assert(!has_abs<unsigned long>::value, "");
+    static_assert(!has_abs<unsigned long long>::value, "");
+    static_assert(!has_abs<size_t>::value, "");
 
     IF_DOUBLE_SUPPORT(static_assert((std::is_same_v<decltype(dpl::abs((double)0)), double>), ""))
     IF_LONG_DOUBLE_SUPPORT(static_assert((std::is_same_v<decltype(dpl::abs((long double)0)), long double>), ""))
