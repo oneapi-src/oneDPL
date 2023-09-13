@@ -67,7 +67,7 @@ int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> mea
                 oneapi::dpl::lognormal_distribution<RealType> distr(mean, stddev);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine);
-                res.store(idx.get_linear_id(), __dpl_sycl::__get_accessor_ptr(acc));
+                res.store(idx.get_linear_id(), acc);
             });
         });
         queue.wait();
@@ -111,7 +111,7 @@ int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealT
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine, part);
                 for(int i = 0; i < n_elems; ++i)
-                    __dpl_sycl::__get_accessor_ptr(acc)[idx.get_linear_id() * n_elems + i] = res[i];
+                    acc[idx.get_linear_id() * n_elems + i] = res[i];
             });
         });
         queue.wait_and_throw();
