@@ -59,11 +59,6 @@ add_custom_target(run-onedpl-tests
 
 macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
-    # this test requires 2 translation units
-    if (${test_source_file} MATCHES "pstl_offload/memory/usm_memory_replacement.pass.cpp")
-        file(GLOB_RECURSE additional_src_files "pstl_offload/memory/usm_memory_replacement_system_alloc.cpp")
-    endif()
-
     set(_build_type_in_lower "unknown")
     if (CMAKE_BUILD_TYPE)
         string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
@@ -71,6 +66,13 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
+
+    # add additional translation units, according to mask
+    get_filename_component(_test_path ${test_source_file} DIRECTORY)
+    string(REPLACE "\.pass" "" _test_name_without_pass ${_test_name})
+    file(GLOB_RECURSE additional_src_files "${_test_path}/${_test_name_without_pass}_*.cpp")
+    # exclude another matched tests, that have current test name as a prefix
+    list(FILTER additional_src_files EXCLUDE REGEX "\.pass\.cpp$")
 
     add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}" ${additional_src_files})
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
