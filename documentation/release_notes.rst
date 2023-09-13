@@ -8,6 +8,22 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.3.0
+===============
+
+New Features
+------------
+- Added support for passing zip iterators as segment value data in ``reduce_by_segment``,
+  ``exclusive_scan_by_segment``, and ``inclusive_scan_by_segment``.
+- Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
+  ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
+
+Known Issues and Limitations
+----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
+
 New in 2022.2.0
 ===============
 
