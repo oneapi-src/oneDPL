@@ -48,9 +48,9 @@ ONEDPL_TEST_NUM_MAIN
     assert(i == 3);
 #if TEST_STD_VER >= 14
     {
-    static_assert(dpl::max({1, 3, 2}) == 3, "");
-    static_assert(dpl::max({2, 1, 3}) == 3, "");
-    static_assert(dpl::max({3, 2, 1}) == 3, "");
+    static_assert(dpl::max({1, 3, 2}) == 3);
+    static_assert(dpl::max({2, 1, 3}) == 3);
+    static_assert(dpl::max({3, 2, 1}) == 3);
     }
 #endif
 
