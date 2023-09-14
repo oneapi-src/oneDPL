@@ -67,7 +67,7 @@
 
 // Enable SIMD for compilers that support OpenMP 4.0
 #if (_OPENMP >= 201307) || __INTEL_LLVM_COMPILER || (__INTEL_COMPILER >= 1600) ||                                      \
-    (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900) ||                \
+    (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900) ||                 \
     defined(__clang__)
 #    define _PSTL_PRAGMA_SIMD _PSTL_PRAGMA(omp simd)
 #    define _PSTL_PRAGMA_DECLARE_SIMD _PSTL_PRAGMA(omp declare simd)
