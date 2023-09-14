@@ -57,7 +57,7 @@ inline bool
 __same_memory_page(void* __ptr1, void* __ptr2)
 {
     ::std::uintptr_t __page_size = __get_memory_page_size();
-    return (std::uintptr_t(__ptr1) ^ ::std::uintptr_t(__ptr2)) < __page_size;
+    return (::std::uintptr_t(__ptr1) ^ ::std::uintptr_t(__ptr2)) < __page_size;
 }
 
 inline void*
@@ -73,7 +73,7 @@ __allocate_shared_for_device(sycl::device* __device, ::std::size_t __size, ::std
     ::std::size_t __base_offset = ::std::max(__alignment, sizeof(__block_header));
 
     // Check overflow on addition of __base_offset and __size
-    if (std::numeric_limits<::std::size_t>::max() - __base_offset < __size)
+    if (::std::numeric_limits<::std::size_t>::max() - __base_offset < __size)
     {
         return nullptr;
     }
@@ -137,7 +137,7 @@ __realloc_real_pointer(void* __user_ptr, ::std::size_t __new_size)
         {
             // Reallocate __new_size
             assert(__header->_M_device != nullptr);
-            void* __new_ptr = __allocate_shared_for_device(__header->_M_device, __new_size, alignof(std::max_align_t));
+            void* __new_ptr = __allocate_shared_for_device(__header->_M_device, __new_size, alignof(::std::max_align_t));
 
             if (__new_ptr != nullptr)
             {

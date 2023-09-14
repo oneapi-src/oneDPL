@@ -92,7 +92,7 @@ namespace experimental {
                 s.report(execution_info::task_completion);
               }
               if constexpr(report_value_v<SelectionHandle, execution_info::task_time_t>)
-                s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
+                s.report(execution_info::task_time, (::std::chrono::steady_clock::now() - t0).count());
             });
         });
         return async_waiter{e2};

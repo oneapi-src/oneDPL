@@ -43,7 +43,7 @@ namespace experimental{
   public:
     //Policy Traits
     using selection_type = oneapi::dpl::experimental::basic_selection_handle_t<round_robin_policy<Backend>, execution_resource_t>;
-    using resource_type = decltype(unwrap(std::declval<wrapped_resource_t>()));
+    using resource_type = decltype(unwrap(::std::declval<wrapped_resource_t>()));
     using wait_type = typename backend_t::wait_type;
 
   private:

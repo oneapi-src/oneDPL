@@ -57,7 +57,7 @@ namespace experimental{
 
     public:
       dl_selection_handle_t(const Policy& p, ::std::shared_ptr<resource_t> r )
-        : policy_(p), resource_(std::move(r)) {}
+        : policy_(p), resource_(::std::move(r)) {}
 
       auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_->e_); }
 
@@ -89,7 +89,7 @@ namespace experimental{
             state_= ::std::make_shared<state_t>();
             auto u =  get_resources();
             for(auto x : u){
-              state_->resources_.push_back(std::make_shared<resource_t>(x));
+              state_->resources_.push_back(::std::make_shared<resource_t>(x));
             }
         }
     }
@@ -100,7 +100,7 @@ namespace experimental{
             state_= ::std::make_shared<state_t>();
             auto container =  get_resources();
             for(auto x : container){
-              state_->resources_.push_back(std::make_shared<resource_t>(x));
+              state_->resources_.push_back(::std::make_shared<resource_t>(x));
             }
         }
     }

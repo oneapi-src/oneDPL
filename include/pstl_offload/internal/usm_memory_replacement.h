@@ -61,7 +61,7 @@ class __offload_policy_holder_type
     // would be stored in each translation unit
     __offload_policy_holder_type(sycl::device&& __offload_device,
                                  __set_active_device_func_type __set_active_device_func)
-        : _M_offload_device(std::move(__offload_device)), _M_offload_policy(_M_offload_device),
+        : _M_offload_device(::std::move(__offload_device)), _M_offload_policy(_M_offload_device),
           _M_set_active_device(__set_active_device_func)
     {
         _M_set_active_device(&_M_offload_device);
@@ -97,7 +97,7 @@ __get_original_aligned_alloc()
 static void*
 __internal_aligned_alloc(::std::size_t __size, ::std::size_t __alignment)
 {
-    sycl::device* __device = __active_device.load(std::memory_order_acquire);
+    sycl::device* __device = __active_device.load(::std::memory_order_acquire);
     void* __res = nullptr;
 
     if (__device != nullptr)
@@ -109,7 +109,7 @@ __internal_aligned_alloc(::std::size_t __size, ::std::size_t __alignment)
         __res = __get_original_aligned_alloc()(__alignment, __size);
     }
 
-    assert((std::uintptr_t(__res) & (__alignment - 1)) == 0);
+    assert((::std::uintptr_t(__res) & (__alignment - 1)) == 0);
     return __res;
 }
 
@@ -174,7 +174,7 @@ extern "C"
 
 inline void* __attribute__((always_inline)) malloc(::std::size_t __size)
 {
-    return ::__pstl_offload::__errno_handling_internal_aligned_alloc(__size, alignof(std::max_align_t));
+    return ::__pstl_offload::__errno_handling_internal_aligned_alloc(__size, alignof(::std::max_align_t));
 }
 
 inline void* __attribute__((always_inline)) calloc(::std::size_t __num, ::std::size_t __size)
@@ -193,7 +193,7 @@ inline void* __attribute__((always_inline)) calloc(::std::size_t __num, ::std::s
     }
     else
     {
-        __res = ::__pstl_offload::__errno_handling_internal_aligned_alloc(__allocate_size, alignof(std::max_align_t));
+        __res = ::__pstl_offload::__errno_handling_internal_aligned_alloc(__allocate_size, alignof(::std::max_align_t));
     }
 
     return __res ? ::std::memset(__res, 0, __allocate_size) : nullptr;
@@ -267,25 +267,25 @@ inline void* __attribute__((always_inline)) __libc_realloc(void *__ptr, ::std::s
 inline void* __attribute__((always_inline))
 operator new(::std::size_t __size)
 {
-    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t));
+    return ::__pstl_offload::__internal_operator_new(__size, alignof(::std::max_align_t));
 }
 
 inline void* __attribute__((always_inline))
 operator new[](::std::size_t __size)
 {
-    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t));
+    return ::__pstl_offload::__internal_operator_new(__size, alignof(::std::max_align_t));
 }
 
 inline void* __attribute__((always_inline))
 operator new(::std::size_t __size, const ::std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t), ::std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, alignof(::std::max_align_t), ::std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
 operator new[](::std::size_t __size, const ::std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t), ::std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, alignof(::std::max_align_t), ::std::nothrow);
 }
 
 inline void* __attribute__((always_inline))

@@ -334,7 +334,7 @@ struct tuple<T1, T...>
     }
 
     template <typename _U1, typename... _U, typename = ::std::enable_if_t<(sizeof...(_U) == sizeof...(T))>>
-    tuple(tuple<_U1, _U...>&& other) : holder(std::move(other).template get<0>()), next(std::move(other.next))
+    tuple(tuple<_U1, _U...>&& other) : holder(::std::move(other).template get<0>()), next(::std::move(other.next))
     {
     }
 

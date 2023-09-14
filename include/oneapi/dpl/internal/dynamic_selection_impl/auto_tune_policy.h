@@ -71,7 +71,7 @@ namespace experimental {
       timing_t resample_time_ = 0.0;
 
       tuner_t(resource_with_index_t br, size_type resources_size, timing_t rt)
-        : t0_(std::chrono::steady_clock::now()),
+        : t0_(::std::chrono::steady_clock::now()),
           best_resource_(br),
           max_resource_to_profile_(resources_size),
           resample_time_(rt) {}
@@ -141,7 +141,7 @@ namespace experimental {
    public:
 
     // Needed by Policy Traits
-    using resource_type = decltype(unwrap(std::declval<wrapped_resource_t>()));
+    using resource_type = decltype(unwrap(::std::declval<wrapped_resource_t>()));
     using wait_type = typename Backend::wait_type;
     using selection_type = auto_tune_selection_type;
 
@@ -176,7 +176,7 @@ namespace experimental {
       static_assert(sizeof...(KeyArgs) == sizeof...(Args));
       if (state_) {
         ::std::unique_lock<::std::mutex> l(state_->m_);
-        auto k =  make_task_key(std::forward<Function>(f), ::std::forward<Args>(args)...);
+        auto k =  make_task_key(::std::forward<Function>(f), ::std::forward<Args>(args)...);
         auto t  = state_->tuner_by_key_[k];
         auto index = t->get_resource_to_profile();
         if (index == use_best_resource) {
