@@ -56,7 +56,7 @@ namespace experimental{
       ::std::shared_ptr<resource_t> resource_;
 
     public:
-      dl_selection_handle_t(const Policy& p,std::shared_ptr<resource_t> r )
+      dl_selection_handle_t(const Policy& p, ::std::shared_ptr<resource_t> r )
         : policy_(p), resource_(std::move(r)) {}
 
       auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_->e_); }
