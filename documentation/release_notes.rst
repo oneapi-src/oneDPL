@@ -19,8 +19,9 @@ New Features
   And provides default support for SYCL queues. 
 - Added support for passing zip iterators as segment value data in ``reduce_by_segment``,
   ``exclusive_scan_by_segment``, and ``inclusive_scan_by_segment``.
-- Improved performance of ``merge`` and ``sort`` (non-Radix case) algorithms on GPU devices.
+- Improved performance of ``merge``, ``sort`` and ``stable_sort`` (non-Radix case) algorithms on GPU devices.
   Added new implementation based on ``Merge Path`` approach.
+- Improved performance of ``sort`` and ``sort_stable`` (Radix case) algorithms on GPU devices.
 - Improved performance of the ``radix_sort``, ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
   ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
 
