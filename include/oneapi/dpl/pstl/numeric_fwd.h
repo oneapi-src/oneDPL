@@ -107,15 +107,15 @@ __pattern_transform_scan(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp,
           class _BinaryOperation, class _Inclusive, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, !::std::is_floating_point<_Tp>::value, _OutputIterator>
+    _ExecutionPolicy, !::std::is_floating_point_v<_Tp>, _OutputIterator>
 __pattern_transform_scan(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _OutputIterator,
                          _UnaryOperation, _Tp, _BinaryOperation, _Inclusive, _IsVector,
                          /*is_parallel=*/::std::true_type);
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp,
           class _BinaryOperation, class _Inclusive, class _IsVector>
-oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, ::std::is_floating_point<_Tp>::value, _OutputIterator>
+oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<_ExecutionPolicy,
+                                                                       ::std::is_floating_point_v<_Tp>, _OutputIterator>
 __pattern_transform_scan(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _OutputIterator,
                          _UnaryOperation, _Tp, _BinaryOperation, _Inclusive, _IsVector,
                          /*is_parallel=*/::std::true_type);

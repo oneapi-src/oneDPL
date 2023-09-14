@@ -68,9 +68,9 @@ run_test()
 // Example:
 //     template <class T>
 //     void
-//     test(T x, ::std::enable_if_t<std::is_integral<T>::value>* = 0)
+//     test(T x, ::std::enable_if_t<std::is_integral_v<T>>* = 0)
 //     {
-//         static_assert((std::is_same<decltype(dpl::conj(x)), dpl::complex<double>>::value), "");
+//         static_assert((std::is_same_v<decltype(dpl::conj(x)), dpl::complex<double>>), "");
 //
 //         // HERE IS THE CODE WHICH CALL WE SHOULD AVOID IF DOUBLE IS NOT SUPPORTED ON DEVICE
 //         assert(dpl::conj(x) == dpl::conj(dpl::complex<double>(x, 0)));

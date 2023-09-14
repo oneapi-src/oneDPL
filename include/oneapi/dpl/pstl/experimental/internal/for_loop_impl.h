@@ -38,14 +38,14 @@ namespace __internal
 
 // Generalization of ::std::advance to work with an argitraty integral type
 template <typename _Ip, typename _Diff>
-::std::enable_if_t<::std::is_integral<_Ip>::value>
+::std::enable_if_t<::std::is_integral_v<_Ip>>
 __advance(_Ip& __val, _Diff __diff)
 {
     __val += __diff;
 }
 
 template <typename _Ip, typename _Diff>
-::std::enable_if_t<!::std::is_integral<_Ip>::value>
+::std::enable_if_t<!::std::is_integral_v<_Ip>>
 __advance(_Ip& __val, _Diff __diff)
 {
     ::std::advance(__val, __diff);
@@ -56,14 +56,14 @@ template <typename _Ip, typename = void>
 struct __difference;
 
 template <typename _Ip>
-struct __difference<_Ip, ::std::enable_if_t<::std::is_integral<_Ip>::value>>
+struct __difference<_Ip, ::std::enable_if_t<::std::is_integral_v<_Ip>>>
 {
     // Define the type similar to C++20's incrementable_traits
     using __type = ::std::make_signed_t<decltype(::std::declval<_Ip>() - ::std::declval<_Ip>())>;
 };
 
 template <typename _Ip>
-struct __difference<_Ip, ::std::enable_if_t<!::std::is_integral<_Ip>::value>>
+struct __difference<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
 {
     using __type = typename oneapi::dpl::__internal::__iterator_traits<_Ip>::difference_type;
 };
@@ -205,7 +205,7 @@ struct __is_random_access_or_integral : ::std::false_type
 };
 
 template <typename _Ip>
-struct __is_random_access_or_integral<_Ip, ::std::enable_if_t<::std::is_integral<_Ip>::value>> : ::std::true_type
+struct __is_random_access_or_integral<_Ip, ::std::enable_if_t<::std::is_integral_v<_Ip>>> : ::std::true_type
 {
 };
 
@@ -228,8 +228,8 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-::std::enable_if_t<::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                                  ::std::bidirectional_iterator_tag>::value,
+::std::enable_if_t<::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
+                                    ::std::bidirectional_iterator_tag>,
                    _IndexType>
 __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
 {
@@ -265,10 +265,10 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-::std::enable_if_t<::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                                  ::std::forward_iterator_tag>::value ||
-                       ::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                                      ::std::input_iterator_tag>::value,
+::std::enable_if_t<::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
+                                    ::std::forward_iterator_tag> ||
+                       ::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
+                                        ::std::input_iterator_tag>,
                    _IndexType>
 __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
 {
@@ -472,7 +472,7 @@ template <typename _Ip, typename = void>
 struct __use_par_vec_helper;
 
 template <typename _Ip>
-struct __use_par_vec_helper<_Ip, ::std::enable_if_t<::std::is_integral<_Ip>::value>>
+struct __use_par_vec_helper<_Ip, ::std::enable_if_t<::std::is_integral_v<_Ip>>>
 {
     template <typename _ExecutionPolicy>
     static constexpr auto
@@ -490,7 +490,7 @@ struct __use_par_vec_helper<_Ip, ::std::enable_if_t<::std::is_integral<_Ip>::val
 };
 
 template <typename _Ip>
-struct __use_par_vec_helper<_Ip, ::std::enable_if_t<!::std::is_integral<_Ip>::value>>
+struct __use_par_vec_helper<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
 {
     template <typename _ExecutionPolicy>
     static constexpr auto

@@ -1079,7 +1079,7 @@ struct __early_exit_find_or
 template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
 oneapi::dpl::__internal::__enable_if_device_execution_policy<
     _ExecutionPolicy,
-    ::std::conditional_t<::std::is_same<_BrickTag, __parallel_or_tag>::value, bool,
+    ::std::conditional_t<::std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
                          oneapi::dpl::__internal::__difference_t<
                              typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>>
 __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs)
@@ -1784,8 +1784,8 @@ struct __is_radix_sort_usable_for_type
 {
     static constexpr bool value =
 #if _USE_RADIX_SORT
-        ::std::is_arithmetic<_T>::value && (__internal::__is_comp_ascending<__decay_t<_Compare>>::value ||
-                                            __internal::__is_comp_descending<__decay_t<_Compare>>::value);
+        ::std::is_arithmetic_v<_T> && (__internal::__is_comp_ascending<__decay_t<_Compare>>::value ||
+                                       __internal::__is_comp_descending<__decay_t<_Compare>>::value);
 #else
         false;
 #endif

@@ -146,7 +146,7 @@ class weibull_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Static asserts
-    static_assert(::std::is_floating_point<scalar_type>::value,
+    static_assert(::std::is_floating_point_v<scalar_type>,
                   "oneapi::dpl::weibull_distribution. Error: unsupported data type");
 
     // Distribution parameters

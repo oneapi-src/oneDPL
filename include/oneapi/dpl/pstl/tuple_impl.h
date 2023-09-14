@@ -82,7 +82,7 @@ get_tuple_tail(const ::std::tuple<T1, T...>& other)
 // Maps an incoming type for tuplewrapper to simplify tuple-related handling.
 // as it doesn't work well with rvalue refs.
 // T& -> T&, T&& -> T, T -> T
-template <typename _Tp, bool = ::std::is_lvalue_reference<_Tp>::value>
+template <typename _Tp, bool = ::std::is_lvalue_reference_v<_Tp>>
 struct __lvref_or_val
 {
     using __type = _Tp&&;
@@ -266,7 +266,7 @@ struct __value_holder
 
 // Necessary to make tuple trivially_copy_assignable. This type decided
 // if it's needed to have user-defined operator=.
-template <typename _Tp, bool = ::std::is_trivially_copy_assignable<oneapi::dpl::__internal::__value_holder<_Tp>>::value>
+template <typename _Tp, bool = ::std::is_trivially_copy_assignable_v<oneapi::dpl::__internal::__value_holder<_Tp>>>
 struct __copy_assignable_holder : oneapi::dpl::__internal::__value_holder<_Tp>
 {
     using oneapi::dpl::__internal::__value_holder<_Tp>::__value_holder;

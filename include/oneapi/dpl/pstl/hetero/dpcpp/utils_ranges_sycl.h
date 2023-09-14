@@ -201,7 +201,7 @@ struct is_temp_buff : ::std::false_type
 };
 
 template <typename _Iter>
-struct is_temp_buff<_Iter, ::std::enable_if_t<!is_hetero_it<_Iter>::value && !::std::is_pointer<_Iter>::value &&
+struct is_temp_buff<_Iter, ::std::enable_if_t<!is_hetero_it<_Iter>::value && !::std::is_pointer_v<_Iter> &&
                                               !is_passed_directly_it<_Iter>::value>> : ::std::true_type
 {
 };

@@ -44,7 +44,7 @@ class ForwardIterator
     reference operator*() const { return *my_iterator; }
     pointer operator->() const
     {
-        if constexpr (::std::is_pointer<Iterator>::value)
+        if constexpr (::std::is_pointer_v<Iterator>)
         {
             return my_iterator;
         }
@@ -230,7 +230,7 @@ struct iterator_traits_
 };
 
 template <typename Iter> // For iterators
-struct iterator_traits_<Iter, ::std::enable_if_t<!::std::is_void<typename Iter::iterator_category>::value>>
+struct iterator_traits_<Iter, ::std::enable_if_t<!::std::is_void_v<typename Iter::iterator_category>>>
 {
     typedef typename Iter::iterator_category iterator_category;
 };
@@ -340,7 +340,7 @@ struct iterator_invoker
     // A single iterator version which is used for non_const testcases
     template <typename Policy, typename Op, typename Iterator>
     ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
-                         ::std::is_base_of<non_const_wrapper, Op>::value>
+                         ::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, Iterator iter)
     {
         op(::std::forward<Policy>(exec), make_iterator<Iterator>()(iter));
@@ -349,7 +349,7 @@ struct iterator_invoker
     // A version with 2 iterators which is used for non_const testcases
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator>
     ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value &&
-                         ::std::is_base_of<non_const_wrapper, Op>::value>
+                         ::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, InputIterator input_iter, OutputIterator out_iter)
     {
         op(::std::forward<Policy>(exec), make_iterator<InputIterator>()(input_iter),
@@ -374,7 +374,7 @@ struct iterator_invoker
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
     ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
-                         !::std::is_base_of<non_const_wrapper, Op>::value>
+                           !::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, Iterator inputBegin, Iterator inputEnd, Rest&&... rest)
     {
         invoke_if<Iterator>()(::std::distance(inputBegin, inputEnd) <= sizeLimit, op, exec,
@@ -429,7 +429,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     // A single iterator version which is used for non_const testcases
     template <typename Policy, typename Op, typename Iterator>
     ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
-                         ::std::is_base_of<non_const_wrapper, Op>::value>
+                         ::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, Iterator iter)
     {
         op(::std::forward<Policy>(exec), make_iterator<Iterator>()(iter));
@@ -438,7 +438,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     // A version with 2 iterators which is used for non_const testcases
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator>
     ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value &&
-                         ::std::is_base_of<non_const_wrapper, Op>::value>
+                         ::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, InputIterator input_iter, OutputIterator out_iter)
     {
         op(::std::forward<Policy>(exec), make_iterator<InputIterator>()(input_iter),
@@ -472,7 +472,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
     ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
-                         !::std::is_base_of<non_const_wrapper, Op>::value>
+                         !::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, Iterator inputBegin, Iterator inputEnd, Rest&&... rest)
     {
         if (::std::distance(inputBegin, inputEnd) <= sizeLimit)

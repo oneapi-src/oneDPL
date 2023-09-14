@@ -133,7 +133,7 @@ class geometric_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Static asserts
-    static_assert(::std::is_integral<scalar_type>::value,
+    static_assert(::std::is_integral_v<scalar_type>,
                   "oneapi::dpl::geometric_distribution. Error: unsupported data type");
 
     // Distribution parameters
