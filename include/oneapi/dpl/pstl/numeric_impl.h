@@ -271,8 +271,8 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp,
           class _BinaryOperation, class _Inclusive, class _IsVector>
-oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, ::std::is_floating_point_v<_Tp>, _OutputIterator>
+oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<_ExecutionPolicy,
+                                                                       ::std::is_floating_point_v<_Tp>, _OutputIterator>
 __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
                          _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op,
                          _Inclusive, _IsVector __is_vector, /*is_parallel=*/::std::true_type)
