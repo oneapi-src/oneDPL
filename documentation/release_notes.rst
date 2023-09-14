@@ -22,7 +22,7 @@ New Features
 - Improved performance of ``merge``, ``sort`` and ``stable_sort`` (non-Radix case) algorithms on GPU devices.
   Added new implementation based on ``Merge Path`` approach.
 - Improved performance of ``sort`` and ``sort_stable`` (Radix case) algorithms on GPU devices.
-- Improved performance of the ``radix_sort``, ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
+- Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
   ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
 
 Fixed Issues
