@@ -59,7 +59,7 @@ namespace experimental {
 
       std::chrono::steady_clock::time_point t0_;
 
-      timing_t best_timing_ = std::numeric_limits<timing_t>::max();
+      timing_t best_timing_ = ::std::numeric_limits<timing_t>::max();
       resource_with_index_t best_resource_;
 
       const size_type max_resource_to_profile_;
@@ -103,7 +103,7 @@ namespace experimental {
         timing_t new_value = t;
         if (time_by_index_.count(index) == 0) {
           // ignore the 1st timing to cover for JIT compilation
-          time_by_index_[index] = time_data_t{0, std::numeric_limits<timing_t>::max()};
+          time_by_index_[index] = time_data_t{0, ::std::numeric_limits<timing_t>::max()};
         } else {
           auto &td = time_by_index_[index];
           auto n = td.num_timings_;

@@ -1503,7 +1503,7 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
     using _CustomName = typename _Policy::kernel_name;
 
     const auto __n = __rng1.size() + __rng2.size();
-    if (__n <= std::numeric_limits<::std::uint32_t>::max())
+    if (__n <= ::std::numeric_limits<::std::uint32_t>::max())
     {
         using _wi_index_type = ::std::uint32_t;
         using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__merge_kernel_name<_CustomName, _wi_index_type>>;
@@ -1659,7 +1659,7 @@ __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
     using _CustomName = typename _Policy::kernel_name;
 
     const auto __n = __rng.size();
-    if (__n <= std::numeric_limits<::std::uint32_t>::max())
+    if (__n <= ::std::numeric_limits<::std::uint32_t>::max())
     {
         using _wi_index_type = ::std::uint32_t;
         using _LeafSortKernel =
