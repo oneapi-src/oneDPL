@@ -48,7 +48,7 @@ namespace experimental{
       std::atomic<load_t> load_;
       resource_t(execution_resource_t e) : e_(e), load_(0) {}
     };
-    using resource_container_t = std::vector<std::shared_ptr<resource_t>>;
+    using resource_container_t = ::std::vector<std::shared_ptr<resource_t>>;
 
     template<typename Policy>
     class dl_selection_handle_t {
@@ -94,7 +94,7 @@ namespace experimental{
         }
     }
 
-    void initialize(const std::vector<resource_type> &u) {
+    void initialize(const ::std::vector<resource_type> &u) {
         if(!state_){
             backend_ = std::make_shared<backend_t>(u);
             state_= std::make_shared<state_t>();
@@ -111,7 +111,7 @@ namespace experimental{
         initialize();
     }
 
-    dynamic_load_policy(const std::vector<resource_type>& u) {
+    dynamic_load_policy(const ::std::vector<resource_type>& u) {
         initialize(u);
     }
 

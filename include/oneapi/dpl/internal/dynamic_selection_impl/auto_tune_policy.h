@@ -38,7 +38,7 @@ namespace experimental {
   class auto_tune_policy {
 
     using wrapped_resource_t = typename ::std::decay_t<Backend>::execution_resource_t;
-    using size_type = typename std::vector<typename Backend::resource_type>::size_type;
+    using size_type = typename ::std::vector<typename Backend::resource_type>::size_type;
     using timing_t = uint64_t;
 
     static constexpr timing_t never_resample = 0;
@@ -151,7 +151,7 @@ namespace experimental {
         initialize(resample_time);
     }
 
-    auto_tune_policy(const std::vector<resource_type>& u, timing_t resample_time=never_resample) {
+    auto_tune_policy(const ::std::vector<resource_type>& u, timing_t resample_time=never_resample) {
         initialize(u, resample_time);
     }
 
@@ -163,7 +163,7 @@ namespace experimental {
       }
     }
 
-    void initialize(const std::vector<resource_type>& u, timing_t resample_time=never_resample) {
+    void initialize(const ::std::vector<resource_type>& u, timing_t resample_time=never_resample) {
       if (!state_) {
         state_ = std::make_shared<state_t>();
         backend_ = std::make_shared<Backend>(u);
@@ -232,7 +232,7 @@ namespace experimental {
 
     struct state_t {
       std::mutex m_;
-      std::vector<resource_with_index_t> resources_with_index_;
+      ::std::vector<resource_with_index_t> resources_with_index_;
       tuner_by_key_t tuner_by_key_;
     };
 

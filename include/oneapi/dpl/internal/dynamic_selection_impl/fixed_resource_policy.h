@@ -59,7 +59,7 @@ namespace experimental {
     fixed_resource_policy(deferred_initialization_t) {}
 
 
-    fixed_resource_policy(const std::vector<resource_type>& u,  ::std::size_t offset=0) {
+    fixed_resource_policy(const ::std::vector<resource_type>& u,  ::std::size_t offset=0) {
         initialize(u, offset);
     }
 
@@ -80,7 +80,7 @@ namespace experimental {
       }
     }
 
-    void initialize(const std::vector<resource_type>& u, ::std::size_t offset=0) {
+    void initialize(const ::std::vector<resource_type>& u, ::std::size_t offset=0) {
       if(!state_){
            backend_ = std::make_shared<backend_t>(u);
            state_= std::make_shared<state_t>();

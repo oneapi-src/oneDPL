@@ -29,7 +29,7 @@ namespace experimental {
     using resource_type = sycl::queue;
     using wait_type = sycl::event;
     using execution_resource_t = resource_type;
-    using resource_container_t = std::vector<execution_resource_t>;
+    using resource_container_t = ::std::vector<execution_resource_t>;
 
   private:
 

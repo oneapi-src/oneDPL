@@ -76,7 +76,7 @@ namespace experimental{
       }
     }
 
-    void initialize(const std::vector<resource_type>& u) {
+    void initialize(const ::std::vector<resource_type>& u) {
       if(!state_){
           backend_ = std::make_shared<backend_t>(u);
           state_= std::make_shared<state_t>();
@@ -92,7 +92,7 @@ namespace experimental{
 
     round_robin_policy(deferred_initialization_t) {}
 
-    round_robin_policy(const std::vector<resource_type>& u) {
+    round_robin_policy(const ::std::vector<resource_type>& u) {
         initialize(u);
     }
 
