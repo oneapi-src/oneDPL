@@ -20,6 +20,7 @@ target_compile_options(pstloffload PUBLIC
             $<$<CONFIG:Debug>:-Wextra>
             $<$<NOT:$<CONFIG:Debug>>:-Wremarks -Werror=format-security>
             )
+target_link_options(pstloffload PUBLIC -Wl,-z,relro)
 
 target_include_directories(pstloffload PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
