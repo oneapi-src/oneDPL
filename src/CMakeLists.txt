@@ -18,7 +18,7 @@ target_compile_options(pstloffload PUBLIC
             -Wall -Wformat -Wformat-security
             $<$<CONFIG:Debug>:-Wextra>
             $<$<NOT:$<CONFIG:Debug>>:-Wremarks -Werror=format-security>
-            -fPIE
+            -fPIE -mretpoline
             )
 
 target_include_directories(pstloffload PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
