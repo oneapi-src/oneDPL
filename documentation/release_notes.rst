@@ -13,12 +13,21 @@ New in 2022.3.0
 
 New Features
 ------------
+- Added dynamic selection as an experimental feature. Provides functions such as ``select``,
+  ``submit`` and ``submit_and_wait``. It includes selection policies: ``fixed_resource_policy``,
+  ``round_robin_policy``, ``dynamic_load_policy``, and ``auto_tune_policy``.
+  And provides default support for SYCL queues. 
 - Added support for passing zip iterators as segment value data in ``reduce_by_segment``,
   ``exclusive_scan_by_segment``, and ``inclusive_scan_by_segment``.
 - Improved performance of ``merge`` and ``sort`` (non-Radix case) algorithms on GPU devices.
   Added new implementation based on ``Merge Path`` approach.
 - Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
   ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
+
+Fixed Issues
+------------
+- Fixed behavior of ``reduce_async`` function with ``binary_op`` parameter. 
+  Before it ignored the parameter and always used ``std::plus``.
 
 Known Issues and Limitations
 ----------------------------
