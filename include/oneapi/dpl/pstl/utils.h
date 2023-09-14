@@ -131,7 +131,7 @@ class __reorder_pred
 class __pstl_assign
 {
   public:
-    // rvalue reference used for output parameter to allow assignment of std::tuple of references.
+    // rvalue reference used for output parameter to allow assignment of ::std::tuple of references.
     // The output is the second argument because the output range is passed to the algorithm as the second range.
     template <typename _Xp, typename _Yp>
     void
@@ -583,7 +583,7 @@ struct __lifetime_keeper : public __lifetime_keeper_base
 // Generic bit- and number-manipulation routines
 //-----------------------------------------------------------------------
 
-// Bitwise type casting, same as C++20 std::bit_cast
+// Bitwise type casting, same as C++20 ::std::bit_cast
 template <typename _Dst, typename _Src>
 ::std::enable_if_t<
     sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
@@ -602,7 +602,7 @@ __dpl_bit_cast(const _Src& __src) noexcept
 #endif
 }
 
-// The max power of 2 not exceeding the given value, same as C++20 std::bit_floor
+// The max power of 2 not exceeding the given value, same as C++20 ::std::bit_floor
 template <typename _T>
 ::std::enable_if_t<::std::is_integral_v<_T> && ::std::is_unsigned_v<_T>, _T>
 __dpl_bit_floor(_T __x) noexcept
@@ -627,7 +627,7 @@ __dpl_bit_floor(_T __x) noexcept
 #endif
 }
 
-// The max power of 2 not smaller than the given value, same as C++20 std::bit_ceil
+// The max power of 2 not smaller than the given value, same as C++20 ::std::bit_ceil
 template <typename _T>
 ::std::enable_if_t<::std::is_integral_v<_T> && ::std::is_unsigned_v<_T>, _T>
 __dpl_bit_ceil(_T __x) noexcept
