@@ -15,11 +15,10 @@ add_library(pstloffload SHARED ${CMAKE_CURRENT_SOURCE_DIR}/pstl_offload.cpp)
 
 target_compile_options(pstloffload PUBLIC
             -fsycl
-            -Wall -Wformat -Wformat-security
+            -Wall -Wextra -Wformat -Wformat-security -Wremarks -Werror
             -fPIE -mretpoline
-            $<$<CONFIG:Debug>:-Wextra>
-            $<$<NOT:$<CONFIG:Debug>>:-Wremarks -Werror=format-security>
             )
+
 target_link_options(pstloffload PUBLIC -Wl,-z,relro)
 
 target_include_directories(pstloffload PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
