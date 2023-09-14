@@ -67,7 +67,8 @@ class __offload_policy_holder_type
         try
         {
             _M_offload_device = __get_offload_device_func();
-        } catch (const sycl::exception &e)
+        }
+        catch (const sycl::exception &e)
         {
             // e.code() == sycl::errc::runtime means occurs when unable to get offload device. Do not pass
             // an exception, as ctor is called for a static object and the exception can't be processed.
