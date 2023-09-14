@@ -101,7 +101,7 @@
 
 // Enable SIMD for compilers that support OpenMP 4.0
 #if (_OPENMP >= 201307) || __INTEL_LLVM_COMPILER || (__INTEL_COMPILER >= 1600) ||                                      \
-    (!defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900)
+     (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900)
 #    define _ONEDPL_PRAGMA_SIMD _ONEDPL_PRAGMA(omp simd)
 #    define _ONEDPL_PRAGMA_DECLARE_SIMD _ONEDPL_PRAGMA(omp declare simd)
 #    define _ONEDPL_PRAGMA_SIMD_REDUCTION(PRM) _ONEDPL_PRAGMA(omp simd reduction(PRM))
@@ -184,7 +184,8 @@
 #endif
 
 #if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1900 ||                                                              \
-     !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900 || _OPENMP >= 201307)
+     !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900 ||                  \
+     _OPENMP >= 201307)
 #    define _ONEDPL_UDR_PRESENT 1
 #else
 #    define _ONEDPL_UDR_PRESENT 0
