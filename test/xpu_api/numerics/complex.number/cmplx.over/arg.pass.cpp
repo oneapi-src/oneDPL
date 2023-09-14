@@ -22,7 +22,7 @@ template <class T>
 void
 test(T x, ::std::enable_if_t<std::is_integral_v<T>>* = 0)
 {
-    static_assert((std::is_same_v<decltype(dpl::arg(x)), double>), "");
+    static_assert((std::is_same_v<decltype(dpl::arg(x)), double>));
     assert(dpl::arg(x) == dpl::arg(dpl::complex<double>(static_cast<double>(x), 0)));
 }
 
@@ -30,7 +30,7 @@ template <class T>
 void
 test(T x, ::std::enable_if_t<!std::is_integral_v<T>>* = 0)
 {
-    static_assert((std::is_same_v<decltype(dpl::arg(x)), T>), "");
+    static_assert((std::is_same_v<decltype(dpl::arg(x)), T>));
     assert(dpl::arg(x) == dpl::arg(dpl::complex<T>(x, 0)));
 }
 

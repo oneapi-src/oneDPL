@@ -71,14 +71,14 @@ __pattern_walk1(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Functio
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, __is_random_access_iterator<_RandomAccessIterator>::value>
+    _ExecutionPolicy, __is_random_access_iterator_v<_RandomAccessIterator>>
 __pattern_walk1(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Function __f,
                 _IsVector __is_vector,
                 /*parallel=*/::std::true_type);
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, !__is_random_access_iterator<_RandomAccessIterator>::value>
+    _ExecutionPolicy, !__is_random_access_iterator_v<_RandomAccessIterator>>
 __pattern_walk1(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Function __f,
                 _IsVector __is_vector,
                 /*parallel=*/::std::true_type);
@@ -155,14 +155,14 @@ __pattern_walk2(_ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _Forwa
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Function,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, __is_random_access_iterator<_RandomAccessIterator1, _RandomAccessIterator2>::value,
+    _ExecutionPolicy, __is_random_access_iterator_v<_RandomAccessIterator1, _RandomAccessIterator2>,
     _RandomAccessIterator2>
 __pattern_walk2(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
                 _RandomAccessIterator2 __first2, _Function __f, _IsVector __is_vector, /*parallel=*/::std::true_type);
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, !__is_random_access_iterator<_ForwardIterator1, _ForwardIterator2>::value, _ForwardIterator2>
+    _ExecutionPolicy, !__is_random_access_iterator_v<_ForwardIterator1, _ForwardIterator2>, _ForwardIterator2>
 __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                 _ForwardIterator2 __first2, _Function __f, _IsVector __is_vector, /*parallel=*/::std::true_type);
 
@@ -185,14 +185,14 @@ __pattern_walk2_brick(_ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, 
 
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Brick>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, __is_random_access_iterator<_RandomAccessIterator1, _RandomAccessIterator2>::value,
+    _ExecutionPolicy, __is_random_access_iterator_v<_RandomAccessIterator1, _RandomAccessIterator2>,
     _RandomAccessIterator2>
 __pattern_walk2_brick(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
                       _RandomAccessIterator2 __first2, _Brick __brick, /*parallel=*/::std::true_type);
 
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Brick>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, !__is_random_access_iterator<_RandomAccessIterator1, _RandomAccessIterator2>::value,
+    _ExecutionPolicy, !__is_random_access_iterator_v<_RandomAccessIterator1, _RandomAccessIterator2>,
     _RandomAccessIterator2>
 __pattern_walk2_brick(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
                       _RandomAccessIterator2 __first2, _Brick __brick, /*parallel=*/::std::true_type);
@@ -233,7 +233,7 @@ template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAcc
           class _RandomAccessIterator3, class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
     _ExecutionPolicy,
-    __is_random_access_iterator<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3>::value,
+    __is_random_access_iterator_v<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3>,
     _RandomAccessIterator3>
 __pattern_walk3(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
                 _RandomAccessIterator2 __first2, _RandomAccessIterator3 __first3, _Function __f, _IsVector __is_vector,
@@ -243,7 +243,7 @@ template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAcc
           class _RandomAccessIterator3, class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
     _ExecutionPolicy,
-    !__is_random_access_iterator<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3>::value,
+    !__is_random_access_iterator_v<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3>,
     _RandomAccessIterator3>
 __pattern_walk3(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
                 _RandomAccessIterator2 __first2, _RandomAccessIterator3 __first3, _Function __f, _IsVector __is_vector,

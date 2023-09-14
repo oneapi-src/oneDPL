@@ -191,7 +191,13 @@ template <typename _Iter>
 using is_hetero_it = oneapi::dpl::__internal::is_hetero_iterator<_Iter>;
 
 template <typename _Iter>
+inline constexpr bool is_hetero_it_v = is_hetero_it<_Iter>::value;
+
+template <typename _Iter>
 using is_passed_directly_it = oneapi::dpl::__internal::is_passed_directly<_Iter>;
+
+template <typename _Iter>
+inline constexpr bool is_passed_directly_it_v = is_passed_directly_it<_Iter>::value;
 
 //struct for checking if it needs to create a temporary SYCL buffer or not
 
@@ -201,8 +207,9 @@ struct is_temp_buff : ::std::false_type
 };
 
 template <typename _Iter>
-struct is_temp_buff<_Iter, ::std::enable_if_t<!is_hetero_it<_Iter>::value && !::std::is_pointer_v<_Iter> &&
-                                              !is_passed_directly_it<_Iter>::value>> : ::std::true_type
+struct is_temp_buff<
+    _Iter, ::std::enable_if_t<!is_hetero_it_v<_Iter> && !::std::is_pointer_v<_Iter> && !is_passed_directly_it_v<_Iter>>>
+    : ::std::true_type
 {
 };
 
@@ -435,7 +442,7 @@ struct __get_sycl_range
     }
 
     template <typename _R, typename _Map, typename _Size,
-              ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator<_Map>::value, int> = 0>
+              ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator_v<_Map>, int> = 0>
     auto
     __get_permutation_view(_R __r, _Map __m, _Size __s)
     {
@@ -445,7 +452,7 @@ struct __get_sycl_range
 
   public:
     //specialization for permutation_iterator using sycl_iterator as source
-    template <typename _It, typename _Map, ::std::enable_if_t<is_hetero_it<_It>::value, int> = 0>
+    template <typename _It, typename _Map, ::std::enable_if_t<is_hetero_it_v<_It>, int> = 0>
     auto
     operator()(oneapi::dpl::permutation_iterator<_It, _Map> __first,
                oneapi::dpl::permutation_iterator<_It, _Map> __last)
@@ -464,7 +471,7 @@ struct __get_sycl_range
     // TODO Add specialization for general case, e.g., permutation_iterator using host
     // or another fancy iterator.
     //specialization for permutation_iterator using USM pointer as source
-    template <typename _It, typename _Map, ::std::enable_if_t<!is_hetero_it<_It>::value, int> = 0>
+    template <typename _It, typename _Map, ::std::enable_if_t<!is_hetero_it_v<_It>, int> = 0>
     auto
     operator()(oneapi::dpl::permutation_iterator<_It, _Map> __first,
                oneapi::dpl::permutation_iterator<_It, _Map> __last)
@@ -498,7 +505,7 @@ struct __get_sycl_range
 
     // for raw pointers and direct pass objects (for example, counting_iterator, iterator of USM-containers)
     template <typename _Iter>
-    ::std::enable_if_t<is_passed_directly_it<_Iter>::value, __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>>
+    ::std::enable_if_t<is_passed_directly_it_v<_Iter>, __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>>
     operator()(_Iter __first, _Iter __last)
     {
         assert(__first < __last);
@@ -510,7 +517,7 @@ struct __get_sycl_range
     template <typename _Iter>
     auto
     operator()(_Iter __first, _Iter __last)
-        -> ::std::enable_if_t<is_hetero_it<_Iter>::value,
+        -> ::std::enable_if_t<is_hetero_it_v<_Iter>,
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
         assert(__first < __last);

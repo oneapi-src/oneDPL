@@ -500,7 +500,7 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
 
 #if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
                     constexpr bool __can_use_subgroup_load_store =
-                        _IsFullGroup && dpl::__internal::__range_has_raw_ptr_iterator<::std::decay_t<_InRng>>::value;
+                        _IsFullGroup && dpl::__internal::__range_has_raw_ptr_iterator_v<::std::decay_t<_InRng>>;
 #else
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
@@ -606,7 +606,7 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 
 #if _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT
                     constexpr bool __can_use_subgroup_load_store =
-                        _IsFullGroup && dpl::__internal::__range_has_raw_ptr_iterator<::std::decay_t<_InRng>>::value;
+                        _IsFullGroup && dpl::__internal::__range_has_raw_ptr_iterator_v<::std::decay_t<_InRng>>;
 #else
                     constexpr bool __can_use_subgroup_load_store = false;
 #endif
@@ -1784,8 +1784,8 @@ struct __is_radix_sort_usable_for_type
 {
     static constexpr bool value =
 #if _USE_RADIX_SORT
-        ::std::is_arithmetic_v<_T> && (__internal::__is_comp_ascending<__decay_t<_Compare>>::value ||
-                                       __internal::__is_comp_descending<__decay_t<_Compare>>::value);
+        ::std::is_arithmetic_v<_T> && (__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value ||
+                                       __internal::__is_comp_descending<::std::decay_t<_Compare>>::value);
 #else
         false;
 #endif
@@ -1793,20 +1793,23 @@ struct __is_radix_sort_usable_for_type
 
 #if _USE_RADIX_SORT
 template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
-    __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
-    __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
+          ::std::enable_if_t<
+              oneapi::dpl::__internal::__is_device_execution_policy_v<::std::decay_t<_ExecutionPolicy>> &&
+                  __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value,
+              int> = 0>
 auto
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj)
 {
-    return __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(
+    return __parallel_radix_sort<__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
 }
 #endif
 
-template <
-    typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
-    __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<__decay_t<_ExecutionPolicy>>::value &&
-    !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
+template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
+          ::std::enable_if_t<
+              oneapi::dpl::__internal::__is_device_execution_policy_v<::std::decay_t<_ExecutionPolicy>> &&
+                  !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value,
+              int> = 0>
 auto
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {

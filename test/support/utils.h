@@ -696,6 +696,9 @@ struct can_use_default_less_operator<T, decltype(::std::declval<T>() < ::std::de
 {
 };
 
+template <typename T>
+inline constexpr bool can_use_default_less_operator_v = can_use_default_less_operator<T>::value;
+
 // An arbitrary binary predicate to simulate a predicate the user providing
 // a custom predicate.
 template <typename _Tp>

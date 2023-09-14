@@ -67,6 +67,9 @@ struct __range_has_raw_ptr_iterator<T, ::std::void_t<decltype(::std::declval<T&>
 {
 };
 
+template <typename T>
+inline constexpr bool __range_has_raw_ptr_iterator_v = __range_has_raw_ptr_iterator<T>::value;
+
 } //namespace __internal
 
 namespace __ranges
