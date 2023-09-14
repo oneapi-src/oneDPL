@@ -207,8 +207,9 @@ struct is_temp_buff : ::std::false_type
 };
 
 template <typename _Iter>
-struct is_temp_buff<_Iter, ::std::enable_if_t<!is_hetero_it_v<_Iter> && !::std::is_pointer_v<_Iter> &&
-                                              !is_passed_directly_it_v<_Iter>>> : ::std::true_type
+struct is_temp_buff<
+    _Iter, ::std::enable_if_t<!is_hetero_it_v<_Iter> && !::std::is_pointer_v<_Iter> && !is_passed_directly_it_v<_Iter>>>
+    : ::std::true_type
 {
 };
 
@@ -515,9 +516,9 @@ struct __get_sycl_range
     //specialization for hetero iterator
     template <typename _Iter>
     auto
-    operator()(_Iter __first, _Iter __last) ->
-        ::std::enable_if_t<is_hetero_it_v<_Iter>,
-                                  __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
+    operator()(_Iter __first, _Iter __last)
+        -> ::std::enable_if_t<is_hetero_it_v<_Iter>,
+                              __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
         assert(__first < __last);
         using value_type = val_t<_Iter>;
