@@ -26,29 +26,29 @@ namespace __pstl_offload
 {
 
 constexpr bool
-__is_power_of_two(std::size_t __number)
+__is_power_of_two(::std::size_t __number)
 {
     return (__number != 0) && ((__number & __number - 1) == 0);
 }
 
-inline constexpr std::size_t __uniq_type_const = 0x23499abc405a9bccLLU;
+inline constexpr ::std::size_t __uniq_type_const = 0x23499abc405a9bccLLU;
 
 struct __block_header
 {
-    std::size_t _M_uniq_const;
+    ::std::size_t _M_uniq_const;
     void* _M_original_pointer;
     sycl::device* _M_device;
-    std::size_t _M_requested_number_of_bytes;
+    ::std::size_t _M_requested_number_of_bytes;
 }; // struct __block_header
 
 static_assert(__is_power_of_two(sizeof(__block_header)));
 
 #if __linux__
 
-inline std::size_t
+inline ::std::size_t
 __get_memory_page_size()
 {
-    static std::size_t __memory_page_size = sysconf(_SC_PAGESIZE);
+    static ::std::size_t __memory_page_size = sysconf(_SC_PAGESIZE);
     assert(__is_power_of_two(__memory_page_size));
     return __memory_page_size;
 }
@@ -61,7 +61,7 @@ __same_memory_page(void* __ptr1, void* __ptr2)
 }
 
 inline void*
-__allocate_shared_for_device(sycl::device* __device, std::size_t __size, std::size_t __alignment)
+__allocate_shared_for_device(sycl::device* __device, ::std::size_t __size, ::std::size_t __alignment)
 {
     // Unsupported alignment - impossible to guarantee that the returned pointer and memory header
     // would be on the same memory page if the alignment for more than a memory page is requested
@@ -70,7 +70,7 @@ __allocate_shared_for_device(sycl::device* __device, std::size_t __size, std::si
         return nullptr;
     }
 
-    std::size_t __base_offset = std::max(__alignment, sizeof(__block_header));
+    ::std::size_t __base_offset = std::max(__alignment, sizeof(__block_header));
 
     // Check overflow on addition of __base_offset and __size
     if (std::numeric_limits<std::size_t>::max() - __base_offset < __size)
@@ -80,10 +80,10 @@ __allocate_shared_for_device(sycl::device* __device, std::size_t __size, std::si
 
     // Memory block allocated with sycl::aligned_alloc_shared should be aligned to at least sizeof(__block_header) * 2
     // to guarantee that header and header + sizeof(__block_header) (user pointer) would be placed in one memory page
-    std::size_t __usm_alignment = __base_offset << 1;
+    ::std::size_t __usm_alignment = __base_offset << 1;
     // Required number of bytes to store memory header and preserve alignment on returned pointer
     // usm_alignment bytes are reserved to store memory header
-    std::size_t __usm_size = __size + __base_offset;
+    ::std::size_t __usm_size = __size + __base_offset;
 
     sycl::context __context = __device->get_platform().ext_oneapi_get_default_context();
     void* __ptr = sycl::aligned_alloc_shared(__usm_alignment, __usm_size, *__device, __context);
@@ -103,7 +103,7 @@ __allocate_shared_for_device(sycl::device* __device, std::size_t __size, std::si
 inline auto
 __get_original_realloc()
 {
-    using __realloc_func_type = void* (*)(void*, std::size_t);
+    using __realloc_func_type = void* (*)(void*, ::std::size_t);
 
     static __realloc_func_type __orig_realloc = __realloc_func_type(dlsym(RTLD_NEXT, "realloc"));
     return __orig_realloc;
@@ -119,7 +119,7 @@ __free_usm_pointer(__block_header* __header)
 }
 
 inline void*
-__realloc_real_pointer(void* __user_ptr, std::size_t __new_size)
+__realloc_real_pointer(void* __user_ptr, ::std::size_t __new_size)
 {
     assert(__user_ptr != nullptr);
     __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
@@ -162,7 +162,7 @@ __realloc_real_pointer(void* __user_ptr, std::size_t __new_size)
 }
 
 static void*
-__internal_realloc(void* __user_ptr, std::size_t __new_size)
+__internal_realloc(void* __user_ptr, ::std::size_t __new_size)
 {
     return __user_ptr == nullptr ? std::malloc(__new_size) : __realloc_real_pointer(__user_ptr, __new_size);
 }
