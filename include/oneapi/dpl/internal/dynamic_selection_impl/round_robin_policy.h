@@ -47,29 +47,29 @@ namespace experimental{
     using wait_type = typename backend_t::wait_type;
 
   private:
-    std::shared_ptr<backend_t> backend_;
+    ::std::shared_ptr<backend_t> backend_;
 
     struct state_t{
         resource_container_t resources_;
         resource_container_size_t num_contexts_;
-        std::atomic<resource_container_size_t> next_context_;
+        ::std::atomic<resource_container_size_t> next_context_;
     };
 
-    std::shared_ptr<state_t> state_;
+    ::std::shared_ptr<state_t> state_;
 
     public:
     auto get_resources() const {
         if(backend_){
             return backend_->get_resources();
         }else{
-            throw std::logic_error("get_resources called before initialization");
+            throw ::std::logic_error("get_resources called before initialization");
         }
     }
 
     void initialize() {
       if(!state_){
-          backend_ = std::make_shared<backend_t>();
-          state_= std::make_shared<state_t>();
+          backend_ = ::std::make_shared<backend_t>();
+          state_= ::std::make_shared<state_t>();
           state_->resources_ = get_resources();
           state_->num_contexts_ = state_->resources_.size();
           state_->next_context_ = 0;
@@ -78,8 +78,8 @@ namespace experimental{
 
     void initialize(const ::std::vector<resource_type>& u) {
       if(!state_){
-          backend_ = std::make_shared<backend_t>(u);
-          state_= std::make_shared<state_t>();
+          backend_ = ::std::make_shared<backend_t>(u);
+          state_= ::std::make_shared<state_t>();
           state_->resources_ = get_resources();
           state_->num_contexts_ = state_->resources_.size();
           state_->next_context_=0;
@@ -112,16 +112,16 @@ namespace experimental{
           auto &e = state_->resources_[current_context_];
           return selection_type{*this, e};
       }else{
-        throw std::logic_error("select called before initialization");
+        throw ::std::logic_error("select called before initialization");
       }
     }
 
     template<typename Function, typename ...Args>
     auto submit(selection_type e, Function&& f, Args&&... args) {
       if(backend_){
-        return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
+        return backend_->submit(e, ::std::forward<Function>(f), ::std::forward<Args>(args)...);
       }else{
-        throw std::logic_error("submit called before initialization");
+        throw ::std::logic_error("submit called before initialization");
       }
     }
 
@@ -129,7 +129,7 @@ namespace experimental{
       if(backend_){
         return backend_->get_submission_group();
       }else{
-        throw std::logic_error("get_submission_group called before initialization");
+        throw ::std::logic_error("get_submission_group called before initialization");
       }
     }
 

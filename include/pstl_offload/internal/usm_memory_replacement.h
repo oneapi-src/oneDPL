@@ -28,12 +28,12 @@
 namespace __pstl_offload
 {
 
-static std::atomic<sycl::device*> __active_device = nullptr;
+static ::std::atomic<sycl::device*> __active_device = nullptr;
 
 static void
 __set_active_device(sycl::device* __new_active_device)
 {
-    __active_device.store(__new_active_device, std::memory_order_release);
+    __active_device.store(__new_active_device, ::std::memory_order_release);
 }
 
 static sycl::device
@@ -133,14 +133,14 @@ __internal_operator_new(::std::size_t __size, ::std::size_t __alignment)
 
     while (__res == nullptr)
     {
-        std::new_handler __handler = std::get_new_handler();
+        ::std::new_handler __handler = ::std::get_new_handler();
         if (__handler != nullptr)
         {
             __handler();
         }
         else
         {
-            throw std::bad_alloc{};
+            throw ::std::bad_alloc{};
         }
         __res = __internal_aligned_alloc(__size, __alignment);
     }
@@ -149,7 +149,7 @@ __internal_operator_new(::std::size_t __size, ::std::size_t __alignment)
 }
 
 static void*
-__internal_operator_new(::std::size_t __size, ::std::size_t __alignment, const std::nothrow_t&) noexcept
+__internal_operator_new(::std::size_t __size, ::std::size_t __alignment, const ::std::nothrow_t&) noexcept
 {
     void* __res = nullptr;
     try
@@ -196,7 +196,7 @@ inline void* __attribute__((always_inline)) calloc(::std::size_t __num, ::std::s
         __res = ::__pstl_offload::__errno_handling_internal_aligned_alloc(__allocate_size, alignof(std::max_align_t));
     }
 
-    return __res ? std::memset(__res, 0, __allocate_size) : nullptr;
+    return __res ? ::std::memset(__res, 0, __allocate_size) : nullptr;
 }
 
 inline void* __attribute__((always_inline)) realloc(void* __ptr, ::std::size_t __size)
@@ -277,39 +277,39 @@ operator new[](::std::size_t __size)
 }
 
 inline void* __attribute__((always_inline))
-operator new(::std::size_t __size, const std::nothrow_t&) noexcept
+operator new(::std::size_t __size, const ::std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t), std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t), ::std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
-operator new[](::std::size_t __size, const std::nothrow_t&) noexcept
+operator new[](::std::size_t __size, const ::std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t), std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, alignof(std::max_align_t), ::std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
-operator new(::std::size_t __size, std::align_val_t __al)
+operator new(::std::size_t __size, ::std::align_val_t __al)
 {
     return ::__pstl_offload::__internal_operator_new(__size, ::std::size_t(__al));
 }
 
 inline void* __attribute__((always_inline))
-operator new[](::std::size_t __size, std::align_val_t __al)
+operator new[](::std::size_t __size, ::std::align_val_t __al)
 {
     return ::__pstl_offload::__internal_operator_new(__size, ::std::size_t(__al));
 }
 
 inline void* __attribute__((always_inline))
-operator new(::std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept
+operator new(::std::size_t __size, ::std::align_val_t __al, const ::std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, ::std::size_t(__al), std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, ::std::size_t(__al), ::std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
-operator new[](::std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept
+operator new[](::std::size_t __size, ::std::align_val_t __al, const ::std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, ::std::size_t(__al), std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, ::std::size_t(__al), ::std::nothrow);
 }
 
 #pragma GCC diagnostic pop

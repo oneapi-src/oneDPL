@@ -55,9 +55,9 @@ namespace experimental {
     };
 
     struct tuner_t {
-      std::mutex m_;
+      ::std::mutex m_;
 
-      std::chrono::steady_clock::time_point t0_;
+      ::std::chrono::steady_clock::time_point t0_;
 
       timing_t best_timing_ = ::std::numeric_limits<timing_t>::max();
       resource_with_index_t best_resource_;
@@ -65,7 +65,7 @@ namespace experimental {
       const size_type max_resource_to_profile_;
       uint64_t next_resource_to_profile_ = 0; // as index in resources
 
-      using time_by_index_t = std::unordered_map<size_type, time_data_t>;
+      using time_by_index_t = ::std::unordered_map<size_type, time_data_t>;
       time_by_index_t time_by_index_;
 
       timing_t resample_time_ = 0.0;
@@ -77,15 +77,15 @@ namespace experimental {
           resample_time_(rt) {}
 
       size_type get_resource_to_profile() {
-        std::lock_guard<std::mutex> l(m_);
+        ::std::lock_guard<std::mutex> l(m_);
         if (next_resource_to_profile_ < 2*max_resource_to_profile_) {
           // do everything twice
           return next_resource_to_profile_++ % max_resource_to_profile_;
         } else if (resample_time_ == never_resample) {
           return use_best_resource;
         } else {
-          auto now = std::chrono::steady_clock::now();
-          auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now-t0_).count();
+          auto now = ::std::chrono::steady_clock::now();
+          auto ms = ::std::chrono::duration_cast<std::chrono::milliseconds>(now-t0_).count();
           if (ms < resample_time_) {
             return use_best_resource;
           } else {
@@ -98,7 +98,7 @@ namespace experimental {
 
       // called to add new profile info
       void add_new_timing(resource_with_index_t r, timing_t t) {
-        std::unique_lock<std::mutex> l(m_);
+        ::std::unique_lock<std::mutex> l(m_);
         auto index = r.index_;
         timing_t new_value = t;
         if (time_by_index_.count(index) == 0) {
@@ -123,10 +123,10 @@ namespace experimental {
       using policy_t = auto_tune_policy<Backend, KeyArgs...>;
       policy_t policy_;
       resource_with_index_t resource_;
-      std::shared_ptr<tuner_t> tuner_;
+      ::std::shared_ptr<tuner_t> tuner_;
 
     public:
-      auto_tune_selection_type(const policy_t& p, resource_with_index_t r, std::shared_ptr<tuner_t> t)
+      auto_tune_selection_type(const policy_t& p, resource_with_index_t r, ::std::shared_ptr<tuner_t> t)
         : policy_(p), resource_(r), tuner_(::std::move(t)) {}
 
       auto unwrap() { return ::oneapi::dpl::experimental::unwrap(resource_.r_); }
@@ -157,16 +157,16 @@ namespace experimental {
 
     void initialize(timing_t resample_time=never_resample) {
       if (!state_) {
-        state_ = std::make_shared<state_t>();
-        backend_ = std::make_shared<Backend>();
+        state_ = ::std::make_shared<state_t>();
+        backend_ = ::std::make_shared<Backend>();
         initialize_impl(resample_time);
       }
     }
 
     void initialize(const ::std::vector<resource_type>& u, timing_t resample_time=never_resample) {
       if (!state_) {
-        state_ = std::make_shared<state_t>();
-        backend_ = std::make_shared<Backend>(u);
+        state_ = ::std::make_shared<state_t>();
+        backend_ = ::std::make_shared<Backend>(u);
         initialize_impl(resample_time);
       }
     }
@@ -175,8 +175,8 @@ namespace experimental {
     selection_type select(Function&& f, Args&&...args) {
       static_assert(sizeof...(KeyArgs) == sizeof...(Args));
       if (state_) {
-        std::unique_lock<std::mutex> l(state_->m_);
-        auto k =  make_task_key(std::forward<Function>(f), std::forward<Args>(args)...);
+        ::std::unique_lock<std::mutex> l(state_->m_);
+        auto k =  make_task_key(std::forward<Function>(f), ::std::forward<Args>(args)...);
         auto t  = state_->tuner_by_key_[k];
         auto index = t->get_resource_to_profile();
         if (index == use_best_resource) {
@@ -186,16 +186,16 @@ namespace experimental {
           return selection_type{*this, r, t};
         }
       } else {
-         throw std::logic_error("select called before initialization");
+         throw ::std::logic_error("select called before initialization");
       }
     }
 
     template<typename Function, typename ...Args>
     auto submit(selection_type e, Function&& f, Args&&... args) {
       if (backend_) {
-        return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
+        return backend_->submit(e, ::std::forward<Function>(f), ::std::forward<Args>(args)...);
       } else {
-         throw std::logic_error("submit called before initialization");
+         throw ::std::logic_error("submit called before initialization");
       }
     }
 
@@ -203,7 +203,7 @@ namespace experimental {
        if (backend_) {
          return backend_->get_resources();
        } else {
-         throw std::logic_error("get_resources called before initialization");
+         throw ::std::logic_error("get_resources called before initialization");
        }
     }
 
@@ -211,7 +211,7 @@ namespace experimental {
       if (backend_) {
         return backend_->get_submission_group();
        } else {
-         throw std::logic_error("get_submission_group called before initialization");
+         throw ::std::logic_error("get_submission_group called before initialization");
        }
     }
 
@@ -221,8 +221,8 @@ namespace experimental {
     // types
     //
 
-    using task_key_t = std::tuple<void *, KeyArgs...>;
-    using tuner_by_key_t = std::map<task_key_t, std::shared_ptr<tuner_t>>;
+    using task_key_t = ::std::tuple<void *, KeyArgs...>;
+    using tuner_by_key_t = ::std::map<task_key_t, ::std::shared_ptr<tuner_t>>;
 
     //
     // member variables
@@ -231,13 +231,13 @@ namespace experimental {
     timing_t resample_time_ = 0;
 
     struct state_t {
-      std::mutex m_;
+      ::std::mutex m_;
       ::std::vector<resource_with_index_t> resources_with_index_;
       tuner_by_key_t tuner_by_key_;
     };
 
-    std::shared_ptr<Backend> backend_;
-    std::shared_ptr<state_t> state_;
+    ::std::shared_ptr<Backend> backend_;
+    ::std::shared_ptr<state_t> state_;
 
     //
     // private member functions
@@ -254,9 +254,9 @@ namespace experimental {
     template<typename Function, typename... Args>
     task_key_t make_task_key(Function&& f, Args&&... args) {
       // called under lock
-      task_key_t k = std::make_tuple(static_cast<void*>(&f), std::forward<Args>(args)...);
+      task_key_t k = ::std::make_tuple(static_cast<void*>(&f), ::std::forward<Args>(args)...);
       if (state_->tuner_by_key_.count(k) == 0) {
-        state_->tuner_by_key_[k] = std::make_shared<tuner_t>(state_->resources_with_index_[0], state_->resources_with_index_.size(), resample_time_);
+        state_->tuner_by_key_[k] = ::std::make_shared<tuner_t>(state_->resources_with_index_[0], state_->resources_with_index_.size(), resample_time_);
       }
       return k;
     }

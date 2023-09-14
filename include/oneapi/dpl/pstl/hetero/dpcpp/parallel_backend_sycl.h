@@ -1578,7 +1578,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
             __cgh.parallel_for<_LeafSortName...>(sycl::range</*dim=*/1>(__steps), [=](sycl::item</*dim=*/1> __item_id)
             {
                 const _IdType __i_elem = __item_id.get_linear_id() * __leaf;
-                __leaf_sort_kernel()(__rng, __i_elem, std::min<_IdType>(__i_elem + __leaf, __n), __comp);
+                __leaf_sort_kernel()(__rng, __i_elem, ::std::min<_IdType>(__i_elem + __leaf, __n), __comp);
             });
         });
 

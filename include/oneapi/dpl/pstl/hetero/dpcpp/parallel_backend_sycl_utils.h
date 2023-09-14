@@ -560,7 +560,7 @@ struct __storage
     {
         if (__usm)
         {
-            __usm_buf = std::shared_ptr<_T>(
+            __usm_buf = ::std::shared_ptr<_T>(
                 __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__n),
                 __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
         }

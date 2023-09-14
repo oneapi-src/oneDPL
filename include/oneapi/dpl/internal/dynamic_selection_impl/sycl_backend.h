@@ -60,7 +60,7 @@ namespace experimental {
 
     sycl_backend() {
       initialize_default_resources();
-      sgroup_ptr_ = std::make_unique<submission_group>(global_rank_);
+      sgroup_ptr_ = ::std::make_unique<submission_group>(global_rank_);
     }
 
     template<typename NativeUniverseVector>
@@ -69,7 +69,7 @@ namespace experimental {
       for (auto e : v) {
         global_rank_.push_back(e);
       }
-      sgroup_ptr_ = std::make_unique<submission_group>(global_rank_);
+      sgroup_ptr_ = ::std::make_unique<submission_group>(global_rank_);
     }
 
     template<typename SelectionHandle, typename Function, typename ...Args>
@@ -80,11 +80,11 @@ namespace experimental {
       }
       if constexpr(report_info_v<SelectionHandle, execution_info::task_completion_t>
                    || report_value_v<SelectionHandle, execution_info::task_time_t>) {
-        std::chrono::steady_clock::time_point t0;
+        ::std::chrono::steady_clock::time_point t0;
         if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t>) {
-          t0 = std::chrono::steady_clock::now();
+          t0 = ::std::chrono::steady_clock::now();
         }
-        auto e1 = f(q, std::forward<Args>(args)...);
+        auto e1 = f(q, ::std::forward<Args>(args)...);
         auto e2 = q.submit([=](sycl::handler& h){
             h.depends_on(e1);
             h.host_task([=](){
@@ -97,7 +97,7 @@ namespace experimental {
         });
         return async_waiter{e2};
       } else {
-        return async_waiter{f(unwrap(s), std::forward<Args>(args)...)};
+        return async_waiter{f(unwrap(s), ::std::forward<Args>(args)...)};
       }
     }
 
@@ -111,7 +111,7 @@ namespace experimental {
 
   private:
     resource_container_t global_rank_;
-    std::unique_ptr<submission_group> sgroup_ptr_;
+    ::std::unique_ptr<submission_group> sgroup_ptr_;
 
     void initialize_default_resources() {
       auto devices = sycl::device::get_devices();

@@ -45,7 +45,7 @@ namespace experimental{
 
     struct resource_t {
       execution_resource_t e_;
-      std::atomic<load_t> load_;
+      ::std::atomic<load_t> load_;
       resource_t(execution_resource_t e) : e_(e), load_(0) {}
     };
     using resource_container_t = ::std::vector<std::shared_ptr<resource_t>>;
@@ -53,7 +53,7 @@ namespace experimental{
     template<typename Policy>
     class dl_selection_handle_t {
       Policy policy_;
-      std::shared_ptr<resource_t> resource_;
+      ::std::shared_ptr<resource_t> resource_;
 
     public:
       dl_selection_handle_t(const Policy& p,std::shared_ptr<resource_t> r )
@@ -72,21 +72,21 @@ namespace experimental{
       }
     };
 
-    std::shared_ptr<backend_t> backend_;
+    ::std::shared_ptr<backend_t> backend_;
 
     using selection_type = dl_selection_handle_t<dynamic_load_policy<Backend>>;
 
     struct state_t{
         resource_container_t resources_;
-        std::mutex m_;
+        ::std::mutex m_;
     };
 
-    std::shared_ptr<state_t> state_;
+    ::std::shared_ptr<state_t> state_;
 
     void initialize(){
         if(!state_){
-            backend_ = std::make_shared<backend_t>();
-            state_= std::make_shared<state_t>();
+            backend_ = ::std::make_shared<backend_t>();
+            state_= ::std::make_shared<state_t>();
             auto u =  get_resources();
             for(auto x : u){
               state_->resources_.push_back(std::make_shared<resource_t>(x));
@@ -96,8 +96,8 @@ namespace experimental{
 
     void initialize(const ::std::vector<resource_type> &u) {
         if(!state_){
-            backend_ = std::make_shared<backend_t>(u);
-            state_= std::make_shared<state_t>();
+            backend_ = ::std::make_shared<backend_t>(u);
+            state_= ::std::make_shared<state_t>();
             auto container =  get_resources();
             for(auto x : container){
               state_->resources_.push_back(std::make_shared<resource_t>(x));
@@ -119,14 +119,14 @@ namespace experimental{
         if(backend_)
             return backend_->get_resources();
         else
-           throw std::logic_error("get_resources called before initialization");
+           throw ::std::logic_error("get_resources called before initialization");
     }
 
     template<typename ...Args>
     selection_type select(Args&&...) {
       if(state_){
-          std::unique_lock<std::mutex> l(state_->m_);
-          std::shared_ptr<resource_t> least_loaded;
+          ::std::unique_lock<std::mutex> l(state_->m_);
+          ::std::shared_ptr<resource_t> least_loaded;
           int least_load = ::std::numeric_limits<load_t>::max();
           for(int i = 0;i<state_->resources_.size();i++){
             auto r = state_->resources_[i];
@@ -138,23 +138,23 @@ namespace experimental{
           }
           return selection_type{dynamic_load_policy<Backend>(*this), least_loaded};
       }else{
-        throw std::logic_error("select called before initialization");
+        throw ::std::logic_error("select called before initialization");
       }
     }
 
     template<typename Function, typename ...Args>
     auto submit(selection_type e, Function&& f, Args&&... args) {
       if(backend_)
-        return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
+        return backend_->submit(e, ::std::forward<Function>(f), ::std::forward<Args>(args)...);
       else
-          throw std::logic_error("submit called before initialization");
+          throw ::std::logic_error("submit called before initialization");
     }
 
     auto get_submission_group() {
       if(backend_){
           return backend_->get_submission_group();
       }else{
-          throw std::logic_error("get_submission_group called before initialization");
+          throw ::std::logic_error("get_submission_group called before initialization");
       }
     }
 
