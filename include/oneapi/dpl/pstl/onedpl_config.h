@@ -100,7 +100,8 @@
 #endif
 
 // Enable SIMD for compilers that support OpenMP 4.0
-#if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (!defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900)
+#if (_OPENMP >= 201307) || __INTEL_LLVM_COMPILER || (__INTEL_COMPILER >= 1600) ||                                      \
+    (!defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900)
 #    define _ONEDPL_PRAGMA_SIMD _ONEDPL_PRAGMA(omp simd)
 #    define _ONEDPL_PRAGMA_DECLARE_SIMD _ONEDPL_PRAGMA(omp declare simd)
 #    define _ONEDPL_PRAGMA_SIMD_REDUCTION(PRM) _ONEDPL_PRAGMA(omp simd reduction(PRM))
@@ -115,13 +116,14 @@
 #endif //Enable SIMD
 
 // Enable loop unrolling pragmas where supported
-#if (__INTEL_COMPILER || (!defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 80000))
+#if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER ||                                                                      \
+    (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 80000))
 #    define _ONEDPL_PRAGMA_UNROLL _ONEDPL_PRAGMA(unroll)
 #else //no pragma unroll
 #    define _ONEDPL_PRAGMA_UNROLL
 #endif
 
-#if (__INTEL_COMPILER)
+#if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER)
 #    define _ONEDPL_PRAGMA_FORCEINLINE _ONEDPL_PRAGMA(forceinline)
 #elif defined(_PSTL_PRAGMA_FORCEINLINE)
 #    define _ONEDPL_PRAGMA_FORCEINLINE _PSTL_PRAGMA_FORCEINLINE
@@ -129,7 +131,7 @@
 #    define _ONEDPL_PRAGMA_FORCEINLINE
 #endif
 
-#if (__INTEL_COMPILER >= 1900)
+#if (__INTEL_LLVM_COMPILER >= 20230100 || __INTEL_COMPILER >= 1900)
 #    define _ONEDPL_PRAGMA_SIMD_SCAN(PRM) _ONEDPL_PRAGMA(omp simd reduction(inscan, PRM))
 #    define _ONEDPL_PRAGMA_SIMD_INCLUSIVE_SCAN(PRM) _ONEDPL_PRAGMA(omp scan inclusive(PRM))
 #    define _ONEDPL_PRAGMA_SIMD_EXCLUSIVE_SCAN(PRM) _ONEDPL_PRAGMA(omp scan exclusive(PRM))
@@ -181,13 +183,18 @@
 #    define _ONEDPL_PRAGMA_SIMD_ORDERED_MONOTONIC_2ARGS(PRM1, PRM2)
 #endif
 
-#if (__INTEL_COMPILER >= 1900 || !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900 || _OPENMP >= 201307)
+#if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1900 ||                                                              \
+    !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900 || _OPENMP >= 201307)
 #    define _ONEDPL_UDR_PRESENT 1
 #else
 #    define _ONEDPL_UDR_PRESENT 0
 #endif
 
-#define _ONEDPL_UDS_PRESENT (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
+#if (__INTEL_LLVM_COMPILER) || (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
+#   define _ONEDPL_UDS_PRESENT 1
+#else
+#   define _ONEDPL_UDS_PRESENT 0
+#endif
 
 // Declaration of reduction functor, where
 // NAME - the name of the functor
@@ -213,7 +220,7 @@
 
 // Check the user-defined macro to use non-temporal stores
 #ifndef _PSTL_USE_NONTEMPORAL_STORES_IF_ALLOWED
-#    if defined(PSTL_USE_NONTEMPORAL_STORES) && (__INTEL_COMPILER >= 1600)
+#    if defined(PSTL_USE_NONTEMPORAL_STORES) && (__INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1600)
 #        define _PSTL_USE_NONTEMPORAL_STORES_IF_ALLOWED _PSTL_PRAGMA(vector nontemporal)
 #    else
 #        define _PSTL_USE_NONTEMPORAL_STORES_IF_ALLOWED
