@@ -86,7 +86,7 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
 
     // TODO: use wgsize and iters per item from _KernelParam
     //constexpr ::std::size_t __elems_per_item = _KernelParam::data_per_workitem;
-    constexpr ::std::size_t __elems_per_item = 2;
+    constexpr ::std::size_t __elems_per_item = 16;
     std::size_t wgsize = n/num_wgs/__elems_per_item;
     std::size_t num_items = n/__elems_per_item;
 
@@ -96,14 +96,16 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     uint32_t* status_flags = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
     __queue.memset(status_flags, 0, status_flags_size * sizeof(uint32_t));
 
-    //printf("launching kernel items=%lu wgs=%lu wgsize=%lu max_cu=%u\n", num_items, num_wgs, wgsize, __max_cu);
-    /*printf("launching kernel items=%lu wgs=%lu wgsize=%lu max_cu=%u\n", num_items, num_wgs, wgsize, __max_cu);
+#if SCAN_KT_DEBUG
+    printf("launching kernel items=%lu wgs=%lu wgsize=%lu max_cu=%u\n", num_items, num_wgs, wgsize, __max_cu);
+    printf("launching kernel items=%lu wgs=%lu wgsize=%lu max_cu=%u\n", num_items, num_wgs, wgsize, __max_cu);
 
     uint32_t* debug1 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
     uint32_t* debug2 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
     uint32_t* debug3 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
     uint32_t* debug4 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
-    uint32_t* debug5 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);*/
+    uint32_t* debug5 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
+#endif
 
     auto event = __queue.submit([&](sycl::handler& hdl) {
         auto tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, hdl);
@@ -138,12 +140,21 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             ///debug1[tile_id] = local_sum;
 
 			__scan_status_flag<_Type> flag(status_flags, tile_id);
-			flag.set_partial(local_sum);
 
-            auto prev_sum = flag.lookback(tile_id, status_flags);
-            //auto prev_sum = 0;
+            if (group.leader())
+                flag.set_partial(local_sum);
+
+            // Find lowest work-item that has a full result (if any) and sum up subsequent partial results to obtain this tile's exclusive sum
+            //sycl::reduce_over_group(item.get_subgroup())
+
+            auto prev_sum = 0;
+
+            if (group.leader())
+                prev_sum = flag.lookback(tile_id, status_flags);
             //debug2[tile_id] = prev_sum;
-            flag.set_full(prev_sum + local_sum);
+
+            if (group.leader())
+                flag.set_full(prev_sum + local_sum);
 
             sycl::joint_inclusive_scan(group, in_begin, in_end, out_begin, __binary_op, prev_sum);
         });
