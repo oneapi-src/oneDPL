@@ -191,7 +191,15 @@
 #    define _ONEDPL_UDR_PRESENT 0
 #endif
 
-#if (__INTEL_LLVM_COMPILER >= 20230100) || (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
+// UDS is broken with __INTEL_LLVM_COMPILER on Windows,
+// however it may be fixed in the future releases (ones which follow 20240000)
+#if (defined(_MSC_VER) && __INTEL_LLVM_COMPILER > 20240000) || (!defined(_MSC_VER) && __INTEL_LLVM_COMPILER > 20230100)
+#    define _ONEDPL_INTEL_LLVM_UDS_PRESENT 1
+#else
+#    define _ONEDPL_INTEL_LLVM_UDS_PRESENT 0
+#endif
+
+#if _ONEDPL_INTEL_LLVM_UDS_PRESENT || (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
 #    define _ONEDPL_UDS_PRESENT 1
 #else
 #    define _ONEDPL_UDS_PRESENT 0
