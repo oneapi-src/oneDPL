@@ -73,7 +73,7 @@ __allocate_shared_for_device(sycl::device* __device, ::std::size_t __size, ::std
     ::std::size_t __base_offset = ::std::max(__alignment, sizeof(__block_header));
 
     // Check overflow on addition of __base_offset and __size
-    if (std::numeric_limits<std::size_t>::max() - __base_offset < __size)
+    if (std::numeric_limits<::std::size_t>::max() - __base_offset < __size)
     {
         return nullptr;
     }

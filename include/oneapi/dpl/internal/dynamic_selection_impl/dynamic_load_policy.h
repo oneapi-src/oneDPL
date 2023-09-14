@@ -48,7 +48,7 @@ namespace experimental{
       ::std::atomic<load_t> load_;
       resource_t(execution_resource_t e) : e_(e), load_(0) {}
     };
-    using resource_container_t = ::std::vector<std::shared_ptr<resource_t>>;
+    using resource_container_t = ::std::vector<::std::shared_ptr<resource_t>>;
 
     template<typename Policy>
     class dl_selection_handle_t {
@@ -125,7 +125,7 @@ namespace experimental{
     template<typename ...Args>
     selection_type select(Args&&...) {
       if(state_){
-          ::std::unique_lock<std::mutex> l(state_->m_);
+          ::std::unique_lock<::std::mutex> l(state_->m_);
           ::std::shared_ptr<resource_t> least_loaded;
           int least_load = ::std::numeric_limits<load_t>::max();
           for(int i = 0;i<state_->resources_.size();i++){

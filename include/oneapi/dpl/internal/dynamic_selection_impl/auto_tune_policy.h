@@ -77,7 +77,7 @@ namespace experimental {
           resample_time_(rt) {}
 
       size_type get_resource_to_profile() {
-        ::std::lock_guard<std::mutex> l(m_);
+        ::std::lock_guard<::std::mutex> l(m_);
         if (next_resource_to_profile_ < 2*max_resource_to_profile_) {
           // do everything twice
           return next_resource_to_profile_++ % max_resource_to_profile_;
@@ -85,7 +85,7 @@ namespace experimental {
           return use_best_resource;
         } else {
           auto now = ::std::chrono::steady_clock::now();
-          auto ms = ::std::chrono::duration_cast<std::chrono::milliseconds>(now-t0_).count();
+          auto ms = ::std::chrono::duration_cast<::std::chrono::milliseconds>(now-t0_).count();
           if (ms < resample_time_) {
             return use_best_resource;
           } else {
@@ -98,7 +98,7 @@ namespace experimental {
 
       // called to add new profile info
       void add_new_timing(resource_with_index_t r, timing_t t) {
-        ::std::unique_lock<std::mutex> l(m_);
+        ::std::unique_lock<::std::mutex> l(m_);
         auto index = r.index_;
         timing_t new_value = t;
         if (time_by_index_.count(index) == 0) {
@@ -175,7 +175,7 @@ namespace experimental {
     selection_type select(Function&& f, Args&&...args) {
       static_assert(sizeof...(KeyArgs) == sizeof...(Args));
       if (state_) {
-        ::std::unique_lock<std::mutex> l(state_->m_);
+        ::std::unique_lock<::std::mutex> l(state_->m_);
         auto k =  make_task_key(std::forward<Function>(f), ::std::forward<Args>(args)...);
         auto t  = state_->tuner_by_key_[k];
         auto index = t->get_resource_to_profile();
