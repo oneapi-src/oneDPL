@@ -16,10 +16,10 @@ namespace experimental{
 
     template<typename Policy>
     struct policy_traits{
-        using selection_type = typename std::decay_t<Policy>::selection_type;  //selection type
-        using resource_type = typename std::decay_t<Policy>::resource_type; //resource type
+        using selection_type = typename ::std::decay_t<Policy>::selection_type;  //selection type
+        using resource_type = typename ::std::decay_t<Policy>::resource_type; //resource type
 
-        using wait_type = typename std::decay_t<Policy>::wait_type; //wait_type
+        using wait_type = typename ::std::decay_t<Policy>::wait_type; //wait_type
     };
 
     template<typename Policy>

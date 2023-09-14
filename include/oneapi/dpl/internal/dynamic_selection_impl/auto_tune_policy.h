@@ -37,7 +37,7 @@ namespace experimental {
 #endif
   class auto_tune_policy {
 
-    using wrapped_resource_t = typename std::decay_t<Backend>::execution_resource_t;
+    using wrapped_resource_t = typename ::std::decay_t<Backend>::execution_resource_t;
     using size_type = typename std::vector<typename Backend::resource_type>::size_type;
     using timing_t = uint64_t;
 
