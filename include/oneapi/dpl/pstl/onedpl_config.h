@@ -117,7 +117,7 @@
 
 // Enable loop unrolling pragmas where supported
 #if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER ||                                                                      \
-    (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 80000))
+     (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 80000))
 #    define _ONEDPL_PRAGMA_UNROLL _ONEDPL_PRAGMA(unroll)
 #else //no pragma unroll
 #    define _ONEDPL_PRAGMA_UNROLL
@@ -184,16 +184,16 @@
 #endif
 
 #if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1900 ||                                                              \
-    !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900 || _OPENMP >= 201307)
+     !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900 || _OPENMP >= 201307)
 #    define _ONEDPL_UDR_PRESENT 1
 #else
 #    define _ONEDPL_UDR_PRESENT 0
 #endif
 
 #if (__INTEL_LLVM_COMPILER) || (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
-#   define _ONEDPL_UDS_PRESENT 1
+#    define _ONEDPL_UDS_PRESENT 1
 #else
-#   define _ONEDPL_UDS_PRESENT 0
+#    define _ONEDPL_UDS_PRESENT 0
 #endif
 
 // Declaration of reduction functor, where
