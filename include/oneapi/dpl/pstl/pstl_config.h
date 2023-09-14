@@ -66,7 +66,8 @@
 #endif
 
 // Enable SIMD for compilers that support OpenMP 4.0
-#if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (!defined(__INTEL_COMPILER) && _PSTL_GCC_VERSION >= 40900) || \
+#if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER ||                                                                      \
+    (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 80000))
     defined(__clang__)
 #    define _PSTL_PRAGMA_SIMD _PSTL_PRAGMA(omp simd)
 #    define _PSTL_PRAGMA_DECLARE_SIMD _PSTL_PRAGMA(omp declare simd)
@@ -81,13 +82,13 @@
 #    define _PSTL_PRAGMA_SIMD_REDUCTION(PRM)
 #endif //Enable SIMD
 
-#if (__INTEL_COMPILER)
+#if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER)
 #    define _PSTL_PRAGMA_FORCEINLINE _PSTL_PRAGMA(forceinline)
 #else
 #    define _PSTL_PRAGMA_FORCEINLINE
 #endif
 
-#if (__INTEL_COMPILER >= 1900)
+#if (__INTEL_LLVM_COMPILER >= 20230100 || __INTEL_COMPILER >= 1900)
 #    define _PSTL_PRAGMA_SIMD_SCAN(PRM) _PSTL_PRAGMA(omp simd reduction(inscan, PRM))
 #    define _PSTL_PRAGMA_SIMD_INCLUSIVE_SCAN(PRM) _PSTL_PRAGMA(omp scan inclusive(PRM))
 #    define _PSTL_PRAGMA_SIMD_EXCLUSIVE_SCAN(PRM) _PSTL_PRAGMA(omp scan exclusive(PRM))
@@ -105,13 +106,18 @@
 #define _PSTL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
 #define _PSTL_MONOTONIC_PRESENT (__INTEL_COMPILER >= 1800)
 
-#if (__INTEL_COMPILER >= 1900 || !defined(__INTEL_COMPILER) && _PSTL_GCC_VERSION >= 40900 || _OPENMP >= 201307)
+#if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1900 ||                                                              \
+    !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900 || _OPENMP >= 201307)
 #    define _PSTL_UDR_PRESENT 1
 #else
 #    define _PSTL_UDR_PRESENT 0
 #endif
 
-#define _PSTL_UDS_PRESENT (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
+#if (__INTEL_LLVM_COMPILER) || (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
+#   define _ONEDPL_UDS_PRESENT 1
+#else
+#   define _ONEDPL_UDS_PRESENT 0
+#endif
 
 #if _PSTL_EARLYEXIT_PRESENT
 #    define _PSTL_PRAGMA_SIMD_EARLYEXIT _PSTL_PRAGMA(omp simd early_exit)
@@ -144,7 +150,7 @@
 #endif
 
 // Check the user-defined macro to use non-temporal stores
-#if defined(PSTL_USE_NONTEMPORAL_STORES) && (__INTEL_COMPILER >= 1600)
+#if defined(PSTL_USE_NONTEMPORAL_STORES) && (__INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1600)
 #    define _PSTL_USE_NONTEMPORAL_STORES_IF_ALLOWED _PSTL_PRAGMA(vector nontemporal)
 #else
 #    define _PSTL_USE_NONTEMPORAL_STORES_IF_ALLOWED
