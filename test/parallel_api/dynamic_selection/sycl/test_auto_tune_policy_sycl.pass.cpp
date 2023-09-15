@@ -63,9 +63,9 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
 
   for (int i = 1; i <= N; ++i) {
     if (i <= 2*n_samples && (i-1)%n_samples != best_resource) {
-        *j = 10000;
+        *j = 100;
     } else {
-        *j = 1;
+        *j = 0;
     }
     // we can capture all by reference
     // the inline_scheduler reports timings in submit
@@ -87,13 +87,17 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return q.submit([=](sycl::handler& h) {
-                     h.parallel_for<TestUtils::unique_kernel_name<class tune1, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
-                       for (int j0 = 0; j0 < *j; ++j0) {
-                         v[idx] += idx;
-                       }
+                   if (*j == 0) {
+                     return sycl::event{};
+                   } else {
+                     return q.submit([=](sycl::handler& h) {
+                       h.parallel_for<TestUtils::unique_kernel_name<class tune1, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
+                         for (int j0 = 0; j0 < *j; ++j0) {
+                           v[idx] += idx;
+                         }
+                       });
                      });
-                   });
+                   }
                  };
       auto s = oneapi::dpl::experimental::select(p, f);
       auto e = oneapi::dpl::experimental::submit(s, f);
@@ -115,13 +119,17 @@ int test_auto_submit_wait_on_event(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return q.submit([=](sycl::handler& h) {
-                     h.parallel_for<TestUtils::unique_kernel_name<class tune2, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
-                       for (int j0 = 0; j0 < *j; ++j0) {
-                         v[idx] += idx;
-                       }
+                   if (*j == 0) {
+                     return sycl::event{};
+                   } else {
+                     return q.submit([=](sycl::handler& h) {
+                       h.parallel_for<TestUtils::unique_kernel_name<class tune2, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
+                         for (int j0 = 0; j0 < *j; ++j0) {
+                           v[idx] += idx;
+                         }
+                       });
                      });
-                   });
+                   }
                  });
       oneapi::dpl::experimental::wait(s);
     }
@@ -161,9 +169,9 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
 
   for (int i = 1; i <= N; ++i) {
     if (i <= 2*n_samples && (i-1)%n_samples != best_resource) {
-        *j = 10000;
+        *j = 100;
     } else {
-        *j = 1;
+        *j = 0;
     }
     // we can capture all by reference
     // the inline_scheduler reports timings in submit
@@ -185,13 +193,17 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return q.submit([=](sycl::handler& h) {
-                     h.parallel_for<TestUtils::unique_kernel_name<class tune3, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
-                       for (int j0 = 0; j0 < *j; ++j0) {
-                         v[idx] += idx;
-                       }
+                   if (*j == 0) {
+                     return sycl::event{};
+                   } else {
+                     return q.submit([=](sycl::handler& h) {
+                       h.parallel_for<TestUtils::unique_kernel_name<class tune3, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
+                         for (int j0 = 0; j0 < *j; ++j0) {
+                           v[idx] += idx;
+                         }
+                       });
                      });
-                   });
+                   }
                  };
       auto s = oneapi::dpl::experimental::select(p, f);
       auto e = oneapi::dpl::experimental::submit(s, f);
@@ -213,13 +225,17 @@ int test_auto_submit_wait_on_group(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return q.submit([=](sycl::handler& h) {
-                     h.parallel_for<TestUtils::unique_kernel_name<class tune4, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
-                       for (int j0 = 0; j0 < *j; ++j0) {
-                         v[idx] += idx;
-                       }
+                   if (*j == 0) {
+                     return sycl::event{};
+                   } else {
+                     return q.submit([=](sycl::handler& h) {
+                       h.parallel_for<TestUtils::unique_kernel_name<class tune4, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
+                         for (int j0 = 0; j0 < *j; ++j0) {
+                           v[idx] += idx;
+                         }
+                       });
                      });
-                   });
+                   }
                  });
       oneapi::dpl::experimental::wait(p.get_submission_group());
     }
@@ -259,9 +275,9 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
 
   for (int i = 1; i <= N; ++i) {
     if (i <= 2*n_samples && (i-1)%n_samples != best_resource) {
-        *j = 10000;
+        *j = 100;
     } else {
-        *j = 1;
+        *j = 0;
     }
     // we can capture all by reference
     // the inline_scheduler reports timings in submit
@@ -283,13 +299,17 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return q.submit([=](sycl::handler& h) {
-                     h.parallel_for<TestUtils::unique_kernel_name<class tune5, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
-                       for (int j0 = 0; j0 < *j; ++j0) {
-                         v[idx] += idx;
-                       }
+                   if (*j == 0) {
+                     return sycl::event{};
+                   } else {
+                     return q.submit([=](sycl::handler& h) {
+                       h.parallel_for<TestUtils::unique_kernel_name<class tune5, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
+                         for (int j0 = 0; j0 < *j; ++j0) {
+                           v[idx] += idx;
+                         }
+                       });
                      });
-                   });
+                   }
                  };
       auto s = oneapi::dpl::experimental::select(p, f);
       oneapi::dpl::experimental::submit_and_wait(s, f);
@@ -310,13 +330,17 @@ int test_auto_submit_and_wait(UniverseContainer u, int best_resource) {
                      }
                    }
                    ecount += i;
-                   return q.submit([=](sycl::handler& h) {
-                     h.parallel_for<TestUtils::unique_kernel_name<class tune6, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
-                       for (int j0 = 0; j0 < *j; ++j0) {
-                         v[idx] += idx;
-                       }
+                   if (*j == 0) {
+                     return sycl::event{};
+                   } else {
+                     return q.submit([=](sycl::handler& h) {
+                       h.parallel_for<TestUtils::unique_kernel_name<class tune6, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(1000000, [=](sycl::id<1> idx) {
+                         for (int j0 = 0; j0 < *j; ++j0) {
+                           v[idx] += idx;
+                         }
+                       });
                      });
-                   });
+                   }
                  });
     }
 
