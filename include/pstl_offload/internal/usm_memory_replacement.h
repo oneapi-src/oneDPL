@@ -36,15 +36,17 @@ __set_active_device(sycl::device* __new_active_device)
     __active_device.store(__new_active_device, std::memory_order_release);
 }
 
-static sycl::device
-__get_offload_device()
+using __device_selector_type = int (*)(const sycl::device &);
+
+static __device_selector_type
+__get_offload_device_selector()
 {
 #if __SYCL_PSTL_OFFLOAD__ == 1
-    return sycl::device{sycl::default_selector_v};
+    return sycl::default_selector_v;
 #elif __SYCL_PSTL_OFFLOAD__ == 2
-    return sycl::device{sycl::cpu_selector_v};
+    return sycl::cpu_selector_v;
 #elif __SYCL_PSTL_OFFLOAD__ == 3
-    return sycl::device{sycl::gpu_selector_v};
+    return sycl::gpu_selector_v;
 #else
 #    error "PSTL offload is not enabled or the selected value is unsupported"
 #endif
@@ -60,13 +62,13 @@ class __offload_policy_holder_type
     // of the class is inline, we need to avoid calling static functions inside of the constructor
     // and pass the pointer to exact function as an argument to guarantee that the correct __active_device
     // would be stored in each translation unit
-    __offload_policy_holder_type(__get_offload_device_func_type __get_offload_device_func,
+    __offload_policy_holder_type(__device_selector_type __device_selector,
                                  __set_active_device_func_type __set_active_device_func)
         : _M_set_active_device(__set_active_device_func)
     {
         try
         {
-            _M_offload_device = __get_offload_device_func();
+            _M_offload_device = sycl::device{__device_selector};
         }
         catch (const sycl::exception& e)
         {
@@ -80,8 +82,7 @@ class __offload_policy_holder_type
         if (_M_offload_device.has_value())
         {
             _M_set_active_device(&*_M_offload_device);
-            oneapi::dpl::execution::device_policy<> _offload_policy(*_M_offload_device);
-            _M_offload_policy = _offload_policy;
+            _M_offload_policy = oneapi::dpl::execution::device_policy<>(*_M_offload_device);
         }
     }
 
@@ -104,7 +105,7 @@ class __offload_policy_holder_type
     __set_active_device_func_type _M_set_active_device;
 }; // class __offload_policy_holder_type
 
-static __offload_policy_holder_type __offload_policy_holder{__get_offload_device, __set_active_device};
+static __offload_policy_holder_type __offload_policy_holder{__get_offload_device_selector(), __set_active_device};
 
 #if __linux__
 inline auto

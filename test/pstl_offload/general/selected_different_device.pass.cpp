@@ -27,6 +27,7 @@ int main() {
 #if __SYCL_PSTL_OFFLOAD__ == 1
     // skip test when value of _ONEDPL_PSTL_OFFLOAD is default
     // as ONEAPI_DEVICE_SELECTOR allows any offload policy in this case
+    return TestUtils::done(0); // to get Skipped
 #else
     size_t num = 10LLU*1024*1024;
     int* ptr = new int[num];
@@ -36,7 +37,7 @@ int main() {
     } catch (const sycl::exception &) {
     }
     delete []ptr;
-#endif
 
     return TestUtils::done();
+#endif
 }

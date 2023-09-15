@@ -110,6 +110,8 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
 
+    # Generally PSTL offload tests don't need ONEAPI_DEVICE_SELECTOR variable, so one is not set.
+    # This test is only one requiring it, set it manually.
     if ("${_test_name}" STREQUAL selected_different_device.pass AND _ONEDPL_PSTL_OFFLOAD MATCHES "(cpu|gpu)")
         set(DEVICE_SELECTION_LINE "${DEVICE_SELECTION_VARIABLE}=${ONEDPL_DEVICE_BACKEND}:${_ONEDPL_PSTL_OFFLOAD}")
     endif()
