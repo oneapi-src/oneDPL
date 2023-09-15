@@ -29,6 +29,7 @@
 #include "support/utils.h"
 
 #include <memory>
+#include <cstdlib>
 
 using namespace TestUtils;
 
@@ -173,8 +174,7 @@ test_uninitialized_fill_destroy_by_type()
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
 #if !TEST_DPCPP_BACKEND_PRESENT
-        ::std::unique_ptr<T[]> p(new T[n]);
-        auto p_begin = p.get();
+        auto p_begin = static_cast<T*>(::std::malloc(sizeof(T) * n));
 #else
         Sequence<T> p(n, [](size_t){ return T{}; });
         auto p_begin = p.begin();
@@ -198,6 +198,7 @@ test_uninitialized_fill_destroy_by_type()
         invoke_on_all_policies<>()(test_destroy_n<T>(), p_begin, p_end, T(), n,
                                    ::std::is_trivial<T>());
 #endif
+        ::std::free(p_begin);
 #endif
     }
 }
