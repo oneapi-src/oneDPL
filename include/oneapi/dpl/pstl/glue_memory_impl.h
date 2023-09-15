@@ -237,8 +237,8 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
                                                  /*__is_vector*/ ::std::false_type{}, __is_parallel);
 #else
         oneapi::dpl::__internal::__pattern_walk1(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                                 [](_ReferenceType __val) { __val.~_ValueType(); }, __is_vector,
-                                                 __is_parallel);
+                                                 [](_ReferenceType __val) { __val.~_ValueType(); },
+                                                 __is_vector, __is_parallel);
 #endif // _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDWOS_BROKEN
     }
 }
