@@ -187,9 +187,9 @@
 // Intel(R) oneAPI DPC++ Compiler cannot build some cases of destroy and destroy_n with unseq policies on Windows
 // It might be fixed in the future releases, which follow 20240000
 #if defined(_MSC_VER) && __INTEL_LLVM_COMPILER <= 20240000
-#    define _PSTL_ICPX_OMP_SIMD_DESTROY_WINDWOS_BROKEN 1
+#    define _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
 #else
-#    define _PSTL_ICPX_OMP_SIMD_DESTROY_WINDWOS_BROKEN 0
+#    define _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 0
 #endif
 
 #endif // _PSTL_CONFIG_H
