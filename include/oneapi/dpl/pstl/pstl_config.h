@@ -67,7 +67,7 @@
 
 // Enable SIMD for compilers that support OpenMP 4.0
 #if (_OPENMP >= 201307) || __INTEL_LLVM_COMPILER || (__INTEL_COMPILER >= 1600) ||                                      \
-    (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900) ||                 \
+    (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _PSTL_GCC_VERSION >= 40900) ||                   \
     defined(__clang__)
 #    define _PSTL_PRAGMA_SIMD _PSTL_PRAGMA(omp simd)
 #    define _PSTL_PRAGMA_DECLARE_SIMD _PSTL_PRAGMA(omp declare simd)
@@ -107,7 +107,7 @@
 #define _PSTL_MONOTONIC_PRESENT (__INTEL_COMPILER >= 1800)
 
 #if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1900 ||                                                              \
-     !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900 ||                  \
+     !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _PSTL_GCC_VERSION >= 40900 ||                    \
      _OPENMP >= 201307)
 #    define _PSTL_UDR_PRESENT 1
 #else
@@ -117,15 +117,15 @@
 // UDS is broken with Intel(R) oneAPI DPC++ Compiler on Windows
 // It might be fixed in the future releases, which follow 20240000
 #if (defined(_MSC_VER) && __INTEL_LLVM_COMPILER > 20240000) || (!defined(_MSC_VER) && __INTEL_LLVM_COMPILER > 20230100)
-#    define _ONEDPL_INTEL_LLVM_UDS_PRESENT 1
+#    define _PSTL_INTEL_LLVM_UDS_PRESENT 1
 #else
-#    define _ONEDPL_INTEL_LLVM_UDS_PRESENT 0
+#    define _PSTL_INTEL_LLVM_UDS_PRESENT 0
 #endif
 
-#if _ONEDPL_INTEL_LLVM_UDS_PRESENT || (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
-#    define _ONEDPL_UDS_PRESENT 1
+#if _PSTL_INTEL_LLVM_UDS_PRESENT || (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
+#    define _PSTL_UDS_PRESENT 1
 #else
-#    define _ONEDPL_UDS_PRESENT 0
+#    define _PSTL_UDS_PRESENT 0
 #endif
 
 #if _PSTL_EARLYEXIT_PRESENT
