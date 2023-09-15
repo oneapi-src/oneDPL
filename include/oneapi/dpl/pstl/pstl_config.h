@@ -116,7 +116,7 @@
 
 // UDS is broken with Intel(R) oneAPI DPC++ Compiler on Windows
 // It might be fixed in the future releases, which follow 20240000
-#if (defined(_MSC_VER) && __INTEL_LLVM_COMPILER > 20240000) || (!defined(_MSC_VER) && __INTEL_LLVM_COMPILER > 20230100)
+#if (defined(_MSC_VER) && __INTEL_LLVM_COMPILER) || (!defined(_MSC_VER) && __INTEL_LLVM_COMPILER > 20230100)
 #    define _PSTL_INTEL_LLVM_UDS_PRESENT 1
 #else
 #    define _PSTL_INTEL_LLVM_UDS_PRESENT 0
@@ -186,7 +186,7 @@
 
 // Intel(R) oneAPI DPC++ Compiler cannot build some cases of destroy and destroy_n with unseq policies on Windows
 // It might be fixed in the future releases, which follow 20240000
-#if defined(_MSC_VER) && __INTEL_LLVM_COMPILER <= 20240000
+#if defined(_MSC_VER) && __INTEL_LLVM_COMPILER
 #    define _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
 #else
 #    define _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 0

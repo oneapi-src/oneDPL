@@ -231,7 +231,7 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
 
     if constexpr (!::std::is_trivially_destructible_v<_ValueType>)
     {
-#if _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDWOS_BROKEN
+#if _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN
         if constexpr (oneapi::dpl::__internal::__is_host_execution_policy<_ExecutionPolicy>::value)
         {
             oneapi::dpl::__internal::__pattern_walk1(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
@@ -248,7 +248,7 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
         oneapi::dpl::__internal::__pattern_walk1(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                                  [](_ReferenceType __val) { __val.~_ValueType(); },
                                                  __is_vector, __is_parallel);
-#endif // _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDWOS_BROKEN
+#endif // _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN
     }
 }
 
@@ -270,7 +270,7 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
     }
     else
     {
-#if _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDWOS_BROKEN
+#if _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN
         if constexpr (oneapi::dpl::__internal::__is_host_execution_policy<_ExecutionPolicy>::value)
         {
             return oneapi::dpl::__internal::__pattern_walk1_n(::std::forward<_ExecutionPolicy>(__exec), __first, __n,
@@ -287,7 +287,7 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
         return oneapi::dpl::__internal::__pattern_walk1_n(::std::forward<_ExecutionPolicy>(__exec), __first, __n,
                                                           [](_ReferenceType __val) { __val.~_ValueType(); },
                                                           __is_vector, __is_parallel);
-#endif // _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDWOS_BROKEN
+#endif // _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN
     }
 }
 
