@@ -231,9 +231,15 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
 
     if constexpr (!::std::is_trivially_destructible_v<_ValueType>)
     {
+#if _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDWOS_BROKEN
+        oneapi::dpl::__internal::__pattern_walk1(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                                 [](_ReferenceType __val) { __val.~_ValueType(); },
+                                                 /*__is_vector*/ ::std::false_type{}, __is_parallel);
+#else
         oneapi::dpl::__internal::__pattern_walk1(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                                  [](_ReferenceType __val) { __val.~_ValueType(); }, __is_vector,
                                                  __is_parallel);
+#endif // _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDWOS_BROKEN
     }
 }
 
@@ -255,9 +261,15 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
     }
     else
     {
+#if _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDWOS_BROKEN
+        return oneapi::dpl::__internal::__pattern_walk1_n(::std::forward<_ExecutionPolicy>(__exec), __first, __n,
+                                                          [](_ReferenceType __val) { __val.~_ValueType(); },
+                                                          /*__is_vector*/ ::std::false_type{}, __is_parallel);
+#else
         return oneapi::dpl::__internal::__pattern_walk1_n(::std::forward<_ExecutionPolicy>(__exec), __first, __n,
                                                           [](_ReferenceType __val) { __val.~_ValueType(); },
                                                           __is_vector, __is_parallel);
+#endif // _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDWOS_BROKEN
     }
 }
 
