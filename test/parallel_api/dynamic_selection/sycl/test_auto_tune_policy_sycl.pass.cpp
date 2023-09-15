@@ -74,7 +74,7 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
 
     for (int i = 1; i <= N; ++i)
     {
-        if (i <= 2 * n_samples && i - 1 != best_resource)
+        if (i <= 2 * n_samples && (i - 1) % n_samples != best_resource)
         {
             *j = 10000;
         }
@@ -202,7 +202,7 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
 
     for (int i = 1; i <= N; ++i)
     {
-        if (i <= 2 * n_samples && i - 1 != best_resource)
+        if (i <= 2 * n_samples && (i - 1) % n_samples != best_resource)
         {
             *j = 10000;
         }
@@ -330,7 +330,7 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
 
     for (int i = 1; i <= N; ++i)
     {
-        if (i <= 2 * n_samples && i - 1 != best_resource)
+        if (i <= 2 * n_samples && (i - 1) % n_samples != best_resource)
         {
             *j = 10000;
         }
