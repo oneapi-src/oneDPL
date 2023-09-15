@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_openvino_backend_IMPL_H
-#define _ONEDPL_openvino_backend_IMPL_H
+#ifndef _ONEDPL_OPENVINO_BACKEND_IMPL_H
+#define _ONEDPL_OPENVINO_BACKEND_IMPL_H
 
 #include <inference_engine.hpp>
 #include "oneapi/dpl/internal/dynamic_selection_traits.h"
@@ -125,4 +125,4 @@ namespace experimental {
 } //namespace dpl
 } //namespace oneapi
 
-#endif /*_ONEDPL_openvino_backend_IMPL_H*/
+#endif /*_ONEDPL_OPENVINO_BACKEND_IMPL_H*/
