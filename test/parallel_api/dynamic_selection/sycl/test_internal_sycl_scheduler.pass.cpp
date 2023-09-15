@@ -12,6 +12,7 @@
 #include <iostream>
 #include "support/test_config.h"
 
+#if TEST_DYNAMIC_SELECTION_AVAILABLE
 class fake_selection_handle_t
 {
     sycl::queue q_;
@@ -177,6 +178,7 @@ test_submit_and_wait_on_sync_single_element()
     std::cout << "wait_on_sync single element: OK\n";
     return 0;
 }
+#endif
 
 int
 test_submit_and_wait_on_sync_empty()

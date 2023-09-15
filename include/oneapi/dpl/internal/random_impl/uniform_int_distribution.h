@@ -151,10 +151,10 @@ class uniform_int_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Type of real distribution
-    using RealType = typename ::std::conditional<size_of_type_ == 0, double, sycl::vec<double, size_of_type_>>::type;
+    using RealType = ::std::conditional_t<size_of_type_ == 0, double, sycl::vec<double, size_of_type_>>;
 
     // Static asserts
-    static_assert(::std::is_integral<scalar_type>::value,
+    static_assert(::std::is_integral_v<scalar_type>,
                   "oneapi::dpl::uniform_int_distribution. Error: unsupported data type");
 
     // Distribution parameters
@@ -166,7 +166,7 @@ class uniform_int_distribution
 
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
-    typename ::std::enable_if<(_Ndistr != 0), result_type>::type
+    ::std::enable_if_t<(_Ndistr != 0), result_type>
     generate(_Engine& __engine, const param_type& __params)
     {
         RealType __res = uniform_real_distribution_(
@@ -181,7 +181,7 @@ class uniform_int_distribution
     }
 
     template <int _Ndistr, class _Engine>
-    typename ::std::enable_if<(_Ndistr == 0), result_type>::type
+    ::std::enable_if_t<(_Ndistr == 0), result_type>
     generate(_Engine& __engine, const param_type& __params)
     {
         RealType __res = uniform_real_distribution_(
@@ -193,7 +193,7 @@ class uniform_int_distribution
 
     // Implementation for result_portion function
     template <int _Ndistr, class _Engine>
-    typename ::std::enable_if<(_Ndistr != 0), result_type>::type
+    ::std::enable_if_t<(_Ndistr != 0), result_type>
     result_portion_internal(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __part_vec;

@@ -200,7 +200,7 @@ using is_arithmetic_udop = ::std::integral_constant<bool, ::std::is_arithmetic_v
 // [violation] - default ctor of T shall set the identity value for binary_op.
 template <class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation,
           class _Inclusive>
-typename ::std::enable_if<!is_arithmetic_udop<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>::type
+::std::enable_if_t<!is_arithmetic_udop<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>
 __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator __result,
                        _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive,
                        /*is_vector=*/::std::true_type) noexcept
@@ -217,7 +217,7 @@ __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
 
 template <class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation,
           class _Inclusive>
-typename ::std::enable_if<is_arithmetic_udop<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>::type
+::std::enable_if_t<is_arithmetic_udop<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>
 __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator __result,
                        _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive,
                        /*is_vector=*/::std::true_type) noexcept
@@ -241,7 +241,7 @@ __pattern_transform_scan(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardI
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp,
           class _BinaryOperation, class _Inclusive, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, !::std::is_floating_point<_Tp>::value, _OutputIterator>
+    _ExecutionPolicy, !::std::is_floating_point_v<_Tp>, _OutputIterator>
 __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
                          _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op,
                          _Inclusive, _IsVector __is_vector, /*is_parallel=*/::std::true_type)
@@ -271,8 +271,8 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp,
           class _BinaryOperation, class _Inclusive, class _IsVector>
-oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, ::std::is_floating_point<_Tp>::value, _OutputIterator>
+oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<_ExecutionPolicy,
+                                                                       ::std::is_floating_point_v<_Tp>, _OutputIterator>
 __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
                          _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op,
                          _Inclusive, _IsVector __is_vector, /*is_parallel=*/::std::true_type)

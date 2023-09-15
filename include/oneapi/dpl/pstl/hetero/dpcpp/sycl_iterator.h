@@ -42,7 +42,7 @@ struct sycl_iterator
 
   public:
     using value_type = T;
-    using difference_type = ::std::make_signed<Size>::type;
+    using difference_type = ::std::make_signed_t<Size>;
     using pointer = T*;
     using reference = T&;
     using iterator_category = ::std::random_access_iterator_tag;

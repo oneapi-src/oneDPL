@@ -32,9 +32,9 @@ namespace __internal
 // We're not interested in T&& here as the rvalue-ness is stripped from T before
 // construction the induction object
 template <typename _Tp>
-using __induction_value_type = typename ::std::conditional<
-    ::std::is_lvalue_reference<_Tp>::value && !::std::is_const<typename ::std::remove_reference<_Tp>::type>::value, _Tp,
-    typename ::std::remove_cv<typename ::std::remove_reference<_Tp>::type>::type>::type;
+using __induction_value_type =
+    ::std::conditional_t<::std::is_lvalue_reference_v<_Tp> && !::std::is_const_v<::std::remove_reference_t<_Tp>>, _Tp,
+                         ::std::remove_cv_t<::std::remove_reference_t<_Tp>>>;
 
 // Definition of induction_object structure to represent "induction" object.
 
@@ -58,7 +58,7 @@ class __induction_object
     }
 
     template <typename _Index>
-    typename ::std::remove_reference<__value_type>::type
+    ::std::remove_reference_t<__value_type>
     __get_induction_or_reduction_value(_Index __p)
     {
         return __var_ + __p * __stride_;
@@ -96,7 +96,7 @@ class __induction_object<_Tp, void>
     }
 
     template <typename _Index>
-    typename ::std::remove_reference<__value_type>::type
+    ::std::remove_reference_t<__value_type>
     __get_induction_or_reduction_value(_Index __p)
     {
         return __var_ + __p;

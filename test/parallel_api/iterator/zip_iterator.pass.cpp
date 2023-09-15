@@ -369,10 +369,10 @@ DEFINE_TEST(test_equal_structured_binding)
             const auto& [a, b] = tuple_first1;
             const auto& [c, d] = tuple_first2;
 
-            static_assert(::std::is_reference<decltype(a)>::value, "tuple element type is not a reference");
-            static_assert(::std::is_reference<decltype(b)>::value, "tuple element type is not a reference");
-            static_assert(::std::is_reference<decltype(c)>::value, "tuple element type is not a reference");
-            static_assert(::std::is_reference<decltype(d)>::value, "tuple element type is not a reference");
+            static_assert(::std::is_reference_v<decltype(a)>, "tuple element type is not a reference");
+            static_assert(::std::is_reference_v<decltype(b)>, "tuple element type is not a reference");
+            static_assert(::std::is_reference_v<decltype(c)>, "tuple element type is not a reference");
+            static_assert(::std::is_reference_v<decltype(d)>, "tuple element type is not a reference");
 
             return (a == c) && (b == d);
         };

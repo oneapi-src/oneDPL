@@ -13,7 +13,6 @@
 #include "support/test_config.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 #    include "support/sycl_sanity.h"
-#endif
 
 static inline void
 build_dl_universe(std::vector<sycl::queue>& u)
@@ -41,6 +40,7 @@ build_dl_universe(std::vector<sycl::queue>& u)
         std::cout << "SKIPPED: Unable to run with cpu_selector\n";
     }
 }
+#endif
 
 int
 main()

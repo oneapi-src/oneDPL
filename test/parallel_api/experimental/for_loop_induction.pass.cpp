@@ -29,7 +29,7 @@ test_body_induction(Policy&& exec, Iterator /* first */, Iterator /* last */, It
                     Iterator /* expected_last */, Size n)
 {
     using T = typename ::std::iterator_traits<Iterator>::value_type;
-    static_assert(::std::is_arithmetic<T>::value, "Currently the testcase only works with arithmetic types");
+    static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
     // Init with different arbitrary values on each iteration
     const T ind_init = n % 97;
@@ -72,7 +72,7 @@ test_body_induction_strided(Policy&& exec, Iterator first, Iterator last, Iterat
                             Iterator /* expected_last */, Size n)
 {
     using T = typename ::std::iterator_traits<Iterator>::value_type;
-    static_assert(::std::is_arithmetic<T>::value, "Currently the testcase only works with arithmetic types");
+    static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
     for (int loop_stride : {-1, 1, 10, -5})
     {
@@ -80,7 +80,7 @@ test_body_induction_strided(Policy&& exec, Iterator first, Iterator last, Iterat
         const T ind_init = n % 97;
         T lval_ind = ind_init;
 
-        using Ssize = typename ::std::make_signed<Size>::type;
+        using Ssize = ::std::make_signed_t<Size>;
 
         ::std::experimental::for_loop_n_strided(::std::forward<Policy>(exec), Ssize(0), Ssize(n), loop_stride,
                                               ::std::experimental::induction(lval_ind),
@@ -96,7 +96,7 @@ test_body_induction_strided(Policy&& exec, Iterator first, Iterator last, Iterat
 
         // Negative strides are not allowed with forward iterators
         if (loop_stride < 0 &&
-            ::std::is_same<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>::value)
+            ::std::is_same_v<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>)
             continue;
 
         auto new_first = first;

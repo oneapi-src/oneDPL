@@ -67,8 +67,8 @@ struct __is_random_access_iterator_impl<_IteratorType,
 /* iterator */
 template <typename _IteratorType, typename... _OtherIteratorTypes>
 struct __is_random_access_iterator
-    : ::std::conditional<__is_random_access_iterator_impl<_IteratorType>::value,
-                         __is_random_access_iterator<_OtherIteratorTypes...>, ::std::false_type>::type
+    : ::std::conditional_t<__is_random_access_iterator_impl<_IteratorType>::value,
+                           __is_random_access_iterator<_OtherIteratorTypes...>, ::std::false_type>
 {
 };
 
@@ -77,6 +77,12 @@ struct __is_random_access_iterator<_IteratorType> : __is_random_access_iterator_
 {
 };
 
+template <typename... _IteratorTypes>
+using __is_random_access_iterator_t = typename __is_random_access_iterator<_IteratorTypes...>::type;
+
+template <typename... _IteratorTypes>
+inline constexpr bool __is_random_access_iterator_v = __is_random_access_iterator<_IteratorTypes...>::value;
+
 // struct for checking if iterator is heterogeneous or not
 template <typename Iter, typename Void = void> // for non-heterogeneous iterators
 struct is_hetero_iterator : ::std::false_type
@@ -84,7 +90,7 @@ struct is_hetero_iterator : ::std::false_type
 };
 
 template <typename Iter> // for heterogeneous iterators
-struct is_hetero_iterator<Iter, typename ::std::enable_if<Iter::is_hetero::value, void>::type> : ::std::true_type
+struct is_hetero_iterator<Iter, ::std::enable_if_t<Iter::is_hetero::value>> : ::std::true_type
 {
 };
 // struct for checking if iterator should be passed directly to device or not
@@ -94,14 +100,12 @@ struct is_passed_directly : ::std::false_type
 };
 
 template <typename Iter> // for iterators defined as direct pass
-struct is_passed_directly<Iter, typename ::std::enable_if<Iter::is_passed_directly::value, void>::type>
-    : ::std::true_type
+struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::value>> : ::std::true_type
 {
 };
 
 template <typename Iter> // for pointers to objects on device
-struct is_passed_directly<Iter, typename ::std::enable_if<::std::is_pointer<Iter>::value, void>::type>
-    : ::std::true_type
+struct is_passed_directly<Iter, ::std::enable_if_t<::std::is_pointer_v<Iter>>> : ::std::true_type
 {
 };
 

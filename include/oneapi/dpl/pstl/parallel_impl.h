@@ -40,7 +40,7 @@ __parallel_find(_ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick
     const _DifferenceType __n = __last - __first;
     _DifferenceType __initial_dist = _IsFirst::value ? __n : -1;
 
-    constexpr auto __comp = typename ::std::conditional<_IsFirst::value, __pstl_less, __pstl_greater>::type{};
+    constexpr auto __comp = ::std::conditional_t<_IsFirst::value, __pstl_less, __pstl_greater>{};
 
     ::std::atomic<_DifferenceType> __extremum(__initial_dist);
     // TODO: find out what is better here: parallel_for or parallel_reduce

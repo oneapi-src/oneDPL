@@ -47,7 +47,7 @@ check_and_reset(InputIterator1 first1, InputIterator1 last1, InputIterator2 firs
         // check
         Out expected = Out(1.5) + *first1 - *first2;
         Out actual = *out_first;
-        if (::std::is_floating_point<Out>::value)
+        if (::std::is_floating_point_v<Out>)
         {
             EXPECT_TRUE((expected > actual ? expected - actual : actual - expected) < Out(1e-7),
                         "wrong value in output sequence");

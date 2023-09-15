@@ -133,7 +133,7 @@ class exponential_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     // Static asserts
-    static_assert(::std::is_floating_point<scalar_type>::value,
+    static_assert(::std::is_floating_point_v<scalar_type>,
                   "oneapi::dpl::exponential_distribution. Error: unsupported data type");
 
     // Distribution parameters
@@ -141,7 +141,7 @@ class exponential_distribution
 
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
-    typename ::std::enable_if<(_Ndistr != 0), result_type>::type
+    ::std::enable_if_t<(_Ndistr != 0), result_type>
     generate(_Engine& __engine, const param_type& __params)
     {
         return generate_vec<_Ndistr, _Engine>(__engine, __params);
@@ -149,7 +149,7 @@ class exponential_distribution
 
     // Specialization of the scalar generation
     template <int _Ndistr, class _Engine>
-    typename ::std::enable_if<(_Ndistr == 0), result_type>::type
+    ::std::enable_if_t<(_Ndistr == 0), result_type>
     generate(_Engine& __engine, const param_type& __params)
     {
         result_type __res;
@@ -160,7 +160,7 @@ class exponential_distribution
 
     // Specialization of the vector generation  with size = [1; 2; 3]
     template <int __N, class _Engine>
-    typename ::std::enable_if<(__N <= 3), result_type>::type
+    ::std::enable_if_t<(__N <= 3), result_type>
     generate_vec(_Engine& __engine, const param_type& __params)
     {
         return generate_n_elems<_Engine>(__engine, __params, __N);
@@ -168,7 +168,7 @@ class exponential_distribution
 
     // Specialization of the vector generation with size = [4; 8; 16]
     template <int __N, class _Engine>
-    typename ::std::enable_if<(__N > 3), result_type>::type
+    ::std::enable_if_t<(__N > 3), result_type>
     generate_vec(_Engine& __engine, const param_type& __params)
     {
         oneapi::dpl::uniform_real_distribution<result_type> __u;
@@ -194,7 +194,7 @@ class exponential_distribution
 
     // Implementation for result_portion function
     template <int _Ndistr, class _Engine>
-    typename ::std::enable_if<(_Ndistr != 0), result_type>::type
+    ::std::enable_if_t<(_Ndistr != 0), result_type>
     result_portion_internal(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __part_vec;
