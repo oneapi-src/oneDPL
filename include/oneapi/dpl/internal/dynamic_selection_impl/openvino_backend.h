@@ -7,10 +7,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_SYCL_BACKEND_IMPL_H
-#define _ONEDPL_SYCL_BACKEND_IMPL_H
+#ifndef _ONEDPL_openvino_backend_IMPL_H
+#define _ONEDPL_openvino_backend_IMPL_H
 
-#include <sycl/sycl.hpp>
+#include <inference_engine.hpp>
 #include "oneapi/dpl/internal/dynamic_selection_traits.h"
 
 #include "oneapi/dpl/internal/dynamic_selection_impl/scoring_policy_defs.h"
@@ -24,20 +24,20 @@ namespace oneapi {
 namespace dpl {
 namespace experimental {
 
-  class sycl_backend {
+  class openvino_backend {
   public:
-    using resource_type = sycl::queue;
-    using wait_type = sycl::event;
+    using resource_type = InferenceEngine::ExecutableNetwork;
+    using wait_type = InferenceEngine::InferRequest;
     using execution_resource_t = resource_type;
     using resource_container_t = std::vector<execution_resource_t>;
 
   private:
 
     class async_waiter {
-      sycl::event e_;
+      wait_type e_;
       public:
-        async_waiter(sycl::event e) : e_(e) {}
-        sycl::event unwrap() { return e_; }
+        async_waiter(wait_type e) : e_(e) {}
+        wait_type unwrap() { return e_; }
         void wait() { e_.wait(); }
     };
 
@@ -55,16 +55,16 @@ namespace experimental {
 
   public:
 
-    sycl_backend(const sycl_backend& v) = delete;
-    sycl_backend& operator=(const sycl_backend&) = delete;
+    openvino_backend(const openvino_backend& v) = delete;
+    openvino_backend& operator=(const openvino_backend&) = delete;
 
-    sycl_backend() {
+    openvino_backend() {
       initialize_default_resources();
       sgroup_ptr_ = std::make_unique<submission_group>(global_rank_);
     }
 
     template<typename NativeUniverseVector>
-    sycl_backend(const NativeUniverseVector& v) {
+    openvino_backend(const NativeUniverseVector& v) {
       global_rank_.reserve(v.size());
       for (auto e : v) {
         global_rank_.push_back(e);
@@ -125,4 +125,4 @@ namespace experimental {
 } //namespace dpl
 } //namespace oneapi
 
-#endif /*_ONEDPL_SYCL_BACKEND_IMPL_H*/
+#endif /*_ONEDPL_openvino_backend_IMPL_H*/
