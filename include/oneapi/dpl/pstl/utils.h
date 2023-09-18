@@ -646,6 +646,39 @@ __dpl_ceiling_div(_T1 __number, _T2 __divisor)
     return (__number - 1) / __divisor + 1;
 }
 
+// TODO In C++20 we may try to use std::equality_comparable
+template <typename _Iterator1, typename _Iterator2, typename = void>
+struct __is_equality_comparable : std::false_type
+{
+};
+
+// All with implemented operator ==
+template <typename _Iterator1, typename _Iterator2>
+struct __is_equality_comparable<
+    _Iterator1, _Iterator2,
+    std::void_t<decltype(::std::declval<::std::decay_t<_Iterator1>>() == ::std::declval<::std::decay_t<_Iterator2>>())>>
+    : std::true_type
+{
+};
+
+template <typename _Iterator1, typename _Iterator2>
+constexpr bool
+__iterators_possibly_equal(_Iterator1 __it1, _Iterator2 __it2)
+{
+    if constexpr (__is_equality_comparable<_Iterator1, _Iterator2>::value)
+    {
+        return __it1 == __it2;
+    }
+    else if constexpr (__is_equality_comparable<_Iterator2, _Iterator1>::value)
+    {
+        return __it2 == __it1;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
