@@ -65,7 +65,7 @@ struct dynamic_load_policy
         dl_selection_handle_t(const Policy& p, std::shared_ptr<resource_t> r) : policy_(p), resource_(std::move(r)) {}
 
         auto
-        unwrap()
+        unwrap() const
         {
             return ::oneapi::dpl::experimental::unwrap(resource_->e_);
         }

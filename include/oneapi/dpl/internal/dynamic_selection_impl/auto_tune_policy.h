@@ -155,7 +155,7 @@ class auto_tune_policy
         }
 
         auto
-        unwrap()
+        unwrap() const
         {
             return ::oneapi::dpl::experimental::unwrap(resource_.r_);
         }

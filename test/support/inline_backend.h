@@ -47,7 +47,7 @@ private:
   public:
     async_waiter(wait_type w) : w_{w} {}
     void wait() { /* inline scheduler tasks are always complete */ }
-    wait_type unwrap() { return w_; }
+    wait_type unwrap() const { return w_; }
   };
 
   class submission_group {

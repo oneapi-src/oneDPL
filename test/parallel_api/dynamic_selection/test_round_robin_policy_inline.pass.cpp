@@ -22,6 +22,7 @@ main()
     constexpr bool just_call_submit = false;
     constexpr bool call_select_before_submit = true;
     if (test_initialization<policy_t, int>(u) || test_select<policy_t, decltype(u), decltype(f)&, false>(u, f) ||
+        test_unwrap<policy_t, decltype(u)>(u) ||
         test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f) ||
         test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, f) ||
         test_submit_and_wait<just_call_submit, policy_t>(u, f) ||

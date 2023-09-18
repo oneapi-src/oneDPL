@@ -108,11 +108,11 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                     }
                 }
                 ecount += i;
-                if (*j == 0) 
+                if (*j == 0)
                 {
                      return sycl::event{};
-                } 
-                else 
+                }
+                else
                 {
                     return q.submit([=](sycl::handler& h) {
                         h.parallel_for<TestUtils::unique_kernel_name<
@@ -153,11 +153,11 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
                         }
                     }
                     ecount += i;
-                    if (*j == 0) 
+                    if (*j == 0)
                     {
                          return sycl::event{};
-                    } 
-                    else 
+                    }
+                    else
                     {
                         return q.submit([=](sycl::handler& h) {
                             h.parallel_for<TestUtils::unique_kernel_name<
@@ -250,11 +250,11 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                     }
                 }
                 ecount += i;
-                if (*j == 0) 
+                if (*j == 0)
                 {
                      return sycl::event{};
-                } 
-                else 
+                }
+                else
                 {
                     return q.submit([=](sycl::handler& h) {
                         h.parallel_for<TestUtils::unique_kernel_name<
@@ -295,11 +295,11 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
                         }
                     }
                     ecount += i;
-                    if (*j == 0) 
+                    if (*j == 0)
                     {
                          return sycl::event{};
-                    } 
-                    else 
+                    }
+                    else
                     {
                         return q.submit([=](sycl::handler& h) {
                             h.parallel_for<TestUtils::unique_kernel_name<
@@ -392,11 +392,11 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                     }
                 }
                 ecount += i;
-                if (*j == 0) 
+                if (*j == 0)
                 {
                      return sycl::event{};
-                } 
-                else 
+                }
+                else
                 {
                     return q.submit([=](sycl::handler& h) {
                         h.parallel_for<TestUtils::unique_kernel_name<
@@ -436,11 +436,11 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
                         }
                     }
                     ecount += i;
-                    if (*j == 0) 
+                    if (*j == 0)
                     {
                          return sycl::event{};
-                    } 
-                    else 
+                    }
+                    else
                     {
                         return q.submit([=](sycl::handler& h) {
                             h.parallel_for<TestUtils::unique_kernel_name<
@@ -551,7 +551,9 @@ main()
     constexpr bool just_call_submit = false;
     constexpr bool call_select_before_submit = true;
 
-    if (test_auto_initialization(u) || test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f) ||
+    if (test_auto_initialization(u) ||
+        test_unwrap<policy_t, decltype(u)>(u) ||
+        test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f) ||
         test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 0) ||
         test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 1) ||
         test_auto_submit_wait_on_event<just_call_submit, policy_t>(u, 2) ||

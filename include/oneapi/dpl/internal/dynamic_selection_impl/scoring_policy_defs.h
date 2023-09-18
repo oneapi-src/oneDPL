@@ -26,7 +26,7 @@ class basic_selection_handle_t
   public:
     explicit basic_selection_handle_t(const Policy& p, Resource e = Resource{}) : p_(p), e_(e) {}
     auto
-    unwrap()
+    unwrap() const
     {
         return oneapi::dpl::experimental::unwrap(e_);
     }

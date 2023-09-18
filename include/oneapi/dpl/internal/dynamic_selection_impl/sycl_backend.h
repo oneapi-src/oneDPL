@@ -43,7 +43,7 @@ class sycl_backend
       public:
         async_waiter(sycl::event e) : e_(e) {}
         sycl::event
-        unwrap()
+        unwrap() const
         {
             return e_;
         }

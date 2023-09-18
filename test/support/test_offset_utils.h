@@ -49,6 +49,77 @@ int test_initialization(const std::vector<T>& u) {
   return 0;
 }
 
+template <typename Policy, typename UniverseContainer>
+int
+test_unwrap(UniverseContainer u)
+{
+    //Checking if unwrap returns the same type when passed a policy
+    using my_policy_t = Policy;
+    my_policy_t p{u};
+    bool pass = true;
+    auto policy_unwrap = oneapi::dpl::experimental::unwrap(p);
+
+    if(!std::is_same_v<decltype(p),decltype(policy_unwrap)>){
+        pass=false;
+        std::cout << "ERROR: Unwrapped policy type is not equal to the actual policy type\n";
+    }
+
+
+    //Checking if unwrap returns a different type when passed a const submission
+    const auto const_submission = oneapi::dpl::experimental::submit(
+        p, [](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+            if constexpr (std::is_same_v<
+                              typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
+                return e;
+            else
+                return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+        });
+    const auto const_submission_unwrap = oneapi::dpl::experimental::unwrap(const_submission);
+
+    if(std::is_same_v<decltype(const_submission),decltype(const_submission_unwrap)>)
+    {
+        pass=false;
+        std::cout << "ERROR: Unwrapped const submission type is equal to the actual const submission type\n";
+    }
+
+    //Checking if unwrap returns a different type when passed a submission
+    auto submission = oneapi::dpl::experimental::submit(
+        p, [](typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type e) {
+            if constexpr (std::is_same_v<
+                              typename oneapi::dpl::experimental::policy_traits<Policy>::resource_type, int>)
+                return e;
+            else
+                return typename oneapi::dpl::experimental::policy_traits<Policy>::wait_type{};
+        });
+    auto submission_unwrap = oneapi::dpl::experimental::unwrap(submission);
+
+    if(std::is_same_v<decltype(submission),decltype(submission_unwrap)>){
+        pass=false;
+        std::cout << "ERROR: Unwrapped submission type is equal to the actual submission type\n";
+    }
+
+    auto func = [](){};
+    //Checking if unwrap returns a different type when passed a const selection
+    const auto const_selection = oneapi::dpl::experimental::select(p, func);
+    const auto const_selection_unwrap = oneapi::dpl::experimental::unwrap(const_selection);
+
+    if(std::is_same_v<decltype(const_selection),decltype(const_selection_unwrap)>){
+        pass=false;
+        std::cout << "ERROR: Unwrapped const selection type is equal to the actual const selection type\n";
+    }
+
+    //Checking if unwrap returns a different type when passed a selection
+    auto selection = oneapi::dpl::experimental::select(p, func);
+    auto selection_unwrap = oneapi::dpl::experimental::unwrap(selection);
+
+    if(std::is_same_v<decltype(selection),decltype(selection_unwrap)>){
+        pass=false;
+        std::cout << "ERROR: Unwrapped selection type is equal to the actual selection type\n";
+    }
+
+    if(pass==false) return 1;
+    return 0;
+}
 template<typename Policy, typename UniverseContainer, typename ResourceFunction, bool AutoTune=false>
 int test_select(UniverseContainer u, ResourceFunction&& f) {
   using my_policy_t = Policy;

@@ -384,6 +384,7 @@ run_tests(std::vector<int> u, int best_resource)
     };
 
     return test_initialization<policy_t>(u) || test_select<policy_t, decltype(u), const decltype(f)&, true>(u, f) ||
+           test_unwrap<policy_t, decltype(u)>(u) ||
            test_auto_submit<policy_t>(u, best_resource) || test_auto_submit_wait_on_event<policy_t>(u, best_resource) ||
            test_auto_submit_wait_on_group<policy_t>(u, best_resource) ||
            test_auto_submit_and_wait<policy_t>(u, best_resource)
