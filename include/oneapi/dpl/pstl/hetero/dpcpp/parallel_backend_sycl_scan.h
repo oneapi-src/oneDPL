@@ -24,13 +24,21 @@ inline namespace igpu {
 template<typename _T>
 struct __scan_status_flag
 {
+    // 00xxxx - not computed
+    // 01xxxx - partial
+    // 10xxxx - full
+    // 110000 - out of bounds
+
     using _AtomicRefT = sycl::atomic_ref<::std::uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::device, sycl::access::address_space::global_space>;
     static constexpr std::uint32_t partial_mask = 1 << (sizeof(std::uint32_t)*8 - 2);
     static constexpr std::uint32_t full_mask = 1 << (sizeof(std::uint32_t)*8 - 1);
     static constexpr std::uint32_t value_mask = ~(partial_mask | full_mask);
+    static constexpr std::uint32_t oob_value = partial_mask | full_mask;
+
+    static constexpr int padding = 32;
 
     __scan_status_flag(std::uint32_t* flags_begin, const std::uint32_t tile_id)
-      : atomic_flag(*(flags_begin + tile_id))
+      : atomic_flag(*(flags_begin + tile_id + padding))
     {
 
     }
@@ -42,16 +50,57 @@ struct __scan_status_flag
 
     void set_full(std::uint32_t val)
     {
-        atomic_flag.store(val | full_mask);
+        atomic_flag.store((val ^ partial_mask) | full_mask);
     }
 
+    template<typename _Subgroup, typename BinOp>
+    _T cooperative_lookback(const std::uint32_t tile_id, const _Subgroup& subgroup, BinOp bin_op, std::uint32_t* flags_begin)
+    {
+        _T sum = 0;
+        int offset = -1;
+        int i = 0;
+        int local_id = subgroup.get_local_id();
+
+        for (int tile = static_cast<int>(tile_id) + offset; tile >= 0; offset -= 32)
+        {
+            _AtomicRefT tile_atomic(*(flags_begin + tile + padding - local_id));
+            std::uint32_t tile_val = 0;
+            do {
+                tile_val = tile_atomic.load();
+
+            //} while (!sycl::all_of_group(subgroup, tile_val != 0));
+            } while (0);
+
+            bool is_full = (tile_val & full_mask) && ((tile_val & partial_mask) == 0);
+            auto is_full_ballot = sycl::ext::oneapi::group_ballot(subgroup, is_full);
+            ::std::uint32_t is_full_ballot_bits{};
+            is_full_ballot.extract_bits(is_full_ballot_bits);
+
+            auto lowest_item_with_full = sycl::ctz(is_full_ballot_bits);
+            _T contribution = local_id <= lowest_item_with_full ? tile_val & value_mask : _T{};
+
+            // Sum all of the partial results from the tiles found, as well as the full contribution from the closest tile (if any)
+            sum += sycl::reduce_over_group(subgroup, contribution, bin_op);
+
+            // If we found a full value, we can stop looking at previous tiles. Otherwise,
+            // keep going through tiles until we either find a full tile or we've completely
+            // recomputed the prefix using partial values
+            if (is_full_ballot_bits)
+                break;
+
+            //if (i++ > 10) break;
+        }
+        return sum;
+    }
+
+#if 0
     _T lookback(const std::uint32_t tile_id, std::uint32_t* flags_begin)
     {
         _T sum = 0;
         int i = 0;
         for (std::int32_t tile = static_cast<std::int32_t>(tile_id) - 1; tile >= 0; --tile)
         {
-            _AtomicRefT tile_atomic(*(flags_begin + tile));
+            _AtomicRefT tile_atomic(*(flags_begin + tile + padding));
             std::uint32_t tile_val = 0;
             do {
                 tile_val = tile_atomic.load();
@@ -67,6 +116,7 @@ struct __scan_status_flag
         }
         return sum;
     }
+#endif
 
     _AtomicRefT atomic_flag;
 };
@@ -86,15 +136,28 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
 
     // TODO: use wgsize and iters per item from _KernelParam
     //constexpr ::std::size_t __elems_per_item = _KernelParam::data_per_workitem;
-    constexpr ::std::size_t __elems_per_item = 16;
+#ifdef _ONEDPL_SCAN_ITER_SIZE
+    constexpr ::std::size_t __elems_per_item = _ONEDPL_SCAN_ITER_SIZE;
+#else
+    constexpr ::std::size_t __elems_per_item = 8;
+#endif
     std::size_t wgsize = n/num_wgs/__elems_per_item;
     std::size_t num_items = n/__elems_per_item;
 
 
-    std::uint32_t status_flags_size = num_wgs+1;
+    constexpr int status_flag_padding = 32;
+    std::uint32_t status_flags_size = num_wgs+1+status_flag_padding;
 
     uint32_t* status_flags = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
-    __queue.memset(status_flags, 0, status_flags_size * sizeof(uint32_t));
+    //__queue.memset(status_flags, 0, status_flags_size * sizeof(uint32_t));
+
+    auto fill_event = __queue.submit([&](sycl::handler& hdl) {
+
+        hdl.parallel_for(sycl::range<1>{status_flags_size}, [=](const sycl::item<1>& item)  {
+                int id = item.get_linear_id();
+                status_flags[id] = id < status_flag_padding ? __scan_status_flag<_Type>::oob_value : 0;
+        });
+    });
 
 #if SCAN_KT_DEBUG
     printf("launching kernel items=%lu wgs=%lu wgsize=%lu max_cu=%u\n", num_items, num_wgs, wgsize, __max_cu);
@@ -109,10 +172,12 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
 
     auto event = __queue.submit([&](sycl::handler& hdl) {
         auto tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, hdl);
+        hdl.depends_on(fill_event);
 
         oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng);
         hdl.parallel_for(sycl::nd_range<1>(num_items, wgsize), [=](const sycl::nd_item<1>& item)  [[intel::reqd_sub_group_size(32)]] {
             auto group = item.get_group();
+            auto subgroup = item.get_sub_group();
 
             std::uint32_t elems_in_tile = wgsize*__elems_per_item;
 
@@ -139,23 +204,30 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             //auto local_sum = 0;
             ///debug1[tile_id] = local_sum;
 
-			__scan_status_flag<_Type> flag(status_flags, tile_id);
-
-            if (group.leader())
-                flag.set_partial(local_sum);
-
-            // Find lowest work-item that has a full result (if any) and sum up subsequent partial results to obtain this tile's exclusive sum
-            //sycl::reduce_over_group(item.get_subgroup())
-
             auto prev_sum = 0;
 
-            if (group.leader())
-                prev_sum = flag.lookback(tile_id, status_flags);
-            //debug2[tile_id] = prev_sum;
+            // The first sub-group will query the previous tiles to find a prefix
+            if (subgroup.get_group_id() == 0)
+            {
+                __scan_status_flag<_Type> flag(status_flags, tile_id);
 
-            if (group.leader())
-                flag.set_full(prev_sum + local_sum);
+                if (group.leader())
+                    flag.set_partial(local_sum);
 
+                // Find lowest work-item that has a full result (if any) and sum up subsequent partial results to obtain this tile's exclusive sum
+                //sycl::reduce_over_group(item.get_subgroup())
+
+
+                prev_sum = flag.cooperative_lookback(tile_id, subgroup, __binary_op, status_flags);
+                //if (group.leader())
+                //    prev_sum = flag.lookback(tile_id, status_flags);
+                //debug2[tile_id] = prev_sum;
+
+                if (group.leader())
+                    flag.set_full(prev_sum + local_sum);
+            }
+
+            prev_sum = sycl::group_broadcast(group, prev_sum, 0);
             sycl::joint_inclusive_scan(group, in_begin, in_end, out_begin, __binary_op, prev_sum);
         });
     });
