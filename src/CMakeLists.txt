@@ -13,8 +13,16 @@ string(REGEX REPLACE ".*#define _PSTL_OFFLOAD_BINARY_VERSION_PATCH ([0-9]+).*" "
 
 add_library(pstloffload SHARED ${CMAKE_CURRENT_SOURCE_DIR}/pstl_offload.cpp)
 
-target_compile_options(pstloffload PUBLIC "-fsycl")
-target_include_directories(pstloffload PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+target_compile_options(pstloffload PRIVATE
+            -fsycl
+            -Wall -Wextra -Wformat -Wformat-security -Wremarks -Werror
+            -fPIE -mretpoline
+            -fstack-protector
+            )
+
+target_link_options(pstloffload PRIVATE -Wl,-z,relro)
+
+target_include_directories(pstloffload PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 set_target_properties(pstloffload PROPERTIES
     VERSION ${_pstl_offload_version_major}.${_pstl_offload_version_minor}.${_pstl_offload_version_patch}
