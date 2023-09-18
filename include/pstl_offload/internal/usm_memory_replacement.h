@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <cerrno>
+#include <optional>
 
 #include <sycl/sycl.hpp>
 
@@ -68,7 +69,7 @@ class __offload_policy_holder_type
     {
         try
         {
-            _M_offload_device = sycl::device{__device_selector};
+            _M_offload_device.emplace(__device_selector);
         }
         catch (const sycl::exception& e)
         {
