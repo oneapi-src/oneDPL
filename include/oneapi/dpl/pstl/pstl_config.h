@@ -112,14 +112,10 @@
 #    define _PSTL_UDR_PRESENT 0
 #endif
 
-// TODO: enable on Windows when fixed, note that the feature is available since 20230100
-#if !defined(_MSC_VER) && __INTEL_LLVM_COMPILER >= 20230100
-#    define _PSTL_INTEL_LLVM_UDS_PRESENT 1
-#else
-#    define _PSTL_INTEL_LLVM_UDS_PRESENT 0
-#endif
-
-#if _PSTL_INTEL_LLVM_UDS_PRESENT || (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
+// TODO: enable with Intel LLVM-based compiler on Windows when fixed
+#if __INTEL_LLVM_COMPILER >= 20230100 && !defined(_MSC_VER)
+#    define _PSTL_UDS_PRESENT 1
+#elif __INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626
 #    define _PSTL_UDS_PRESENT 1
 #else
 #    define _PSTL_UDS_PRESENT 0
