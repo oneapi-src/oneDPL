@@ -183,17 +183,15 @@
 #    define _ONEDPL_PRAGMA_SIMD_ORDERED_MONOTONIC_2ARGS(PRM1, PRM2)
 #endif
 
-#if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1900 ||                                                              \
-     !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900 ||                  \
-     _OPENMP >= 201307)
+#if (_OPENMP >= 201307 || __INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1900 ||                                         \
+     !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900)
 #    define _ONEDPL_UDR_PRESENT 1
 #else
 #    define _ONEDPL_UDR_PRESENT 0
 #endif
 
-// UDS is broken with Intel(R) oneAPI DPC++ Compiler on Windows
-// It might be fixed in the future releases, which follow 20240000
-#if !defined(_MSC_VER) && __INTEL_LLVM_COMPILER
+// TODO: enable UDS on Windows when fixed
+#if !defined(_MSC_VER) && __INTEL_LLVM_COMPILER >= 20230100
 #    define _ONEDPL_INTEL_LLVM_UDS_PRESENT 1
 #else
 #    define _ONEDPL_INTEL_LLVM_UDS_PRESENT 0
@@ -310,8 +308,7 @@
 #    define _ONEDPL_SYCL_INTEL_COMPILER 1
 #endif
 
-// Intel(R) oneAPI DPC++ Compiler cannot build some cases of destroy and destroy_n with unseq policies on Windows
-// It might be fixed in the future releases, which follow 20240000
+// TODO: enable on Windows when fixed
 #if defined(_MSC_VER) && __INTEL_LLVM_COMPILER
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
 #else

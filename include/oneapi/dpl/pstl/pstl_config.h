@@ -106,17 +106,15 @@
 #define _PSTL_EARLYEXIT_PRESENT (__INTEL_COMPILER >= 1800)
 #define _PSTL_MONOTONIC_PRESENT (__INTEL_COMPILER >= 1800)
 
-#if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1900 ||                                                              \
-     !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _PSTL_GCC_VERSION >= 40900 ||                    \
-     _OPENMP >= 201307)
+#if (_OPENMP >= 201307 || __INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1900 ||                                         \
+     !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _PSTL_GCC_VERSION >= 40900)
 #    define _PSTL_UDR_PRESENT 1
 #else
 #    define _PSTL_UDR_PRESENT 0
 #endif
 
-// UDS is broken with Intel(R) oneAPI DPC++ Compiler on Windows
-// It might be fixed in the future releases, which follow 20240000
-#if !defined(_MSC_VER) && __INTEL_LLVM_COMPILER
+// TODO: enable UDS on Windows when fixed
+#if !defined(_MSC_VER) && __INTEL_LLVM_COMPILER >= 20230100
 #    define _PSTL_INTEL_LLVM_UDS_PRESENT 1
 #else
 #    define _PSTL_INTEL_LLVM_UDS_PRESENT 0
@@ -184,8 +182,7 @@
 // broken macros
 #define _PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 
-// Intel(R) oneAPI DPC++ Compiler cannot build some cases of destroy and destroy_n with unseq policies on Windows
-// It might be fixed in the future releases, which follow 20240000
+// TODO: enable on Windows when fixed
 #if defined(_MSC_VER) && __INTEL_LLVM_COMPILER
 #    define _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
 #else

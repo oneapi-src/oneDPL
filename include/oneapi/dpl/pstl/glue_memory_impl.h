@@ -28,6 +28,8 @@
 
 #include "execution_impl.h"
 
+#include <type_traits>
+
 namespace oneapi
 {
 namespace dpl
