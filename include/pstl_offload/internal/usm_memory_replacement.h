@@ -37,9 +37,7 @@ __set_active_device(sycl::device* __new_active_device)
     __active_device.store(__new_active_device, std::memory_order_release);
 }
 
-using __device_selector_type = int (*)(const sycl::device &);
-
-static __device_selector_type
+static auto
 __get_offload_device_selector()
 {
 #if __SYCL_PSTL_OFFLOAD__ == 1
@@ -63,7 +61,9 @@ class __offload_policy_holder_type
     // of the class is inline, we need to avoid calling static functions inside of the constructor
     // and pass the pointer to exact function as an argument to guarantee that the correct __active_device
     // would be stored in each translation unit
-    __offload_policy_holder_type(__device_selector_type __device_selector,
+     template <typename _DeviceSelector,
+        std::enable_if_t<std::is_invocable_r_v<int, _DeviceSelector &, const sycl::device &>, bool> = true>
+    __offload_policy_holder_type(const _DeviceSelector& __device_selector,
                                  __set_active_device_func_type __set_active_device_func)
         : _M_set_active_device(__set_active_device_func)
     {
