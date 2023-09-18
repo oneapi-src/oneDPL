@@ -202,11 +202,11 @@ template <class _RandomAccessIterator, class _OutputIterator, class _UnaryOperat
           class _Inclusive>
 ::std::enable_if_t<!is_arithmetic_udop<_Tp, _BinaryOperation>::value, ::std::pair<_OutputIterator, _Tp>>
 __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator __result,
-                       _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive,
+                       _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op, _Inclusive __is_inclusive,
                        /*is_vector=*/::std::true_type) noexcept
 {
 #if (_PSTL_UDS_PRESENT || _ONEDPL_UDS_PRESENT)
-    if (_Inclusive{} || !oneapi::dpl::__internal::__iterators_possibly_equal(__first, __result))
+    if (__is_inclusive || !oneapi::dpl::__internal::__iterators_possibly_equal(__first, __result))
     {
         return __unseq_backend::__simd_scan(__first, __last - __first, __result, __unary_op, __init, __binary_op,
                                             _Inclusive());

@@ -100,6 +100,28 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
 template <typename T>
 struct ExecutionPolicyWrapper;
 
+#if _ONEDPL_BACKEND_SYCL
+template <sycl::access::mode _Mode1, sycl::access::mode _Mode2, typename _T, typename _Allocator>
+bool
+__iterators_possibly_equal(const sycl_iterator<_Mode1, _T, _Allocator>& __it1,
+                           const sycl_iterator<_Mode2, _T, _Allocator>& __it2)
+{
+    const auto buf1 = __it1.get_buffer();
+    const auto buf2 = __it2.get_buffer();
+
+    // If two different sycl iterators belongs to the different sycl buffers, they are different
+    if (buf1 != buf2)
+        return false;
+
+    // We are unable to compare two sycl_iterator's if one of them is sub_buffer and assume that
+    // two different sycl iterators are equal.
+    if (buf1.is_sub_buffer() || buf2.is_sub_buffer())
+        return true;
+
+    return __it1 == __it2;
+}
+#endif // _ONEDPL_BACKEND_SYCL
+
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
           typename _InitType, typename _BinaryOperation, typename _Inclusive>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator2>
