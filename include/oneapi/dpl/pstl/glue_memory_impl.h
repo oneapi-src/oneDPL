@@ -233,8 +233,8 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
         ::std::conditional_t<
             oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value,
             ::std::false_type,
-            decltype(oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec))
-        >;
+            decltype(oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(
+                __exec))>;
 #else
         decltype(oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 #endif // _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN
@@ -242,9 +242,9 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
 
     if constexpr (!::std::is_trivially_destructible_v<_ValueType>)
     {
-        oneapi::dpl::__internal::__pattern_walk1(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                                 [](_ReferenceType __val) { __val.~_ValueType(); },
-                                                 __is_vector, __is_parallel);
+        oneapi::dpl::__internal::__pattern_walk1(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            [](_ReferenceType __val) { __val.~_ValueType(); }, __is_vector, __is_parallel);
     }
 }
 
@@ -262,8 +262,8 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
         ::std::conditional_t<
             oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value,
             ::std::false_type,
-            decltype(oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec))
-        >;
+            decltype(oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(
+                __exec))>;
 #else
         decltype(oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 #endif // _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN
