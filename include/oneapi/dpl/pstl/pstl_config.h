@@ -66,9 +66,8 @@
 #endif
 
 // Enable SIMD for compilers that support OpenMP 4.0
-#if (_OPENMP >= 201307) || __INTEL_LLVM_COMPILER || (__INTEL_COMPILER >= 1600) ||                                      \
-    (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _PSTL_GCC_VERSION >= 40900) ||                   \
-    defined(__clang__)
+#if defined(__clang__) || (_OPENMP >= 201307) || __INTEL_LLVM_COMPILER || (__INTEL_COMPILER >= 1600) ||                \
+    (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _PSTL_GCC_VERSION >= 40900)
 #    define _PSTL_PRAGMA_SIMD _PSTL_PRAGMA(omp simd)
 #    define _PSTL_PRAGMA_DECLARE_SIMD _PSTL_PRAGMA(omp declare simd)
 #    define _PSTL_PRAGMA_SIMD_REDUCTION(PRM) _PSTL_PRAGMA(omp simd reduction(PRM))
@@ -113,7 +112,7 @@
 #    define _PSTL_UDR_PRESENT 0
 #endif
 
-// TODO: enable UDS on Windows when fixed
+// TODO: enable on Windows when fixed, note that the feature is available since 20230100
 #if !defined(_MSC_VER) && __INTEL_LLVM_COMPILER >= 20230100
 #    define _PSTL_INTEL_LLVM_UDS_PRESENT 1
 #else
@@ -182,7 +181,7 @@
 // broken macros
 #define _PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 
-// TODO: enable on Windows when fixed
+// TODO: enable when fixed
 #if defined(_MSC_VER) && __INTEL_LLVM_COMPILER
 #    define _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
 #else

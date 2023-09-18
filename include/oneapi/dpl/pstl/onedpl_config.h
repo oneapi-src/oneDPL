@@ -190,7 +190,7 @@
 #    define _ONEDPL_UDR_PRESENT 0
 #endif
 
-// TODO: enable UDS on Windows when fixed
+// TODO: enable on Windows when fixed, note that the feature is available since 20230100
 #if !defined(_MSC_VER) && __INTEL_LLVM_COMPILER >= 20230100
 #    define _ONEDPL_INTEL_LLVM_UDS_PRESENT 1
 #else
@@ -308,7 +308,7 @@
 #    define _ONEDPL_SYCL_INTEL_COMPILER 1
 #endif
 
-// TODO: enable on Windows when fixed
+// TODO: enable when fixed
 #if defined(_MSC_VER) && __INTEL_LLVM_COMPILER
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
 #else
