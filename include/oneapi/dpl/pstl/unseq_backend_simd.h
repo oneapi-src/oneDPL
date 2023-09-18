@@ -551,16 +551,12 @@ template <class _InputIterator, class _Size, class _OutputIterator, class _Unary
 __simd_scan(_InputIterator __first, _Size __n, _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init,
             _BinaryOperation, /*Inclusive*/ ::std::false_type)
 {
-    _Tp __cur_scan_value;
-    _ONEDPL_PRAGMA_SIMD_SCAN(+ : __cur_scan_value)
+    _ONEDPL_PRAGMA_SIMD_SCAN(+ : __init)
     for (_Size __i = 0; __i < __n; ++__i)
     {
-        __cur_scan_value = __init;
-        _ONEDPL_PRAGMA_SIMD_EXCLUSIVE_SCAN(__cur_scan_value)
-        {
-            __init += __unary_op(__first[__i]);
-            __result[__i] = __cur_scan_value;
-        }
+        __result[__i] = __init;
+        _ONEDPL_PRAGMA_SIMD_EXCLUSIVE_SCAN(__init)
+        __init += __unary_op(__first[__i]);
     }
     return ::std::make_pair(__result + __n, __init);
 }
@@ -595,20 +591,16 @@ __simd_scan(_InputIterator __first, _Size __n, _OutputIterator __result, _UnaryO
 {
     typedef _Combiner<_Tp, _BinaryOperation> _CombinerType;
     _CombinerType __init_{__init, &__binary_op};
-    _Tp __cur_scan_value;
 
     _ONEDPL_PRAGMA_DECLARE_REDUCTION(__bin_op, _CombinerType)
 
-    _ONEDPL_PRAGMA_SIMD_SCAN(__bin_op : __cur_scan_value)
+    _ONEDPL_PRAGMA_SIMD_SCAN(__bin_op : __init_)
     for (_Size __i = 0; __i < __n; ++__i)
     {
-        __cur_scan_value = __init_.__value;
-        _ONEDPL_PRAGMA_SIMD_EXCLUSIVE_SCAN(__cur_scan_value)
-        {
-            _ONEDPL_PRAGMA_FORCEINLINE
-            __init_.__value = __binary_op(__init_.__value, __unary_op(__first[__i]));
-            __result[__i] = __cur_scan_value;
-        }
+        __result[__i] = __init_.__value;
+        _ONEDPL_PRAGMA_SIMD_EXCLUSIVE_SCAN(__init_)
+        _ONEDPL_PRAGMA_FORCEINLINE
+        __init_.__value = __binary_op(__init_.__value, __unary_op(__first[__i]));
     }
     return ::std::make_pair(__result + __n, __init_.__value);
 }

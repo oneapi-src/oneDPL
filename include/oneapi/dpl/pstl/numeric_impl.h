@@ -206,13 +206,16 @@ __brick_transform_scan(_RandomAccessIterator __first, _RandomAccessIterator __la
                        /*is_vector=*/::std::true_type) noexcept
 {
 #if (_PSTL_UDS_PRESENT || _ONEDPL_UDS_PRESENT)
-    return __unseq_backend::__simd_scan(__first, __last - __first, __result, __unary_op, __init, __binary_op,
-                                        _Inclusive());
-#else
+    if (::std::is_same_v<_Inclusive, ::std::true_type> ||
+        !oneapi::dpl::__internal::__iterators_possibly_equal(__first, __result))
+    {
+        return __unseq_backend::__simd_scan(__first, __last - __first, __result, __unary_op, __init, __binary_op,
+                                            _Inclusive());
+    }
+#endif
     // We need to call serial brick here to call function for inclusive and exclusive scan that depends on _Inclusive() value
     return __internal::__brick_transform_scan(__first, __last, __result, __unary_op, __init, __binary_op, _Inclusive(),
                                               /*is_vector=*/::std::false_type());
-#endif
 }
 
 template <class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp, class _BinaryOperation,
