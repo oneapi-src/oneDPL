@@ -17,6 +17,7 @@ target_compile_options(pstloffload PRIVATE
             -fsycl
             -Wall -Wextra -Wformat -Wformat-security -Wremarks -Werror
             -fPIE -mretpoline
+            -fstack-protector
             )
 
 target_link_options(pstloffload PRIVATE -Wl,-z,relro)
