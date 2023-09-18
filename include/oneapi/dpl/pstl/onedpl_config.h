@@ -190,10 +190,9 @@
 #    define _ONEDPL_UDR_PRESENT 0
 #endif
 
-// TODO: enable with Intel LLVM-based compiler on Windows when fixed
-#if __INTEL_LLVM_COMPILER >= 20230100 && !defined(_MSC_VER)
-#    define _ONEDPL_UDS_PRESENT 1
-#elif __INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626
+// TODO: enable UDS on Windows with Intel LLVM-based compiler when it is fixed
+#if (__INTEL_LLVM_COMPILER >= 20230100 && !defined(_MSC_VER)) ||                                                       \
+    (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
 #    define _ONEDPL_UDS_PRESENT 1
 #else
 #    define _ONEDPL_UDS_PRESENT 0
@@ -304,7 +303,7 @@
 #    define _ONEDPL_SYCL_INTEL_COMPILER 1
 #endif
 
-// TODO: enable when fixed
+// TODO: turn off the macro on Windows when 'omp simd' is fixed for destroy algorithms
 #if defined(_MSC_VER) && __INTEL_LLVM_COMPILER
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
 #else
