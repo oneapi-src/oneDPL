@@ -383,11 +383,11 @@ struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
 
 // __buffer defaulted to sycl::buffer<_T, 1, ...>
 template <typename _ExecutionPolicy, typename _T, typename _Container = sycl::buffer<_T, 1>>
-struct __buffer;
+class __buffer;
 
 // impl for sycl::buffer<...>
 template <typename _ExecutionPolicy, typename _T, typename _BValueT, int __dim, typename _AllocT>
-struct __buffer<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
+class __buffer<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
 {
   private:
     using __exec_policy_t = ::std::decay_t<_ExecutionPolicy>;
