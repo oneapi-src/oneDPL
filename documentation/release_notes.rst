@@ -15,7 +15,7 @@ New Features
 ------------
 - Added dynamic selection as an experimental feature. Provides functions such as ``select``,
   ``submit`` and ``submit_and_wait``. It includes selection policies: ``fixed_resource_policy``,
-  ``round_robin_policy``, ``dynamic_load_policy``, and ``auto_tune_policy``. And provides default
+  ``round_robin_policy``, ``dynamic_load_policy``, ``auto_tune_policy``, and provides default
   support for SYCL queues. 
 -	Algorithms using vector execution policies are now vectorized whenever possible when the program is built with Intel® DPC++/C++ Compiler.
 - Added support for passing zip iterators as segment value data in ``reduce_by_segment``, ``exclusive_scan_by_segment``,
