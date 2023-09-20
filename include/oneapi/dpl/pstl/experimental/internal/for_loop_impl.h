@@ -399,7 +399,8 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
     const __pack_type __identity{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
     oneapi::dpl::__internal::__except_handler([&]() {
-        return __par_backend::__parallel_reduce(::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
+        return oneapi::dpl::__par_backend::__parallel_reduce(
+                   ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
                                                 [__is_vector, __first, __f](_Size __i, _Size __j, __pack_type __value) {
                                                     const auto __subseq_start = __first + __i;
                                                     const auto __length = __j - __i;
@@ -434,7 +435,7 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
     const __pack_type __identity{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
     oneapi::dpl::__internal::__except_handler([&]() {
-        return __par_backend::__parallel_reduce(
+        return oneapi::dpl::__par_backend::__parallel_reduce(
                    ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
                    [__is_vector, __first, __f, __stride](_Size __i, _Size __j, __pack_type __value) {
                        const auto __subseq_start = __first + __i * __stride;
