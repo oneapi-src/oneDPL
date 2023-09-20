@@ -109,11 +109,10 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     typedef uint64_t FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef uint64_t CountType;
-    typedef ::std::decay_t<Policy> policy_type;
 
     // buffer that is used to store a flag indicating if the associated key is not equal to
     // the next key, and thus its associated sum should be part of the final result
-    oneapi::dpl::__par_backend::__buffer<policy_type, FlagType> _mask(n + 1);
+    oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _mask(n + 1);
     auto mask = _mask.get();
     mask[0] = 1;
 
@@ -129,11 +128,11 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // buffer stores the sums of values associated with a given key. Sums are copied with
     // a shift into result2, and the shift is computed at the same time as the sums, so the
     // sums can't be written to result2 directly.
-    oneapi::dpl::__par_backend::__buffer<policy_type, ValueType> _scanned_values(n);
+    oneapi::dpl::__par_backend::__buffer<Policy, ValueType> _scanned_values(n);
 
     // Buffer is used to store results of the scan of the mask. Values indicate which position
     // in result2 needs to be written with the scanned_values element.
-    oneapi::dpl::__par_backend::__buffer<policy_type, FlagType> _scanned_tail_flags(n);
+    oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _scanned_tail_flags(n);
 
     // Compute the sum of the segments. scanned_tail_flags values are not used.
     inclusive_scan(policy, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
