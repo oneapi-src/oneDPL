@@ -32,15 +32,6 @@ namespace __unseq_backend
 // Expect vector width up to 64 (or 512 bit)
 const ::std::size_t __lane_size = 64;
 
-template <class _DifferenceType, class _Function>
-void
-simd_walk_1(_DifferenceType __n, _Function __f) noexcept
-{
-    _ONEDPL_PRAGMA_SIMD
-    for (_DifferenceType __i = 0; __i < __n; ++__i)
-        __f(__i);
-}
-
 template <class _Iterator, class _DifferenceType, class _Function>
 _Iterator
 __simd_walk_1(_Iterator __first, _DifferenceType __n, _Function __f) noexcept
