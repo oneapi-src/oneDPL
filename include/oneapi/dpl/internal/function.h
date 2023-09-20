@@ -32,15 +32,12 @@ namespace internal
 using ::std::get;
 
 #if _ONEDPL_BACKEND_SYCL
-using oneapi::dpl::__internal::is_hetero_iterator;
-#endif
-
-#if _ONEDPL_BACKEND_SYCL
 // Helpers used to get indexable access to the data passed to the SYCL implementation of an
 // algorithm from either a SYCL iterator or a USM pointer.
 template <sycl::access::mode Mode, typename Policy, typename Iterator>
 auto
-get_access(Policy, Iterator i, ::std::enable_if_t<is_hetero_iterator<Iterator>::value>* = nullptr)
+get_access(Policy, Iterator i,
+           ::std::enable_if_t<oneapi::dpl::__internal::is_hetero_iterator<Iterator>::value>* = nullptr)
     -> decltype(i.get_buffer().template get_access<Mode>())
 {
     return i.get_buffer().template get_access<Mode>();
@@ -48,7 +45,8 @@ get_access(Policy, Iterator i, ::std::enable_if_t<is_hetero_iterator<Iterator>::
 
 template <sycl::access::mode Mode, typename Policy, typename Iterator>
 Iterator
-get_access(Policy, Iterator i, ::std::enable_if_t<!is_hetero_iterator<Iterator>::value>* = nullptr)
+get_access(Policy, Iterator i,
+           ::std::enable_if_t<!oneapi::dpl::__internal::is_hetero_iterator<Iterator>::value>* = nullptr)
 {
     return i;
 }
