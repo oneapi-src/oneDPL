@@ -15,15 +15,19 @@ New Features
 ------------
 - Added dynamic selection as an experimental feature. Provides functions such as ``select``,
   ``submit`` and ``submit_and_wait``. It includes selection policies: ``fixed_resource_policy``,
-  ``round_robin_policy``, ``dynamic_load_policy``, and ``auto_tune_policy``.
-  And provides default support for SYCL queues. 
-- Added support for passing zip iterators as segment value data in ``reduce_by_segment``,
-  ``exclusive_scan_by_segment``, and ``inclusive_scan_by_segment``.
+  ``round_robin_policy``, ``dynamic_load_policy``, and ``auto_tune_policy``. And provides default
+  support for SYCL queues. 
+-	Algorithms using vector execution policies are now vectorized whenever possible when the program is built with Intel® DPC++/C++ Compiler.
+- Added support for passing zip iterators as segment value data in ``reduce_by_segment``, ``exclusive_scan_by_segment``,
+  and ``inclusive_scan_by_segment``.
 - Improved performance of ``merge``, ``sort`` and ``stable_sort`` (non-Radix case) algorithms on GPU devices.
   Added new implementation based on ``Merge Path`` approach.
 - Improved performance of ``sort`` and ``sort_stable`` (Radix case) algorithms on GPU devices.
 - Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
   ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
+- When compiling with DPC++ compiler option, libstdc++ version 8 or libc++, and with ``-fsycl-pstl-offload`` option,
+  parallel algorithms from std namespace called with ``oneapi::dpl::parallel_unsequenced_policy`` would be
+  offloaded to the SYCL device in accordance with ``-fsycl-pstl-offload`` option value.
 
 Fixed Issues
 ------------
@@ -37,6 +41,20 @@ New in This Release
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
 - Incorrect results may be produced by ``set_intersection`` using DPC++ execution policies,
   where elements are be copied from the second input range rather than the first input range. 
+- For ``transform_exclusive_scan`` and ``exclusive_scan`` with overlapping input and destination sequences,
+  it is required that the provided input and destination iterators are equality comparable.
+  Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
+  If these conditions are not met, the result of these algorithm calls are undefined.
+- Incorrect results or segmentation fault may be produced by sort, stable_sort, partial_sort_copy algorithms when:
+
+  *	They use a DPC++ execution policy.
+
+  *	The program is built on Linux with Intel® DPC++/C++ Compiler and -O0 compiler option.
+
+  *	The program is run on CPU device.
+  
+  You can avoid the issue by passing -fsycl-device-code-split=per_kernel compiler option.
+
 
 Existing Issues
 ^^^^^^^^^^^^^^^
@@ -48,8 +66,6 @@ See oneDPL Guide for other `restrictions and known limitations`_.
 - The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
 - STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
   the Microsoft* Visual C++ standard library.
-- Incorrect results may be produced with in-place scans using ``unseq`` and ``par_unseq`` policies on
-  CPUs with the Intel® C++ Compiler 2021.8.
 
 New in 2022.2.0
 ===============
