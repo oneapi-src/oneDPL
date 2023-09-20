@@ -174,9 +174,12 @@ test_uninitialized_fill_destroy_by_type()
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
 #if !TEST_DPCPP_BACKEND_PRESENT
+        // We use malloc / free for allocation / deallocation, so the memory is passed to the test
+        // uninitialized and deallocation does not attempt to destroy objects already destroyed
+        // in the test.
         auto free_allocation = [](auto ptr) { ::std::free(ptr); };
-        std::unique_ptr<T[], decltype(free_allocation)> p(static_cast<T*>(::std::malloc(sizeof(T) * n)),
-                                                          free_allocation);
+        ::std::unique_ptr<T[], decltype(free_allocation)> p(static_cast<T*>(::std::malloc(sizeof(T) * n)),
+                                                            free_allocation);
         auto p_begin = p.get();
 #else
         Sequence<T> p(n, [](size_t){ return T{}; });
