@@ -153,9 +153,9 @@ __pattern_walk1(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rando
     __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend::__parallel_for(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                      [__f, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
-                                          __internal::__brick_walk1(__i, __j, __f, __is_vector);
-                                      });
+            [__f, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
+                __internal::__brick_walk1(__i, __j, __f, __is_vector);
+            });
     });
 }
 
@@ -192,9 +192,9 @@ __pattern_walk_brick(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _
     __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend::__parallel_for(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                      [__brick, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
-                                          __brick(__i, __j, __is_vector);
-                                      });
+            [__brick, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
+                __brick(__i, __j, __is_vector);
+            });
     });
 }
 
@@ -254,9 +254,9 @@ __pattern_walk_brick_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first,
     return __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend::__parallel_for(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __first + __n,
-                                      [__brick, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
-                                          __brick(__i, __j - __i, __is_vector);
-                                      });
+            [__brick, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
+                __brick(__i, __j - __i, __is_vector);
+            });
         return __first + __n;
     });
 }
@@ -345,9 +345,9 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
 
         oneapi::dpl::__par_backend::__parallel_for_each(
             ::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
-                                           [&__f](const ::std::tuple<_ReferenceType1, _ReferenceType2>& __val) {
-                                               __f(::std::get<0>(__val), ::std::get<1>(__val));
-                                           });
+            [&__f](const ::std::tuple<_ReferenceType1, _ReferenceType2>& __val) {
+                __f(::std::get<0>(__val), ::std::get<1>(__val));
+            });
 
         //TODO: parallel_for_each does not allow to return correct iterator value according to the ::std::transform
         // implementation. Therefore, iterator value is calculated separately.
@@ -424,10 +424,9 @@ __pattern_walk2_brick(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
     return __except_handler([&]() {
         oneapi::dpl::__par_backend::__parallel_for_each(
             ::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
-                                           [__brick](const ::std::tuple<_ReferenceType1, _ReferenceType2>& __val) {
-                                               __brick(::std::get<0>(__val),
-                                                       ::std::forward<_ReferenceType2>(::std::get<1>(__val)));
-                                           });
+            [__brick](const ::std::tuple<_ReferenceType1, _ReferenceType2>& __val) {
+                __brick(::std::get<0>(__val), ::std::forward<_ReferenceType2>(::std::get<1>(__val)));
+            });
 
         //TODO: parallel_for_each does not allow to return correct iterator value according to the ::std::transform
         // implementation. Therefore, iterator value is calculated separately.
@@ -1473,10 +1472,10 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
 
         // 3. Elements from result are moved to [first, last)
         oneapi::dpl::__par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __result, __result + __m,
-                                      [__result, __first, __is_vector](_Tp* __i, _Tp* __j) {
-                                          __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result),
-                                                                                   __is_vector);
-                                      });
+                                                   [__result, __first, __is_vector](_Tp* __i, _Tp* __j) {
+                                                       __brick_move_destroy<_ExecutionPolicy>{}(
+                                                           __i, __j, __first + (__i - __result), __is_vector);
+                                                   });
         return __first + __m;
     });
 }
@@ -1727,12 +1726,11 @@ __pattern_reverse_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first
     auto __len = __last - __first;
     oneapi::dpl::__par_backend::__parallel_for(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                  [__is_vector, __first, __len, __d_first](_RandomAccessIterator1 __inner_first,
-                                                                           _RandomAccessIterator1 __inner_last) {
-                                      __internal::__brick_reverse_copy(__inner_first, __inner_last,
-                                                                       __d_first + (__len - (__inner_last - __first)),
-                                                                       __is_vector);
-                                  });
+        [__is_vector, __first, __len, __d_first](_RandomAccessIterator1 __inner_first,
+                                                 _RandomAccessIterator1 __inner_last) {
+            __internal::__brick_reverse_copy(__inner_first, __inner_last,
+                                             __d_first + (__len - (__inner_last - __first)), __is_vector);
+        });
     return __d_first + __len;
 }
 
@@ -1823,10 +1821,9 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rand
 
             oneapi::dpl::__par_backend::__parallel_for(
                 ::std::forward<_ExecutionPolicy>(__exec), __result, __result + (__n - __m),
-                                          [__first, __result, __is_vector](_Tp* __b, _Tp* __e) {
-                                              __brick_move_destroy<_ExecutionPolicy>{}(
-                                                  __b, __e, __first + (__b - __result), __is_vector);
-                                          });
+                [__first, __result, __is_vector](_Tp* __b, _Tp* __e) {
+                    __brick_move_destroy<_ExecutionPolicy>{}(__b, __e, __first + (__b - __result), __is_vector);
+                });
 
             return __first + (__last - __middle);
         });
@@ -1850,10 +1847,10 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rand
 
             oneapi::dpl::__par_backend::__parallel_for(
                 ::std::forward<_ExecutionPolicy>(__exec), __result, __result + __m,
-                                          [__n, __m, __first, __result, __is_vector](_Tp* __b, _Tp* __e) {
-                                              __brick_move_destroy<_ExecutionPolicy>{}(
-                                                  __b, __e, __first + ((__n - __m) + (__b - __result)), __is_vector);
-                                          });
+                [__n, __m, __first, __result, __is_vector](_Tp* __b, _Tp* __e) {
+                    __brick_move_destroy<_ExecutionPolicy>{}(__b, __e, __first + ((__n - __m) + (__b - __result)),
+                                                             __is_vector);
+                });
 
             return __first + (__last - __middle);
         });
@@ -2344,9 +2341,10 @@ __pattern_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Random
     __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend::__parallel_stable_sort(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-                                              [](_RandomAccessIterator __first, _RandomAccessIterator __last,
-                                                 _Compare __comp) { ::std::sort(__first, __last, __comp); },
-                                              __last - __first);
+            [](_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) {
+                ::std::sort(__first, __last, __comp);
+            },
+            __last - __first);
     });
 }
 
@@ -2370,9 +2368,10 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, 
     __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend::__parallel_stable_sort(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-                                              [](_RandomAccessIterator __first, _RandomAccessIterator __last,
-                                                 _Compare __comp) { ::std::stable_sort(__first, __last, __comp); },
-                                              __last - __first);
+            [](_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) {
+                ::std::stable_sort(__first, __last, __comp);
+            },
+            __last - __first);
     });
 }
 
@@ -2414,8 +2413,7 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_f
     __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend::__parallel_stable_sort(
             ::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __cmp_f,
-                                              [](auto __first, auto __last, auto __cmp)
-                                                { ::std::sort(__first, __last, __cmp); },__end - __beg);
+            [](auto __first, auto __last, auto __cmp) { ::std::sort(__first, __last, __cmp); }, __end - __beg);
     });
 }
 
@@ -2507,29 +2505,29 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __
 
             oneapi::dpl::__par_backend::__parallel_stable_sort(
                 ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n1, __comp,
-                                                  [__n2, __first, __r](_T1* __i, _T1* __j, _Compare __comp) {
-                                                      _RandomAccessIterator1 __it = __first + (__i - __r);
+                [__n2, __first, __r](_T1* __i, _T1* __j, _Compare __comp) {
+                    _RandomAccessIterator1 __it = __first + (__i - __r);
 
-                                                      // 1. Copy elements from input to raw memory
-                                                      for (_T1* __k = __i; __k != __j; ++__k, ++__it)
-                                                      {
-                                                          ::new (__k) _T2(*__it);
-                                                      }
+                    // 1. Copy elements from input to raw memory
+                    for (_T1* __k = __i; __k != __j; ++__k, ++__it)
+                    {
+                        ::new (__k) _T2(*__it);
+                    }
 
-                                                      // 2. Sort elements in temporary buffer
-                                                      if (__n2 < __j - __i)
-                                                          ::std::partial_sort(__i, __i + __n2, __j, __comp);
-                                                      else
-                                                          ::std::sort(__i, __j, __comp);
-                                                  },
-                                                  __n2);
+                    // 2. Sort elements in temporary buffer
+                    if (__n2 < __j - __i)
+                        ::std::partial_sort(__i, __i + __n2, __j, __comp);
+                    else
+                        ::std::sort(__i, __j, __comp);
+                },
+                __n2);
 
             // 3. Move elements from temporary buffer to output
             oneapi::dpl::__par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n2,
-                                          [__r, __d_first, __is_vector](_T1* __i, _T1* __j) {
-                                              __brick_move_destroy<_ExecutionPolicy>{}(
-                                                  __i, __j, __d_first + (__i - __r), __is_vector);
-                                          });
+                                                       [__r, __d_first, __is_vector](_T1* __i, _T1* __j) {
+                                                           __brick_move_destroy<_ExecutionPolicy>{}(
+                                                               __i, __j, __d_first + (__i - __r), __is_vector);
+                                                       });
 
             if constexpr (!::std::is_trivially_destructible_v<_T1>)
                 oneapi::dpl::__par_backend::__parallel_for(
@@ -2795,9 +2793,9 @@ __pattern_generate(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ra
     return __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend::__parallel_for(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                      [__g, __is_vector](_RandomAccessIterator __begin, _RandomAccessIterator __end) {
-                                          __internal::__brick_generate(__begin, __end, __g, __is_vector);
-                                      });
+            [__g, __is_vector](_RandomAccessIterator __begin, _RandomAccessIterator __end) {
+                __internal::__brick_generate(__begin, __end, __g, __is_vector);
+            });
         return __last;
     });
 }
@@ -4153,10 +4151,9 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
     {
         oneapi::dpl::__par_backend::__parallel_for(
             ::std::forward<_ExecutionPolicy>(__exec), __n, __size,
-                                      [__first, __n, __is_vector](_DiffType __i, _DiffType __j) {
-                                          __brick_move<_ExecutionPolicy>{}(__first + __i, __first + __j,
-                                                                           __first + __i - __n, __is_vector);
-                                      });
+            [__first, __n, __is_vector](_DiffType __i, _DiffType __j) {
+                __brick_move<_ExecutionPolicy>{}(__first + __i, __first + __j, __first + __i - __n, __is_vector);
+            });
     }
     else //2. n < size/2; there is not enough memory to parallel copying; doing parallel copying by n elements
     {
@@ -4166,10 +4163,9 @@ __pattern_shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
             auto __end = ::std::min(__k + __n, __size);
             oneapi::dpl::__par_backend::__parallel_for(
                 ::std::forward<_ExecutionPolicy>(__exec), __k, __end,
-                                          [__first, __n, __is_vector](_DiffType __i, _DiffType __j) {
-                                              __brick_move<_ExecutionPolicy>{}(__first + __i, __first + __j,
-                                                                               __first + __i - __n, __is_vector);
-                                          });
+                [__first, __n, __is_vector](_DiffType __i, _DiffType __j) {
+                    __brick_move<_ExecutionPolicy>{}(__first + __i, __first + __j, __first + __i - __n, __is_vector);
+                });
         }
     }
 
