@@ -61,8 +61,7 @@ class __offload_policy_holder_type
     // of the class is inline, we need to avoid calling static functions inside of the constructor
     // and pass the pointer to exact function as an argument to guarantee that the correct __active_device
     // would be stored in each translation unit
-    template <typename _DeviceSelector,
-              std::enable_if_t<std::is_invocable_r_v<int, _DeviceSelector&, const sycl::device&>, bool> = true>
+    template <typename _DeviceSelector>
     __offload_policy_holder_type(const _DeviceSelector& __device_selector,
                                  __set_active_device_func_type __set_active_device_func)
         : _M_set_active_device(__set_active_device_func)
@@ -73,8 +72,9 @@ class __offload_policy_holder_type
         }
         catch (const sycl::exception& e)
         {
-            // e.code() == sycl::errc::runtime means occurs when unable to get offload device. Do not pass
-            // an exception, as ctor is called for a static object and the exception can't be processed.
+            // e.code() == sycl::errc::runtime occurs when device selection unable to get offload device
+            // with requred type. Do not pass an exception, as ctor is called for a static object and
+            // the exception can't be processed.
             // Remember the situation and re-throw exception when asked for the policy from user's code.
             if (e.code() != sycl::errc::runtime)
                 throw;
