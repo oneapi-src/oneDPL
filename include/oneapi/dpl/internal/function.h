@@ -33,7 +33,6 @@ using ::std::get;
 
 #if _ONEDPL_BACKEND_SYCL
 using oneapi::dpl::__internal::is_hetero_iterator;
-using oneapi::dpl::__par_backend_hetero::__internal::__buffer;
 #endif
 
 #if _ONEDPL_BACKEND_SYCL
