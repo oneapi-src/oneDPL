@@ -114,12 +114,11 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     typedef typename ::std::iterator_traits<OutputIterator>::value_type OutputType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef unsigned int FlagType;
-    typedef ::std::decay_t<Policy> policy_type;
 
     InputIterator2 last2 = first2 + n;
 
     // compute head flags
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<policy_type, FlagType> _flags(policy, n);
+    oneapi::dpl::__par_backend_hetero::__internal::__buffer<Policy, FlagType> _flags(policy, n);
     {
         auto flag_buf = _flags.get_buffer();
         auto flags = flag_buf.get_host_access(sycl::read_write);
@@ -130,7 +129,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
               oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     // shift input one to the right and initialize segments with init
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<policy_type, OutputType> _temp(policy, n);
+    oneapi::dpl::__par_backend_hetero::__internal::__buffer<Policy, OutputType> _temp(policy, n);
     {
         auto temp_buf = _temp.get_buffer();
         auto temp = temp_buf.get_host_access(sycl::read_write);
