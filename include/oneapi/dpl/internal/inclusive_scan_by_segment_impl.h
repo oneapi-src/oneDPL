@@ -55,9 +55,8 @@ pattern_inclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputI
 
     typedef unsigned int FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
-    typedef ::std::decay_t<Policy> policy_type;
 
-    oneapi::dpl::__par_backend::__buffer<policy_type, FlagType> _mask(n);
+    oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _mask(n);
     auto mask = _mask.get();
 
     mask[0] = 1;
