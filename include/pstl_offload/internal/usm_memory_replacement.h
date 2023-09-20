@@ -73,7 +73,7 @@ class __offload_policy_holder_type
         catch (const sycl::exception& e)
         {
             // e.code() == sycl::errc::runtime occurs when device selection unable to get offload device
-            // with requred type. Do not pass an exception, as ctor is called for a static object and
+            // with required type. Do not pass an exception, as ctor is called for a static object and
             // the exception can't be processed.
             // Remember the situation and re-throw exception when asked for the policy from user's code.
             if (e.code() != sycl::errc::runtime)
