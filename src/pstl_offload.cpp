@@ -26,6 +26,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <atomic>
+#include <unordered_map>
+#include <mutex>
+
 namespace __pstl_offload
 {
 
@@ -36,6 +40,97 @@ __get_original_free()
 
     static __free_func_type __orig_free = __free_func_type(dlsym(RTLD_NEXT, "free"));
     return __orig_free;
+}
+
+template <typename _T>
+class __overaligned_pointer_table_allocator {
+public:
+    using value_type = _T;
+    using propagate_on_container_move_assignment = std::true_type;
+    using is_always_equal = std::true_type;
+
+    __overaligned_pointer_table_allocator()
+        : _M_original_free(__get_original_free()) {}
+
+    template <typename _U>
+    __overaligned_pointer_table_allocator(const __overaligned_pointer_table_allocator<_U>&)
+        : _M_original_free(__get_original_free()) {}
+
+    _T* allocate(std::size_t __n) {
+        return static_cast<_T*>(std::aligned_alloc(alignof(_T), sizeof(_T) * __n));
+    }
+
+    void deallocate(_T* __ptr, std::size_t) {
+        _M_original_free(__ptr);
+    }
+
+    friend bool operator==(const __overaligned_pointer_table_allocator&, const __overaligned_pointer_table_allocator&) {
+        return true;
+    }
+
+    friend bool operator!=(const __overaligned_pointer_table_allocator&, const __overaligned_pointer_table_allocator&) {
+        return false;
+    }
+private:
+    // Save original aligned_alloc and free because dlsym can call malloc/free internally
+    void (*_M_original_free)(void*);
+}; // class __overaligned_pointer_table_allocator
+
+static bool __access_overaligned_pointer_table_alive_flag(bool write, bool new_value = true) {
+    static std::atomic<bool> __overaligned_pointer_table_alive_flag = false;
+
+    if (write) {
+        __overaligned_pointer_table_alive_flag.store(new_value, std::memory_order_release);
+        return false;
+    }
+    return __overaligned_pointer_table_alive_flag.load(std::memory_order_acquire);
+}
+
+static void __mark_overaligned_pointer_table_alive() {
+    __access_overaligned_pointer_table_alive_flag(/*write = */true, /*new_value = */true);
+}
+
+static void __mark_overaligned_pointer_table_dead() {
+    __access_overaligned_pointer_table_alive_flag(/*write = */true, /*new_value = */false);
+}
+
+_PSTL_OFFLOAD_EXPORT bool __is_overaligned_pointer_table_alive() {
+    return __access_overaligned_pointer_table_alive_flag(/*write = */false);
+}
+
+struct __pointer_info
+{
+    __pointer_info(sycl::device* __device, std::size_t __bytes)
+        : _M_device(__device), _M_requested_number_of_bytes(__bytes) {}
+
+    sycl::device* _M_device;
+    std::size_t _M_requested_number_of_bytes;
+}; // struct __pointer_info
+
+using __overaligned_pointer_table_container_type = std::unordered_map<void*, __pointer_info, std::hash<void*>, std::equal_to<void*>,
+                                                                      __overaligned_pointer_table_allocator<std::pair<void* const, __pointer_info>>>;
+using __overaligned_pointer_table_mutex_type = std::mutex;
+using __overaligned_pointer_table_lock_type = std::unique_lock<__overaligned_pointer_table_mutex_type>;
+
+struct __overaligned_pointer_table_type : __overaligned_pointer_table_container_type {
+    __overaligned_pointer_table_type() {
+        __mark_overaligned_pointer_table_alive();
+    }
+    ~__overaligned_pointer_table_type() {
+        __mark_overaligned_pointer_table_dead();
+    }
+};
+
+static __overaligned_pointer_table_type __overaligned_pointer_table;
+static __overaligned_pointer_table_mutex_type __overaligned_pointer_table_mutex;
+
+_PSTL_OFFLOAD_EXPORT void __register_overaligned_pointer(void* __ptr, std::size_t __allocated_size, sycl::device* __device) {
+    assert(__is_overaligned_pointer_table_alive());
+
+    __overaligned_pointer_table_lock_type __lock(__overaligned_pointer_table_mutex);
+    [[maybe_unused]] auto __result = __overaligned_pointer_table.emplace(std::piecewise_construct, std::forward_as_tuple(__ptr),
+                                                                         std::forward_as_tuple(__device, __allocated_size));
+    assert(__result.second);
 }
 
 static auto
@@ -61,6 +156,22 @@ __internal_free(void* __user_ptr)
         }
         else
         {
+            if ((std::uintptr_t(__user_ptr) & (__get_memory_page_size() - 1)) == 0 &&
+                __is_overaligned_pointer_table_alive())
+            {
+                __overaligned_pointer_table_lock_type __lock(__overaligned_pointer_table_mutex);
+                auto __it = __overaligned_pointer_table.find(__user_ptr);
+
+                if (__it != __overaligned_pointer_table.end())
+                {
+                    // Free overaligned pointer
+                    auto __ptr_info = __it->second;
+                    __overaligned_pointer_table.erase(__it);
+                    __lock.unlock();
+                    sycl::free(__user_ptr, __ptr_info._M_device->get_platform().ext_oneapi_get_default_context());
+                    return;
+                }
+            }
             __get_original_free()(__user_ptr);
         }
     }
@@ -79,8 +190,26 @@ __internal_msize(void* __user_ptr)
         {
             __res = __header->_M_requested_number_of_bytes;
         }
+        // else if ((std::uintptr_t(__user_ptr) & (__get_memory_page_size() - 1)) == 0 &&
+        //          __is_overaligned_pointer_table_alive() &&
+        //            __overaligned_pointer_table_lock_type __lock(__overaligned_pointer_table_mutex);
+        //            auto __it = __overaligned_pointer_table.find(__user_ptr); __it != __overaligned_pointer_table.end())
+        // {
+        //     return __it->second._M_requested_number_of_bytes;
+        // }
         else
         {
+            if ((std::uintptr_t(__user_ptr) & (__get_memory_page_size() - 1)) == 0 &&
+                __is_overaligned_pointer_table_alive())
+            {
+                __overaligned_pointer_table_lock_type __lock(__overaligned_pointer_table_mutex);
+                auto __it = __overaligned_pointer_table.find(__user_ptr);
+
+                if (__it != __overaligned_pointer_table.end())
+                {
+                    return __it->second._M_requested_number_of_bytes;
+                }
+            }
             __res = __get_original_msize()(__user_ptr);
         }
     }

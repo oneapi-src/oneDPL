@@ -60,44 +60,76 @@ __same_memory_page(void* __ptr1, void* __ptr2)
     return (std::uintptr_t(__ptr1) ^ std::uintptr_t(__ptr2)) < __page_size;
 }
 
+inline auto
+__get_original_aligned_alloc()
+{
+    using __aligned_alloc_func_type = void* (*)(std::size_t, std::size_t);
+
+    static __aligned_alloc_func_type __orig_aligned_alloc =
+        __aligned_alloc_func_type(dlsym(RTLD_NEXT, "aligned_alloc"));
+    return __orig_aligned_alloc;
+}
+
+bool __is_overaligned_pointer_table_alive();
+void __register_overaligned_pointer(void* __ptr, std::size_t __allocated_size, sycl::device* __device);
+
+inline void*
+__allocate_overaligned_pointer_for_device(sycl::device* __device, std::size_t __size, std::size_t __alignment)
+{
+    void* __result = nullptr;
+
+    if (__is_overaligned_pointer_table_alive())
+    {
+        sycl::context __context = __device->get_platform().ext_oneapi_get_default_context();
+        __result = sycl::aligned_alloc_shared(__alignment, __size, *__device, __context);
+        __register_overaligned_pointer(__result, __size, __device);
+    }
+    else
+    {
+        __result = __get_original_aligned_alloc()(__alignment, __size);
+    }
+
+    return __result;
+}
+
 inline void*
 __allocate_shared_for_device(sycl::device* __device, std::size_t __size, std::size_t __alignment)
 {
-    // Unsupported alignment - impossible to guarantee that the returned pointer and memory header
-    // would be on the same memory page if the alignment for more than a memory page is requested
     if (__alignment >= __get_memory_page_size())
     {
-        return nullptr;
+        return __allocate_overaligned_pointer_for_device(__device, __size, __alignment);
     }
-
-    std::size_t __base_offset = std::max(__alignment, sizeof(__block_header));
-
-    // Check overflow on addition of __base_offset and __size
-    if (std::numeric_limits<std::size_t>::max() - __base_offset < __size)
+    else
     {
-        return nullptr;
+        std::size_t __base_offset = std::max(__alignment, sizeof(__block_header));
+
+        // Check overflow on addition of __base_offset and __size
+        if (std::numeric_limits<std::size_t>::max() - __base_offset < __size)
+        {
+            return nullptr;
+        }
+
+        // Memory block allocated with sycl::aligned_alloc_shared should be aligned to at least sizeof(__block_header) * 2
+        // to guarantee that header and header + sizeof(__block_header) (user pointer) would be placed in one memory page
+        std::size_t __usm_alignment = __base_offset << 1;
+        // Required number of bytes to store memory header and preserve alignment on returned pointer
+        // usm_alignment bytes are reserved to store memory header
+        std::size_t __usm_size = __size + __base_offset;
+
+        sycl::context __context = __device->get_platform().ext_oneapi_get_default_context();
+        void* __ptr = sycl::aligned_alloc_shared(__usm_alignment, __usm_size, *__device, __context);
+
+        if (__ptr != nullptr)
+        {
+            void* __original_pointer = __ptr;
+            __ptr = static_cast<char*>(__ptr) + __base_offset;
+            __block_header* __header = static_cast<__block_header*>(__ptr) - 1;
+            assert(__same_memory_page(__ptr, __header));
+            *__header = __block_header{__uniq_type_const, __original_pointer, __device, __size};
+        }
+
+        return __ptr;
     }
-
-    // Memory block allocated with sycl::aligned_alloc_shared should be aligned to at least sizeof(__block_header) * 2
-    // to guarantee that header and header + sizeof(__block_header) (user pointer) would be placed in one memory page
-    std::size_t __usm_alignment = __base_offset << 1;
-    // Required number of bytes to store memory header and preserve alignment on returned pointer
-    // usm_alignment bytes are reserved to store memory header
-    std::size_t __usm_size = __size + __base_offset;
-
-    sycl::context __context = __device->get_platform().ext_oneapi_get_default_context();
-    void* __ptr = sycl::aligned_alloc_shared(__usm_alignment, __usm_size, *__device, __context);
-
-    if (__ptr != nullptr)
-    {
-        void* __original_pointer = __ptr;
-        __ptr = static_cast<char*>(__ptr) + __base_offset;
-        __block_header* __header = static_cast<__block_header*>(__ptr) - 1;
-        assert(__same_memory_page(__ptr, __header));
-        *__header = __block_header{__uniq_type_const, __original_pointer, __device, __size};
-    }
-
-    return __ptr;
 }
 
 inline auto

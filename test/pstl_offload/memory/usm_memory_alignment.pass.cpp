@@ -15,6 +15,7 @@
 #include <cstdlib>
 
 #include "support/utils.h"
+#include <malloc.h>
 
 static std::size_t get_page_size() {
     static std::size_t page_size = sysconf(_SC_PAGESIZE);
@@ -23,12 +24,13 @@ static std::size_t get_page_size() {
 
 template <typename AllocatingFunction, typename DeallocatingFunction>
 void test_alignment_allocation(AllocatingFunction allocate, DeallocatingFunction deallocate) {
-    for (std::size_t alignment = 1; alignment < get_page_size(); alignment <<= 1) {
+    for (std::size_t alignment = 1; alignment < 4 * get_page_size(); alignment <<= 1) {
         const std::size_t sizes[] = { 1, 2, 8, 24, alignment / 2, alignment, alignment * 2};
 
         for (std::size_t size : sizes) {
             void* ptr = allocate(size, alignment);
             EXPECT_TRUE(std::uintptr_t(ptr) % alignment == 0, "The returned pointer is not properly aligned");
+            EXPECT_TRUE(malloc_usable_size(ptr) >= size, "Incorrect number of usable bytes");
             deallocate(ptr, alignment);
         }
     }
@@ -38,12 +40,13 @@ void test_alignment_allocation(AllocatingFunction allocate, DeallocatingFunction
 // test_alignment_allocation tests different sizes values because other functions
 // only requires the alignment to be power of two
 void test_aligned_alloc_alignment() {
-    for (std::size_t alignment = 1; alignment < get_page_size(); alignment <<= 1) {
+    for (std::size_t alignment = 1; alignment < 2 * get_page_size(); alignment <<= 1) {
         const std::size_t sizes[] = { alignment, alignment * 2, alignment * 3};
 
         for (std::size_t size : sizes) {
             void* ptr = aligned_alloc(alignment, size);
             EXPECT_TRUE(std::uintptr_t(ptr) % alignment == 0, "The returned pointer is not properly aligned");
+            EXPECT_TRUE(malloc_usable_size(ptr) >= size, "Incorrect number of usable bytes");
             free(ptr);
         }
     }
