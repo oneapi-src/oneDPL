@@ -815,7 +815,8 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
         __tmp_buf = sycl::buffer<::std::uint32_t, 1>(sycl::range<1>(__tmp_buf_size));
 
         // memory for storing values sorted for an iteration
-        __internal::__buffer<_ExecutionPolicy, _ValueT> __out_buffer_holder{__exec, __n};
+        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueT> __out_buffer_holder{__exec,
+                                                                                                               __n};
         __val_buf = __out_buffer_holder.get_buffer();
         auto __out_rng =
             oneapi::dpl::__ranges::all_view<_ValueT, __par_backend_hetero::access_mode::read_write>(__val_buf);
