@@ -83,7 +83,7 @@ class __offload_policy_holder_type
         if (_M_offload_device.has_value())
         {
             _M_set_active_device(&*_M_offload_device);
-            _M_offload_policy = oneapi::dpl::execution::device_policy<>(*_M_offload_device);
+            _M_offload_policy.emplace(*_M_offload_device);
         }
     }
 
@@ -98,11 +98,11 @@ class __offload_policy_holder_type
     {
         if (!_M_offload_device.has_value())
             throw sycl::exception(sycl::errc::runtime);
-        return _M_offload_policy;
+        return *_M_offload_policy;
     }
   private:
     std::optional<sycl::device> _M_offload_device;
-    oneapi::dpl::execution::device_policy<> _M_offload_policy;
+    std::optional<oneapi::dpl::execution::device_policy<>> _M_offload_policy;
     __set_active_device_func_type _M_set_active_device;
 }; // class __offload_policy_holder_type
 
