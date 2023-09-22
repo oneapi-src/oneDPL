@@ -60,8 +60,7 @@ run_test(sycl::queue q)
              h.parallel_for<
                  TestUtils::unique_kernel_name<class sum2, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
                  num_items, [=](auto j) { c_[j] += a_[j] + b_[j]; });
-         })
-            .wait();
+         }).wait();
     }
     printf("%f, %f, %f, %f\n", c[0], c[1000], c[10000], c[100000]);
     return 0;
