@@ -10,15 +10,14 @@
 #ifndef _ONEDPL_TEST_DYNAMIC_LOAD_UTILS_H
 #define _ONEDPL_TEST_DYNAMIC_LOAD_UTILS_H
 
-
 #include <thread>
 #include <chrono>
 #include <random>
 #include <algorithm>
-#include<iostream>
+#include <iostream>
 #include "support/test_config.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
-#include "support/sycl_sanity.h"
+#    include "support/sycl_sanity.h"
 
 int
 test_dl_initialization(const std::vector<sycl::queue>& u)

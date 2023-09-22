@@ -45,12 +45,13 @@ test_submit_and_wait_on_scheduler()
 
     for (int i = 1; i <= N; ++i)
     {
-        s.submit(h,
-                 [&](sycl::queue q, int i) {
-                     ecount += i;
-                     return sycl::event{};
-                 },
-                 i);
+        s.submit(
+            h,
+            [&](sycl::queue q, int i) {
+                ecount += i;
+                return sycl::event{};
+            },
+            i);
     }
     s.get_submission_group().wait();
     int count = ecount.load();
@@ -74,12 +75,13 @@ test_submit_and_wait_on_scheduler_single_element()
 
     for (int i = 1; i <= N; ++i)
     {
-        s.submit(h,
-                 [&](sycl::queue q, int i) {
-                     ecount += i;
-                     return sycl::event{};
-                 },
-                 i);
+        s.submit(
+            h,
+            [&](sycl::queue q, int i) {
+                ecount += i;
+                return sycl::event{};
+            },
+            i);
     }
     s.get_submission_group().wait();
     int count = ecount.load();
@@ -103,12 +105,13 @@ test_submit_and_wait_on_scheduler_empty()
 
     for (int i = 1; i <= N; ++i)
     {
-        s.submit(h,
-                 [&](sycl::queue q, int i) {
-                     ecount += i;
-                     return sycl::event{};
-                 },
-                 i);
+        s.submit(
+            h,
+            [&](sycl::queue q, int i) {
+                ecount += i;
+                return sycl::event{};
+            },
+            i);
     }
     s.get_submission_group().wait();
     int count = ecount.load();
@@ -132,12 +135,13 @@ test_submit_and_wait_on_sync()
 
     for (int i = 1; i <= N; ++i)
     {
-        auto w = s.submit(h,
-                          [&](sycl::queue q, int i) {
-                              ecount += i;
-                              return sycl::event{};
-                          },
-                          i);
+        auto w = s.submit(
+            h,
+            [&](sycl::queue q, int i) {
+                ecount += i;
+                return sycl::event{};
+            },
+            i);
         w.wait();
         int count = ecount.load();
         if (count != i * (i + 1) / 2)
@@ -161,12 +165,13 @@ test_submit_and_wait_on_sync_single_element()
 
     for (int i = 1; i <= N; ++i)
     {
-        auto w = s.submit(h,
-                          [&](sycl::queue q, int i) {
-                              ecount += i;
-                              return sycl::event{};
-                          },
-                          i);
+        auto w = s.submit(
+            h,
+            [&](sycl::queue q, int i) {
+                ecount += i;
+                return sycl::event{};
+            },
+            i);
         w.wait();
         int count = ecount.load();
         if (count != 1)
@@ -190,12 +195,13 @@ test_submit_and_wait_on_sync_empty()
 
     for (int i = 1; i <= N; ++i)
     {
-        auto w = s.submit(h,
-                          [&](sycl::queue q, int i) {
-                              ecount += i;
-                              return sycl::event{};
-                          },
-                          i);
+        auto w = s.submit(
+            h,
+            [&](sycl::queue q, int i) {
+                ecount += i;
+                return sycl::event{};
+            },
+            i);
         w.wait();
         int count = ecount.load();
         if (count != 0)
