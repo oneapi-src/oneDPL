@@ -94,6 +94,13 @@ When called with |dpcpp_short| execution policies, |onedpl_short| algorithms app
 Known Limitations
 *****************
 
+* When compiling with DPC++ compiler option, libstdc++ version 8 or libc++, and with ``-fsycl-pstl-offload`` option,
+  parallel algorithms from std namespace called with ``oneapi::dpl::parallel_unsequenced_policy`` would be
+  offloaded to the SYCL device in accordance with ``-fsycl-pstl-offload`` option value.
+* For ``transform_exclusive_scan`` and ``exclusive_scan`` with overlapping input and destination sequences,
+  it is required that the provided input and destination iterators are equality comparable.
+  Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
+  If these conditions are not met, the result of these algorithm calls are undefined.
 * For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms the result of the unary operation should be
   convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
