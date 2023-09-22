@@ -7,12 +7,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_config.h"
+#include "support/utils.h"
+
 #include <cstdio>
 #include <memory>
 #include <iostream>
 #include <vector>
-#include "support/test_config.h"
-#include "support/utils.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 #    include "support/sycl_sanity.h"
 
