@@ -30,7 +30,7 @@ jobs:
         run: sudo apt-get install -yqq clang-format
       - name: Applying clang-format for changed files
         run: |
-          if [[${{ github.event_name }} == 'pull_request']]; then
+          if [["${{ github.event_name }}" == "pull_request"]]; then
             GIT_HEAD=${{ github.event.pull_request.head.sha }}
             GIT_BASE=${{ github.event.pull_request.base.sha }}
           else
