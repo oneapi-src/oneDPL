@@ -405,7 +405,7 @@ struct replicate_start_view_simple
 template <typename _R, typename _F>
 struct transform_view_simple
 {
-    using value_type = ::std::decay_t<::std::invoke_result_t<_F& , decltype(::std::declval<_R&>()[0])>>;
+    using value_type = ::std::decay_t<::std::invoke_result_t<_F&, decltype(::std::declval<_R&>()[0])>>;
 
     _R __r;
     _F __f;
