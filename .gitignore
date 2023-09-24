@@ -6,3 +6,4 @@ build/*
 .vs/*
 out/*
 CMakeSettings.json
+build-tbb/*
