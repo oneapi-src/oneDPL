@@ -28,17 +28,17 @@ jobs:
           python-version: '3.x' 
       - name: Get clang-format
         run: sudo apt-get install -yqq clang-format
-      - name: Setup Git Hashes for Pull Request
+      - name: Setup git hashes for pull request
         run: |
           GIT_HEAD=${{ github.event.pull_request.head.sha }}
           GIT_BASE=${{ github.event.pull_request.base.sha }}
         if: github.event_name == 'pull_request'
-      - name: Setup Git Hashes for Push
+      - name: Setup git hashes for push
         run: |
           GIT_HEAD=${{ github.event.push.head.sha }}
           GIT_BASE=${{ github.event.push.base.sha }}
         if: github.event_name == 'push'
-      - name: Setup Merge Base for diff
+      - name: Setup merge base for diff
         run: 
           MERGE_BASE=$(git merge-base $GIT_HEAD $GIT_BASE)
         if: github.event_name == 'pull_request' || github.event_name == 'push'
