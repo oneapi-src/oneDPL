@@ -31,9 +31,11 @@ jobs:
       - name: Applying clang-format for changed files
         run: |
           if [["${{ github.event_name }}" == "pull_request"]]; then
+            echo pull_request event
             GIT_HEAD=${{ github.event.pull_request.head.sha }}
             GIT_BASE=${{ github.event.pull_request.base.sha }}
           else
+            echo push event
             GIT_HEAD=${{ github.event.push.head.sha }}
             GIT_BASE=${{ github.event.push.base.sha }}
           fi
