@@ -21,7 +21,9 @@
 
 #include <sycl/sycl.hpp>
 
-#include <oneapi/dpl/execution>
+#include <oneapi/dpl/internal/common_config.h>
+#include <oneapi/dpl/pstl/onedpl_config.h>
+#include <oneapi/dpl/pstl/execution_defs.h>
 
 #include "usm_memory_replacement_common.h"
 

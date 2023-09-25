@@ -22,4 +22,8 @@
 #    undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_EXECUTION
 
+#include <algorithm>
+#include <memory>
+#include <numeric>
+
 #endif // _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL_EXECUTION
