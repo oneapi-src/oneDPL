@@ -7,6 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <execution>
 #include <oneapi/tbb/parallel_reduce.h>
 #include <oneapi/tbb/blocked_range.h>
 #include "support/utils.h"

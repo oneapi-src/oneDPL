@@ -7,6 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <execution>
 #include <oneapi/tbb/task_group.h>
 #include "support/utils.h"
 

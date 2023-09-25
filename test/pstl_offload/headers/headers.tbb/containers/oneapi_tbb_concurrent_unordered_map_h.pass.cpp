@@ -7,6 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <execution>
 #include <oneapi/tbb/concurrent_unordered_map.h>
 #include "support/utils.h"
 

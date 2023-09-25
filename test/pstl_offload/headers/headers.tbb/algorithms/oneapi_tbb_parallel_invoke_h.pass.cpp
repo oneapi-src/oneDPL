@@ -7,6 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <execution>
 #include <oneapi/tbb/parallel_invoke.h>
 #include "support/utils.h"
 

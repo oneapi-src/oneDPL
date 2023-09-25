@@ -7,6 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <execution>
 #include <oneapi/tbb/concurrent_priority_queue.h>
 #include "support/utils.h"
 

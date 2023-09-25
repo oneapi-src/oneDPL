@@ -7,6 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <execution>
 #include <oneapi/tbb/concurrent_unordered_set.h>
 #include "support/utils.h"
 
