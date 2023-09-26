@@ -14,6 +14,5 @@
 
 #include "kt/kernel_param.h"
 #include "kt/esimd_radix_sort.h"
-#include "kt/esimd_radix_sort_by_key.h"
 
 #endif // _ONEDPL_KERNEL_TEMPLATES
