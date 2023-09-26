@@ -9,19 +9,15 @@
 
 #include "../support/test_config.h"
 #include "../support/utils.h"
+#include "esimd_radix_sort_utils.h"
 
 #include <oneapi/dpl/experimental/kernel_templates>
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/iterator>
 
-#include <algorithm>
-#include <numeric>
 #include <vector>
-#include <random>
 #include <string>
-#include <limits>
-#include <cmath>
 
 #if __has_include(<sycl/sycl.hpp>)
 #include <sycl/sycl.hpp>
@@ -29,61 +25,6 @@
 #include <CL/sycl.hpp>
 #endif
 
-constexpr bool Ascending = true;
-constexpr bool Descending = false;
-
-template<bool Order>
-struct CompareKey
-{
-    template<typename T, typename U>
-    bool operator()(const T& lhs, const U& rhs) const
-    {
-        return std::get<0>(lhs) < std::get<0>(rhs);
-    }
-};
-
-template<>
-struct CompareKey<false>
-{
-    template<typename T, typename U>
-    bool operator()(const T& lhs, const U& rhs) const
-    {
-        return std::get<0>(lhs) > std::get<0>(rhs);
-    }
-};
-
-template <typename T>
-typename ::std::enable_if_t<std::is_arithmetic_v<T>, void>
-generate_data(T* input, std::size_t size, std::uint32_t seed)
-{
-    std::default_random_engine gen{seed};
-    std::size_t unique_threshold = 75 * size / 100;
-    if constexpr (sizeof(T) < sizeof(short)) // no uniform_int_distribution for chars
-    {
-        std::uniform_int_distribution<int> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
-        std::generate(input, input + unique_threshold, [&] { return T(dist(gen)); });
-    }
-    else if constexpr (std::is_integral_v<T>)
-    {
-        std::uniform_int_distribution<T> dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
-        std::generate(input, input + unique_threshold, [&] { return dist(gen); });
-    }
-    else
-    {
-        std::uniform_real_distribution<T> dist_real(std::numeric_limits<T>::min(), log2(1e12));
-        std::uniform_int_distribution<int> dist_binary(0, 1);
-        auto randomly_signed_real = [&dist_real, &dist_binary, &gen]()
-        {
-            auto v = exp2(dist_real(gen));
-            return dist_binary(gen) == 0 ? v : -v;
-        };
-        std::generate(input, input + unique_threshold, [&] { return randomly_signed_real(); });
-    }
-    for (uint32_t i = 0, j = unique_threshold; j < size; ++i, ++j)
-    {
-        input[j] = input[i];
-    }
-}
 
 template<typename KeyT, typename ValueT, bool isAscending, std::uint32_t RadixBits, typename KernelParam>
 void test_sycl_iterators(std::size_t size, KernelParam param)
@@ -166,22 +107,22 @@ int main()
 
     for(auto size: sizes)
     {
-        test_usm<int16_t,  char,     true, 8, sycl::usm::alloc::shared>(size, param_type<512, 64>{});
-        test_usm<float,    uint32_t, true, 8, sycl::usm::alloc::shared>(size, param_type<192, 64>{});
-        test_usm<int32_t,  float,    true, 8, sycl::usm::alloc::shared>(size, param_type<160, 64>{});
-        test_usm<uint32_t, int32_t,  true, 8, sycl::usm::alloc::shared>(size, param_type<160, 32>{});
-        test_usm<int16_t,  uint64_t, true, 8, sycl::usm::alloc::shared>(size, param_type<128, 64>{});
-        test_usm<int64_t,  int16_t,  true, 8, sycl::usm::alloc::shared>(size, param_type<96, 32>{});
-        test_usm<uint32_t, double,   true, 8, sycl::usm::alloc::shared>(size, param_type<64, 32>{});
-        test_usm<uint32_t, uint16_t, true, 8, sycl::usm::alloc::shared>(size, param_type<32, 64>{});
+        test_usm<int16_t,  char,     Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<512, 64>{});
+        test_usm<float,    uint32_t, Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<192, 64>{});
+        test_usm<int32_t,  float,    Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<160, 64>{});
+        test_usm<uint32_t, int32_t,  Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<160, 32>{});
+        test_usm<int16_t,  uint64_t, Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<128, 64>{});
+        test_usm<int64_t,  int16_t,  Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<96, 32>{});
+        test_usm<uint32_t, double,   Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<64, 32>{});
+        test_usm<uint32_t, uint16_t, Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<32, 64>{});
 
-        test_usm<int32_t,  uint16_t,false, 8, sycl::usm::alloc::shared>(size, param_type<256, 32>{});
-        test_usm<uint32_t, int32_t, false, 8, sycl::usm::alloc::shared>(size, param_type<192, 64>{});
-        test_usm<float,    float,   false, 8, sycl::usm::alloc::shared>(size, param_type<128, 64>{});
-        test_usm<int64_t,  double,  false, 8, sycl::usm::alloc::shared>(size, param_type<64, 64>{});
+        test_usm<int32_t,  uint16_t, Descending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<256, 32>{});
+        test_usm<uint32_t, int32_t,  Descending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<192, 64>{});
+        test_usm<float,    float,    Descending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<128, 64>{});
+        test_usm<int64_t,  double,   Descending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<64, 64>{});
 
-        test_sycl_iterators<uint32_t, int32_t, true,   8>(size, param_type<192, 32>{});
-        test_sycl_iterators<int32_t,  double,  false,  8>(size, param_type<128, 64>{});
+        test_sycl_iterators<uint32_t, int32_t, Ascending,   TestRadixBits>(size, param_type<192, 32>{});
+        test_sycl_iterators<int32_t,  double,  Descending,  TestRadixBits>(size, param_type<128, 64>{});
     }
     return TestUtils::done();
 }
