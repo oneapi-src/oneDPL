@@ -83,7 +83,7 @@ class __buffer
 constexpr std::size_t __default_chunk_size = 2048;
 
 // Convenience function to determine when we should run serial.
-template <typename _Iterator, std::enable_if_t<!std::is_integral<_Iterator>::value, bool> = true>
+template <typename _Iterator, std::enable_if_t<!std::is_integral_v<_Iterator>, bool> = true>
 constexpr auto
 __should_run_serial(_Iterator __first, _Iterator __last) -> bool
 {
@@ -92,7 +92,7 @@ __should_run_serial(_Iterator __first, _Iterator __last) -> bool
     return __size <= static_cast<_difference_type>(__default_chunk_size);
 }
 
-template <typename _Index, std::enable_if_t<std::is_integral<_Index>::value, bool> = true>
+template <typename _Index, std::enable_if_t<std::is_integral_v<_Index>, bool> = true>
 constexpr auto
 __should_run_serial(_Index __first, _Index __last) -> bool
 {

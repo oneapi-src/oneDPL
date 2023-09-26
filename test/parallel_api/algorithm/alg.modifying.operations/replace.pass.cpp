@@ -84,7 +84,7 @@ struct test_replace
     }
 
     template <typename T, typename Iterator1>
-    typename ::std::enable_if<::std::is_same<T, copy_int>::value, bool>::type_t
+    ::std::enable_if_t<::std::is_same_v<T, copy_int>, bool>
     check(Iterator1 b, Iterator1 e)
     {
         return ::std::all_of(b, e, [](const copy_int& elem) { return elem.copied_times == 0; });

@@ -85,7 +85,7 @@ template <typename Type>
 struct test_set_union
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
@@ -101,7 +101,7 @@ struct test_set_union
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
     {
         auto sequences = init(first1, last1, first2, last2);
@@ -115,13 +115,13 @@ struct test_set_union
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2)
     {
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }
@@ -131,7 +131,7 @@ template <typename Type>
 struct test_set_intersection
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
@@ -146,7 +146,7 @@ struct test_set_intersection
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
     {
         auto sequences = init(first1, last1, first2, last2);
@@ -160,13 +160,13 @@ struct test_set_intersection
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2)
     {
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }
@@ -176,7 +176,7 @@ template <typename Type>
 struct test_set_difference
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
@@ -191,7 +191,7 @@ struct test_set_difference
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
     {
         auto sequences = init(first1, last1, first2, last2);
@@ -207,13 +207,13 @@ struct test_set_difference
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2)
     {
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }
@@ -223,7 +223,7 @@ template <typename Type>
 struct test_set_symmetric_difference
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
@@ -239,7 +239,7 @@ struct test_set_symmetric_difference
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    typename ::std::enable_if<!TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
     {
         auto sequences = init(first1, last1, first2, last2);
@@ -255,13 +255,13 @@ struct test_set_symmetric_difference
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2)
     {
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    typename ::std::enable_if<TestUtils::isReverse<InputIterator1>::value, void>::type
+    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }

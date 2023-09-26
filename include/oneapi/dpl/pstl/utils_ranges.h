@@ -67,6 +67,9 @@ struct __range_has_raw_ptr_iterator<T, ::std::void_t<decltype(::std::declval<T&>
 {
 };
 
+template <typename T>
+inline constexpr bool __range_has_raw_ptr_iterator_v = __range_has_raw_ptr_iterator<T>::value;
+
 } //namespace __internal
 
 namespace __ranges
@@ -95,9 +98,9 @@ struct pipeline_base
 };
 
 template <typename Range>
-struct pipeline_base<Range, typename ::std::enable_if<is_pipeline_object<Range>::value>::type>
+struct pipeline_base<Range, ::std::enable_if_t<is_pipeline_object<Range>::value>>
 {
-    using type = typename pipeline_base<typename ::std::decay<decltype(::std::declval<Range>().base())>::type>::type;
+    using type = typename pipeline_base<::std::decay_t<decltype(::std::declval<Range>().base())>>::type;
 };
 
 //pipeline_base_range
@@ -116,7 +119,7 @@ struct pipeline_base_range
 
 // use ::std::conditional to understand what class to inherit from
 template <typename Range>
-struct pipeline_base_range<Range, typename ::std::enable_if<is_pipeline_object<Range>::value, void>::type>
+struct pipeline_base_range<Range, ::std::enable_if_t<is_pipeline_object<Range>::value>>
 {
     Range rng;
 
@@ -456,7 +459,7 @@ struct permutation_view_simple;
 
 //permutation view: specialization for an index map functor
 template <typename _R, typename _M>
-struct permutation_view_simple<_R, _M, typename ::std::enable_if<oneapi::dpl::__internal::__is_functor<_M>>::type>
+struct permutation_view_simple<_R, _M, ::std::enable_if_t<oneapi::dpl::__internal::__is_functor<_M>>>
 {
     using value_type = typename ::std::decay_t<_R>::value_type;
     using _Size = oneapi::dpl::__internal::__difference_t<_R>;
@@ -495,7 +498,7 @@ struct permutation_view_simple<_R, _M, typename ::std::enable_if<oneapi::dpl::__
 
 //permutation view: specialization for a map view (a viewable range concept)
 template <typename _R, typename _M>
-struct permutation_view_simple<_R, _M, typename ::std::enable_if<is_map_view<_M>::value>::type>
+struct permutation_view_simple<_R, _M, ::std::enable_if_t<is_map_view<_M>::value>>
 {
     using value_type = typename ::std::decay_t<_R>::value_type;
 

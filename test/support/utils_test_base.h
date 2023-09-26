@@ -43,9 +43,9 @@ enum class UDTKind
 template <typename TEnum>
 auto
 enum_val_to_index(TEnum enumVal)
-    -> decltype(static_cast<typename ::std::underlying_type<TEnum>::type>(enumVal))
+    -> decltype(static_cast<::std::underlying_type_t<TEnum>>(enumVal))
 {
-    return static_cast<typename ::std::underlying_type<TEnum>::type>(enumVal);
+    return static_cast<::std::underlying_type_t<TEnum>>(enumVal);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -404,14 +404,14 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T, typename TestName, typename TestBaseData>
-typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, TestName>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<T>, TestName>, TestName>
 create_test_obj(TestBaseData& data)
 {
     return TestName(data);
 }
 
 template <typename T, typename TestName, typename TestBaseData>
-typename ::std::enable_if<!::std::is_base_of<test_base<T>, TestName>::value, TestName>::type
+::std::enable_if_t<!::std::is_base_of_v<test_base<T>, TestName>, TestName>
 create_test_obj(TestBaseData&)
 {
     return TestName();
@@ -420,7 +420,7 @@ create_test_obj(TestBaseData&)
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and one output sequences
 template <typename T, typename TestName>
-//typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, void>::type
+//::std::enable_if_t<::std::is_base_of<test_base<T>, TestName>::value>
 void
 test_algo_three_sequences()
 {
@@ -448,9 +448,7 @@ test_algo_three_sequences()
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test_algo_three_sequences()
 {
     test_algo_three_sequences<typename TestName::UsedValueType, TestName>();
@@ -459,7 +457,7 @@ test_algo_three_sequences()
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and two output sequencess
 template <typename T, typename TestName>
-//typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, void>::type
+//::std::enable_if_t<::std::is_base_of<test_base<T>, TestName>::value>
 void
 test_algo_four_sequences()
 {
@@ -490,9 +488,7 @@ test_algo_four_sequences()
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test_algo_four_sequences()
 {
     test_algo_four_sequences<typename TestName::UsedValueType, TestName>();

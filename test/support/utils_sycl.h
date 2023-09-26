@@ -96,10 +96,10 @@ template <typename _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
 auto
 make_new_policy(_Policy&& __policy)
-    -> decltype(TestUtils::make_fpga_policy<::std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
+    -> decltype(TestUtils::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
         ::std::forward<_Policy>(__policy)))
 {
-    return TestUtils::make_fpga_policy<::std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
+    return TestUtils::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
         ::std::forward<_Policy>(__policy));
 }
 #endif
@@ -133,12 +133,11 @@ make_new_policy(_Policy&& __policy)
 #    endif // ONEDPL_USE_PREDEFINED_POLICIES
 #endif     // ONEDPL_FPGA_DEVICE
 
-// create the queue with custom asynchronous exceptions handler
-static auto my_queue = sycl::queue(default_selector, async_handler);
-
 inline
 sycl::queue get_test_queue()
 {
+    // create the queue with custom asynchronous exceptions handler
+    static sycl::queue my_queue(default_selector, async_handler);
     return my_queue;
 }
 
@@ -373,36 +372,28 @@ test4buffers(int mult = kDefaultMultValue)
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test1buffer()
 {
     test1buffer<alloc_type, typename TestName::UsedValueType, TestName>();
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test2buffers()
 {
     test2buffers<alloc_type, typename TestName::UsedValueType, TestName>();
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test3buffers(int mult = kDefaultMultValue)
 {
     test3buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test4buffers(int mult = kDefaultMultValue)
 {
     test4buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);

@@ -40,7 +40,7 @@ namespace __internal
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                 /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
@@ -176,7 +176,7 @@ struct __walk_brick_wrapper
 };
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_walk_brick(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                      /*parallel=*/::std::true_type)
 {
@@ -306,8 +306,7 @@ __pattern_generate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forward
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy>
-struct __brick_copy_n<_ExecutionPolicy,
-                      oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>>
+struct __brick_copy_n<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     template <typename _SourceT, typename _TargetT>
     void
@@ -318,11 +317,10 @@ struct __brick_copy_n<_ExecutionPolicy,
 };
 
 template <typename _ExecutionPolicy>
-struct __brick_copy<_ExecutionPolicy,
-                    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>>
+struct __brick_copy<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     template <typename _SourceT, typename _TargetT>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
     operator()(_SourceT&& __source, _TargetT&& __target) const
     {
         __target = ::std::forward<_SourceT>(__source);
@@ -330,11 +328,10 @@ struct __brick_copy<_ExecutionPolicy,
 };
 
 template <typename _ExecutionPolicy>
-struct __brick_move<_ExecutionPolicy,
-                    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>>
+struct __brick_move<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     template <typename _SourceT, typename _TargetT>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
     operator()(_SourceT&& __source, _TargetT&& __target) const
     {
         __target = ::std::move(__source);
@@ -343,11 +340,11 @@ struct __brick_move<_ExecutionPolicy,
 
 template <typename _SourceT, typename _ExecutionPolicy>
 struct __brick_fill<_SourceT, _ExecutionPolicy,
-                    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>>
+                    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     _SourceT __value;
     template <typename _TargetT>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
     operator()(_TargetT& __target) const
     {
         __target = __value;
@@ -356,11 +353,11 @@ struct __brick_fill<_SourceT, _ExecutionPolicy,
 
 template <typename _SourceT, typename _ExecutionPolicy>
 struct __brick_fill_n<_SourceT, _ExecutionPolicy,
-                      oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>>
+                      oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     _SourceT __value;
     template <typename _TargetT>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
     operator()(_TargetT& __target) const
     {
         __target = __value;
@@ -380,8 +377,7 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
         return __last;
 
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
-    using _IndexValueType =
-        typename ::std::make_unsigned<typename ::std::iterator_traits<_Iterator>::difference_type>::type;
+    using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
 
     // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
@@ -437,8 +433,7 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
         return ::std::make_pair(__first, __first);
 
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
-    using _IndexValueType =
-        typename ::std::make_unsigned<typename ::std::iterator_traits<_Iterator>::difference_type>::type;
+    using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = ::std::tuple<_IndexValueType, _IndexValueType, _IteratorValueType, _IteratorValueType>;
 
     // This operator doesn't track the lowest found index in case of equal min. values and the highest found index in
@@ -1046,7 +1041,7 @@ struct __is_heap_check
     operator()(const _Idx __idx, const _Accessor& __acc) const
     {
         // Make sure that we have a signed integer here to avoid getting negative value when __idx == 0
-        using _SignedIdx = typename ::std::make_signed<_Idx>::type;
+        using _SignedIdx = ::std::make_signed_t<_Idx>;
         return __comp_(__acc[(static_cast<_SignedIdx>(__idx) - 1) / 2], __acc[__idx]);
     }
 };
@@ -1134,7 +1129,7 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
 // inplace_merge
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __middle, _Iterator __last,
                         _Compare __comp, /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
@@ -1182,7 +1177,7 @@ __stable_sort_with_projection(_ExecutionPolicy&& __exec, _Iterator __first, _Ite
 }
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                /*vector=*/::std::true_type, /*parallel=*/::std::true_type, /*is_move_constructible=*/::std::true_type)
 {
@@ -1194,7 +1189,7 @@ __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _
 // stable_sort
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                       /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
@@ -1203,7 +1198,7 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
 }
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_sort_by_key(_ExecutionPolicy&& __exec, _Iterator1 __keys_first, _Iterator1 __keys_last,
                       _Iterator2 __values_first, _Compare __comp, /*vector=*/::std::true_type,
                       /*parallel=*/::std::true_type)
@@ -1353,7 +1348,7 @@ __pattern_includes(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwa
 // partial_sort
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last, _Compare __comp,
                        /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
@@ -1462,7 +1457,7 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_nth_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __nth, _Iterator __last, _Compare __comp,
                       /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type) noexcept
 {
@@ -1480,7 +1475,7 @@ __pattern_nth_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
 // reverse
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Iterator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_reverse(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, /*vector=*/::std::true_type,
                   /*parallel=*/::std::true_type)
 {

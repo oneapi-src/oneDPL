@@ -51,7 +51,7 @@ __order_preserving_cast(bool __val)
         return !__val;
 }
 
-template <bool __is_ascending, typename _UInt, __enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
+template <bool __is_ascending, typename _UInt, ::std::enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
 _UInt
 __order_preserving_cast(_UInt __val)
 {
@@ -62,7 +62,7 @@ __order_preserving_cast(_UInt __val)
 }
 
 template <bool __is_ascending, typename _Int,
-          __enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
+          ::std::enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
 ::std::make_unsigned_t<_Int>
 __order_preserving_cast(_Int __val)
 {
@@ -74,7 +74,7 @@ __order_preserving_cast(_Int __val)
 }
 
 template <bool __is_ascending, typename _Float,
-          __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
+          ::std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
 ::std::uint32_t
 __order_preserving_cast(_Float __val)
 {
@@ -89,7 +89,7 @@ __order_preserving_cast(_Float __val)
 }
 
 template <bool __is_ascending, typename _Float,
-          __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t), int> = 0>
+          ::std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t), int> = 0>
 ::std::uint64_t
 __order_preserving_cast(_Float __val)
 {
@@ -630,16 +630,18 @@ struct __parallel_radix_sort_iteration
     submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter, _InRange&& __in_rng,
            _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event, _Proj __proj)
     {
-        using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
-        using _RadixCountKernel = __internal::__kernel_name_generator<__count_phase, _CustomName, _ExecutionPolicy,
-                                                                      __decay_t<_InRange>, __decay_t<_TmpBuf>>;
-        using _RadixLocalScanKernel =
-             __internal::__kernel_name_generator<__local_scan_phase, _CustomName, _ExecutionPolicy, __decay_t<_TmpBuf>>;
+        using _CustomName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
+        using _RadixCountKernel =
+            __internal::__kernel_name_generator<__count_phase, _CustomName, _ExecutionPolicy, ::std::decay_t<_InRange>,
+                                                ::std::decay_t<_TmpBuf>>;
+        using _RadixLocalScanKernel = __internal::__kernel_name_generator<__local_scan_phase, _CustomName,
+                                                                          _ExecutionPolicy, ::std::decay_t<_TmpBuf>>;
         using _RadixReorderPeerKernel =
             __internal::__kernel_name_generator<__reorder_peer_phase, _CustomName, _ExecutionPolicy,
-                                                __decay_t<_InRange>, __decay_t<_OutRange>>;
-        using _RadixReorderKernel = __internal::__kernel_name_generator<__reorder_phase, _CustomName, _ExecutionPolicy,
-                                                                         __decay_t<_InRange>, __decay_t<_OutRange>>;
+                                                ::std::decay_t<_InRange>, ::std::decay_t<_OutRange>>;
+        using _RadixReorderKernel =
+            __internal::__kernel_name_generator<__reorder_phase, _CustomName, _ExecutionPolicy,
+                                                ::std::decay_t<_InRange>, ::std::decay_t<_OutRange>>;
 
         ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
         ::std::size_t __reorder_sg_size = __max_sg_size;
@@ -667,7 +669,7 @@ struct __parallel_radix_sort_iteration
         const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
         // correct __count_wg_size according to local memory limit in count phase
-        using _CounterType = typename __decay_t<_TmpBuf>::value_type;
+        using _CounterType = typename ::std::decay_t<_TmpBuf>::value_type;
         const auto __max_count_wg_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
             __exec, sizeof(_CounterType) * __radix_states, __count_wg_size);
         __count_wg_size = static_cast<::std::size_t>((__max_count_wg_size / __radix_states)) * __radix_states;
@@ -747,7 +749,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     assert(__n > 1);
 
     // types
-    using _DecExecutionPolicy = __decay_t<_ExecutionPolicy>;
+    using _DecExecutionPolicy = ::std::decay_t<_ExecutionPolicy>;
     using _ValueT = oneapi::dpl::__internal::__value_t<_Range>;
     using _KeyT = oneapi::dpl::__internal::__key_t<_Proj, _Range>;
 
@@ -765,7 +767,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     constexpr auto __wg_size = 64;
 
     //TODO: with _RadixSortKernel also the following a couple of compile time constants is used for unique kernel name
-    using _RadixSortKernel = typename __decay_t<_ExecutionPolicy>::kernel_name;
+    using _RadixSortKernel = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
     if (__n <= 64 && __wg_size <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size, 1, __radix_bits, __is_ascending>{}(

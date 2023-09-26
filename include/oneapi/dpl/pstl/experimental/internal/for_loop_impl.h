@@ -38,14 +38,14 @@ namespace __internal
 
 // Generalization of ::std::advance to work with an argitraty integral type
 template <typename _Ip, typename _Diff>
-typename ::std::enable_if<::std::is_integral<_Ip>::value>::type
+::std::enable_if_t<::std::is_integral_v<_Ip>>
 __advance(_Ip& __val, _Diff __diff)
 {
     __val += __diff;
 }
 
 template <typename _Ip, typename _Diff>
-typename ::std::enable_if<!::std::is_integral<_Ip>::value>::type
+::std::enable_if_t<!::std::is_integral_v<_Ip>>
 __advance(_Ip& __val, _Diff __diff)
 {
     ::std::advance(__val, __diff);
@@ -56,14 +56,14 @@ template <typename _Ip, typename = void>
 struct __difference;
 
 template <typename _Ip>
-struct __difference<_Ip, typename ::std::enable_if<::std::is_integral<_Ip>::value>::type>
+struct __difference<_Ip, ::std::enable_if_t<::std::is_integral_v<_Ip>>>
 {
     // Define the type similar to C++20's incrementable_traits
-    using __type = typename ::std::make_signed<decltype(::std::declval<_Ip>() - ::std::declval<_Ip>())>::type;
+    using __type = ::std::make_signed_t<decltype(::std::declval<_Ip>() - ::std::declval<_Ip>())>;
 };
 
 template <typename _Ip>
-struct __difference<_Ip, typename ::std::enable_if<!::std::is_integral<_Ip>::value>::type>
+struct __difference<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
 {
     using __type = typename oneapi::dpl::__internal::__iterator_traits<_Ip>::difference_type;
 };
@@ -102,7 +102,7 @@ class __reduction_pack
 {
     // No matter how the Ts objects are provided(lvalue or rvalue) we need to store copies of them,
     // to avoid modification of the original ones.
-    ::std::tuple<typename ::std::remove_cv<typename ::std::remove_reference<_Ts>::type>::type...> __objects_;
+    ::std::tuple<::std::remove_cv_t<::std::remove_reference_t<_Ts>>...> __objects_;
 
     template <typename _Fp, typename _Ip, typename _Position, ::std::size_t... _Is>
     void
@@ -205,21 +205,23 @@ struct __is_random_access_or_integral : ::std::false_type
 };
 
 template <typename _Ip>
-struct __is_random_access_or_integral<_Ip, typename ::std::enable_if<::std::is_integral<_Ip>::value>::type>
+struct __is_random_access_or_integral<_Ip, ::std::enable_if_t<::std::is_integral_v<_Ip>>> : ::std::true_type
+{
+};
+
+template <typename _Ip>
+struct __is_random_access_or_integral<_Ip,
+                                      ::std::enable_if_t<oneapi::dpl::__internal::__is_random_access_iterator_v<_Ip>>>
     : ::std::true_type
 {
 };
 
 template <typename _Ip>
-struct __is_random_access_or_integral<
-    _Ip, typename ::std::enable_if<oneapi::dpl::__internal::__is_random_access_iterator<_Ip>::value>::type>
-    : ::std::true_type
-{
-};
+inline constexpr bool __is_random_access_or_integral_v = __is_random_access_or_integral<_Ip>::value;
 
 // Sequenced version of for_loop for RAI and integral types
 template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp, typename... _Rest>
-typename ::std::enable_if<__is_random_access_or_integral<_Ip>::value>::type
+::std::enable_if_t<__is_random_access_or_integral_v<_Ip>>
 __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
                    /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
 {
@@ -230,9 +232,9 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-typename ::std::enable_if<::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                                         ::std::bidirectional_iterator_tag>::value,
-                          _IndexType>::type
+::std::enable_if_t<::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
+                                    ::std::bidirectional_iterator_tag>,
+                   _IndexType>
 __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
 {
     _IndexType __ordinal_position = 0;
@@ -267,12 +269,11 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-typename ::std::enable_if<
-    ::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                   ::std::forward_iterator_tag>::value ||
-        ::std::is_same<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                       ::std::input_iterator_tag>::value,
-    _IndexType>::type
+::std::enable_if_t<::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
+                                    ::std::forward_iterator_tag> ||
+                       ::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
+                                        ::std::input_iterator_tag>,
+                   _IndexType>
 __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
 {
     _IndexType __ordinal_position = 0;
@@ -293,7 +294,7 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 
 // Sequenced version of for_loop for non-RAI and non-integral types
 template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename... _Rest>
-typename ::std::enable_if<!__is_random_access_or_integral<_Ip>::value>::type
+::std::enable_if_t<!__is_random_access_or_integral_v<_Ip>>
 __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, __single_stride_type,
                    /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
 {
@@ -311,7 +312,7 @@ __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, _
 }
 
 template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp, typename... _Rest>
-typename ::std::enable_if<!__is_random_access_or_integral<_Ip>::value>::type
+::std::enable_if_t<!__is_random_access_or_integral_v<_Ip>>
 __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
                    /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
 {
@@ -475,7 +476,7 @@ template <typename _Ip, typename = void>
 struct __use_par_vec_helper;
 
 template <typename _Ip>
-struct __use_par_vec_helper<_Ip, typename ::std::enable_if<::std::is_integral<_Ip>::value>::type>
+struct __use_par_vec_helper<_Ip, ::std::enable_if_t<::std::is_integral_v<_Ip>>>
 {
     template <typename _ExecutionPolicy>
     static constexpr auto
@@ -493,7 +494,7 @@ struct __use_par_vec_helper<_Ip, typename ::std::enable_if<::std::is_integral<_I
 };
 
 template <typename _Ip>
-struct __use_par_vec_helper<_Ip, typename ::std::enable_if<!::std::is_integral<_Ip>::value>::type>
+struct __use_par_vec_helper<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
 {
     template <typename _ExecutionPolicy>
     static constexpr auto

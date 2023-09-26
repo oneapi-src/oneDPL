@@ -80,8 +80,7 @@ class Reduce4;
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<Policy>::type,
-                                                           ::std::pair<OutputIterator1, OutputIterator2>>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, ::std::pair<OutputIterator1, OutputIterator2>>
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
                        BinaryOperator binary_op)
@@ -110,7 +109,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     typedef uint64_t FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef uint64_t CountType;
-    typedef typename ::std::decay<Policy>::type policy_type;
+    typedef ::std::decay_t<Policy> policy_type;
 
     // buffer that is used to store a flag indicating if the associated key is not equal to
     // the next key, and thus its associated sum should be part of the final result
@@ -370,7 +369,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 
                 ::std::size_t __max_end = 0;
                 ::std::size_t __item_segments = 0;
-                auto __identity = __dpl_sycl::__known_identity<_BinaryOperator, __val_type>::value;
+                auto __identity = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
 
                 __val_type __accumulator = __identity;
                 for (::std::size_t __i = __start; __i < __end; ++__i)
@@ -486,7 +485,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                     ::std::size_t __item_segments = 0;
 
                     ::std::int64_t __wg_agg_idx = __group_id - 1;
-                    __val_type __agg_collector = __dpl_sycl::__known_identity<_BinaryOperator, __val_type>::value;
+                    __val_type __agg_collector = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
 
                     bool __ag_exists = false;
                     // 3a. Check to see if an aggregate exists and compute that value in the first
@@ -498,13 +497,11 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                         constexpr ::std::int32_t __vals_to_explore = 16;
                         bool __last_it = false;
                         __loc_seg_ends_acc[__local_id] = false;
-                        __loc_partials_acc[__local_id] =
-                            __dpl_sycl::__known_identity<_BinaryOperator, __val_type>::value;
+                        __loc_partials_acc[__local_id] = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
                         for (::std::int32_t __i = __wg_agg_idx - __vals_to_explore * __local_id; !__last_it;
                              __i -= __wgroup_size * __vals_to_explore)
                         {
-                            __val_type __local_collector =
-                                __dpl_sycl::__known_identity<_BinaryOperator, __val_type>::value;
+                            __val_type __local_collector = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
                             // exploration phase
                             for (::std::int32_t __j = __i;
                                  __j > __dpl_sycl::__maximum<::std::int32_t>{}(-1L, __i - __vals_to_explore); --__j)
@@ -581,9 +578,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_hetero_execution_policy<typename ::std::decay<Policy>::type>::value,
-    ::std::pair<OutputIterator1, OutputIterator2>>::type
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, ::std::pair<OutputIterator1, OutputIterator2>>
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
                        BinaryOperator binary_op)

@@ -50,7 +50,7 @@ namespace __internal
 
 template <typename Iterator>
 using is_const_iterator =
-    typename ::std::is_const<typename ::std::remove_pointer<typename ::std::iterator_traits<Iterator>::pointer>::type>;
+    typename ::std::is_const<::std::remove_pointer_t<typename ::std::iterator_traits<Iterator>::pointer>>;
 
 template <typename _Fp>
 auto
@@ -399,7 +399,7 @@ __pstl_right_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __
 template <typename _IntType, typename _Acc>
 struct _ReverseCounter
 {
-    typedef typename ::std::make_signed<_IntType>::type difference_type;
+    typedef ::std::make_signed_t<_IntType> difference_type;
 
     _IntType __my_cn;
 
@@ -449,7 +449,7 @@ struct _ReverseCounter
 
     class __private_class;
 
-    operator typename ::std::conditional<decltype(__check_braces<_Acc>(0))::value, sycl::id<1>, __private_class>::type()
+    operator ::std::conditional_t<decltype(__check_braces<_Acc>(0))::value, sycl::id<1>, __private_class>()
     {
         return sycl::id<1>(__my_cn);
     }
@@ -524,21 +524,24 @@ template <typename _Tp>
 using __is_const_callable_object =
     ::std::integral_constant<bool, __is_callable_object<_Tp>::value && __is_pointer_to_const_member<_Tp>::value>;
 
+template <typename _Tp>
+inline constexpr bool __is_const_callable_object_v = __is_const_callable_object<_Tp>::value;
+
 struct __next_to_last
 {
     template <typename _Iterator>
-    typename ::std::enable_if<::std::is_base_of<::std::random_access_iterator_tag,
-                                                typename ::std::iterator_traits<_Iterator>::iterator_category>::value,
-                              _Iterator>::type
+    ::std::enable_if_t<::std::is_base_of_v<::std::random_access_iterator_tag,
+                                           typename ::std::iterator_traits<_Iterator>::iterator_category>,
+                       _Iterator>
     operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
     {
         return __n > __last - __it ? __last : __it + __n;
     }
 
     template <typename _Iterator>
-    typename ::std::enable_if<!::std::is_base_of<::std::random_access_iterator_tag,
-                                                 typename ::std::iterator_traits<_Iterator>::iterator_category>::value,
-                              _Iterator>::type
+    ::std::enable_if_t<!::std::is_base_of_v<::std::random_access_iterator_tag,
+                                            typename ::std::iterator_traits<_Iterator>::iterator_category>,
+                       _Iterator>
     operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
     {
         for (; --__n >= 0 && __it != __last; ++__it)
@@ -561,7 +564,7 @@ struct __conjunction<_B1> : _B1
 };
 
 template <typename _B1, typename... _Bs>
-struct __conjunction<_B1, _Bs...> : ::std::conditional<!bool(_B1::value), _B1, __conjunction<_Bs...>>::type
+struct __conjunction<_B1, _Bs...> : ::std::conditional_t<!bool(_B1::value), _B1, __conjunction<_Bs...>>
 {
 };
 
@@ -641,6 +644,39 @@ constexpr auto
 __dpl_ceiling_div(_T1 __number, _T2 __divisor)
 {
     return (__number - 1) / __divisor + 1;
+}
+
+// TODO In C++20 we may try to use std::equality_comparable
+template <typename _Iterator1, typename _Iterator2, typename = void>
+struct __is_equality_comparable : std::false_type
+{
+};
+
+// All with implemented operator ==
+template <typename _Iterator1, typename _Iterator2>
+struct __is_equality_comparable<
+    _Iterator1, _Iterator2,
+    std::void_t<decltype(::std::declval<::std::decay_t<_Iterator1>>() == ::std::declval<::std::decay_t<_Iterator2>>())>>
+    : std::true_type
+{
+};
+
+template <typename _Iterator1, typename _Iterator2>
+constexpr bool
+__iterators_possibly_equal(_Iterator1 __it1, _Iterator2 __it2)
+{
+    if constexpr (__is_equality_comparable<_Iterator1, _Iterator2>::value)
+    {
+        return __it1 == __it2;
+    }
+    else if constexpr (__is_equality_comparable<_Iterator2, _Iterator1>::value)
+    {
+        return __it2 == __it1;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 } // namespace __internal

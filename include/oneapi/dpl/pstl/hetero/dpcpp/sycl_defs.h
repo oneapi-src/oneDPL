@@ -111,6 +111,9 @@ template <typename _BinaryOp, typename _T>
 using __has_known_identity = sycl::ONEAPI::has_known_identity<_BinaryOp, _T>;
 #endif // _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
 
+template <typename _BinaryOp, typename _T>
+inline constexpr auto __known_identity_v = __known_identity<_BinaryOp, _T>::value;
+
 #if _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
 template <typename _T = void>
 using __plus = sycl::plus<_T>;

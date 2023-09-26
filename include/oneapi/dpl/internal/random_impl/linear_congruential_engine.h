@@ -114,7 +114,7 @@ class linear_congruential_engine
 
     // Initialization function
     template <int _N = 0>
-    typename ::std::enable_if<(_N == 0)>::type
+    ::std::enable_if_t<(_N == 0)>
     init(scalar_type __seed)
     {
         if ((increment % modulus == 0) && (__seed % modulus == 0))
@@ -129,7 +129,7 @@ class linear_congruential_engine
     }
 
     template <int _N = 0>
-    typename ::std::enable_if<(_N > 0)>::type
+    ::std::enable_if_t<(_N > 0)>
     init(scalar_type __seed)
     {
         if ((increment % modulus == 0) && (__seed % modulus == 0))
@@ -177,7 +177,7 @@ class linear_congruential_engine
     // _FLAG - is flag that used for optimizations
     // if _FLAG == true in this case we can used optimized versions of skip_seq
     template <int _N = 0, bool _FLAG = false>
-    typename ::std::enable_if<(_N == 0) && (_FLAG == false)>::type
+    ::std::enable_if_t<(_N == 0) && (_FLAG == false)>
     skip_seq(unsigned long long __num_to_skip)
     {
         for (; __num_to_skip > 0; --__num_to_skip)
@@ -185,7 +185,7 @@ class linear_congruential_engine
     }
 
     template <int _N = 0, bool _FLAG = false>
-    typename ::std::enable_if<(_N == 1) && (_FLAG == false)>::type
+    ::std::enable_if_t<(_N == 1) && (_FLAG == false)>
     skip_seq(unsigned long long __num_to_skip)
     {
         for (; __num_to_skip > 0; --__num_to_skip)
@@ -193,7 +193,7 @@ class linear_congruential_engine
     }
 
     template <int _N = 0, bool _FLAG = false>
-    typename ::std::enable_if<(_N > 1) && (_FLAG == false)>::type
+    ::std::enable_if_t<(_N > 1) && (_FLAG == false)>
     skip_seq(unsigned long long __num_to_skip)
     {
         for (; __num_to_skip > 0; --__num_to_skip)
@@ -207,7 +207,7 @@ class linear_congruential_engine
     }
 
     template <int _N = 0, bool _FLAG = false>
-    typename ::std::enable_if<(_N == 0) && (_FLAG == true)>::type
+    ::std::enable_if_t<(_N == 0) && (_FLAG == true)>
     skip_seq(unsigned long long __num_to_skip)
     {
         ::std::uint64_t __mod = modulus;
@@ -216,7 +216,7 @@ class linear_congruential_engine
     }
 
     template <int _N = 0, bool _FLAG = false>
-    typename ::std::enable_if<(_N == 1) && (_FLAG == true)>::type
+    ::std::enable_if_t<(_N == 1) && (_FLAG == true)>
     skip_seq(unsigned long long __num_to_skip)
     {
         ::std::uint64_t __mod = modulus;
@@ -225,7 +225,7 @@ class linear_congruential_engine
     }
 
     template <int _N = 0, bool _FLAG = false>
-    typename ::std::enable_if<(_N > 1) && (_FLAG == true)>::type
+    ::std::enable_if_t<(_N > 1) && (_FLAG == true)>
     skip_seq(unsigned long long __num_to_skip)
     {
         ::std::uint64_t __mod = modulus;
@@ -235,7 +235,7 @@ class linear_congruential_engine
 
     // result_portion implementation
     template <int _N>
-    typename ::std::enable_if<(_N > 0), result_type>::type
+    ::std::enable_if_t<(_N > 0), result_type>
     result_portion_internal(unsigned int __random_nums)
     {
         result_type __part_vec;

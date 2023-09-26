@@ -18,28 +18,28 @@
 
 template <class T, int x>
 void
-test(typename std::enable_if<std::is_integral<T>::value>::type* = 0)
+test(::std::enable_if_t<std::is_integral_v<T>>* = 0)
 {
-    static_assert((std::is_same<decltype(dpl::imag(T(x))), double>::value), "");
+    static_assert((std::is_same_v<decltype(dpl::imag(T(x))), double>));
     assert(dpl::imag(x) == 0);
 
     constexpr T val {x};
-    STD_COMPLEX_TESTS_STATIC_ASSERT(dpl::imag(val) == 0, "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT(dpl::imag(val) == 0);
     constexpr dpl::complex<T> t{val, val};
-    STD_COMPLEX_TESTS_STATIC_ASSERT(t.imag() == x, "" );
+    STD_COMPLEX_TESTS_STATIC_ASSERT(t.imag() == x);
 }
 
 template <class T, int x>
 void
-test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0)
+test(::std::enable_if_t<!std::is_integral_v<T>>* = 0)
 {
-    static_assert((std::is_same<decltype(dpl::imag(T(x))), T>::value), "");
+    static_assert((std::is_same_v<decltype(dpl::imag(T(x))), T>));
     assert(dpl::imag(x) == 0);
 
     constexpr T val {x};
-    STD_COMPLEX_TESTS_STATIC_ASSERT(dpl::imag(val) == 0, "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT(dpl::imag(val) == 0);
     constexpr dpl::complex<T> t{val, val};
-    STD_COMPLEX_TESTS_STATIC_ASSERT(t.imag() == x, "" );
+    STD_COMPLEX_TESTS_STATIC_ASSERT(t.imag() == x);
 }
 
 template <class T>

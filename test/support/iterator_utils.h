@@ -44,7 +44,7 @@ class ForwardIterator
     reference operator*() const { return *my_iterator; }
     pointer operator->() const
     {
-        if constexpr (::std::is_pointer<Iterator>::value)
+        if constexpr (::std::is_pointer_v<Iterator>)
         {
             return my_iterator;
         }
@@ -148,14 +148,17 @@ struct BaseAdapter
 // Check if the iterator is reverse iterator
 // Note: it works only for iterators that created by ::std::reverse_iterator
 template <typename NotReverseIterator>
-struct isReverse : ::std::false_type
+struct is_reverse : ::std::false_type
 {
 };
 
 template <typename Iterator>
-struct isReverse<::std::reverse_iterator<Iterator>> : ::std::true_type
+struct is_reverse<::std::reverse_iterator<Iterator>> : ::std::true_type
 {
 };
+
+template <typename Iterator>
+inline constexpr bool is_reverse_v = is_reverse<Iterator>::value;
 
 // Reverse adapter
 template <typename Iterator, typename IsReverse>
@@ -230,8 +233,7 @@ struct iterator_traits_
 };
 
 template <typename Iter> // For iterators
-struct iterator_traits_<Iter,
-                        typename ::std::enable_if<!::std::is_void<typename Iter::iterator_category>::value, void>::type>
+struct iterator_traits_<Iter, ::std::enable_if_t<!::std::is_void_v<typename Iter::iterator_category>>>
 {
     typedef typename Iter::iterator_category iterator_category;
 };
@@ -246,8 +248,14 @@ struct iterator_traits_<T*>
 template <typename Iter, typename Tag>
 using is_same_iterator_category = ::std::is_same<typename iterator_traits_<Iter>::iterator_category, Tag>;
 
+template <typename Iter, typename Tag>
+inline constexpr bool is_same_iterator_category_v = is_same_iterator_category<Iter, Tag>::value;
+
 template <typename Tag, typename Iter>
 using is_base_of_iterator_category = ::std::is_base_of<Tag, typename iterator_traits_<Iter>::iterator_category>;
+
+template <typename Tag, typename Iter>
+inline constexpr bool is_base_of_iterator_category_v = is_base_of_iterator_category<Tag, Iter>::value;
 
 // if we run with reverse or const iterators we shouldn't test the large range
 template <typename IsReverse, typename IsConst>
@@ -285,29 +293,27 @@ template <typename Op, typename IteratorTag, bool IsPositiveCondition = true>
 struct non_const_wrapper_tagged : non_const_wrapper
 {
     template <typename Policy, typename Iterator>
-    typename ::std::enable_if<IsPositiveCondition == is_same_iterator_category<Iterator, IteratorTag>::value, void>::type
+    ::std::enable_if_t<IsPositiveCondition == is_same_iterator_category_v<Iterator, IteratorTag>>
     operator()(Policy&& exec, Iterator iter)
     {
         Op()(exec, iter);
     }
 
     template <typename Policy, typename InputIterator, typename OutputIterator>
-    typename ::std::enable_if<IsPositiveCondition == is_same_iterator_category<OutputIterator, IteratorTag>::value,
-                            void>::type
+    ::std::enable_if_t<IsPositiveCondition == is_same_iterator_category_v<OutputIterator, IteratorTag>>
     operator()(Policy&& exec, InputIterator input_iter, OutputIterator out_iter)
     {
         Op()(exec, input_iter, out_iter);
     }
 
     template <typename Policy, typename Iterator>
-    typename ::std::enable_if<IsPositiveCondition != is_same_iterator_category<Iterator, IteratorTag>::value, void>::type
+    ::std::enable_if_t<IsPositiveCondition != is_same_iterator_category_v<Iterator, IteratorTag>>
     operator()(Policy&& /*exec*/, Iterator /*iter*/)
     {
     }
 
     template <typename Policy, typename InputIterator, typename OutputIterator>
-    typename ::std::enable_if<IsPositiveCondition != is_same_iterator_category<OutputIterator, IteratorTag>::value,
-                            void>::type
+    ::std::enable_if_t<IsPositiveCondition != is_same_iterator_category_v<OutputIterator, IteratorTag>>
     operator()(Policy&& /*exec*/, InputIterator /*input_iter*/, OutputIterator /*out_iter*/)
     {
     }
@@ -342,9 +348,8 @@ struct iterator_invoker
 
     // A single iterator version which is used for non_const testcases
     template <typename Policy, typename Op, typename Iterator>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
-                                ::std::is_base_of<non_const_wrapper, Op>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
+                         ::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, Iterator iter)
     {
         op(::std::forward<Policy>(exec), make_iterator<Iterator>()(iter));
@@ -352,9 +357,8 @@ struct iterator_invoker
 
     // A version with 2 iterators which is used for non_const testcases
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value &&
-                                ::std::is_base_of<non_const_wrapper, Op>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value &&
+                         ::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, InputIterator input_iter, OutputIterator out_iter)
     {
         op(::std::forward<Policy>(exec), make_iterator<InputIterator>()(input_iter),
@@ -362,8 +366,7 @@ struct iterator_invoker
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::bidirectional_iterator_tag,
-                                            Iterator>::value, void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::bidirectional_iterator_tag, Iterator>::value>
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n,
         Iterator expected, Rest&&... rest)
     {
@@ -371,7 +374,7 @@ struct iterator_invoker
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value>
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Rest&&... rest)
     {
         invoke_if<Iterator>()(n <= sizeLimit, op, exec, make_iterator<Iterator>()(begin), n,
@@ -379,9 +382,8 @@ struct iterator_invoker
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
-                                !::std::is_base_of<non_const_wrapper, Op>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
+                           !::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, Iterator inputBegin, Iterator inputEnd, Rest&&... rest)
     {
         invoke_if<Iterator>()(::std::distance(inputBegin, inputEnd) <= sizeLimit, op, exec,
@@ -390,8 +392,7 @@ struct iterator_invoker
     }
 
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator inputBegin, InputIterator inputEnd, OutputIterator outputBegin,
                Rest&&... rest)
     {
@@ -401,8 +402,7 @@ struct iterator_invoker
     }
 
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator inputBegin, InputIterator inputEnd, OutputIterator outputBegin,
                OutputIterator outputEnd, Rest&&... rest)
     {
@@ -414,8 +414,7 @@ struct iterator_invoker
 
     template <typename Policy, typename Op, typename InputIterator1, typename InputIterator2, typename OutputIterator,
               typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator1 inputBegin1, InputIterator1 inputEnd1, InputIterator2 inputBegin2,
                InputIterator2 inputEnd2, OutputIterator outputBegin, OutputIterator outputEnd, Rest&&... rest)
     {
@@ -438,9 +437,8 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
 
     // A single iterator version which is used for non_const testcases
     template <typename Policy, typename Op, typename Iterator>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
-                                ::std::is_base_of<non_const_wrapper, Op>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
+                         ::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, Iterator iter)
     {
         op(::std::forward<Policy>(exec), make_iterator<Iterator>()(iter));
@@ -448,9 +446,8 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
 
     // A version with 2 iterators which is used for non_const testcases
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value &&
-                                ::std::is_base_of<non_const_wrapper, Op>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value &&
+                         ::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, InputIterator input_iter, OutputIterator out_iter)
     {
         op(::std::forward<Policy>(exec), make_iterator<InputIterator>()(input_iter),
@@ -458,7 +455,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value>
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Rest&&... rest)
     {
         if (n <= sizeLimit)
@@ -466,7 +463,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value, void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value>
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Iterator expected,
         Rest&&... rest)
     {
@@ -475,7 +472,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename ::std::enable_if<is_same_iterator_category<Iterator, ::std::bidirectional_iterator_tag>::value, void>::type
+    ::std::enable_if_t<is_same_iterator_category_v<Iterator, ::std::bidirectional_iterator_tag>>
     operator()(Policy&& exec, Op op, Iterator begin, typename ::std::iterator_traits<Iterator>::difference_type n, Iterator expected, Rest&&... rest)
     {
         if (n <= sizeLimit)
@@ -483,9 +480,8 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename Iterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
-                                !::std::is_base_of<non_const_wrapper, Op>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
+                         !::std::is_base_of_v<non_const_wrapper, Op>>
     operator()(Policy&& exec, Op op, Iterator inputBegin, Iterator inputEnd, Rest&&... rest)
     {
         if (::std::distance(inputBegin, inputEnd) <= sizeLimit)
@@ -494,8 +490,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator inputBegin, InputIterator inputEnd, OutputIterator outputBegin,
                Rest&&... rest)
     {
@@ -505,8 +500,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
     }
 
     template <typename Policy, typename Op, typename InputIterator, typename OutputIterator, typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator inputBegin, InputIterator inputEnd, OutputIterator outputBegin,
                OutputIterator outputEnd, Rest&&... rest)
     {
@@ -518,8 +512,7 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
 
     template <typename Policy, typename Op, typename InputIterator1, typename InputIterator2, typename OutputIterator,
               typename... Rest>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value,
-                            void>::type
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
     operator()(Policy&& exec, Op op, InputIterator1 inputBegin1, InputIterator1 inputEnd1, InputIterator2 inputBegin2,
                InputIterator2 inputEnd2, OutputIterator outputBegin, OutputIterator outputEnd, Rest&&... rest)
     {

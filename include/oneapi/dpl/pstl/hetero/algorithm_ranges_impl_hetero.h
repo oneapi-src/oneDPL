@@ -40,7 +40,7 @@ namespace __ranges
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Function, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_walk_n(_ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
 {
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
@@ -284,9 +284,8 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredic
 
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, adjacent_find_fn<_BinaryPredicate>>;
-    using _TagType =
-        typename ::std::conditional<__is__or_semantic(), oneapi::dpl::__par_backend_hetero::__parallel_or_tag,
-                                    oneapi::dpl::__par_backend_hetero::__parallel_find_forward_tag<_Range>>::type;
+    using _TagType = ::std::conditional_t<__is__or_semantic(), oneapi::dpl::__par_backend_hetero::__parallel_or_tag,
+                                          oneapi::dpl::__par_backend_hetero::__parallel_find_forward_tag<_Range>>;
 
     auto __rng1 = __rng | oneapi::dpl::experimental::ranges::views::take(__rng.size() - 1);
     auto __rng2 = __rng | oneapi::dpl::experimental::ranges::views::drop(1);
@@ -523,7 +522,7 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
     if (__rng.size() >= 2)

@@ -148,12 +148,6 @@ namespace __par_backend_hetero
 // aliases for faster access to modes
 using access_mode = sycl::access_mode;
 
-// substitution for C++17 convenience types
-template <typename _T>
-using __decay_t = typename ::std::decay<_T>::type;
-template <bool __flag, typename _T = void>
-using __enable_if_t = typename ::std::enable_if<__flag, _T>::type;
-
 // function to simplify zip_iterator creation
 template <typename... T>
 oneapi::dpl::zip_iterator<T...>
@@ -167,10 +161,10 @@ template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
 auto
 make_wrapped_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy)))
+    -> decltype(oneapi::dpl::execution::make_device_policy<
+                _NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(::std::forward<_Policy>(__policy)))
 {
-    return oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
+    return oneapi::dpl::execution::make_device_policy<_NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(
         ::std::forward<_Policy>(__policy));
 }
 
@@ -179,12 +173,12 @@ template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
 auto
 make_wrapped_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
-                                                         _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
+    -> decltype(oneapi::dpl::execution::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor,
+                                                         _NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(
         ::std::forward<_Policy>(__policy)))
 {
-    return oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
-                                                    _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
+    return oneapi::dpl::execution::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor,
+                                                    _NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(
         ::std::forward<_Policy>(__policy));
 }
 #endif
@@ -200,9 +194,9 @@ namespace __internal
 template <typename _CustomName>
 struct _HasDefaultName
 {
-    static constexpr bool value = ::std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value
+    static constexpr bool value = ::std::is_same_v<_CustomName, oneapi::dpl::execution::DefaultKernelName>
 #if _ONEDPL_FPGA_DEVICE
-                                  || ::std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelNameFPGA>::value
+                                  || ::std::is_same_v<_CustomName, oneapi::dpl::execution::DefaultKernelNameFPGA>
 #endif
         ;
 };
@@ -219,8 +213,8 @@ struct __optional_kernel_name;
 template <typename _CustomName>
 using __kernel_name_provider =
 #if __SYCL_UNNAMED_LAMBDA__
-    typename ::std::conditional<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
-                                __optional_kernel_name<_CustomName>>::type;
+    ::std::conditional_t<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
+                         __optional_kernel_name<_CustomName>>;
 #else
     __optional_kernel_name<_CustomName>;
 #endif
@@ -396,7 +390,7 @@ template <typename _ExecutionPolicy, typename _T, typename _BValueT, int __dim, 
 struct __buffer<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
 {
   private:
-    using __exec_policy_t = __decay_t<_ExecutionPolicy>;
+    using __exec_policy_t = ::std::decay_t<_ExecutionPolicy>;
     using __container_t = typename __local_buffer<sycl::buffer<_T, __dim, _AllocT>>::type;
 
     __container_t __container;
@@ -447,7 +441,7 @@ template <typename _ExecutionPolicy, typename _T, typename _BValueT>
 struct __buffer<_ExecutionPolicy, _T, _BValueT*>
 {
   private:
-    using __exec_policy_t = __decay_t<_ExecutionPolicy>;
+    using __exec_policy_t = ::std::decay_t<_ExecutionPolicy>;
     using __container_t = ::std::unique_ptr<_T, __sycl_usm_free<__exec_policy_t, _T>>;
     using __alloc_t = sycl::usm::alloc;
 
