@@ -12,7 +12,7 @@
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
 #include _ONEAPI_STD_TEST_HEADER(iterator)
-namespace s = _ONEAPI_TEST_NAMESPACE;
+namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
@@ -22,7 +22,7 @@ template <class Iter, class T>
 bool
 test(Iter first, Iter last, const T& value, bool x)
 {
-    return (s::binary_search(first, last, value) == x);
+    return (test_ns::binary_search(first, last, value) == x);
 }
 
 class KernelBSearchTest1;
