@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
-namespace s = _ONEAPI_TEST_NAMESPACE;
+namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
@@ -26,7 +26,7 @@ struct gt
 sycl::cl_bool
 kernel_test()
 {
-    using s::binary_search;
+    using test_ns::binary_search;
     sycl::queue deviceQueue = TestUtils::get_test_queue();
 
     const int A[] = {1, 2, 3, 3, 3, 5, 8};

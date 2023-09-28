@@ -7,7 +7,7 @@
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
 #include _ONEAPI_STD_TEST_HEADER(functional)
-namespace s = _ONEAPI_TEST_NAMESPACE;
+namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
@@ -65,14 +65,14 @@ kernel_test()
                 {
                     test_container<X, forward_iterator_wrapper> c(access.get_pointer(), access.get_pointer() + N);
 
-                    ret_access[0] = s::binary_search(c.begin(), c.end(), X{2});
-                    ret_access[0] &= s::binary_search(c.begin(), c.end(), X{2}, s::less<X>{});
+                    ret_access[0] = test_ns::binary_search(c.begin(), c.end(), X{2});
+                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{2}, test_ns::less<X>{});
 
-                    ret_access[0] &= s::binary_search(c.begin(), c.end(), X{9});
-                    ret_access[0] &= s::binary_search(c.begin(), c.end(), X{9}, s::less<X>{});
+                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{9});
+                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{9}, test_ns::less<X>{});
 
-                    ret_access[0] &= !(s::binary_search(access.get_pointer(), access.get_pointer() + 5, X{2}));
-                    ret_access[0] &= !(s::binary_search(access.get_pointer(), access.get_pointer() + 5, X{2}, s::less<X>{}));
+                    ret_access[0] &= !(test_ns::binary_search(access.get_pointer(), access.get_pointer() + 5, X{2}));
+                    ret_access[0] &= !(test_ns::binary_search(access.get_pointer(), access.get_pointer() + 5, X{2}, test_ns::less<X>{}));
                 }
             });
         }).wait();

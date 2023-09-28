@@ -9,7 +9,7 @@
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
 #include _ONEAPI_STD_TEST_HEADER(iterator)
 #include _ONEAPI_STD_TEST_HEADER(functional)
-namespace s = _ONEAPI_TEST_NAMESPACE;
+namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 // <algorithm>
 
@@ -24,14 +24,14 @@ constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 template <class Iter, class T>
 bool __attribute__((always_inline)) test(Iter first, Iter last, const T& value)
 {
-    Iter i = s::lower_bound(first, last, value, s::greater<int>());
+    Iter i = test_ns::lower_bound(first, last, value, test_ns::greater<int>());
     for (Iter j = first; j != i; ++j)
-        if (!(s::greater<int>()(*j, value)))
+        if (!(test_ns::greater<int>()(*j, value)))
         {
             return false;
         }
     for (Iter j = i; j != last; ++j)
-        if (s::greater<int>()(*j, value))
+        if (test_ns::greater<int>()(*j, value))
         {
             return false;
         }
@@ -60,7 +60,7 @@ kernel_test()
         host_vbuf[i] = i % M;
     }
 
-    std::sort(host_vbuf, host_vbuf + N, s::greater<int>());
+    std::sort(host_vbuf, host_vbuf + N, test_ns::greater<int>());
     sycl::range<1> host_buffer_sz{N};
     sycl::buffer<sycl::cl_int, 1> host_data_buffer(host_vbuf, host_buffer_sz);
     deviceQueue.submit([&](sycl::handler& cgh) {

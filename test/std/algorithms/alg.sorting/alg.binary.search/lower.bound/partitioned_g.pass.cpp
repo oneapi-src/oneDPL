@@ -7,7 +7,7 @@
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
 #include _ONEAPI_STD_TEST_HEADER(functional)
-namespace s = _ONEAPI_TEST_NAMESPACE;
+namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
@@ -63,17 +63,17 @@ kernel_test1(sycl::queue& deviceQueue)
                 if (check_access[0])
                 {
                     test_container<X, forward_iterator_wrapper> c(access.get_pointer(), access.get_pointer() + N);
-                    auto part1 = s::lower_bound(c.begin(), c.end(), X{2});
+                    auto part1 = test_ns::lower_bound(c.begin(), c.end(), X{2});
                     ret_access[0] = (part1 != c.end());
                     ret_access[0] &= (part1->val == 6);
-                    auto part2 = s::lower_bound(c.begin(), c.end(), X{2}, s::less<X>{});
+                    auto part2 = test_ns::lower_bound(c.begin(), c.end(), X{2}, test_ns::less<X>{});
                     ret_access[0] &= (part2 != c.end());
                     ret_access[0] &= (part2->val == 6);
 
-                    auto part3 = s::lower_bound(c.begin(), c.end(), X{9});
+                    auto part3 = test_ns::lower_bound(c.begin(), c.end(), X{9});
                     ret_access[0] &= (part3 != c.end());
                     ret_access[0] &= (part3->val == 1);
-                    auto part4 = s::lower_bound(c.begin(), c.end(), X{9}, s::less<X>{});
+                    auto part4 = test_ns::lower_bound(c.begin(), c.end(), X{9}, test_ns::less<X>{});
                     ret_access[0] &= (part4 != c.end());
                     ret_access[0] &= (part4->val == 1);
                 }

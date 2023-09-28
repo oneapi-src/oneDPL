@@ -6,13 +6,13 @@
 #include <iostream>
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
-namespace s = _ONEAPI_TEST_NAMESPACE;
+namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
-using s::binary_search;
+using test_ns::binary_search;
 
 typedef test_container<int, forward_iterator_wrapper> Container;
 

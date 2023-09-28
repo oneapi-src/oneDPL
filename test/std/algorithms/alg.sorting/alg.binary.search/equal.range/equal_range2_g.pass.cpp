@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
-namespace s = _ONEAPI_TEST_NAMESPACE;
+namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
@@ -30,7 +30,7 @@ struct gt
 sycl::cl_bool
 kernel_test()
 {
-    using s::equal_range;
+    using test_ns::equal_range;
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::cl_bool ret = false;
     sycl::cl_bool check = false;
@@ -76,9 +76,9 @@ kernel_test()
                     ret_access[0] &= (r.first == access1.get_pointer() + N - 1);
                     ret_access[0] &= (r.second == access1.get_pointer() + N);
 
-                    Ipair s = equal_range(access1.get_pointer(), access1.get_pointer() + N, 4);
-                    ret_access[0] &= (s.first == access1.get_pointer() + 5);
-                    ret_access[0] &= (s.second == access1.get_pointer() + 5);
+                    Ipair test_ns = equal_range(access1.get_pointer(), access1.get_pointer() + N, 4);
+                    ret_access[0] &= (test_ns.first == access1.get_pointer() + 5);
+                    ret_access[0] &= (test_ns.second == access1.get_pointer() + 5);
 
                     Ipair t = equal_range(access2.get_pointer(), access2.get_pointer() + N, 3, gt());
                     ret_access[0] &= (t.first == access2.get_pointer() + 2);

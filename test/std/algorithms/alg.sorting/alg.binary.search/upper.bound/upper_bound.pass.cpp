@@ -8,7 +8,7 @@
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
 #include _ONEAPI_STD_TEST_HEADER(iterator)
-namespace s = _ONEAPI_TEST_NAMESPACE;
+namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 // <algorithm>
 
@@ -24,7 +24,7 @@ template <class Iter, class T>
 bool
 test(Iter first, Iter last, const T& value)
 {
-    Iter i = s::upper_bound(first, last, value);
+    Iter i = test_ns::upper_bound(first, last, value);
     for (Iter j = first; j != i; ++j)
         if ((value < *j))
         {
