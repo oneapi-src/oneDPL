@@ -89,9 +89,9 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    // kernel_test<forward_iterator<const int*>, KernelLowerBoundTest1>();
-    // kernel_test<bidirectional_iterator<const int*>, KernelLowerBoundTest2>();
-    // kernel_test<random_access_iterator<const int*>, KernelLowerBoundTest3>();
+    kernel_test<forward_iterator<const int*>, KernelLowerBoundTest1>();
+    kernel_test<bidirectional_iterator<const int*>, KernelLowerBoundTest2>();
+    kernel_test<random_access_iterator<const int*>, KernelLowerBoundTest3>();
     kernel_test<const int*, KernelLowerBoundTest4>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

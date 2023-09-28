@@ -92,9 +92,9 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    // kernel_test<forward_iterator<const int*>, KernelEqualRangeTest1>();
-    // kernel_test<bidirectional_iterator<const int*>, KernelEqualRangeTest2>();
-    // kernel_test<random_access_iterator<const int*>, KernelEqualRangeTest3>();
+    kernel_test<forward_iterator<const int*>, KernelEqualRangeTest1>();
+    kernel_test<bidirectional_iterator<const int*>, KernelEqualRangeTest2>();
+    kernel_test<random_access_iterator<const int*>, KernelEqualRangeTest3>();
     kernel_test<const int*, KernelEqualRangeTest4>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
