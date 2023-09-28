@@ -59,11 +59,11 @@ kernel_test()
             cgh.single_task<class KernelTest>([=]() {
                 X tmp[] = {1, 3, 5, 7, 1, 6, 4};
                 // check if there is change after data transfer
-                check_access[0] = checkData(&access[0], &tmp[0], N);
+                check_access[0] = checkData(access.get_pointer(), &tmp[0], N);
 
                 if (check_access[0])
                 {
-                    test_container<X, forward_iterator_wrapper> c(&access[0], &access[0] + N);
+                    test_container<X, forward_iterator_wrapper> c(access.get_pointer(), access.get_pointer() + N);
 
                     ret_access[0] = s::binary_search(c.begin(), c.end(), X{2});
                     ret_access[0] &= s::binary_search(c.begin(), c.end(), X{2}, s::less<X>{});
@@ -71,8 +71,8 @@ kernel_test()
                     ret_access[0] &= s::binary_search(c.begin(), c.end(), X{9});
                     ret_access[0] &= s::binary_search(c.begin(), c.end(), X{9}, s::less<X>{});
 
-                    ret_access[0] &= !(s::binary_search(&access[0], &access[0] + 5, X{2}));
-                    ret_access[0] &= !(s::binary_search(&access[0], &access[0] + 5, X{2}, s::less<X>{}));
+                    ret_access[0] &= !(s::binary_search(access.get_pointer(), access.get_pointer() + 5, X{2}));
+                    ret_access[0] &= !(s::binary_search(access.get_pointer(), access.get_pointer() + 5, X{2}, s::less<X>{}));
                 }
             });
         }).wait();

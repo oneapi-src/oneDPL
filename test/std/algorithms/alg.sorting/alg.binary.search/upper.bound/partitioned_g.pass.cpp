@@ -59,11 +59,11 @@ kernel_test1(sycl::queue& deviceQueue)
             cgh.single_task<class KernelTest1>([=]() {
                 X arr[] = {1, 3, 5, 7, 1, 6, 4, 2};
                 // check if there is change after data transfer
-                check_access[0] = checkData(&access[0], arr, N);
+                check_access[0] = checkData(access.get_pointer(), arr, N);
                 if (check_access[0])
                 {
 
-                    test_container<X, forward_iterator_wrapper> c(&access[0], &access[0] + N);
+                    test_container<X, forward_iterator_wrapper> c(access.get_pointer(), access.get_pointer() + N);
                     auto part1 = s::upper_bound(c.begin(), c.end(), X{2});
                     ret_access[0] = (part1 == c.end());
                     auto part2 = s::upper_bound(c.begin(), c.end(), X{2}, s::less<X>{});
@@ -124,10 +124,10 @@ kernel_test2(sycl::queue& deviceQueue)
             cgh.single_task<class KernelTest2>([=]() {
                 Y arr[] = {-0.1, 1.2, 5.0, 5.2, 5.1, 5.9, 5.5, 6.0};
                 // check if there is change after data transfer
-                check_access[0] = checkData(&access[0], arr, N);
+                check_access[0] = checkData(access.get_pointer(), arr, N);
                 if (check_access[0])
                 {
-                    test_container<Y, forward_iterator_wrapper> c(&access[0], &access[0] + N);
+                    test_container<Y, forward_iterator_wrapper> c(access.get_pointer(), access.get_pointer() + N);
                     auto part1 = std::upper_bound(c.begin(), c.end(), Y{5.5});
                     ret_access[0] = (part1 != c.end());
                     ret_access[0] &= (part1->val == 6.0);
