@@ -55,12 +55,9 @@ kernel_test()
     const unsigned N = 1000;
     const int M = 10;
     int host_vbuf[N];
-    int x = 0;
     for (size_t i = 0; i < N; ++i)
     {
-        host_vbuf[i] = x;
-        if (++x == M)
-            x = 0;
+        host_vbuf[i] = i % M;
     }
 
     std::sort(host_vbuf, host_vbuf + N);
