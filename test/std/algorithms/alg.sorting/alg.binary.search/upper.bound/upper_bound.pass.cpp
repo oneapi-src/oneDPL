@@ -73,10 +73,10 @@ kernel_test()
             int device_vbuf[N];
             for (size_t i = 0; i < N; i++)
                 device_vbuf[i] = data_access[i];
-            ret_access[0] = test(Iter(device_vbuf), Iter(device_vbuf + N), 0);
+            ret_access[0] = test(device_vbuf, device_vbuf + N, 0);
 
             for (int x = 1; x <= M; ++x)
-                ret_access[0] &= test(Iter(device_vbuf), Iter(device_vbuf + N), x);
+                ret_access[0] &= test(device_vbuf, device_vbuf + N, x);
         });
     }).wait();
 
