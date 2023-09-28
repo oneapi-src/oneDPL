@@ -198,8 +198,7 @@ __onesweep_by_key(sycl::queue __q, _KeysRng&& __keys_rng, _ValsRng&& __vals_rng,
     const ::std::uint32_t __tmp_vals_mem_size =  __n * sizeof(_ValT);
     const ::std::size_t __tmp_mem_size = __group_hists_mem_size + __global_hist_mem_size + __tmp_keys_mem_size + __tmp_vals_mem_size;
 
-    // ::std::uint8_t* __p_tmp_mem = sycl::malloc_device<::std::uint8_t>(__tmp_mem_size, __q);
-    ::std::uint8_t* __p_tmp_mem = sycl::malloc_shared<::std::uint8_t>(__tmp_mem_size, __q);
+    ::std::uint8_t* __p_tmp_mem = sycl::malloc_device<::std::uint8_t>(__tmp_mem_size, __q);
     // Memory to store global histograms, where each stage has its own histogram
     _GlobalHistT* __p_global_hist_all = reinterpret_cast<_GlobalHistT*>(__p_tmp_mem);
     // Memory to store group historgrams, which contain offsets relative to "previous" groups
