@@ -41,7 +41,7 @@ New in This Release
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
 - Incorrect results may be produced by ``set_intersection`` using DPC++ execution policies,
   where elements are be copied from the second input range rather than the first input range. 
-- For ``transform_exclusive_scan`` and ``exclusive_scan`` with overlapping input and destination sequences,
+- For ``transform_exclusive_scan`` and ``exclusive_scan`` with overlapping input and destination sequences and an execution policy of ``unseq`` or ``par_unseq,
   it is required that the provided input and destination iterators are equality comparable.
   Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
   If these conditions are not met, the result of these algorithm calls are undefined.
@@ -49,7 +49,7 @@ New in This Release
 
   *	They use a DPC++ execution policy.
 
-  *	The program is built on Linux with Intel® DPC++/C++ Compiler and -O0 compiler option.
+  *	The program is built on Linux with Intel® DPC++/C++ Compiler and -O0 -g compiler options.
 
   *	The program is run on CPU device.
   
