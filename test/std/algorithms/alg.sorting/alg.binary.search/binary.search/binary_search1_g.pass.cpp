@@ -37,7 +37,7 @@ kernel_test1()
                 check_access[0] = (acc_arr[0] == 0);
                 if (check_access[0])
                 {
-                    Container con(&acc_arr[0], &acc_arr[0]);
+                    Container con(acc_arr.get_pointer(), acc_arr.get_pointer());
                     ret_access[0] = (!binary_search(con.begin(), con.end(), 1));
                 }
             });
@@ -72,10 +72,10 @@ kernel_test2()
             cgh.single_task<class KernelTest2>([=]() {
                 int tmp[] = {0, 2, 4, 6, 8};
                 // check if there is change after data transfer
-                check_access[0] = checkData(&access1[0], tmp, N);
+                check_access[0] = checkData(access1.get_pointer(), tmp, N);
                 if (check_access[0])
                 {
-                    Container con(&access1[0], &access1[0] + N);
+                    Container con(access1.get_pointer(), access1.get_pointer() + N);
                     ret_access[0] = (binary_search(con.begin(), con.end(), 0));
 
                     for (int i = 2; i < 10; i += 2)
