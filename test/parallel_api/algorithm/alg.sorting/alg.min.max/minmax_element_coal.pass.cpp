@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- minmax_element.pass.cpp -------------------------------------------===//
+//===-- minmax_element_coal.pass.cpp --------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_DETECT_SPIRV_COMPILATION 0
+#define _ONEDPL_DETECT_SPIRV_COMPILATION 1
 #include "minmax_element.pass.h"
 
 int
