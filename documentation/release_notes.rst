@@ -20,14 +20,9 @@ New Features
 - Algorithms using vector execution policies are now vectorized whenever possible when the program is built with Intel® DPC++/C++ Compiler.
 - Added support for passing zip iterators as segment value data in ``reduce_by_segment``, ``exclusive_scan_by_segment``,
   and ``inclusive_scan_by_segment``.
-- Improved performance of ``merge``, ``sort`` and ``stable_sort`` (non-Radix case) algorithms on GPU devices.
-  Added new implementation based on ``Merge Path`` approach.
-- Improved performance of ``sort`` and ``sort_stable`` (Radix case) algorithms on GPU devices.
+- Improved performance of ``merge``, ``sort`` and ``stable_sort`` algorithms on GPU devices.
 - Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
   ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
-- When compiling with DPC++ compiler option, libstdc++ version 8 or libc++, and with ``-fsycl-pstl-offload`` option,
-  parallel algorithms from std namespace called with ``oneapi::dpl::parallel_unsequenced_policy`` would be
-  offloaded to the SYCL device in accordance with ``-fsycl-pstl-offload`` option value.
 
 Fixed Issues
 ------------
@@ -38,14 +33,18 @@ Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
+- When compiling with DPC++ compiler option, libstdc++ version 8 or libc++, and with ``-fsycl-pstl-offload`` option,
+  parallel algorithms from std namespace called with ``oneapi::dpl::parallel_unsequenced_policy`` would be
+  offloaded to the SYCL device in accordance with ``-fsycl-pstl-offload`` option value.
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
 - Incorrect results may be produced by ``set_intersection`` using DPC++ execution policies,
   where elements are be copied from the second input range rather than the first input range. 
-- For ``transform_exclusive_scan`` and ``exclusive_scan`` with overlapping input and destination sequences and an execution policy of ``unseq`` or ``par_unseq,
-  it is required that the provided input and destination iterators are equality comparable.
+- For ``transform_exclusive_scan`` and ``exclusive_scan`` with overlapping input and destination sequences
+  and an execution policy of ``unseq`` or ``par_unseq``, it is required that the provided input and destination
+  iterators are equality comparable.
   Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
   If these conditions are not met, the result of these algorithm calls are undefined.
-- Incorrect results or segmentation fault may be produced by sort, stable_sort, partial_sort_copy algorithms when:
+- Incorrect results or segmentation fault may be produced by ``sort``, ``stable_sort``, ``partial_sort_copy`` algorithms when:
 
   *	They use a DPC++ execution policy.
 
@@ -53,7 +52,7 @@ New in This Release
 
   *	The program is run on CPU device.
   
-  You can avoid the issue by passing -fsycl-device-code-split=per_kernel compiler option.
+  You can avoid the issue by passing ``-fsycl-device-code-split=per_kernel`` compiler option.
 
 
 Existing Issues
