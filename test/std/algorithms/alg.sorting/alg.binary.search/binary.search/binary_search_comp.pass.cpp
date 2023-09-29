@@ -39,9 +39,9 @@ void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    sycl::cl_bool ret = false;
+    bool ret = false;
     sycl::range<1> numOfItems{1};
-    sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItems);
+    sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
     const unsigned N = 1000;
     const int M = 10;
     int host_vbuf[N];

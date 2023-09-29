@@ -25,7 +25,7 @@ struct gt
 };
 
 // binary_search, with and without comparison predicate
-sycl::cl_bool
+bool
 kernel_test()
 {
     using test_ns::binary_search;
@@ -37,16 +37,16 @@ kernel_test()
     const int N = sizeof(A) / sizeof(int);
     const int first = A[0];
     const int last = A[N - 1];
-    sycl::cl_bool ret = false;
-    sycl::cl_bool check = false; // for checking data transfer
+    bool ret = false;
+    bool check = false; // for checking data transfer
     sycl::range<1> item1{1};
     sycl::range<1> itemN{N};
 
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, item1);
+        sycl::buffer<bool, 1> buffer1(&ret, item1);
         sycl::buffer<int, 1> buffer2(A, itemN);
         sycl::buffer<int, 1> buffer3(C, itemN);
-        sycl::buffer<sycl::cl_bool, 1> buffer4(&check, item1);
+        sycl::buffer<bool, 1> buffer4(&check, item1);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
             auto access2 = buffer2.get_access<sycl_write>(cgh);

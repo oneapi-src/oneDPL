@@ -38,21 +38,21 @@ struct X
     }
 };
 
-sycl::cl_bool
+bool
 kernel_test()
 {
     // Test with range that is partitioned, but not sorted.
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     X seq[] = {1, 3, 5, 7, 1, 6, 4};
     auto tmp = seq;
-    sycl::cl_bool ret = false;
-    sycl::cl_bool check = false;
+    bool ret = false;
+    bool check = false;
     const int N = sizeof(seq) / sizeof(seq[0]);
     sycl::range<1> item1{1};
     sycl::range<1> itemN{N};
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, item1);
-        sycl::buffer<sycl::cl_bool, 1> buffer2(&check, itemN);
+        sycl::buffer<bool, 1> buffer1(&ret, item1);
+        sycl::buffer<bool, 1> buffer2(&check, itemN);
         sycl::buffer<X, 1> buffer3(seq, itemN);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);

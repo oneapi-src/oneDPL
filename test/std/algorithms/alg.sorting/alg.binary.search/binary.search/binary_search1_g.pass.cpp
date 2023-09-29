@@ -18,17 +18,17 @@ using test_ns::binary_search;
 
 typedef test_container<int, forward_iterator_wrapper> Container;
 
-sycl::cl_bool
+bool
 kernel_test1()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     int array[] = {0};
-    sycl::cl_bool ret = false;
-    sycl::cl_bool transferCheck = false;
+    bool ret = false;
+    bool transferCheck = false;
     sycl::range<1> numOfItems{1};
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-        sycl::buffer<sycl::cl_bool, 1> buffer2(&transferCheck, numOfItems);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+        sycl::buffer<bool, 1> buffer2(&transferCheck, numOfItems);
         sycl::buffer<int, 1> buffer3(array, numOfItems);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
@@ -52,21 +52,21 @@ kernel_test1()
     return ret;
 }
 
-sycl::cl_bool
+bool
 kernel_test2()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     int array[] = {0, 2, 4, 6, 8};
     int tmp[] = {0, 2, 4, 6, 8};
     const int N = sizeof(array) / sizeof(array[0]);
-    sycl::cl_bool ret = false;
-    sycl::cl_bool check = false;
+    bool ret = false;
+    bool check = false;
     sycl::range<1> item1{1};
     sycl::range<1> itemN{N};
     {
         sycl::buffer<int, 1> buffer1(array, itemN);
-        sycl::buffer<sycl::cl_bool, 1> buffer2(&ret, item1);
-        sycl::buffer<sycl::cl_bool, 1> buffer3(&check, item1);
+        sycl::buffer<bool, 1> buffer2(&ret, item1);
+        sycl::buffer<bool, 1> buffer3(&check, item1);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto access1 = buffer1.get_access<sycl_write>(cgh);
             auto ret_access = buffer2.get_access<sycl_write>(cgh);

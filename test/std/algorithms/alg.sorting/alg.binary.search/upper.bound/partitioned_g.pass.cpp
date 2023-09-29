@@ -38,21 +38,21 @@ struct X
     }
 };
 
-sycl::cl_bool
+bool
 kernel_test1(sycl::queue& deviceQueue)
 {
     // Test with range that is partitioned, but not sorted.
     X seq[] = {1, 3, 5, 7, 1, 6, 4, 2};
     auto tmp = seq;
     const int N = sizeof(seq) / sizeof(seq[0]);
-    sycl::cl_bool ret = false;
-    sycl::cl_bool check = false;
+    bool ret = false;
+    bool check = false;
     sycl::range<1> item1{1};
     sycl::range<1> itemN{8};
 
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, item1);
-        sycl::buffer<sycl::cl_bool, 1> buffer2(&check, item1);
+        sycl::buffer<bool, 1> buffer1(&ret, item1);
+        sycl::buffer<bool, 1> buffer2(&check, item1);
         sycl::buffer<X, 1> buffer3(seq, itemN);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
@@ -105,19 +105,19 @@ struct Y
     }
 };
 
-sycl::cl_bool
+bool
 kernel_test2(sycl::queue& deviceQueue)
 {
-    sycl::cl_bool ret = false;
-    sycl::cl_bool check = false;
+    bool ret = false;
+    bool check = false;
     Y seq[] = {-0.1, 1.2, 5.0, 5.2, 5.1, 5.9, 5.5, 6.0};
     auto tmp = seq;
     const int N = sizeof(seq) / sizeof(seq[0]);
     sycl::range<1> item1{1};
     sycl::range<1> itemN{N};
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, item1);
-        sycl::buffer<sycl::cl_bool, 1> buffer2(&check, item1);
+        sycl::buffer<bool, 1> buffer1(&ret, item1);
+        sycl::buffer<bool, 1> buffer2(&check, item1);
         sycl::buffer<Y, 1> buffer3(seq, itemN);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
