@@ -39,16 +39,16 @@ kernel_test1()
                 auto ret = true;
                 int arr[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2};
                 // check if there is change after data transfer
-                check_access[0] = checkData(access.get_pointer(), arr, N);
+                check_access[0] = checkData(access.get_pointer().get(), arr, N);
                 if (check_access[0])
                 {
                     for (int i = 0; i < 6; ++i)
                     {
                         for (int j = 6; j < 12; ++j)
                         {
-                            Container con(access.get_pointer() + i, access.get_pointer() + j);
-                            ret &= (equal_range(con.begin(), con.end(), 1).first.ptr == access.get_pointer() + std::max(i, 4));
-                            ret &= (equal_range(con.begin(), con.end(), 1).second.ptr == access.get_pointer() + std::min(j, 8));
+                            Container con(access.get_pointer().get() + i, access.get_pointer().get() + j);
+                            ret &= (equal_range(con.begin(), con.end(), 1).first.ptr == access.get_pointer().get() + std::max(i, 4));
+                            ret &= (equal_range(con.begin(), con.end(), 1).second.ptr == access.get_pointer().get() + std::min(j, 8));
                         }
                     }
                     ret_access[0] = ret;
@@ -85,12 +85,12 @@ kernel_test2()
             cgh.single_task<class KernelTest2>([=]() {
                 int arr[] = {0, 0, 2, 2, 2};
                 // check if there is change after data transfer
-                check_access[0] = checkData(access.get_pointer(), arr, N);
+                check_access[0] = checkData(access.get_pointer().get(), arr, N);
                 if (check_access[0])
                 {
-                    Container con(access.get_pointer(), access.get_pointer() + 5);
-                    ret_access[0] = (equal_range(con.begin(), con.end(), 1).first.ptr == access.get_pointer() + 2);
-                    ret_access[0] &= (equal_range(con.begin(), con.end(), 1).second.ptr == access.get_pointer() + 2);
+                    Container con(access.get_pointer().get(), access.get_pointer().get() + 5);
+                    ret_access[0] = (equal_range(con.begin(), con.end(), 1).first.ptr == access.get_pointer().get() + 2);
+                    ret_access[0] &= (equal_range(con.begin(), con.end(), 1).second.ptr == access.get_pointer().get() + 2);
                 }
             });
         }).wait();
