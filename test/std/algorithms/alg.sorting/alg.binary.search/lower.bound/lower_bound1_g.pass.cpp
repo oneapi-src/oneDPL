@@ -39,7 +39,7 @@ kernel_test()
             cgh.single_task<class KernelTest1>([=]() {
                 int arr[] = {0, 0, 0, 0, 1, 1, 1, 1};
                 // check if there is change after data transfer
-                check_access[0] = checkData(access.get_pointer(), arr, N);
+                check_access[0] = checkData(access.get_pointer().get(), arr, N);
                 if (check_access[0])
                 {
                     auto ret = true;
@@ -47,8 +47,8 @@ kernel_test()
                     {
                         for (int j = 4; j < 7; ++j)
                         {
-                            Container con(access.get_pointer() + i, access.get_pointer() + j);
-                            ret &= (lower_bound(con.begin(), con.end(), 1).ptr == access.get_pointer() + 4);
+                            Container con(access.get_pointer().get() + i, access.get_pointer().get() + j);
+                            ret &= (lower_bound(con.begin(), con.end(), 1).ptr == access.get_pointer().get() + 4);
                         }
                     }
                     ret_access[0] = ret;

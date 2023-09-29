@@ -60,41 +60,41 @@ kernel_test()
                 const int A1[] = {1, 2, 3, 3, 3, 5, 8};
                 const int C1[] = {8, 5, 3, 3, 3, 2, 1};
                 // check if there is change after data transfer
-                check_access[0] = checkData(access1.get_pointer(), A1, N);
-                check_access[0] &= checkData(access2.get_pointer(), C1, N);
+                check_access[0] = checkData(access1.get_pointer().get(), A1, N);
+                check_access[0] &= checkData(access2.get_pointer().get(), C1, N);
                 if (check_access[0])
                 {
-                    Ipair p = equal_range(access1.get_pointer(), access1.get_pointer() + N, 3);
-                    ret_access[0] = (p.first == access1.get_pointer() + 2);
-                    ret_access[0] &= (p.second == access1.get_pointer() + 5);
+                    Ipair p = equal_range(access1.get_pointer().get(), access1.get_pointer().get() + N, 3);
+                    ret_access[0] = (p.first == access1.get_pointer().get() + 2);
+                    ret_access[0] &= (p.second == access1.get_pointer().get() + 5);
 
-                    Ipair q = equal_range(access1.get_pointer(), access1.get_pointer() + N, first);
-                    ret_access[0] &= (q.first == access1.get_pointer() + 0);
-                    ret_access[0] &= (q.second == access1.get_pointer() + 1);
+                    Ipair q = equal_range(access1.get_pointer().get(), access1.get_pointer().get() + N, first);
+                    ret_access[0] &= (q.first == access1.get_pointer().get() + 0);
+                    ret_access[0] &= (q.second == access1.get_pointer().get() + 1);
 
-                    Ipair r = equal_range(access1.get_pointer(), access1.get_pointer() + N, last);
-                    ret_access[0] &= (r.first == access1.get_pointer() + N - 1);
-                    ret_access[0] &= (r.second == access1.get_pointer() + N);
+                    Ipair r = equal_range(access1.get_pointer().get(), access1.get_pointer().get() + N, last);
+                    ret_access[0] &= (r.first == access1.get_pointer().get() + N - 1);
+                    ret_access[0] &= (r.second == access1.get_pointer().get() + N);
 
-                    Ipair test_ns = equal_range(access1.get_pointer(), access1.get_pointer() + N, 4);
-                    ret_access[0] &= (test_ns.first == access1.get_pointer() + 5);
-                    ret_access[0] &= (test_ns.second == access1.get_pointer() + 5);
+                    Ipair test_ns = equal_range(access1.get_pointer().get(), access1.get_pointer().get() + N, 4);
+                    ret_access[0] &= (test_ns.first == access1.get_pointer().get() + 5);
+                    ret_access[0] &= (test_ns.second == access1.get_pointer().get() + 5);
 
-                    Ipair t = equal_range(access2.get_pointer(), access2.get_pointer() + N, 3, gt());
-                    ret_access[0] &= (t.first == access2.get_pointer() + 2);
-                    ret_access[0] &= (t.second == access2.get_pointer() + 5);
+                    Ipair t = equal_range(access2.get_pointer().get(), access2.get_pointer().get() + N, 3, gt());
+                    ret_access[0] &= (t.first == access2.get_pointer().get() + 2);
+                    ret_access[0] &= (t.second == access2.get_pointer().get() + 5);
 
-                    Ipair u = equal_range(access2.get_pointer(), access2.get_pointer() + N, first, gt());
-                    ret_access[0] &= (u.first == access2.get_pointer() + N - 1);
-                    ret_access[0] &= (u.second == access2.get_pointer() + N);
+                    Ipair u = equal_range(access2.get_pointer().get(), access2.get_pointer().get() + N, first, gt());
+                    ret_access[0] &= (u.first == access2.get_pointer().get() + N - 1);
+                    ret_access[0] &= (u.second == access2.get_pointer().get() + N);
 
-                    Ipair v = equal_range(access2.get_pointer(), access2.get_pointer() + N, last, gt());
-                    ret_access[0] &= (v.first == access2.get_pointer() + 0);
-                    ret_access[0] &= (v.second == access2.get_pointer() + 1);
+                    Ipair v = equal_range(access2.get_pointer().get(), access2.get_pointer().get() + N, last, gt());
+                    ret_access[0] &= (v.first == access2.get_pointer().get() + 0);
+                    ret_access[0] &= (v.second == access2.get_pointer().get() + 1);
 
-                    Ipair w = equal_range(access2.get_pointer(), access2.get_pointer() + N, 4, gt());
-                    ret_access[0] &= (w.first == access2.get_pointer() + 2);
-                    ret_access[0] &= (w.second == access2.get_pointer() + 2);
+                    Ipair w = equal_range(access2.get_pointer().get(), access2.get_pointer().get() + N, 4, gt());
+                    ret_access[0] &= (w.first == access2.get_pointer().get() + 2);
+                    ret_access[0] &= (w.second == access2.get_pointer().get() + 2);
                 }
             });
         }).wait();

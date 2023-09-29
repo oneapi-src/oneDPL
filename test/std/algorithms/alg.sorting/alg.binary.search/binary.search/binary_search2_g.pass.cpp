@@ -54,20 +54,20 @@ kernel_test()
                 const int A1[] = {1, 2, 3, 3, 3, 5, 8};
                 const int C1[] = {8, 5, 3, 3, 3, 2, 1};
                 // check if there is change after data transfer
-                check_access[0] = checkData(access2.get_pointer(), A1, N);
-                check_access[0] &= checkData(access3.get_pointer(), C1, N);
+                check_access[0] = checkData(access2.get_pointer().get(), A1, N);
+                check_access[0] &= checkData(access3.get_pointer().get(), C1, N);
 
                 if (check_access[0])
                 {
-                    ret_access[0] = (binary_search(access2.get_pointer(), access2.get_pointer() + N, 5));
-                    ret_access[0] &= (binary_search(access2.get_pointer(), access2.get_pointer() + N, first));
-                    ret_access[0] &= (binary_search(access2.get_pointer(), access2.get_pointer() + N, last));
-                    ret_access[0] &= (!binary_search(access2.get_pointer(), access2.get_pointer() + N, 4));
+                    ret_access[0] = (binary_search(access2.get_pointer().get(), access2.get_pointer().get() + N, 5));
+                    ret_access[0] &= (binary_search(access2.get_pointer().get(), access2.get_pointer().get() + N, first));
+                    ret_access[0] &= (binary_search(access2.get_pointer().get(), access2.get_pointer().get() + N, last));
+                    ret_access[0] &= (!binary_search(access2.get_pointer().get(), access2.get_pointer().get() + N, 4));
 
-                    ret_access[0] &= (binary_search(access3.get_pointer(), access3.get_pointer() + N, 5, gt()));
-                    ret_access[0] &= (binary_search(access3.get_pointer(), access3.get_pointer() + N, first, gt()));
-                    ret_access[0] &= (binary_search(access3.get_pointer(), access3.get_pointer() + N, last, gt()));
-                    ret_access[0] &= (!binary_search(access3.get_pointer(), access3.get_pointer() + N, 4, gt()));
+                    ret_access[0] &= (binary_search(access3.get_pointer().get(), access3.get_pointer().get() + N, 5, gt()));
+                    ret_access[0] &= (binary_search(access3.get_pointer().get(), access3.get_pointer().get() + N, first, gt()));
+                    ret_access[0] &= (binary_search(access3.get_pointer().get(), access3.get_pointer().get() + N, last, gt()));
+                    ret_access[0] &= (!binary_search(access3.get_pointer().get(), access3.get_pointer().get() + N, 4, gt()));
                 }
             });
         }).wait();
