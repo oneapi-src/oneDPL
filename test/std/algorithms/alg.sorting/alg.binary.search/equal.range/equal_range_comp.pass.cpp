@@ -29,17 +29,9 @@ bool test(Iter first, Iter last, const T& value)
     for (Iter j = first; j != i.first; ++j)
         if (!(test_ns::greater<int>()(*j, value)))
             return false;
-    /*for (Iter j = i.first; j != last; ++j)
-        if (test_ns::greater<int>()(*j, value))
-            return false;
-    */
     for (Iter j = first; j != i.second; ++j)
         if (test_ns::greater<int>()(value, *j))
             return false;
-    /*for (Iter j = i.second; j != last; ++j)
-        if (!test_ns::greater<int>()(value, *j))
-            return false;
-    */
     return true;
 }
 
