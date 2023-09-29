@@ -45,7 +45,7 @@ New in This Release
   If these conditions are not met, the result of these algorithm calls are undefined.
 - ``sort``, ``stable_sort``, ``partial_sort_copy`` algorithms may work incorrectly or cause
   a segmentation fault when used a DPC++ execution policy for CPU device, and built
-  on Linux with Intel oneAPI DPC++/C++ Compiler and -O0 -g compiler options.
+  on Linux with Intel® oneAPI DPC++/C++ Compiler and -O0 -g compiler options.
   To avoid the issue, pass ``-fsycl-device-code-split=per_kernel`` option to the compiler.
 
 
