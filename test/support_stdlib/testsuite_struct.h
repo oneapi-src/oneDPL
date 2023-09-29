@@ -2,21 +2,21 @@
 #define _TESTSUITE_STRUCT_H
 
 struct NoexceptMoveConsClass {
-  NoexceptMoveConsClass(NoexceptMoveConsClass &&) noexcept(true);
+  NoexceptMoveConsClass(NoexceptMoveConsClass &&) noexcept;
   NoexceptMoveConsClass &operator=(NoexceptMoveConsClass &&) = default;
 };
 struct NoexceptMoveAssignClass {
   NoexceptMoveAssignClass(NoexceptMoveAssignClass &&) = default;
-  NoexceptMoveAssignClass &operator=(NoexceptMoveAssignClass &&) noexcept(true);
+  NoexceptMoveAssignClass &operator=(NoexceptMoveAssignClass &&) noexcept;
 };
 
 
 struct NoexceptMoveConsNoexceptMoveAssignClass {
   NoexceptMoveConsNoexceptMoveAssignClass(
-      NoexceptMoveConsNoexceptMoveAssignClass &&) noexcept(true);
+      NoexceptMoveConsNoexceptMoveAssignClass &&) noexcept;
 
   NoexceptMoveConsNoexceptMoveAssignClass &
-  operator=(NoexceptMoveConsNoexceptMoveAssignClass &&) noexcept(true);
+  operator=(NoexceptMoveConsNoexceptMoveAssignClass &&) noexcept;
 };
 
 #endif
