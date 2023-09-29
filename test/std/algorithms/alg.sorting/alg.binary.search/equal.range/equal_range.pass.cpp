@@ -24,22 +24,11 @@ test(Iter first, Iter last, const T& value)
         if (!(*j < value))
             return false;
     }
-    /*for (Iter j = i.first; j != last; ++j)
-    {
-        if (*j < value)
-            return false;
-    }*/
     for (Iter j = first; j != i.second; j++)
     {
         if (value < *j)
             return false;
     } 
-    /*for (Iter j = i.second; j != last; j++)
-    {
-        if (!(value < *j))
-            return false;
-    }*/
-
     return true;
 }
 
