@@ -26,8 +26,7 @@ New Features
 
 Fixed Issues
 ------------
-- Fixed behavior of ``reduce_async`` function with ``binary_op`` parameter. 
-  Before it ignored the parameter and always used ``std::plus``.
+- Fixed the ``reduce_async`` function to not ignore the provided binary operation.
 
 Known Issues and Limitations
 ----------------------------
