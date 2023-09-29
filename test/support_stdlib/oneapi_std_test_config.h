@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEAPI_STD_TEST_config_H
-#define _ONEAPI_STD_TEST_config_H
+#ifndef _ONEAPI_STD_TEST_CONFIG_H
+#define _ONEAPI_STD_TEST_CONFIG_H
 
 #include "../support/test_config.h"
 #include "../support/utils.h"
@@ -42,4 +42,4 @@ namespace dpl
 }
 }
 namespace oneapi_cpp_ns = oneapi::dpl;
-#endif /* _ONEAPI_STD_TEST_config_H */
+#endif // _ONEAPI_STD_TEST_CONFIG_H
