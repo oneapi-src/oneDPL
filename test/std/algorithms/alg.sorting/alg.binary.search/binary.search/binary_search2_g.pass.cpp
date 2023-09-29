@@ -1,10 +1,12 @@
 #include "oneapi_std_test_config.h"
-#include "checkData.h"
-#include "test_macros.h"
+
+#include _ONEAPI_STD_TEST_HEADER(algorithm)
 
 #include <iostream>
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
+#include "checkData.h"
+#include "test_macros.h"
+
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
