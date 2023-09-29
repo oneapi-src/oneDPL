@@ -20,7 +20,7 @@ New Features
 - Algorithms using vector execution policies are now vectorized whenever possible when the program is built with Intel® DPC++/C++ Compiler.
 - Added support for passing zip iterators as segment value data in ``reduce_by_segment``, ``exclusive_scan_by_segment``,
   and ``inclusive_scan_by_segment``.
-- Improved performance of ``merge``, ``sort`` and ``stable_sort`` algorithms on GPU devices.
+- Improved performance of ``merge``, ``sort``, ``stable_sort``, and ``sort_by_key`` algorithms on GPU devices.
 - Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
   ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
 
@@ -33,7 +33,7 @@ Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- When compiling with DPC++ compiler option, libstdc++ version 8 or libc++, and with ``-fsycl-pstl-offload`` option,
+- When compiling with DPC++ compiler, libstdc++ version 8 or libc++, and with ``-fsycl-pstl-offload`` option,
   parallel algorithms from std namespace called with ``oneapi::dpl::parallel_unsequenced_policy`` would be
   offloaded to the SYCL device in accordance with ``-fsycl-pstl-offload`` option value.
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
