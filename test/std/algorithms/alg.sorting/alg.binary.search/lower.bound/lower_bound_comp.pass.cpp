@@ -3,6 +3,7 @@
 #include "test_iterators.h"
 #include "checkData.h"
 #include "test_macros.h"
+#include "support/sycl_alloc_utils.h"
 
 #include <iostream>
 
@@ -61,15 +62,13 @@ kernel_test()
     }
 
     std::sort(host_vbuf, host_vbuf + N, test_ns::greater<int>());
-    sycl::range<1> host_buffer_sz{N};
-    sycl::buffer<sycl::cl_int, 1> host_data_buffer(host_vbuf, host_buffer_sz);
+
+    TestUtils::usm_data_transfer<sycl::usm::alloc::device, int> dt_helper(deviceQueue, host_vbuf, N);
+
     deviceQueue.submit([&](sycl::handler& cgh) {
+        int* device_vbuf = dt_helper.get_data();
         auto ret_access = buffer1.get_access<sycl_write>(cgh);
-        auto data_access = host_data_buffer.get_access<sycl_read>(cgh);
         cgh.single_task<KC>([=]() {
-            int device_vbuf[N];
-            for (size_t i = 0; i < N; i++)
-                device_vbuf[i] = data_access[i];
             ret_access[0] = test(device_vbuf, device_vbuf + N, 0);
             for (int x = 1; x <= M; ++x)
                 ret_access[0] &= test(device_vbuf, device_vbuf + N, x);
