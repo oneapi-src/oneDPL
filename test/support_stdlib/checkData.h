@@ -9,7 +9,7 @@ check_data(const T1* device_iter, const T2* host_iter, int N)
 {
     for (int i = 0; i < N; ++i)
     {
-        if (*host_iter != *device_iter)
+        if (*(host_iter + i) != *(device_iter + i))
             return false;
     }
     return true;
