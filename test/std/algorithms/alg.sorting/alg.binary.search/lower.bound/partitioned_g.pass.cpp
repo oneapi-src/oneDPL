@@ -61,7 +61,7 @@ kernel_test1(sycl::queue& deviceQueue)
             cgh.single_task<class KernelTest1>([=]() {
                 X arr[] = {1, 3, 5, 7, 1, 6, 4, 2};
                 // check if there is change after data transfer
-                check_access[0] = checkData(access.get_pointer().get(), arr, N);
+                check_access[0] = check_data(access.get_pointer().get(), arr, N);
                 if (check_access[0])
                 {
                     test_container<X, forward_iterator_wrapper> c(access.get_pointer().get(), access.get_pointer().get() + N);
@@ -83,7 +83,7 @@ kernel_test1(sycl::queue& deviceQueue)
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= checkData(tmp, seq, N);
+    check &= check_data(tmp, seq, N);
     if (!check)
         return false;
     return ret;
@@ -127,7 +127,7 @@ kernel_test2(sycl::queue& deviceQueue)
             cgh.single_task<class KernelTest2>([=]() {
                 Y arr[] = {-0.1, 1.2, 5.0, 5.2, 5.1, 5.9, 5.5, 6.0};
                 // check if there is change after data transfer
-                check_access[0] = checkData(access.get_pointer().get(), arr, N);
+                check_access[0] = check_data(access.get_pointer().get(), arr, N);
                 if (check_access[0])
                 {
                     test_container<Y, forward_iterator_wrapper> c(access.get_pointer().get(), access.get_pointer().get() + N);
@@ -149,7 +149,7 @@ kernel_test2(sycl::queue& deviceQueue)
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= checkData(tmp, seq, N);
+    check &= check_data(tmp, seq, N);
     if (!check)
         return false;
     return ret;

@@ -74,7 +74,7 @@ kernel_test2()
             cgh.single_task<class KernelTest2>([=]() {
                 int tmp[] = {0, 2, 4, 6, 8};
                 // check if there is change after data transfer
-                check_access[0] = checkData(access1.get_pointer().get(), tmp, N);
+                check_access[0] = check_data(access1.get_pointer().get(), tmp, N);
                 if (check_access[0])
                 {
                     Container con(access1.get_pointer().get(), access1.get_pointer().get() + N);
@@ -94,7 +94,7 @@ kernel_test2()
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= checkData(tmp, array, N);
+    check &= check_data(tmp, array, N);
     if (!check)
         return false;
     return ret;

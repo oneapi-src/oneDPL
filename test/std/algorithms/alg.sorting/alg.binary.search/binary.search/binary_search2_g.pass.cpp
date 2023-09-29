@@ -56,8 +56,8 @@ kernel_test()
                 const int A1[] = {1, 2, 3, 3, 3, 5, 8};
                 const int C1[] = {8, 5, 3, 3, 3, 2, 1};
                 // check if there is change after data transfer
-                check_access[0] = checkData(access2.get_pointer().get(), A1, N);
-                check_access[0] &= checkData(access3.get_pointer().get(), C1, N);
+                check_access[0] = check_data(access2.get_pointer().get(), A1, N);
+                check_access[0] &= check_data(access3.get_pointer().get(), C1, N);
 
                 if (check_access[0])
                 {
@@ -75,8 +75,8 @@ kernel_test()
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= checkData(A, A1, N);
-    check &= checkData(C, C1, N);
+    check &= check_data(A, A1, N);
+    check &= check_data(C, C1, N);
     if (!check)
         return false;
     return ret;
