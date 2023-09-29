@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref:  ${{ github.event.pull_request.head.sha }}
+          ref:  ${{ github.event.pull_request.head.sha || github.event.push.after }}
       - uses: actions/setup-python@v3
         with:
           python-version: '3.x' 
@@ -31,7 +31,7 @@ jobs:
       - name: Applying clang-format for changed files
         shell: bash
         run: |
-          GIT_HEAD=${{ github.event.push.after || github.event.pull_request.head.sha }}
+          GIT_HEAD=${{ github.event.pull_request.head.sha || github.event.push.after }}
           GIT_BASE=${{ github.event.pull_request.base.sha || github.event.push.before }}
           MERGE_BASE=$(git merge-base $GIT_HEAD $GIT_BASE)
           FILES=$(git diff --diff-filter=d --name-only $MERGE_BASE | grep ^include | grep -v nanorange\.hpp\$ || true)
