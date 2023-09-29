@@ -1,11 +1,13 @@
 #include "oneapi_std_test_config.h"
-#include "testsuite_iterators.h"
-#include "checkData.h"
-
-#include <iostream>
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
 #include _ONEAPI_STD_TEST_HEADER(utility)
+
+#include <iostream>
+
+#include "testsuite_iterators.h"
+#include "checkData.h"
+
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT

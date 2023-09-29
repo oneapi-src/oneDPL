@@ -5,14 +5,16 @@
 //   binary_search(Iter first, Iter last, const T& value);
 
 #include "oneapi_std_test_config.h"
+
+#include _ONEAPI_STD_TEST_HEADER(algorithm)
+#include _ONEAPI_STD_TEST_HEADER(iterator)
+
+#include <iostream>
+
 #include "test_iterators.h"
 #include "checkData.h"
 #include "support/sycl_alloc_utils.h"
 
-#include <iostream>
-
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(iterator)
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT

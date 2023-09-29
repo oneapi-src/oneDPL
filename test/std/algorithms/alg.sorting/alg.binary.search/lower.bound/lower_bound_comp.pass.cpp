@@ -1,15 +1,17 @@
 #include "oneapi_std_test_config.h"
+
+#include _ONEAPI_STD_TEST_HEADER(algorithm)
+#include _ONEAPI_STD_TEST_HEADER(iterator)
+#include _ONEAPI_STD_TEST_HEADER(functional)
+
+#include <iostream>
+
 #include "test_macros.h"
 #include "test_iterators.h"
 #include "checkData.h"
 #include "test_macros.h"
 #include "support/sycl_alloc_utils.h"
 
-#include <iostream>
-
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(iterator)
-#include _ONEAPI_STD_TEST_HEADER(functional)
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 // <algorithm>
