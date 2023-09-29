@@ -17,7 +17,7 @@ New Features
   ``submit`` and ``submit_and_wait``. It includes selection policies: ``fixed_resource_policy``,
   ``round_robin_policy``, ``dynamic_load_policy``, ``auto_tune_policy``, and provides default
   support for SYCL queues. 
-- Algorithms using vector execution policies are now vectorized whenever possible when the program is built with Intel® DPC++/C++ Compiler.
+- ``unseq`` and ``par_unseq`` policies now enable vectorization also for Intel oneAPI DPC++/C++ Compiler.
 - Added support for passing zip iterators as segment value data in ``reduce_by_segment``, ``exclusive_scan_by_segment``,
   and ``inclusive_scan_by_segment``.
 - Improved performance of ``merge``, ``sort``, ``stable_sort``, and ``sort_by_key`` algorithms on GPU devices.
@@ -36,22 +36,17 @@ New in This Release
   parallel algorithms from std namespace called with ``oneapi::dpl::parallel_unsequenced_policy`` would be
   offloaded to the SYCL device in accordance with ``-fsycl-pstl-offload`` option value.
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
-- Incorrect results may be produced by ``set_intersection`` using DPC++ execution policies,
-  where elements are be copied from the second input range rather than the first input range. 
+- Incorrect results may be produced by ``set_intersection`` with a DPC++ execution policy,
+  where elements are copied from the second input range rather than the first input range. 
 - For ``transform_exclusive_scan`` and ``exclusive_scan`` with overlapping input and destination sequences
   and an execution policy of ``unseq`` or ``par_unseq``, it is required that the provided input and destination
   iterators are equality comparable.
   Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
   If these conditions are not met, the result of these algorithm calls are undefined.
-- Incorrect results or segmentation fault may be produced by ``sort``, ``stable_sort``, ``partial_sort_copy`` algorithms when:
-
-  *	They use a DPC++ execution policy.
-
-  *	The program is built on Linux with Intel® DPC++/C++ Compiler and -O0 -g compiler options.
-
-  *	The program is run on CPU device.
-  
-  You can avoid the issue by passing ``-fsycl-device-code-split=per_kernel`` compiler option.
+- ``sort``, ``stable_sort``, ``partial_sort_copy`` algorithms may work incorrectly or cause
+  a segmentation fault when used a DPC++ execution policy for CPU device, and built
+  on Linux with Intel oneAPI DPC++/C++ Compiler and -O0 -g compiler options.
+  To avoid the issue, pass ``-fsycl-device-code-split=per_kernel`` option to the compiler.
 
 
 Existing Issues
