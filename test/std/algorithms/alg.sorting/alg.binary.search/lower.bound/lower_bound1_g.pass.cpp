@@ -18,12 +18,12 @@ using test_ns::lower_bound;
 
 typedef test_container<int, forward_iterator_wrapper> Container;
 
-sycl::cl_bool
+bool
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    sycl::cl_bool ret = false;
-    sycl::cl_bool check = false;
+    bool ret = false;
+    bool check = false;
     int array[] = {0, 0, 0, 0, 1, 1, 1, 1};
     auto tmp = array;
     const int N = sizeof(array) / sizeof(array[0]);
@@ -31,8 +31,8 @@ kernel_test()
     sycl::range<1> itemN{N};
 
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, item1);
-        sycl::buffer<sycl::cl_bool, 1> buffer2(&check, item1);
+        sycl::buffer<bool, 1> buffer1(&ret, item1);
+        sycl::buffer<bool, 1> buffer2(&check, item1);
         sycl::buffer<int, 1> buffer3(array, itemN);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);

@@ -29,13 +29,13 @@ struct gt
 // and predicate functional checks.
 
 // equal_range, with and without comparison predicate
-sycl::cl_bool
+bool
 kernel_test()
 {
     using test_ns::equal_range;
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    sycl::cl_bool ret = false;
-    sycl::cl_bool check = false;
+    bool ret = false;
+    bool check = false;
 
     typedef std::pair<const int*, const int*> Ipair;
     const int A[] = {1, 2, 3, 3, 3, 5, 8};
@@ -49,8 +49,8 @@ kernel_test()
     const int last = A[N - 1];
 
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, item1);
-        sycl::buffer<sycl::cl_bool, 1> buffer2(&check, item1);
+        sycl::buffer<bool, 1> buffer1(&ret, item1);
+        sycl::buffer<bool, 1> buffer2(&check, item1);
         sycl::buffer<int, 1> buffer3(A, itemN);
         sycl::buffer<int, 1> buffer4(C, itemN);
         deviceQueue.submit([&](sycl::handler& cgh) {

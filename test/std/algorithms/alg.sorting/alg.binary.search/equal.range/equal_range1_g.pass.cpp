@@ -18,20 +18,20 @@ using test_ns::equal_range;
 
 typedef test_container<int, forward_iterator_wrapper> Container;
 
-sycl::cl_bool
+bool
 kernel_test1()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     int array[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2};
     const int N = sizeof(array) / sizeof(array[0]);
     auto tmp = array;
-    sycl::cl_bool ret = false;
-    sycl::cl_bool check = false;
+    bool ret = false;
+    bool check = false;
     sycl::range<1> item1{1};
     sycl::range<1> itemN{N};
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, item1);
-        sycl::buffer<sycl::cl_bool, 1> buffer2(&check, item1);
+        sycl::buffer<bool, 1> buffer1(&ret, item1);
+        sycl::buffer<bool, 1> buffer2(&check, item1);
         sycl::buffer<int, 1> buffer3(array, itemN);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
@@ -65,20 +65,20 @@ kernel_test1()
     return ret;
 }
 
-sycl::cl_bool
+bool
 kernel_test2()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     int array[] = {0, 0, 2, 2, 2};
     const int N = sizeof(array) / sizeof(array[0]);
     auto tmp = array;
-    sycl::cl_bool ret = false;
-    sycl::cl_bool check = false;
+    bool ret = false;
+    bool check = false;
     sycl::range<1> item1{1};
     sycl::range<1> itemN{N};
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, item1);
-        sycl::buffer<sycl::cl_bool, 1> buffer2(&check, item1);
+        sycl::buffer<bool, 1> buffer1(&ret, item1);
+        sycl::buffer<bool, 1> buffer2(&check, item1);
         sycl::buffer<int, 1> buffer3(array, itemN);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
