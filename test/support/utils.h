@@ -636,17 +636,6 @@ transform_reduce_serial(InputIterator first, InputIterator last, T init, BinaryO
     return init;
 }
 
-template <typename TState>
-void
-exit_on_error(TState state, const char* sFailMsg = "Fail")
-{
-    if (!state)
-    {
-        ::std::cerr << sFailMsg << std::endl;
-        ::std::exit(EXIT_FAILURE);
-    }
-}
-
 int
 done(int is_done = 1)
 {
