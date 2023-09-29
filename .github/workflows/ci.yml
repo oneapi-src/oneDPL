@@ -29,11 +29,22 @@ jobs:
       - name: Get clang-format
         run: sudo apt-get install -yqq clang-format
       - name: Applying clang-format for changed files
+        shell: bash
         run: |
-          MERGE_BASE=$(git merge-base ${{ github.event.pull_request.head.sha }} ${{ github.event.pull_request.base.sha }})
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo Setting up git hashes for pull_request event
+            GIT_HEAD=${{ github.event.pull_request.head.sha }}
+            GIT_BASE=${{ github.event.pull_request.base.sha }}
+          else
+            echo Setting up git hashes for push event
+            GIT_HEAD=${{ github.event.push.head.sha }}
+            GIT_BASE=${{ github.event.push.base.sha }}
+          fi
+          MERGE_BASE=$(git merge-base $GIT_HEAD $GIT_BASE)
           FILES=$(git diff --diff-filter=d --name-only $MERGE_BASE | grep ^include | grep -v nanorange\.hpp\$ || true)
           CLANG_FORMAT_DIFF_PATH=$(which clang-format-diff)
           echo $FILES | xargs -n1 -t -r git diff -U0 --no-color --relative $MERGE_BASE | python3 $CLANG_FORMAT_DIFF_PATH -i -p1 -style file
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
       - name: Creating diff
         run: git diff > clang-format.diff
       - name: Checking if diff is empty
