@@ -29,7 +29,6 @@ jobs:
       - name: Get clang-format
         run: sudo apt-get install -yqq clang-format
       - name: Applying clang-format for changed files
-        shell: bash
         run: |
           GIT_HEAD=${{ github.event.pull_request.head.sha || github.event.push.after }}
           GIT_BASE=${{ github.event.pull_request.base.sha || github.event.push.before }}
