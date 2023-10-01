@@ -17,6 +17,7 @@ env:
 
 jobs:
   clang-format:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -30,8 +31,8 @@ jobs:
         run: sudo apt-get install -yqq clang-format
       - name: Applying clang-format for changed files
         run: |
-          GIT_HEAD=${{ github.event.pull_request.head.sha || github.event.push.after }}
-          GIT_BASE=${{ github.event.pull_request.base.sha || github.event.push.before }}
+          GIT_HEAD=${{ github.event.pull_request.head.sha }}
+          GIT_BASE=${{ github.event.pull_request.base.sha }}
           MERGE_BASE=$(git merge-base $GIT_HEAD $GIT_BASE)
           FILES=$(git diff --diff-filter=d --name-only $MERGE_BASE | grep ^include | grep -v nanorange\.hpp\$ || true)
           CLANG_FORMAT_DIFF_PATH=$(which clang-format-diff)
