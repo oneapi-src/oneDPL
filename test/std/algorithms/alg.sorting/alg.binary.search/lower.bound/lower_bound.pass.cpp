@@ -35,7 +35,7 @@ namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 //   lower_bound(Iter first, Iter last, const T& value);
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
+constexpr auto sycl_write = sycl::access::mode::write;
 
 template <class Iter, class T>
 bool
