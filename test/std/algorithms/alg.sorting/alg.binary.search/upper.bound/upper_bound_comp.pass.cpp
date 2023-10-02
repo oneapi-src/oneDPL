@@ -1,3 +1,23 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+// 
+// <algorithm>
+// template<ForwardIterator Iter, class T, Predicate<auto, T, Iter::value_type> Compare>
+//   constexpr Iter    // constexpr after c++17
+//   upper_bound(Iter first, Iter last, const T& value, Compare comp);
+
 #include "oneapi_std_test_config.h"
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
@@ -13,11 +33,6 @@
 
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
-// <algorithm>
-
-// template<ForwardIterator Iter, class T, Predicate<auto, T, Iter::value_type> Compare>
-//   constexpr Iter    // constexpr after c++17
-//   upper_bound(Iter first, Iter last, const T& value, Compare comp);
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
