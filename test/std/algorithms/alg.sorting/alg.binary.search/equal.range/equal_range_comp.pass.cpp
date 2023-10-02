@@ -34,7 +34,6 @@ namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 //   equal_range(Iter first, Iter last, const T& value, Compare comp);
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 //Revert the change when GPU runtime fix their issue
