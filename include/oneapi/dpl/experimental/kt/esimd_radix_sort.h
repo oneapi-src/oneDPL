@@ -11,7 +11,7 @@
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_H
 
 #include "kernel_param.h"
-#include "esimd_radix_sort_dispatchers.h"
+#include "internal/esimd_radix_sort_dispatchers.h"
 #include "../../pstl/utils_ranges.h"
 #include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"

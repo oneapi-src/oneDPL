@@ -11,7 +11,7 @@
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_KERNELS_H
 
 #include "esimd_radix_sort_utils.h"
-#include "../../pstl/utils.h"
+#include "../../../pstl/utils.h"
 
 #include <ext/intel/esimd.hpp>
 #if __has_include(<sycl/sycl.hpp>)

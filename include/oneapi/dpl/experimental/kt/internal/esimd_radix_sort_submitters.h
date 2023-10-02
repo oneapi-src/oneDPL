@@ -12,8 +12,8 @@
 
 #include "esimd_radix_sort_kernels.h"
 
-#include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
-#include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
+#include "../../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 
 #include <ext/intel/esimd.hpp>
 #if __has_include(<sycl/sycl.hpp>)

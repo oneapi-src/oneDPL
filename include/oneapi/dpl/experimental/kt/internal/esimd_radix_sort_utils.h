@@ -117,11 +117,11 @@ __scatter(sycl::accessor<_T, 1, _Mode, sycl::target::device, _P> __output, __dpl
     __dpl_esimd_ens::lsc_scatter<_T>(__output, __offsets * __size32<_T>, __values, __mask);
 }
 
-template <typename RT, typename _T>
-inline __dpl_esimd_ns::simd<RT, 32>
+template <typename _RT, typename _T>
+inline __dpl_esimd_ns::simd<_RT, 32>
 __scan(__dpl_esimd_ns::simd<_T, 32> __src, const _T __init = 0)
 {
-    __dpl_esimd_ns::simd<RT, 32> __res;
+    __dpl_esimd_ns::simd<_RT, 32> __res;
     __res.template select<8, 4>(0) = __src.template select<8, 4>(0);
     __res[0] += __init;
     __res.template select<8, 4>(1) = __src.template select<8, 4>(1) + __res.template select<8, 4>(0);
@@ -137,11 +137,11 @@ __scan(__dpl_esimd_ns::simd<_T, 32> __src, const _T __init = 0)
     return __res;
 }
 
-template <typename RT, typename _T>
-inline __dpl_esimd_ns::simd<RT, 16>
-scan(__dpl_esimd_ns::simd<_T, 16> __src, const _T __init = 0)
+template <typename _RT, typename _T>
+inline __dpl_esimd_ns::simd<_RT, 16>
+__scan(__dpl_esimd_ns::simd<_T, 16> __src, const _T __init = 0)
 {
-    __dpl_esimd_ns::simd<RT, 16> __res;
+    __dpl_esimd_ns::simd<_RT, 16> __res;
     __res.template select<4, 4>(0) = __src.template select<4, 4>(0);
     __res[0] += __init;
     __res.template select<4, 4>(1) = __src.template select<4, 4>(1) + __res.template select<4, 4>(0);
@@ -153,13 +153,13 @@ scan(__dpl_esimd_ns::simd<_T, 16> __src, const _T __init = 0)
     return __res;
 }
 
-template <typename RT, typename _T>
-inline __dpl_esimd_ns::simd<RT, 64>
-scan(__dpl_esimd_ns::simd<_T, 64> __src, const _T __init = 0)
+template <typename _RT, typename _T>
+inline __dpl_esimd_ns::simd<_RT, 64>
+__scan(__dpl_esimd_ns::simd<_T, 64> __src, const _T __init = 0)
 {
-    __dpl_esimd_ns::simd<RT, 64> __res;
-    __res.template select<32, 1>(0) = scan<RT, _T>(__src.template select<32, 1>(0), __init);
-    __res.template select<32, 1>(32) = scan<RT, _T>(__src.template select<32, 1>(32), __res[31]);
+    __dpl_esimd_ns::simd<_RT, 64> __res;
+    __res.template select<32, 1>(0) = __scan<_RT, _T>(__src.template select<32, 1>(0), __init);
+    __res.template select<32, 1>(32) = __scan<_RT, _T>(__src.template select<32, 1>(32), __res[31]);
     return __res;
 }
 
