@@ -22,24 +22,16 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref:  ${{ github.event.pull_request.head.sha }}
+          ref:  ${{ github.event.pull_request.head.sha || github.event.push.after }}
       - uses: actions/setup-python@v3
         with:
           python-version: '3.x' 
       - name: Get clang-format
         run: sudo apt-get install -yqq clang-format
       - name: Applying clang-format for changed files
-        shell: bash
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo Setting up git hashes for pull_request event
-            GIT_HEAD=${{ github.event.pull_request.head.sha }}
-            GIT_BASE=${{ github.event.pull_request.base.sha }}
-          else
-            echo Setting up git hashes for push event
-            GIT_HEAD=${{ github.event.push.head.sha }}
-            GIT_BASE=${{ github.event.push.base.sha }}
-          fi
+          GIT_HEAD=${{ github.event.pull_request.head.sha || github.event.push.after }}
+          GIT_BASE=${{ github.event.pull_request.base.sha || github.event.push.before }}
           MERGE_BASE=$(git merge-base $GIT_HEAD $GIT_BASE)
           FILES=$(git diff --diff-filter=d --name-only $MERGE_BASE | grep ^include | grep -v nanorange\.hpp\$ || true)
           CLANG_FORMAT_DIFF_PATH=$(which clang-format-diff)
