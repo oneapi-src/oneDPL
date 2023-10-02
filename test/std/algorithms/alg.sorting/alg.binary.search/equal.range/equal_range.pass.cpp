@@ -63,7 +63,7 @@ kernel_test()
     sycl::range<1> numOfItems{1};
     sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
     const unsigned N = 1000;
-    const int M = 10;
+    const unsigned M = 10;
     int host_vbuf[N];
     for (size_t i = 0; i < N; ++i)
     {
