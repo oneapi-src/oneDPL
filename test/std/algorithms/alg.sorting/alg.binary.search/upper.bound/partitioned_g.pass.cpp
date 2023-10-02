@@ -179,7 +179,7 @@ main()
     {
         ret &= kernel_test2(deviceQueue);
     }
-    EXPECT_TRUE(ret, "");
+    EXPECT_TRUE(ret, "Wrong result of upper_bound");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

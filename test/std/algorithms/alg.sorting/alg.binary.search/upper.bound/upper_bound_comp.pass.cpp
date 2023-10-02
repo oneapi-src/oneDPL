@@ -12,7 +12,7 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
-// 
+
 // <algorithm>
 // template<ForwardIterator Iter, class T, Predicate<auto, T, Iter::value_type> Compare>
 //   constexpr Iter    // constexpr after c++17
@@ -32,7 +32,6 @@
 #include "support/sycl_alloc_utils.h"
 
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
-
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
@@ -91,7 +90,7 @@ kernel_test()
     }).wait();
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
-    EXPECT_TRUE(ret_access_host[0], "");
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of upper_bound");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
