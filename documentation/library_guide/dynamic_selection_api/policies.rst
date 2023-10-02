@@ -20,7 +20,7 @@ Traits can be used to determine useful type information about policies.
     struct policy_traits{
       using selection_type = typename std::decay_t<Policy>::selection_type;  
       using resource_type = typename std::decay_t<Policy>::resource_type;
-      using wait_type = typename std::decay_t<Policy>::wait_type; //wait_type
+      using wait_type = typename std::decay_t<Policy>::wait_type;   
     };
   
     template<typename Policy>
