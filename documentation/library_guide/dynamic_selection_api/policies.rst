@@ -50,7 +50,7 @@ If a policy maintains state, the state is maintained separately for each
 independent instance of a policy. So for example, two independenly constructed 
 instances of a ``round_robin_policy`` will operate independently of each other. 
 However, policies provide *common reference semantics*, so copies of a
-policy instance are linked and share state.
+policy instance share state.
 
 An example, demonstrating this difference is shown below:
 
