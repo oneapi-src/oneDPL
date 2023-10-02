@@ -55,7 +55,7 @@ kernel_test1()
                 auto ret = true;
                 int arr[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2};
                 // check if there is change after data transfer
-                check_access[0] = check_data(access.get_pointer().get(), arr, N);
+                check_access[0] = check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
                     for (int i = 0; i < 6; ++i)
@@ -101,12 +101,12 @@ kernel_test2()
             cgh.single_task<class KernelTest2>([=]() {
                 int arr[] = {0, 0, 2, 2, 2};
                 // check if there is change after data transfer
-                check_access[0] = check_data(access.get_pointer().get(), arr, N);
+                check_access[0] = check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
-                    Container con(access.get_pointer().get(), access.get_pointer().get() + 5);
-                    ret_access[0] = (equal_range(con.begin(), con.end(), 1).first.ptr == access.get_pointer().get() + 2);
-                    ret_access[0] &= (equal_range(con.begin(), con.end(), 1).second.ptr == access.get_pointer().get() + 2);
+                    Container con(&access[0], &access[0] + 5);
+                    ret_access[0] = (equal_range(con.begin(), con.end(), 1).first.ptr == &access[0] + 2);
+                    ret_access[0] &= (equal_range(con.begin(), con.end(), 1).second.ptr == &access[0] + 2);
                 }
             });
         }).wait();

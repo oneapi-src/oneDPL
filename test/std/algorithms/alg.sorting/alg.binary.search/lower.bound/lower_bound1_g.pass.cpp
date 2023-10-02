@@ -55,7 +55,7 @@ kernel_test()
             cgh.single_task<class KernelTest1>([=]() {
                 int arr[] = {0, 0, 0, 0, 1, 1, 1, 1};
                 // check if there is change after data transfer
-                check_access[0] = check_data(access.get_pointer().get(), arr, N);
+                check_access[0] = check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
                     auto ret = true;
