@@ -62,9 +62,9 @@ kernel_test1()
                     {
                         for (int j = 6; j < 12; ++j)
                         {
-                            Container con(access.get_pointer().get() + i, access.get_pointer().get() + j);
-                            ret &= (equal_range(con.begin(), con.end(), 1).first.ptr == access.get_pointer().get() + std::max(i, 4));
-                            ret &= (equal_range(con.begin(), con.end(), 1).second.ptr == access.get_pointer().get() + std::min(j, 8));
+                            Container con(&access[0] + i, &access[0] + j);
+                            ret &= (equal_range(con.begin(), con.end(), 1).first.ptr == &access[0] + std::max(i, 4));
+                            ret &= (equal_range(con.begin(), con.end(), 1).second.ptr == &access[0] + std::min(j, 8));
                         }
                     }
                     ret_access[0] = ret;

@@ -63,8 +63,8 @@ kernel_test()
                     {
                         for (int j = 4; j < 7; ++j)
                         {
-                            Container con(access.get_pointer().get() + i, access.get_pointer().get() + j);
-                            ret &= (upper_bound(con.begin(), con.end(), 0).ptr == access.get_pointer().get() + 4);
+                            Container con(&access[0] + i, &access[0] + j);
+                            ret &= (upper_bound(con.begin(), con.end(), 0).ptr == &access[0] + 4);
                         }
                     }
                     ret_access[0] = ret;
