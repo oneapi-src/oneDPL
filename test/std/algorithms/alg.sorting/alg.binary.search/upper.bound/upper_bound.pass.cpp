@@ -13,6 +13,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+// <algorithm>
+// template<ForwardIterator Iter, class T>
+//   constexpr Iter    // constexpr after c++17
+//   upper_bound(Iter first, Iter last, const T& value);
+
 #include "oneapi_std_test_config.h"
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
@@ -27,12 +32,6 @@
 #include "support/sycl_alloc_utils.h"
 
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
-
-// <algorithm>
-
-// template<ForwardIterator Iter, class T>
-//   constexpr Iter    // constexpr after c++17
-//   upper_bound(Iter first, Iter last, const T& value);
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
@@ -93,7 +92,7 @@ kernel_test()
     }).wait();
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
-    EXPECT_TRUE(ret_access_host[0], "");
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of upper_bound");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

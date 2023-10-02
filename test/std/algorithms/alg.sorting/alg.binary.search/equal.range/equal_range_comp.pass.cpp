@@ -13,6 +13,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+// <algorithm>
+// template<ForwardIterator Iter, class T, CopyConstructible Compare>
+//   constexpr pair<Iter, Iter>   // constexpr after c++17
+//   equal_range(Iter first, Iter last, const T& value, Compare comp);
+
 #include "oneapi_std_test_config.h"
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
@@ -26,12 +31,6 @@
 #include "support/sycl_alloc_utils.h"
 
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
-
-// <algorithm>
-
-// template<ForwardIterator Iter, class T, CopyConstructible Compare>
-//   constexpr pair<Iter, Iter>   // constexpr after c++17
-//   equal_range(Iter first, Iter last, const T& value, Compare comp);
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
@@ -87,7 +86,7 @@ kernel_test()
     }).wait();
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
-    EXPECT_TRUE(ret_access_host[0], "");
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of equal_range");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
