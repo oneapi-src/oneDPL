@@ -399,25 +399,25 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
     const __pack_type __identity{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
     oneapi::dpl::__internal::__except_handler([&]() {
-        return __par_backend::__parallel_reduce(::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
-                                                [__is_vector, __first, __f](_Size __i, _Size __j, __pack_type __value) {
-                                                    const auto __subseq_start = __first + __i;
-                                                    const auto __length = __j - __i;
+        return oneapi::dpl::__par_backend::__parallel_reduce(
+                   ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
+                   [__is_vector, __first, __f](_Size __i, _Size __j, __pack_type __value) {
+                       const auto __subseq_start = __first + __i;
+                       const auto __length = __j - __i;
 
-                                                    oneapi::dpl::__internal::__brick_walk1(
-                                                        __length,
-                                                        [&__value, __f, __i, __subseq_start](_Size __idx) {
-                                                            __value.__apply_func(__f, __subseq_start + __idx,
-                                                                                 __i + __idx);
-                                                        },
-                                                        __is_vector);
+                       oneapi::dpl::__internal::__brick_walk1(
+                           __length,
+                           [&__value, __f, __i, __subseq_start](_Size __idx) {
+                               __value.__apply_func(__f, __subseq_start + __idx, __i + __idx);
+                           },
+                           __is_vector);
 
-                                                    return __value;
-                                                },
-                                                [](__pack_type __lhs, const __pack_type& __rhs) {
-                                                    __lhs.__combine(__rhs);
-                                                    return __lhs;
-                                                })
+                       return __value;
+                   },
+                   [](__pack_type __lhs, const __pack_type& __rhs) {
+                       __lhs.__combine(__rhs);
+                       return __lhs;
+                   })
             .__finalize(__n);
     });
 }
@@ -434,7 +434,7 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
     const __pack_type __identity{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
     oneapi::dpl::__internal::__except_handler([&]() {
-        return __par_backend::__parallel_reduce(
+        return oneapi::dpl::__par_backend::__parallel_reduce(
                    ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
                    [__is_vector, __first, __f, __stride](_Size __i, _Size __j, __pack_type __value) {
                        const auto __subseq_start = __first + __i * __stride;
