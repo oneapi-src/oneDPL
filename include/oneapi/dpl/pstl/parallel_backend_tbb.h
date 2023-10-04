@@ -67,8 +67,8 @@ class __buffer_impl
     //! Try to obtain buffer of given size to store objects of _Tp type
     __buffer_impl(const ::std::size_t __n) : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n) {}
     //! True if buffer was successfully obtained, zero otherwise.
-    operator bool() const { return _M_ptr != NULL; }
-    //! Return pointer to buffer, or  NULL if buffer could not be obtained.
+    operator bool() const { return _M_ptr != nullptr; }
+    //! Return pointer to buffer, or nullptr if buffer could not be obtained.
     _Tp*
     get() const
     {
