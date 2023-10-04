@@ -390,7 +390,6 @@ template <typename _ExecutionPolicy, typename _T, typename _BValueT, int __dim, 
 class __buffer_impl<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
 {
   private:
-    using __exec_policy_t = ::std::decay_t<_ExecutionPolicy>;
     using __container_t = typename __local_buffer<sycl::buffer<_T, __dim, _AllocT>>::type;
 
     __container_t __container;
