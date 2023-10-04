@@ -57,17 +57,17 @@ __cancel_execution()
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Tp>
-class __buffer
+class __buffer_impl
 {
     std::allocator<_Tp> __allocator_;
     _Tp* __ptr_;
     const std::size_t __buf_size_;
-    __buffer(const __buffer&) = delete;
+    __buffer_impl(const __buffer_impl&) = delete;
     void
-    operator=(const __buffer&) = delete;
+    operator=(const __buffer_impl&) = delete;
 
   public:
-    __buffer(std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
+    __buffer_impl(std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
 
     operator bool() const { return __ptr_ != nullptr; }
 
@@ -76,8 +76,11 @@ class __buffer
     {
         return __ptr_;
     }
-    ~__buffer() { __allocator_.deallocate(__ptr_, __buf_size_); }
+    ~__buffer_impl() { __allocator_.deallocate(__ptr_, __buf_size_); }
 };
+
+template <typename _ExecutionPolicy, typename _Tp>
+using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 // Preliminary size of each chunk: requires further discussion
 constexpr std::size_t __default_chunk_size = 2048;
