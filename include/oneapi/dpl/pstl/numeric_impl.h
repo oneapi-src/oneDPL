@@ -80,7 +80,7 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __f
                            _BinaryOperation2 __binary_op2, _IsVector __is_vector, /*is_parallel=*/::std::true_type)
 {
     return __internal::__except_handler([&]() {
-        return oneapi::dpl::__par_backend::__parallel_transform_reduce(
+        return __par_backend::__parallel_transform_reduce(
             ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
             [__first1, __first2, __binary_op2](_RandomAccessIterator1 __i) mutable {
                 return __binary_op2(*__i, *(__first2 + (__i - __first1)));
@@ -141,7 +141,7 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _RandomAccessIterator __fi
                            /*is_parallel=*/::std::true_type)
 {
     return __internal::__except_handler([&]() {
-        return oneapi::dpl::__par_backend::__parallel_transform_reduce(
+        return __par_backend::__parallel_transform_reduce(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             [__unary_op](_RandomAccessIterator __i) mutable { return __unary_op(*__i); }, __init, __binary_op,
             [__unary_op, __binary_op, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j, _Tp __init) {
@@ -251,7 +251,7 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
 
     return __internal::__except_handler([&]() {
-        oneapi::dpl::__par_backend::__parallel_transform_scan(
+        __par_backend::__parallel_transform_scan(
             ::std::forward<_ExecutionPolicy>(__exec), __last - __first,
             [__first, __unary_op](_DifferenceType __i) mutable { return __unary_op(__first[__i]); }, __init,
             __binary_op,
@@ -287,7 +287,7 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
         return __result;
     }
     return __internal::__except_handler([&]() {
-        oneapi::dpl::__par_backend::__parallel_strict_scan(
+        __par_backend::__parallel_strict_scan(
             ::std::forward<_ExecutionPolicy>(__exec), __n, __init,
             [__first, __unary_op, __binary_op, __result, __is_vector](_DifferenceType __i, _DifferenceType __len) {
                 return __internal::__brick_transform_scan(__first + __i, __first + (__i + __len), __result + __i,
@@ -382,7 +382,7 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _RandomAccessIterator1 
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::reference _ReferenceType2;
 
     *__d_first = *__first;
-    oneapi::dpl::__par_backend::__parallel_for(
+    __par_backend::__parallel_for(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last - 1,
         [&__op, __is_vector, __d_first, __first](_RandomAccessIterator1 __b, _RandomAccessIterator1 __e) {
             _RandomAccessIterator2 __d_b = __d_first + (__b - __first);
