@@ -381,13 +381,13 @@ struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
     using type = sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
 };
 
-// __buffer defaulted to sycl::buffer<_T, 1, ...>
+// __buffer_impl defaulted to sycl::buffer<_T, 1, ...>
 template <typename _ExecutionPolicy, typename _T, typename _Container = sycl::buffer<_T, 1>>
-class __buffer;
+class __buffer_impl;
 
 // impl for sycl::buffer<...>
 template <typename _ExecutionPolicy, typename _T, typename _BValueT, int __dim, typename _AllocT>
-class __buffer<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
+class __buffer_impl<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
 {
   private:
     using __exec_policy_t = ::std::decay_t<_ExecutionPolicy>;
@@ -396,7 +396,9 @@ class __buffer<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
     __container_t __container;
 
   public:
-    __buffer(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)} {}
+    __buffer_impl(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)}
+    {
+    }
 
     auto
     get() -> decltype(oneapi::dpl::begin(__container)) const
@@ -453,6 +455,9 @@ struct __memobj_traits<_T*>
 };
 
 } // namespace __internal
+
+template <typename _ExecutionPolicy, typename... _Args>
+using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _Args...>;
 
 template <typename T>
 struct __repacked_tuple
