@@ -54,18 +54,18 @@ not an initialize array, because initialization/destruction
 would make the span be at least O(N). */
 // tbb::allocator can improve performance in some cases.
 template <typename _ExecutionPolicy, typename _Tp>
-class __buffer
+class __buffer_impl
 {
     tbb::tbb_allocator<_Tp> _M_allocator;
     _Tp* _M_ptr;
     const ::std::size_t _M_buf_size;
-    __buffer(const __buffer&) = delete;
+    __buffer_impl(const __buffer_impl&) = delete;
     void
-    operator=(const __buffer&) = delete;
+    operator=(const __buffer_impl&) = delete;
 
   public:
     //! Try to obtain buffer of given size to store objects of _Tp type
-    __buffer(const ::std::size_t __n) : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n) {}
+    __buffer_impl(const ::std::size_t __n) : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n) {}
     //! True if buffer was successfully obtained, zero otherwise.
     operator bool() const { return _M_ptr != NULL; }
     //! Return pointer to buffer, or  NULL if buffer could not be obtained.
@@ -75,8 +75,11 @@ class __buffer
         return _M_ptr;
     }
     //! Destroy buffer
-    ~__buffer() { _M_allocator.deallocate(_M_ptr, _M_buf_size); }
+    ~__buffer_impl() { _M_allocator.deallocate(_M_ptr, _M_buf_size); }
 };
+
+template <typename _ExecutionPolicy, typename _Tp>
+using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 // Wrapper for tbb::task
 inline void
