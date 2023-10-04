@@ -948,8 +948,7 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __la
 
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec,
-                                                                                                __last - __first);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
     auto __copy_first = __buf.get();
     auto __copy_last = __pattern_copy_if(__exec, __first, __last, __copy_first, __not_pred<_Predicate>{__pred},
                                          /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
@@ -970,8 +969,7 @@ __pattern_unique(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
 
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec,
-                                                                                                __last - __first);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
     auto __copy_first = __buf.get();
     auto __copy_last = __pattern_unique_copy(__exec, __first, __last, __copy_first, __pred,
                                              /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
@@ -1141,7 +1139,7 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
     assert(__first < __middle && __middle < __last);
 
     auto __n = __last - __first;
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __n);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __n);
     auto __copy_first = __buf.get();
     auto __copy_last = __copy_first + __n;
 
@@ -1231,8 +1229,8 @@ __pattern_stable_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterat
 
     auto __n = __last - __first;
 
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __true_buf(__exec, __n);
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __false_buf(__exec, __n);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __true_buf(__exec, __n);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __false_buf(__exec, __n);
     auto __true_result = __true_buf.get();
     auto __false_result = __false_buf.get();
 
@@ -1430,7 +1428,7 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
         // - create a temporary buffer and copy all the elements from the input buffer there
         // - run partial sort on the temporary buffer
         // - copy k elements from the temporary buffer to the output buffer.
-        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __in_size);
+        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __in_size);
 
         auto __buf_first = __buf.get();
         auto __buf_last = __pattern_walk2</*_IsSync=*/::std::false_type>(
@@ -1545,7 +1543,7 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __new_f
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
-    auto __temp_buf = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _Tp>(__exec, __n);
+    auto __temp_buf = oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp>(__exec, __n);
 
     auto __temp_rng =
         oneapi::dpl::__ranges::all_view<_Tp, __par_backend_hetero::access_mode::write>(__temp_buf.get_buffer());
@@ -1628,7 +1626,7 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
         __comp, __n1, __n2};
 
     // temporary buffer to store boolean mask
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n1);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n1);
 
     auto __keep1 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>();
@@ -1752,7 +1750,7 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forw
 
     // temporary buffer to store intermediate result
     const auto __n2 = __last2 - __first2;
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __diff(__exec, __n2);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __diff(__exec, __n2);
     auto __buf = __diff.get();
 
     //1. Calc difference {2} \ {1}
@@ -1828,10 +1826,10 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
 
     // temporary buffers to store intermediate result
     const auto __n1 = __last1 - __first1;
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __diff_1(__exec, __n1);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __diff_1(__exec, __n1);
     auto __buf_1 = __diff_1.get();
     const auto __n2 = __last2 - __first2;
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __diff_2(__exec, __n2);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __diff_2(__exec, __n2);
     auto __buf_2 = __diff_2.get();
 
     //1. Calc difference {1} \ {2}

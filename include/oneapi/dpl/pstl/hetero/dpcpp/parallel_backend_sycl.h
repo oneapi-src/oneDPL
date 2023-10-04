@@ -877,7 +877,7 @@ __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __o
     _MaskAssigner __add_mask_op;
 
     // temporary buffer to store boolean mask
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
 
     return __parallel_transform_scan_base(
         ::std::forward<_ExecutionPolicy>(__exec),
@@ -1582,7 +1582,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         });
 
         // 2. Merge sorting
-        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
+        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
         auto __temp = __temp_buf.get_buffer();
         bool __data_in_temp = false;
         _IdType __n_sorted = __leaf;
@@ -1702,7 +1702,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
         _Size __n = __rng.size();
         assert(__n > 1);
 
-        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
+        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
         auto __temp = __temp_buf.get_buffer();
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
 
