@@ -438,7 +438,7 @@ struct __sycl_usm_alloc
 
 // impl for USM pointer
 template <typename _ExecutionPolicy, typename _T, typename _BValueT>
-struct __buffer<_ExecutionPolicy, _T, _BValueT*>
+class __buffer<_ExecutionPolicy, _T, _BValueT*>
 {
   private:
     using __exec_policy_t = ::std::decay_t<_ExecutionPolicy>;
