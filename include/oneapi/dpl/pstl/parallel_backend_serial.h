@@ -23,6 +23,7 @@
 #include <memory>
 #include <numeric>
 #include <utility>
+#include <type_traits>
 
 namespace oneapi
 {
