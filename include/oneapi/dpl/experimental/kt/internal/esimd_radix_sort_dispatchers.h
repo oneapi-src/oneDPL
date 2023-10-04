@@ -10,14 +10,6 @@
 #ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_DISPATCHERS_H
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_DISPATCHERS_H
 
-#include "kernel_param.h"
-#include "esimd_radix_sort_utils.h"
-#include "esimd_radix_sort_submitters.h"
-#include "esimd_radix_sort_kernels.h"
-
-#include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
-#include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
-
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
 #else
@@ -26,6 +18,13 @@
 
 #include <cstdint>
 #include <cassert>
+
+#include "../kernel_param.h"
+#include "esimd_radix_sort_utils.h"
+#include "esimd_radix_sort_submitters.h"
+#include "esimd_radix_sort_kernels.h"
+#include "../../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 
 namespace oneapi::dpl::experimental::kt::esimd::__impl
 {
