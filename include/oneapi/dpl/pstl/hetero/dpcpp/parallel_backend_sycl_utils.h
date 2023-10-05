@@ -381,22 +381,24 @@ struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
     using type = sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
 };
 
-// __buffer defaulted to sycl::buffer<_T, 1, ...>
-template <typename _ExecutionPolicy, typename _T, typename _Container = sycl::buffer<_T, 1>>
-struct __buffer;
+template <typename _ExecutionPolicy, typename _T, typename _Container>
+class __buffer_impl;
 
 // impl for sycl::buffer<...>
 template <typename _ExecutionPolicy, typename _T, typename _BValueT, int __dim, typename _AllocT>
-struct __buffer<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
+class __buffer_impl<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
 {
   private:
-    using __exec_policy_t = ::std::decay_t<_ExecutionPolicy>;
     using __container_t = typename __local_buffer<sycl::buffer<_T, __dim, _AllocT>>::type;
 
     __container_t __container;
 
   public:
-    __buffer(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)} {}
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+
+    __buffer_impl(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)}
+    {
+    }
 
     auto
     get() -> decltype(oneapi::dpl::begin(__container)) const
@@ -438,19 +440,20 @@ struct __sycl_usm_alloc
 
 // impl for USM pointer
 template <typename _ExecutionPolicy, typename _T, typename _BValueT>
-struct __buffer<_ExecutionPolicy, _T, _BValueT*>
+class __buffer_impl<_ExecutionPolicy, _T, _BValueT*>
 {
   private:
-    using __exec_policy_t = ::std::decay_t<_ExecutionPolicy>;
-    using __container_t = ::std::unique_ptr<_T, __sycl_usm_free<__exec_policy_t, _T>>;
+    using __container_t = ::std::unique_ptr<_T, __sycl_usm_free<_ExecutionPolicy, _T>>;
     using __alloc_t = sycl::usm::alloc;
 
     __container_t __container;
 
   public:
-    __buffer(_ExecutionPolicy __exec, ::std::size_t __n_elements)
-        : __container(__sycl_usm_alloc<__exec_policy_t, _T, __alloc_t::shared>{__exec}(__n_elements),
-                      __sycl_usm_free<__exec_policy_t, _T>{__exec})
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+
+    __buffer_impl(_ExecutionPolicy __exec, ::std::size_t __n_elements)
+        : __container(__sycl_usm_alloc<_ExecutionPolicy, _T, __alloc_t::shared>{__exec}(__n_elements),
+                      __sycl_usm_free<_ExecutionPolicy, _T>{__exec})
     {
     }
 
@@ -484,6 +487,9 @@ struct __memobj_traits<_T*>
 };
 
 } // namespace __internal
+
+template <typename _ExecutionPolicy, typename _T, typename _Container = sycl::buffer<_T, 1>>
+using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T, _Container>;
 
 template <typename T>
 struct __repacked_tuple

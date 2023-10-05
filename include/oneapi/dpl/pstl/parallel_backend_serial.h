@@ -23,6 +23,7 @@
 #include <memory>
 #include <numeric>
 #include <utility>
+#include <type_traits>
 
 namespace oneapi
 {
@@ -32,17 +33,19 @@ namespace __serial_backend
 {
 
 template <typename _ExecutionPolicy, typename _Tp>
-class __buffer
+class __buffer_impl
 {
     ::std::allocator<_Tp> __allocator_;
     _Tp* __ptr_;
     const ::std::size_t __buf_size_;
-    __buffer(const __buffer&) = delete;
+    __buffer_impl(const __buffer_impl&) = delete;
     void
-    operator=(const __buffer&) = delete;
+    operator=(const __buffer_impl&) = delete;
 
   public:
-    __buffer(::std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+
+    __buffer_impl(::std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
 
     operator bool() const { return __ptr_ != nullptr; }
     _Tp*
@@ -50,8 +53,11 @@ class __buffer
     {
         return __ptr_;
     }
-    ~__buffer() { __allocator_.deallocate(__ptr_, __buf_size_); }
+    ~__buffer_impl() { __allocator_.deallocate(__ptr_, __buf_size_); }
 };
+
+template <typename _ExecutionPolicy, typename _Tp>
+using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 inline void
 __cancel_execution()

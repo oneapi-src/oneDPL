@@ -55,9 +55,8 @@ pattern_inclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputI
 
     typedef unsigned int FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
-    typedef ::std::decay_t<Policy> policy_type;
 
-    oneapi::dpl::__par_backend::__buffer<policy_type, FlagType> _mask(n);
+    oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _mask(n);
     auto mask = _mask.get();
 
     mask[0] = 1;
@@ -96,7 +95,6 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     typedef unsigned int FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
-    typedef ::std::decay_t<Policy> policy_type;
 
     const auto n = ::std::distance(first1, last1);
 
@@ -106,7 +104,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     FlagType initial_mask = 1;
 
-    internal::__buffer<policy_type, FlagType> _mask(policy, n);
+    oneapi::dpl::__par_backend_hetero::__buffer<Policy, FlagType> _mask(policy, n);
     {
         auto mask_buf = _mask.get_buffer();
         auto mask = mask_buf.get_host_access(sycl::read_write);
