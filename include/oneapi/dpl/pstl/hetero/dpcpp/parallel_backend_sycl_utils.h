@@ -439,6 +439,38 @@ struct __sycl_usm_alloc
     }
 };
 
+// impl for USM pointer
+template <typename _ExecutionPolicy, typename _T, typename _BValueT>
+struct __buffer_impl<_ExecutionPolicy, _T, _BValueT*>
+{
+  private:
+    using __container_t = ::std::unique_ptr<_T, __sycl_usm_free<_ExecutionPolicy, _T>>;
+    using __alloc_t = sycl::usm::alloc;
+
+    __container_t __container;
+
+  public:
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+
+    __buffer_impl(_ExecutionPolicy __exec, ::std::size_t __n_elements)
+        : __container(__sycl_usm_alloc<_ExecutionPolicy, _T, __alloc_t::shared>{__exec}(__n_elements),
+                      __sycl_usm_free<_ExecutionPolicy, _T>{__exec})
+    {
+    }
+
+    _T*
+    get() const
+    {
+        return __container.get();
+    }
+
+    _T*
+    get_buffer() const
+    {
+        return __container.get();
+    }
+};
+
 //-----------------------------------------------------------------------
 // type traits for objects granting access to some value objects
 //-----------------------------------------------------------------------
