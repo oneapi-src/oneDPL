@@ -489,7 +489,7 @@ struct __memobj_traits<_T*>
 } // namespace __internal
 
 template <typename _ExecutionPolicy, typename _T, typename _Container = sycl::buffer<_T, 1>>
-using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T, _Containter>;
+using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T, _Container>;
 
 template <typename T>
 struct __repacked_tuple
