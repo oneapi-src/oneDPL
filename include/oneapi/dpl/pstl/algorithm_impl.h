@@ -3100,12 +3100,13 @@ __parallel_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwar
 
     return __internal::__except_handler([&__exec, __n1, __first1, __last1, __first2, __last2, __result, __is_vector,
                                          __comp, __size_func, __set_op, &__buf]() {
-        auto __buf_mem = __buf.get();
+        auto __tmp_memory = __buf.get();
         _DifferenceType __m{};
         auto __scan = [=](_DifferenceType, _DifferenceType, const _SetRange& __s) { // Scan
             if (!__s.empty())
-                __brick_move_destroy<_ExecutionPolicy>{}(__buf_mem + __s.__buf_pos,
-                                                         __buf_mem + (__s.__buf_pos + __s.__len), __result + __s.__pos,
+                __brick_move_destroy<_ExecutionPolicy>{}(__tmp_memory + __s.__buf_pos,
+                                                         __tmp_memory + (__s.__buf_pos + __s.__len),
+                                                         __result + __s.__pos,
                                                          __is_vector);
         };
         __par_backend::__parallel_strict_scan(
@@ -3143,7 +3144,7 @@ __parallel_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwar
                     __ee = ::std::lower_bound(__bb, __last2, *__e, __comp);
 
                 const _DifferenceType __buf_pos = __size_func((__b - __first1), (__bb - __first2));
-                auto __buffer_b = __buf_mem + __buf_pos;
+                auto __buffer_b = __tmp_memory + __buf_pos;
                 auto __res = __set_op(__b, __e, __bb, __ee, __buffer_b, __comp);
 
                 return _SetRange{0, __res - __buffer_b, __buf_pos};
