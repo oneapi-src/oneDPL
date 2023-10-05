@@ -440,7 +440,7 @@ struct __sycl_usm_alloc
 
 // impl for USM pointer
 template <typename _ExecutionPolicy, typename _T, typename _BValueT>
-struct __buffer_impl<_ExecutionPolicy, _T, _BValueT*>
+class __buffer_impl<_ExecutionPolicy, _T, _BValueT*>
 {
   private:
     using __container_t = ::std::unique_ptr<_T, __sycl_usm_free<_ExecutionPolicy, _T>>;
