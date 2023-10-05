@@ -178,7 +178,6 @@ test_submit_and_wait_on_sync_single_element()
     std::cout << "wait_on_sync single element: OK\n";
     return 0;
 }
-#endif
 
 int
 test_submit_and_wait_on_sync_empty()
@@ -253,6 +252,7 @@ test_properties()
     std::cout << "properties: OK\n";
     return 0;
 }
+#endif
 
 int
 main()
