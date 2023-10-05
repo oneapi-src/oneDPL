@@ -213,8 +213,7 @@ _Tp
 __parallel_transform_reduce(_ExecutionPolicy&&, _Index __first, _Index __last, _Up __u, _Tp __init, _Cp __combine,
                             _Rp __brick_reduce)
 {
-    oneapi::dpl::__tbb_backend::__par_trans_red_body<_Index, _Up, _Tp, _Cp, _Rp> __body(__u, __init, __combine,
-                                                                                        __brick_reduce);
+    __tbb_backend::__par_trans_red_body<_Index, _Up, _Tp, _Cp, _Rp> __body(__u, __init, __combine, __brick_reduce);
     // The grain size of 3 is used in order to provide minimum 2 elements for each body
     tbb::this_task_arena::isolate(
         [__first, __last, &__body]() { tbb::parallel_reduce(tbb::blocked_range<_Index>(__first, __last, 3), __body); });
@@ -334,10 +333,9 @@ __upsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsize
     {
         _Index __k = __split(__m);
         tbb::parallel_invoke(
-            [=] { oneapi::dpl::__tbb_backend::__upsweep(__i, __k, __tilesize, __r, __tilesize, __reduce, __combine); },
+            [=] { __tbb_backend::__upsweep(__i, __k, __tilesize, __r, __tilesize, __reduce, __combine); },
             [=] {
-                oneapi::dpl::__tbb_backend::__upsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize, __reduce,
-                                                      __combine);
+                __tbb_backend::__upsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize, __reduce, __combine);
             });
         if (__m == 2 * __k)
             __r[__m - 1] = __combine(__r[__k - 1], __r[__m - 1]);
@@ -355,15 +353,12 @@ __downsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsi
     {
         const _Index __k = __split(__m);
         tbb::parallel_invoke(
-            [=] {
-                oneapi::dpl::__tbb_backend::__downsweep(__i, __k, __tilesize, __r, __tilesize, __initial, __combine,
-                                                        __scan);
-            },
+            [=] { __tbb_backend::__downsweep(__i, __k, __tilesize, __r, __tilesize, __initial, __combine, __scan); },
             // Assumes that __combine never throws.
             //TODO: Consider adding a requirement for user functors to be constant.
             [=, &__combine] {
-                oneapi::dpl::__tbb_backend::__downsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize,
-                                                        __combine(__initial, __r[__k - 1]), __combine, __scan);
+                __tbb_backend::__downsweep(__i + __k, __m - __k, __tilesize, __r + __k, __lastsize,
+                                           __combine(__initial, __r[__k - 1]), __combine, __scan);
             });
     }
 }
@@ -394,10 +389,10 @@ __parallel_strict_scan(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __redu
             const _Index __slack = 4;
             _Index __tilesize = (__n - 1) / (__slack * __p) + 1;
             _Index __m = (__n - 1) / __tilesize;
-            oneapi::dpl::__tbb_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__m + 1);
+            __tbb_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__m + 1);
             _Tp* __r = __buf.get();
-            oneapi::dpl::__tbb_backend::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize,
-                                                  __reduce, __combine);
+            __tbb_backend::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __reduce,
+                                     __combine);
 
             // When __apex is a no-op and __combine has no side effects, a good optimizer
             // should be able to eliminate all code between here and __apex.
@@ -408,8 +403,8 @@ __parallel_strict_scan(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __redu
             while ((__k &= __k - 1))
                 __t = __combine(__r[__k - 1], __t);
             __apex(__combine(__initial, __t));
-            oneapi::dpl::__tbb_backend::__downsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize,
-                                                    __initial, __combine, __scan);
+            __tbb_backend::__downsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __initial,
+                                       __combine, __scan);
             return;
         }
         // Fewer than 2 elements in sequence, or out of memory.  Handle has single block.
@@ -1199,7 +1194,7 @@ __parallel_stable_sort(_ExecutionPolicy&&, _RandomAccessIterator __xs, _RandomAc
         const _DifferenceType __sort_cut_off = _ONEDPL_STABLE_SORT_CUT_OFF;
         if (__n > __sort_cut_off)
         {
-            oneapi::dpl::__tbb_backend::__buffer<_ExecutionPolicy, _ValueType> __buf(__n);
+            __tbb_backend::__buffer<_ExecutionPolicy, _ValueType> __buf(__n);
             __root_task<__stable_sort_func<_RandomAccessIterator, _ValueType*, _Compare, _LeafSort>> __root{
                 __xs, __xe, __buf.get(), true, __comp, __leaf_sort, __nsort, __xs, __buf.get()};
             __task::spawn_root_and_wait(__root);
