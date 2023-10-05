@@ -3106,8 +3106,7 @@ __parallel_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwar
             if (!__s.empty())
                 __brick_move_destroy<_ExecutionPolicy>{}(__tmp_memory + __s.__buf_pos,
                                                          __tmp_memory + (__s.__buf_pos + __s.__len),
-                                                         __result + __s.__pos,
-                                                         __is_vector);
+                                                         __result + __s.__pos, __is_vector);
         };
         __par_backend::__parallel_strict_scan(
             ::std::forward<_ExecutionPolicy>(__exec), __n1, _SetRange{0, 0, 0}, //-1, 0},
