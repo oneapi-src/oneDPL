@@ -209,8 +209,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                          _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
                          ::std::true_type /* has_known_identity */)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using _CustomName = typename _Policy::kernel_name;
+    using _CustomName = oneapi::dpl::execution::__dpl::policy_kernel_name<_ExecutionPolicy>;
 
     using _SegReduceCountKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
         _SegReduceCountPhase, _CustomName, _ExecutionPolicy, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate,

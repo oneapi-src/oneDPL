@@ -139,8 +139,7 @@ auto
 __parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, const _Size __n, _ReduceOp __reduce_op,
                                        _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using _CustomName = typename _Policy::kernel_name;
+    using _CustomName = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __reduce_small_kernel<::std::integral_constant<::std::uint8_t, __iters_per_work_item>, _CustomName>>;
 
@@ -257,8 +256,7 @@ auto
 __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _ReduceOp __reduce_op,
                                      _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using _CustomName = typename _Policy::kernel_name;
+    using _CustomName = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
 
     // The same value for __iters_per_work_item_device_kernel is currently used. Include
     // __iters_per_work_item_device_kernel in case this changes in the future.
@@ -295,8 +293,7 @@ struct __parallel_transform_reduce_impl
     submit(_ExecutionPolicy&& __exec, _Size __n, ::std::uint16_t __work_group_size, _ReduceOp __reduce_op,
            _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
     {
-        using _Policy = ::std::decay_t<_ExecutionPolicy>;
-        using _CustomName = typename _Policy::kernel_name;
+        using _CustomName = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
         using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
             __reduce_kernel, _CustomName, _ReduceOp, _TransformOp, _NoOpFunctor, _Ranges...>;

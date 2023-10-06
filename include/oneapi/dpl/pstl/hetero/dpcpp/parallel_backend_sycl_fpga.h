@@ -81,8 +81,8 @@ template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... 
 auto
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __parallel_for_name = __internal::__kernel_name_provider<typename _Policy::kernel_name>;
+    using _CustomName = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
+    using __parallel_for_name = __internal::__kernel_name_provider<_CustomName>;
 
     return __parallel_for_fpga_submitter<__parallel_for_name>()(std::forward<_ExecutionPolicy>(__exec), __brick,
                                                                 __count, std::forward<_Ranges>(__rngs)...);
@@ -100,8 +100,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
                             _InitType __init, _Ranges&&... __rngs)
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __kernel_name = typename _Policy::kernel_name;
+    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_Tp, _Commutative>(
         __device_policy, __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
@@ -119,8 +118,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2
                           _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __kernel_name = typename _Policy::kernel_name;
+    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
         ::std::move(__device_policy), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng), __n,
@@ -136,8 +134,7 @@ __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Ran
                                _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __kernel_name = typename _Policy::kernel_name;
+    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_base(
         std::move(__device_policy), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2), __binary_op,
@@ -150,8 +147,7 @@ auto
 __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _Pred __pred)
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __kernel_name = typename _Policy::kernel_name;
+    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_copy_if(
         ::std::move(__device_policy), ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
@@ -167,8 +163,7 @@ __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __o
                      _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __kernel_name = typename _Policy::kernel_name;
+    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_scan_copy(
         ::std::move(__device_policy), ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
@@ -186,8 +181,7 @@ oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
                              typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>>
 __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __kernel_name = typename _Policy::kernel_name;
+    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(__device_policy, __f, __brick_tag,
                                                                  ::std::forward<_Ranges>(__rngs)...);
@@ -202,8 +196,7 @@ __parallel_or(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, 
               _Iterator2 __s_last, _Brick __f)
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __kernel_name = typename _Policy::kernel_name;
+    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_or(__device_policy, __first, __last, __s_first, __s_last, __f);
 }
@@ -213,8 +206,7 @@ oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, boo
 __parallel_or(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f)
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __kernel_name = typename _Policy::kernel_name;
+    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_or(__device_policy, __first, __last, __f);
 }
@@ -229,8 +221,7 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last
                 _Iterator2 __s_last, _Brick __f, _IsFirst __is_first)
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __kernel_name = typename _Policy::kernel_name;
+    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_find(__device_policy, __first, __last, __s_first, __s_last,
                                                               __f, __is_first);
@@ -241,8 +232,7 @@ oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, _It
 __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst __is_first)
 {
     // workaround until we implement more performant version for patterns
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __kernel_name = typename _Policy::kernel_name;
+    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_find(__device_policy, __first, __last, __f, __is_first);
 }
@@ -250,11 +240,10 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
 template <typename _ExecutionPolicy>
 auto
 __device_policy(_ExecutionPolicy&& __exec)
-    -> decltype(oneapi::dpl::execution::make_device_policy<typename ::std::decay_t<_ExecutionPolicy>::kernel_name>(
-        __exec.queue()))
+    -> decltype(oneapi::dpl::execution::make_device_policy<
+                oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>>(__exec.queue()))
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using __kernel_name = typename _Policy::kernel_name;
+    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     return oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
 }
 
