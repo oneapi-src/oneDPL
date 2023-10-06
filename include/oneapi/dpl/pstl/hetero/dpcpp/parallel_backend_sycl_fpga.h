@@ -129,8 +129,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
         __device_policy(::std::forward<_ExecutionPolicy>(__exec)), ::std::forward<_Range1>(__in_rng),
-        ::std::forward<_Range2>(__out_rng), __n,
-        __unary_op, __init, __binary_op, _Inclusive{});
+        ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
@@ -144,8 +143,7 @@ __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Ran
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_base(
         __device_policy(::std::forward<_ExecutionPolicy>(__exec)), ::std::forward<_Range1>(__rng1),
-        ::std::forward<_Range2>(__rng2), __binary_op,
-        __init, __local_scan, __group_scan, __global_scan);
+        ::std::forward<_Range2>(__rng2), __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred,
@@ -156,8 +154,7 @@ __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_copy_if(
         __device_policy(::std::forward<_ExecutionPolicy>(__exec)), ::std::forward<_InRng>(__in_rng),
-        ::std::forward<_OutRng>(__out_rng), __n,
-        __pred);
+        ::std::forward<_OutRng>(__out_rng), __n, __pred);
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
@@ -170,8 +167,7 @@ __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __o
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_scan_copy(
         __device_policy(::std::forward<_ExecutionPolicy>(__exec)), ::std::forward<_InRng>(__in_rng),
-        ::std::forward<_OutRng>(__out_rng), __n,
-        __create_mask_op, __copy_by_mask_op);
+        ::std::forward<_OutRng>(__out_rng), __n, __create_mask_op, __copy_by_mask_op);
 }
 
 //------------------------------------------------------------------------
