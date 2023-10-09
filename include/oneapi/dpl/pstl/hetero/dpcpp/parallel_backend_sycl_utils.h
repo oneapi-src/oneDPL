@@ -381,15 +381,12 @@ struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
     using type = sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
 };
 
-template <typename _ExecutionPolicy, typename _T, typename _Container>
-class __buffer_impl;
-
 // impl for sycl::buffer<...>
-template <typename _ExecutionPolicy, typename _T, typename _BValueT, int __dim, typename _AllocT>
-class __buffer_impl<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
+template <typename _ExecutionPolicy, typename _Container>
+class __buffer_impl
 {
   private:
-    using __container_t = typename __local_buffer<sycl::buffer<_T, __dim, _AllocT>>::type;
+    using __container_t = typename __local_buffer<_Container>::type;
 
     __container_t __container;
 
@@ -456,8 +453,8 @@ struct __memobj_traits<_T*>
 
 } // namespace __internal
 
-template <typename _ExecutionPolicy, typename _T, typename _Container = sycl::buffer<_T, 1>>
-using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T, _Container>;
+template <typename _ExecutionPolicy, typename _T>
+using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, sycl::buffer<_T>>;
 
 template <typename T>
 struct __repacked_tuple
