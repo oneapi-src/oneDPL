@@ -381,15 +381,12 @@ struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
     using type = sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
 };
 
-template <typename _ExecutionPolicy, typename _T, typename _Container>
-class __buffer_impl;
-
 // impl for sycl::buffer<...>
-template <typename _ExecutionPolicy, typename _T, typename _BValueT, int __dim, typename _AllocT>
-class __buffer_impl<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
+template <typename _ExecutionPolicy, typename _T>
+class __buffer_impl
 {
   private:
-    using __container_t = typename __local_buffer<sycl::buffer<_T, __dim, _AllocT>>::type;
+    using __container_t = typename __local_buffer<sycl::buffer<_T>>::type;
 
     __container_t __container;
 
@@ -438,38 +435,6 @@ struct __sycl_usm_alloc
     }
 };
 
-// impl for USM pointer
-template <typename _ExecutionPolicy, typename _T, typename _BValueT>
-class __buffer_impl<_ExecutionPolicy, _T, _BValueT*>
-{
-  private:
-    using __container_t = ::std::unique_ptr<_T, __sycl_usm_free<_ExecutionPolicy, _T>>;
-    using __alloc_t = sycl::usm::alloc;
-
-    __container_t __container;
-
-  public:
-    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
-
-    __buffer_impl(_ExecutionPolicy __exec, ::std::size_t __n_elements)
-        : __container(__sycl_usm_alloc<_ExecutionPolicy, _T, __alloc_t::shared>{__exec}(__n_elements),
-                      __sycl_usm_free<_ExecutionPolicy, _T>{__exec})
-    {
-    }
-
-    _T*
-    get() const
-    {
-        return __container.get();
-    }
-
-    _T*
-    get_buffer() const
-    {
-        return __container.get();
-    }
-};
-
 //-----------------------------------------------------------------------
 // type traits for objects granting access to some value objects
 //-----------------------------------------------------------------------
@@ -488,8 +453,8 @@ struct __memobj_traits<_T*>
 
 } // namespace __internal
 
-template <typename _ExecutionPolicy, typename _T, typename _Container = sycl::buffer<_T, 1>>
-using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T, _Container>;
+template <typename _ExecutionPolicy, typename _T>
+using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T>;
 
 template <typename T>
 struct __repacked_tuple
