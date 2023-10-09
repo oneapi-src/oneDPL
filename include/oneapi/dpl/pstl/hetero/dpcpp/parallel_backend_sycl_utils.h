@@ -386,8 +386,7 @@ template <typename _ExecutionPolicy, typename _T>
 class __buffer_impl
 {
   private:
-    using _Container = sycl::buffer<_T>;
-    using __container_t = typename __local_buffer<_Container>::type;
+    using __container_t = typename __local_buffer<sycl::buffer<_T>>::type;
 
     __container_t __container;
 
