@@ -32,9 +32,10 @@ Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- When compiling with DPC++ compiler, libstdc++ version 8 or libc++, and with ``-fsycl-pstl-offload`` option,
-  parallel algorithms from std namespace called with ``oneapi::dpl::parallel_unsequenced_policy`` would be
-  offloaded to the SYCL device in accordance with ``-fsycl-pstl-offload`` option value.
+- When compiled with ``-fsycl-pstl-offload`` option of Intel oneAPI DPC++/C++ compiler and with
+  libstdc++ version 8 or libc++, ``oneapi::dpl::execution::par_unseq`` behaves similar to
+  ``std::execution::par_unseq``, offloading standard parallel algorithms to the SYCL device
+  in accordance with the ``-fsycl-pstl-offload`` option value.
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
 - Incorrect results may be produced by ``set_intersection`` with a DPC++ execution policy,
   where elements are copied from the second input range rather than the first input range. 
@@ -43,11 +44,15 @@ New in This Release
   it is required that the provided input and destination iterators are equality comparable.
   Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
   If these conditions are not met, the result of these algorithm calls are undefined.
-- ``sort``, ``stable_sort``, ``partial_sort_copy`` algorithms may work incorrectly or cause
+- ``sort``, ``stable_sort``, ``sort_by_key``, ``partial_sort_copy`` algorithms may work incorrectly or cause
   a segmentation fault when used a DPC++ execution policy for CPU device, and built
   on Linux with Intel® oneAPI DPC++/C++ Compiler and -O0 -g compiler options.
   To avoid the issue, pass ``-fsycl-device-code-split=per_kernel`` option to the compiler.
-
+- Incorrect results may be produced by ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
+  ``transform_inclusive_scan``, ``exclusive_scan_by_segment``, ``inclusive_scan_by_segment``, ``reduce_by_segment``
+  with ``unseq`` or ``par_unseq`` policy when compiled by Intel® oneAPI DPC++/C++ Compiler
+  with ``-fiopenmp``, ``-fiopenmp-simd``, ``-qopenmp``, ``-qopenmp-simd`` options on Linux.
+  To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
