@@ -129,7 +129,7 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
                 });
         });
 
-        return __future(__reduce_event, __res_container);
+        return __future(__reduce_event, ::std::move(__res_container));
     }
 }; // struct __parallel_transform_reduce_small_submitter
 
@@ -247,7 +247,7 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group
                 });
         });
 
-        return __future(__reduce_event, __res_container);
+        return __future(__reduce_event, ::std::move(__res_container));
     }
 }; // struct __parallel_transform_reduce_work_group_kernel_submitter
 
@@ -389,7 +389,7 @@ struct __parallel_transform_reduce_impl
             __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         } while (__n > 1);
 
-        return __future(__reduce_event, __res_container);
+        return __future(__reduce_event, ::std::move(__res_container));
     }
 }; // struct __parallel_transform_reduce_impl
 
