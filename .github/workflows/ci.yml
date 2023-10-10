@@ -17,12 +17,13 @@ env:
 
 jobs:
   clang-format:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref:  ${{ github.event.pull_request.head.sha || github.event.push.after }}
+          ref:  ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-python@v3
         with:
           python-version: '3.x' 
@@ -30,9 +31,7 @@ jobs:
         run: sudo apt-get install -yqq clang-format
       - name: Applying clang-format for changed files
         run: |
-          GIT_HEAD=${{ github.event.pull_request.head.sha || github.event.push.after }}
-          GIT_BASE=${{ github.event.pull_request.base.sha || github.event.push.before }}
-          MERGE_BASE=$(git merge-base $GIT_HEAD $GIT_BASE)
+          MERGE_BASE=$(git merge-base ${{ github.event.pull_request.head.sha }} ${{ github.event.pull_request.base.sha }})
           FILES=$(git diff --diff-filter=d --name-only $MERGE_BASE | grep ^include | grep -v nanorange\.hpp\$ || true)
           CLANG_FORMAT_DIFF_PATH=$(which clang-format-diff)
           echo $FILES | xargs -n1 -t -r git diff -U0 --no-color --relative $MERGE_BASE | python3 $CLANG_FORMAT_DIFF_PATH -i -p1 -style file
