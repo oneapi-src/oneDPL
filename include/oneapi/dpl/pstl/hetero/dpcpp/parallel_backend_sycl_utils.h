@@ -480,25 +480,24 @@ struct __accessor
   private:
     using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
                                         sycl::access::placeholder::false_t>;
-    __accessor_t __acc;
-    _T* __ptr = nullptr;
+
     bool __usm = false;
+    _T* __ptr = nullptr;
+    __accessor_t __acc;
 
   public:
 // A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
 #if _ONEDPL_SYCL_USM_HOST_PRESENT
-    __accessor(sycl::handler& __cgh, bool __u, ::std::shared_ptr<sycl::buffer<_T, 1>> __sycl_buf,
-               ::std::shared_ptr<_T> __usm_buf)
+    __accessor(sycl::handler& __cgh, bool __u, sycl::buffer<_T, 1>* __sycl_buf, _T* __usm_buf)
         : __usm(__u)
     {
         if (__usm)
-            __ptr = __usm_buf.get();
+            __ptr = __usm_buf;
         else
             __acc = sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
     }
 #else
-    __accessor(sycl::handler& __cgh, bool, ::std::shared_ptr<sycl::buffer<_T, 1>> __sycl_buf,
-               ::std::shared_ptr<_T> __usm_buf)
+    __accessor(sycl::handler& __cgh, bool, sycl::buffer<_T, 1>* __sycl_buf, _T* __usm_buf)
         : __usm(false), __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
     {
     }
@@ -535,7 +534,7 @@ struct __storage
     auto
     __get_acc(sycl::handler& __cgh)
     {
-        return __accessor<_T>(__cgh, __usm, __sycl_buf, __usm_buf);
+        return __accessor<_T>(__cgh, __usm, __sycl_buf.get(), __usm_buf.get());
     }
 
     auto
