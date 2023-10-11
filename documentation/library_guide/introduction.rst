@@ -94,10 +94,12 @@ When called with |dpcpp_short| execution policies, |onedpl_short| algorithms app
 Known Limitations
 *****************
 
-* When compiling with DPC++ compiler option, libstdc++ version 8 or libc++, and with ``-fsycl-pstl-offload`` option,
-  parallel algorithms from std namespace called with ``oneapi::dpl::parallel_unsequenced_policy`` would be
-  offloaded to the SYCL device in accordance with ``-fsycl-pstl-offload`` option value.
-* For ``transform_exclusive_scan`` and ``exclusive_scan`` with overlapping input and destination sequences and an execution policy of ``unseq`` or ``par_unseq``,
+* When compiled with ``-fsycl-pstl-offload`` option of Intel oneAPI DPC++/C++ compiler and with
+  libstdc++ version 8 or libc++, ``oneapi::dpl::execution::par_unseq`` behaves similar to
+  ``std::execution::par_unseq``, offloading standard parallel algorithms to the SYCL device
+  in accordance with the ``-fsycl-pstl-offload`` option value.
+* For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
+  used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
   it is required that the provided input and destination iterators are equality comparable.
   Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
   If these conditions are not met, the result of these algorithm calls are undefined.
