@@ -516,8 +516,8 @@ struct __storage
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
     bool __usm;
-    ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
     ::std::shared_ptr<_T> __usm_buf;
+    ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
 
   public:
     __storage(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n)
