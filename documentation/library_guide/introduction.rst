@@ -102,7 +102,7 @@ Known Limitations
   used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
   it is required that the provided input and destination iterators are equality comparable.
   Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
-  If these conditions are not met, the result of these algorithm calls are undefined.
+  If these conditions are not met, the result of these algorithm calls is undefined.
 * For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms the result of the unary operation should be
   convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
