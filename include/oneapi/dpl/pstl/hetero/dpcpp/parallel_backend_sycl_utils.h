@@ -435,6 +435,78 @@ struct __sycl_usm_alloc
     }
 };
 
+template <typename _T>
+struct __accessor_impl
+{
+  private:
+    using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
+                                        sycl::access::placeholder::false_t>;
+
+    bool __usm = false;
+    _T* __ptr = nullptr;
+    __accessor_t __acc;
+
+  public:
+// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
+#if _ONEDPL_SYCL_USM_HOST_PRESENT
+    __accessor_impl(sycl::handler& __cgh, bool __u, sycl::buffer<_T, 1>* __sycl_buf, _T* __usm_buf)
+        : __usm(__u), __ptr(__u ? __usm_buf : nullptr),
+          __acc(__u ? decltype(__acc) : sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+    {
+    }
+#else
+    __accessor_impl(sycl::handler& __cgh, bool, sycl::buffer<_T, 1>* __sycl_buf, _T* __usm_buf)
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+    {
+    }
+#endif
+
+    auto
+    __get_pointer() const // should be cached within a kernel
+    {
+        return __usm ? __ptr : &__acc[0];
+    }
+};
+
+template <typename _ExecutionPolicy, typename _T>
+class __storage_impl
+{
+  private:
+    using __sycl_buffer_t = sycl::buffer<_T, 1>;
+    bool __usm;
+    ::std::shared_ptr<_T> __usm_buf;
+    ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
+
+  public:
+    __storage_impl(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n)
+        : __usm(__u),
+          __usm_buf(__u ? std::shared_ptr<_T>(
+                              __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__n),
+                              __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec})
+                        : decltype(__usm_buf){}),
+          __sycl_buf(__u ? decltype(__sycl_buf){} : ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__n)))
+    {
+    }
+
+    auto
+    __get_acc(sycl::handler& __cgh)
+    {
+        return __accessor_impl<_T>(__cgh, __usm, __sycl_buf.get(), __usm_buf.get());
+    }
+
+    auto
+    __get_value(size_t idx = 0)
+    {
+        return __usm ? *(__usm_buf.get() + idx) : __sycl_buf->get_host_access(sycl::read_only)[idx];
+    }
+
+    bool
+    __get_usm() const
+    {
+        return __usm;
+    }
+};
+
 //-----------------------------------------------------------------------
 // type traits for objects granting access to some value objects
 //-----------------------------------------------------------------------
@@ -474,80 +546,8 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
-template <typename _T>
-struct __accessor
-{
-  private:
-    using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
-                                        sycl::access::placeholder::false_t>;
-
-    bool __usm = false;
-    _T* __ptr = nullptr;
-    __accessor_t __acc;
-
-  public:
-// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
-#if _ONEDPL_SYCL_USM_HOST_PRESENT
-    __accessor(sycl::handler& __cgh, bool __u, sycl::buffer<_T, 1>* __sycl_buf, _T* __usm_buf)
-        : __usm(__u),
-          __ptr(__u ? __usm_buf : nullptr),
-          __acc(__u ? decltype(__acc) 
-                    : sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
-    {
-    }
-#else
-    __accessor(sycl::handler& __cgh, bool, sycl::buffer<_T, 1>* __sycl_buf, _T* __usm_buf)
-        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
-    {
-    }
-#endif
-
-    auto
-    __get_pointer() const // should be cached within a kernel
-    {
-        return __usm ? __ptr : &__acc[0];
-    }
-};
-
 template <typename _ExecutionPolicy, typename _T>
-struct __storage
-{
-  private:
-    using __sycl_buffer_t = sycl::buffer<_T, 1>;
-    bool __usm;
-    ::std::shared_ptr<_T> __usm_buf;
-    ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
-
-  public:
-    __storage(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n)
-        : __usm(__u),
-          __usm_buf(__u ? std::shared_ptr<_T>(
-                               __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__n),
-                              __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec})
-                        : decltype(__usm_buf){}),
-          __sycl_buf(__u ? decltype(__sycl_buf){}
-                         : ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__n)))
-    {
-    }
-
-    auto
-    __get_acc(sycl::handler& __cgh)
-    {
-        return __accessor<_T>(__cgh, __usm, __sycl_buf.get(), __usm_buf.get());
-    }
-
-    auto
-    __get_value(size_t idx = 0)
-    {
-        return __usm ? *(__usm_buf.get() + idx) : __sycl_buf->get_host_access(sycl::read_only)[idx];
-    }
-
-    bool
-    __get_usm() const
-    {
-        return __usm;
-    }
-};
+using __storage = __internal::__storage_impl<::std::decay_t<_ExecutionPolicy>, _T>;
 
 //A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __storage (USM or buffer)>
 //Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
@@ -566,7 +566,7 @@ class __future : private std::tuple<_Args...>
 
     template <typename _ExecutionPolicy, typename _T>
     constexpr auto
-    __wait_and_get_value(__storage<_ExecutionPolicy, _T>& __buf)
+    __wait_and_get_value(__internal::__storage_impl<_ExecutionPolicy, _T>& __buf)
     {
         // Explicit wait in case of USM memory. Buffer accessors are synchronous.
         if (__buf.__get_usm())
