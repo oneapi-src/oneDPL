@@ -849,6 +849,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __
         __par_backend_hetero::__parallel_scan_copy(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
                                                    __buf2.all_view(), __n, __create_mask_op, __copy_by_mask_op);
 
+    __res.event().wait();
     ::std::size_t __num_copied = __res.get();
     return ::std::make_pair(__output_first + __n, __num_copied);
 }
@@ -873,6 +874,7 @@ __pattern_copy_if(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __la
     auto __res = __par_backend_hetero::__parallel_copy_if(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
                                                           __buf2.all_view(), __n, __pred);
 
+    __res.event().wait();
     ::std::size_t __num_copied = __res.get();
     return __result_first + __num_copied;
 }
@@ -1638,7 +1640,7 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
     auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutputIterator>();
     auto __buf3 = __keep3(__result, __result + __n1);
 
-    auto __result_size =
+    auto __res =
         __par_backend_hetero::__parallel_transform_scan_base(
             ::std::forward<_ExecutionPolicy>(__exec),
             oneapi::dpl::__ranges::make_zip_view(
@@ -1655,8 +1657,10 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
                                   _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
                                                                   __get_data_op},
             // global scan
-            __copy_by_mask_op)
-            .get();
+            __copy_by_mask_op);
+
+    __res.event().wait();
+    auto __result_size = __res.get();
 
     return __result + __result_size;
 }
