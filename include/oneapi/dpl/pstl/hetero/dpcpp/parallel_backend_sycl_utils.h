@@ -516,21 +516,20 @@ struct __storage
 {
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
+    bool __usm;
     ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
     ::std::shared_ptr<_T> __usm_buf;
-    bool __usm;
 
   public:
-    __storage(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n) : __usm(__u)
+    __storage(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n)
+        : __usm(__u),
+          __usm_buf(__u ? std::shared_ptr<_T>(
+                               __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__n),
+                              __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec})
+                        : decltype(__usm_buf){}),
+          __sycl_buf(__u ? decltype(__sycl_buf){}
+                         : ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__n)))
     {
-        if (__usm)
-        {
-            __usm_buf = std::shared_ptr<_T>(
-                __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__n),
-                __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
-        }
-        else
-            __sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__n));
     }
 
     auto
