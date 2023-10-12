@@ -114,7 +114,7 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
         const _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
         const bool __use_usm = __use_USM_host_allocations(__exec.queue());
-        __storage __res_container = __storage<_ExecutionPolicy, _Tp>(__exec, __use_usm, 1);
+        __storage<_ExecutionPolicy, _Tp> __res_container(__exec, __use_usm, 1);
 
         sycl::event __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
@@ -229,7 +229,7 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group
         const _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
         const bool __use_usm = __use_USM_host_allocations(__exec.queue());
-        __storage __res_container = __storage<_ExecutionPolicy, _Tp>(__exec, __use_usm, 1);
+        __storage<_ExecutionPolicy, _Tp> __res_container(__exec, __use_usm, 1);
 
         __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
             __cgh.depends_on(__reduce_event);
@@ -325,7 +325,7 @@ struct __parallel_transform_reduce_impl
         // Create temporary global buffers to store temporary values
         sycl::buffer<_Tp> __temp(sycl::range<1>(2 * __n_groups));
         const bool __use_usm = __use_USM_host_allocations(__exec.queue());
-        __storage __res_container = __storage<_ExecutionPolicy, _Tp>(__exec, __use_usm, 1);
+        __storage<_ExecutionPolicy, _Tp> __res_container(__exec, __use_usm, 1);
         // __is_first == true. Reduce over each work_group
         // __is_first == false. Reduce between work groups
         bool __is_first = true;
