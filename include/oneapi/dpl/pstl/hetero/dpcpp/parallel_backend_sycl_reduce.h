@@ -381,8 +381,7 @@ struct __parallel_transform_reduce_impl
                         }
                     });
             });
-            if (__is_first)
-                __is_first = false;
+            __is_first = false;
             ::std::swap(__offset_1, __offset_2);
             __n = __n_groups;
             __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
