@@ -489,16 +489,15 @@ struct __accessor
 // A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
 #if _ONEDPL_SYCL_USM_HOST_PRESENT
     __accessor(sycl::handler& __cgh, bool __u, sycl::buffer<_T, 1>* __sycl_buf, _T* __usm_buf)
-        : __usm(__u)
+        : __usm(__u),
+          __ptr(__u ? __usm_buf : nullptr),
+          __acc(__u ? decltype(__acc) 
+                    : sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
     {
-        if (__usm)
-            __ptr = __usm_buf;
-        else
-            __acc = sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
     }
 #else
     __accessor(sycl::handler& __cgh, bool, sycl::buffer<_T, 1>* __sycl_buf, _T* __usm_buf)
-        : __usm(false), __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
     {
     }
 #endif
