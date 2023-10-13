@@ -233,7 +233,6 @@ struct transform_reduce
     nonseq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, const _AccLocal& __local_mem,
                 const _Acc&... __acc) const
     {
-        auto __global_idx = __item_id.get_global_id(0);
         auto __local_idx = __item_id.get_local_id(0);
         const _Size __stride = __item_id.get_local_range(0);
 
@@ -252,7 +251,6 @@ struct transform_reduce
         }
         else if (__adjusted_global_id < __adjusted_n)
         {
-            // TODO: simplify to not use floats
             const _Size __items_to_process =
                 std::max(((__adjusted_n - __adjusted_global_id - 1) / __stride) + 1, static_cast<_Size>(0));
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
