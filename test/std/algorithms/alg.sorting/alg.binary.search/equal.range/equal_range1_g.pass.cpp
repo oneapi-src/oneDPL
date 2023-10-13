@@ -126,7 +126,7 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test1();
     ret &= kernel_test2();
-    EXPECT_TRUE(ret, "Wrong result of equal_range");
+    EXPECT_TRUE(ret, "Wrong result of equal_range in kernel_test1 or in kernel_test2");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
