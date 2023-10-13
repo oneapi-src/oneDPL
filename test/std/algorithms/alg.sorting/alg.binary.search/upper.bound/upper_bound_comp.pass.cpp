@@ -89,7 +89,7 @@ kernel_test()
     }).wait();
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
-    EXPECT_TRUE(ret_access_host[0], "Wrong result of upper_bound");
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of upper_bound with comparator");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
