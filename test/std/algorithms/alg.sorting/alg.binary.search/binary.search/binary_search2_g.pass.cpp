@@ -102,7 +102,7 @@ main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
-    EXPECT_TRUE(ret, "Wrong result of binary_search");
+    EXPECT_TRUE(ret, "Wrong result of binary_search in kernel_test");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
