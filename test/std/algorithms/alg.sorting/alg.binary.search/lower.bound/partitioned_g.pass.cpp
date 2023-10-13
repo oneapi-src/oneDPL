@@ -180,7 +180,7 @@ main()
     {
         ret &= kernel_test2(deviceQueue);
     }
-    EXPECT_TRUE(ret, "Wrong result of lower_bound");
+    EXPECT_TRUE(ret, "Wrong result of lower_bound in kernel_test1 (or in kernel_test2)");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
