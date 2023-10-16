@@ -22,7 +22,7 @@
 
 #include "support/utils.h"
 #include "testsuite_iterators.h"
-#include "checkData.h"
+//#include "checkData.h"
 
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
@@ -56,7 +56,7 @@ kernel_test1()
                 auto ret = true;
                 int arr[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2};
                 // check if there is change after data transfer
-                check_access[0] = check_data(&access[0], arr, N);
+                check_access[0] = TestUtils::check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
                     for (int i = 0; i < 6; ++i)
@@ -74,7 +74,7 @@ kernel_test1()
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= check_data(tmp, array, N);
+    check &= TestUtils::check_data(tmp, array, N);
     if (!check)
         return false;
     return ret;
@@ -102,7 +102,7 @@ kernel_test2()
             cgh.single_task<class KernelTest2>([=]() {
                 int arr[] = {0, 0, 2, 2, 2};
                 // check if there is change after data transfer
-                check_access[0] = check_data(&access[0], arr, N);
+                check_access[0] = TestUtils::check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
                     Container con(&access[0], &access[0] + 5);
@@ -113,7 +113,7 @@ kernel_test2()
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= check_data(tmp, array, N);
+    check &= TestUtils::check_data(tmp, array, N);
     if (!check)
         return false;
     return ret;

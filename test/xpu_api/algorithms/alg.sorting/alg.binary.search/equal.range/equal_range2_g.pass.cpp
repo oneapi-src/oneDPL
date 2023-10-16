@@ -21,7 +21,7 @@
 
 #include "support/utils.h"
 #include "testsuite_iterators.h"
-#include "checkData.h"
+//#include "checkData.h"
 //#include "test_macros.h"
 
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
@@ -77,8 +77,8 @@ kernel_test()
                 const int A1[] = {1, 2, 3, 3, 3, 5, 8};
                 const int C1[] = {8, 5, 3, 3, 3, 2, 1};
                 // check if there is change after data transfer
-                check_access[0] = check_data(&access1[0], A1, N);
-                check_access[0] &= check_data(&access2[0], C1, N);
+                check_access[0] = TestUtils::check_data(&access1[0], A1, N);
+                check_access[0] &= TestUtils::check_data(&access2[0], C1, N);
                 if (check_access[0])
                 {
                     Ipair p = equal_range(&access1[0], &access1[0] + N, 3);
@@ -117,8 +117,8 @@ kernel_test()
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= check_data(A, A1, N);
-    check &= check_data(C, C1, N);
+    check &= TestUtils::check_data(A, A1, N);
+    check &= TestUtils::check_data(C, C1, N);
     if (!check)
         return false;
     return ret;
