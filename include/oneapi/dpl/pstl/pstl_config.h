@@ -176,9 +176,7 @@
 // broken macros
 #define _PSTL_ICC_18_OMP_SIMD_BROKEN (__INTEL_COMPILER == 1800)
 
-// This 'broken' macro should be defined to 1 till the compiler processes 'omp simd' code correctly
-// TODO: limit the macro with a specific version once the issue is fixed
-#if defined(_MSC_VER) && __INTEL_LLVM_COMPILER
+#if defined(_MSC_VER) && __INTEL_LLVM_COMPILER < 20240100
 #    define _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
 #else
 #    define _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 0
