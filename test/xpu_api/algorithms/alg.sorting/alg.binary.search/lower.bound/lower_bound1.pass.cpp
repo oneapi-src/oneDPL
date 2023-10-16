@@ -16,21 +16,18 @@
 // <algorithm>
 // template<ForwardIterator Iter, class T>
 //   constexpr Iter    // constexpr after c++17
-//   upper_bound(Iter first, Iter last, const T& value);
+//   lower_bound(Iter first, Iter last, const T& value);
 
-#include "oneapi_std_test_config.h"
+#include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(iterator)
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/iterator>
 
 #include <iostream>
 
-#include "test_macros.h"
-#include "test_iterators.h"
-#include "test_macros.h"
+#include "support/utils.h"
+#include "support/test_iterators.h"
 #include "support/sycl_alloc_utils.h"
-
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
@@ -39,14 +36,14 @@ template <class Iter, class T>
 bool
 test(Iter first, Iter last, const T& value)
 {
-    Iter i = test_ns::upper_bound(first, last, value);
+    Iter i = dpl::lower_bound(first, last, value);
     for (Iter j = first; j != i; ++j)
-        if ((value < *j))
+        if (!(*j < value))
         {
             return false;
         }
     for (Iter j = i; j != last; ++j)
-        if (!(value < *j))
+        if ((*j < value))
         {
             return false;
         }
@@ -84,14 +81,13 @@ kernel_test()
         auto ret_access = buffer1.get_access<sycl_write>(cgh);
         cgh.single_task<KC>([=]() {
             ret_access[0] = test(device_vbuf, device_vbuf + N, 0);
-
             for (int x = 1; x <= M; ++x)
                 ret_access[0] &= test(device_vbuf, device_vbuf + N, x);
         });
     }).wait();
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
-    EXPECT_TRUE(ret_access_host[0], "Wrong result of upper_bound");
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of lower_bound");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

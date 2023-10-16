@@ -15,35 +15,46 @@
 
 // <algorithm>
 // template<ForwardIterator Iter, class T>
-//   constexpr bool      // constexpr after C++17
-//   binary_search(Iter first, Iter last, const T& value);
+//   constexpr Iter    // constexpr after c++17
+//   lower_bound(Iter first, Iter last, const T& value. Compare comp);
 
-#include "oneapi_std_test_config.h"
+#include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(iterator)
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/iterator>
+#include <oneapi/dpl/functional>
 
 #include <iostream>
 
-#include "test_iterators.h"
+#include "support/utils.h"
+#include "support/test_iterators.h"
 #include "support/sycl_alloc_utils.h"
-
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
 
 template <class Iter, class T>
-bool
-test(Iter first, Iter last, const T& value, bool x)
+bool __attribute__((always_inline)) test(Iter first, Iter last, const T& value)
 {
-    return (test_ns::binary_search(first, last, value) == x);
+    Iter i = dpl::lower_bound(first, last, value, dpl::greater<int>());
+    for (Iter j = first; j != i; ++j)
+        if (!(dpl::greater<int>()(*j, value)))
+        {
+            return false;
+        }
+    for (Iter j = i; j != last; ++j)
+        if (dpl::greater<int>()(*j, value))
+        {
+            return false;
+        }
+
+    return true;
 }
 
-class KernelBSearchTest1;
-class KernelBSearchTest2;
-class KernelBSearchTest3;
-class KernelBSearchTest4;
+class KernelLowerBoundTest1;
+class KernelLowerBoundTest2;
+class KernelLowerBoundTest3;
+class KernelLowerBoundTest4;
 
 template <typename Iter, typename KC>
 void
@@ -61,7 +72,7 @@ kernel_test()
         host_vbuf[i] = i % M;
     }
 
-    std::sort(host_vbuf, host_vbuf + N);
+    std::sort(host_vbuf, host_vbuf + N, dpl::greater<int>());
 
     TestUtils::usm_data_transfer<sycl::usm::alloc::device, int> dt_helper(deviceQueue, host_vbuf, N);
 
@@ -69,18 +80,14 @@ kernel_test()
         int* device_vbuf = dt_helper.get_data();
         auto ret_access = buffer1.get_access<sycl_write>(cgh);
         cgh.single_task<KC>([=]() {
-            ret_access[0] = test(device_vbuf, device_vbuf + N, 0, true);
-
-            for (int x = 1; x < M; ++x)
-                ret_access[0] &= test(device_vbuf, device_vbuf + N, x, true);
-
-            ret_access[0] &= test(device_vbuf, device_vbuf + N, -1, false);
-            ret_access[0] &= test(device_vbuf, device_vbuf + N, M, false);
+            ret_access[0] = test(device_vbuf, device_vbuf + N, 0);
+            for (int x = 1; x <= M; ++x)
+                ret_access[0] &= test(device_vbuf, device_vbuf + N, x);
         });
     }).wait();
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
-    EXPECT_TRUE(ret_access_host[0], "Wrong result of binary_search");
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of lower_bound with comparator");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -88,10 +95,10 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    kernel_test<forward_iterator<const int*>, KernelBSearchTest1>();
-    kernel_test<bidirectional_iterator<const int*>, KernelBSearchTest2>();
-    kernel_test<random_access_iterator<const int*>, KernelBSearchTest3>();
-    kernel_test<const int*, KernelBSearchTest4>();
+    kernel_test<forward_iterator<const int*>, KernelLowerBoundTest1>();
+    kernel_test<bidirectional_iterator<const int*>, KernelLowerBoundTest2>();
+    kernel_test<random_access_iterator<const int*>, KernelLowerBoundTest3>();
+    kernel_test<const int*, KernelLowerBoundTest4>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

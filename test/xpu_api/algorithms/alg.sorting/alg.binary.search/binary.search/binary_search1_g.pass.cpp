@@ -13,24 +13,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
+#include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
+#include <oneapi/dpl/algorithm>
 
 #include <iostream>
 
-#include "testsuite_iterators.h"
-#include "checkData.h"
-#include "test_macros.h"
-
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
+#include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
 
-using test_ns::binary_search;
-
-typedef test_container<int, forward_iterator_wrapper> Container;
+using dpl::binary_search;
 
 bool
 kernel_test1()
@@ -53,8 +47,7 @@ kernel_test1()
                 check_access[0] = (acc_arr[0] == 0);
                 if (check_access[0])
                 {
-                    Container con(&acc_arr[0], &acc_arr[0]);
-                    ret_access[0] = (!binary_search(con.begin(), con.end(), 1));
+                    ret_access[0] = (!binary_search(&acc_arr[0], &acc_arr[0], 1));
                 }
             });
         }).wait();
@@ -88,27 +81,26 @@ kernel_test2()
             cgh.single_task<class KernelTest2>([=]() {
                 int tmp[] = {0, 2, 4, 6, 8};
                 // check if there is change after data transfer
-                check_access[0] = check_data(&access1[0], tmp, N);
+                check_access[0] = TestUtils::check_data(&access1[0], tmp, N);
                 if (check_access[0])
                 {
-                    Container con(&access1[0], &access1[0] + N);
-                    ret_access[0] = (binary_search(con.begin(), con.end(), 0));
+                    ret_access[0] = (binary_search(&access1[0], &access1[0] + N, 0));
 
                     for (int i = 2; i < 10; i += 2)
                     {
-                        ret_access[0] &= (binary_search(con.begin(), con.end(), i));
+                        ret_access[0] &= (binary_search(&access1[0], &access1[0] + N, i));
                     }
 
                     for (int i = -1; i < 11; i += 2)
                     {
-                        ret_access[0] &= (!binary_search(con.begin(), con.end(), i));
+                        ret_access[0] &= (!binary_search(&access1[0], &access1[0] + N, i));
                     }
                 }
             });
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= check_data(tmp, array, N);
+    check &= TestUtils::check_data(tmp, array, N);
     if (!check)
         return false;
     return ret;

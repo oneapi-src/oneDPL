@@ -13,18 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
+#include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(functional)
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/functional>
 
 #include <iostream>
 
-#include "testsuite_iterators.h"
-#include "checkData.h"
-#include "test_macros.h"
-
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
+#include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
@@ -75,28 +71,29 @@ kernel_test1(sycl::queue& deviceQueue)
             cgh.single_task<class KernelTest1>([=]() {
                 X arr[] = {1, 3, 5, 7, 1, 6, 4, 2};
                 // check if there is change after data transfer
-                check_access[0] = check_data(&access[0], arr, N);
+                check_access[0] = TestUtils::check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
+                    auto itBegin = &access[0];
+                    auto itEnd = &access[0] + N;
 
-                    test_container<X, forward_iterator_wrapper> c(&access[0], &access[0] + N);
-                    auto part1 = test_ns::upper_bound(c.begin(), c.end(), X{2});
-                    ret_access[0] = (part1 == c.end());
-                    auto part2 = test_ns::upper_bound(c.begin(), c.end(), X{2}, test_ns::less<X>{});
-                    ret_access[0] &= (part2 == c.end());
+                    auto part1 = dpl::upper_bound(itBegin, itEnd, X{2});
+                    ret_access[0] = (part1 == itEnd);
+                    auto part2 = dpl::upper_bound(itBegin, itEnd, X{2}, dpl::less<X>{});
+                    ret_access[0] &= (part2 == itEnd);
 
-                    auto part3 = test_ns::upper_bound(c.begin(), c.end(), X{9});
-                    ret_access[0] &= (part3 != c.end());
+                    auto part3 = dpl::upper_bound(itBegin, itEnd, X{9});
+                    ret_access[0] &= (part3 != itEnd);
                     ret_access[0] &= (part3->val == 6);
-                    auto part4 = test_ns::upper_bound(c.begin(), c.end(), X{9}, test_ns::less<X>{});
-                    ret_access[0] &= (part3 != c.end());
+                    auto part4 = dpl::upper_bound(itBegin, itEnd, X{9}, dpl::less<X>{});
+                    ret_access[0] &= (part3 != itEnd);
                     ret_access[0] &= (part4->val == 6);
                 }
             });
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= check_data(tmp, seq, N);
+    check &= TestUtils::check_data(tmp, seq, N);
     if (!check)
         return false;
     return ret;
@@ -140,29 +137,31 @@ kernel_test2(sycl::queue& deviceQueue)
             cgh.single_task<class KernelTest2>([=]() {
                 Y arr[] = {-0.1, 1.2, 5.0, 5.2, 5.1, 5.9, 5.5, 6.0};
                 // check if there is change after data transfer
-                check_access[0] = check_data(&access[0], arr, N);
+                check_access[0] = TestUtils::check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
-                    test_container<Y, forward_iterator_wrapper> c(&access[0], &access[0] + N);
-                    auto part1 = std::upper_bound(c.begin(), c.end(), Y{5.5});
-                    ret_access[0] = (part1 != c.end());
+                    auto itBegin = &access[0];
+                    auto itEnd = &access[0] + N;
+
+                    auto part1 = std::upper_bound(itBegin, itEnd, Y{5.5});
+                    ret_access[0] = (part1 != itEnd);
                     ret_access[0] &= (part1->val == 6.0);
-                    auto part2 = std::upper_bound(c.begin(), c.end(), Y{5.5}, std::less<Y>{});
-                    ret_access[0] &= (part2 != c.end());
+                    auto part2 = std::upper_bound(itBegin, itEnd, Y{5.5}, std::less<Y>{});
+                    ret_access[0] &= (part2 != itEnd);
                     ret_access[0] &= (part2->val == 6.0);
 
-                    auto part3 = std::upper_bound(c.begin(), c.end(), Y{1.0});
-                    ret_access[0] &= (part3 != c.end());
+                    auto part3 = std::upper_bound(itBegin, itEnd, Y{1.0});
+                    ret_access[0] &= (part3 != itEnd);
                     ret_access[0] &= (part3->val == 5.0);
-                    auto part4 = std::upper_bound(c.begin(), c.end(), Y{1.0}, std::less<Y>{});
-                    ret_access[0] &= (part4 != c.end());
+                    auto part4 = std::upper_bound(itBegin, itEnd, Y{1.0}, std::less<Y>{});
+                    ret_access[0] &= (part4 != itEnd);
                     ret_access[0] &= (part4->val == 5.0);
                 }
             });
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= check_data(tmp, seq, N);
+    check &= TestUtils::check_data(tmp, seq, N);
     if (!check)
         return false;
     return ret;

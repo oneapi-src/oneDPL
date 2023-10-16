@@ -13,51 +13,43 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <algorithm>
-// template<ForwardIterator Iter, class T>
-//   constexpr Iter    // constexpr after c++17
-//   lower_bound(Iter first, Iter last, const T& value);
+#include "support/test_config.h"
 
-#include "oneapi_std_test_config.h"
-
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(iterator)
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/iterator>
 
 #include <iostream>
 
-#include "test_macros.h"
-#include "test_iterators.h"
-#include "test_macros.h"
+#include "support/utils.h"
+#include "support/test_iterators.h"
 #include "support/sycl_alloc_utils.h"
-
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
 
+//Need to revert the chang when GPU runtime fix their issue
 template <class Iter, class T>
 bool
 test(Iter first, Iter last, const T& value)
 {
-    Iter i = test_ns::lower_bound(first, last, value);
-    for (Iter j = first; j != i; ++j)
+    std::pair<Iter, Iter> i = dpl::equal_range(first, last, value);
+    for (Iter j = first; j != i.first; ++j)
+    {
         if (!(*j < value))
-        {
             return false;
-        }
-    for (Iter j = i; j != last; ++j)
-        if ((*j < value))
-        {
+    }
+    for (Iter j = first; j != i.second; j++)
+    {
+        if (value < *j)
             return false;
-        }
-
+    } 
     return true;
 }
 
-class KernelLowerBoundTest1;
-class KernelLowerBoundTest2;
-class KernelLowerBoundTest3;
-class KernelLowerBoundTest4;
+class KernelEqualRangeTest1;
+class KernelEqualRangeTest2;
+class KernelEqualRangeTest3;
+class KernelEqualRangeTest4;
 
 template <typename Iter, typename KC>
 void
@@ -86,11 +78,12 @@ kernel_test()
             ret_access[0] = test(device_vbuf, device_vbuf + N, 0);
             for (int x = 1; x <= M; ++x)
                 ret_access[0] &= test(device_vbuf, device_vbuf + N, x);
+
         });
     }).wait();
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
-    EXPECT_TRUE(ret_access_host[0], "Wrong result of lower_bound");
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of equal_range");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -98,10 +91,10 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    kernel_test<forward_iterator<const int*>, KernelLowerBoundTest1>();
-    kernel_test<bidirectional_iterator<const int*>, KernelLowerBoundTest2>();
-    kernel_test<random_access_iterator<const int*>, KernelLowerBoundTest3>();
-    kernel_test<const int*, KernelLowerBoundTest4>();
+    kernel_test<forward_iterator<const int*>, KernelEqualRangeTest1>();
+    kernel_test<bidirectional_iterator<const int*>, KernelEqualRangeTest2>();
+    kernel_test<random_access_iterator<const int*>, KernelEqualRangeTest3>();
+    kernel_test<const int*, KernelEqualRangeTest4>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

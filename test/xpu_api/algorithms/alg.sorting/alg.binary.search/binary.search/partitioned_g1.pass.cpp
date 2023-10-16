@@ -13,18 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
+#include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(functional)
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/functional>
 
 #include <iostream>
 
-#include "testsuite_iterators.h"
-#include "checkData.h"
-#include "test_macros.h"
-
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
+#include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
@@ -75,31 +71,32 @@ kernel_test()
             cgh.single_task<class KernelTest>([=]() {
                 X tmp[] = {1, 3, 5, 7, 1, 6, 4};
                 // check if there is change after data transfer
-                check_access[0] = check_data(&access[0], &tmp[0], N);
+                check_access[0] = TestUtils::check_data(&access[0], &tmp[0], N);
 
                 if (check_access[0])
                 {
-                    test_container<X, forward_iterator_wrapper> c(&access[0], &access[0] + N);
+                    auto itBegin = &access[0];
+                    auto itEnd = &access[0] + N;
 
-                    ret_access[0] = test_ns::binary_search(c.begin(), c.end(), X{2});
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{2}, test_ns::less<X>{});
+                    ret_access[0] = dpl::binary_search(itBegin, itEnd, X{2});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{2}, dpl::less<X>{});
 
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{9});
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{9}, test_ns::less<X>{});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{9});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{9}, dpl::less<X>{});
 
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{2}, test_ns::less<X>{});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{2}, dpl::less<X>{});
 
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{9});
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{9}, test_ns::less<X>{});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{9});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{9}, dpl::less<X>{});
 
-                    ret_access[0] &= !(test_ns::binary_search(&access[0], &access[0] + 5, X{2}));
-                    ret_access[0] &= !(test_ns::binary_search(&access[0], &access[0] + 5, X{2}, test_ns::less<X>{}));
+                    ret_access[0] &= !(dpl::binary_search(itBegin, itBegin + 5, X{2}));
+                    ret_access[0] &= !(dpl::binary_search(itBegin, itBegin + 5, X{2}, dpl::less<X>{}));
                 }
             });
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= check_data(seq, tmp, N);
+    check &= TestUtils::check_data(seq, tmp, N);
     if (!check)
         return false;
     return ret;

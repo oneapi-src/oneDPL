@@ -13,16 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
+#include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
+#include <oneapi/dpl/algorithm>
 
 #include <iostream>
 
-#include "checkData.h"
-#include "test_macros.h"
-
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
+#include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
@@ -42,7 +39,7 @@ struct gt
 bool
 kernel_test()
 {
-    using test_ns::binary_search;
+    using dpl::binary_search;
     sycl::queue deviceQueue = TestUtils::get_test_queue();
 
     const int A[] = {1, 2, 3, 3, 3, 5, 8};
@@ -70,27 +67,33 @@ kernel_test()
                 const int A1[] = {1, 2, 3, 3, 3, 5, 8};
                 const int C1[] = {8, 5, 3, 3, 3, 2, 1};
                 // check if there is change after data transfer
-                check_access[0] = check_data(&access2[0], A1, N);
-                check_access[0] &= check_data(&access3[0], C1, N);
+                check_access[0] = TestUtils::check_data(&access2[0], A1, N);
+                check_access[0] &= TestUtils::check_data(&access3[0], C1, N);
 
                 if (check_access[0])
                 {
-                    ret_access[0] = (binary_search(&access2[0], &access2[0] + N, 5));
-                    ret_access[0] &= (binary_search(&access2[0], &access2[0] + N, first));
-                    ret_access[0] &= (binary_search(&access2[0], &access2[0] + N, last));
-                    ret_access[0] &= (!binary_search(&access2[0], &access2[0] + N, 4));
+                    auto itBegin2 = &access2[0];
+                    auto itEnd2 = &access2[0] + N;
 
-                    ret_access[0] &= (binary_search(&access3[0], &access3[0] + N, 5, gt()));
-                    ret_access[0] &= (binary_search(&access3[0], &access3[0] + N, first, gt()));
-                    ret_access[0] &= (binary_search(&access3[0], &access3[0] + N, last, gt()));
-                    ret_access[0] &= (!binary_search(&access3[0], &access3[0] + N, 4, gt()));
+                    ret_access[0] = (binary_search(itBegin2, itEnd2, 5));
+                    ret_access[0] &= (binary_search(itBegin2, itEnd2, first));
+                    ret_access[0] &= (binary_search(itBegin2, itEnd2, last));
+                    ret_access[0] &= (!binary_search(itBegin2, itEnd2, 4));
+
+                    auto itBegin3 = &access3[0];
+                    auto itEnd3 = &access3[0] + N;
+
+                    ret_access[0] &= (binary_search(itBegin3, itEnd3, 5, gt()));
+                    ret_access[0] &= (binary_search(itBegin3, itEnd3, first, gt()));
+                    ret_access[0] &= (binary_search(itBegin3, itEnd3, last, gt()));
+                    ret_access[0] &= (!binary_search(itBegin3, itEnd3, 4, gt()));
                 }
             });
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= check_data(A, A1, N);
-    check &= check_data(C, C1, N);
+    check &= TestUtils::check_data(A, A1, N);
+    check &= TestUtils::check_data(C, C1, N);
     if (!check)
         return false;
     return ret;

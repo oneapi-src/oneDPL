@@ -13,24 +13,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
+#include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(utility)
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/utility>
 
 #include <iostream>
 
-#include "testsuite_iterators.h"
-#include "checkData.h"
-
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
+#include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
 
-using test_ns::equal_range;
-
-typedef test_container<int, forward_iterator_wrapper> Container;
+using dpl::equal_range;
 
 bool
 kernel_test1()
@@ -55,16 +50,15 @@ kernel_test1()
                 auto ret = true;
                 int arr[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2};
                 // check if there is change after data transfer
-                check_access[0] = check_data(&access[0], arr, N);
+                check_access[0] = TestUtils::check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
                     for (int i = 0; i < 6; ++i)
                     {
                         for (int j = 6; j < 12; ++j)
                         {
-                            Container con(&access[0] + i, &access[0] + j);
-                            ret &= (equal_range(con.begin(), con.end(), 1).first.ptr == &access[0] + std::max(i, 4));
-                            ret &= (equal_range(con.begin(), con.end(), 1).second.ptr == &access[0] + std::min(j, 8));
+                            ret &= (equal_range(&access[0] + i, &access[0] + j, 1).first == &access[0] + std::max(i, 4));
+                            ret &= (equal_range(&access[0] + i, &access[0] + j, 1).second == &access[0] + std::min(j, 8));
                         }
                     }
                     ret_access[0] = ret;
@@ -73,7 +67,7 @@ kernel_test1()
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= check_data(tmp, array, N);
+    check &= TestUtils::check_data(tmp, array, N);
     if (!check)
         return false;
     return ret;
@@ -101,18 +95,17 @@ kernel_test2()
             cgh.single_task<class KernelTest2>([=]() {
                 int arr[] = {0, 0, 2, 2, 2};
                 // check if there is change after data transfer
-                check_access[0] = check_data(&access[0], arr, N);
+                check_access[0] = TestUtils::check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
-                    Container con(&access[0], &access[0] + 5);
-                    ret_access[0] = (equal_range(con.begin(), con.end(), 1).first.ptr == &access[0] + 2);
-                    ret_access[0] &= (equal_range(con.begin(), con.end(), 1).second.ptr == &access[0] + 2);
+                    ret_access[0] = (equal_range(&access[0], &access[0] + 5, 1).first == &access[0] + 2);
+                    ret_access[0] &= (equal_range(&access[0], &access[0] + 5, 1).second == &access[0] + 2);
                 }
             });
         }).wait();
     }
     // check if there is change after executing kernel function
-    check &= check_data(tmp, array, N);
+    check &= TestUtils::check_data(tmp, array, N);
     if (!check)
         return false;
     return ret;

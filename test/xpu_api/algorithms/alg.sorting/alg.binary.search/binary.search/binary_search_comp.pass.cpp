@@ -15,44 +15,35 @@
 
 // <algorithm>
 // template<ForwardIterator Iter, class T, CopyConstructible Compare>
-//   constexpr pair<Iter, Iter>   // constexpr after c++17
-//   equal_range(Iter first, Iter last, const T& value, Compare comp);
+//   constexpr bool      // constexpr after C++17
+//   binary_search(Iter first, Iter last, const T& value, Compare comp);
 
-#include "oneapi_std_test_config.h"
+#include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(functional)
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/iterator>
+#include <oneapi/dpl/functional>
 
 #include <iostream>
 
-#include "test_macros.h"
-#include "test_iterators.h"
+#include "support/utils.h"
+#include "support/test_iterators.h"
 #include "support/sycl_alloc_utils.h"
-
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
 
-//Revert the change when GPU runtime fix their issue
 template <class Iter, class T>
-bool test(Iter first, Iter last, const T& value)
+bool
+test(Iter first, Iter last, const T& value, bool x)
 {
-    std::pair<Iter, Iter> i = test_ns::equal_range(first, last, value, test_ns::greater<int>());
-
-    for (Iter j = first; j != i.first; ++j)
-        if (!(test_ns::greater<int>()(*j, value)))
-            return false;
-    for (Iter j = first; j != i.second; ++j)
-        if (test_ns::greater<int>()(value, *j))
-            return false;
-    return true;
+    return (dpl::binary_search(first, last, value, dpl::greater<int>()) == x);
 }
 
-class KernelEqualRangeTest1;
-class KernelEqualRangeTest2;
-class KernelEqualRangeTest3;
-class KernelEqualRangeTest4;
+class KernelBSearchTest1;
+class KernelBSearchTest2;
+class KernelBSearchTest3;
+class KernelBSearchTest4;
 
 template <typename Iter, typename KC>
 void
@@ -70,7 +61,7 @@ kernel_test()
         host_vbuf[i] = i % M;
     }
 
-    std::sort(host_vbuf, host_vbuf + N, test_ns::greater<int>());
+    std::sort(host_vbuf, host_vbuf + N, dpl::greater<int>());
 
     TestUtils::usm_data_transfer<sycl::usm::alloc::device, int> dt_helper(deviceQueue, host_vbuf, N);
 
@@ -78,14 +69,18 @@ kernel_test()
         int* device_vbuf = dt_helper.get_data();
         auto ret_access = buffer1.get_access<sycl_write>(cgh);
         cgh.single_task<KC>([=]() {
-            ret_access[0] = test(device_vbuf, device_vbuf + N, 0);
-            for (int x = 1; x <= M; ++x)
-                ret_access[0] &= test(device_vbuf, device_vbuf + N, x);
+            ret_access[0] = test(device_vbuf, device_vbuf + N, 0, true);
+
+            for (int x = 1; x < M; ++x)
+                ret_access[0] &= test(device_vbuf, device_vbuf + N, x, true);
+
+            ret_access[0] &= test(device_vbuf, device_vbuf + N, -1, false);
+            ret_access[0] &= test(device_vbuf, device_vbuf + N, M, false);
         });
     }).wait();
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
-    EXPECT_TRUE(ret_access_host[0], "Wrong result of equal_range with comparator");
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of binary_search with comparator");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -93,10 +88,10 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    kernel_test<forward_iterator<const int*>, KernelEqualRangeTest1>();
-    kernel_test<bidirectional_iterator<const int*>, KernelEqualRangeTest2>();
-    kernel_test<random_access_iterator<const int*>, KernelEqualRangeTest3>();
-    kernel_test<const int*, KernelEqualRangeTest4>();
+    kernel_test<forward_iterator<const int*>, KernelBSearchTest1>();
+    kernel_test<bidirectional_iterator<const int*>, KernelBSearchTest2>();
+    kernel_test<random_access_iterator<const int*>, KernelBSearchTest3>();
+    kernel_test<const int*, KernelBSearchTest4>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
