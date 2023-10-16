@@ -20,7 +20,6 @@
 #include <iostream>
 
 #include "support/utils.h"
-#include "support/testsuite_iterators.h"
 //#include "checkData.h"
 //#include "test_macros.h"
 
@@ -30,8 +29,6 @@ namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 constexpr auto sycl_write = sycl::access::mode::write;
 
 using test_ns::lower_bound;
-
-typedef test_container<int, forward_iterator_wrapper> Container;
 
 bool
 kernel_test()
@@ -64,8 +61,7 @@ kernel_test()
                     {
                         for (int j = 4; j < 7; ++j)
                         {
-                            Container con(&access[0] + i, &access[0] + j);
-                            ret &= (lower_bound(con.begin(), con.end(), 1).ptr == &access[0] + 4);
+                            ret &= (lower_bound(&access[0] + i, &access[0] + j, 1) == &access[0] + 4);
                         }
                     }
                     ret_access[0] = ret;

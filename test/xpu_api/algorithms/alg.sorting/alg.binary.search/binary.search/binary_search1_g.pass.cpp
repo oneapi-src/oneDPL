@@ -20,7 +20,6 @@
 #include <iostream>
 
 #include "support/utils.h"
-#include "support/testsuite_iterators.h"
 //#include "checkData.h"
 //#include "test_macros.h"
 
@@ -30,8 +29,6 @@ namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 constexpr auto sycl_write = sycl::access::mode::write;
 
 using test_ns::binary_search;
-
-typedef test_container<int, forward_iterator_wrapper> Container;
 
 bool
 kernel_test1()
@@ -54,8 +51,7 @@ kernel_test1()
                 check_access[0] = (acc_arr[0] == 0);
                 if (check_access[0])
                 {
-                    Container con(&acc_arr[0], &acc_arr[0]);
-                    ret_access[0] = (!binary_search(con.begin(), con.end(), 1));
+                    ret_access[0] = (!binary_search(&acc_arr[0], &acc_arr[0], 1));
                 }
             });
         }).wait();
@@ -92,17 +88,16 @@ kernel_test2()
                 check_access[0] = TestUtils::check_data(&access1[0], tmp, N);
                 if (check_access[0])
                 {
-                    Container con(&access1[0], &access1[0] + N);
-                    ret_access[0] = (binary_search(con.begin(), con.end(), 0));
+                    ret_access[0] = (binary_search(&access1[0], &access1[0] + N, 0));
 
                     for (int i = 2; i < 10; i += 2)
                     {
-                        ret_access[0] &= (binary_search(con.begin(), con.end(), i));
+                        ret_access[0] &= (binary_search(&access1[0], &access1[0] + N, i));
                     }
 
                     for (int i = -1; i < 11; i += 2)
                     {
-                        ret_access[0] &= (!binary_search(con.begin(), con.end(), i));
+                        ret_access[0] &= (!binary_search(&access1[0], &access1[0] + N, i));
                     }
                 }
             });

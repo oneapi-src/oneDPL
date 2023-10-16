@@ -20,7 +20,6 @@
 #include <iostream>
 
 #include "support/utils.h"
-#include "support/testsuite_iterators.h"
 //#include "checkData.h"
 //#include "test_macros.h"
 
@@ -81,37 +80,43 @@ kernel_test()
                 check_access[0] &= TestUtils::check_data(&access2[0], C1, N);
                 if (check_access[0])
                 {
-                    Ipair p = equal_range(&access1[0], &access1[0] + N, 3);
-                    ret_access[0] = (p.first == &access1[0] + 2);
-                    ret_access[0] &= (p.second == &access1[0] + 5);
+                    auto itBegin = &access1[0];
+                    auto itEnd = &access1[0] + N;
 
-                    Ipair q = equal_range(&access1[0], &access1[0] + N, first);
-                    ret_access[0] &= (q.first == &access1[0] + 0);
-                    ret_access[0] &= (q.second == &access1[0] + 1);
+                    Ipair p = equal_range(itBegin, itEnd, 3);
+                    ret_access[0] = (p.first == itBegin + 2);
+                    ret_access[0] &= (p.second == itBegin + 5);
 
-                    Ipair r = equal_range(&access1[0], &access1[0] + N, last);
-                    ret_access[0] &= (r.first == &access1[0] + N - 1);
-                    ret_access[0] &= (r.second == &access1[0] + N);
+                    Ipair q = equal_range(itBegin, itEnd, first);
+                    ret_access[0] &= (q.first == itBegin + 0);
+                    ret_access[0] &= (q.second == itBegin + 1);
 
-                    Ipair s = equal_range(&access1[0], &access1[0] + N, 4);
-                    ret_access[0] &= (s.first == &access1[0] + 5);
-                    ret_access[0] &= (s.second == &access1[0] + 5);
+                    Ipair r = equal_range(itBegin, itEnd, last);
+                    ret_access[0] &= (r.first == itEnd - 1);
+                    ret_access[0] &= (r.second == itEnd);
+
+                    Ipair s = equal_range(itBegin, itEnd, 4);
+                    ret_access[0] &= (s.first == itBegin + 5);
+                    ret_access[0] &= (s.second == itBegin + 5);
 
                     Ipair t = equal_range(&access2[0], &access2[0] + N, 3, gt());
                     ret_access[0] &= (t.first == &access2[0] + 2);
                     ret_access[0] &= (t.second == &access2[0] + 5);
 
-                    Ipair u = equal_range(&access2[0], &access2[0] + N, first, gt());
-                    ret_access[0] &= (u.first == &access2[0] + N - 1);
-                    ret_access[0] &= (u.second == &access2[0] + N);
+                    auto itBegin2 = &access2[0];
+                    auto itEnd2 = &access2[0] + N;
 
-                    Ipair v = equal_range(&access2[0], &access2[0] + N, last, gt());
-                    ret_access[0] &= (v.first == &access2[0] + 0);
-                    ret_access[0] &= (v.second == &access2[0] + 1);
+                    Ipair u = equal_range(itBegin2, itEnd2, first, gt());
+                    ret_access[0] &= (u.first == itEnd2 - 1);
+                    ret_access[0] &= (u.second == itEnd2);
 
-                    Ipair w = equal_range(&access2[0], &access2[0] + N, 4, gt());
-                    ret_access[0] &= (w.first == &access2[0] + 2);
-                    ret_access[0] &= (w.second == &access2[0] + 2);
+                    Ipair v = equal_range(itBegin2, itEnd2, last, gt());
+                    ret_access[0] &= (v.first == itBegin2 + 0);
+                    ret_access[0] &= (v.second == itBegin2 + 1);
+
+                    Ipair w = equal_range(itBegin2, itEnd2, 4, gt());
+                    ret_access[0] &= (w.first == itBegin2 + 2);
+                    ret_access[0] &= (w.second == itBegin2 + 2);
                 }
             });
         }).wait();

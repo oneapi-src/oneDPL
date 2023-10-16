@@ -21,7 +21,6 @@
 #include <iostream>
 
 #include "support/utils.h"
-#include "support/testsuite_iterators.h"
 //#include "checkData.h"
 //#include "test_macros.h"
 
@@ -80,21 +79,22 @@ kernel_test()
 
                 if (check_access[0])
                 {
-                    test_container<X, forward_iterator_wrapper> c(&access[0], &access[0] + N);
+                    auto itBegin = &access[0];
+                    auto itEnd = &access[0] + N;
 
-                    ret_access[0] = test_ns::binary_search(c.begin(), c.end(), X{2});
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{2}, test_ns::less<X>{});
+                    ret_access[0] = test_ns::binary_search(itBegin, itEnd, X{2});
+                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{2}, test_ns::less<X>{});
 
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{9});
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{9}, test_ns::less<X>{});
+                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{9});
+                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{9}, test_ns::less<X>{});
 
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{2}, test_ns::less<X>{});
+                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{2}, test_ns::less<X>{});
 
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{9});
-                    ret_access[0] &= test_ns::binary_search(c.begin(), c.end(), X{9}, test_ns::less<X>{});
+                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{9});
+                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{9}, test_ns::less<X>{});
 
-                    ret_access[0] &= !(test_ns::binary_search(&access[0], &access[0] + 5, X{2}));
-                    ret_access[0] &= !(test_ns::binary_search(&access[0], &access[0] + 5, X{2}, test_ns::less<X>{}));
+                    ret_access[0] &= !(test_ns::binary_search(itBegin, itBegin + 5, X{2}));
+                    ret_access[0] &= !(test_ns::binary_search(itBegin, itBegin + 5, X{2}, test_ns::less<X>{}));
                 }
             });
         }).wait();

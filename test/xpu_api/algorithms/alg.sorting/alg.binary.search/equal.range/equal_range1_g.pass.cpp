@@ -21,7 +21,6 @@
 #include <iostream>
 
 #include "support/utils.h"
-#include "support/testsuite_iterators.h"
 //#include "checkData.h"
 
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
@@ -30,8 +29,6 @@ namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 constexpr auto sycl_write = sycl::access::mode::write;
 
 using test_ns::equal_range;
-
-typedef test_container<int, forward_iterator_wrapper> Container;
 
 bool
 kernel_test1()
@@ -63,9 +60,8 @@ kernel_test1()
                     {
                         for (int j = 6; j < 12; ++j)
                         {
-                            Container con(&access[0] + i, &access[0] + j);
-                            ret &= (equal_range(con.begin(), con.end(), 1).first.ptr == &access[0] + std::max(i, 4));
-                            ret &= (equal_range(con.begin(), con.end(), 1).second.ptr == &access[0] + std::min(j, 8));
+                            ret &= (equal_range(&access[0] + i, &access[0] + j, 1).first == &access[0] + std::max(i, 4));
+                            ret &= (equal_range(&access[0] + i, &access[0] + j, 1).second == &access[0] + std::min(j, 8));
                         }
                     }
                     ret_access[0] = ret;
@@ -105,9 +101,8 @@ kernel_test2()
                 check_access[0] = TestUtils::check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
-                    Container con(&access[0], &access[0] + 5);
-                    ret_access[0] = (equal_range(con.begin(), con.end(), 1).first.ptr == &access[0] + 2);
-                    ret_access[0] &= (equal_range(con.begin(), con.end(), 1).second.ptr == &access[0] + 2);
+                    ret_access[0] = (equal_range(&access[0], &access[0] + 5, 1).first == &access[0] + 2);
+                    ret_access[0] &= (equal_range(&access[0], &access[0] + 5, 1).second == &access[0] + 2);
                 }
             });
         }).wait();

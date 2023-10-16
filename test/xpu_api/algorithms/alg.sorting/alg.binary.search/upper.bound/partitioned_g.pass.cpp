@@ -21,7 +21,6 @@
 #include <iostream>
 
 #include "support/utils.h"
-#include "support/testsuite_iterators.h"
 //#include "checkData.h"
 //#include "test_macros.h"
 
@@ -79,18 +78,16 @@ kernel_test1(sycl::queue& deviceQueue)
                 check_access[0] = TestUtils::check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
+                    auto part1 = test_ns::upper_bound(&access[0], &access[0] + N, X{2});
+                    ret_access[0] = (part1 == &access[0] + N);
+                    auto part2 = test_ns::upper_bound(&access[0], &access[0] + N, X{2}, test_ns::less<X>{});
+                    ret_access[0] &= (part2 == &access[0] + N);
 
-                    test_container<X, forward_iterator_wrapper> c(&access[0], &access[0] + N);
-                    auto part1 = test_ns::upper_bound(c.begin(), c.end(), X{2});
-                    ret_access[0] = (part1 == c.end());
-                    auto part2 = test_ns::upper_bound(c.begin(), c.end(), X{2}, test_ns::less<X>{});
-                    ret_access[0] &= (part2 == c.end());
-
-                    auto part3 = test_ns::upper_bound(c.begin(), c.end(), X{9});
-                    ret_access[0] &= (part3 != c.end());
+                    auto part3 = test_ns::upper_bound(&access[0], &access[0] + N, X{9});
+                    ret_access[0] &= (part3 != &access[0] + N);
                     ret_access[0] &= (part3->val == 6);
-                    auto part4 = test_ns::upper_bound(c.begin(), c.end(), X{9}, test_ns::less<X>{});
-                    ret_access[0] &= (part3 != c.end());
+                    auto part4 = test_ns::upper_bound(&access[0], &access[0] + N, X{9}, test_ns::less<X>{});
+                    ret_access[0] &= (part3 != &access[0] + N);
                     ret_access[0] &= (part4->val == 6);
                 }
             });
@@ -144,19 +141,21 @@ kernel_test2(sycl::queue& deviceQueue)
                 check_access[0] = TestUtils::check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
-                    test_container<Y, forward_iterator_wrapper> c(&access[0], &access[0] + N);
-                    auto part1 = std::upper_bound(c.begin(), c.end(), Y{5.5});
-                    ret_access[0] = (part1 != c.end());
+                    auto itBegin = &access[0];
+                    auto itEnd = &access[0] + N;
+
+                    auto part1 = std::upper_bound(itBegin, itEnd, Y{5.5});
+                    ret_access[0] = (part1 != itEnd);
                     ret_access[0] &= (part1->val == 6.0);
-                    auto part2 = std::upper_bound(c.begin(), c.end(), Y{5.5}, std::less<Y>{});
-                    ret_access[0] &= (part2 != c.end());
+                    auto part2 = std::upper_bound(itBegin, itEnd, Y{5.5}, std::less<Y>{});
+                    ret_access[0] &= (part2 != itEnd);
                     ret_access[0] &= (part2->val == 6.0);
 
-                    auto part3 = std::upper_bound(c.begin(), c.end(), Y{1.0});
-                    ret_access[0] &= (part3 != c.end());
+                    auto part3 = std::upper_bound(itBegin, itEnd, Y{1.0});
+                    ret_access[0] &= (part3 != itEnd);
                     ret_access[0] &= (part3->val == 5.0);
-                    auto part4 = std::upper_bound(c.begin(), c.end(), Y{1.0}, std::less<Y>{});
-                    ret_access[0] &= (part4 != c.end());
+                    auto part4 = std::upper_bound(itBegin, itEnd, Y{1.0}, std::less<Y>{});
+                    ret_access[0] &= (part4 != itEnd);
                     ret_access[0] &= (part4->val == 5.0);
                 }
             });
