@@ -28,7 +28,7 @@
 
 #include "support/utils.h"
 #include "support/test_iterators.h"
-#include "test_macros.h"
+//#include "test_macros.h"
 #include "support/sycl_alloc_utils.h"
 
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
