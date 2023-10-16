@@ -58,11 +58,13 @@
 #define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT false
 
 // Macro to check if we are compiling for Intel devices
-#if (defined(__SPIR__) || defined(__SPIRV__)) && defined(__SYCL_DEVICE_ONLY__)
-#    define _ONEDPL_DETECT_SPIRV_COMPILATION 1
-#else
-#    define _ONEDPL_DETECT_SPIRV_COMPILATION 0
-#endif
+#ifndef _ONEDPL_DETECT_SPIRV_COMPILATION // Check if overridden for testing
+#    if (defined(__SPIR__) || defined(__SPIRV__)) && defined(__SYCL_DEVICE_ONLY__)
+#        define _ONEDPL_DETECT_SPIRV_COMPILATION 1
+#    else
+#        define _ONEDPL_DETECT_SPIRV_COMPILATION 0
+#    endif
+#endif // _ONEDPL_DETECT_SPIRV_COMPILATION
 
 #if _ONEDPL_LIBSYCL_VERSION >= 50300
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
