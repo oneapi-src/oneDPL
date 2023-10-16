@@ -15,11 +15,13 @@
 
 #include "support/test_config.h"
 
-#include <oneapi/dpl/algorithm>
+#include _ONEAPI_STD_TEST_HEADER(algorithm)
 
 #include <iostream>
 
 #include "support/utils.h"
+
+namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
@@ -42,7 +44,7 @@ struct gt
 bool
 kernel_test()
 {
-    using std::equal_range;
+    using test_ns::equal_range;
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     bool ret = false;
     bool check = false;

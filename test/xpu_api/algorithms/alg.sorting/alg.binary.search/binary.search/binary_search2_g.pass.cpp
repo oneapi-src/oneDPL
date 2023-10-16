@@ -15,11 +15,13 @@
 
 #include "support/test_config.h"
 
-#include <oneapi/dpl/algorithm>
+#include _ONEAPI_STD_TEST_HEADER(algorithm)
 
 #include <iostream>
 
 #include "support/utils.h"
+
+namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
@@ -39,7 +41,7 @@ struct gt
 bool
 kernel_test()
 {
-    using std::binary_search;
+    using test_ns::binary_search;
     sycl::queue deviceQueue = TestUtils::get_test_queue();
 
     const int A[] = {1, 2, 3, 3, 3, 5, 8};

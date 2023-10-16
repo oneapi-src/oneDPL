@@ -15,16 +15,18 @@
 
 #include "support/test_config.h"
 
-#include <oneapi/dpl/algorithm>
+#include _ONEAPI_STD_TEST_HEADER(algorithm)
 
 #include <iostream>
 
 #include "support/utils.h"
 
+namespace test_ns = _ONEAPI_TEST_NAMESPACE;
+
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
 
-using std::lower_bound;
+using test_ns::lower_bound;
 
 bool
 kernel_test()
