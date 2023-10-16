@@ -20,9 +20,9 @@
 
 #include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(iterator)
-#include _ONEAPI_STD_TEST_HEADER(functional)
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/iterator>
+#include <oneapi/dpl/functional>
 
 #include <iostream>
 
@@ -30,22 +30,20 @@
 #include "support/test_iterators.h"
 #include "support/sycl_alloc_utils.h"
 
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
-
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
 
 template <class Iter, class T>
 bool __attribute__((always_inline)) test(Iter first, Iter last, const T& value)
 {
-    Iter i = test_ns::lower_bound(first, last, value, test_ns::greater<int>());
+    Iter i = std::lower_bound(first, last, value, std::greater<int>());
     for (Iter j = first; j != i; ++j)
-        if (!(test_ns::greater<int>()(*j, value)))
+        if (!(std::greater<int>()(*j, value)))
         {
             return false;
         }
     for (Iter j = i; j != last; ++j)
-        if (test_ns::greater<int>()(*j, value))
+        if (std::greater<int>()(*j, value))
         {
             return false;
         }
@@ -74,7 +72,7 @@ kernel_test()
         host_vbuf[i] = i % M;
     }
 
-    std::sort(host_vbuf, host_vbuf + N, test_ns::greater<int>());
+    std::sort(host_vbuf, host_vbuf + N, std::greater<int>());
 
     TestUtils::usm_data_transfer<sycl::usm::alloc::device, int> dt_helper(deviceQueue, host_vbuf, N);
 

@@ -20,16 +20,14 @@
 
 #include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(iterator)
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/iterator>
 
 #include <iostream>
 
 #include "support/utils.h"
 #include "support/test_iterators.h"
 #include "support/sycl_alloc_utils.h"
-
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
@@ -38,7 +36,7 @@ template <class Iter, class T>
 bool
 test(Iter first, Iter last, const T& value)
 {
-    Iter i = test_ns::upper_bound(first, last, value);
+    Iter i = std::upper_bound(first, last, value);
     for (Iter j = first; j != i; ++j)
         if ((value < *j))
         {

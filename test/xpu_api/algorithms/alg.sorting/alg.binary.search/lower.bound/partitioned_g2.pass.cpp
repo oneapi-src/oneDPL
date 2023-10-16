@@ -15,14 +15,12 @@
 
 #include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(functional)
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/functional>
 
 #include <iostream>
 
 #include "support/utils.h"
-
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
@@ -76,17 +74,17 @@ kernel_test1(sycl::queue& deviceQueue)
                 check_access[0] = TestUtils::check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
-                    auto part1 = test_ns::lower_bound(&access[0], &access[0] + N, X{2});
+                    auto part1 = std::lower_bound(&access[0], &access[0] + N, X{2});
                     ret_access[0] = (part1 != &access[0] + N);
                     ret_access[0] &= (part1->val == 6);
-                    auto part2 = test_ns::lower_bound(&access[0], &access[0] + N, X{2}, test_ns::less<X>{});
+                    auto part2 = std::lower_bound(&access[0], &access[0] + N, X{2}, std::less<X>{});
                     ret_access[0] &= (part2 != &access[0] + N);
                     ret_access[0] &= (part2->val == 6);
 
-                    auto part3 = test_ns::lower_bound(&access[0], &access[0] + N, X{9});
+                    auto part3 = std::lower_bound(&access[0], &access[0] + N, X{9});
                     ret_access[0] &= (part3 != &access[0] + N);
                     ret_access[0] &= (part3->val == 1);
-                    auto part4 = test_ns::lower_bound(&access[0], &access[0] + N, X{9}, test_ns::less<X>{});
+                    auto part4 = std::lower_bound(&access[0], &access[0] + N, X{9}, std::less<X>{});
                     ret_access[0] &= (part4 != &access[0] + N);
                     ret_access[0] &= (part4->val == 1);
                 }

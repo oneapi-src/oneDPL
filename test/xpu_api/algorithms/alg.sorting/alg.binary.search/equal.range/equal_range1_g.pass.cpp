@@ -15,19 +15,17 @@
 
 #include "support/test_config.h"
 
-#include _ONEAPI_STD_TEST_HEADER(algorithm)
-#include _ONEAPI_STD_TEST_HEADER(utility)
+#include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/utility>
 
 #include <iostream>
 
 #include "support/utils.h"
 
-namespace test_ns = _ONEAPI_TEST_NAMESPACE;
-
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
 
-using test_ns::equal_range;
+using std::equal_range;
 
 bool
 kernel_test1()
