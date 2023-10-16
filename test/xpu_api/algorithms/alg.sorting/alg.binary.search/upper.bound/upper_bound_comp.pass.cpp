@@ -26,7 +26,7 @@
 
 #include <iostream>
 
-#include "test_iterators.h"
+#include "support/test_iterators.h"
 #include "test_macros.h"
 #include "support/sycl_alloc_utils.h"
 
