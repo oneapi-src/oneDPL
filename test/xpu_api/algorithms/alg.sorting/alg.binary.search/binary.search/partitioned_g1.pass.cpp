@@ -21,8 +21,6 @@
 #include <iostream>
 
 #include "support/utils.h"
-//#include "checkData.h"
-//#include "test_macros.h"
 
 namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 
