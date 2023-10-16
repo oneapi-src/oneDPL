@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_DETECT_SPIRV_COMPILATION 1
+#define _ONEDPL_DETECT_SPIRV_COMPILATION 0
 #include "reduce.pass.h"
 
 int
