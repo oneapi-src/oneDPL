@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
+#include "support/test_config.h"
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
 #include _ONEAPI_STD_TEST_HEADER(iterator)

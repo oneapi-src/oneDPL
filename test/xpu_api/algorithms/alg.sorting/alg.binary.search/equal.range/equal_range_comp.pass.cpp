@@ -18,7 +18,7 @@
 //   constexpr pair<Iter, Iter>   // constexpr after c++17
 //   equal_range(Iter first, Iter last, const T& value, Compare comp);
 
-#include "oneapi_std_test_config.h"
+#include "support/test_config.h"
 
 #include _ONEAPI_STD_TEST_HEADER(algorithm)
 #include _ONEAPI_STD_TEST_HEADER(functional)
