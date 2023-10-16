@@ -41,7 +41,7 @@ struct gt
 bool
 kernel_test()
 {
-    using test_ns::binary_search;
+    using dpl::binary_search;
     sycl::queue deviceQueue = TestUtils::get_test_queue();
 
     const int A[] = {1, 2, 3, 3, 3, 5, 8};

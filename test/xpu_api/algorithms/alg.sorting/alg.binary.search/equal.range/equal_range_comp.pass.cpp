@@ -38,13 +38,13 @@ constexpr auto sycl_write = sycl::access::mode::write;
 template <class Iter, class T>
 bool test(Iter first, Iter last, const T& value)
 {
-    std::pair<Iter, Iter> i = test_ns::equal_range(first, last, value, test_ns::greater<int>());
+    std::pair<Iter, Iter> i = dpl::equal_range(first, last, value, dpl::greater<int>());
 
     for (Iter j = first; j != i.first; ++j)
-        if (!(test_ns::greater<int>()(*j, value)))
+        if (!(dpl::greater<int>()(*j, value)))
             return false;
     for (Iter j = first; j != i.second; ++j)
-        if (test_ns::greater<int>()(value, *j))
+        if (dpl::greater<int>()(value, *j))
             return false;
     return true;
 }
@@ -70,7 +70,7 @@ kernel_test()
         host_vbuf[i] = i % M;
     }
 
-    std::sort(host_vbuf, host_vbuf + N, test_ns::greater<int>());
+    std::sort(host_vbuf, host_vbuf + N, dpl::greater<int>());
 
     TestUtils::usm_data_transfer<sycl::usm::alloc::device, int> dt_helper(deviceQueue, host_vbuf, N);
 

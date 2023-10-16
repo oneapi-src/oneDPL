@@ -26,7 +26,7 @@ namespace test_ns = _ONEAPI_TEST_NAMESPACE;
 #if TEST_DPCPP_BACKEND_PRESENT
 constexpr auto sycl_write = sycl::access::mode::write;
 
-using test_ns::binary_search;
+using dpl::binary_search;
 
 bool
 kernel_test1()

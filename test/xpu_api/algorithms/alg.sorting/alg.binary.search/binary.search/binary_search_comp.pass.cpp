@@ -39,7 +39,7 @@ template <class Iter, class T>
 bool
 test(Iter first, Iter last, const T& value, bool x)
 {
-    return (test_ns::binary_search(first, last, value, test_ns::greater<int>()) == x);
+    return (dpl::binary_search(first, last, value, dpl::greater<int>()) == x);
 }
 
 class KernelBSearchTest1;
@@ -63,7 +63,7 @@ kernel_test()
         host_vbuf[i] = i % M;
     }
 
-    std::sort(host_vbuf, host_vbuf + N, test_ns::greater<int>());
+    std::sort(host_vbuf, host_vbuf + N, dpl::greater<int>());
 
     TestUtils::usm_data_transfer<sycl::usm::alloc::device, int> dt_helper(deviceQueue, host_vbuf, N);
 

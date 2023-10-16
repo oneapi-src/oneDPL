@@ -44,7 +44,7 @@ struct gt
 bool
 kernel_test()
 {
-    using test_ns::equal_range;
+    using dpl::equal_range;
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     bool ret = false;
     bool check = false;

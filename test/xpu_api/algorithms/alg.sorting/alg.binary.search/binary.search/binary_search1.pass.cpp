@@ -38,7 +38,7 @@ template <class Iter, class T>
 bool
 test(Iter first, Iter last, const T& value, bool x)
 {
-    return (test_ns::binary_search(first, last, value) == x);
+    return (dpl::binary_search(first, last, value) == x);
 }
 
 class KernelBSearchTest1;

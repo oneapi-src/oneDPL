@@ -34,7 +34,7 @@ template <class Iter, class T>
 bool
 test(Iter first, Iter last, const T& value)
 {
-    std::pair<Iter, Iter> i = test_ns::equal_range(first, last, value);
+    std::pair<Iter, Iter> i = dpl::equal_range(first, last, value);
     for (Iter j = first; j != i.first; ++j)
     {
         if (!(*j < value))

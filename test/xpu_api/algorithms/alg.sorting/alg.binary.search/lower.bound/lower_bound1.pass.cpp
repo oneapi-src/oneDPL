@@ -38,7 +38,7 @@ template <class Iter, class T>
 bool
 test(Iter first, Iter last, const T& value)
 {
-    Iter i = test_ns::lower_bound(first, last, value);
+    Iter i = dpl::lower_bound(first, last, value);
     for (Iter j = first; j != i; ++j)
         if (!(*j < value))
         {

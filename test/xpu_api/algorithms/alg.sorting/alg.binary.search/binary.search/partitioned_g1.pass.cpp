@@ -80,19 +80,19 @@ kernel_test()
                     auto itBegin = &access[0];
                     auto itEnd = &access[0] + N;
 
-                    ret_access[0] = test_ns::binary_search(itBegin, itEnd, X{2});
-                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{2}, test_ns::less<X>{});
+                    ret_access[0] = dpl::binary_search(itBegin, itEnd, X{2});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{2}, dpl::less<X>{});
 
-                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{9});
-                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{9}, test_ns::less<X>{});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{9});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{9}, dpl::less<X>{});
 
-                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{2}, test_ns::less<X>{});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{2}, dpl::less<X>{});
 
-                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{9});
-                    ret_access[0] &= test_ns::binary_search(itBegin, itEnd, X{9}, test_ns::less<X>{});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{9});
+                    ret_access[0] &= dpl::binary_search(itBegin, itEnd, X{9}, dpl::less<X>{});
 
-                    ret_access[0] &= !(test_ns::binary_search(itBegin, itBegin + 5, X{2}));
-                    ret_access[0] &= !(test_ns::binary_search(itBegin, itBegin + 5, X{2}, test_ns::less<X>{}));
+                    ret_access[0] &= !(dpl::binary_search(itBegin, itBegin + 5, X{2}));
+                    ret_access[0] &= !(dpl::binary_search(itBegin, itBegin + 5, X{2}, dpl::less<X>{}));
                 }
             });
         }).wait();

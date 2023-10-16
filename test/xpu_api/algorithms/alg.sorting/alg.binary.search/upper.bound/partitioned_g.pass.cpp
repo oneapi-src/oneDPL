@@ -76,15 +76,15 @@ kernel_test1(sycl::queue& deviceQueue)
                 check_access[0] = TestUtils::check_data(&access[0], arr, N);
                 if (check_access[0])
                 {
-                    auto part1 = test_ns::upper_bound(&access[0], &access[0] + N, X{2});
+                    auto part1 = dpl::upper_bound(&access[0], &access[0] + N, X{2});
                     ret_access[0] = (part1 == &access[0] + N);
-                    auto part2 = test_ns::upper_bound(&access[0], &access[0] + N, X{2}, test_ns::less<X>{});
+                    auto part2 = dpl::upper_bound(&access[0], &access[0] + N, X{2}, dpl::less<X>{});
                     ret_access[0] &= (part2 == &access[0] + N);
 
-                    auto part3 = test_ns::upper_bound(&access[0], &access[0] + N, X{9});
+                    auto part3 = dpl::upper_bound(&access[0], &access[0] + N, X{9});
                     ret_access[0] &= (part3 != &access[0] + N);
                     ret_access[0] &= (part3->val == 6);
-                    auto part4 = test_ns::upper_bound(&access[0], &access[0] + N, X{9}, test_ns::less<X>{});
+                    auto part4 = dpl::upper_bound(&access[0], &access[0] + N, X{9}, dpl::less<X>{});
                     ret_access[0] &= (part3 != &access[0] + N);
                     ret_access[0] &= (part4->val == 6);
                 }
