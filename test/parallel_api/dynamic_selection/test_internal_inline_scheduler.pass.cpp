@@ -38,7 +38,7 @@ test_cout()
 }
 
 int
-test_submit_and_wait_on_scheduler()
+test_submit_and_wait_on_submission_group()
 {
     const int N = 100;
     TestUtils::int_inline_backend_t s;
@@ -63,7 +63,7 @@ test_submit_and_wait_on_scheduler()
 }
 
 int
-test_submit_and_wait_on_scheduler_single_element()
+test_submit_and_wait_on_submission_group_single_element()
 {
     const int N = 1;
     TestUtils::int_inline_backend_t s;
@@ -88,24 +88,10 @@ test_submit_and_wait_on_scheduler_single_element()
 }
 
 int
-test_submit_and_wait_on_scheduler_empty()
+test_submit_and_wait_on_submission_group_empty()
 {
-    //const int N = 0;
     TestUtils::int_inline_backend_t s;
-   // fake_selection_handle_t h;
-
     std::atomic<int> ecount = 0;
-/*
-    for (int i = 1; i <= N; ++i)
-    {
-        s.submit(h,
-                 [&](int q, int i) {
-                     ecount += i;
-                     return 0;
-                 },
-                 i);
-    }  
-    */
     s.get_submission_group().wait();
     int count = ecount.load();
     EXPECT_EQ(0, count, "ERROR: scheduler did not execute all tasks exactly once\n");
@@ -114,7 +100,7 @@ test_submit_and_wait_on_scheduler_empty()
 }
 
 int
-test_submit_and_wait_on_sync()
+test_submit_and_wait_on_submission()
 {
     const int N = 100;
     TestUtils::int_inline_backend_t s;
@@ -139,7 +125,7 @@ test_submit_and_wait_on_sync()
 }
 
 int
-test_submit_and_wait_on_sync_single_element()
+test_submit_and_wait_on_submission_single_element()
 {
     const int N = 1;
     TestUtils::int_inline_backend_t s;
@@ -160,33 +146,6 @@ test_submit_and_wait_on_sync_single_element()
         EXPECT_EQ(1, count, "ERROR: scheduler did not execute all tasks exactly once\n");
     }
     std::cout << "wait_on_sync single element: OK\n";
-    return 0;
-}
-
-int
-test_submit_and_wait_on_sync_empty()
-{
-    //const int N = 0;
-    TestUtils::int_inline_backend_t s;
-    //fake_selection_handle_t h;
-
-    std::atomic<int> ecount = 0;
-/*
-    for (int i = 1; i <= N; ++i)
-    {
-        auto w = s.submit(h,
-                          [&](int q, int i) {
-                              ecount += i;
-                              return 0;
-                          },
-                          i);
-        w.wait();
-    }
-    */
-    s.get_submission_group().wait();
-        int count = ecount.load();
-        EXPECT_EQ(0, count, "ERROR: scheduler did not execute all tasks exactly once\n");
-       std::cout << "wait_on_sync empty list: OK\n";
     return 0;
 }
 
@@ -213,17 +172,15 @@ main()
 {
     auto actual = test_cout();
     EXPECT_EQ(0, actual, "");
-    actual = test_submit_and_wait_on_scheduler();
+    actual = test_submit_and_wait_on_submission_group();
     EXPECT_EQ(0, actual, "");
-    actual = test_submit_and_wait_on_scheduler_single_element();
+    actual = test_submit_and_wait_on_submission_group_single_element();
     EXPECT_EQ(0, actual, "");
-    actual = test_submit_and_wait_on_scheduler_empty();
+    actual = test_submit_and_wait_on_submission_group_empty();
     EXPECT_EQ(0, actual, "");
-    actual = test_submit_and_wait_on_sync();
+    actual = test_submit_and_wait_on_submission();
     EXPECT_EQ(0, actual, "");
-    actual = test_submit_and_wait_on_sync_single_element();
-    EXPECT_EQ(0, actual, "");
-    actual = test_submit_and_wait_on_sync_empty();
+    actual = test_submit_and_wait_on_submission_single_element();
     EXPECT_EQ(0, actual, "");
     actual = test_properties();
     EXPECT_EQ(0, actual, "");
