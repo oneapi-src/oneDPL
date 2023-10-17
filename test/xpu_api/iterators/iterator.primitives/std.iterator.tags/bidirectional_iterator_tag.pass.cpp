@@ -10,39 +10,35 @@
 
 // struct bidirectional_iterator_tag : public forward_iterator_tag {};
 
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
-#include "test_macros.h"
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(iterator)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <iterator>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/iterator>
+#include <oneapi/dpl/type_traits>
 
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
 void
 kernelTest()
 {
-    cl::sycl::queue q;
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::queue q = TestUtils::get_test_queue();
+    q.submit([&](sycl::handler& cgh) {
         cgh.single_task<class IteratorTest>([=]() {
-            s::bidirectional_iterator_tag tag;
+            dpl::bidirectional_iterator_tag tag;
             ((void)tag); // Prevent unused warning
-            static_assert((s::is_base_of<s::forward_iterator_tag, s::bidirectional_iterator_tag>::value), "");
-            static_assert((!s::is_base_of<s::output_iterator_tag, s::bidirectional_iterator_tag>::value), "");
+            static_assert(dpl::is_base_of<dpl::forward_iterator_tag, dpl::bidirectional_iterator_tag>::value);
+            static_assert(!dpl::is_base_of<dpl::output_iterator_tag, dpl::bidirectional_iterator_tag>::value);
         });
     });
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernelTest();
-    std::cout << "Pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

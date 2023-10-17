@@ -18,22 +18,15 @@
 //   typedef random_access_iterator_tag iterator_category;
 // };
 
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
-#include "test_macros.h"
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(iterator)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-#    include _ONEAPI_STD_TEST_HEADER(cstddef)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <iterator>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/iterator>
+#include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/cstddef>
 
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
 };
@@ -41,23 +34,26 @@ struct A
 void
 kernelTest()
 {
-    cl::sycl::queue q;
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::queue q = TestUtils::get_test_queue();
+    q.submit([&](sycl::handler& cgh) {
         cgh.single_task<class IteratorTest>([=]() {
-            typedef s::iterator_traits<const A*> It;
-            static_assert((s::is_same<It::difference_type, s::ptrdiff_t>::value), "");
-            static_assert((s::is_same<It::value_type, A>::value), "");
-            static_assert((s::is_same<It::pointer, const A*>::value), "");
-            static_assert((s::is_same<It::reference, const A&>::value), "");
-            static_assert((s::is_same<It::iterator_category, s::random_access_iterator_tag>::value), "");
+            typedef dpl::iterator_traits<const A*> It;
+            static_assert(dpl::is_same<It::difference_type, dpl::ptrdiff_t>::value);
+            static_assert(dpl::is_same<It::value_type, A>::value);
+            static_assert(dpl::is_same<It::pointer, const A*>::value);
+            static_assert(dpl::is_same<It::reference, const A&>::value);
+            static_assert(dpl::is_same<It::iterator_category, dpl::random_access_iterator_tag>::value);
         });
     });
 }
-int
-main(int, char**)
-{
-    kernelTest();
-    std::cout << "Pass" << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return 0;
+int
+main()
+{
+#if TEST_DPCPP_BACKEND_PRESENT
+    kernelTest();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

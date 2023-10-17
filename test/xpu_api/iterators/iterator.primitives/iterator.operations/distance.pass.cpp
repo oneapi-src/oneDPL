@@ -16,48 +16,40 @@
 //   Iter::difference_type
 //   distance(Iter first, Iter last);
 
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
-#include "test_iterators.h"
-#include "test_macros.h"
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(iterator)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <iterator>
-namespace s = std;
-#endif
+#include <oneapi/dpl/iterator>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_iterators.h"
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class It>
 bool
 test(It first, It last, typename std::iterator_traits<It>::difference_type x)
 {
-    return (s::distance(first, last) == x);
+    return (dpl::distance(first, last) == x);
 }
 
-#if TEST_STD_VER > 14
 template <class It>
 constexpr bool
 constexpr_test(It first, It last, typename std::iterator_traits<It>::difference_type x)
 {
-    return s::distance(first, last) == x;
+    return dpl::distance(first, last) == x;
 }
-#endif
 
 bool
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = true;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = true;
     {
-        cl::sycl::range<1> numOfItems{1};
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        sycl::range<1> numOfItems{1};
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl_write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 {
@@ -71,36 +63,32 @@ kernel_test()
                     ret_access[0] &= test(s, s + 10, 10);
                 }
 
-#if TEST_STD_VER > 14
                 {
                     constexpr const char* s = "1234567890";
                     static_assert(
-                        constexpr_test(input_iterator<const char*>(s), input_iterator<const char*>(s + 10), 10), "");
+                        constexpr_test(input_iterator<const char*>(s), input_iterator<const char*>(s + 10), 10));
                     static_assert(
-                        constexpr_test(forward_iterator<const char*>(s), forward_iterator<const char*>(s + 10), 10),
-                        "");
+                        constexpr_test(forward_iterator<const char*>(s), forward_iterator<const char*>(s + 10), 10));
                     static_assert(constexpr_test(bidirectional_iterator<const char*>(s),
-                                                 bidirectional_iterator<const char*>(s + 10), 10),
-                                  "");
+                                                 bidirectional_iterator<const char*>(s + 10), 10));
                     static_assert(constexpr_test(random_access_iterator<const char*>(s),
-                                                 random_access_iterator<const char*>(s + 10), 10),
-                                  "");
-                    static_assert(constexpr_test(s, s + 10, 10), "");
+                                                 random_access_iterator<const char*>(s + 10), 10));
+                    static_assert(constexpr_test(s, s + 10, 10));
                 }
-#endif
             });
         });
     }
     return ret;
 }
-int
-main(int, char**)
-{
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
+int
+main()
+{
+#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
-    if (ret)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
-    return 0;
+    EXPECT_TRUE(ret, "Error in work with dpl::distance in kernel_test()");
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
