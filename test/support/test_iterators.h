@@ -20,6 +20,7 @@
 #include <cstddef>
 
 #define DELETE_FUNCTION = delete
+#define TEST_CONSTEXPR_CXX14 constexpr
 
 template <class It>
 class output_iterator
@@ -84,21 +85,21 @@ class input_iterator
     typedef typename ::std::iterator_traits<It>::pointer pointer;
     typedef typename ::std::iterator_traits<It>::reference reference;
 
-    It
+    TEST_CONSTEXPR_CXX14 It
     base() const
     {
         return it_;
     }
 
-    input_iterator() : it_() {}
-    explicit input_iterator(It it) : it_(it) {}
+    TEST_CONSTEXPR_CXX14 input_iterator() : it_() {}
+    explicit TEST_CONSTEXPR_CXX14 input_iterator(It it) : it_(it) {}
     template <class U>
-    input_iterator(const input_iterator<U>& u) : it_(u.it_)
+    TEST_CONSTEXPR_CXX14 input_iterator(const input_iterator<U>& u) : it_(u.it_)
     {
     }
 
-    reference operator*() const { return *it_; }
-    pointer operator->() const 
+    TEST_CONSTEXPR_CXX14 reference operator*() const { return *it_; }
+    TEST_CONSTEXPR_CXX14 pointer operator->() const 
     {
         if constexpr (::std::is_pointer_v<It>)
         {
@@ -110,13 +111,13 @@ class input_iterator
         }
     }
 
-    input_iterator&
+    TEST_CONSTEXPR_CXX14 input_iterator&
     operator++()
     {
         ++it_;
         return *this;
     }
-    input_iterator
+    TEST_CONSTEXPR_CXX14 input_iterator
     operator++(int)
     {
         input_iterator tmp(*this);
@@ -124,12 +125,12 @@ class input_iterator
         return tmp;
     }
 
-    friend bool
+    friend TEST_CONSTEXPR_CXX14 bool
     operator==(const input_iterator& x, const input_iterator& y)
     {
         return x.it_ == y.it_;
     }
-    friend bool
+    friend TEST_CONSTEXPR_CXX14 bool
     operator!=(const input_iterator& x, const input_iterator& y)
     {
         return !(x == y);
@@ -140,14 +141,14 @@ class input_iterator
 };
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator==(const input_iterator<T>& x, const input_iterator<U>& y)
 {
     return x.base() == y.base();
 }
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator!=(const input_iterator<T>& x, const input_iterator<U>& y)
 {
     return !(x == y);
@@ -488,7 +489,7 @@ base(output_iterator<Iter> i)
 }
 
 template <class Iter>
-inline Iter
+inline TEST_CONSTEXPR_CXX14 Iter
 base(input_iterator<Iter> i)
 {
     return i.base();
