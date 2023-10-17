@@ -253,21 +253,21 @@ class bidirectional_iterator
     typedef typename ::std::iterator_traits<It>::pointer pointer;
     typedef typename ::std::iterator_traits<It>::reference reference;
 
-    It
+    TEST_CONSTEXPR_CXX14 It
     base() const
     {
         return it_;
     }
 
-    bidirectional_iterator() : it_() {}
-    explicit bidirectional_iterator(It it) : it_(it) {}
+    TEST_CONSTEXPR_CXX14 bidirectional_iterator() : it_() {}
+    explicit TEST_CONSTEXPR_CXX14 bidirectional_iterator(It it) : it_(it) {}
     template <class U>
-    bidirectional_iterator(const bidirectional_iterator<U>& u) : it_(u.it_)
+    TEST_CONSTEXPR_CXX14 bidirectional_iterator(const bidirectional_iterator<U>& u) : it_(u.it_)
     {
     }
 
-    reference operator*() const { return *it_; }
-    pointer operator->() const 
+    TEST_CONSTEXPR_CXX14 reference operator*() const { return *it_; }
+    TEST_CONSTEXPR_CXX14 pointer operator->() const 
     {
         if constexpr (::std::is_pointer_v<It>)
         {
@@ -279,13 +279,13 @@ class bidirectional_iterator
         }
     }
 
-    bidirectional_iterator&
+    TEST_CONSTEXPR_CXX14 bidirectional_iterator&
     operator++()
     {
         ++it_;
         return *this;
     }
-    bidirectional_iterator
+    TEST_CONSTEXPR_CXX14 bidirectional_iterator
     operator++(int)
     {
         bidirectional_iterator tmp(*this);
@@ -293,13 +293,13 @@ class bidirectional_iterator
         return tmp;
     }
 
-    bidirectional_iterator&
+    TEST_CONSTEXPR_CXX14 bidirectional_iterator&
     operator--()
     {
         --it_;
         return *this;
     }
-    bidirectional_iterator
+    TEST_CONSTEXPR_CXX14 bidirectional_iterator
     operator--(int)
     {
         bidirectional_iterator tmp(*this);
@@ -307,19 +307,24 @@ class bidirectional_iterator
         return tmp;
     }
 
+    friend TEST_CONSTEXPR_CXX14 bool operator==(const bidirectional_iterator& x, const bidirectional_iterator& y)
+        {return x.it_ == y.it_;}
+    friend TEST_CONSTEXPR_CXX14 bool operator!=(const bidirectional_iterator& x, const bidirectional_iterator& y)
+        {return !(x == y);}
+
     template <class T>
     void operator,(T const &) DELETE_FUNCTION;
 };
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator==(const bidirectional_iterator<T>& x, const bidirectional_iterator<U>& y)
 {
     return x.base() == y.base();
 }
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator!=(const bidirectional_iterator<T>& x, const bidirectional_iterator<U>& y)
 {
     return !(x == y);
@@ -503,7 +508,7 @@ base(forward_iterator<Iter> i)
 }
 
 template <class Iter>
-inline Iter
+inline TEST_CONSTEXPR_CXX14 Iter
 base(bidirectional_iterator<Iter> i)
 {
     return i.base();
