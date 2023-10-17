@@ -169,21 +169,21 @@ class forward_iterator
     typedef typename ::std::iterator_traits<It>::pointer pointer;
     typedef typename ::std::iterator_traits<It>::reference reference;
 
-    It
+    TEST_CONSTEXPR_CXX14 It
     base() const
     {
         return it_;
     }
 
-    forward_iterator() : it_() {}
-    explicit forward_iterator(It it) : it_(it) {}
+    TEST_CONSTEXPR_CXX14 forward_iterator() : it_() {}
+    explicit TEST_CONSTEXPR_CXX14 forward_iterator(It it) : it_(it) {}
     template <class U>
-    forward_iterator(const forward_iterator<U>& u) : it_(u.it_)
+    TEST_CONSTEXPR_CXX14 forward_iterator(const forward_iterator<U>& u) : it_(u.it_)
     {
     }
 
-    reference operator*() const { return *it_; }
-    pointer operator->() const 
+    TEST_CONSTEXPR_CXX14 reference operator*() const { return *it_; }
+    TEST_CONSTEXPR_CXX14 pointer operator->() const 
     {
         if constexpr (::std::is_pointer_v<It>)
         {
@@ -195,13 +195,13 @@ class forward_iterator
         }
     }
 
-    forward_iterator&
+    TEST_CONSTEXPR_CXX14 forward_iterator&
     operator++()
     {
         ++it_;
         return *this;
     }
-    forward_iterator
+    TEST_CONSTEXPR_CXX14 forward_iterator
     operator++(int)
     {
         forward_iterator tmp(*this);
@@ -209,12 +209,12 @@ class forward_iterator
         return tmp;
     }
 
-    friend bool
+    friend TEST_CONSTEXPR_CXX14 bool
     operator==(const forward_iterator& x, const forward_iterator& y)
     {
         return x.it_ == y.it_;
     }
-    friend bool
+    friend TEST_CONSTEXPR_CXX14 bool
     operator!=(const forward_iterator& x, const forward_iterator& y)
     {
         return !(x == y);
@@ -225,14 +225,14 @@ class forward_iterator
 };
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator==(const forward_iterator<T>& x, const forward_iterator<U>& y)
 {
     return x.base() == y.base();
 }
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator!=(const forward_iterator<T>& x, const forward_iterator<U>& y)
 {
     return !(x == y);
@@ -496,7 +496,7 @@ base(input_iterator<Iter> i)
 }
 
 template <class Iter>
-inline Iter
+inline TEST_CONSTEXPR_CXX14 Iter
 base(forward_iterator<Iter> i)
 {
     return i.base();
