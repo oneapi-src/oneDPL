@@ -1,38 +1,47 @@
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(array)
-#    include _ONEAPI_STD_TEST_HEADER(iterator)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <array>
-#    include <type_traits>
-#    include <iterator>
-namespace s = std;
-#endif
+#include "support/test_config.h"
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
-constexpr cl::sycl::access::mode sycl_read_write = cl::sycl::access::mode::read_write;
+#include <oneapi/dpl/array>
+#include <oneapi/dpl/iterator>
+#include <oneapi/dpl/type_traits>
+
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+constexpr auto sycl_write = sycl::access::mode::write;
+constexpr auto sycl_read_write = sycl::access::mode::read_write;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = true;
     {
-        cl::sycl::queue deviceQueue;
-        cl::sycl::range<1> numOfItems{1};
-        cl::sycl::buffer<bool, 1> buf1(&ret, numOfItems);
+        sycl::queue deviceQueue = TestUtils::get_test_queue();
+        sycl::range<1> numOfItems{1};
+        sycl::buffer<bool, 1> buf1(&ret, numOfItems);
 
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_acc = buf1.get_access<sycl_read_write>(cgh);
 
             cgh.single_task<class KernelIteratorTest1>([=]() {
                 {
-                    typedef s::array<int, 5> C;
+                    typedef dpl::array<int, 5> C;
                     C c;
                     C::iterator i;
                     i = c.begin();
@@ -41,7 +50,7 @@ main(int, char**)
                     ret_acc[0] &= (i == j);
                 }
                 {
-                    typedef s::array<int, 0> C;
+                    typedef dpl::array<int, 0> C;
                     C c;
                     C::iterator i;
                     i = c.begin();
@@ -53,14 +62,8 @@ main(int, char**)
         });
     }
 
-    if (ret)
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    EXPECT_TRUE(ret, "Wrong result of work with dpl::array::begin / dpl::array::cbegin");
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

@@ -1,3 +1,18 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
 // <array>
 
 // reference front();       // constexpr in C++17
@@ -5,33 +20,27 @@
 // const_reference front(); // constexpr in C++14
 // const_reference back();  // constexpr in C++14
 
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(array)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <array>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/array>
+#include <oneapi/dpl/type_traits>
 
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
 bool
 kernel_test()
 {
-    cl::sycl::queue myQueue;
+    sycl::queue myQueue = TestUtils::get_test_queue();
     auto ret = true;
     {
-        cl::sycl::buffer<bool, 1> buf1(&ret, cl::sycl::range<1>(1));
-        myQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_access = buf1.get_access<cl::sycl::access::mode::read_write>(cgh);
+        sycl::buffer<bool, 1> buf1(&ret, sycl::range<1>(1));
+        myQueue.submit([&](sycl::handler& cgh) {
+            auto ret_access = buf1.get_access<sycl::access::mode::read_write>(cgh);
 
             cgh.single_task<class KernelFrontBackTest>([=]() {
                 typedef int T;
-                typedef s::array<T, 3> C;
+                typedef dpl::array<T, 3> C;
                 {
                     C c = {1, 2, 35};
 
@@ -57,14 +66,16 @@ kernel_test()
 
                     C c = {};
                     C const& cc = c;
-                    ret_access[0] &= (s::is_same<decltype(c.back()), typename C::reference>::value == true);
-                    ret_access[0] &= (s::is_same<decltype(cc.back()), typename C::const_reference>::value == true);
-                    (void)noexcept(c.back());
-                    (void)noexcept(cc.back());
-                    ret_access[0] &= (s::is_same<decltype(c.front()), typename C::reference>::value == true);
-                    ret_access[0] &= (s::is_same<decltype(cc.front()), typename C::const_reference>::value == true);
-                    (void)noexcept(c.back());
-                    (void)noexcept(cc.back());
+                    ret_access[0] &= (dpl::is_same<decltype(c.back()), typename C::reference>::value == true);
+                    ret_access[0] &=
+                        (dpl::is_same<decltype(cc.back()), typename C::const_reference>::value == true);
+                    (void) noexcept(c.back());
+                    (void) noexcept(cc.back());
+                    ret_access[0] &= (dpl::is_same<decltype(c.front()), typename C::reference>::value == true);
+                    ret_access[0] &=
+                        (dpl::is_same<decltype(cc.front()), typename C::const_reference>::value == true);
+                    (void) noexcept(c.back());
+                    (void) noexcept(cc.back());
                 }
                 {
                     constexpr C c = {1, 2, 35};
@@ -78,18 +89,15 @@ kernel_test()
     }
     return ret;
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
-    if (ret)
-    {
-        std::cout << "pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "fail" << std::endl;
-    }
-    return 0;
+    EXPECT_TRUE(ret, "Wrong result of work with dpl::array::front/dpl::array::back in kernel_test()");
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

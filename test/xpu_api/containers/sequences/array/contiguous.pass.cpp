@@ -1,50 +1,57 @@
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(array)
-#    include _ONEAPI_STD_TEST_HEADER(memory)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <array>
-namespace s = std;
-#endif
+#include "support/test_config.h"
 
+#include <oneapi/dpl/array>
+#include <oneapi/dpl/memory>
+
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
 void
 test_contiguous()
 {
     bool ret = true;
     {
-        cl::sycl::queue myQueue;
-        cl::sycl::buffer<bool, 1> buf(&ret, cl::sycl::range<1>(1));
+        sycl::queue myQueue = TestUtils::get_test_queue();
+        sycl::buffer<bool, 1> buf(&ret, sycl::range<1>(1));
 
-        myQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_acc = buf.get_access<cl::sycl::access::mode::read_write>(cgh);
+        myQueue.submit([&](sycl::handler& cgh) {
+            auto ret_acc = buf.get_access<sycl::access::mode::read_write>(cgh);
 
             cgh.single_task<class KernelContiguousTest>([=]() {
                 typedef float T;
-                typedef s::array<T, 3> C;
+                typedef dpl::array<T, 3> C;
                 C c = {1, 2, 3};
                 for (size_t i = 0; i < c.size(); ++i)
-                    ret_acc[0] &= (*(c.begin() + i) == *(s::addressof(*c.begin()) + i));
+                    ret_acc[0] &= (*(c.begin() + i) == *(dpl::addressof(*c.begin()) + i));
             });
         });
     }
 
-    if (ret)
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    EXPECT_TRUE(ret, "Wrong result of contiquous check");
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     test_contiguous();
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

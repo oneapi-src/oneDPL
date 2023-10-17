@@ -1,25 +1,29 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
 // <array>
-//
-// tuple_element<I, array<T, N> >::type
-//
-//===----------------------------------------------------------------------===//
+// tuple_element<I, array<T, N>>::type
 
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(array)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <array>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/array>
+#include <oneapi/dpl/type_traits>
 
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
 class KernelTest1;
 
 template <class T>
@@ -28,43 +32,45 @@ test()
 {
     {
         typedef T Exp;
-        typedef s::array<T, 3> C;
-        static_assert((s::is_same<typename s::tuple_element<0, C>::type, Exp>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<1, C>::type, Exp>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<2, C>::type, Exp>::value), "");
+        typedef dpl::array<T, 3> C;
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, C>::type, Exp>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, C>::type, Exp>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<2, C>::type, Exp>::value);
     }
     {
         typedef T const Exp;
-        typedef s::array<T, 3> const C;
-        static_assert((s::is_same<typename s::tuple_element<0, C>::type, Exp>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<1, C>::type, Exp>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<2, C>::type, Exp>::value), "");
+        typedef dpl::array<T, 3> const C;
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, C>::type, Exp>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, C>::type, Exp>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<2, C>::type, Exp>::value);
     }
     {
         typedef T volatile Exp;
-        typedef s::array<T, 3> volatile C;
-        static_assert((s::is_same<typename s::tuple_element<0, C>::type, Exp>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<1, C>::type, Exp>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<2, C>::type, Exp>::value), "");
+        typedef dpl::array<T, 3> volatile C;
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, C>::type, Exp>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, C>::type, Exp>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<2, C>::type, Exp>::value);
     }
     {
         typedef T const volatile Exp;
-        typedef s::array<T, 3> const volatile C;
-        static_assert((s::is_same<typename s::tuple_element<0, C>::type, Exp>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<1, C>::type, Exp>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<2, C>::type, Exp>::value), "");
+        typedef dpl::array<T, 3> const volatile C;
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, C>::type, Exp>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, C>::type, Exp>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<2, C>::type, Exp>::value);
     }
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = false;
     {
-        cl::sycl::buffer<bool, 1> buf(&ret, cl::sycl::range<1>{1});
-        cl::sycl::queue q;
-        q.submit([&](cl::sycl::handler& cgh) {
-            auto ret_acc = buf.get_access<cl::sycl::access::mode::write>(cgh);
+        sycl::buffer<bool, 1> buf(&ret, sycl::range<1>{1});
+        sycl::queue q = TestUtils::get_test_queue();
+        q.submit([&](sycl::handler& cgh) {
+            auto ret_acc = buf.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<KernelTest1>([=]() {
                 test<float>();
                 test<int>();
@@ -73,11 +79,8 @@ main(int, char**)
         });
     }
 
-    if (ret)
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-        std::cout << "Fail" << std::endl;
-    return 0;
+    EXPECT_TRUE(ret, "Wrong result of work with dpl::tuple_element");
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

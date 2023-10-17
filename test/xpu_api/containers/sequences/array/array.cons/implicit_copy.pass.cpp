@@ -1,97 +1,104 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
 // <array>
-//
 // implicitly generated array constructors / assignment operators
-//
-//===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(array)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <array>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/array>
+#include <oneapi/dpl/type_traits>
 
-#define TEST_NOT_COPY_ASSIGNABLE(T) static_assert(!s::is_copy_assignable<T>::value, "")
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+#    define TEST_NOT_COPY_ASSIGNABLE(T) static_assert(!dpl::is_copy_assignable<T>::value)
 
 struct NoDefault
 {
     NoDefault() {}
     NoDefault(int) {}
 };
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     {
-        cl::sycl::queue q;
-        q.submit([&](cl::sycl::handler& cgh) {
+        sycl::queue q = TestUtils::get_test_queue();
+        q.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest1>([=]() {
                 {
                     typedef float T;
-                    typedef s::array<T, 3> C;
+                    typedef dpl::array<T, 3> C;
                     C c = {1.1f, 2.2f, 3.3f};
                     C c2 = c;
                     c2 = c;
-                    static_assert(s::is_copy_constructible<C>::value, "");
-                    static_assert(s::is_copy_assignable<C>::value, "");
+                    static_assert(dpl::is_copy_constructible<C>::value);
+                    static_assert(dpl::is_copy_assignable<C>::value);
                 }
                 {
                     typedef float T;
-                    typedef s::array<const T, 3> C;
+                    typedef dpl::array<const T, 3> C;
                     C c = {1.1f, 2.2f, 3.3f};
                     C c2 = c;
                     ((void)c2);
-                    static_assert(s::is_copy_constructible<C>::value, "");
+                    static_assert(dpl::is_copy_constructible<C>::value);
                     TEST_NOT_COPY_ASSIGNABLE(C);
                 }
                 {
                     typedef float T;
-                    typedef s::array<T, 0> C;
+                    typedef dpl::array<T, 0> C;
                     C c = {};
                     C c2 = c;
                     c2 = c;
-                    static_assert(s::is_copy_constructible<C>::value, "");
-                    static_assert(s::is_copy_assignable<C>::value, "");
+                    static_assert(dpl::is_copy_constructible<C>::value);
+                    static_assert(dpl::is_copy_assignable<C>::value);
                 }
                 {
                     // const arrays of size 0 should disable the implicit copy assignment
                     // operator.
                     typedef float T;
-                    typedef s::array<const T, 0> C;
+                    typedef dpl::array<const T, 0> C;
                     const C c = {{}};
                     C c2 = c;
                     ((void)c2);
-                    static_assert(s::is_copy_constructible<C>::value, "");
+                    static_assert(dpl::is_copy_constructible<C>::value);
                 }
                 {
                     typedef NoDefault T;
-                    typedef s::array<T, 0> C;
+                    typedef dpl::array<T, 0> C;
                     C c = {};
                     C c2 = c;
                     c2 = c;
-                    static_assert(s::is_copy_constructible<C>::value, "");
-                    static_assert(s::is_copy_assignable<C>::value, "");
+                    static_assert(dpl::is_copy_constructible<C>::value);
+                    static_assert(dpl::is_copy_assignable<C>::value);
                 }
                 {
                     typedef NoDefault T;
-                    typedef s::array<const T, 0> C;
+                    typedef dpl::array<const T, 0> C;
                     C c = {{}};
                     C c2 = c;
                     ((void)c2);
-                    static_assert(s::is_copy_constructible<C>::value, "");
+                    static_assert(dpl::is_copy_constructible<C>::value);
                 }
             });
         });
-        std::cout << "Pass" << std::endl;
     }
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

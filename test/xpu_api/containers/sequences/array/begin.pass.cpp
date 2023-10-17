@@ -1,30 +1,40 @@
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(array)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <array>
-namespace s = std;
-#endif
+#include "support/test_config.h"
+
+#include <oneapi/dpl/array>
+
+#include "support/utils.h"
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     {
         auto ret = true;
         {
-            cl::sycl::queue myQueue;
-            cl::sycl::buffer<bool, 1> buf1(&ret, cl::sycl::range<1>(1));
+            sycl::queue myQueue = TestUtils::get_test_queue();
+            sycl::buffer<bool, 1> buf1(&ret, sycl::range<1>(1));
 
-            myQueue.submit([&](cl::sycl::handler& cgh) {
-                auto ret_access = buf1.get_access<cl::sycl::access::mode::read_write>(cgh);
+            myQueue.submit([&](sycl::handler& cgh) {
+                auto ret_access = buf1.get_access<sycl::access::mode::read_write>(cgh);
 
                 cgh.single_task<class KernelBeginTest>([=]() {
                     typedef int T;
-                    typedef s::array<T, 3> C;
+                    typedef dpl::array<T, 3> C;
                     C c = {1, 2, 35};
                     C::iterator i;
                     i = c.begin();
@@ -36,14 +46,9 @@ main(int, char**)
             });
         }
 
-        if (ret)
-        {
-            std::cout << "Pass" << std::endl;
-        }
-        else
-        {
-            std::cout << "Fail" << std::endl;
-        }
+        EXPECT_TRUE(ret, "Wrong result of work with dpl::array::begin");
     }
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
