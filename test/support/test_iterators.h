@@ -345,21 +345,21 @@ class random_access_iterator
     typedef typename ::std::iterator_traits<It>::pointer pointer;
     typedef typename ::std::iterator_traits<It>::reference reference;
 
-    It
+    TEST_CONSTEXPR_CXX14 It
     base() const
     {
         return it_;
     }
 
-    random_access_iterator() : it_() {}
-    explicit random_access_iterator(It it) : it_(it) {}
+    TEST_CONSTEXPR_CXX14 random_access_iterator() : it_() {}
+    explicit TEST_CONSTEXPR_CXX14 random_access_iterator(It it) : it_(it) {}
     template <class U>
-    random_access_iterator(const random_access_iterator<U>& u) : it_(u.it_)
+    TEST_CONSTEXPR_CXX14 random_access_iterator(const random_access_iterator<U>& u) : it_(u.it_)
     {
     }
 
-    reference operator*() const { return *it_; }
-    pointer operator->() const 
+    TEST_CONSTEXPR_CXX14 reference operator*() const { return *it_; }
+    TEST_CONSTEXPR_CXX14 pointer operator->() const 
     {
         if constexpr (::std::is_pointer_v<It>)
         {
@@ -371,13 +371,13 @@ class random_access_iterator
         }
     }
 
-    random_access_iterator&
+    TEST_CONSTEXPR_CXX14 random_access_iterator&
     operator++()
     {
         ++it_;
         return *this;
     }
-    random_access_iterator
+    TEST_CONSTEXPR_CXX14 random_access_iterator
     operator++(int)
     {
         random_access_iterator tmp(*this);
@@ -385,13 +385,13 @@ class random_access_iterator
         return tmp;
     }
 
-    random_access_iterator&
+    TEST_CONSTEXPR_CXX14 random_access_iterator&
     operator--()
     {
         --it_;
         return *this;
     }
-    random_access_iterator
+    TEST_CONSTEXPR_CXX14 random_access_iterator
     operator--(int)
     {
         random_access_iterator tmp(*this);
@@ -399,31 +399,31 @@ class random_access_iterator
         return tmp;
     }
 
-    random_access_iterator&
+    TEST_CONSTEXPR_CXX14 random_access_iterator&
     operator+=(difference_type n)
     {
         it_ += n;
         return *this;
     }
-    random_access_iterator
+    TEST_CONSTEXPR_CXX14 random_access_iterator
     operator+(difference_type n) const
     {
         random_access_iterator tmp(*this);
         tmp += n;
         return tmp;
     }
-    friend random_access_iterator
+    friend TEST_CONSTEXPR_CXX14 random_access_iterator
     operator+(difference_type n, random_access_iterator x)
     {
         x += n;
         return x;
     }
-    random_access_iterator&
+    TEST_CONSTEXPR_CXX14 random_access_iterator&
     operator-=(difference_type n)
     {
         return *this += -n;
     }
-    random_access_iterator
+    TEST_CONSTEXPR_CXX14 random_access_iterator
     operator-(difference_type n) const
     {
         random_access_iterator tmp(*this);
@@ -431,56 +431,56 @@ class random_access_iterator
         return tmp;
     }
 
-    reference operator[](difference_type n) const { return it_[n]; }
+    TEST_CONSTEXPR_CXX14 reference operator[](difference_type n) const { return it_[n]; }
 
     template <class T>
     void operator,(T const &) DELETE_FUNCTION;
 };
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator==(const random_access_iterator<T>& x, const random_access_iterator<U>& y)
 {
     return x.base() == y.base();
 }
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator!=(const random_access_iterator<T>& x, const random_access_iterator<U>& y)
 {
     return !(x == y);
 }
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator<(const random_access_iterator<T>& x, const random_access_iterator<U>& y)
 {
     return x.base() < y.base();
 }
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator<=(const random_access_iterator<T>& x, const random_access_iterator<U>& y)
 {
     return !(y < x);
 }
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator>(const random_access_iterator<T>& x, const random_access_iterator<U>& y)
 {
     return y < x;
 }
 
 template <class T, class U>
-inline bool
+inline bool TEST_CONSTEXPR_CXX14
 operator>=(const random_access_iterator<T>& x, const random_access_iterator<U>& y)
 {
     return !(x < y);
 }
 
 template <class T, class U>
-inline typename ::std::iterator_traits<T>::difference_type
+inline typename ::std::iterator_traits<T>::difference_type TEST_CONSTEXPR_CXX14
 operator-(const random_access_iterator<T>& x, const random_access_iterator<U>& y)
 {
     return x.base() - y.base();
@@ -515,7 +515,7 @@ base(bidirectional_iterator<Iter> i)
 }
 
 template <class Iter>
-inline Iter
+inline TEST_CONSTEXPR_CXX14 Iter
 base(random_access_iterator<Iter> i)
 {
     return i.base();
