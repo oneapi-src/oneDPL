@@ -487,7 +487,7 @@ operator-(const random_access_iterator<T>& x, const random_access_iterator<U>& y
 }
 
 template <class Iter>
-inline Iter
+inline TEST_CONSTEXPR_CXX14 Iter
 base(output_iterator<Iter> i)
 {
     return i.base();
