@@ -522,7 +522,7 @@ base(random_access_iterator<Iter> i)
 }
 
 template <class Iter> // everything else
-inline Iter
+inline TEST_CONSTEXPR_CXX14 Iter
 base(Iter i)
 {
     return i;
