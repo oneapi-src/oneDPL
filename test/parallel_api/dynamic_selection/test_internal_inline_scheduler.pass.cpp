@@ -33,7 +33,6 @@ test_cout()
 {
     TestUtils::int_inline_backend_t s;
     TestUtils::int_inline_backend_t::execution_resource_t e;
-    //  std::cout << e;
     return 0;
 }
 
