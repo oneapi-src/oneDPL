@@ -237,26 +237,26 @@ struct reduce_over_group
     _BinaryOperation1 __bin_op1;
 
     // Reduce on local memory with subgroups
-    template <typename _NDItemId, typename _Size, typename _AccLocal>
-    _Tp
-    reduce_impl(const _NDItemId __item_id, const _Size __n, const _AccLocal& __local_mem,
-                std::true_type /*has_known_identity*/) const
-    {
-        auto __local_idx = __item_id.get_local_id(0);
-        auto __global_idx = __item_id.get_global_id(0);
-        if (__global_idx >= __n)
-        {
-            // Fill the rest of local buffer with init elements so each of inclusive_scan method could correctly work
-            // for each work-item in sub-group
-            __local_mem[__local_idx] = __known_identity<_BinaryOperation1, _Tp>;
-        }
-        return __dpl_sycl::__reduce_over_group(__item_id.get_group(), __local_mem[__local_idx], __bin_op1);
-    }
+    //template <typename _NDItemId, typename _Size, typename _AccLocal>
+    //_Tp
+    //reduce_impl(const _NDItemId __item_id, const _Size __n, const _AccLocal& __local_mem,
+    //            std::true_type /*has_known_identity*/) const
+    //{
+    //    auto __local_idx = __item_id.get_local_id(0);
+    //    auto __global_idx = __item_id.get_global_id(0);
+    //    if (__global_idx >= __n)
+    //    {
+    //        // Fill the rest of local buffer with init elements so each of inclusive_scan method could correctly work
+    //        // for each work-item in sub-group
+    //        __local_mem[__local_idx] = __known_identity<_BinaryOperation1, _Tp>;
+    //    }
+    //    return __dpl_sycl::__reduce_over_group(__item_id.get_group(), __local_mem[__local_idx], __bin_op1);
+    //}
 
-    template <typename _NDItemId, typename _Size, typename _AccLocal>
+    template <typename _NDItemId, typename _Size, typename _AccLocal, typename TFlagType>
     _Tp
     reduce_impl(const _NDItemId __item_id, const _Size __n, const _AccLocal& __local_mem,
-                std::false_type /*has_known_identity*/) const
+                TFlagType /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
         auto __global_idx = __item_id.get_global_id(0);
