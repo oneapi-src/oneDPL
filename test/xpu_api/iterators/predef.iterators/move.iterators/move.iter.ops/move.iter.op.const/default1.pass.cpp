@@ -17,7 +17,7 @@
 
 // move_iterator
 
-// pointer operator->() const;
+// move_iterator();
 //
 //  constexpr in C++17
 
@@ -26,6 +26,7 @@
 #include <oneapi/dpl/iterator>
 #include <oneapi/dpl/type_traits>
 
+#include "support/test_iterators.h"
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -33,40 +34,33 @@ constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
 constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <class It>
-bool
-test(It i)
+void
+test()
 {
-    dpl::move_iterator<It> r(i);
-    return (r.operator->() == i);
+    dpl::move_iterator<It> r;
+    (void)r;
 }
 
-bool
+void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    bool ret = true;
     {
-        sycl::range<1> numOfItems{1};
-        sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
-                char s[] = "123";
-                ret_access[0] &= test(s);
-
+                test<input_iterator<char*>>();
+                test<forward_iterator<char*>>();
+                test<bidirectional_iterator<char*>>();
+                test<random_access_iterator<char*>>();
+                test<char*>();
 
                 {
-                    constexpr const char* p = "123456789";
-                    typedef dpl::move_iterator<const char*> MI;
-                    constexpr MI it1 = dpl::make_move_iterator(p);
-                    constexpr MI it2 = dpl::make_move_iterator(p + 1);
-                    static_assert(it1.operator->() == p);
-                    static_assert(it2.operator->() == p + 1);
+                    constexpr dpl::move_iterator<const char*> it;
+                    (void)it;
                 }
             });
         });
     }
-    return ret;
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -74,8 +68,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    auto ret = kernel_test();
-    EXPECT_TRUE(ret, "Wrong result of move_iterator and operator->(...) in kernel_test()");
+    kernel_test();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

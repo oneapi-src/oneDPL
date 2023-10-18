@@ -17,8 +17,6 @@
 
 #include <oneapi/dpl/algorithm>
 
-#include <iostream>
-
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT

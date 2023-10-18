@@ -1,8 +1,15 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -31,26 +38,18 @@
 //
 //  All of these are constexpr in C++17
 
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include "test_macros.h"
-#include <iostream>
-#include <initializer_list>
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(iterator)
-#    include _ONEAPI_STD_TEST_HEADER(array)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <iterator>
-#    include <array>
-namespace s = std;
-#endif
-// std::array is explicitly allowed to be initialized with A a = { init-list };.
-// Disable the missing braces warning for this reason.
-#include "disable_missing_braces_warning.h"
+#include "support/test_config.h"
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include <oneapi/dpl/iterator>
+#include <oneapi/dpl/array>
+
+#include <initializer_list>
+
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
 
 template <typename C>
 class ConstContainerTest1;
@@ -63,30 +62,29 @@ template <typename C>
 bool
 test_const_container(const C& c, typename C::value_type val)
 {
-    cl::sycl::queue q;
+    sycl::queue q;
     auto ret = true;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<C, 1> buffer1(&c, numOfItems);
-    cl::sycl::buffer<bool, 1> buffer2(&ret, numOfItems);
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<C, 1> buffer1(&c, numOfItems);
+    sycl::buffer<bool, 1> buffer2(&ret, numOfItems);
+    q.submit([&](sycl::handler& cgh) {
         auto c_access = buffer1.template get_access<sycl_write>(cgh);
         auto ret_access = buffer2.template get_access<sycl_write>(cgh);
         cgh.single_task<ConstContainerTest1<C>>([=]() {
-            ret_access[0] &= (s::begin(c_access[0]) == c_access[0].begin());
-            ret_access[0] &= (*s::begin(c_access[0]) == val);
-            ret_access[0] &= (s::begin(c_access[0]) != c_access[0].end());
-            ret_access[0] &= (s::end(c_access[0]) == c_access[0].end());
-#if TEST_STD_VER > 11
-            ret_access[0] &= (s::cbegin(c_access[0]) == c_access[0].cbegin());
-            ret_access[0] &= (s::cbegin(c_access[0]) != c_access[0].cend());
-            ret_access[0] &= (s::cend(c_access[0]) == c_access[0].cend());
-            ret_access[0] &= (s::rbegin(c_access[0]) == c_access[0].rbegin());
-            ret_access[0] &= (s::rbegin(c_access[0]) != c_access[0].rend());
-            ret_access[0] &= (s::rend(c_access[0]) == c_access[0].rend());
-            ret_access[0] &= (s::crbegin(c_access[0]) == c_access[0].crbegin());
-            ret_access[0] &= (s::crbegin(c_access[0]) != c_access[0].crend());
-            ret_access[0] &= (s::crend(c_access[0]) == c_access[0].crend());
-#endif
+            ret_access[0] &= (dpl::begin(c_access[0]) == c_access[0].begin());
+            ret_access[0] &= (*dpl::begin(c_access[0]) == val);
+            ret_access[0] &= (dpl::begin(c_access[0]) != c_access[0].end());
+            ret_access[0] &= (dpl::end(c_access[0]) == c_access[0].end());
+
+            ret_access[0] &= (dpl::cbegin(c_access[0]) == c_access[0].cbegin());
+            ret_access[0] &= (dpl::cbegin(c_access[0]) != c_access[0].cend());
+            ret_access[0] &= (dpl::cend(c_access[0]) == c_access[0].cend());
+            ret_access[0] &= (dpl::rbegin(c_access[0]) == c_access[0].rbegin());
+            ret_access[0] &= (dpl::rbegin(c_access[0]) != c_access[0].rend());
+            ret_access[0] &= (dpl::rend(c_access[0]) == c_access[0].rend());
+            ret_access[0] &= (dpl::crbegin(c_access[0]) == c_access[0].crbegin());
+            ret_access[0] &= (dpl::crbegin(c_access[0]) != c_access[0].crend());
+            ret_access[0] &= (dpl::crend(c_access[0]) == c_access[0].crend());
         });
     });
     return ret;
@@ -95,19 +93,19 @@ test_const_container(const C& c, typename C::value_type val)
 bool
 test_initializer_list()
 {
-    cl::sycl::queue q;
+    sycl::queue q;
     auto ret = true;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+    q.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.template get_access<sycl_write>(cgh);
         cgh.single_task<class KernelTest1>([=]() {
             {
                 std::initializer_list<int> il = {4};
-                ret_access[0] &= (s::begin(il) == il.begin());
-                ret_access[0] &= (*s::begin(il) == 4);
-                ret_access[0] &= (s::begin(il) != il.end());
-                ret_access[0] &= (s::end(il) == il.end());
+                ret_access[0] &= (dpl::begin(il) == il.begin());
+                ret_access[0] &= (*dpl::begin(il) == 4);
+                ret_access[0] &= (dpl::begin(il) != il.end());
+                ret_access[0] &= (dpl::end(il) == il.end());
             }
         });
     });
@@ -118,30 +116,29 @@ template <typename C>
 bool
 test_container(C& c, typename C::value_type val)
 {
-    cl::sycl::queue q;
+    sycl::queue q;
     auto ret = true;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<C, 1> buffer1(&c, numOfItems);
-    cl::sycl::buffer<bool, 1> buffer2(&ret, numOfItems);
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<C, 1> buffer1(&c, numOfItems);
+    sycl::buffer<bool, 1> buffer2(&ret, numOfItems);
+    q.submit([&](sycl::handler& cgh) {
         auto c_access = buffer1.template get_access<sycl_write>(cgh);
         auto ret_access = buffer2.template get_access<sycl_write>(cgh);
         cgh.single_task<ContainerTest1<C>>([=]() {
-            ret_access[0] &= (s::begin(c_access[0]) == c_access[0].begin());
-            ret_access[0] &= (*s::begin(c_access[0]) == val);
-            ret_access[0] &= (s::begin(c_access[0]) != c_access[0].end());
-            ret_access[0] &= (s::end(c_access[0]) == c_access[0].end());
-#if TEST_STD_VER > 11
-            ret_access[0] &= (s::cbegin(c_access[0]) == c_access[0].cbegin());
-            ret_access[0] &= (s::cbegin(c_access[0]) != c_access[0].cend());
-            ret_access[0] &= (s::cend(c_access[0]) == c_access[0].cend());
-            ret_access[0] &= (s::rbegin(c_access[0]) == c_access[0].rbegin());
-            ret_access[0] &= (s::rbegin(c_access[0]) != c_access[0].rend());
-            ret_access[0] &= (s::rend(c_access[0]) == c_access[0].rend());
-            ret_access[0] &= (s::crbegin(c_access[0]) == c_access[0].crbegin());
-            ret_access[0] &= (s::crbegin(c_access[0]) != c_access[0].crend());
-            ret_access[0] &= (s::crend(c_access[0]) == c_access[0].crend());
-#endif
+            ret_access[0] &= (dpl::begin(c_access[0]) == c_access[0].begin());
+            ret_access[0] &= (*dpl::begin(c_access[0]) == val);
+            ret_access[0] &= (dpl::begin(c_access[0]) != c_access[0].end());
+            ret_access[0] &= (dpl::end(c_access[0]) == c_access[0].end());
+
+            ret_access[0] &= (dpl::cbegin(c_access[0]) == c_access[0].cbegin());
+            ret_access[0] &= (dpl::cbegin(c_access[0]) != c_access[0].cend());
+            ret_access[0] &= (dpl::cend(c_access[0]) == c_access[0].cend());
+            ret_access[0] &= (dpl::rbegin(c_access[0]) == c_access[0].rbegin());
+            ret_access[0] &= (dpl::rbegin(c_access[0]) != c_access[0].rend());
+            ret_access[0] &= (dpl::rend(c_access[0]) == c_access[0].rend());
+            ret_access[0] &= (dpl::crbegin(c_access[0]) == c_access[0].crbegin());
+            ret_access[0] &= (dpl::crbegin(c_access[0]) != c_access[0].crend());
+            ret_access[0] &= (dpl::crend(c_access[0]) == c_access[0].crend());
         });
     });
     return ret;
@@ -150,54 +147,54 @@ test_container(C& c, typename C::value_type val)
 void
 kernel_test()
 {
-    cl::sycl::queue q;
-    q.submit([&](cl::sycl::handler& cgh) {
+    sycl::queue q;
+    q.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest>([=]() {
-#if TEST_STD_VER > 14
             {
                 typedef std::array<int, 5> C;
                 constexpr const C c{0, 1, 2, 3, 4};
 
-                static_assert(c.begin() == s::begin(c), "");
-                static_assert(c.cbegin() == s::cbegin(c), "");
-                static_assert(c.end() == s::end(c), "");
-                static_assert(c.cend() == s::cend(c), "");
+                static_assert(c.begin() == dpl::begin(c));
+                static_assert(c.cbegin() == dpl::cbegin(c));
+                static_assert(c.end() == dpl::end(c));
+                static_assert(c.cend() == dpl::cend(c));
 
-                static_assert(c.rbegin() == s::rbegin(c), "");
-                static_assert(c.crbegin() == s::crbegin(c), "");
-                static_assert(c.rend() == s::rend(c), "");
-                static_assert(c.crend() == s::crend(c), "");
+                static_assert(c.rbegin() == dpl::rbegin(c));
+                static_assert(c.crbegin() == dpl::crbegin(c));
+                static_assert(c.rend() == dpl::rend(c));
+                static_assert(c.crend() == dpl::crend(c));
 
-                static_assert(s::begin(c) != s::end(c), "");
-                static_assert(s::rbegin(c) != s::rend(c), "");
-                static_assert(s::cbegin(c) != s::cend(c), "");
-                static_assert(s::crbegin(c) != s::crend(c), "");
+                static_assert(dpl::begin(c) != dpl::end(c));
+                static_assert(dpl::rbegin(c) != dpl::rend(c));
+                static_assert(dpl::cbegin(c) != dpl::cend(c));
+                static_assert(dpl::crbegin(c) != dpl::crend(c));
 
-                static_assert(*c.begin() == 0, "");
-                static_assert(*c.rbegin() == 4, "");
+                static_assert(*c.begin() == 0);
+                static_assert(*c.rbegin() == 4);
 
-                static_assert(*s::begin(c) == 0, "");
-                static_assert(*s::cbegin(c) == 0, "");
-                static_assert(*s::rbegin(c) == 4, "");
-                static_assert(*s::crbegin(c) == 4, "");
+                static_assert(*dpl::begin(c) == 0);
+                static_assert(*dpl::cbegin(c) == 0);
+                static_assert(*dpl::rbegin(c) == 4);
+                static_assert(*dpl::crbegin(c) == 4);
             }
 
             {
                 static constexpr const int c[] = {0, 1, 2, 3, 4};
 
-                static_assert(*s::begin(c) == 0, "");
-                static_assert(*s::cbegin(c) == 0, "");
-                static_assert(*s::rbegin(c) == 4, "");
-                static_assert(*s::crbegin(c) == 4, "");
+                static_assert(*dpl::begin(c) == 0);
+                static_assert(*dpl::cbegin(c) == 0);
+                static_assert(*dpl::rbegin(c) == 4);
+                static_assert(*dpl::crbegin(c) == 4);
             }
-#endif
         });
     });
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     std::array<int, 1> a;
     a[0] = 3;
 
@@ -206,6 +203,9 @@ main(int, char**)
     ret &= test_initializer_list();
 
     kernel_test();
-    std::cout << "Pass" << std::endl;
-    return 0;
+
+    EXPECT_TRUE(ret, "Wrong result of dpl::begin / dpl::end in test_container, test_const_container or test_initializer_list");
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
