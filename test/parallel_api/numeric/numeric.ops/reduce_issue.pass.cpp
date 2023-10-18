@@ -19,6 +19,9 @@
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/numeric>
 
+// to check __has_known_identity
+#include <oneapi/dpl/pstl/hetero/dpcpp/unseq_backend_sycl.h>
+
 #include "support/utils.h"
 
 #include <cstdint>
@@ -35,9 +38,15 @@ main(int argc, const char* argv[])
     const std::string& driver_version = d.get_info<sycl::info::device::driver_version>();
 
     std::cout << "Device " << name << " [" << driver_version << "]" << std::endl;
+    std::cout << "_USE_GROUP_ALGOS = " << _USE_GROUP_ALGOS << std::endl;
+    std::cout << "_ONEDPL_SYCL_INTEL_COMPILER = " << _ONEDPL_SYCL_INTEL_COMPILER << std::endl;
+    std::cout << "_ONEDPL_SYCL2020_COLLECTIVES_PRESENT = " << _ONEDPL_SYCL2020_COLLECTIVES_PRESENT << std::endl;
 
     constexpr size_t N = 6;
     using T = std::int64_t;
+
+    using __has_known_identity_t = typename oneapi::dpl::unseq_backend::__has_known_identity<std::multiplies<T>, T>::type;
+    std::cout << "__has_known_identity_t = " << __has_known_identity_t{} << std::endl;
 
     T* data = sycl::malloc_shared<T>(N + 1, q);
 
