@@ -181,6 +181,9 @@ make_iter_mode(const _Iterator& __it) -> decltype(iter_mode<outMode>()(__it))
 // set of class templates to name kernels
 
 template <typename... _Name>
+class __parallel_for_kernel;
+
+template <typename... _Name>
 class __scan_local_kernel;
 
 template <typename... _Name>
@@ -265,8 +268,9 @@ __parallel_for(oneapi::dpl::__internal::__device_backend, _ExecutionPolicy&& __e
 
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using _CustomName = typename _Policy::kernel_name;
-    using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_for_kernel, _CustomName,
-                                                                                    _Fp, _Ranges...>;
+    using _ForKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__parallel_for_kernel, _CustomName, _Fp,
+                                                                               _Ranges...>;
 
     _PRINT_INFO_IN_DEBUG_MODE(__exec);
     auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
