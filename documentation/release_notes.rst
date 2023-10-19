@@ -20,9 +20,9 @@ New Features
 - ``unseq`` and ``par_unseq`` policies now enable vectorization also for Intel oneAPI DPC++/C++ Compiler.
 - Added support for passing zip iterators as segment value data in ``reduce_by_segment``, ``exclusive_scan_by_segment``,
   and ``inclusive_scan_by_segment``.
-- Improved performance of ``merge``, ``sort``, ``stable_sort``, and ``sort_by_key`` algorithms on GPU devices.
-- Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
-  ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
+- Improved performance of the ``merge``, ``sort``, ``stable_sort``, ``sort_by_key``,
+  ``reduce``, ``min_element``, ``max_element``, ``minmax_element``, ``is_partitioned``, and
+  ``lexicographical_compare`` algorithms with DPC++ execution policies.
 
 Fixed Issues
 ------------
@@ -33,8 +33,8 @@ Known Issues and Limitations
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
 - When compiled with ``-fsycl-pstl-offload`` option of Intel oneAPI DPC++/C++ compiler and with
-  libstdc++ version 8 or libc++, ``oneapi::dpl::execution::par_unseq`` behaves similar to
-  ``std::execution::par_unseq``, offloading standard parallel algorithms to the SYCL device
+  ``libstdc++`` version 8 or ``libc++``, ``oneapi::dpl::execution::par_unseq`` offloads
+  standard parallel algorithms to the SYCL device similarly to ``std::execution::par_unseq``
   in accordance with the ``-fsycl-pstl-offload`` option value.
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
 - Incorrect results may be produced by ``set_intersection`` with a DPC++ execution policy,
