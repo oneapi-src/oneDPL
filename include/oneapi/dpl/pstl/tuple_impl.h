@@ -341,8 +341,8 @@ struct tuple<T1, T...>
     template <typename _U1, typename... _U,
               typename = ::std::enable_if_t<
                   (sizeof...(_U) == sizeof...(T) &&
-                   oneapi::dpl::__internal::__conjunction<::std::is_constructible<T1, _U1&&>,
-                                                          ::std::is_constructible<T, _U&&>...>::value)>>
+                   std::conjunction<::std::is_constructible<T1, _U1&&>,
+                                    ::std::is_constructible<T, _U&&>...>::value)>>
     tuple(_U1&& _value, _U&&... _next) : holder(::std::forward<_U1>(_value)), next(::std::forward<_U>(_next)...)
     {
     }

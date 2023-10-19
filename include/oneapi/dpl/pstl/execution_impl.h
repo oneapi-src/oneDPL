@@ -134,8 +134,8 @@ __is_parallelization_preferred(_ExecutionPolicy& __exec)
 template <class _Policy, class... _IteratorTypes>
 struct __vectorable_tag
 {
-    using __is_vector = __conjunction<__allow_unsequenced<_Policy>,
-                                      typename __internal::__is_random_access_iterator<_IteratorTypes...>>;
+    using __is_vector = std::conjunction<__allow_unsequenced<_Policy>,
+                                         typename __internal::__is_random_access_iterator<_IteratorTypes...>>;
 };
 
 template <class _Policy, class... _IteratorTypes>
