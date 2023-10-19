@@ -44,7 +44,14 @@ __get_offload_device()
 #elif __SYCL_PSTL_OFFLOAD__ == 2
     return sycl::device{sycl::cpu_selector_v};
 #elif __SYCL_PSTL_OFFLOAD__ == 3
-    return sycl::device{sycl::gpu_selector_v};
+    sycl::device __gpu_device{sycl::gpu_selector_v};
+
+    if (__gpu_device.get_info<sycl::info::device::partition_max_sub_devices>() != 0) {
+        using __param_type = sycl::info::partition_property::partition_by_affinity_domain;
+        auto __subdevices = __gpu_device.create_sub_devices<__param_type>(sycl::info::partition_affinity_domain::numa);
+        return __subdevices[0];
+    }
+    return __gpu_device;
 #else
 #    error "PSTL offload is not enabled or the selected value is unsupported"
 #endif
