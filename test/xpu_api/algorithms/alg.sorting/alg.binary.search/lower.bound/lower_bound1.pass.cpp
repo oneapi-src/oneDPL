@@ -30,7 +30,6 @@
 #include "support/sycl_alloc_utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr auto sycl_write = sycl::access::mode::write;
 
 template <class Iter, class T>
 bool
@@ -78,7 +77,7 @@ kernel_test()
 
     deviceQueue.submit([&](sycl::handler& cgh) {
         int* device_vbuf = dt_helper.get_data();
-        auto ret_access = buffer1.get_access<sycl_write>(cgh);
+        auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<KC>([=]() {
             ret_access[0] = test(device_vbuf, device_vbuf + N, 0);
             for (int x = 1; x <= M; ++x)

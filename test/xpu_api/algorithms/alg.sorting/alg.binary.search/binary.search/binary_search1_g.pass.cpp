@@ -22,7 +22,6 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr auto sycl_write = sycl::access::mode::write;
 
 using dpl::binary_search;
 
@@ -39,9 +38,9 @@ kernel_test1()
         sycl::buffer<bool, 1> buffer2(&transferCheck, numOfItems);
         sycl::buffer<int, 1> buffer3(array, numOfItems);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
-            auto check_access = buffer2.get_access<sycl_write>(cgh);
-            auto acc_arr = buffer3.get_access<sycl_write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto check_access = buffer2.get_access<sycl::access::mode::write>(cgh);
+            auto acc_arr = buffer3.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
                 // check if there is change after data transfer
                 check_access[0] = (acc_arr[0] == 0);
@@ -75,9 +74,9 @@ kernel_test2()
         sycl::buffer<bool, 1> buffer2(&ret, item1);
         sycl::buffer<bool, 1> buffer3(&check, item1);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto access1 = buffer1.get_access<sycl_write>(cgh);
-            auto ret_access = buffer2.get_access<sycl_write>(cgh);
-            auto check_access = buffer3.get_access<sycl_write>(cgh);
+            auto access1 = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto ret_access = buffer2.get_access<sycl::access::mode::write>(cgh);
+            auto check_access = buffer3.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest2>([=]() {
                 int tmp[] = {0, 2, 4, 6, 8};
                 // check if there is change after data transfer

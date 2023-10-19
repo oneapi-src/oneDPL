@@ -23,7 +23,6 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr auto sycl_write = sycl::access::mode::write;
 
 struct X
 {
@@ -65,9 +64,9 @@ kernel_test()
         sycl::buffer<bool, 1> buffer2(&check, itemN);
         sycl::buffer<X, 1> buffer3(seq, itemN);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
-            auto check_access = buffer2.get_access<sycl_write>(cgh);
-            auto access = buffer3.get_access<sycl_write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto check_access = buffer2.get_access<sycl::access::mode::write>(cgh);
+            auto access = buffer3.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 X tmp[] = {1, 3, 5, 7, 1, 6, 4};
                 // check if there is change after data transfer

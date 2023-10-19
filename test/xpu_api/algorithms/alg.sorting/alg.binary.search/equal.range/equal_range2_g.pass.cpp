@@ -22,7 +22,6 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr auto sycl_write = sycl::access::mode::write;
 
 // A comparison, equalivalent to std::greater<int> without the
 // dependency on <functional>.
@@ -64,10 +63,10 @@ kernel_test()
         sycl::buffer<int, 1> buffer3(A, itemN);
         sycl::buffer<int, 1> buffer4(C, itemN);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
-            auto check_access = buffer2.get_access<sycl_write>(cgh);
-            auto access1 = buffer3.get_access<sycl_write>(cgh);
-            auto access2 = buffer4.get_access<sycl_write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto check_access = buffer2.get_access<sycl::access::mode::write>(cgh);
+            auto access1 = buffer3.get_access<sycl::access::mode::write>(cgh);
+            auto access2 = buffer4.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
                 const int A1[] = {1, 2, 3, 3, 3, 5, 8};
                 const int C1[] = {8, 5, 3, 3, 3, 2, 1};

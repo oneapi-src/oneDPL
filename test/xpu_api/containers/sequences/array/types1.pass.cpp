@@ -23,7 +23,6 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr auto sycl_write = sycl::access::mode::write;
 
 template <typename T>
 class KernelTest1;
@@ -41,7 +40,7 @@ test_iterators()
         sycl::buffer<bool, 1> buf1(&ret, numOfItems);
 
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_acc = buf1.get_access<sycl_write>(cgh);
+            auto ret_acc = buf1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<KernelTest1<C>>([=]() {
                 typedef dpl::iterator_traits<typename C::iterator> ItT;
                 typedef dpl::iterator_traits<typename C::const_iterator> CItT;
@@ -84,7 +83,7 @@ kernel_test()
         sycl::buffer<bool, 1> buf1(&ret, numOfItems);
 
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ptr1 = buf1.get_access<sycl_write>(cgh);
+            auto ptr1 = buf1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<KernelTest2<T>>([=]() {
                 typedef dpl::array<T, 10> C;
                 ptr1[0] = (dpl::is_same<typename C::reference, T&>::value == true);
