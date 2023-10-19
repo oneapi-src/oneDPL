@@ -46,7 +46,7 @@ transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIt
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = oneapi::dpl::__internal::__pattern_walk2_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-        oneapi::dpl::__internal::__invoke_unary_op<_UnaryOperation>{::std::move(__op)});
+        oneapi::dpl::__internal::__transform_functor<_UnaryOperation>{::std::move(__op)});
     return ret_val;
 }
 
