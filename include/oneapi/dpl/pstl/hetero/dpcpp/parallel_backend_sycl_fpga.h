@@ -89,7 +89,7 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 }
 
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-__future<void>
+auto
 __parallel_for(oneapi::dpl::__internal::__fpga_backend, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
     auto __n = __get_first_range_size(__rngs...);
@@ -117,7 +117,7 @@ __parallel_for(oneapi::dpl::__internal::__fpga_backend, _ExecutionPolicy&& __exe
         });
     });
 
-    return __future<void>(__event);
+    return __future(__event);
 }
 
 //------------------------------------------------------------------------
