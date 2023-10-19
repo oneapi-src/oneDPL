@@ -70,19 +70,6 @@ __except_handler(_Fp __f) -> decltype(__f())
     }
 }
 
-template <typename _Op>
-struct __invoke_unary_op
-{
-    mutable _Op __op;
-
-    template <typename _Input, typename _Output>
-    void
-    operator()(_Input&& __x, _Output&& __y) const
-    {
-        __y = __op(::std::forward<_Input>(__x));
-    }
-};
-
 //! Unary operator that returns reference to its argument.
 struct __no_op
 {
@@ -279,13 +266,29 @@ class __transform_functor
     _Pred _M_pred;
 
   public:
-    explicit __transform_functor(_Pred __pred) : _M_pred(__pred) {}
+    explicit __transform_functor(_Pred __pred) : _M_pred(std::move(__pred)) {}
 
     template <typename _Input1Type, typename _Input2Type, typename _OutputType>
     void
-    operator()(const _Input1Type& x, const _Input2Type& y, _OutputType& z) const
+    operator()(const _Input1Type& x, const _Input2Type& y, _OutputType&& output) const
     {
-        z = _M_pred(x, y);
+        __transform_impl(::std::forward<_OutputType>(output), x, y);
+    }
+
+    template <typename _Input1Type, typename _OutputType>
+    void
+    operator()(const _Input1Type& x, _OutputType&& output) const
+    {
+        __transform_impl(::std::forward<_OutputType>(output), x);
+    }
+
+private:
+    template <typename _OutputType, typename... _Args>
+    void __transform_impl(_OutputType&& output, const _Args&... args) const
+    {
+        static_assert(sizeof...(_Args) < 3, "A predicate supports either unary or binary transformation");
+        static_assert(::std::is_invocable_v<_Pred, _Args...>, "A predicate cannot be called with the passed arguments");
+        ::std::forward<_OutputType>(output) = _M_pred(args...);
     }
 };
 
