@@ -127,21 +127,55 @@ __is_parallelization_preferred(_ExecutionPolicy& __exec)
                                   __internal::__is_random_access_iterator_t<_IteratorTypes...>());
 }
 
-template <typename policy, typename... _IteratorTypes>
-struct __prefer_unsequenced_tag
+//------------------------------------------------------------------------
+// backend selector with tags
+//------------------------------------------------------------------------
+
+template <class _Policy, class... _IteratorTypes>
+struct __vectorable_tag
 {
-    static constexpr bool value =
-        __internal::__allow_unsequenced<policy>::value && __internal::__is_random_access_iterator_v<_IteratorTypes...>;
-    typedef ::std::integral_constant<bool, value> type;
+    using __is_vector = __conjunction<__allow_unsequenced<_Policy>,
+                                      typename __internal::__is_random_access_iterator<_IteratorTypes...>>;
 };
 
-template <typename policy, typename... _IteratorTypes>
-struct __prefer_parallel_tag
+template <class _Policy, class... _IteratorTypes>
+struct __serial_tag : __vectorable_tag<_Policy, _IteratorTypes...>
 {
-    static constexpr bool value =
-        __internal::__allow_parallel<policy>::value && __internal::__is_random_access_iterator_v<_IteratorTypes...>;
-    typedef ::std::integral_constant<bool, value> type;
 };
+
+template <class _Policy, class... _IteratorTypes>
+struct __parallel_tag : __vectorable_tag<_Policy, _IteratorTypes...>
+{
+};
+
+template <class _Policy, class... _IteratorTypes>
+struct __parallel_forward_tag : __vectorable_tag<_Policy, _IteratorTypes...>
+{
+};
+
+template <typename _Policy, typename... _IteratorTypes>
+using __tag_type =
+    typename ::std::conditional<__internal::__is_random_access_iterator<_IteratorTypes...>::value,
+                                __parallel_tag<_Policy, _IteratorTypes...>,
+                                typename ::std::conditional<__is_forward_iterator<_IteratorTypes...>::value,
+                                                            __parallel_forward_tag<_Policy, _IteratorTypes...>,
+                                                            __serial_tag<_Policy, _IteratorTypes...>>::type>::type;
+
+template <typename _Policy, class... _IteratorTypes>
+typename ::std::enable_if<!__allow_parallel<_Policy>::value,
+                          __serial_tag<_Policy, typename ::std::decay<_IteratorTypes>::type...>>::type
+__select_backend(_Policy&&, _IteratorTypes&&...)
+{
+    return {};
+}
+
+template <typename _Policy, class... _IteratorTypes>
+typename ::std::enable_if<__allow_parallel<_Policy>::value,
+                          __tag_type<_Policy, typename ::std::decay<_IteratorTypes>::type...>>::type
+__select_backend(_Policy&&, _IteratorTypes&&...)
+{
+    return {};
+}
 
 } // namespace __internal
 } // namespace dpl

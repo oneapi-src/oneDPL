@@ -18,6 +18,7 @@
 
 #include "../../onedpl_config.h"
 #include "../../execution_defs.h"
+#include "../../iterator_defs.h"
 
 #include "sycl_defs.h"
 
@@ -311,6 +312,17 @@ using __enable_if_device_execution_policy_double_no_default =
                            !::std::is_convertible_v<_Op1, sycl::event> && !::std::is_convertible_v<_Op2, sycl::event> &&
                            oneapi::dpl::__internal::__is_convertible_to_event<_Events...>,
                        _T>;
+
+struct __offload_tag
+{
+};
+
+template <class... _IteratorTypes, typename... _PolicyParams>
+typename ::std::enable_if<__is_random_access_iterator<_IteratorTypes...>::value, __offload_tag>::type
+__select_backend(const execution::device_policy<_PolicyParams...>&, _IteratorTypes&&...)
+{
+    return {};
+}                       
 
 } // namespace __internal
 
