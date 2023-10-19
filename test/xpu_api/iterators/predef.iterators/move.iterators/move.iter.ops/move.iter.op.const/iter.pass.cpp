@@ -74,7 +74,7 @@ main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
-    EXPECT_TRUE(ret, "Wrong result of iterator check #2 in kernel_test()");
+    EXPECT_TRUE(ret, "Wrong result of move_iterator check with value constructor in kernel_test()");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
