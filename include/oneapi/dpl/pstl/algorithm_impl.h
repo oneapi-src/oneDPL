@@ -189,7 +189,7 @@ __pattern_replace_if(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator __f
             oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _UnaryPredicate>>(__new_value, __pred));
 }
 
-template <class _ExecutionPolicy, class _ForwardIterator, class _Function, class _IsVector>
+//template <class _ExecutionPolicy, class _ForwardIterator, class _Function, class _IsVector>
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
     _ExecutionPolicy, __is_random_access_iterator_v<_RandomAccessIterator>>
