@@ -55,8 +55,8 @@ struct __iterator_traits<_Tp*, void> : ::std::iterator_traits<_Tp*>
 template <typename _IteratorTag, typename... _IteratorTypes>
 auto
 __is_iterator_of(int)
-    -> decltype(__conjunction<::std::is_base_of<_IteratorTag, typename __iterator_traits<typename ::std::decay<
-                                                                  _IteratorTypes>::type>::iterator_category>...>{});
+    -> decltype(std::conjunction<::std::is_base_of<_IteratorTag, typename __iterator_traits<typename ::std::decay<
+                                                                     _IteratorTypes>::type>::iterator_category>...>{});
 
 template <typename... _IteratorTypes>
 auto
