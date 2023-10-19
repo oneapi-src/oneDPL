@@ -21,11 +21,6 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-constexpr auto sycl_write = sycl::access::mode::write;
-constexpr auto sycl_read_write = sycl::access::mode::read_write;
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
 int
 main()
 {
@@ -37,7 +32,7 @@ main()
         sycl::buffer<bool, 1> buf1(&ret, numOfItems);
 
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_acc = buf1.get_access<sycl_read_write>(cgh);
+            auto ret_acc = buf1.get_access<sycl::access::mode::read_write>(cgh);
 
             cgh.single_task<class KernelIteratorTest1>([=]() {
                 {
