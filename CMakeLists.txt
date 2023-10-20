@@ -194,9 +194,12 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
 
         # check device type for oneDPL test targets
         if (ONEDPL_DEVICE_TYPE MATCHES "^(CPU|GPU|FPGA_EMU|FPGA_HW)$")
+            if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
+                message(FATAL_ERROR "PSTL offload does device selection on its own, ONEDPL_DEVICE_TYPE ${ONEDPL_DEVICE_TYPE} is useless.")
+            endif()
             message(STATUS "Using ${ONEDPL_DEVICE_TYPE} device type")
             set(ONEDPL_USE_DEVICE_${ONEDPL_DEVICE_TYPE} TRUE)
-        elseif(DEFINED ONEDPL_DEVICE_BACKEND)
+        elseif (DEFINED ONEDPL_DEVICE_BACKEND)
             message(FATAL_ERROR "Unsupported device type: ${ONEDPL_DEVICE_TYPE}.\n"
                 "Select one of the following devices: CPU, GPU, FPGA_EMU or FPGA_HW")
         elseif (_ONEDPL_PSTL_OFFLOAD STREQUAL off)
