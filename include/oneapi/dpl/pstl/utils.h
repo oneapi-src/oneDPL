@@ -542,21 +542,6 @@ struct __next_to_last
 template <typename _T, class _Enable = void>
 class __future;
 
-template <typename... _Bs>
-struct __conjunction : ::std::true_type
-{
-};
-
-template <typename _B1>
-struct __conjunction<_B1> : _B1
-{
-};
-
-template <typename _B1, typename... _Bs>
-struct __conjunction<_B1, _Bs...> : ::std::conditional_t<!bool(_B1::value), _B1, __conjunction<_Bs...>>
-{
-};
-
 // empty base class for type erasure
 struct __lifetime_keeper_base
 {
