@@ -263,7 +263,7 @@ class __not_equal_value
 template <typename _Pred>
 class __transform_functor
 {
-    _Pred _M_pred;
+    mutable _Pred _M_pred;
 
   public:
     explicit __transform_functor(_Pred __pred) : _M_pred(std::move(__pred)) {}
