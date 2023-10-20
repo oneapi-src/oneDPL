@@ -350,8 +350,7 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterato
 {
     return oneapi::dpl::__internal::__pattern_walk3(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
-        oneapi::dpl::__internal::__transform_functor<
-            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _BinaryOperation>>(std::move(__op)),
+        oneapi::dpl::__internal::__transform_functor<_BinaryOperation>(std::move(__op)),
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
                                                               _ForwardIterator>(__exec),
         __exec.__allow_parallel());
