@@ -479,9 +479,6 @@ struct __make_void_type
     using __type = void;
 };
 
-template <typename... _Ts>
-using __void_type = typename __make_void_type<_Ts...>::__type;
-
 // is_callable_object
 template <typename _Tp, typename = void>
 struct __is_callable_object : ::std::false_type
