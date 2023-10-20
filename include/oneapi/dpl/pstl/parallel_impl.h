@@ -34,7 +34,7 @@ namespace __internal
 Each f[i,j) must return a value in [i,j). */
 template <class _ExecutionPolicy, class _Index, class _Brick, class _IsFirst>
 _Index
-__parallel_find(__tbb_backend __tag, _ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick __f, _IsFirst)
+__parallel_find(__tbb_backend_tag __tag, _ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick __f, _IsFirst)
 {
     typedef typename ::std::iterator_traits<_Index>::difference_type _DifferenceType;
     const _DifferenceType __n = __last - __first;

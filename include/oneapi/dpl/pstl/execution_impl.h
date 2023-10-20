@@ -131,7 +131,7 @@ __is_parallelization_preferred(_ExecutionPolicy& __exec)
 // backend selector with tags
 //------------------------------------------------------------------------
 
-struct __tbb_backend {};
+struct __tbb_backend_tag {};
 // KSATODO required create tag for onedpl
 // KSATODO required create tag for omp
 
@@ -147,7 +147,7 @@ struct __parallel_tag
     using __is_vector = _IsVector;
     // backend tag can be change depending on
     // TBB availability in the environment
-    using __backend_tag = __tbb_backend;
+    using __backend_tag = __tbb_backend_tag;
 };
 
 struct __parallel_forward_tag
@@ -155,7 +155,7 @@ struct __parallel_forward_tag
     using __is_vector = ::std::false_type;
     // backend tag can be change depending on
     // TBB availability in the environment
-    using __backend_tag = __tbb_backend;
+    using __backend_tag = __tbb_backend_tag;
 };
 
 template <class _IsVector, class... _IteratorTypes>

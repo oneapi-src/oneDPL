@@ -23,6 +23,7 @@
 #include <type_traits>
 
 #include "parallel_backend_utils.h"
+#include "execution_impl.h"
 
 // Bring in minimal required subset of Intel(R) Threading Building Blocks (Intel(R) TBB)
 #include <tbb/blocked_range.h>
@@ -129,7 +130,7 @@ __parallel_for(_ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f)
 // wrapper over tbb::parallel_for
 template <class _ExecutionPolicy, class _Index, class _Fp>
 void
-__parallel_for(oneapi::dpl::__internal::__tbb_backend, _ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f)
+__parallel_for(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f)
 {
     tbb::this_task_arena::isolate([=]() {
         tbb::parallel_for(tbb::blocked_range<_Index>(__first, __last), __parallel_for_body<_Index, _Fp>(__f));
@@ -1335,7 +1336,7 @@ __parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterat
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
 void
-__parallel_for_each(oneapi::dpl::__internal::__tbb_backend, _ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterator __end, _Fp __f)
+__parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterator __end, _Fp __f)
 {
     tbb::this_task_arena::isolate([&]() { tbb::parallel_for_each(__begin, __end, __f); });
 }
