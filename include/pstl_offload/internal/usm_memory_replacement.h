@@ -47,8 +47,8 @@ __get_offload_device()
     sycl::device __gpu_device{sycl::gpu_selector_v};
 
     if (__gpu_device.get_info<sycl::info::device::partition_max_sub_devices>() != 0) {
-        using __param_type = sycl::info::partition_property::partition_by_affinity_domain;
-        auto __subdevices = __gpu_device.create_sub_devices<__param_type>(sycl::info::partition_affinity_domain::numa);
+        printf("Splitting\n");
+        auto __subdevices = __gpu_device.create_sub_devices<sycl::info::partition_property::partition_by_affinity_domain>(sycl::info::partition_affinity_domain::numa);
         return __subdevices[0];
     }
     return __gpu_device;
