@@ -14,5 +14,6 @@
 
 #include "kt/kernel_param.h"
 #include "kt/esimd_radix_sort.h"
+#include "kt/gpu_radix_sort.h"
 
 #endif // _ONEDPL_KERNEL_TEMPLATES
