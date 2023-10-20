@@ -54,21 +54,21 @@ struct __iterator_traits<_Tp*, void> : ::std::iterator_traits<_Tp*>
 //SFINAE with a non-iterator type by providing a default value.
 template <typename _IteratorTag, typename... _IteratorTypes>
 auto
-__is_needed_iter(int)
-    -> decltype(std::conjunction<::std::is_base_of<_IteratorTag, typename __iterator_traits<typename ::std::decay<
-                                                                     _IteratorTypes>::type>::iterator_category>...>{});
+__is_iterator_of(int)
+    -> decltype(__conjunction<::std::is_base_of<_IteratorTag, typename __iterator_traits<typename ::std::decay<
+                                                                  _IteratorTypes>::type>::iterator_category>...>{});
 
 template <typename... _IteratorTypes>
 auto
 __is_needed_iter(...) -> ::std::false_type;
 
 template <typename... _IteratorTypes>
-struct __is_random_access_iterator : decltype(__is_needed_iter<::std::random_access_iterator_tag, _IteratorTypes...>(0))
+struct __is_random_access_iterator : decltype(__is_iterator_of<::std::random_access_iterator_tag, _IteratorTypes...>(0))
 {
 };
 
 template <typename... _IteratorTypes>
-struct __is_forward_iterator : decltype(__is_needed_iter<::std::forward_iterator_tag, _IteratorTypes...>(0))
+struct __is_forward_iterator : decltype(__is_iterator_of<::std::forward_iterator_tag, _IteratorTypes...>(0))
 {
 };
 

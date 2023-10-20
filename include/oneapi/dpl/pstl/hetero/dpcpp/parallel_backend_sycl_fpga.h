@@ -88,6 +88,38 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
                                                                 __count, std::forward<_Ranges>(__rngs)...);
 }
 
+template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+__future<void>
+__parallel_for(oneapi::dpl::__internal::__fpga_backend, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
+{
+    auto __n = __get_first_range_size(__rngs...);
+    assert(__n > 0);
+
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using __kernel_name = typename _Policy::kernel_name;
+#if __SYCL_UNNAMED_LAMBDA__
+    using __kernel_name_t = __parallel_for_kernel<_Fp, __kernel_name, _Ranges...>;
+#else
+    using __kernel_name_t = __parallel_for_kernel<__kernel_name>;
+#endif
+
+    _PRINT_INFO_IN_DEBUG_MODE(__exec);
+    auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
+        //get an access to data under SYCL buffer:
+        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+
+        __cgh.single_task<__kernel_name_t>([=]() {
+#pragma unroll(::std::decay <_ExecutionPolicy>::type::unroll_factor)
+            for (auto __idx = 0; __idx < __count; ++__idx)
+            {
+                __brick(__idx, __rngs...);
+            }
+        });
+    });
+
+    return __future<void>(__event);
+}
+
 //------------------------------------------------------------------------
 // parallel_transform_reduce
 //------------------------------------------------------------------------
@@ -228,6 +260,7 @@ oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, _It
 __parallel_find(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __s_first,
                 _Iterator2 __s_last, _Brick __f, _IsFirst __is_first)
 {
+
     // workaround until we implement more performant version for patterns
     using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using __kernel_name = typename _Policy::kernel_name;
@@ -245,6 +278,17 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
     using __kernel_name = typename _Policy::kernel_name;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
     return oneapi::dpl::__par_backend_hetero::__parallel_find(__device_policy, __first, __last, __f, __is_first);
+}
+
+template <typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
+_Iterator
+__parallel_find(oneapi::dpl::__internal::__fpga_backend __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst __is_first)
+{
+    // workaround until we implement more performant version for patterns
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using __kernel_name = typename _Policy::kernel_name;
+    auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
+    return oneapi::dpl::__par_backend_hetero::__parallel_find(oneapi::dpl::__internal::__device_backend{}, __device_policy, __first, __last, __f, __is_first);
 }
 
 template <typename _ExecutionPolicy>

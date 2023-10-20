@@ -131,48 +131,67 @@ __is_parallelization_preferred(_ExecutionPolicy& __exec)
 // backend selector with tags
 //------------------------------------------------------------------------
 
-template <class _Policy, class... _IteratorTypes>
-struct __vectorable_tag
+struct __tbb_backend {};
+// KSATODO required create tag for onedpl
+// KSATODO required create tag for omp
+
+template <class _IsVector>
+struct __serial_tag
 {
-    using __is_vector = std::conjunction<__allow_unsequenced<_Policy>,
-                                         typename __internal::__is_random_access_iterator<_IteratorTypes...>>;
+    using __is_vector = _IsVector;
 };
 
-template <class _Policy, class... _IteratorTypes>
-struct __serial_tag : __vectorable_tag<_Policy, _IteratorTypes...>
+template <class _IsVector>
+struct __parallel_tag
 {
+    using __is_vector = _IsVector;
+    // backend tag can be change depending on
+    // TBB availability in the environment
+    using __backend_tag = __tbb_backend;
 };
 
-template <class _Policy, class... _IteratorTypes>
-struct __parallel_tag : __vectorable_tag<_Policy, _IteratorTypes...>
+struct __parallel_forward_tag
 {
+    using __is_vector = ::std::false_type;
+    // backend tag can be change depending on
+    // TBB availability in the environment
+    using __backend_tag = __tbb_backend;
 };
 
-template <class _Policy, class... _IteratorTypes>
-struct __parallel_forward_tag : __vectorable_tag<_Policy, _IteratorTypes...>
-{
-};
-
-template <typename _Policy, typename... _IteratorTypes>
+template <class _IsVector, class... _IteratorTypes>
 using __tag_type =
     typename ::std::conditional<__internal::__is_random_access_iterator<_IteratorTypes...>::value,
-                                __parallel_tag<_Policy, _IteratorTypes...>,
+                                __parallel_tag<_IsVector>,
                                 typename ::std::conditional<__is_forward_iterator<_IteratorTypes...>::value,
-                                                            __parallel_forward_tag<_Policy, _IteratorTypes...>,
-                                                            __serial_tag<_Policy, _IteratorTypes...>>::type>::type;
+                                                            __parallel_forward_tag,
+                                                            __serial_tag<_IsVector>
+                                                            >::type
+                                >::type;
 
-template <typename _Policy, class... _IteratorTypes>
-typename ::std::enable_if<!__allow_parallel<_Policy>::value,
-                          __serial_tag<_Policy, typename ::std::decay<_IteratorTypes>::type...>>::type
-__select_backend(_Policy&&, _IteratorTypes&&...)
+template <class... _IteratorTypes>
+__serial_tag<std::false_type>
+__select_backend(oneapi::dpl::execution::sequenced_policy, _IteratorTypes&&...)
 {
     return {};
 }
 
-template <typename _Policy, class... _IteratorTypes>
-typename ::std::enable_if<__allow_parallel<_Policy>::value,
-                          __tag_type<_Policy, typename ::std::decay<_IteratorTypes>::type...>>::type
-__select_backend(_Policy&&, _IteratorTypes&&...)
+template <class... _IteratorTypes>
+__serial_tag<__internal::__is_random_access_iterator<_IteratorTypes...>>
+__select_backend(oneapi::dpl::execution::unsequenced_policy, _IteratorTypes&&...)
+{
+    return {};
+}
+
+template <class... _IteratorTypes>
+__tag_type<std::false_type, _IteratorTypes...>
+__select_backend(oneapi::dpl::execution::parallel_policy, _IteratorTypes&&...)
+{
+    return {};
+}
+
+template <class... _IteratorTypes>
+__tag_type<__internal::__is_random_access_iterator<_IteratorTypes...>, _IteratorTypes...>
+__select_backend(oneapi::dpl::execution::parallel_unsequenced_policy, _IteratorTypes&&...)
 {
     return {};
 }

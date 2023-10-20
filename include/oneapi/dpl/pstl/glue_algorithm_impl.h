@@ -97,7 +97,7 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 find_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Predicate __pred)
 {
-    auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(std::forward<_ExecutionPolicy>(__exec), __first);
+    auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     return oneapi::dpl::__internal::__pattern_find_if(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
                                                       __last, __pred);
@@ -363,7 +363,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 replace_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _UnaryPredicate __pred,
            const _Tp& __new_value)
 {
-    auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(::std::forward<_ExecutionPolicy>(__exec), __first);
+    auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
     __pattern_replace_if(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
                          __new_value);
 }

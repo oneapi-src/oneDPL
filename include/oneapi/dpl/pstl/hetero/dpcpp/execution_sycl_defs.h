@@ -313,16 +313,35 @@ using __enable_if_device_execution_policy_double_no_default =
                            oneapi::dpl::__internal::__is_convertible_to_event<_Events...>,
                        _T>;
 
-struct __offload_tag
+template <typename _BackendTag>
+struct __hetero_tag
+{
+    using __backend_tag = _BackendTag;
+};
+
+struct __device_backend
 {
 };
 
-template <class... _IteratorTypes, typename... _PolicyParams>
-typename ::std::enable_if<__is_random_access_iterator<_IteratorTypes...>::value, __offload_tag>::type
-__select_backend(const execution::device_policy<_PolicyParams...>&, _IteratorTypes&&...)
+template <class... _IteratorTypes, typename _KernelName>
+typename ::std::enable_if<__is_random_access_iterator<_IteratorTypes...>::value, __hetero_tag<__device_backend>>::type
+__select_backend(const execution::device_policy<_KernelName>&, _IteratorTypes&&...)
 {
     return {};
-}                       
+}
+
+#if _ONEDPL_FPGA_DEVICE
+struct __fpga_backend : __device_backend
+{
+};
+
+template <class... _IteratorTypes, unsigned int _Factor, typename _KernelName>
+typename ::std::enable_if<__is_random_access_iterator<_IteratorTypes...>::value, __hetero_tag<__fpga_backend>>::type
+__select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _IteratorTypes&&...)
+{
+    return {};
+}
+#endif
 
 } // namespace __internal
 

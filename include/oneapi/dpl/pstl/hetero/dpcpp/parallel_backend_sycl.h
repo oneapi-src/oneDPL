@@ -257,6 +257,31 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
                                                   ::std::forward<_Ranges>(__rngs)...);
 }
 
+template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
+__future<void>
+__parallel_for(oneapi::dpl::__internal::__device_backend, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
+{
+    assert(__get_first_range_size(__rngs...) > 0);
+
+    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _CustomName = typename _Policy::kernel_name;
+    using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::_KernelName_t<__parallel_for_kernel, _CustomName,
+                                                                                    _Fp, _Ranges...>;
+
+    _PRINT_INFO_IN_DEBUG_MODE(__exec);
+    auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
+        //get an access to data under SYCL buffer:
+        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+
+        __cgh.parallel_for<_ForKernel>(sycl::range</*dim=*/1>(__count), [=](sycl::item</*dim=*/1> __item_id) {
+            auto __idx = __item_id.get_linear_id();
+            __brick(__idx, __rngs...);
+        });
+    });
+
+    return __future<void>(__event);
+}
+
 //------------------------------------------------------------------------
 // parallel_transform_scan - async pattern
 //------------------------------------------------------------------------
@@ -1257,6 +1282,22 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
 
     using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
                                           __parallel_find_backward_tag<decltype(__buf.all_view())>>;
+    return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+                         __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
+                             ::std::forward<_ExecutionPolicy>(__exec)),
+                         __f, _TagType{}, __buf.all_view());
+}
+
+template <typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
+_Iterator
+__parallel_find(oneapi::dpl::__internal::__device_backend, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst)
+{
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    using _TagType =
+        typename ::std::conditional<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
+                                    __parallel_find_backward_tag<decltype(__buf.all_view())>>::type;
     return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
