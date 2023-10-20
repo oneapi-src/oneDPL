@@ -724,22 +724,6 @@ __pattern_find_if(_Tag __tag, _ExecutionPolicy&&, _ForwardIterator __first, _For
     return __internal::__brick_find_if(__first, __last, __pred, typename _Tag::__is_vector{});
 }
 
-// KSATODO were deleted in prototype?
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Predicate, class _IsVector>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
-__pattern_find_if(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
-                  _Predicate __pred, _IsVector __is_vector,
-                  /*is_parallel=*/::std::true_type)
-{
-    return __except_handler([&]() {
-        return __parallel_find(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                               [__pred, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
-                                   return __brick_find_if(__i, __j, __pred, __is_vector);
-                               },
-                               ::std::true_type{});
-    });
-}
-
 template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
 _ForwardIterator
 __pattern_find_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec,
