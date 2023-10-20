@@ -15,9 +15,19 @@
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
-find_path(_onedpl_tbb_h_found NAMES tbb/tbb.h PATHS ENV CPATH ENV C_INCLUDE_PATH ENV CPLUS_INCLUDE_PATH ENV INCLUDE_PATH)
-if (NOT _onedpl_gxx_version VERSION_LESS 11 AND _onedpl_tbb_h_found AND NOT ONEDPL_BACKEND MATCHES "^(tbb|dpcpp)$")
-    set (_onedpl_link_extra_libs tbb)
+# Work-around for TBB linkage error occurring with GCC 11:
+# if TBB headers are available, GCC requires linking against it
+include(CheckIncludeFileCXX)
+if (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12)
+        if (ONEDPL_BACKEND MATCHES "^(serial|omp)$")
+            find_package(TBB)
+            if (TBB_FOUND)
+                message(STATUS "Tests will be linked against TBB: GCC 11 requires it when it finds TBB headers")
+                set(_gcc11_link_tbb_fix TRUE)
+            endif()
+        endif()
+    endif()
 endif()
 
 # disable fast math for ALL TESTS
@@ -96,7 +106,9 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
     target_link_libraries(${_test_name} PRIVATE oneDPL)
-    target_link_libraries(${_test_name} PRIVATE oneDPL ${_onedpl_link_extra_libs})
+    if (_gcc11_link_tbb_fix)
+        target_link_libraries(${_test_name} PRIVATE TBB::tbb)
+    endif()
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
 
     add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
