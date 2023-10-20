@@ -38,8 +38,8 @@ struct __iterator_traits
 
 template <typename _Ip>
 struct __iterator_traits<_Ip,
-                         __void_type<typename _Ip::iterator_category, typename _Ip::value_type,
-                                     typename _Ip::difference_type, typename _Ip::pointer, typename _Ip::reference>>
+                         ::std::void_t<typename _Ip::iterator_category, typename _Ip::value_type,
+                                       typename _Ip::difference_type, typename _Ip::pointer, typename _Ip::reference>>
     : ::std::iterator_traits<_Ip>
 {
 };
@@ -59,7 +59,7 @@ struct __is_random_access_iterator_impl : ::std::false_type
 
 template <typename _IteratorType>
 struct __is_random_access_iterator_impl<_IteratorType,
-                                        __void_type<typename __iterator_traits<_IteratorType>::iterator_category>>
+                                        ::std::void_t<typename __iterator_traits<_IteratorType>::iterator_category>>
     : ::std::is_same<typename __iterator_traits<_IteratorType>::iterator_category, ::std::random_access_iterator_tag>
 {
 };
