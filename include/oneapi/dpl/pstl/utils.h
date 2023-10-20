@@ -489,7 +489,7 @@ struct __is_callable_object : ::std::false_type
 };
 
 template <typename _Tp>
-struct __is_callable_object<_Tp, __void_type<decltype(&_Tp::operator())>> : ::std::true_type
+struct __is_callable_object<_Tp, ::std::void_t<decltype(&_Tp::operator())>> : ::std::true_type
 {
 };
 
