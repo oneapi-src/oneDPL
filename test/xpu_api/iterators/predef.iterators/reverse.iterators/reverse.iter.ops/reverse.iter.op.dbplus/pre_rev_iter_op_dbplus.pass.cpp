@@ -83,7 +83,7 @@ main()
 {
 #ifdef TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
-    EXPECT_TRUE(ret, "Wrong result of work in kernel_test()");
+    EXPECT_TRUE(ret, "Wrong result of work wirh reverse iterator and '+' in kernel_test()");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
