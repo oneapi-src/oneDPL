@@ -11,7 +11,7 @@ The auto-tune policy selects resources using runtime profiling. ``auto_tune_poli
 is useful for determining which resource has the best performance
 for a given kernel. The choice is made based on runtime performance 
 history, so this policy is only useful for kernels that have stable
-performance. Initially, this policy acts like ``auto_tune_policy``,
+performance. Initially, this policy acts like ``round_robin_policy``,
 rotating through each resource (one or more times). Then, once it has
 determined which resource is performing best, it uses that resource
 thereafter. Optionally, a resampling interval can set to return to

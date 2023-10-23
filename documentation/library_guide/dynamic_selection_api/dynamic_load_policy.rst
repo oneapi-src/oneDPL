@@ -114,9 +114,11 @@ The key points in this example are:
 Selection Algorithm
 -------------------
  
-The selection algorithm for ``dynamic_load_policy`` always returns 
-the same specific resource from its set of resources. The index of the
-resource is set during construction or deferrred initialiazation.
+The selection algorithm for ``dynamic_load_policy`` chooses the resource
+that has the fewest number of unfinished offloads. The number of unfinished
+offloads is the difference between the number of reported task submissions 
+and then number of reported task completions. This value is tracked for each 
+available resource.
 
 Simplified, expository implementaton of the selection algorithm:
  
@@ -125,17 +127,17 @@ Simplified, expository implementaton of the selection algorithm:
   template<typename... Args>
   selection_type dynamic_load_policy::select(Args&& ...) {
     if (initialized_) {
-      return selection_type{*this, resources_[fixed_offset_]};
+      auto least_loaded_resource = find_least_loaded(resources_);
+      return selection_type{dynamic_load_policy<Backend>(*this), least_loaded};
     } else {
-      throw std::logic_error(“select called before initialialization”);
+      throw std::logic_error("select called before initialialization");
     }
   }
 
 where ``resources_`` is a container of resources, such as 
-``std::vector`` of ``sycl::queue``, and ``fixed_offset_`` stores a
-fixed integer offset. Both ``resources_`` and ``fixed_offset`` 
-are set during construction or deferred initialization of the policy
-and then remain constant. 
+``std::vector`` of ``sycl::queue``.  The function ``find_least_loaded``
+iterates through the resources available to the policy and returns the
+resource with the fewest number of unfinished offloads. 
 
 Constructors
 ------------
