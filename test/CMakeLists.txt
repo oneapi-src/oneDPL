@@ -19,7 +19,7 @@ set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 # The undefined symbol error arises only with GCC compiler.
 include(CheckIncludeFileCXX)
 if (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9)
         if (ONEDPL_BACKEND MATCHES "^(serial|omp)$")
             find_package(TBB)
             if (TBB_FOUND)
