@@ -15,16 +15,16 @@
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
-# Work-around for TBB linkage error occurring with GCC 11:
-# if TBB headers are available, GCC requires linking against it
+# If TBB headers are available, libstdc++ enables TBB backend; some TBB symbols become undefined unless it is linked.
+# The undefined symbol error arises only with GCC compiler.
 include(CheckIncludeFileCXX)
 if (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11)
         if (ONEDPL_BACKEND MATCHES "^(serial|omp)$")
             find_package(TBB)
             if (TBB_FOUND)
-                message(STATUS "Tests will be linked against TBB: GCC 11 requires it when it finds TBB headers")
-                set(_gcc11_link_tbb_fix TRUE)
+                message(STATUS "Tests will be linked against TBB to avoid undefined symbols errors due to TBB usage by libstdc++")
+                set(_gcc_link_tbb TRUE)
             endif()
         endif()
     endif()
@@ -106,7 +106,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
     target_link_libraries(${_test_name} PRIVATE oneDPL)
-    if (_gcc11_link_tbb_fix)
+    if (_gcc_link_tbb)
         target_link_libraries(${_test_name} PRIVATE TBB::tbb)
     endif()
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
