@@ -17,32 +17,23 @@
 //
 //   constexpr in C++17
 
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
-#include "test_macros.h"
-#include "test_iterators.h"
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(iterator)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <iterator>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/iterator>
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/test_iterators.h"
+#include "support/utils.h"
 
+#ifdef TEST_DPCPP_BACKEND_PRESENT
 template <class It, class U>
 bool
 test(U u)
 {
-    const s::reverse_iterator<U> r2(u);
-    s::reverse_iterator<It> r1;
-    s::reverse_iterator<It>& rr = r1 = r2;
+    const dpl::reverse_iterator<U> r2(u);
+    dpl::reverse_iterator<It> r1;
+    dpl::reverse_iterator<It>& rr = r1 = r2;
     auto ret = (r1.base() == u);
     ret &= (&rr == &r1);
     return ret;
@@ -58,13 +49,13 @@ struct Derived : Base
 bool
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = true;
+    sycl::queue deviceQueue;
+    bool ret = true;
     {
-        cl::sycl::range<1> numOfItems{1};
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
+        sycl::range<1> numOfItems{1};
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 Derived d;
 
@@ -72,29 +63,28 @@ kernel_test()
                 ret_access[0] &= test<random_access_iterator<const Base*>>(random_access_iterator<Derived*>(&d));
                 ret_access[0] &= test<Base*>(&d);
 
-#if TEST_STD_VER > 14
                 {
-                    using BaseIter = s::reverse_iterator<const Base*>;
-                    using DerivedIter = s::reverse_iterator<const Derived*>;
+                    using BaseIter = dpl::reverse_iterator<const Base*>;
+                    using DerivedIter = dpl::reverse_iterator<const Derived*>;
                     constexpr const Derived* p = nullptr;
-                    constexpr DerivedIter it1 = s::make_reverse_iterator(p);
+                    constexpr DerivedIter it1 = dpl::make_reverse_iterator(p);
                     constexpr BaseIter it2 = (BaseIter{nullptr} = it1);
-                    static_assert(it2.base() == p, "");
+                    static_assert(it2.base() == p);
                 }
-#endif
             });
         });
     }
     return ret;
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#ifdef TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
-    if (ret)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
-    return 0;
+    EXPECT_TRUE(ret, "Wrong result of work in kernel_test()");
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

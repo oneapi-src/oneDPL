@@ -19,23 +19,13 @@
 // LWG 198 was superseded by LWG 2360
 //    http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#2360
 
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
-#include "test_macros.h"
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(iterator)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <iterator>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/iterator>
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
 
 class A
 {
@@ -60,9 +50,9 @@ class A
 
 template <class It>
 bool
-test(It i, typename s::iterator_traits<It>::value_type x)
+test(It i, typename dpl::iterator_traits<It>::value_type x)
 {
-    s::reverse_iterator<It> r(i);
+    dpl::reverse_iterator<It> r(i);
     return (r->get() == x.get());
 }
 
@@ -115,25 +105,23 @@ TEST_CONSTEXPR C gC;
 bool
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = true;
+    sycl::queue deviceQueue;
+    bool ret = true;
     {
-        cl::sycl::range<1> numOfItems{1};
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
+        sycl::range<1> numOfItems{1};
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 A a;
                 ret_access[0] &= test(&a + 1, A());
 
-#if TEST_STD_VER > 14
                 {
-                    typedef s::reverse_iterator<const C*> RI;
-                    constexpr RI it1 = s::make_reverse_iterator(&gC + 1);
+                    typedef dpl::reverse_iterator<const C*> RI;
+                    constexpr RI it1 = dpl::make_reverse_iterator(&gC + 1);
 
-                    static_assert(it1->get() == gC.get(), "");
+                    static_assert(it1->get() == gC.get());
                 }
-#endif
                 {
                     ((void)gC);
                 }
@@ -144,12 +132,12 @@ kernel_test()
 }
 
 int
-main(int, char**)
+main()
 {
+#ifdef TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
-    if (ret)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
-    return 0;
+    EXPECT_TRUE(ret, "Wrong result of work in kernel_test()");
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

@@ -14,61 +14,51 @@
 //
 // constexpr in C++17
 
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
-#include "test_macros.h"
-#include "test_iterators.h"
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(iterator)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <iterator>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/iterator>
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_iterators.h"
+#include "support/utils.h"
 
+#ifdef TEST_DPCPP_BACKEND_PRESENT
 template <class It>
 void
 test()
 {
-    s::reverse_iterator<It> r;
+    dpl::reverse_iterator<It> r;
     (void)r;
 }
 
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue;
     {
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        deviceQueue.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest>([=]() {
                 test<bidirectional_iterator<const char*>>();
                 test<random_access_iterator<char*>>();
                 test<char*>();
                 test<const char*>();
 
-#if TEST_STD_VER > 14
                 {
-                    constexpr s::reverse_iterator<const char*> it;
+                    constexpr dpl::reverse_iterator<const char*> it;
                     (void)it;
                 }
-#endif
             });
         });
     }
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#ifdef TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    std::cout << "Pass" << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
