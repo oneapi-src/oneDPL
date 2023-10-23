@@ -57,7 +57,7 @@ add_custom_target(run-onedpl-tests
     DEPENDS build-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
-# proterty's value is list with additional TUs to be linked together with property's name
+# property's value is list with additional TUs to be linked together with property's name
 set_property(SOURCE ${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs.pass.cpp
     APPEND PROPERTY SRC "pstl_offload/memory/interop_allocs_system.cpp")
 
