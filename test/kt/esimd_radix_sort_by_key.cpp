@@ -9,7 +9,7 @@
 
 #include "../support/test_config.h"
 #include "../support/utils.h"
-#include "esimd_radix_sort_utils.h"
+#include "kt_radix_sort_test_utils.h"
 
 #include <oneapi/dpl/experimental/kernel_templates>
 #include <oneapi/dpl/execution>

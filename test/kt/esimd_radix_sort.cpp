@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "../support/test_config.h"
-#include "esimd_radix_sort_utils.h"
+#include "kt_radix_sort_test_utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
