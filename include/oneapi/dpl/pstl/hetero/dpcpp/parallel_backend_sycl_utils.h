@@ -475,7 +475,7 @@ template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
 template <typename _T>
-struct __accessor
+struct __usm_host_or_buffer_accessor
 {
   private:
     using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
@@ -487,13 +487,13 @@ struct __accessor
 
   public:
     // Buffer accessor
-    __accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
+    __usm_host_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
         : __usm(false), __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
     {
     }
 
     // USM pointer
-    __accessor(sycl::handler& __cgh, _T* __usm_buf) : __usm(true), __ptr(__usm_buf) {}
+    __usm_host_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf) : __usm(true), __ptr(__usm_buf) {}
 
     auto
     __get_pointer() const // should be cached within a kernel
@@ -503,7 +503,7 @@ struct __accessor
 };
 
 template <typename _ExecutionPolicy, typename _T>
-struct __storage
+struct __usm_host_or_buffer_storage
 {
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
@@ -512,7 +512,7 @@ struct __storage
     ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
 
   public:
-    __storage(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n) : __usm(__u)
+    __usm_host_or_buffer_storage(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n) : __usm(__u)
     {
         if (__usm)
         {
@@ -529,7 +529,8 @@ struct __storage
     auto
     __get_acc(sycl::handler& __cgh)
     {
-        return __usm ? __accessor<_T>(__cgh, __usm_buf.get()) : __accessor<_T>(__cgh, __sycl_buf.get());
+        return __usm ? __usm_host_or_buffer_accessor<_T>(__cgh, __usm_buf.get())
+                     : __usm_host_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
     }
 
     auto
@@ -545,7 +546,7 @@ struct __storage
     }
 };
 
-//A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __storage (USM or buffer)>
+//A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __usm_host_or_buffer_storage>
 //Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
@@ -562,7 +563,7 @@ class __future : private std::tuple<_Args...>
 
     template <typename _ExecutionPolicy, typename _T>
     constexpr auto
-    __wait_and_get_value(__storage<_ExecutionPolicy, _T>& __buf)
+    __wait_and_get_value(__usm_host_or_buffer_storage<_ExecutionPolicy, _T>& __buf)
     {
         // Explicit wait in case of USM memory. Buffer accessors are synchronous.
         if (__buf.__get_usm())

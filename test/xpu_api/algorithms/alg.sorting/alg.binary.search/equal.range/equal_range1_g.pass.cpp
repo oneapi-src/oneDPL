@@ -23,7 +23,6 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr auto sycl_write = sycl::access::mode::write;
 
 using dpl::equal_range;
 
@@ -43,9 +42,9 @@ kernel_test1()
         sycl::buffer<bool, 1> buffer2(&check, item1);
         sycl::buffer<int, 1> buffer3(array, itemN);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
-            auto check_access = buffer2.get_access<sycl_write>(cgh);
-            auto access = buffer3.get_access<sycl_write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto check_access = buffer2.get_access<sycl::access::mode::write>(cgh);
+            auto access = buffer3.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
                 auto ret = true;
                 int arr[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2};
@@ -89,9 +88,9 @@ kernel_test2()
         sycl::buffer<bool, 1> buffer2(&check, item1);
         sycl::buffer<int, 1> buffer3(array, itemN);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
-            auto check_access = buffer2.get_access<sycl_write>(cgh);
-            auto access = buffer3.get_access<sycl_write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto check_access = buffer2.get_access<sycl::access::mode::write>(cgh);
+            auto access = buffer3.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest2>([=]() {
                 int arr[] = {0, 0, 2, 2, 2};
                 // check if there is change after data transfer

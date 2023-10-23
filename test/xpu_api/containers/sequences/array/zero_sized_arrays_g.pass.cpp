@@ -20,7 +20,6 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-constexpr auto sycl_write = sycl::access::mode::write;
 
 bool
 kernel_test()
@@ -31,7 +30,7 @@ kernel_test()
     {
         sycl::buffer<bool, 1> buffer1(&ret, numOfItem);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 const size_t len = 0;
                 typedef dpl::array<int, len> array_type;
