@@ -515,14 +515,7 @@ using __first_semantic = ::std::false_type;
 
 // is_callable_object
 template <typename _Tp, typename = void>
-struct __is_callable_object : ::std::false_type
-{
-};
-
-template <typename _Tp>
-struct __is_callable_object<_Tp, ::std::void_t<decltype(&_Tp::operator())>> : ::std::true_type
-{
-};
+using __is_callable_object = ::std::is_invocable<_Tp>;
 
 // is_pointer_to_const_member
 template <typename _Tp>
