@@ -1,6 +1,12 @@
 Dynamic Load Policy
 ###################
 
+The dynamic selection API is an experimental feature in the |onedpl_long| 
+(|onedpl_short|) that selects an *execution resource* based on a chosen 
+*selection policy*. There are several policies provided as part 
+of the API. Policies encapsulate the logic and any associated state needed 
+to make a selection. 
+
 The dynamic load policy tracks the number of submissions currently submitted but not yet completed on each 
 resource and selects the resource that has the fewest unfinished submissions. 
 ``dynamic_load_policy`` is useful for offloading kernels of varying cost to devices 
@@ -11,7 +17,7 @@ by submitting tasks to a resource that completes work faster.
 
   namespace oneapi::dpl::experimental {
   
-    template<typename Backend=sycl_backend> 
+    template<typename Backend = sycl_backend> 
     class dynamic_load_policy {
     public:
       // useful types
@@ -58,7 +64,7 @@ resource with the fewest number of unfinished submissions.
   #include <sycl/sycl.hpp>
   #include <iostream>
 
-  const size_t N = 10000;
+  const std::size_t N = 10000;
   namespace ex = oneapi::dpl::experimental;
 
   void f(sycl::handler& h, float *v);

@@ -12,8 +12,8 @@ Select
 .. code:: cpp
 
   namespace oneapi::dpl::experimental {
-    template<typename P, typename... Args> 
-    selection_t<P> select(P&& p, Args&&... args);
+    template<typename Policy, typename... Args> 
+    selection_t<Policy> select(Policy&& p, Args&&... args);
   }
   
 The function ``select`` chooses a resource (the *selection*) based on the 
@@ -56,7 +56,7 @@ The output of this example:
 The object returned by ``select`` is a *selection*. The exact type of the 
 selection object depends on the policy. If it necessary to know the exact 
 type, it can be determined by using traits: 
-``policy_trait<P>::selection_type`` or the helper trait ``selection_t<P>``.
+``policy_trait<Policy>::selection_type`` or the helper trait ``selection_t<Policy>``.
 
 Unwrapping a *selection* returns the underlying resource. For example, unwrapping
 a selection when using SYCL (the default), results in a SYCL queue.
@@ -431,7 +431,7 @@ Getting the Resource Options
 
   namespace oneapi::dpl::experimental {
     template<typename Policy, typename... Args> 
-    std::vector<resource_t<Policy>> get_resources(P&& p);
+    std::vector<resource_t<Policy>> get_resources(Policy&& p);
   }
   
 Returns a ``std::vector`` that contains the resources that a policy

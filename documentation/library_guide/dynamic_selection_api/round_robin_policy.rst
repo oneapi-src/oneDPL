@@ -1,6 +1,12 @@
 Round-Robin Policy
 ##################
 
+The dynamic selection API is an experimental feature in the |onedpl_long| 
+(|onedpl_short|) that selects an *execution resource* based on a chosen 
+*selection policy*. There are several policies provided as part 
+of the API. Policies encapsulate the logic and any associated state needed 
+to make a selection. 
+
 The round-robin policy cycles through the set of resources at each selection. ``round_robin_policy`` 
 is useful for offloading kernels of similar cost to devices of similar
 capabilities. In those cases, a round-robin assignment of kernels to devices
@@ -10,7 +16,7 @@ will achieve a good load balancing.
 
   namespace oneapi::dpl::experimental {
   
-    template<typename Backend=sycl_backend> 
+    template<typename Backend = sycl_backend> 
     class round_robin_policy {
     public:
       // useful types
@@ -58,7 +64,7 @@ the available devices.
   #include <sycl/sycl.hpp>
   #include <iostream>
 
-  const size_t N = 10000;
+  const std::size_t N = 10000;
   namespace ex = oneapi::dpl::experimental;
 
   void f(sycl::handler& h, float *v);
@@ -78,7 +84,7 @@ the available devices.
               << "             " << num_arrays  << " usm arrays\n"
               << "Will perform " << submission_group_size << " concurrent offloads\n";
 
-    for (int i = 0; i < 100; i+=submission_group_size) { // (3)
+    for (int i = 0; i < 100; i += submission_group_size) { // (3)
       for (int j = 0; j < submission_group_size; ++j) {  // (4)
         ex::submit(p, [&](sycl::queue q) { // (5)
           float *data = usm_data[j];

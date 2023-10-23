@@ -1,6 +1,12 @@
 Fixed-Resource Policy
 #####################
 
+The dynamic selection API is an experimental feature in the |onedpl_long| 
+(|onedpl_short|) that selects an *execution resource* based on a chosen 
+*selection policy*. There are several policies provided as part 
+of the API. Policies encapsulate the logic and any associated state needed 
+to make a selection. 
+
 The fixed-resource policy always returns the same resource selection. ``fixed_resource_policy`` 
 is designed for two primary scenarios: (1) debugging the use of dynamic selection 
 and (2) special casing a dynamic selection capable application for a specific 
@@ -10,7 +16,7 @@ resource is always best on a specific platform.
 
   namespace oneapi::dpl::experimental {
   
-    template<typename Backend=sycl_backend> 
+    template<typename Backend = sycl_backend> 
     class fixed_resource_policy {
     public:
       // useful types
@@ -25,14 +31,14 @@ resource is always best on a specific platform.
       
       // constructors
       fixed_resource_policy(deferred_initialization_t);
-      fixed_resource_policy(::std::size_t offset=0);
+      fixed_resource_policy(std::size_t offset = 0);
       fixed_resource_policy(const std::vector<resource_type>& u,  
-                            ::std::size_t offset=0);
+                            std::size_t offset = 0);
   
       // deferred initializers
-      void initialize(::std::size_t offset=0);
+      void initialize(std::size_t offset = 0);
       void initialize(const std::vector<resource_type>& u, 
-                      ::std::size_t offset=0);
+                      std::size_t offset = 0);
                       
       // queries
       auto get_resources() const;
@@ -69,7 +75,7 @@ the best device to use is know for some subset of platforms.
     std::vector<sycl::queue> r { sycl::queue{sycl::cpu_selector_v},
                                  sycl::queue{sycl::gpu_selector_v} };
 
-    const size_t N = 10000;
+    const std::size_t N = 10000;
     std::vector<float> av(N, 0.0);
     std::vector<float> bv(N, 0.0);
     std::vector<float> cv(N, 0.0);
@@ -78,9 +84,9 @@ the best device to use is know for some subset of platforms.
     }
 
   #if USE_CPU
-    ex::fixed_resource_policy p{r};    // (1)
+    ex::fixed_resource_policy p{r};    // (1) uses index 0 of r, the cpu
   #elif USE_GPU
-    ex::fixed_resource_policy p{r, 1}; // (2)
+    ex::fixed_resource_policy p{r, 1}; // (2) uses index 1 of r, the gpu
   #else 
     ex::auto_tune_policy p{r};
   #endif
@@ -160,9 +166,9 @@ Constructors
     - Description
   * - fixed_resource_policy(deferred_initialization_t);
     - Defers initialization. An ``initialize`` function must be called prior to use.
-  * - fixed_resource_policy(::std::size_t offset=0);
+  * - fixed_resource_policy(std::size_t offset = 0);
     - Sets the index for the resource to be selected. Uses the default set of resources.
-  * - fixed_resource_policy(const std::vector<resource_type>& u, ::std::size_t offset=0);
+  * - fixed_resource_policy(const std::vector<resource_type>& u, std::size_t offset = 0);
     - Overrides the default set of resources and optionally sets the index for the resource to be selected.
 
 Deferred Initialization
@@ -178,9 +184,9 @@ to select or submit.
   
   * - Signature
     - Description
-  * - initialize(::std::size_t offset=0);
+  * - initialize(std::size_t offset = 0);
     - Sets the index for the resource to be selected. Uses the default set of resources.
-  * - initialize(const std::vector<resource_type>& u, ::std::size_t offset=0);
+  * - initialize(const std::vector<resource_type>& u, std::size_t offset = 0);
     - Overrides the default set of resources and optionally sets the index for the resource to be selected.
 
 Queries

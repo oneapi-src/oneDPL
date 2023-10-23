@@ -1,6 +1,12 @@
 Auto-Tune Policy
 ################
 
+The dynamic selection API is an experimental feature in the |onedpl_long| 
+(|onedpl_short|) that selects an *execution resource* based on a chosen 
+*selection policy*. There are several policies provided as part 
+of the API. Policies encapsulate the logic and any associated state needed 
+to make a selection. 
+
 The auto-tune policy selects resources using runtime profiling. ``auto_tune_policy`` 
 is useful for determining which resource has the best performance
 for a given kernel. The choice is made based on runtime performance 
@@ -15,7 +21,7 @@ the profiling phase periodically.
 
   namespace oneapi::dpl::experimental {
   
-    template<typename Backend=sycl_backend> 
+    template<typename Backend = sycl_backend> 
     class auto_tune_policy {
     public:
       // useful types
@@ -69,7 +75,7 @@ two queues, a CPU queue and a GPU queue.
     std::vector<sycl::queue> r { sycl::queue{sycl::cpu_selector_v},
                                  sycl::queue{sycl::gpu_selector_v} };
 
-    const size_t N = 10000;
+    const std::size_t N = 10000;
     std::vector<float> av(N, 0.0);
     std::vector<float> bv(N, 0.0);
     std::vector<float> cv(N, 0.0);

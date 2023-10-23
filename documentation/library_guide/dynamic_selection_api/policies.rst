@@ -34,14 +34,15 @@ Traits can be used to determine useful type information about policies.
   
   }
 
-``selection_t<P>`` is the type returned by calls to ``select`` when using policy P. Calling ``unwrap`` on an object of type ``selection_t<P>`` returns an object of 
-type ``resource_t<P>``. When using the default SYCL backend, ``resource_t<P>`` 
-is ``sycl::queue`` and ``sycl::wait_t<P>`` is ``sycl::event``.  The user functions
+``selection_t<Policy>`` is the type returned by calls to ``select`` when using policy of type ``Policy``. 
+Calling ``unwrap`` on an object of type ``selection_t<Policy>`` returns an object of 
+type ``resource_t<Policy>``. When using the default SYCL backend, ``resource_t<Policy>`` 
+is ``sycl::queue`` and ``sycl::wait_t<Policy>`` is ``sycl::event``.  The user functions
 passed to ``submit`` and ``submit_and_wait`` are expected to have a signature of:
 
 .. code:: cpp
 
-  wait_t<P> user_function(resource_t<P>, ...);
+  wait_t<Policy> user_function(resource_t<Policy>, ...);
 
 Common Reference Semantics
 --------------------------
