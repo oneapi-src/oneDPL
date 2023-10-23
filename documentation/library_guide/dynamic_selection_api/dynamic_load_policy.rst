@@ -1,7 +1,7 @@
-dynamic_load_policy
+Dynamic Load Policy
 ###################
 
-Tracks the number of submissions currently submitted but not yet completed on each 
+The dynamic load policy tracks the number of submissions currently submitted but not yet completed on each 
 resource and selects the resource that has the fewest unfinished submissions. 
 ``dynamic_load_policy`` is useful for offloading kernels of varying cost to devices 
 of varying performance. A load-based assignment may achieve a good load balancing 
@@ -105,7 +105,7 @@ The key points in this example are:
 #. Some additional work is done between calls to ``submit``. ``dynamic_load_policy`` is most useful when there is time for work to complete on some devices before the next assignment is made. If all submissions are performed simultaneously, all devices will appear equally loaded, since the fast devices would have had no time to complete their work.
 #. ``wait`` is called to block for all of the concurrent ``submission_group_size`` submissions to complete.
 
-selection algorithm
+Selection Algorithm
 -------------------
  
 The selection algorithm for ``dynamic_load_policy`` always returns 
@@ -131,7 +131,7 @@ fixed integer offset. Both ``resources_`` and ``fixed_offset``
 are set during construction or deferred initialization of the policy
 and then remain constant. 
 
-constructors
+Constructors
 ------------
 
 ``dynamic_load_policy`` provides three constructors.
@@ -149,7 +149,7 @@ constructors
   * - dynamic_load_policy(const std::vector<resource_type>& u);
     - Overrides the default set of resources.
 
-deferred initialization
+Deferred Initialization
 -----------------------
 
 A ``dynamic_load_policy`` that was constructed with deferred initialization must be 
@@ -167,7 +167,7 @@ to select or submit.
   * - initialize(const std::vector<resource_type>& u);
     - Overrides the default set of resources.
 
-queries
+Queries
 -------
 
 A ``dynamic_load_policy`` has ``get_resources`` and ``get_submission_group`` 
@@ -184,7 +184,7 @@ member functions.
   * - auto get_submission_group();
     - Returns an object that can be used to wait for all active submissions.
 
-reporting requirements
+Reporting Requirements
 ----------------------
 
 If a resource returned by ``select`` is used directly without calling

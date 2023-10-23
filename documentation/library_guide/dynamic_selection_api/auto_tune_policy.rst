@@ -1,12 +1,12 @@
-auto_tune_policy
+Auto-Tune Policy
 ################
 
-Selects resources using runtime profiling. ``auto_tune_policy`` 
+The auto-tune policy selects resources using runtime profiling. ``auto_tune_policy`` 
 is useful for determining which resource has the best performance
 for a given kernel. The choice is made based on runtime performance 
 history, so this policy is only useful for kernels that have stable
 performance. Initially, this policy acts like ``auto_tune_policy``,
-rotating through each resource (1 or more times). Then, once it has
+rotating through each resource (one or more times). Then, once it has
 determined which resource is performing best, it uses that resource
 thereafter. Optionally, a resampling interval can set to return to
 the profiling phase periodically.
@@ -114,7 +114,7 @@ The key points in this example are:
 #. For clarity when run, the type of device is displayed.
 #. The queue is used in function to perform and asynchronous offload. The SYCL event returned from the call to ``submit`` is returned. Returning an event is required for functions passed to ``submit`` and ``submit_and_wait``.
 
-selection algorithm
+Selection Algorithm
 -------------------
  
 The selection algorithm for ``auto_tune_policy`` uses runtime profiling
@@ -148,10 +148,10 @@ return ``use_best``, the tuner is not in the profiling phase, and so the previou
 determined best resource is used. Otherwise, the resource at index ``offset`` 
 in the ``resources_`` vector is used and its resulting performance is profiled. 
 When an ``auto_tune_policy`` is initialized with a non-zero resample interval,
-the policy will periodically return to the profling phase base on the provided
+the policy will periodically return to the profiling phase base on the provided
 interval value.
 
-constructors
+Constructors
 ------------
 
 ``auto_tune_policy`` provides three constructors.
@@ -169,7 +169,7 @@ constructors
   * - auto_tune_policy(const std::vector<resource_type>& u, uint64_t resample_interval_in_milliseconds = 0);
     - Overrides the default set of resources. An optional resampling interval can be provided.
 
-deferred initialization
+Deferred Initialization
 -----------------------
 
 A ``auto_tune_policy`` that was constructed with deferred initialization must be 
@@ -187,7 +187,7 @@ to select or submit.
   * - initialize(const std::vector<resource_type>& u, uint64_t resample_interval_in_milliseconds = 0);
     - Overrides the default set of resources. An optional resampling interval can be provided.
 
-queries
+Queries
 -------
 
 A ``auto_tune_policy`` has ``get_resources`` and ``get_submission_group`` 
@@ -204,7 +204,7 @@ member functions.
   * - auto get_submission_group();
     - Returns an object that can be used to wait for all active submissions.
 
-reporting requirements
+Reporting Requirements
 ----------------------
 
 If a resource returned by ``select`` is used directly without calling

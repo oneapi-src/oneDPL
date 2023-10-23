@@ -1,7 +1,7 @@
-round_robin_policy
+Round-Robin Policy
 ##################
 
-Cycles through the set of resources at each selection. ``round_robin_policy`` 
+The round-robin policy cycles through the set of resources at each selection. ``round_robin_policy`` 
 is useful for offloading kernels of similar cost to devices of similar
 capabilities. In those cases, a round-robin assignment of kernels to devices
 will achieve a good load balancing.
@@ -102,7 +102,7 @@ The key points in this example are:
 #. The queue is used in function to perform an asynchronous offload. The SYCL event returned from the call to ``submit`` is returned. Returning an event is required for functions passed to ``submit`` and ``submit_and_wait``.
 #. ``wait`` is called to block for all of the concurrent ``submission_group_size`` submissions to complete.
 
-selection algorithm
+Selection Algorithm
 -------------------
  
 The selection algorithm for ``round_robin_policy`` rotates through
@@ -126,7 +126,7 @@ where ``resources_`` is a container of resources, such as
 a counter that increments at each selection, and ``num_resources_``
 is the size of the ``resources_`` vector.
 
-constructors
+Constructors
 ------------
 
 ``round_robin_policy`` provides three constructors.
@@ -144,7 +144,7 @@ constructors
   * - round_robin_policy(const std::vector<resource_type>& u);
     - Overrides the default set of resources.
 
-deferred initialization
+Deferred Initialization
 -----------------------
 
 A ``round_robin_policy`` that was constructed with deferred initialization must be 
@@ -162,7 +162,7 @@ to select or submit.
   * - initialize(const std::vector<resource_type>& u);
     - Overrides the default set of resources.
 
-queries
+Queries
 -------
 
 A ``round_robin_policy`` has ``get_resources`` and ``get_submission_group`` 
@@ -179,13 +179,13 @@ member functions.
   * - auto get_submission_group();
     - Returns an object that can be used to wait for all active submissions.
 
-reporting requirements
+Reporting Requirements
 ----------------------
 
 If a resource returned by ``select`` is used directly without calling
 ``submit`` or ``submit_and_wait``, it may be necessary to call ``report``
 to provide feedback to the policy. However, the ``round_robin_policy`` 
-does not require any feedback about the system state or the behaviour of 
+does not require any feedback about the system state or the behavior of 
 the workload. Therefore, no explicit reporting of execution information 
 is needed, as is summarized in the table below.
 

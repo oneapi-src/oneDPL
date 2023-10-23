@@ -1,7 +1,7 @@
-fixed_resource_policy
+Fixed-Resource Policy
 #####################
 
-Always returns the same resource selection. ``fixed_resource_policy`` 
+The fixed-resource policy always returns the same resource selection. ``fixed_resource_policy`` 
 is designed for two primary scenarios: (1) debugging the use of dynamic selection 
 and (2) special casing a dynamic selection capable application for a specific 
 resource is always best on a specific platform.
@@ -121,7 +121,7 @@ The key points in this example are:
 #. For clarity when run, the type of device is displayed.
 #. The queue is used in function to perform an asynchronous offload. The SYCL event returned from the call to ``submit`` is returned. Returning an event is required for functions passed to ``submit`` and ``submit_and_wait``.
 
-selection algorithm
+Selection Algorithm
 -------------------
  
 The selection algorithm for ``fixed_resource_policy`` always returns 
@@ -147,7 +147,7 @@ fixed integer offset. Both ``resources_`` and ``fixed_offset``
 are set during construction or deferred initialization of the policy
 and then remain constant. 
 
-constructors
+Constructors
 ------------
 
 ``fixed_resource_policy`` provides three constructors.
@@ -165,7 +165,7 @@ constructors
   * - fixed_resource_policy(const std::vector<resource_type>& u, ::std::size_t offset=0);
     - Overrides the default set of resources and optionally sets the index for the resource to be selected.
 
-deferred initialization
+Deferred Initialization
 -----------------------
 
 A ``fixed_resource_policy`` that was constructed with deferred initialization must be 
@@ -183,7 +183,7 @@ to select or submit.
   * - initialize(const std::vector<resource_type>& u, ::std::size_t offset=0);
     - Overrides the default set of resources and optionally sets the index for the resource to be selected.
 
-queries
+Queries
 -------
 
 A ``fixed_resource_policy`` has ``get_resources`` and ``get_submission_group`` 
@@ -200,7 +200,7 @@ member functions.
   * - auto get_submission_group();
     - Returns an object that can be used to wait for all active submissions.
 
-reporting requirements
+Reporting Requirements
 ----------------------
 
 If a resource returned by ``select`` is used directly without calling

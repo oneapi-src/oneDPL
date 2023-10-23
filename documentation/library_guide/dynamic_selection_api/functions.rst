@@ -6,7 +6,7 @@ The dynamic selection API is an experimental feature in the |onedpl_long|
 *selection policy*. There are several functions provided as part 
 of the API.
 
-select
+Select
 ------
 
 .. code:: cpp
@@ -72,14 +72,14 @@ needed by some policies, such as ``dynamic_load_policy`` and ``auto_tune_poliy``
 If the selected resource is used directly, this reporting must be done explicitly 
 (using the ``report`` functions).
 
-submit
+Submit
 ------
 
 ``submit`` has two function signatures: (1) the first argument 
 is a *policy* object or (2) the first argument is a *selection* object 
 that was returned by a previous call to ``select``.
 
-submit using a policy
+Submit Using a Policy
 +++++++++++++++++++++
 
 .. code:: cpp
@@ -150,7 +150,7 @@ The output from this example:
   (i == 3): async work on main thread
   (i == 3): submission done
 
-submit using a selection
+Submit Using a Selection
 ++++++++++++++++++++++++
 
 .. code:: cpp
@@ -220,7 +220,7 @@ The output from this example:
   (i == 3): async work on main thread
   (i == 3): submission done
 
-wait
+Wait
 ----
 
 .. code:: cpp
@@ -282,7 +282,7 @@ The output from this example:
   (i == 3): async work on main thread
   done waiting for all submissions
 
-submit_and_wait
+Submit and Wait
 ---------------
 
 Just like ``submit``, ``submit_and_wait`` has two function signatures: 
@@ -294,7 +294,7 @@ The difference between ``submit_and_wait`` and ``submit`` is that
 with the submission is complete. This behaviour is essentially a short-cut
 for calling ``wait`` on the object returned by a call to ``submit``. 
 
-submit and wait using a policy
+Submit and Wait Using a Policy
 ++++++++++++++++++++++++++++++
 
 .. code:: cpp
@@ -357,7 +357,7 @@ The output from this example:
   (i == 3): submission done
 
 
-submit and wait using a selection
+Submit and Wait Using a Selection
 +++++++++++++++++++++++++++++++++
 
 .. code:: cpp
@@ -424,7 +424,7 @@ The output from this example:
 Policy Queries
 --------------
 
-Getting the resource options
+Getting the Resource Options
 ++++++++++++++++++++++++++++
 
 .. code:: cpp
@@ -482,7 +482,7 @@ as well as an FPGA emulator. When no resources are explicitly provided to the
 policy constructor, the results show two non-gpu devices (the CPU and the FPGA 
 emulator) and two drivers for the GPU.
 
-Getting the group of submissions
+Getting the Group of Submissions
 ++++++++++++++++++++++++++++++++
 
 .. code:: cpp
@@ -499,10 +499,10 @@ complete.
 An example that demonstrates the use of this function can be found in
 the section that describes the ``submit`` function.
 
-report
+Report
 ------
 
-reporting events with no associated values
+Reporting Events with No Associated Values
 ++++++++++++++++++++++++++++++++++++++++++
 
 .. code:: cpp
@@ -547,7 +547,7 @@ submitted to the selected queue.
     }
   }
   
-reporting events with associated values
+Reporting Events with Associated Values
 +++++++++++++++++++++++++++++++++++++++
 
 .. code:: cpp

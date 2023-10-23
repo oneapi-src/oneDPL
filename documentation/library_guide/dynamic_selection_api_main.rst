@@ -11,7 +11,7 @@ The selection policies include: ``fixed_resource_policy`` that always selects a
 specified resource, ``round_robin_policy`` that rotates between resources,
 ``dynamic_load_policy`` that chooses the resource that has the fewest outstanding 
 submissions, and ``auto_tune_policy`` that chooses the best resources based on runtime 
-profling information.  
+profiling information.  
 
 Policy objects are used as arguments to the dynamic selection functions. The 
 ``select`` function picks and returns a resource based on a policy. The ``submit`` 
@@ -65,7 +65,7 @@ In the preceding example, the key points in the code include:
 #. A policy object is created. In this example, the policy is a ``round_robin_policy`` that will rotate between a CPU and GPU SYCL queue.
 #. The ``submit`` function is called in a loop. The arguments to the call include the policy object and user-provided function.
 #. The user-provided function receives a SYCL queue (selected by the policy) and returns a SYCL event that represents the end of the chain of work that was submitted to the queue.
-#. The submit function returns an object that can be waited on. Calling wait on the ``done`` object blocks the main thread until the work submitted to the queue by the user function is complete.
+#. The submit function returns an object that can be waited on. Calling ``wait`` on the ``done`` object blocks the main thread until the work submitted to the queue by your function is complete.
 #. The whole group of submissions made during the loop can be waited on. In this example, the call is redundant, since each submission was already waited for inside of the loop body.
  
 The output from this example is:
@@ -81,7 +81,7 @@ The output from this example is:
 
 And shows that the user function is passed alternating queues.
 
-More detailed information about the API is provide in the following sections:
+More detailed information about the API is provided in the following sections:
 
 .. toctree::
    :maxdepth: 2
