@@ -1,0 +1,102 @@
+//===----------------------------------------------------------------------===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+// <iterator>
+
+// reverse_iterator
+
+// constexpr reference operator*() const;
+//
+// constexpr in C++17
+
+// Be sure to respect LWG 198:
+//    http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#198
+// LWG 198 was superseded by LWG 2360
+//    http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#2360
+
+#include "oneapi_std_test_config.h"
+#include <CL/sycl.hpp>
+#include <iostream>
+#include "test_macros.h"
+
+#ifdef USE_ONEAPI_STD
+#    include _ONEAPI_STD_TEST_HEADER(iterator)
+#    include _ONEAPI_STD_TEST_HEADER(type_traits)
+namespace s = oneapi_cpp_ns;
+#else
+#    include <iterator>
+#    include <type_traits>
+namespace s = std;
+#endif
+
+constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
+constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+
+class A
+{
+    int data_;
+
+  public:
+    A() : data_(1) {}
+    ~A() { data_ = -1; }
+
+    friend bool
+    operator==(const A& x, const A& y)
+    {
+        return x.data_ == y.data_;
+    }
+};
+
+template <class It>
+bool
+test(It i, typename s::iterator_traits<It>::value_type x)
+{
+    s::reverse_iterator<It> r(i);
+    return (*r == x);
+}
+
+bool
+kernel_test()
+{
+    cl::sycl::queue deviceQueue;
+    cl::sycl::cl_bool ret = true;
+    {
+        cl::sycl::range<1> numOfItems{1};
+        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
+        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+            auto ret_access = buffer1.get_access<sycl_write>(cgh);
+            cgh.single_task<class KernelTest>([=]() {
+                A a;
+                ret_access[0] &= test(&a + 1, A());
+
+#if TEST_STD_VER > 14
+                {
+                    constexpr const char* p = "123456789";
+                    typedef s::reverse_iterator<const char*> RI;
+                    constexpr RI it1 = s::make_reverse_iterator(p + 1);
+                    constexpr RI it2 = s::make_reverse_iterator(p + 2);
+                    static_assert(*it1 == p[0], "");
+                    static_assert(*it2 == p[1], "");
+                }
+#endif
+            });
+        });
+    }
+    return ret;
+}
+
+int
+main(int, char**)
+{
+    auto ret = kernel_test();
+    if (ret)
+        std::cout << "Pass" << std::endl;
+    else
+        std::cout << "Fail" << std::endl;
+    return 0;
+}
