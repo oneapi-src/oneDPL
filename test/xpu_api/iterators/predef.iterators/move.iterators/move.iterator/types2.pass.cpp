@@ -49,6 +49,11 @@ struct DummyIt
     typedef dpl::ptrdiff_t difference_type;
     typedef ValueType* pointer;
     typedef Reference reference;
+
+    // Definition of operator* is not required, only the return type is needed
+    // This operator would only be used by std::iter_rvalue_reference to determine
+    // move_iterator::reference type starting from C++20
+    reference operator*();
 };
 
 template <class It>
