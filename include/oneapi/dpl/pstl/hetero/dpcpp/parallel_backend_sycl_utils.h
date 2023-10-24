@@ -480,20 +480,19 @@ struct __usm_host_or_buffer_accessor
   private:
     using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
                                         sycl::access::placeholder::false_t>;
-
-    bool __usm = false;
-    _T* __ptr = nullptr;
     __accessor_t __acc;
+    _T* __ptr = nullptr;
+    bool __usm = false;
 
   public:
     // Buffer accessor
     __usm_host_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
-        : __usm(false), __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})), __usm(false)
     {
     }
 
     // USM pointer
-    __usm_host_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf) : __usm(true), __ptr(__usm_buf) {}
+    __usm_host_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf) : __ptr(__usm_buf), __usm(true) {}
 
     auto
     __get_pointer() const // should be cached within a kernel
@@ -507,13 +506,33 @@ struct __usm_host_or_buffer_storage
 {
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
-    bool __usm;
-    ::std::shared_ptr<_T> __usm_buf;
     ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
+    ::std::shared_ptr<_T> __usm_buf;
+    bool __usm;
+
+    // Only use USM host allocations on L0 GPUs. Other devices show significant slowdowns and will use a buffer instead.
+    inline bool
+    __use_USM_host_allocations(sycl::queue __queue)
+    {
+// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
+#if _ONEDPL_SYCL_USM_HOST_PRESENT
+        auto __device = __queue.get_device();
+        if (!__device.is_gpu())
+            return false;
+        if (!__device.has(sycl::aspect::usm_host_allocations))
+            return false;
+        if (__device.get_backend() != sycl::backend::ext_oneapi_level_zero)
+            return false;
+        return true;
+#else
+        return false;
+#endif
+    }
 
   public:
-    __usm_host_or_buffer_storage(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n) : __usm(__u)
+    __usm_host_or_buffer_storage(_ExecutionPolicy& __exec, ::std::size_t __n)
     {
+        __usm = __use_USM_host_allocations(__exec.queue());
         if (__usm)
         {
             __usm_buf = std::shared_ptr<_T>(
@@ -533,7 +552,7 @@ struct __usm_host_or_buffer_storage
                      : __usm_host_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
     }
 
-    auto
+    _T
     __get_value(size_t idx = 0)
     {
         return __usm ? *(__usm_buf.get() + idx) : __sycl_buf->get_host_access(sycl::read_only)[idx];
@@ -620,25 +639,6 @@ class __future : private std::tuple<_Args...>
         return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
 };
-
-// Only use USM host allocations on L0 GPUs. Other devices show significant slowdowns and will use a buffer instead.
-inline bool
-__use_USM_host_allocations(sycl::queue __queue)
-{
-// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
-#if _ONEDPL_SYCL_USM_HOST_PRESENT
-    auto __device = __queue.get_device();
-    if (!__device.is_gpu())
-        return false;
-    if (!__device.has(sycl::aspect::usm_host_allocations))
-        return false;
-    if (__device.get_backend() != sycl::backend::ext_oneapi_level_zero)
-        return false;
-    return true;
-#else
-    return false;
-#endif
-}
 
 // Invoke a callable and pass a compile-time integer based on a provided run-time integer.
 // The compile-time integer that will be provided to the callable is defined as the smallest
