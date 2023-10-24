@@ -34,7 +34,7 @@
 #include "support/test_iterators.h"
 #include "support/utils.h"
 
-#ifdef TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
 template <class It>
 bool
 test(It l, It r, bool x)
@@ -85,7 +85,7 @@ kernel_test()
 int
 main()
 {
-#ifdef TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
     EXPECT_TRUE(ret, "Wrong result of work with reverse iterator and '>=' in kernel_test()");
 #endif // TEST_DPCPP_BACKEND_PRESENT

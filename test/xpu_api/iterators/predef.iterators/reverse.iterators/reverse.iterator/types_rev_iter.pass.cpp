@@ -40,7 +40,7 @@
 #include "support/test_iterators.h"
 #include "support/utils.h"
 
-#ifdef TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
 template <class It>
 struct find_current : private dpl::reverse_iterator<It>
 {
@@ -82,7 +82,7 @@ test()
 int
 main()
 {
-#ifdef TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
     test<bidirectional_iterator<char*>>();
     test<random_access_iterator<char*>>();
     test<char*>();

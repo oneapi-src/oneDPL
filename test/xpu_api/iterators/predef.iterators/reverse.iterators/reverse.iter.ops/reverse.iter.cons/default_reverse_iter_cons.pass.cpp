@@ -29,7 +29,7 @@
 #include "support/test_iterators.h"
 #include "support/utils.h"
 
-#ifdef TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
 template <class It>
 void
 test()
@@ -63,7 +63,7 @@ kernel_test()
 int
 main()
 {
-#ifdef TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
