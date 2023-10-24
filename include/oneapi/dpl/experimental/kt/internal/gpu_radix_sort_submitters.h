@@ -19,6 +19,7 @@
 #include <cstdint>
 
 #include "gpu_radix_sort_kernels.h"
+#include "../../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 
 namespace oneapi::dpl::experimental::kt::gpu::__impl
 {
