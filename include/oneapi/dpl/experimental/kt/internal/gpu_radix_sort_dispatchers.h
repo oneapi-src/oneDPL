@@ -149,6 +149,8 @@ public:
     }
 };
 
+//Note: The function _onesweep maps to the `RadixSortKernel_Impl::process` method from onesweep
+// For RadixSortKernel_Impl, the ctor takes the data & the size, and `process` takes the queue.
 template <typename _KernelName, bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
           ::std::uint16_t __work_group_size, typename _KeysRng>
 sycl::event
