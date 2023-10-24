@@ -297,12 +297,6 @@
 
 #define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 
-// When compile with Intel(R) oneAPI DPC++ Compiler macro is on
-// We need this macro to use compiler specific implementation of SYCL
-#if defined(__INTEL_LLVM_COMPILER) && defined(SYCL_LANGUAGE_VERSION)
-#    define _ONEDPL_SYCL_INTEL_COMPILER 1
-#endif
-
 #if defined(_MSC_VER) && __INTEL_LLVM_COMPILER < 20240100
 #    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
 #else
