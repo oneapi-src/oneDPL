@@ -277,18 +277,18 @@ class __transform_functor
 
     template <typename _Input1Type, typename _OutputType>
     void
-    operator()(const _Input1Type& x, _OutputType&& output) const
+    operator()(_Input1Type&& x, _OutputType&& output) const
     {
         __transform_impl(::std::forward<_OutputType>(output), x);
     }
 
 private:
     template <typename _OutputType, typename... _Args>
-    void __transform_impl(_OutputType&& output, const _Args&... args) const
+    void __transform_impl(_OutputType&& output, _Args&&... args) const
     {
         static_assert(sizeof...(_Args) < 3, "A predicate supports either unary or binary transformation");
         static_assert(::std::is_invocable_v<_Pred, _Args...>, "A predicate cannot be called with the passed arguments");
-        ::std::forward<_OutputType>(output) = _M_pred(args...);
+        ::std::forward<_OutputType>(output) = _M_pred(std::forward<_Args>(args)...);
     }
 };
 
