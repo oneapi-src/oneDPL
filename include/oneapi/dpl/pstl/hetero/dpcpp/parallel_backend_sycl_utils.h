@@ -553,7 +553,7 @@ struct __usm_host_or_buffer_storage
     }
 
     _T
-    __get_value(size_t idx = 0)
+    __get_value(size_t idx = 0) const
     {
         return __usm ? *(__usm_buf.get() + idx) : __sycl_buf->get_host_access(sycl::read_only)[idx];
     }
