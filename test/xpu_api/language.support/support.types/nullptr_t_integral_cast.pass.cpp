@@ -1,48 +1,51 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
 //
 // NOTE: nullptr_t emulation cannot handle a reinterpret_cast to an
 // integral type
-// XFAIL: c++98, c++03
 //
 // typedef decltype(nullptr) nullptr_t;
-//
-//===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include "test_macros.h"
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(cstddef)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <cstddef>
-namespace s = std;
-#endif
+#include <oneapi/dpl/cstddef>
+
+#include "support/test_macros.h"
+#include "support/utils.h"
 
 int
-main(int, char**)
+main()
 {
-    const s::size_t N = 1;
+#if TEST_DPCPP_BACKEND_PRESENT
+    const std::size_t N = 1;
     bool ret = true;
     {
-        cl::sycl::buffer<bool, 1> buf(&ret, cl::sycl::range<1>{N});
-        cl::sycl::queue q;
-        q.submit([&](cl::sycl::handler& cgh) {
-            auto acc = buf.get_access<cl::sycl::access::mode::write>(cgh);
+        sycl::buffer<bool, 1> buf(&ret, sycl::range<1>{N});
+        sycl::queue q = TestUtils::get_test_queue();
+        q.submit([&](sycl::handler& cgh) {
+            auto acc = buf.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
-                s::ptrdiff_t i = reinterpret_cast<s::ptrdiff_t>(nullptr);
+                dpl::ptrdiff_t i = reinterpret_cast<dpl::ptrdiff_t>(nullptr);
                 acc[0] &= (i == 0);
             });
         });
     }
 
-    if (ret)
+    EXPECT_TRUE(ret, "Wrong result of work with null_ptr integral cast in Kernel");
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
-
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

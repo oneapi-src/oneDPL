@@ -1,25 +1,32 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
 //
 // typedef decltype(nullptr) nullptr_t;
 //
-//===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(cstddef)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <cstddef>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/cstddef>
+#include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/utility>
 
+#include "support/test_macros.h"
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
     A(std::nullptr_t) {}
@@ -48,12 +55,12 @@ struct Voider
     typedef void type;
 };
 template <class T, class = void>
-struct has_less : s::false_type
+struct has_less : std::false_type
 {
 };
 
 template <class T>
-struct has_less<T, typename Voider<decltype(s::declval<T>() < nullptr)>::type> : s::true_type
+struct has_less<T, typename Voider<decltype(std::declval<T>() < nullptr)>::type> : std::true_type
 {
 };
 
@@ -86,19 +93,22 @@ test_nullptr_conversions(cl_int& i)
 #    pragma clang diagnostic pop
 #endif
 
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
 int
-main(int, char**)
+main()
 {
-    const s::size_t N = 1;
+#if TEST_DPCPP_BACKEND_PRESENT
+    const std::size_t N = 1;
     bool ret = true;
 
     {
-        cl::sycl::buffer<bool, 1> buf(&ret, cl::sycl::range<1>{N});
-        cl::sycl::queue q;
-        q.submit([&](cl::sycl::handler& cgh) {
-            auto acc = buf.get_access<cl::sycl::access::mode::write>(cgh);
+        sycl::buffer<bool, 1> buf(&ret, sycl::range<1>{N});
+        sycl::queue q = TestUtils::get_test_queue();
+        q.submit([&](sycl::handler& cgh) {
+            auto acc = buf.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
-                static_assert(sizeof(std::nullptr_t) == sizeof(void*), "sizeof(s::nullptr_t) == sizeof(void*)");
+                static_assert(sizeof(std::nullptr_t) == sizeof(void*), "sizeof(std::nullptr_t) == sizeof(void*)");
 
                 cl_int i = 0;
                 {
@@ -109,7 +119,7 @@ main(int, char**)
                 }
                 {
 #ifdef _LIBCPP_HAS_NO_NULLPTR
-                    static_assert(!has_less<std::nullptr_t>::value, "");
+                    static_assert(!has_less<std::nullptr_t>::value);
 #endif
                     test_comparisons<std::nullptr_t>(i);
                     test_comparisons<void*>(i);
@@ -122,10 +132,8 @@ main(int, char**)
         });
     }
 
-    if (ret)
-        std::cout << "Pass" << std::endl;
+    EXPECT_TRUE(ret, "Wrong result of work with null_ptr in Kernel");
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    else
-        std::cout << "Fail" << std::endl;
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
