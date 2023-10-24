@@ -42,7 +42,7 @@ struct A
         }
     }
 
-    std::size_t size;
+    dpl::size_t size;
     int data[10];
 };
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -51,7 +51,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    const std::size_t N = 4;
+    const dpl::size_t N = 4;
     bool rs[N] = {false};
     {
         sycl::buffer<bool, 1> buf(rs, sycl::range<1>{N});
@@ -68,7 +68,7 @@ main()
         });
     }
 
-    for (std::size_t i = 0; i < N; ++i)
+    for (dpl::size_t i = 0; i < N; ++i)
     {
         EXPECT_TRUE(rs[i], "Wrong result of work with begin / end in Kernel");
     }

@@ -44,7 +44,7 @@ struct A
         }
     }
 
-    std::size_t size;
+    dpl::size_t size;
     int data[10];
 };
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -53,7 +53,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    const std::size_t N = 4;
+    const dpl::size_t N = 4;
     bool rs[N] = {false};
 
     {
@@ -71,7 +71,7 @@ main()
         });
     }
 
-    for (std::size_t i = 0; i < N; ++i)
+    for (dpl::size_t i = 0; i < N; ++i)
     {
         EXPECT_TRUE(rs[i], "Wrong result of data pass from Kernel through accessor");
     }

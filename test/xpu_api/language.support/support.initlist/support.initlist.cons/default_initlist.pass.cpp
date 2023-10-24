@@ -36,7 +36,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    const std::size_t N = 1;
+    const dpl::size_t N = 1;
     bool rs[N] = {false};
 
     {
@@ -51,7 +51,7 @@ main()
         });
     }
 
-    for (std::size_t i = 0; i < N; ++i)
+    for (dpl::size_t i = 0; i < N; ++i)
     {
         EXPECT_TRUE(rs[i], "Wrong result of work with default initializer list in Kernel");
     }

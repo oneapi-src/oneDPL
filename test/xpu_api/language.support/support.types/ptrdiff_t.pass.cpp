@@ -32,7 +32,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    const std::size_t N = 1;
+    const dpl::size_t N = 1;
     bool ret = true;
 
     {

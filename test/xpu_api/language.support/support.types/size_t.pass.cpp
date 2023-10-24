@@ -31,7 +31,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    const std::size_t N = 1;
+    const dpl::size_t N = 1;
     bool ret = true;
 
     {
@@ -40,10 +40,10 @@ main()
         q.submit([&](sycl::handler& cgh) {
             auto acc = buf.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
-                static_assert(sizeof(std::size_t) == sizeof(void*), "sizeof(std::size_t) == sizeof(void*)");
-                static_assert(dpl::is_unsigned<std::size_t>::value, "spl::is_unsigned<std::size_t>::value");
-                static_assert(dpl::is_integral<std::size_t>::value, "spl::is_integral<std::size_t>::value");
-                acc[0] &= (sizeof(std::size_t) == sizeof(void*));
+                static_assert(sizeof(dpl::size_t) == sizeof(void*), "sizeof(dpl::size_t) == sizeof(void*)");
+                static_assert(dpl::is_unsigned<dpl::size_t>::value, "spl::is_unsigned<dpl::size_t>::value");
+                static_assert(dpl::is_integral<dpl::size_t>::value, "spl::is_integral<dpl::size_t>::value");
+                acc[0] &= (sizeof(dpl::size_t) == sizeof(void*));
             });
         });
     }

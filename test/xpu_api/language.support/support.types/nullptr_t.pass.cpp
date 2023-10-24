@@ -29,7 +29,7 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
-    A(std::nullptr_t) {}
+    A(dpl::nullptr_t) {}
 };
 
 template <class T>
@@ -99,7 +99,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    const std::size_t N = 1;
+    const dpl::size_t N = 1;
     bool ret = true;
 
     {
@@ -108,20 +108,20 @@ main()
         q.submit([&](sycl::handler& cgh) {
             auto acc = buf.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
-                static_assert(sizeof(std::nullptr_t) == sizeof(void*), "sizeof(std::nullptr_t) == sizeof(void*)");
+                static_assert(sizeof(dpl::nullptr_t) == sizeof(void*), "sizeof(dpl::nullptr_t) == sizeof(void*)");
 
                 cl_int i = 0;
                 {
-                    test_conversions<std::nullptr_t>(i);
+                    test_conversions<dpl::nullptr_t>(i);
                     test_conversions<void*>(i);
                     test_conversions<A*>(i);
                     test_conversions<int A::*>(i);
                 }
                 {
 #ifdef _LIBCPP_HAS_NO_NULLPTR
-                    static_assert(!has_less<std::nullptr_t>::value);
+                    static_assert(!has_less<dpl::nullptr_t>::value);
 #endif
-                    test_comparisons<std::nullptr_t>(i);
+                    test_comparisons<dpl::nullptr_t>(i);
                     test_comparisons<void*>(i);
                     test_comparisons<A*>(i);
                 }

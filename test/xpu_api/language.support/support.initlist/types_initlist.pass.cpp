@@ -55,7 +55,7 @@ main()
                 static_assert(dpl::is_same<std::initializer_list<A>::value_type, A>::value);
                 static_assert(dpl::is_same<std::initializer_list<A>::reference, const A&>::value);
                 static_assert(dpl::is_same<std::initializer_list<A>::const_reference, const A&>::value);
-                static_assert(dpl::is_same<std::initializer_list<A>::size_type, std::size_t>::value);
+                static_assert(dpl::is_same<std::initializer_list<A>::size_type, dpl::size_t>::value);
                 static_assert(dpl::is_same<std::initializer_list<A>::iterator, const A*>::value);
                 static_assert(dpl::is_same<std::initializer_list<A>::const_iterator, const A*>::value);
                 acc[0] = true;
