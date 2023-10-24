@@ -34,6 +34,7 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 class A
 {
     int data_;
@@ -137,6 +138,7 @@ kernel_test()
     }
     return ret;
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
