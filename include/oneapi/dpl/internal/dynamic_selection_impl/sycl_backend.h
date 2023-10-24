@@ -106,9 +106,13 @@ class sycl_backend
                       report_value_v<SelectionHandle, execution_info::task_time_t>)
         {
             std::chrono::steady_clock::time_point t0;
+            bool use_event_profiling = q.template has_property<sycl::property::queue::enable_profiling>();
             if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t>)
             {
-                t0 = std::chrono::steady_clock::now();
+                if (!use_event_profiling)
+                {
+                    t0 = std::chrono::steady_clock::now();
+                }
             }
             auto e1 = f(q, std::forward<Args>(args)...);
             auto e2 = q.submit([=](sycl::handler& h) {
@@ -119,7 +123,18 @@ class sycl_backend
                         s.report(execution_info::task_completion);
                     }
                     if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t>)
-                        s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
+                    {
+                        if (use_event_profiling)
+                        {
+                            cl_ulong time_start = e1.template get_profiling_info<sycl::info::event_profiling::command_start>();
+                            cl_ulong time_end = e1.template get_profiling_info<sycl::info::event_profiling::command_end>();
+                            s.report(execution_info::task_time, time_end - time_start);
+                        }
+                        else 
+                        {
+                            s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
+                        }
+                    }
                 });
             });
             return async_waiter{e2};
