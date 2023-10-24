@@ -53,7 +53,7 @@ main()
 
     for (std::size_t i = 0; i < N; ++i)
     {
-        EXPECT_TRUE(rs[i], "Wrong result of work with default init list in Kernel");
+        EXPECT_TRUE(rs[i], "Wrong result of work with default initializer list in Kernel");
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
