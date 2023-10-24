@@ -112,7 +112,7 @@ TEST_CONSTEXPR C gC;
 bool
 kernel_test()
 {
-    sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     bool ret = true;
     {
         sycl::range<1> numOfItems{1};
