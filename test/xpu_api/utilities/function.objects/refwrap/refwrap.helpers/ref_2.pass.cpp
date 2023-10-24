@@ -1,8 +1,17 @@
-#include <CL/sycl.hpp>
-#include <functional>
-#include <iostream>
-
-#include "counting_predicates.hpp"
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
 // <functional>
 
@@ -10,9 +19,14 @@
 
 // template <ObjectType T> reference_wrapper<T> ref(reference_wrapper<T>t);
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_config.h"
 
+#include <oneapi/dpl/functional>
+
+#include "support/utils.h"
+#include "support/counting_predicates.hpp"
+
+#if TEST_DPCPP_BACKEND_PRESENT
 class KernelRef2PassTest;
 
 // bool is5 ( int i ) { return i == 5; }
@@ -36,12 +50,12 @@ call_pred(T pred)
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
-        auto ret_access = buffer1.get_access<sycl_write>(cgh);
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = false;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+    deviceQueue.submit([&](sycl::handler& cgh) {
+        auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelRef2PassTest>([=]() {
             {
                 int i = 0;
@@ -63,20 +77,17 @@ kernel_test()
         });
     });
 
-    auto ret_access_host = buffer1.get_access<sycl_read>();
-    if (ret_access_host[0])
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    auto ret_access_host = buffer1.get_access<sycl::access::mode::read>();
+    EXPECT_TRUE(ret_access_host[0], "Error in work with std::reference_wrapper");
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

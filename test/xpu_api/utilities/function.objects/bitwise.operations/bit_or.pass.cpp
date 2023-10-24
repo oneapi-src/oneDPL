@@ -1,44 +1,50 @@
-#include "oneapi_std_test_config.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(functional)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <functional>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include "support/test_config.h"
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include <oneapi/dpl/functional>
+#include <oneapi/dpl/type_traits>
 
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
 class KernelBitOrTest;
 
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
-        auto ret_access = buffer1.get_access<sycl_write>(cgh);
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = false;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+    deviceQueue.submit([&](sycl::handler& cgh) {
+        auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelBitOrTest>([=]() {
-            typedef s::bit_or<int> F;
+            typedef dpl::bit_or<int> F;
             const F f = F();
-            static_assert((s::is_same<int, F::first_argument_type>::value), "");
-            static_assert((s::is_same<int, F::second_argument_type>::value), "");
-            static_assert((s::is_same<int, F::result_type>::value), "");
+            static_assert(dpl::is_same<int, F::first_argument_type>::value);
+            static_assert(dpl::is_same<int, F::second_argument_type>::value);
+            static_assert(dpl::is_same<int, F::result_type>::value);
             ret_access[0] = (f(0xEA95, 0xEA95) == 0xEA95);
             ret_access[0] &= (f(0xEA95, 0x58D3) == 0xFAD7);
             ret_access[0] &= (f(0x58D3, 0xEA95) == 0xFAD7);
             ret_access[0] &= (f(0x58D3, 0) == 0x58D3);
             ret_access[0] &= (f(0xFFFF, 0x58D3) == 0xFFFF);
 
-            typedef s::bit_or<long> F2;
+            typedef dpl::bit_or<long> F2;
             const F2 f2 = F2();
             ret_access[0] &= (f2(0xEA95L, 0xEA95) == 0xEA95);
             ret_access[0] &= (f2(0xEA95, 0xEA95L) == 0xEA95);
@@ -57,21 +63,17 @@ kernel_test()
         });
     });
 
-    auto ret_access_host = buffer1.get_access<sycl_read>();
-    if (ret_access_host[0])
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    auto ret_access_host = buffer1.get_access<sycl::access::mode::read>();
+    EXPECT_TRUE(ret_access_host[0], "Error in work with dpl::bit_or");
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
