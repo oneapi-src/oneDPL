@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_DETECT_SPIRV_COMPILATION 0
+#define _ONEDPL_DETECT_SPIRV_COMPILATION 1
 #include "minmax_element.pass.h"
 
 int
