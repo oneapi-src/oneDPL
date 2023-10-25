@@ -288,7 +288,7 @@ __parallel_find(oneapi::dpl::__internal::__fpga_backend __tag, _ExecutionPolicy&
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
-    return oneapi::dpl::__par_backend_hetero::__parallel_find(oneapi::dpl::__internal::__device_backend{}, __device_policy, __first, __last, __f, __is_first);
+    return oneapi::dpl::__par_backend_hetero::__parallel_find(oneapi::dpl::__internal::__device_backend_tag{}, __device_policy, __first, __last, __f, __is_first);
 }
 
 template <typename _ExecutionPolicy>
