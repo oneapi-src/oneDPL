@@ -131,7 +131,9 @@ __is_parallelization_preferred(_ExecutionPolicy& __exec)
 // backend selector with tags
 //------------------------------------------------------------------------
 
-struct __tbb_backend_tag {};
+struct __tbb_backend_tag
+{
+};
 // KSATODO required create tag for dpcpp -> already implemented: __device_backend_tag, __fpga_backend_tag
 // KSATODO required create tag for omp
 
@@ -159,14 +161,10 @@ struct __parallel_forward_tag
 };
 
 template <class _IsVector, class... _IteratorTypes>
-using __tag_type =
-    typename ::std::conditional<__internal::__is_random_access_iterator<_IteratorTypes...>::value,
-                                __parallel_tag<_IsVector>,
-                                typename ::std::conditional<__is_forward_iterator<_IteratorTypes...>::value,
-                                                            __parallel_forward_tag,
-                                                            __serial_tag<_IsVector>
-                                                            >::type
-                                >::type;
+using __tag_type = typename ::std::conditional<
+    __internal::__is_random_access_iterator<_IteratorTypes...>::value, __parallel_tag<_IsVector>,
+    typename ::std::conditional<__is_forward_iterator<_IteratorTypes...>::value, __parallel_forward_tag,
+                                __serial_tag<_IsVector>>::type>::type;
 
 template <class... _IteratorTypes>
 __serial_tag<std::false_type>

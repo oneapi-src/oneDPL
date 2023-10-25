@@ -91,7 +91,7 @@ struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
             __cgh.single_task<_Name...>([=]() {
-#pragma unroll(::std::decay <_ExecutionPolicy>::type::unroll_factor)
+#    pragma unroll(::std::decay <_ExecutionPolicy>::type::unroll_factor)
                 for (auto __idx = 0; __idx < __count; ++__idx)
                 {
                     __brick(__idx, __rngs...);
@@ -117,7 +117,8 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
 auto
-__parallel_for(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
+__parallel_for(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count,
+               _Ranges&&... __rngs)
 {
     using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using __parallel_for_name = __internal::__kernel_name_provider<typename _Policy::kernel_name>;
@@ -289,13 +290,15 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
 _Iterator
-__parallel_find(oneapi::dpl::__internal::__fpga_backend_tag __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst __is_first)
+__parallel_find(oneapi::dpl::__internal::__fpga_backend_tag __tag, _ExecutionPolicy&& __exec, _Iterator __first,
+                _Iterator __last, _Brick __f, _IsFirst __is_first)
 {
     // workaround until we implement more performant version for patterns
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
     using __kernel_name = typename _Policy::kernel_name;
     auto __device_policy = oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
-    return oneapi::dpl::__par_backend_hetero::__parallel_find(oneapi::dpl::__internal::__device_backend_tag{}, __device_policy, __first, __last, __f, __is_first);
+    return oneapi::dpl::__par_backend_hetero::__parallel_find(oneapi::dpl::__internal::__device_backend_tag{},
+                                                              __device_policy, __first, __last, __f, __is_first);
 }
 
 template <typename _ExecutionPolicy>

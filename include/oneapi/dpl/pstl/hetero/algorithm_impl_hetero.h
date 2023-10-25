@@ -60,8 +60,8 @@ __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIte
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
 void
-__pattern_walk1(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-                _Function __f)
+__pattern_walk1(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+                _ForwardIterator __last, _Function __f)
 {
     auto __n = __last - __first;
     if (__n <= 0)
@@ -71,8 +71,8 @@ __pattern_walk1(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _For
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
 
-    oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, __exec, unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
-                                                      __n, __buf.all_view())
+    oneapi::dpl::__par_backend_hetero::__parallel_for(
+        _BackendTag{}, __exec, unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf.all_view())
         .wait();
 }
 
@@ -658,15 +658,16 @@ __pattern_equal(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
 _Iterator
-__pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Pred __pred)
+__pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                  _Pred __pred)
 {
     if (__first == __last)
         return __last;
 
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
 
-    return __par_backend_hetero::__parallel_find(_BackendTag{},
-        ::std::forward<_ExecutionPolicy>(__exec),
+    return __par_backend_hetero::__parallel_find(
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__pred},
         ::std::true_type{});
