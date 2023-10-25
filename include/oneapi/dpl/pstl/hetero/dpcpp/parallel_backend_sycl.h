@@ -181,9 +181,6 @@ make_iter_mode(const _Iterator& __it) -> decltype(iter_mode<outMode>()(__it))
 // set of class templates to name kernels
 
 template <typename... _Name>
-class __parallel_for_kernel;
-
-template <typename... _Name>
 class __scan_local_kernel;
 
 template <typename... _Name>
