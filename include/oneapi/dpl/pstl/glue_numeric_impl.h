@@ -20,13 +20,13 @@
 
 #include "utils.h"
 
+#include "numeric_fwd.h"
+#include "execution_impl.h"
+
 #if _ONEDPL_HETERO_BACKEND
 #    include "hetero/algorithm_impl_hetero.h"
 #    include "hetero/numeric_impl_hetero.h"
 #endif
-
-#include "numeric_fwd.h"
-#include "execution_impl.h"
 
 namespace oneapi
 {
