@@ -18,7 +18,6 @@
 
 #include <cstdint>
 
-
 namespace oneapi::dpl::experimental::kt::gpu::__impl
 {
 
@@ -31,6 +30,6 @@ template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __da
           ::std::uint16_t __work_group_size, typename _KeyT, typename _InputT, typename _OutputT>
 struct __radix_sort_onesweep_slm_reorder_kernel;
 
-} // oneapi::dpl::experimental::kt::gpu::__impl
+} // namespace oneapi::dpl::experimental::kt::gpu::__impl
 
 #endif // _ONEDPL_KT_GPU_RADIX_SORT_KERNELS_H
