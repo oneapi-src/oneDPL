@@ -60,7 +60,7 @@ __is_iterator_of(int)
 
 template <typename... _IteratorTypes>
 auto
-__is_needed_iter(...) -> ::std::false_type;
+__is_iterator_of(...) -> ::std::false_type;
 
 template <typename... _IteratorTypes>
 struct __is_random_access_iterator : decltype(__is_iterator_of<::std::random_access_iterator_tag, _IteratorTypes...>(0))
