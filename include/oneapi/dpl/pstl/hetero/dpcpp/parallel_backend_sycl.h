@@ -283,26 +283,13 @@ template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... 
 auto
 __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
-    assert(__get_first_range_size(__rngs...) > 0);
-
-    using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
+    using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
-    using _ForKernel =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__parallel_for_kernel, _CustomName, _Fp,
-                                                                               _Ranges...>;
+    using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
-    _PRINT_INFO_IN_DEBUG_MODE(__exec);
-    auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
-        //get an access to data under SYCL buffer:
-        oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-
-        __cgh.parallel_for<_ForKernel>(sycl::range</*dim=*/1>(__count), [=](sycl::item</*dim=*/1> __item_id) {
-            auto __idx = __item_id.get_linear_id();
-            __brick(__idx, __rngs...);
-        });
-    });
-
-    return __future(__event);
+    return __parallel_for_submitter<_ForKernel>()(oneapi::dpl::__internal::__device_backend_tag{},
+                                                  ::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                                  ::std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
