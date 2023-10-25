@@ -15,11 +15,7 @@
 
 #include "support/test_config.h"
 
-// TODO cstddef - really it's not required here but we should include it because
-// in support/utils.h we have
-//      #include _PSTL_TEST_HEADER(execution)
-// and should include something from standard library to avoid problems with tbb version
-#include <cstddef>
+#include <oneapi/dpl/cstddef> // for definition _GLIBCXX_RELEASE, __GLIBCXX or _LIBCPP_VERSION
 
 #include "support/test_macros.h"
 #include "support/utils.h"
