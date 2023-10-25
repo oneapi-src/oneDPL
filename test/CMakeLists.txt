@@ -57,10 +57,6 @@ add_custom_target(run-onedpl-tests
     DEPENDS build-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
-# property's value is list with additional TUs to be linked together with property's name
-set_property(SOURCE ${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs.pass.cpp
-    APPEND PROPERTY SRC "pstl_offload/memory/interop_allocs_system.cpp")
-
 macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     set(_build_type_in_lower "unknown")
@@ -71,18 +67,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
 
-    # add additional translation units to current test if property's name found
-    get_property(additional_src_files SOURCE ${test_source_file} PROPERTY SRC)
-    if (DEFINED additional_src_files)
-        unset(files)
-        foreach(f ${additional_src_files})
-            file(GLOB f ${f})
-            list(APPEND files ${f})
-        endforeach()
-        set(additional_src_files ${files})
-    endif()
-
-    add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}" ${additional_src_files})
+    add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}")
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
     if (MSVC)
         target_compile_options(${_test_name} PRIVATE /bigobj)
@@ -214,3 +199,8 @@ foreach (_file IN LISTS UNIT_TESTS)
     endif()
 
 endforeach()
+
+# add additional TUs if required
+if (TARGET interop_allocs.pass)
+    target_sources(interop_allocs.pass PRIVATE "pstl_offload/memory/interop_allocs_system.cpp")
+endif()
