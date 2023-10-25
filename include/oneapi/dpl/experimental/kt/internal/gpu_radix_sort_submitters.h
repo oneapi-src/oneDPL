@@ -25,8 +25,9 @@ namespace oneapi::dpl::experimental::kt::gpu::__impl
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
 //------------------------------------------------------------------------
 
-template <typename _KeyT, ::std::uint32_t __radix_bits, ::std::uint32_t __stage_count, ::std::uint32_t __hist_work_group_count,
-          ::std::uint32_t __hist_work_group_size, bool __is_ascending, typename _KernelName>
+template <typename _KeyT, ::std::uint32_t __radix_bits, ::std::uint32_t __stage_count,
+          ::std::uint32_t __hist_work_group_count, ::std::uint32_t __hist_work_group_size, bool __is_ascending,
+          typename _KernelName>
 struct __radix_sort_onesweep_histogram_submitter;
 
 template <::std::uint32_t __stage_count, ::std::uint32_t __bin_count, typename _KernelName>
@@ -39,6 +40,6 @@ struct __radix_sort_onesweep_submitter;
 template <typename _KeyT, typename _KernelName>
 struct __radix_sort_copyback_submitter;
 
-} // oneapi::dpl::experimental::kt::gpu::__impl
+} // namespace oneapi::dpl::experimental::kt::gpu::__impl
 
 #endif // _ONEDPL_KT_GPU_RADIX_SORT_SUBMITTERS_H

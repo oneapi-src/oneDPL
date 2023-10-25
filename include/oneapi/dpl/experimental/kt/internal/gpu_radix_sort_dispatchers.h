@@ -70,14 +70,15 @@ __onesweep(sycl::queue __q, _KeysRng&& __keys_rng, ::std::size_t __n)
     constexpr ::std::uint32_t __hist_work_group_count = 64;
     constexpr ::std::uint32_t __hist_work_group_size = 64;
 
-    const ::std::uint32_t __sweep_work_group_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __data_per_work_item);
+    const ::std::uint32_t __sweep_work_group_count =
+        oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __data_per_work_item);
     constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
     constexpr ::std::uint32_t __stage_count = oneapi::dpl::__internal::__dpl_ceiling_div(__bit_count, __radix_bits);
 
     constexpr ::std::uint32_t __hist_mem_size = __bin_count * sizeof(_GlobalHistT);
     constexpr ::std::uint32_t __global_hist_mem_size = __stage_count * __hist_mem_size;
     const ::std::uint32_t __group_hists_mem_size = __sweep_work_group_count * __stage_count * __hist_mem_size;
-    const ::std::uint32_t __tmp_keys_mem_size =  __n * sizeof(_KeyT);
+    const ::std::uint32_t __tmp_keys_mem_size = __n * sizeof(_KeyT);
     const ::std::size_t __tmp_mem_size = __group_hists_mem_size + __global_hist_mem_size + __tmp_keys_mem_size;
 
     ::std::uint8_t* __p_tmp_mem = sycl::malloc_device<::std::uint8_t>(__tmp_mem_size, __q);
@@ -88,20 +89,20 @@ __onesweep(sycl::queue __q, _KeysRng&& __keys_rng, ::std::size_t __n)
     // Memory to store intermediate results of sorting
     _KeyT* __p_keys_tmp = reinterpret_cast<_KeyT*>(__p_tmp_mem + __global_hist_mem_size + __group_hists_mem_size);
 
-    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
-                                                          _KeyT*>();
+    auto __keep =
+        oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, _KeyT*>();
     auto __keys_tmp_rng = __keep(__p_keys_tmp, __p_keys_tmp + __n).all_view();
 
     // TODO: check if it is more performant to fill it inside the histogram kernel
     sycl::event __event_chain = __q.memset(__p_tmp_mem, 0, __global_hist_mem_size + __group_hists_mem_size);
 
     __event_chain =
-        __radix_sort_onesweep_histogram_submitter<_KeyT, __radix_bits, __stage_count, __hist_work_group_count, __hist_work_group_size,
-                                                  __is_ascending, _GpuRadixSortHistogram>()(__q, __keys_rng, __p_global_hist_all,
-                                                                                            __n, __event_chain);
+        __radix_sort_onesweep_histogram_submitter<_KeyT, __radix_bits, __stage_count, __hist_work_group_count,
+                                                  __hist_work_group_size, __is_ascending, _GpuRadixSortHistogram>()(
+            __q, __keys_rng, __p_global_hist_all, __n, __event_chain);
 
-    __event_chain = __radix_sort_onesweep_scan_submitter<__stage_count, __bin_count, _GpuRadixSortScan>()(__q, __p_global_hist_all,
-                                                                                                __n, __event_chain);
+    __event_chain = __radix_sort_onesweep_scan_submitter<__stage_count, __bin_count, _GpuRadixSortScan>()(
+        __q, __p_global_hist_all, __n, __event_chain);
 
     for (::std::uint32_t __stage = 0; __stage < __stage_count; __stage++)
     {
@@ -109,30 +110,30 @@ __onesweep(sycl::queue __q, _KeysRng&& __keys_rng, ::std::size_t __n)
         _GlobalHistT* __p_group_hists = __p_group_hists_all + __sweep_work_group_count * __bin_count * __stage;
         if ((__stage % 2) == 0)
         {
-            __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
-                                                          _KeyT, _GpuRadixSortSweepEven>()(
-                __q, __keys_rng, __keys_tmp_rng, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n, __stage, __event_chain);
+            __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item,
+                                                            __work_group_size, _KeyT, _GpuRadixSortSweepEven>()(
+                __q, __keys_rng, __keys_tmp_rng, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n,
+                __stage, __event_chain);
         }
         else
         {
-            __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
-                                                          _KeyT, _GpuRadixSortSweepOdd>()(
-                __q, __keys_tmp_rng, __keys_rng, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n, __stage, __event_chain);
+            __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item,
+                                                            __work_group_size, _KeyT, _GpuRadixSortSweepOdd>()(
+                __q, __keys_tmp_rng, __keys_rng, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n,
+                __stage, __event_chain);
         }
     }
 
     if constexpr (__stage_count % 2 != 0)
     {
-        __event_chain =
-            __radix_sort_copyback_submitter<_KeyT, _GpuRadixSortCopyback>()(__q, __keys_tmp_rng, __keys_rng, __n, __event_chain);
+        __event_chain = __radix_sort_copyback_submitter<_KeyT, _GpuRadixSortCopyback>()(__q, __keys_tmp_rng, __keys_rng,
+                                                                                        __n, __event_chain);
     }
 
-    __event_chain = __q.submit(
-        [__event_chain, __p_tmp_mem, __q](sycl::handler& __cgh)
-        {
-            __cgh.depends_on(__event_chain);
-            __cgh.host_task([=]() { sycl::free(__p_tmp_mem, __q); });
-        });
+    __event_chain = __q.submit([__event_chain, __p_tmp_mem, __q](sycl::handler& __cgh) {
+        __cgh.depends_on(__event_chain);
+        __cgh.host_task([=]() { sycl::free(__p_tmp_mem, __q); });
+    });
 
     return __event_chain;
 }
