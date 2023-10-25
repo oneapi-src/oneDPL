@@ -23,6 +23,7 @@
 #include <type_traits>
 
 #include "parallel_backend_utils.h"
+#include "execution_impl.h"
 
 // Bring in minimal required subset of Intel(R) Threading Building Blocks (Intel(R) TBB)
 #include <tbb/blocked_range.h>
