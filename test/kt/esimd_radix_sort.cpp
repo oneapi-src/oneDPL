@@ -156,15 +156,17 @@ template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelP
 void
 test_small_sizes(sycl::queue q, KernelParam param)
 {
-    std::vector<uint32_t> input = {5, 11, 0, 17, 0};
-    std::vector<uint32_t> ref(input);
+    constexpr int size = 8;
+    std::vector<T> input(size);
+    generate_data(input.data(), size, 42);
+    std::vector<T> ref(input);
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<Ascending, RadixBits>(q, oneapi::dpl::begin(input),
+    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending, RadixBits>(q, oneapi::dpl::begin(input),
                                                                            oneapi::dpl::begin(input), param)
         .wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<Ascending, RadixBits>(q, oneapi::dpl::begin(input),
+    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending, RadixBits>(q, oneapi::dpl::begin(input),
                                                                            oneapi::dpl::begin(input) + 1, param)
         .wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
