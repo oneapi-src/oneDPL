@@ -15,6 +15,8 @@
 
 #include "support/test_config.h"
 
+#include <oneapi/dpl/cstddef>
+
 #include "support/test_macros.h"
 #include "support/utils.h"
 
