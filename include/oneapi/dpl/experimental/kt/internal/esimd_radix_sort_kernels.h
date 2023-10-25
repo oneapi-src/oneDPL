@@ -46,7 +46,7 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, const _InputT& __in
 
     // max SLM is 256 * 4 * 64 + 256 * 2 * 64 + 257*2, 97KB, when  __data_per_work_item = 256, __bin_count = 256
     // to support 512 processing size, we can use all SLM as reorder buffer with cost of more barrier
-    __dpl_esimd_ns::slm_init(::std::max(__reorder_slm_size, __bin_hist_slm_size + __incoming_offset_slm_size));
+    __dpl_esimd_ns::slm_init<::std::max(__reorder_slm_size, __bin_hist_slm_size + __incoming_offset_slm_size)>();
 
     const ::std::uint32_t __local_tid = __idx.get_local_linear_id();
 
@@ -215,7 +215,7 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, :
     using _HistT = ::std::uint32_t;
     using _GlobalHistT = ::std::uint32_t;
 
-    __dpl_esimd_ns::slm_init(16384);
+    __dpl_esimd_ns::slm_init<16384>();
 
     constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
     constexpr ::std::uint32_t __hist_data_per_work_item = 128;
@@ -377,18 +377,28 @@ struct __radix_sort_onesweep_slm_reorder_kernel
     static constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
     static constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
     static constexpr _BinT __mask = __bin_count - 1;
-    static constexpr ::std::uint32_t __reorder_slm_size = __data_per_work_item * sizeof(_KeyT) * __work_group_size;
-    static constexpr ::std::uint32_t __bin_hist_slm_size = __bin_count * sizeof(_HistT) * __work_group_size;
-    static constexpr ::std::uint32_t __sub_group_lookup_size = __bin_count * sizeof(_HistT) * __work_group_size;
-    static constexpr ::std::uint32_t __global_lookup_size = __bin_count * sizeof(_GlobalHistT);
-    static constexpr ::std::uint32_t __incoming_offset_slm_size = (__bin_count+1)*sizeof(_HistT);
+    static constexpr ::std::uint32_t __hist_stride = __bin_count * sizeof(_HistT);
+    static constexpr ::std::uint32_t __work_item_all_hists_size = __work_group_size * __hist_stride;
+    static constexpr ::std::uint32_t __group_hist_size = __hist_stride;
+    static constexpr ::std::uint32_t __global_hist_size = __bin_count * sizeof(_GlobalHistT);
+    static constexpr ::std::uint32_t __reorder_size = __work_group_size * __data_per_work_item * sizeof(_KeyT);
+    static constexpr ::std::uint32_t __offset_calc_substage_slm = __work_item_all_hists_size + __group_hist_size + __global_hist_size;
+    static constexpr ::std::uint32_t __reorder_substage_slm = __reorder_size + __global_hist_size;
 
-    // slm allocation:
-    // first stage, do subgroup ranks, need __work_group_size*__bin_count*sizeof(_HistT)
-    // then do rank roll up in workgroup, need __work_group_size*__bin_count*sizeof(_HistT) + __bin_count*sizeof(_HistT) + __bin_count*sizeof(_GlobalHistT)
-    // after all these is done, update ranks to workgroup ranks, need __sub_group_lookup_size
-    // then shuffle keys to workgroup order in SLM, need __data_per_work_item * sizeof(_KeyT) * __work_group_size
-    // then read reordered slm and look up global fix, need __global_lookup_size on top
+    // SLM allocation:
+    // 1. Getting offsets:
+    //      1.1 Scan histograms for each work-item (i.e. prefixes for group histogram): __work_item_all_hists_size
+    //      1.2 Scan group histogram: __group_hist_size
+    //      1.3 Accumulate group histogram from previous groups: __global_hist_size
+    // 2. Reorder keys in SLM:
+    //      2.1 Place global offsets into SLM for lookup: __global_hist_size
+    //      2.2 Reorder keys: __reorder_size
+    static constexpr ::std::uint32_t __slm_size = ::std::max(__offset_calc_substage_slm, __reorder_substage_slm);
+    // There is an internal compiler issue with allocation of 665600 or 65 * 1024 bytes
+    // which happens with e.g. T=int, DataPerWorkItem=256, WorkGroupSize=64
+    // this value will not occur with the allocation aligned by 2048
+    // TODO: use __slm_size once the issue with SLM allocation has been fixed
+    static constexpr ::std::uint32_t __slm_size_roundedup = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_size, 2048) * 2048;
 
     const ::std::uint32_t __n;
     const ::std::uint32_t __stage;
@@ -481,7 +491,6 @@ struct __radix_sort_onesweep_slm_reorder_kernel
         then last row do exclusive scan as group incoming __offset
         then every thread add local sum with sum of previous group and incoming __offset
         */
-        constexpr ::std::uint32_t __hist_stride = sizeof(_HistT) * __bin_count;
         const ::std::uint32_t __slm_bin_hist_this_thread = __local_tid * __hist_stride;
         const ::std::uint32_t __slm_bin_hist_group_incoming = __work_group_size * __hist_stride;
         const ::std::uint32_t __slm_bin_hist_global_incoming = __slm_bin_hist_group_incoming + __hist_stride;
@@ -571,7 +580,7 @@ struct __radix_sort_onesweep_slm_reorder_kernel
     void
     operator()(sycl::nd_item<1> __idx) const SYCL_ESIMD_KERNEL
     {
-        __dpl_esimd_ns::slm_init(128 * 1024);
+        __dpl_esimd_ns::slm_init<__slm_size_roundedup>();
 
         const ::std::uint32_t __local_tid = __idx.get_local_linear_id();
         const ::std::uint32_t __wg_id = __idx.get_group(0);
@@ -626,7 +635,7 @@ struct __radix_sort_onesweep_slm_reorder_kernel
                                                            __keys);
         }
         __dpl_esimd_ns::barrier();
-        _slm_lookup_t<_GlobalHistT> __global_fix_lookup(__reorder_slm_size);
+        _slm_lookup_t<_GlobalHistT> __global_fix_lookup(__reorder_size);
         if (__local_tid == 0)
         {
             __global_fix_lookup.__setup(__global_fix);
@@ -661,18 +670,29 @@ struct __radix_sort_onesweep_by_key_slm_reorder_kernel
     static constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
     static constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
     static constexpr _BinT __mask = __bin_count - 1;
-    static constexpr ::std::uint32_t __reorder_slm_size = __data_per_work_item * __work_group_size * (sizeof(_KeyT) + sizeof(_ValT));
-    static constexpr ::std::uint32_t __bin_hist_slm_size = __bin_count * sizeof(_HistT) * __work_group_size;
-    static constexpr ::std::uint32_t __sub_group_lookup_size = __bin_count * sizeof(_HistT) * __work_group_size;
-    static constexpr ::std::uint32_t __global_lookup_size = __bin_count * sizeof(_GlobalHistT);
-    static constexpr ::std::uint32_t __incoming_offset_slm_size = (__bin_count+1)*sizeof(_HistT);
+    static constexpr ::std::uint32_t __hist_stride = __bin_count * sizeof(_HistT);
+    static constexpr ::std::uint32_t __work_item_all_hists_size = __work_group_size * __hist_stride;
+    static constexpr ::std::uint32_t __group_hist_size = __hist_stride;
+    static constexpr ::std::uint32_t __global_hist_size = __bin_count * sizeof(_GlobalHistT);
+    static constexpr ::std::uint32_t __reorder_size = __work_group_size * __data_per_work_item * sizeof(_KeyT) +
+                                                      __work_group_size * __data_per_work_item * sizeof(_ValT);
+    static constexpr ::std::uint32_t __offset_calc_substage_slm = __work_item_all_hists_size + __group_hist_size + __global_hist_size;
+    static constexpr ::std::uint32_t __reorder_substage_slm = __reorder_size + __global_hist_size;
 
-    // slm allocation:
-    // first stage, do subgroup ranks, need __work_group_size*__bin_count*sizeof(_HistT)
-    // then do rank roll up in workgroup, need __work_group_size*__bin_count*sizeof(_HistT) + __bin_count*sizeof(_HistT) + __bin_count*sizeof(_GlobalHistT)
-    // after all these is done, update ranks to workgroup ranks, need __sub_group_lookup_size
-    // then shuffle keys to workgroup order in SLM, need __data_per_work_item * sizeof(_KeyT) * __work_group_size
-    // then read reordered slm and look up global fix, need __global_lookup_size on top
+    // SLM allocation:
+    // 1. Getting offsets:
+    //      1.1 Scan histograms for each work-item (i.e. prefixes for group histogram): __work_item_all_hists_size
+    //      1.2 Scan group histogram: __group_hist_size
+    //      1.3 Accumulate group histogram from previous groups: __global_hist_size
+    // 2. Reorder keys in SLM:
+    //      2.1 Place global offsets into SLM for lookup: __global_hist_size
+    //      2.2 Reorder key-value pairs: __reorder_size
+    static constexpr ::std::uint32_t __slm_size = ::std::max(__offset_calc_substage_slm, __reorder_substage_slm);
+    // There is an internal compiler issue with allocation of 665600 or 65 * 1024 bytes
+    // which happens with e.g. T=int, DataPerWorkItem=256, WorkGroupSize=64
+    // this value will not occur with the allocation aligned by 2048
+    // TODO: use __slm_size once the issue with SLM allocation has been fixed
+    static constexpr ::std::uint32_t __slm_size_roundedup = oneapi::dpl::__internal::__dpl_ceiling_div(__slm_size, 2048) * 2048;
 
     const ::std::uint32_t __n;
     const ::std::uint32_t __stage;
@@ -796,7 +816,6 @@ struct __radix_sort_onesweep_by_key_slm_reorder_kernel
         then last row do exclusive scan as group incoming __offset
         then every thread add local sum with sum of previous group and incoming __offset
         */
-        constexpr ::std::uint32_t __hist_stride = sizeof(_HistT) * __bin_count;
         const ::std::uint32_t __slm_bin_hist_this_thread = __local_tid * __hist_stride;
         const ::std::uint32_t __slm_bin_hist_group_incoming = __work_group_size * __hist_stride;
         const ::std::uint32_t __slm_bin_hist_global_incoming = __slm_bin_hist_group_incoming + __hist_stride;
@@ -886,7 +905,7 @@ struct __radix_sort_onesweep_by_key_slm_reorder_kernel
     void
     operator()(sycl::nd_item<1> __idx) const SYCL_ESIMD_KERNEL
     {
-        __dpl_esimd_ns::slm_init(128 * 1024);
+        __dpl_esimd_ns::slm_init<__slm_size_roundedup>();
 
         const ::std::uint32_t __local_tid = __idx.get_local_linear_id();
         const ::std::uint32_t __wg_id = __idx.get_group(0);
@@ -946,7 +965,7 @@ struct __radix_sort_onesweep_by_key_slm_reorder_kernel
             __utils::__vector_store<_ValT, 1, __data_per_work_item>(__wg_offset_vals, __vals);
         }
         __dpl_esimd_ns::barrier();
-        _slm_lookup_t<_GlobalHistT> __global_fix_lookup(__reorder_slm_size);
+        _slm_lookup_t<_GlobalHistT> __global_fix_lookup(__reorder_size);
         if (__local_tid == 0)
         {
             __global_fix_lookup.__setup(__global_fix);
