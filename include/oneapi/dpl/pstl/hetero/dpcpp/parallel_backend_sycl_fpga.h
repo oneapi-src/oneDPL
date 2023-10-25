@@ -90,7 +90,7 @@ __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&
 
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
 auto
-__parallel_for(oneapi::dpl::__internal::__fpga_backend, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
+__parallel_for(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
     auto __n = __get_first_range_size(__rngs...);
     assert(__n > 0);
@@ -282,7 +282,7 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
 _Iterator
-__parallel_find(oneapi::dpl::__internal::__fpga_backend __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst __is_first)
+__parallel_find(oneapi::dpl::__internal::__fpga_backend_tag __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst __is_first)
 {
     // workaround until we implement more performant version for patterns
     using _Policy = typename ::std::decay<_ExecutionPolicy>::type;
