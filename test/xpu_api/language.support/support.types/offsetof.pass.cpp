@@ -19,7 +19,7 @@
 // in support/utils.h we have
 //      #include _PSTL_TEST_HEADER(execution)
 // and should include something from standard library to avoid problems with tbb version
-#include <oneapi/dpl/cstddef>
+#include <cstddef>
 
 #include "support/test_macros.h"
 #include "support/utils.h"
