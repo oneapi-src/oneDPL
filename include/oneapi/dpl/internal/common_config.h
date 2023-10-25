@@ -16,6 +16,10 @@
 #ifndef _ONEDPL_COMMON_CONFIG_H
 #define _ONEDPL_COMMON_CONFIG_H
 
+#if __has_include(<version>)
+#    include <version> // for _GLIBCXX_RELEASE
+#endif
+
 #if __cplusplus >= 201703L
 #    define _ONEDPL___cplusplus __cplusplus
 #elif defined(_MSVC_LANG) && _MSVC_LANG >= 201703L
