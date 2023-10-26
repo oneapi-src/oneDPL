@@ -24,7 +24,10 @@
 #include <oneapi/dpl/functional>
 
 #include "support/utils.h"
-#include "support/counting_predicates.hpp"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+#    include "support/counting_predicates.hpp"
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
 class KernelRef2PassTest;
