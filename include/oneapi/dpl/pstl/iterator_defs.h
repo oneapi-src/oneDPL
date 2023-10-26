@@ -27,35 +27,12 @@ namespace dpl
 namespace __internal
 {
 
-// Internal wrapper around ::std::iterator_traits as it is required to be
-// SFINAE-friendly(not produce "hard" error when _Ip is not an iterator)
-// only starting with C++17. Although many standard library implementations
-// provide it for older versions, we cannot rely on that.
-template <typename _Ip, typename = void>
-struct __iterator_traits
-{
-};
-
-template <typename _Ip>
-struct __iterator_traits<_Ip,
-                         __void_type<typename _Ip::iterator_category, typename _Ip::value_type,
-                                     typename _Ip::difference_type, typename _Ip::pointer, typename _Ip::reference>>
-    : ::std::iterator_traits<_Ip>
-{
-};
-
-// Handles _Tp* and const _Tp* specializations
-template <typename _Tp>
-struct __iterator_traits<_Tp*, void> : ::std::iterator_traits<_Tp*>
-{
-};
-
 // Make is_random_access_iterator and is_forward_iterator not to fail with a 'hard' error when it's used in
 //SFINAE with a non-iterator type by providing a default value.
 template <typename _IteratorTag, typename... _IteratorTypes>
 auto
 __is_iterator_of(int)
-    -> decltype(std::conjunction<::std::is_base_of<_IteratorTag, typename __iterator_traits<typename ::std::decay<
+    -> decltype(std::conjunction<::std::is_base_of<_IteratorTag, typename ::std::iterator_traits<typename ::std::decay<
                                                                      _IteratorTypes>::type>::iterator_category>...>{});
 
 template <typename... _IteratorTypes>
