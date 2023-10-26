@@ -55,6 +55,9 @@ using __is_random_access_iterator_t = typename __is_random_access_iterator<_Iter
 template <typename... _IteratorTypes>
 inline constexpr bool __is_random_access_iterator_v = __is_random_access_iterator<_IteratorTypes...>::value;
 
+template <typename... _IteratorTypes>
+inline constexpr bool __is_forward_iterator_v = __is_forward_iterator<_IteratorTypes...>::value;
+
 // struct for checking if iterator is heterogeneous or not
 template <typename Iter, typename Void = void> // for non-heterogeneous iterators
 struct is_hetero_iterator : ::std::false_type
