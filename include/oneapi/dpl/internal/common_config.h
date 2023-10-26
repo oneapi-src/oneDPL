@@ -32,6 +32,16 @@
 #    if __has_include(<tbb/version.h>)
 #        ifndef PSTL_USE_PARALLEL_POLICIES
 #            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+#            if defined (_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE == 9)
+#                ifdef __PSTL_USE_PAR_POLICIES
+#                     undef __PSTL_USE_PAR_POLICIES
+#                     define __PSTL_USE_PAR_POLICIES 0
+#                endif
+#                ifdef __PSTL_PAR_BACKEND_TBB
+#                     undef __PSTL_PAR_BACKEND_TBB
+#                     define __PSTL_PAR_BACKEND_TBB 0
+#                endif
+#            endif
 #        endif
 #        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
 #            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
