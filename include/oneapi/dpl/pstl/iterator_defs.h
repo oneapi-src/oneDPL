@@ -28,7 +28,7 @@ namespace __internal
 {
 
 // Make is_random_access_iterator and is_forward_iterator not to fail with a 'hard' error when it's used in
-//SFINAE with a non-iterator type by providing a default value.
+// SFINAE with a non-iterator type by providing a default value.
 template <typename _IteratorTag, typename... _IteratorTypes>
 auto
 __is_iterator_of(int) -> decltype(
@@ -59,27 +59,32 @@ template <typename... _IteratorTypes>
 inline constexpr bool __is_forward_iterator_v = __is_forward_iterator<_IteratorTypes...>::value;
 
 // struct for checking if iterator is heterogeneous or not
-template <typename Iter, typename Void = void> // for non-heterogeneous iterators
+// for non-heterogeneous iterators
+template <typename Iter, typename Void = void>
 struct is_hetero_iterator : ::std::false_type
 {
 };
 
-template <typename Iter> // for heterogeneous iterators
+// for heterogeneous iterators
+template <typename Iter>
 struct is_hetero_iterator<Iter, ::std::enable_if_t<Iter::is_hetero::value>> : ::std::true_type
 {
 };
 // struct for checking if iterator should be passed directly to device or not
-template <typename Iter, typename Void = void> // for iterators that should not be passed directly
+// for iterators that should not be passed directly
+template <typename Iter, typename Void = void>
 struct is_passed_directly : ::std::false_type
 {
 };
 
-template <typename Iter> // for iterators defined as direct pass
+// for iterators defined as direct pass
+template <typename Iter>
 struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::value>> : ::std::true_type
 {
 };
 
-template <typename Iter> // for pointers to objects on device
+// for pointers to objects on device
+template <typename Iter>
 struct is_passed_directly<Iter, ::std::enable_if_t<::std::is_pointer_v<Iter>>> : ::std::true_type
 {
 };
