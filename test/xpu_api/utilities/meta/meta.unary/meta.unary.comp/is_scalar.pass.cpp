@@ -1,8 +1,15 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -10,60 +17,49 @@
 
 // is_scalar
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-#    include _ONEAPI_STD_TEST_HEADER(cstddef)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <type_traits>
-#    include <cstddef> // for std::nullptr_t
-namespace s = std;
-#endif
+#include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/cstddef>           // for dpl::nullptr_t
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
 void
-test_is_scalar(cl::sycl::queue& deviceQueue)
+test_is_scalar(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
-            static_assert(s::is_scalar<T>::value, "");
-            static_assert(s::is_scalar<const T>::value, "");
-            static_assert(s::is_scalar<volatile T>::value, "");
-            static_assert(s::is_scalar<const volatile T>::value, "");
-#if TEST_STD_VER > 14
-            static_assert(s::is_scalar_v<T>, "");
-            static_assert(s::is_scalar_v<const T>, "");
-            static_assert(s::is_scalar_v<volatile T>, "");
-            static_assert(s::is_scalar_v<const volatile T>, "");
-#endif
+            static_assert(dpl::is_scalar<T>::value);
+            static_assert(dpl::is_scalar<const T>::value);
+            static_assert(dpl::is_scalar<volatile T>::value);
+            static_assert(dpl::is_scalar<const volatile T>::value);
+
+            static_assert(dpl::is_scalar_v<T>);
+            static_assert(dpl::is_scalar_v<const T>);
+            static_assert(dpl::is_scalar_v<volatile T>);
+            static_assert(dpl::is_scalar_v<const volatile T>);
         });
     });
 }
 
 template <class KernelTest, class T>
 void
-test_is_not_scalar(cl::sycl::queue& deviceQueue)
+test_is_not_scalar(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
-            static_assert(!s::is_scalar<T>::value, "");
-            static_assert(!s::is_scalar<const T>::value, "");
-            static_assert(!s::is_scalar<volatile T>::value, "");
-            static_assert(!s::is_scalar<const volatile T>::value, "");
-#if TEST_STD_VER > 14
-            static_assert(!s::is_scalar_v<T>, "");
-            static_assert(!s::is_scalar_v<const T>, "");
-            static_assert(!s::is_scalar_v<volatile T>, "");
-            static_assert(!s::is_scalar_v<const volatile T>, "");
-#endif
+            static_assert(!dpl::is_scalar<T>::value);
+            static_assert(!dpl::is_scalar<const T>::value);
+            static_assert(!dpl::is_scalar<volatile T>::value);
+            static_assert(!dpl::is_scalar<const volatile T>::value);
+
+            static_assert(!dpl::is_scalar_v<T>);
+            static_assert(!dpl::is_scalar_v<const T>);
+            static_assert(!dpl::is_scalar_v<volatile T>);
+            static_assert(!dpl::is_scalar_v<const volatile T>);
         });
     });
 }
@@ -123,8 +119,8 @@ class KernelTest29;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    test_is_scalar<KernelTest1, s::nullptr_t>(deviceQueue);
+    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    test_is_scalar<KernelTest1, dpl::nullptr_t>(deviceQueue);
     test_is_scalar<KernelTest2, short>(deviceQueue);
     test_is_scalar<KernelTest3, unsigned short>(deviceQueue);
     test_is_scalar<KernelTest4, int>(deviceQueue);
@@ -158,12 +154,14 @@ kernel_test()
     test_is_not_scalar<KernelTest28, bit_zero>(deviceQueue);
     test_is_not_scalar<KernelTest29, int(int)>(deviceQueue);
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    std::cout << "Pass" << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

@@ -1,8 +1,15 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -10,58 +17,48 @@
 
 // extent
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T, unsigned A>
 void
-test_extent(cl::sycl::queue& deviceQueue)
+test_extent(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
-            static_assert((s::extent<T>::value == A), "");
-            static_assert((s::extent<const T>::value == A), "");
-            static_assert((s::extent<volatile T>::value == A), "");
-            static_assert((s::extent<const volatile T>::value == A), "");
-#if TEST_STD_VER > 14
-            static_assert((s::extent_v<T> == A), "");
-            static_assert((s::extent_v<const T> == A), "");
-            static_assert((s::extent_v<volatile T> == A), "");
-            static_assert((s::extent_v<const volatile T> == A), "");
-#endif
+            static_assert(dpl::extent<T>::value == A);
+            static_assert(dpl::extent<const T>::value == A);
+            static_assert(dpl::extent<volatile T>::value == A);
+            static_assert(dpl::extent<const volatile T>::value == A);
+
+            static_assert(dpl::extent_v<T> == A);
+            static_assert(dpl::extent_v<const T> == A);
+            static_assert(dpl::extent_v<volatile T> == A);
+            static_assert(dpl::extent_v<const volatile T> == A);
         });
     });
 }
 
 template <class KernelTest, class T, unsigned A>
 void
-test_extent1(cl::sycl::queue& deviceQueue)
+test_extent1(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
-            static_assert((s::extent<T, 1>::value == A), "");
-            static_assert((s::extent<const T, 1>::value == A), "");
-            static_assert((s::extent<volatile T, 1>::value == A), "");
-            static_assert((s::extent<const volatile T, 1>::value == A), "");
-#if TEST_STD_VER > 14
-            static_assert((s::extent_v<T, 1> == A), "");
-            static_assert((s::extent_v<const T, 1> == A), "");
-            static_assert((s::extent_v<volatile T, 1> == A), "");
-            static_assert((s::extent_v<const volatile T, 1> == A), "");
-#endif
+            static_assert(dpl::extent<T, 1>::value == A);
+            static_assert(dpl::extent<const T, 1>::value == A);
+            static_assert(dpl::extent<volatile T, 1>::value == A);
+            static_assert(dpl::extent<const volatile T, 1>::value == A);
+
+            static_assert(dpl::extent_v<T, 1> == A);
+            static_assert(dpl::extent_v<const T, 1> == A);
+            static_assert(dpl::extent_v<volatile T, 1> == A);
+            static_assert(dpl::extent_v<const volatile T, 1> == A);
         });
     });
 }
@@ -92,7 +89,7 @@ class KernelTest16;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();;
     test_extent<KernelTest1, void, 0>(deviceQueue);
     test_extent<KernelTest2, int&, 0>(deviceQueue);
     test_extent<KernelTest3, Class, 0>(deviceQueue);
@@ -115,12 +112,14 @@ kernel_test()
     test_extent1<KernelTest15, int[2][4], 4>(deviceQueue);
     test_extent1<KernelTest16, int[][4], 4>(deviceQueue);
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    std::cout << "Pass" << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

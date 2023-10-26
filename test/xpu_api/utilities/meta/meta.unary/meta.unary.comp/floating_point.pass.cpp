@@ -1,8 +1,15 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -10,42 +17,34 @@
 
 // floating_point
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <class T>
 void
-test_floating_point_imp(cl::sycl::queue& deviceQueue)
+test_floating_point_imp(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
-            static_assert(!s::is_reference<T>::value, "");
-            static_assert(s::is_arithmetic<T>::value, "");
-            static_assert(s::is_fundamental<T>::value, "");
-            static_assert(s::is_object<T>::value, "");
-            static_assert(s::is_scalar<T>::value, "");
-            static_assert(!s::is_compound<T>::value, "");
-            static_assert(!s::is_member_pointer<T>::value, "");
+            static_assert(!dpl::is_reference<T>::value);
+            static_assert(dpl::is_arithmetic<T>::value);
+            static_assert(dpl::is_fundamental<T>::value);
+            static_assert(dpl::is_object<T>::value);
+            static_assert(dpl::is_scalar<T>::value);
+            static_assert(!dpl::is_compound<T>::value);
+            static_assert(!dpl::is_member_pointer<T>::value);
         });
     });
 }
 
 template <class T>
 void
-test_floating_point(cl::sycl::queue& deviceQueue)
+test_floating_point(sycl::queue& deviceQueue)
 {
     test_floating_point_imp<T>(deviceQueue);
     test_floating_point_imp<const T>(deviceQueue);
@@ -56,19 +55,21 @@ test_floating_point(cl::sycl::queue& deviceQueue)
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();;
     test_floating_point<float>(deviceQueue);
     if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
     {
         test_floating_point<double>(deviceQueue);
     }
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    std::cout << "Pass" << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

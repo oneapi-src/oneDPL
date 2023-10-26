@@ -1,8 +1,15 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -10,38 +17,29 @@
 
 // rank
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <class T, unsigned A>
 void
-test_rank(cl::sycl::queue& deviceQueue)
+test_rank(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
-            static_assert(s::rank<T>::value == A, "");
-            static_assert(s::rank<const T>::value == A, "");
-            static_assert(s::rank<volatile T>::value == A, "");
-            static_assert(s::rank<const volatile T>::value == A, "");
-#if TEST_STD_VER > 14
-            static_assert(s::rank_v<T> == A, "");
-            static_assert(s::rank_v<const T> == A, "");
-            static_assert(s::rank_v<volatile T> == A, "");
-            static_assert(s::rank_v<const volatile T> == A, "");
-#endif
+            static_assert(dpl::rank<T>::value == A);
+            static_assert(dpl::rank<const T>::value == A);
+            static_assert(dpl::rank<volatile T>::value == A);
+            static_assert(dpl::rank<const volatile T>::value == A);
+
+            static_assert(dpl::rank_v<T> == A);
+            static_assert(dpl::rank_v<const T> == A);
+            static_assert(dpl::rank_v<volatile T> == A);
+            static_assert(dpl::rank_v<const volatile T> == A);
         });
     });
 }
@@ -55,7 +53,7 @@ class Class
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();;
     test_rank<void, 0>(deviceQueue);
     test_rank<int&, 0>(deviceQueue);
     test_rank<Class, 0>(deviceQueue);
@@ -72,11 +70,14 @@ kernel_test()
         test_rank<double, 0>(deviceQueue);
     }
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    std::cout << "Pass" << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
     return 0;
 }

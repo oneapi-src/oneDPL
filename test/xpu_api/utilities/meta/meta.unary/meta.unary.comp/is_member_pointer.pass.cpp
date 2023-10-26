@@ -1,8 +1,15 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -10,60 +17,49 @@
 
 // is_member_pointer
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-#    include _ONEAPI_STD_TEST_HEADER(cstddef)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <type_traits>
-#    include <cstddef> // for std::nullptr_t
-namespace s = std;
-#endif
+#include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/cstddef>           // for dpl::nullptr_t
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
 void
-test_is_member_pointer(cl::sycl::queue& deviceQueue)
+test_is_member_pointer(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
-            static_assert(s::is_member_pointer<T>::value, "");
-            static_assert(s::is_member_pointer<const T>::value, "");
-            static_assert(s::is_member_pointer<volatile T>::value, "");
-            static_assert(s::is_member_pointer<const volatile T>::value, "");
-#if TEST_STD_VER > 14
-            static_assert(s::is_member_pointer_v<T>, "");
-            static_assert(s::is_member_pointer_v<const T>, "");
-            static_assert(s::is_member_pointer_v<volatile T>, "");
-            static_assert(s::is_member_pointer_v<const volatile T>, "");
-#endif
+            static_assert(dpl::is_member_pointer<T>::value);
+            static_assert(dpl::is_member_pointer<const T>::value);
+            static_assert(dpl::is_member_pointer<volatile T>::value);
+            static_assert(dpl::is_member_pointer<const volatile T>::value);
+
+            static_assert(dpl::is_member_pointer_v<T>);
+            static_assert(dpl::is_member_pointer_v<const T>);
+            static_assert(dpl::is_member_pointer_v<volatile T>);
+            static_assert(dpl::is_member_pointer_v<const volatile T>);
         });
     });
 }
 
 template <class KernelTest, class T>
 void
-test_is_not_member_pointer(cl::sycl::queue& deviceQueue)
+test_is_not_member_pointer(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
-            static_assert(!s::is_member_pointer<T>::value, "");
-            static_assert(!s::is_member_pointer<const T>::value, "");
-            static_assert(!s::is_member_pointer<volatile T>::value, "");
-            static_assert(!s::is_member_pointer<const volatile T>::value, "");
-#if TEST_STD_VER > 14
-            static_assert(!s::is_member_pointer_v<T>, "");
-            static_assert(!s::is_member_pointer_v<const T>, "");
-            static_assert(!s::is_member_pointer_v<volatile T>, "");
-            static_assert(!s::is_member_pointer_v<const volatile T>, "");
-#endif
+            static_assert(!dpl::is_member_pointer<T>::value);
+            static_assert(!dpl::is_member_pointer<const T>::value);
+            static_assert(!dpl::is_member_pointer<volatile T>::value);
+            static_assert(!dpl::is_member_pointer<const volatile T>::value);
+
+            static_assert(!dpl::is_member_pointer_v<T>);
+            static_assert(!dpl::is_member_pointer_v<const T>);
+            static_assert(!dpl::is_member_pointer_v<volatile T>);
+            static_assert(!dpl::is_member_pointer_v<const volatile T>);
         });
     });
 }
@@ -121,8 +117,8 @@ void
 kernel_test()
 {
 
-    cl::sycl::queue deviceQueue;
-    test_is_not_member_pointer<KernelTest1, s::nullptr_t>(deviceQueue);
+    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    test_is_not_member_pointer<KernelTest1, dpl::nullptr_t>(deviceQueue);
     test_is_not_member_pointer<KernelTest2, void>(deviceQueue);
     test_is_not_member_pointer<KernelTest3, void*>(deviceQueue);
     test_is_not_member_pointer<KernelTest4, int>(deviceQueue);
@@ -147,12 +143,14 @@ kernel_test()
     test_is_member_pointer<KernelTest20, int Empty::*>(deviceQueue);
     test_is_member_pointer<KernelTest21, void (Empty::*)(int)>(deviceQueue);
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    std::cout << "Pass" << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }
