@@ -28,12 +28,12 @@ public:
     ~unary_counting_predicate() {}
 
     bool operator () (const Arg &a) const { ++count_; return p_(a); }
-    size_t count() const { return count_; }
+    dpl::size_t count() const { return count_; }
     void reset() { count_ = 0; }
 
 private:
     Predicate p_;
-    mutable size_t count_;
+    mutable dpl::size_t count_;
 };
 
 
@@ -48,12 +48,12 @@ public:
     ~binary_counting_predicate() {}
 
     bool operator () (const Arg1 &a1, const Arg2 &a2) const { ++count_; return p_(a1, a2); }
-    size_t count() const { return count_; }
+    dpl::size_t count() const { return count_; }
     void reset() { count_ = 0; }
 
 private:
     Predicate p_;
-    mutable size_t count_;
+    mutable dpl::size_t count_;
 };
 
 #endif // TEST_SUPPORT_COUNTING_PREDICATES_H
