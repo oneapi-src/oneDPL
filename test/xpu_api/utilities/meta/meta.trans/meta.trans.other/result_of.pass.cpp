@@ -1,8 +1,15 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -10,23 +17,16 @@
 
 // result_of<Fn(ArgTypes...)>
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-#    include _ONEAPI_STD_TEST_HEADER(functional)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
+#include "support/utils_invoke.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 struct S
 {
     typedef short (*FreeFunc)(long);
@@ -56,16 +56,15 @@ struct Voider
 };
 
 template <class T, class = void>
-struct HasType : s::false_type
+struct HasType : dpl::false_type
 {
 };
 
 template <class T>
-struct HasType<T, typename Voider<typename T::type>::type> : s::true_type
+struct HasType<T, typename Voider<typename T::type>::type> : dpl::true_type
 {
 };
 
-#if TEST_STD_VER > 14
 template <typename T, typename U>
 struct test_invoke_result;
 
@@ -75,28 +74,24 @@ struct test_invoke_result<Fn(Args...), Ret>
     static void
     call()
     {
-        static_assert(s::is_invocable<Fn, Args...>::value, "");
-        static_assert(s::is_invocable_r<Ret, Fn, Args...>::value, "");
-        ASSERT_SAME_TYPE(Ret, typename s::invoke_result<Fn, Args...>::type);
+        static_assert(dpl::is_invocable<Fn, Args...>::value);
+        static_assert(dpl::is_invocable_r<Ret, Fn, Args...>::value);
+        ASSERT_SAME_TYPE(Ret, typename dpl::invoke_result<Fn, Args...>::type);
     }
 };
-#endif
 
 template <class KernelTest, class T, class U>
 void
-test_result_of(cl::sycl::queue& deviceQueue)
+test_result_of(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
-            ASSERT_SAME_TYPE(U, typename s::result_of<T>::type);
-#if TEST_STD_VER > 14
+            ASSERT_SAME_TYPE(U, typename dpl::result_of<T>::type);
             test_invoke_result<T, U>::call();
-#endif
         });
     });
 }
 
-#if TEST_STD_VER > 14
 template <typename T>
 struct test_invoke_no_result;
 
@@ -106,23 +101,19 @@ struct test_invoke_no_result<Fn(Args...)>
     static void
     call()
     {
-        static_assert(s::is_invocable<Fn, Args...>::value == false, "");
-        static_assert((!HasType<s::invoke_result<Fn, Args...>>::value), "");
+        static_assert(dpl::is_invocable<Fn, Args...>::value == false);
+        static_assert(!HasType<dpl::invoke_result<Fn, Args...>>::value);
     }
 };
-#endif
 
 template <class KernelTest, class T>
 void
-test_no_result(cl::sycl::queue& deviceQueue)
+test_no_result(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
-            static_assert((!HasType<s::result_of<T>>::value), "");
-#if TEST_STD_VER > 14
+            static_assert(!HasType<dpl::result_of<T>>::value);
             test_invoke_no_result<T>::call();
-#endif
-        });
     });
 }
 
@@ -151,11 +142,13 @@ class KernelTest21;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     typedef NotDerived ND;
     { // functor object
         test_result_of<KernelTest1, S(int), short>(deviceQueue);
-        if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+
+        const auto device = deviceQueue.get_device();
+        if (TestUtils::has_type_support<double>(device))
         {
             test_result_of<KernelTest2, S&(unsigned char, int&), double>(deviceQueue);
             test_result_of<KernelTest3, S const&(unsigned char, int&), double const&>(deviceQueue);
@@ -178,16 +171,20 @@ kernel_test()
         test_result_of<KernelTest16, PMD(SD const&), const char&>(deviceQueue);
         test_result_of<KernelTest17, PMD(SD*), char&>(deviceQueue);
         test_result_of<KernelTest18, PMD(const SD*), const char&>(deviceQueue);
-        test_result_of<KernelTest19, PMD(s::reference_wrapper<S>), char&>(deviceQueue);
-        test_result_of<KernelTest20, PMD(s::reference_wrapper<S const>), const char&>(deviceQueue);
+        test_result_of<KernelTest19, PMD(dpl::reference_wrapper<S>), char&>(deviceQueue);
+        test_result_of<KernelTest20, PMD(dpl::reference_wrapper<S const>), const char&>(deviceQueue);
         test_no_result<KernelTest21, PMD(ND&)>(deviceQueue);
     }
 }
 
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    std::cout << "Pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
