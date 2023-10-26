@@ -36,14 +36,14 @@
 #            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
 //           If STL headers are included before oneDPL, __PSTL_USE_PAR_POLICIES and
 //           __PSTL_PAR_BACKEND_TBB would be included before this config file
-#            if defined (_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE == 9)
+#            if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE == 9)
 #                ifdef __PSTL_USE_PAR_POLICIES
-#                     undef __PSTL_USE_PAR_POLICIES
-#                     define __PSTL_USE_PAR_POLICIES 0
+#                    undef __PSTL_USE_PAR_POLICIES
+#                    define __PSTL_USE_PAR_POLICIES 0
 #                endif
 #                ifdef __PSTL_PAR_BACKEND_TBB
-#                     undef __PSTL_PAR_BACKEND_TBB
-#                     define __PSTL_PAR_BACKEND_TBB 0
+#                    undef __PSTL_PAR_BACKEND_TBB
+#                    define __PSTL_PAR_BACKEND_TBB 0
 #                endif
 #            endif
 #        endif
