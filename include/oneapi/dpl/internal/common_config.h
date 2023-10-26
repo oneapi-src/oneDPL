@@ -31,7 +31,11 @@
 // - New TBB version with incompatible APIs is found (libstdc++ v9/v10)
 #    if __has_include(<tbb/version.h>)
 #        ifndef PSTL_USE_PARALLEL_POLICIES
+//           _GLIBCXX_RELEASE can be undefined if oneDPL is included before any STL headers
+//           It is not an issue if PSTL_USE_PARALLEL_POLICIES would be used after _GLIBCXX_RELEASE definition
 #            define PSTL_USE_PARALLEL_POLICIES (_GLIBCXX_RELEASE != 9)
+//           If STL headers are included before oneDPL, __PSTL_USE_PAR_POLICIES and
+//           __PSTL_PAR_BACKEND_TBB would be included before this config file
 #            if defined (_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE == 9)
 #                ifdef __PSTL_USE_PAR_POLICIES
 #                     undef __PSTL_USE_PAR_POLICIES
