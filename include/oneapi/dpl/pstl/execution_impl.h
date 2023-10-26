@@ -161,10 +161,10 @@ struct __parallel_forward_tag
 };
 
 template <class _IsVector, class... _IteratorTypes>
-using __tag_type = typename ::std::conditional<
-    __internal::__is_random_access_iterator<_IteratorTypes...>::value, __parallel_tag<_IsVector>,
-    typename ::std::conditional<__is_forward_iterator<_IteratorTypes...>::value, __parallel_forward_tag,
-                                __serial_tag<_IsVector>>::type>::type;
+using __tag_type =
+    ::std::conditional_t<__internal::__is_random_access_iterator<_IteratorTypes...>::value, __parallel_tag<_IsVector>,
+                         ::std::conditional_t<__is_forward_iterator<_IteratorTypes...>::value, __parallel_forward_tag,
+                                              __serial_tag<_IsVector>>>;
 
 template <class... _IteratorTypes>
 __serial_tag<std::false_type>
