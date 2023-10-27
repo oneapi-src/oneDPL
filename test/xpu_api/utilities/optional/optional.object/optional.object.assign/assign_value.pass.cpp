@@ -1,41 +1,39 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
-// UNSUPPORTED: c++98, c++03, c++11, c++14
 // <optional>
 
 // template <class U> optional<T>& operator=(U&& v);
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(optional)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <optional>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/optional>
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
-using s::optional;
+#include "support/test_macros.h"
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+using dpl::optional;
 
 template <class T, class Arg = T, bool Expect = true>
 void
 assert_assignable()
 {
-    static_assert(s::is_assignable<optional<T>&, Arg>::value == Expect, "");
-    static_assert(!s::is_assignable<const optional<T>&, Arg>::value, "");
+    static_assert(dpl::is_assignable<optional<T>&, Arg>::value == Expect);
+    static_assert(!dpl::is_assignable<const optional<T>&, Arg>::value);
 }
 
 struct MismatchType
@@ -59,7 +57,7 @@ struct MismatchType
 
 struct FromOptionalType
 {
-    using Opt = s::optional<FromOptionalType>;
+    using Opt = dpl::optional<FromOptionalType>;
     FromOptionalType() = default;
     FromOptionalType(FromOptionalType const&) = delete;
     template <class Dummy = void>
@@ -79,11 +77,11 @@ struct FromOptionalType
 void
 test_sfinae()
 {
-    cl::sycl::queue q;
-    cl::sycl::range<1> numOfItems1{1};
+    sycl::queue q;
+    sycl::range<1> numOfItems1{1};
     {
 
-        q.submit([&](cl::sycl::handler& cgh) {
+        q.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest>([=]() {
                 assert_assignable<int>();
                 assert_assignable<int, int&>();
@@ -93,7 +91,7 @@ test_sfinae()
                 assert_assignable<MismatchType, int*, false>();
                 assert_assignable<MismatchType, char*, false>();
                 // Type constructible from optional
-                assert_assignable<FromOptionalType, s::optional<FromOptionalType>&, false>();
+                assert_assignable<FromOptionalType, dpl::optional<FromOptionalType>&, false>();
             });
         });
     }
@@ -104,14 +102,14 @@ bool
 test_with_type()
 {
 
-    cl::sycl::queue q;
+    sycl::queue q;
     bool ret = true;
-    cl::sycl::range<1> numOfItems1{1};
+    sycl::range<1> numOfItems1{1};
     {
-        cl::sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
 
-        q.submit([&](cl::sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
+        q.submit([&](sycl::handler& cgh) {
+            auto ret_access = buffer1.get_access<sycl::accesdpl::mode::write>(cgh);
             cgh.single_task<KernelTest>([=]() {
                 { // to empty
                     optional<T> opt;
@@ -162,18 +160,19 @@ class KernelTest1;
 class KernelTest2;
 class KernelTest3;
 
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     test_sfinae();
     // Test with various scalar types
     auto ret = test_with_type<KernelTest1, int>();
     ret &= test_with_type<KernelTest2, MyEnum, MyEnum>();
     ret &= test_with_type<KernelTest3, int, MyEnum>();
-    if (ret)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
+    EXPECT_TRUE(ret, "Wrong result of assign value check");
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

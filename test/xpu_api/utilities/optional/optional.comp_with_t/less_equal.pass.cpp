@@ -1,33 +1,32 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
-// UNSUPPORTED: c++98, c++03, c++11, c++14
 // <optional>
 
 // template <class T, class U> constexpr bool operator<=(const optional<T>& x, const U& v);
 // template <class T, class U> constexpr bool operator<=(const U& v, const optional<T>& x);
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(optional)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <optional>
-namespace s = std;
-#endif
+#include <oneapi/dpl/optional>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
-using s::optional;
+#include "support/test_macros.h"
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+using dpl::optional;
 
 struct X
 {
@@ -45,21 +44,21 @@ operator<=(const X& lhs, const X& rhs)
 bool
 kernel_test()
 {
-    cl::sycl::queue q;
+    sycl::queue q;
     bool ret = true;
     typedef X T;
     typedef optional<T> O;
     T val(2);
     O ia[3] = {O{}, O{1}, O{val}};
-    cl::sycl::range<1> numOfItems1{1};
-    cl::sycl::range<1> numOfItems2{3};
+    sycl::range<1> numOfItems1{1};
+    sycl::range<1> numOfItems2{3};
     {
-        cl::sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
-        cl::sycl::buffer<O, 1> buffer2(ia, numOfItems2);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
+        sycl::buffer<O, 1> buffer2(ia, numOfItems2);
 
-        q.submit([&](cl::sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
-            auto ia_acc = buffer2.get_access<sycl_write>(cgh);
+        q.submit([&](sycl::handler& cgh) {
+            auto ret_access = buffer1.get_access<sycl::accesdpl::mode::write>(cgh);
+            auto ia_acc = buffer2.get_access<sycl::accesdpl::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 {
 
@@ -80,28 +79,29 @@ kernel_test()
                 {
                     using O = optional<int>;
                     constexpr O o1(42);
-                    static_assert(o1 <= 42l, "");
-                    static_assert(!(101l <= o1), "");
+                    static_assert(o1 <= 42l);
+                    static_assert(!(101l <= o1));
                 }
                 {
                     using O = optional<const int>;
                     constexpr O o1(42);
-                    static_assert(o1 <= 42, "");
-                    static_assert(!(101 <= o1), "");
+                    static_assert(o1 <= 42);
+                    static_assert(!(101 <= o1));
                 }
             });
         });
     }
     return ret;
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
-    if (ret)
-        std::cout << "Pass" << std::endl;
-    else
-        std::cout << "Fail" << std::endl;
-    return 0;
+    EXPECT_TRUE(ret, "Wrong result of less value check");
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
