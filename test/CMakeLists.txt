@@ -203,4 +203,5 @@ endforeach()
 # add additional TUs if required
 if (TARGET interop_allocs.pass)
     target_sources(interop_allocs.pass PRIVATE "pstl_offload/memory/interop_allocs_system.cpp")
+    target_sources(interop_allocs.pass PRIVATE "pstl_offload/memory/interop_allocs_usm.cpp")
 endif()

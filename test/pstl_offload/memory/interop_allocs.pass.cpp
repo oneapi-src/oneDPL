@@ -11,10 +11,8 @@
 #error "PSTL offload compiler mode should be enabled to run this test"
 #endif
 
+#include "interop_allocs_headers.h"
 #include "allocation_utils.h"
-
-// in this translation unit we have overload to USM
-#include <new> // include just to provide the local allocation overload
 
 static sycl::context memory_context = TestUtils::get_pstl_offload_device().get_platform().ext_oneapi_get_default_context();
 
@@ -61,17 +59,15 @@ void check_memory_ownership(const allocs &na, sycl::usm::alloc expected_type) {
 }
 
 int main() {
-    // check the ability to release system memory allocated inside another translation unit without local allocation overload
+    // check the ability to release system memory allocated inside another translation unit without local allocation redirection
     {
-        allocs na;
-        perform_system_allocations(na);
+        allocs na = perform_system_allocations();
         check_memory_ownership(na, sycl::usm::alloc::unknown);
-        perform_deallocations_impl(na);
+        perform_usm_deallocations(na);
     }
-    // check the ability to release USM memory inside another translation unit without local allocation overload
+    // check the ability to release USM memory inside another translation unit without local allocation redirection
     {
-        allocs na;
-        perform_allocations_impl(na);
+        allocs na = perform_usm_allocations();
         check_memory_ownership(na, sycl::usm::alloc::shared);
         perform_system_deallocations(na);
     }

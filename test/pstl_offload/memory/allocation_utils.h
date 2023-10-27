@@ -10,15 +10,6 @@
 #ifndef _ALLOCATION_UTILS_H
 #define _ALLOCATION_UTILS_H
 
-#define _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-#include <new>
-#include <cstdlib>
-#if __linux__
-#include <malloc.h>
-#endif
-#include "support/utils.h"
-#undef _ONEDPL_PSTL_OFFLOAD_TOP_LEVEL
-
 extern "C"
 {
 void *__libc_malloc(std::size_t);
@@ -58,11 +49,12 @@ struct allocs {
     void *aligned_arr_new_ptr;
     void *aligned_nothrow_arr_new_ptr;
 
-    static const std::size_t alloc_size = 1024;
-    static const std::size_t alignment = 16;
+    static constexpr std::size_t alloc_size = 1024;
+    static constexpr std::size_t alignment = 16;
 };
 
-static void perform_allocations_impl(allocs& na) {
+static allocs perform_allocations_impl() {
+    allocs na;
     na.malloc_ptr = malloc(allocs::alloc_size);
     na.calloc_ptr = calloc(allocs::alloc_size, allocs::alloc_size);
     na.realloc_ptr = realloc(nullptr, allocs::alloc_size);
@@ -87,6 +79,7 @@ static void perform_allocations_impl(allocs& na) {
     na.aligned_arr_new_ptr = ::operator new[](allocs::alloc_size, std::align_val_t(allocs::alignment));
     na.aligned_nothrow_arr_new_ptr =
         ::operator new[](allocs::alloc_size, std::align_val_t(allocs::alignment), std::nothrow);
+    return na;
 }
 
 static void perform_deallocations_impl(const allocs& na) {
@@ -113,7 +106,9 @@ static void perform_deallocations_impl(const allocs& na) {
     operator delete[](na.aligned_nothrow_arr_new_ptr, std::align_val_t(allocs::alignment));
 }
 
-void perform_system_allocations(allocs&);
+allocs perform_system_allocations();
 void perform_system_deallocations(const allocs&);
+allocs perform_usm_allocations();
+void perform_usm_deallocations(const allocs&);
 
 #endif // _ALLOCATION_UTILS_H
