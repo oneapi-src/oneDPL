@@ -14,9 +14,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "support/test_config.h"
-
-#include <oneapi/dpl/cstddef> // for definition _GLIBCXX_RELEASE, __GLIBCXX or _LIBCPP_VERSION
-
 #include "support/test_macros.h"
 #include "support/utils.h"
 
