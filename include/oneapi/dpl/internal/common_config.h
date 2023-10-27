@@ -49,6 +49,9 @@
 #        endif
 #        ifndef _GLIBCXX_USE_TBB_PAR_BACKEND
 #            define _GLIBCXX_USE_TBB_PAR_BACKEND (_GLIBCXX_RELEASE > 10)
+#        elif defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE == 10) && defined(_PSTL_PAR_BACKEND_TBB)
+#            undef _PSTL_PAR_BACKEND_TBB
+#            define _PSTL_PAR_BACKEND_SERIAL
 #        endif
 #    endif // __has_include(<tbb/version.h>)
 // - TBB is not found (libstdc++ v9)
