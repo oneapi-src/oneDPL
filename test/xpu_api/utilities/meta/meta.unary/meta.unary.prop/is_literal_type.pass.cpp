@@ -1,8 +1,15 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -10,58 +17,47 @@
 
 // is_literal_type
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
+#include "support/utils_invoke.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
 void
-test_is_literal_type(cl::sycl::queue& deviceQueue)
+test_is_literal_type(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
-            static_assert(s::is_literal_type<T>::value, "");
-            static_assert(s::is_literal_type<const T>::value, "");
-            static_assert(s::is_literal_type<volatile T>::value, "");
-            static_assert(s::is_literal_type<const volatile T>::value, "");
-#if TEST_STD_VER > 14
-            static_assert(s::is_literal_type_v<T>, "");
-            static_assert(s::is_literal_type_v<const T>, "");
-            static_assert(s::is_literal_type_v<volatile T>, "");
-            static_assert(s::is_literal_type_v<const volatile T>, "");
-#endif
+            static_assert(dpl::is_literal_type<T>::value);
+            static_assert(dpl::is_literal_type<const T>::value);
+            static_assert(dpl::is_literal_type<volatile T>::value);
+            static_assert(dpl::is_literal_type<const volatile T>::value);
+            static_assert(dpl::is_literal_type_v<T>);
+            static_assert(dpl::is_literal_type_v<const T>);
+            static_assert(dpl::is_literal_type_v<volatile T>);
+            static_assert(dpl::is_literal_type_v<const volatile T>);
         });
     });
 }
 
 template <class KernelTest, class T>
 void
-test_is_not_literal_type(cl::sycl::queue& deviceQueue)
+test_is_not_literal_type(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
-            static_assert(!s::is_literal_type<T>::value, "");
-            static_assert(!s::is_literal_type<const T>::value, "");
-            static_assert(!s::is_literal_type<volatile T>::value, "");
-            static_assert(!s::is_literal_type<const volatile T>::value, "");
-#if TEST_STD_VER > 14
-            static_assert(!s::is_literal_type_v<T>, "");
-            static_assert(!s::is_literal_type_v<const T>, "");
-            static_assert(!s::is_literal_type_v<volatile T>, "");
-            static_assert(!s::is_literal_type_v<const volatile T>, "");
-#endif
+            static_assert(!dpl::is_literal_type<T>::value);
+            static_assert(!dpl::is_literal_type<const T>::value);
+            static_assert(!dpl::is_literal_type<volatile T>::value);
+            static_assert(!dpl::is_literal_type<const volatile T>::value);
+            static_assert(!dpl::is_literal_type_v<T>);
+            static_assert(!dpl::is_literal_type_v<const T>);
+            static_assert(!dpl::is_literal_type_v<volatile T>);
+            static_assert(!dpl::is_literal_type_v<const volatile T>);
         });
     });
 }
@@ -87,7 +83,6 @@ enum Enum
 typedef void (*FunctionPtr)();
 
 class KernelTest1;
-class KernelTest2;
 class KernelTest3;
 class KernelTest4;
 class KernelTest5;
@@ -106,17 +101,10 @@ class KernelTest16;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_literal_type<KernelTest1, std::nullptr_t>(deviceQueue);
 
-// Before C++14, void was not a literal type
-// In C++14, cv-void is a literal type
-#if TEST_STD_VER < 14
-    test_is_not_literal_type<KernelTest2, void>(deviceQueue);
-#else
     test_is_literal_type<KernelTest3, void>(deviceQueue);
-#endif
-
     test_is_literal_type<KernelTest4, int>(deviceQueue);
     test_is_literal_type<KernelTest5, int*>(deviceQueue);
     test_is_literal_type<KernelTest6, const int*>(deviceQueue);
@@ -129,16 +117,19 @@ kernel_test()
     test_is_literal_type<KernelTest13, Union>(deviceQueue);
     test_is_literal_type<KernelTest14, Enum>(deviceQueue);
     test_is_literal_type<KernelTest15, FunctionPtr>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_literal_type<KernelTest16, double>(deviceQueue);
     }
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    std::cout << "Pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

@@ -1,8 +1,15 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -10,46 +17,35 @@
 
 // is_nothrow_copy_assignable
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
+#include "support/utils_invoke.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <class T>
 void
-test_has_nothrow_assign(cl::sycl::queue& deviceQueue)
+test_has_nothrow_assign(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
-            static_assert(s::is_nothrow_copy_assignable<T>::value, "");
-#if TEST_STD_VER > 14
-            static_assert(s::is_nothrow_copy_assignable_v<T>, "");
-#endif
+            static_assert(dpl::is_nothrow_copy_assignable<T>::value);
+            static_assert(dpl::is_nothrow_copy_assignable_v<T>);
         });
     });
 }
 
 template <class T>
 void
-test_has_not_nothrow_assign(cl::sycl::queue& deviceQueue)
+test_has_not_nothrow_assign(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
-            static_assert(!s::is_nothrow_copy_assignable<T>::value, "");
-#if TEST_STD_VER > 14
-            static_assert(!s::is_nothrow_copy_assignable_v<T>, "");
-#endif
+            static_assert(!dpl::is_nothrow_copy_assignable<T>::value);
+            static_assert(!dpl::is_nothrow_copy_assignable_v<T>);
         });
     });
 }
@@ -75,7 +71,7 @@ struct A
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_has_nothrow_assign<int&>(deviceQueue);
     test_has_nothrow_assign<Union>(deviceQueue);
     test_has_nothrow_assign<Empty>(deviceQueue);
@@ -83,7 +79,7 @@ kernel_test()
     test_has_nothrow_assign<int*>(deviceQueue);
     test_has_nothrow_assign<const int*>(deviceQueue);
     test_has_nothrow_assign<bit_zero>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_has_nothrow_assign<double>(deviceQueue);
     }
@@ -92,11 +88,14 @@ kernel_test()
     test_has_not_nothrow_assign<void>(deviceQueue);
     test_has_not_nothrow_assign<A>(deviceQueue);
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    std::cout << "Pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
