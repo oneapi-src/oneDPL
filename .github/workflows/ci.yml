@@ -8,6 +8,7 @@ on:
       - release_oneDPL
       - main
       - 'release/**'
+      - dev/skopienko/add_std_tests_from_dpcpp_part_6
 
 env:
   BUILD_CONCURRENCY: 2
@@ -26,7 +27,7 @@ jobs:
           ref:  ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-python@v3
         with:
-          python-version: '3.x' 
+          python-version: '3.x'
       - name: Get clang-format
         run: sudo apt-get install -yqq clang-format
       - name: Applying clang-format for changed files
