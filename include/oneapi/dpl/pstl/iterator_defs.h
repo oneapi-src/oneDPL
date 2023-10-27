@@ -27,36 +27,13 @@ namespace dpl
 namespace __internal
 {
 
-// Internal wrapper around ::std::iterator_traits as it is required to be
-// SFINAE-friendly(not produce "hard" error when _Ip is not an iterator)
-// only starting with C++17. Although many standard library implementations
-// provide it for older versions, we cannot rely on that.
-template <typename _Ip, typename = void>
-struct __iterator_traits
-{
-};
-
-template <typename _Ip>
-struct __iterator_traits<_Ip,
-                         __void_type<typename _Ip::iterator_category, typename _Ip::value_type,
-                                     typename _Ip::difference_type, typename _Ip::pointer, typename _Ip::reference>>
-    : ::std::iterator_traits<_Ip>
-{
-};
-
-// Handles _Tp* and const _Tp* specializations
-template <typename _Tp>
-struct __iterator_traits<_Tp*, void> : ::std::iterator_traits<_Tp*>
-{
-};
-
 // Make is_random_access_iterator and is_forward_iterator not to fail with a 'hard' error when it's used in
-//SFINAE with a non-iterator type by providing a default value.
+// SFINAE with a non-iterator type by providing a default value.
 template <typename _IteratorTag, typename... _IteratorTypes>
 auto
-__is_iterator_of(int)
-    -> decltype(std::conjunction<::std::is_base_of<_IteratorTag, typename __iterator_traits<typename ::std::decay<
-                                                                     _IteratorTypes>::type>::iterator_category>...>{});
+__is_iterator_of(int) -> decltype(
+    std::conjunction<::std::is_base_of<
+        _IteratorTag, typename ::std::iterator_traits<::std::decay_t<_IteratorTypes>>::iterator_category>...>{});
 
 template <typename... _IteratorTypes>
 auto
@@ -78,28 +55,36 @@ using __is_random_access_iterator_t = typename __is_random_access_iterator<_Iter
 template <typename... _IteratorTypes>
 inline constexpr bool __is_random_access_iterator_v = __is_random_access_iterator<_IteratorTypes...>::value;
 
+template <typename... _IteratorTypes>
+inline constexpr bool __is_forward_iterator_v = __is_forward_iterator<_IteratorTypes...>::value;
+
 // struct for checking if iterator is heterogeneous or not
-template <typename Iter, typename Void = void> // for non-heterogeneous iterators
+// for non-heterogeneous iterators
+template <typename Iter, typename Void = void>
 struct is_hetero_iterator : ::std::false_type
 {
 };
 
-template <typename Iter> // for heterogeneous iterators
+// for heterogeneous iterators
+template <typename Iter>
 struct is_hetero_iterator<Iter, ::std::enable_if_t<Iter::is_hetero::value>> : ::std::true_type
 {
 };
 // struct for checking if iterator should be passed directly to device or not
-template <typename Iter, typename Void = void> // for iterators that should not be passed directly
+// for iterators that should not be passed directly
+template <typename Iter, typename Void = void>
 struct is_passed_directly : ::std::false_type
 {
 };
 
-template <typename Iter> // for iterators defined as direct pass
+// for iterators defined as direct pass
+template <typename Iter>
 struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::value>> : ::std::true_type
 {
 };
 
-template <typename Iter> // for pointers to objects on device
+// for pointers to objects on device
+template <typename Iter>
 struct is_passed_directly<Iter, ::std::enable_if_t<::std::is_pointer_v<Iter>>> : ::std::true_type
 {
 };
