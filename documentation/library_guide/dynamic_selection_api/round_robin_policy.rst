@@ -71,7 +71,7 @@ the available devices.
 
 
   int round_robin_example(std::vector<sycl::queue>& similar_devices, 
-                          std::vector<float *>& usm_data) {
+                          std::vector<float*>& usm_data) {
 
     ex::round_robin_policy p{similar_devices}; // (1)
 
