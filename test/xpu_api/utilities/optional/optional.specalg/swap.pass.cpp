@@ -1,38 +1,34 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
-// UNSUPPORTED: c++98, c++03, c++11, c++14
 // <optional>
 
 // template <class T> void swap(optional<T>& x, optional<T>& y)
 //     noexcept(noexcept(x.swap(y)));
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(optional)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <optional>
-#    include <type_traits>
-#    include <utility>
-namespace s = std;
-#endif
+#include <oneapi/dpl/optional>
+#include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/utility>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
 
-using s::optional;
+#if TEST_DPCPP_BACKEND_PRESENT
+using dpl::optional;
 
 class X
 {
@@ -69,7 +65,7 @@ class Y
     friend void
     swap(Y& x, Y& y)
     {
-        s::swap(x.i_, y.i_);
+        dpl::swap(x.i_, y.i_);
     }
 };
 
@@ -94,21 +90,21 @@ class Z
     }
 };
 
-cl::sycl::cl_bool
+bool
 test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = true;
-    cl::sycl::range<1> item1{1};
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = true;
+    sycl::range<1> item1{1};
     {
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, item1);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_acc = buffer1.get_access<sycl_write>(cgh);
+        sycl::buffer<bool, 1> buffer1(&ret, item1);
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            auto ret_acc = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 {
                     optional<int> opt1;
                     optional<int> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == true, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == true);
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
                     swap(opt1, opt2);
@@ -118,7 +114,7 @@ test()
                 {
                     optional<int> opt1(1);
                     optional<int> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == true, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == true);
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
@@ -130,7 +126,7 @@ test()
                 {
                     optional<int> opt1;
                     optional<int> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == true, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == true);
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
                     ret_acc[0] &= (*opt2 == 2);
@@ -142,7 +138,7 @@ test()
                 {
                     optional<int> opt1(1);
                     optional<int> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == true, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == true);
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
@@ -156,7 +152,7 @@ test()
                 {
                     optional<X> opt1;
                     optional<X> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == true, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == true);
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
                     swap(opt1, opt2);
@@ -166,7 +162,7 @@ test()
                 {
                     optional<X> opt1(1);
                     optional<X> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == true, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == true);
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
@@ -178,7 +174,7 @@ test()
                 {
                     optional<X> opt1;
                     optional<X> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == true, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == true);
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
                     ret_acc[0] &= (*opt2 == 2);
@@ -190,7 +186,7 @@ test()
                 {
                     optional<X> opt1(1);
                     optional<X> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == true, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == true);
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
@@ -204,7 +200,7 @@ test()
                 {
                     optional<Y> opt1;
                     optional<Y> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == false, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == false);
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
                     swap(opt1, opt2);
@@ -214,7 +210,7 @@ test()
                 {
                     optional<Y> opt1(1);
                     optional<Y> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == false, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == false);
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
@@ -226,7 +222,7 @@ test()
                 {
                     optional<Y> opt1;
                     optional<Y> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == false, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == false);
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
                     ret_acc[0] &= (*opt2 == 2);
@@ -238,7 +234,7 @@ test()
                 {
                     optional<Y> opt1(1);
                     optional<Y> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == false, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == false);
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
@@ -252,7 +248,7 @@ test()
                 {
                     optional<Z> opt1;
                     optional<Z> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == false, "");
+                    static_assert(noexcept(swap(opt1, opt2)) == false);
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
                     swap(opt1, opt2);
@@ -264,15 +260,15 @@ test()
     }
     return ret;
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
-main(int, char**)
+main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = test();
-    if (ret)
-        std::cout << "pass" << std::endl;
-    else
-        std::cout << "fail" << std::endl;
+    EXPECT_TRUE(ret, "Wrong result of dpl::optional::swap in test");
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
