@@ -67,7 +67,8 @@ the available devices.
   const std::size_t N = 10000;
   namespace ex = oneapi::dpl::experimental;
 
-  void f(sycl::handler& h, float *v);
+ void f(sycl::handler& h, float* v);
+
 
   int round_robin_example(std::vector<sycl::queue>& similar_devices, 
                           std::vector<float *>& usm_data) {
