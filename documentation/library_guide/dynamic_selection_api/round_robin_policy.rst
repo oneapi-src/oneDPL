@@ -88,7 +88,7 @@ the available devices.
     for (int i = 0; i < 100; i += submission_group_size) { // (3)
       for (int j = 0; j < submission_group_size; ++j) {  // (4)
         ex::submit(p, [&](sycl::queue q) { // (5)
-          float *data = usm_data[j];
+          float* data = usm_data[j];
           return q.submit([=](sycl::handler &h) { // (6)
             f(h, data);
           });
