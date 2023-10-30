@@ -275,11 +275,11 @@ class __transform_functor
         __transform_impl(::std::forward<_OutputType>(output), x, y);
     }
 
-    template <typename _Input1Type, typename _OutputType>
+    template <typename _InputType, typename _OutputType>
     void
-    operator()(_Input1Type&& x, _OutputType&& output) const
+    operator()(_InputType&& x, _OutputType&& output) const
     {
-        __transform_impl(::std::forward<_OutputType>(output), x);
+        __transform_impl(::std::forward<_OutputType>(output), std::forward<_InputType>(x));
     }
 
 private:
