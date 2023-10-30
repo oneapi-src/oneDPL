@@ -835,7 +835,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
         }
     }
 
-    return __future(__event, __tmp_buf, __val_buf);
+    return __future(__event);
 }
 
 } // namespace __par_backend_hetero
