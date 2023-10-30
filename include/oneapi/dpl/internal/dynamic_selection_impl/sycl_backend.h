@@ -126,12 +126,13 @@ class sycl_backend
                     {
                         if (use_event_profiling)
                         {
-                            cl_ulong time_start = e1.template get_profiling_info<sycl::info::event_profiling::command_start>();
+                            cl_ulong time_start = e1.template get_profiling_info<sycl::info::event_profiling::command_submit>();
                             cl_ulong time_end = e1.template get_profiling_info<sycl::info::event_profiling::command_end>();
                             s.report(execution_info::task_time, time_end - time_start);
                         }
-                        else 
+                        else
                         {
+                            auto x = std::chrono::steady_clock::now();
                             s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
                         }
                     }
