@@ -202,6 +202,6 @@ endforeach()
 
 # add additional TUs if required
 if (TARGET interop_allocs.pass)
-    target_sources(interop_allocs.pass PRIVATE "pstl_offload/memory/interop_allocs_system.cpp")
-    target_sources(interop_allocs.pass PRIVATE "pstl_offload/memory/interop_allocs_usm.cpp")
+    target_sources(interop_allocs.pass PRIVATE "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_system.cpp"
+                                               "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_usm.cpp")
 endif()
