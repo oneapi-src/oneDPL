@@ -67,7 +67,7 @@ resource with the fewest number of unfinished submissions.
   const std::size_t N = 10000;
   namespace ex = oneapi::dpl::experimental;
 
-  void f(sycl::handler& h, float *v);
+  void f(sycl::handler& h, float* v);
   void do_cpu_work();
 
   int dynamic_load_example(std::vector<sycl::queue>& devices, 
@@ -150,7 +150,7 @@ Constructors
   
   * - Signature
     - Description
-  * - round_round_policy(deferred_initialization_t);
+  * - dynamic_load_policy(deferred_initialization_t);
     - Defers initialization. An ``initialize`` function must be called prior to use.
   * - dynamic_load_policy();
     - Initialized to use the default set of resources.
