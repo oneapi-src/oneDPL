@@ -132,7 +132,6 @@ class sycl_backend
                         }
                         else
                         {
-                            auto x = std::chrono::steady_clock::now();
                             s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
                         }
                     }
