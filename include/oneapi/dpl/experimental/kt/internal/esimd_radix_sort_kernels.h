@@ -27,7 +27,7 @@ namespace oneapi::dpl::experimental::kt::esimd::__impl
 
 template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
           ::std::uint16_t __work_group_size, typename _KeyT, typename _InputT>
-void
+inline __attribute__((always_inline)) void
 __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, const _InputT& __input)
 {
     using _BinT = ::std::uint16_t;
@@ -208,7 +208,7 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, const _InputT& __in
 
 template <typename _KeyT, typename _InputT, ::std::uint32_t __radix_bits, ::std::uint32_t __stage_count, ::std::uint32_t __hist_work_group_count,
           ::std::uint32_t __hist_work_group_size, bool __is_ascending>
-void
+inline __attribute__((always_inline)) void
 __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, ::std::uint32_t* __p_global_offset)
 {
     using _BinT = ::std::uint16_t;
@@ -577,8 +577,8 @@ struct __radix_sort_onesweep_slm_reorder_kernel
             __subgroup_offset = __group_incoming;
     }
 
-    void
-    operator()(sycl::nd_item<1> __idx) const SYCL_ESIMD_KERNEL
+    inline __attribute__((always_inline)) void
+    operator()(sycl::nd_item<1> __idx) const
     {
         __dpl_esimd_ns::slm_init<__slm_size_roundedup>();
 
@@ -902,8 +902,8 @@ struct __radix_sort_onesweep_by_key_slm_reorder_kernel
             __subgroup_offset = __group_incoming;
     }
 
-    void
-    operator()(sycl::nd_item<1> __idx) const SYCL_ESIMD_KERNEL
+    inline __attribute__((always_inline)) void
+    operator()(sycl::nd_item<1> __idx) const
     {
         __dpl_esimd_ns::slm_init<__slm_size_roundedup>();
 
