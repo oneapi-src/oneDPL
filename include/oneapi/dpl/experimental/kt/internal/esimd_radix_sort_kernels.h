@@ -578,7 +578,7 @@ struct __radix_sort_onesweep_slm_reorder_kernel
     }
 
     _ONEDPL_ESIMD_INLINE void
-    operator()(sycl::nd_item<1> __idx) const
+    operator()(sycl::nd_item<1> __idx) const SYCL_ESIMD_KERNEL
     {
         __dpl_esimd_ns::slm_init<__slm_size_roundedup>();
 
@@ -903,7 +903,7 @@ struct __radix_sort_onesweep_by_key_slm_reorder_kernel
     }
 
     _ONEDPL_ESIMD_INLINE void
-    operator()(sycl::nd_item<1> __idx) const
+    operator()(sycl::nd_item<1> __idx) const SYCL_ESIMD_KERNEL
     {
         __dpl_esimd_ns::slm_init<__slm_size_roundedup>();
 
