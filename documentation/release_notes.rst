@@ -8,6 +8,63 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.3.0
+===============
+
+New Features
+------------
+- Added an experimental feature to dynamically select an execution context, e.g., a SYCL queue.
+  The feature provides selection functions such as ``select``, ``submit`` and ``submit_and_wait``,
+  and several selection policies: ``fixed_resource_policy``, ``round_robin_policy``,
+  ``dynamic_load_policy``, and ``auto_tune_policy``.
+- ``unseq`` and ``par_unseq`` policies now enable vectorization also for Intel oneAPI DPC++/C++ Compiler.
+- Added support for passing zip iterators as segment value data in ``reduce_by_segment``, ``exclusive_scan_by_segment``,
+  and ``inclusive_scan_by_segment``.
+- Improved performance of the ``merge``, ``sort``, ``stable_sort``, ``sort_by_key``,
+  ``reduce``, ``min_element``, ``max_element``, ``minmax_element``, ``is_partitioned``, and
+  ``lexicographical_compare`` algorithms with DPC++ execution policies.
+
+Fixed Issues
+------------
+- Fixed the ``reduce_async`` function to not ignore the provided binary operation.
+
+Known Issues and Limitations
+----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- When compiled with ``-fsycl-pstl-offload`` option of Intel oneAPI DPC++/C++ compiler and with
+  ``libstdc++`` version 8 or ``libc++``, ``oneapi::dpl::execution::par_unseq`` offloads
+  standard parallel algorithms to the SYCL device similarly to ``std::execution::par_unseq``
+  in accordance with the ``-fsycl-pstl-offload`` option value.
+- Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
+- Incorrect results may be produced by ``set_intersection`` with a DPC++ execution policy,
+  where elements are copied from the second input range rather than the first input range. 
+- For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
+  used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
+  it is required that the provided input and destination iterators are equality comparable.
+  Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
+  If these conditions are not met, the result of these algorithm calls is undefined.
+- ``sort``, ``stable_sort``, ``sort_by_key``, ``partial_sort_copy`` algorithms may work incorrectly or cause
+  a segmentation fault when used a DPC++ execution policy for CPU device, and built
+  on Linux with Intel® oneAPI DPC++/C++ Compiler and -O0 -g compiler options.
+  To avoid the issue, pass ``-fsycl-device-code-split=per_kernel`` option to the compiler.
+- Incorrect results may be produced by ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
+  ``transform_inclusive_scan``, ``exclusive_scan_by_segment``, ``inclusive_scan_by_segment``, ``reduce_by_segment``
+  with ``unseq`` or ``par_unseq`` policy when compiled by Intel® oneAPI DPC++/C++ Compiler
+  with ``-fiopenmp``, ``-fiopenmp-simd``, ``-qopenmp``, ``-qopenmp-simd`` options on Linux.
+  To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
+
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
+
 New in 2022.2.0
 ===============
 
