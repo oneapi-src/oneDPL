@@ -15,7 +15,8 @@
 
 #include "support/test_config.h"
 
-#include <oneapi/dpl/cstddef> // for definition _GLIBCXX_RELEASE, __GLIBCXX or _LIBCPP_VERSION
+// To fix compilation issues in case libstdc++ version 9 or 10, for details see oneAPI DPC++ Library Known Limitations.
+#include <oneapi/dpl/cstddef>
 
 #include "support/test_macros.h"
 #include "support/utils.h"
