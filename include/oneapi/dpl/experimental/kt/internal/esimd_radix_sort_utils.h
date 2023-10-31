@@ -21,6 +21,10 @@
 #include <type_traits>
 #include <limits>
 
+// The macro is created to guarantee inlining of functions which contain slm_init. See ESIMD spec for more details:
+// https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/supported/sycl_ext_intel_esimd/sycl_ext_intel_esimd.md#static-allocation-of-slm-using-slm_init-function
+#define _ONEDPL_ESIMD_INLINE inline __attribute__((always_inline))
+
 namespace oneapi::dpl::experimental::kt::esimd::__impl
 {
 constexpr int __data_per_step = 16;
