@@ -43,13 +43,13 @@ by submitting tasks to a resource that completes work faster.
       auto get_resources() const;
       auto get_submission_group();
       
-      // other implementaton defined functions...
+      // other implementation defined functions...
     };
   
   }
   
 This policy can be used with all of the dynamic selection functions, such as ``select``, ``submit``,
-and ``submit_and_wait``. It also can used with ``policy_traits``.
+and ``submit_and_wait``. It can also used with ``policy_traits``.
 
 Example
 -------
@@ -103,11 +103,11 @@ resource with the fewest number of unfinished submissions.
 The key points in this example are:
 
 #. A ``dynamic_load_policy`` is constructed that selects from queues in the ``devices`` vector.
-#. The total number of concurrent offloads, ``submission_group_size``, will be limited to the number of USM arrays. In this example, we allow multiple simultaneous offloads to the same queue. The only limitations is that there should be enough available vectors to support the concurrent executions.
-#. The outer ``i``-loop iterates from 0 to 99, stepping by the ``submission_group_size``. This number of submissions will be offload concurrently.
+#. The total number of concurrent offloads, ``submission_group_size``, will be limited to the number of USM arrays. In this example, we allow multiple simultaneous offloads to the same queue. The only limitation is that there should be enough available vectors to support the concurrent executions.
+#. The outer ``i``-loop iterates from 0 to 99, stepping by the ``submission_group_size``. This number of submissions will be offloaded concurrently.
 #. The inner ``j``-loop iterates over ``submission_group_size`` submissions.
 #. ``submit`` is used to select a queue and pass it to the user's function, but does not block until the event returned by that function completes. This provides the opportunity for concurrency across the submissions.
-#. The queue is used in function to perform an asynchronous offload. The SYCL event returned from the call to ``submit`` is returned. Returning an event is required for functions passed to ``submit`` and ``submit_and_wait``.
+#. The queue is used in a function to perform an asynchronous offload. The SYCL event returned from the call to ``submit`` is returned. Returning an event is required for functions passed to ``submit`` and ``submit_and_wait``.
 #. Some additional work is done between calls to ``submit``. ``dynamic_load_policy`` is most useful when there is time for work to complete on some devices before the next assignment is made. If all submissions are performed simultaneously, all devices will appear equally loaded, since the fast devices would have had no time to complete their work.
 #. ``wait`` is called to block for all of the concurrent ``submission_group_size`` submissions to complete.
 
@@ -120,7 +120,7 @@ offloads is the difference between the number of reported task submissions
 and then number of reported task completions. This value is tracked for each 
 available resource.
 
-Simplified, expository implementaton of the selection algorithm:
+Simplified, expository implementation of the selection algorithm:
  
 .. code::
 
@@ -161,7 +161,7 @@ Deferred Initialization
 -----------------------
 
 A ``dynamic_load_policy`` that was constructed with deferred initialization must be 
-initialized by calling one its ``initialize`` member functions before it can be used
+initialized by calling one of its ``initialize`` member functions before it can be used
 to select or submit.
 
 .. list-table:: ``dynamic_load_policy`` constructors

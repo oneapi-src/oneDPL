@@ -14,7 +14,7 @@ history, so this policy is only useful for kernels that have stable
 performance. Initially, this policy acts like ``round_robin_policy``,
 rotating through each resource (one or more times). Then, once it has
 determined which resource is performing best, it uses that resource
-thereafter. Optionally, a resampling interval can set to return to
+thereafter. Optionally, a resampling interval can be set to return to
 the profiling phase periodically.
 
 .. code:: cpp
@@ -55,7 +55,7 @@ the profiling phase periodically.
   }
   
 This policy can be used with all of the dynamic selection functions, such as ``select``, ``submit``,
-and ``submit_and_wait``. It also can used with ``policy_traits``.
+and ``submit_and_wait``. It can also used with ``policy_traits``.
 
 Example
 -------

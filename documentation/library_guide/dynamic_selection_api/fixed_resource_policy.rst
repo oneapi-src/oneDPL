@@ -44,13 +44,14 @@ resource is always best on a specific platform.
       auto get_resources() const;
       auto get_submission_group();
       
-      // other implementaton defined functions...
+      // other implementation defined functions...
     };
   
   }
   
 This policy can be used with all of the dynamic selection functions, such as ``select``, ``submit``,
-and ``submit_and_wait``. It also can used with ``policy_traits``.
+and ``submit_and_wait``. It can also used with ``policy_traits``.
+
 
 Example
 -------
@@ -61,7 +62,7 @@ compile-time, this example will always use the CPU queue. When ``USE_GPU`` is de
 at compile-time, it will always use the GPU queue. Otherwise, it uses an 
 ``auto_tune_policy`` to dynamically select between these two queues. Such a scenario 
 could be used for debugging or simply to maintain the dynamic selection code even if 
-the best device to use is know for some subset of platforms.  
+the best device to use is known for some subset of platforms.  
 
 .. code:: cpp
 
@@ -125,16 +126,16 @@ The key points in this example are:
 #. If ``USE_GPU`` is defined, a ``fixed_resouce_policy`` is constructed that targets the GPU.
 #. ``submit_and_wait`` is invoked with the policy as the first argument. The user-provided function will be passed the selected queue.
 #. For clarity when run, the type of device is displayed.
-#. The queue is used in function to perform an asynchronous offload. The SYCL event returned from the call to ``submit`` is returned. Returning an event is required for functions passed to ``submit`` and ``submit_and_wait``.
+#. The queue is used in a function to perform an asynchronous offload. The SYCL event returned from the call to ``submit`` is returned. Returning an event is required for functions passed to ``submit`` and ``submit_and_wait``.
 
 Selection Algorithm
 -------------------
  
 The selection algorithm for ``fixed_resource_policy`` always returns 
 the same specific resource from its set of resources. The index of the
-resource is set during construction or deferrred initialiazation.
+resource is set during construction or deferred initialization.
 
-Simplified, expository implementaton of the selection algorithm:
+Simplified, expository implementation of the selection algorithm:
  
 .. code::
 
@@ -143,7 +144,7 @@ Simplified, expository implementaton of the selection algorithm:
     if (initialized_) {
       return selection_type{*this, resources_[fixed_offset_]};
     } else {
-      throw std::logic_error(“select called before initialialization”);
+      throw std::logic_error(“select called before initialization”);
     }
   }
 
@@ -212,7 +213,7 @@ Reporting Requirements
 If a resource returned by ``select`` is used directly without calling
 ``submit`` or ``submit_and_wait``, it may be necessary to call ``report``
 to provide feedback to the policy. However, the ``fixed_resource_policy`` 
-does not require any feedback about the system state or the behaviour of 
+does not require any feedback about the system state or the behavior of 
 the workload. Therefore, no explicit reporting of execution information 
 is needed, as is summarized in the table below.
 

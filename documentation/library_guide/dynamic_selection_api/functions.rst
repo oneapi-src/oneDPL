@@ -54,7 +54,7 @@ The output of this example:
   selected queue is gpu
 
 The object returned by ``select`` is a *selection*. The exact type of the 
-selection object depends on the policy. If it necessary to know the exact 
+selection object depends on the policy. If it is necessary to know the exact 
 type, it can be determined by using traits: 
 ``policy_trait<Policy>::selection_type`` or the helper trait ``selection_t<Policy>``.
 
@@ -97,10 +97,10 @@ require reporting.
 
 ``submit`` returns a *submission* object. Passing the *submission* object to the 
 ``wait`` function will block the calling thread until the work offloaded by the
-submission is complete. When using SYCL queues, this behaves as-if calling
+submission is complete. When using SYCL queues, this behaves as if calling
 ``sycl::event::wait`` on the SYCL event returned by the user function.
 
-The following example demonstrates the use of function ``submit`` and the 
+The following example demonstrates the use of the function ``submit`` and the 
 function ``wait``. The use of ``single_task`` is for syntactic demonstration 
 purposes only; any valid command group or series of command groups can be 
 submitted to the selected queue.
@@ -166,10 +166,10 @@ information for policies that require reporting.
 
 ``submit`` returns a *submission* object. Passing the *submission* object to the 
 ``wait`` function will block the calling thread until the work offloaded by the
-submission is complete. When using SYCL queues, this behaves as-if calling
+submission is complete. When using SYCL queues, this behaves as if calling
 ``sycl::event::wait`` on the SYCL event returned by the user function.
 
-The following example demonstrates the use of function ``submit`` with an
+The following example demonstrates the use of the function ``submit`` with an
 object return by a call to select. The use of ``single_task`` is for 
 syntactic demonstration purposes only; any valid command group or series of 
 command groups can be submitted to the selected queue.
@@ -291,7 +291,7 @@ a *selection* object that was returned by a previous call to ``select``.
 
 The difference between ``submit_and_wait`` and ``submit`` is that 
 ``submit_and_wait`` blocks the calling thread until the work associated
-with the submission is complete. This behaviour is essentially a short-cut
+with the submission is complete. This behavior is essentially a short-cut
 for calling ``wait`` on the object returned by a call to ``submit``. 
 
 Submit and Wait Using a Policy
@@ -312,7 +312,7 @@ require reporting. This function blocks the calling thread until
 the user function and any work that it submits to the selected resource
 are complete.
 
-The following example demonstrates the use of function ``submit_and_wait``. 
+The following example demonstrates the use of the function ``submit_and_wait``. 
 The use of ``single_task`` is for syntactic demonstration 
 purposes only; any valid command group or series of command groups can be 
 submitted to the selected queue.
@@ -375,7 +375,7 @@ This function blocks the calling thread until
 the user function and any work that it submits to the resource
 are complete.
 
-The following example demonstrates the use of function ``submit_and_wait``. 
+The following example demonstrates the use of the function ``submit_and_wait``. 
 The use of ``single_task`` is for syntactic demonstration 
 purposes only; any valid command group or series of command groups can be 
 submitted to the selected queue.
@@ -435,7 +435,7 @@ Getting the Resource Options
   }
   
 Returns a ``std::vector`` that contains the resources that a policy
-selects from. The following example demonstrates the use of function 
+selects from. The following example demonstrates the use of the function 
 ``get_resources``. 
 
 .. code:: cpp
@@ -479,7 +479,7 @@ resources, a single CPU queue and a single GPU queue.
 
 The platform that was use to run this example has two GPU drivers installed, 
 as well as an FPGA emulator. When no resources are explicitly provided to the 
-policy constructor, the results show two non-gpu devices (the CPU and the FPGA 
+policy constructor, the results show two non-GPU devices (the CPU and the FPGA 
 emulator) and two drivers for the GPU.
 
 Getting the Group of Submissions
@@ -515,7 +515,7 @@ Reporting Events with No Associated Values
 Reports an execution info event to the policy. What events must reported
 is policy dependent. No reporting is necessary when using the ``submit`` or
 ``submit_and_wait`` functions, since these functions contain all necessary
-instrumenetation.
+instrumentation.
 
 An example that uses reporting for the ``dynamic_load_policy`` is shown
 below. This reporting is only necessary because ``select`` is used
@@ -560,9 +560,9 @@ Reporting Events with Associated Values
 Reports an execution info event along with an associated value to the policy. 
 What events must reported is policy dependent. No reporting is necessary 
 if using the ``submit`` or ``submit_and_wait`` functions, since these functions contain 
-all necessary instrumenetation.
+all necessary instrumentation.
 
-And example that uses reporting for the ``auto_tune_policy`` is shown
+An example that uses reporting for the ``auto_tune_policy`` is shown
 below. This reporting is only necessary in this case because ``select`` is used
 but the resource is not passed to a ``submit`` or ``submit_and_wait`` function but
 is instead used directly. The use of ``single_task`` is for syntactic demonstration 

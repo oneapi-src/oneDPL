@@ -120,7 +120,7 @@ The output of this example:
 Available policies
 ------------------
 
-More detailed information about the API is provide in the following sections:
+More detailed information about the API is provided in the following sections:
 
 .. toctree::
    :maxdepth: 2
