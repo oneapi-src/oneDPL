@@ -444,12 +444,6 @@ struct __radix_sort_onesweep_slm_reorder_kernel
         }
     }
 
-    inline void
-    __reset_bin_counters(::std::uint32_t __slm_bin_hist_this_thread) const
-    {
-        __utils::__block_store_slm<_HistT, __bin_count>(__slm_bin_hist_this_thread, 0);
-    }
-
     inline auto
     __rank_slm(__dpl_esimd_ns::simd<_BinT, __data_per_work_item> __bins, ::std::uint32_t __slm_counter_offset, ::std::uint32_t __local_tid) const
     {
@@ -607,10 +601,6 @@ struct __radix_sort_onesweep_slm_reorder_kernel
 
         __bins = __utils::__get_bucket<__mask>(__utils::__order_preserving_cast<__is_ascending>(__keys), __stage * __radix_bits);
 
-        __reset_bin_counters(__slm_bin_hist_this_thread);
-
-        __dpl_esimd_ns::fence<__dpl_esimd_ns::fence_mask::local_barrier>();
-
         __ranks = __rank_slm(__bins, __slm_bin_hist_this_thread, __local_tid);
 
         __dpl_esimd_ns::barrier();
@@ -624,8 +614,6 @@ struct __radix_sort_onesweep_slm_reorder_kernel
         __update_group_rank(__local_tid, __wg_id, __subgroup_offset, __global_fix, __p_prev_group_hist, __p_this_group_hist);
         __dpl_esimd_ns::barrier();
         {
-            __bins = __utils::__get_bucket<__mask>(__utils::__order_preserving_cast<__is_ascending>(__keys), __stage * __radix_bits);
-
             _slm_lookup_t<_HistT> __subgroup_lookup(__slm_lookup_subgroup);
             __dpl_esimd_ns::simd<_HistT, __data_per_work_item> __wg_offset =
                 __ranks + __subgroup_lookup.template __lookup<__data_per_work_item>(__subgroup_offset, __bins);
@@ -767,12 +755,6 @@ struct __radix_sort_onesweep_by_key_slm_reorder_kernel
                 __vals.template select<__data_per_step, 1>(__s) = __utils::__gather<_ValT, __data_per_step>(__in_vals_data, __offset, 0, __m);
             }
         }
-    }
-
-    inline void
-    __reset_bin_counters(::std::uint32_t __slm_bin_hist_this_thread) const
-    {
-        __utils::__block_store_slm<_HistT, __bin_count>(__slm_bin_hist_this_thread, 0);
     }
 
     inline auto
@@ -934,10 +916,6 @@ struct __radix_sort_onesweep_by_key_slm_reorder_kernel
 
         __bins = __utils::__get_bucket<__mask>(__utils::__order_preserving_cast<__is_ascending>(__keys), __stage * __radix_bits);
 
-        __reset_bin_counters(__slm_bin_hist_this_thread);
-
-        __dpl_esimd_ns::fence<__dpl_esimd_ns::fence_mask::local_barrier>();
-
         __ranks = __rank_slm(__bins, __slm_bin_hist_this_thread, __local_tid);
 
         __dpl_esimd_ns::barrier();
@@ -951,8 +929,6 @@ struct __radix_sort_onesweep_by_key_slm_reorder_kernel
         __update_group_rank(__local_tid, __wg_id, __subgroup_offset, __global_fix, __p_prev_group_hist, __p_this_group_hist);
         __dpl_esimd_ns::barrier();
         {
-            __bins = __utils::__get_bucket<__mask>(__utils::__order_preserving_cast<__is_ascending>(__keys), __stage * __radix_bits);
-
             _slm_lookup_t<_HistT> __subgroup_lookup(__slm_lookup_subgroup);
             __dpl_esimd_ns::simd<_HistT, __data_per_work_item> __wg_offset =
                 __ranks + __subgroup_lookup.template __lookup<__data_per_work_item>(__subgroup_offset, __bins);
