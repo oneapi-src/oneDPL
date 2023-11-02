@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <functional>
-
-// reference_wrapper
-
-// reference_wrapper(T& t);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/functional>
