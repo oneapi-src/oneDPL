@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <functional>
-
-// reference_wrapper
-
-// operator T& () const;
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/functional>
