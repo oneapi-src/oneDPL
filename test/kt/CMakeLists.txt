@@ -15,12 +15,12 @@
 option(ONEDPL_TEST_ENABLE_KT_ESIMD "Enable ESIMD-based kernel template tests")
 
 function(_generate_test _target_name _test_path)
-    add_executable(${_target_name} EXCLUDE_FROM_ALL "${_test_path}")
+    add_executable(${_target_name} EXCLUDE_FROM_ALL ${_test_path})
 
     target_link_libraries(${_target_name} PRIVATE oneDPL)
     set_target_properties(${_target_name} PROPERTIES CXX_EXTENSIONS NO)
 
-    add_test(NAME ${_target_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_path})
+    add_test(NAME ${_target_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_target_name})
     set_tests_properties(${_target_name} PROPERTIES SKIP_RETURN_CODE 77)
     if (DEFINED DEVICE_SELECTION_LINE)
         set_tests_properties(${_target_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
