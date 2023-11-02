@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <functional>
-
-// result_of<Fn(ArgTypes...)>
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

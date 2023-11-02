@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// add_rvalue_reference
-// If T names a referenceable type then the member typedef type
-//   shall name T&&; otherwise, type shall name T.
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// remove_volatile
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

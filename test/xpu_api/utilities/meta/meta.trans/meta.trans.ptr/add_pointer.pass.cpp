@@ -13,13 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// add_pointer
-// If T names a referenceable type or a (possibly cv-qualified) void type then
-//    the member typedef type shall name the same type as remove_reference_t<T>*;
-//    otherwise, type shall name T.
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

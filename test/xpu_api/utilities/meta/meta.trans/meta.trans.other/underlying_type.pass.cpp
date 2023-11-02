@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// underlying_type
-//  As of C++20, std::underlying_type is SFINAE-friendly; if you hand it
-//  a non-enumeration, it returns an empty struct.
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

@@ -13,13 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// aligned_union<size_t Len, class ...Types>
-
-//  Issue 3034 added:
-//  The member typedef type shall be a trivial standard-layout type.
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

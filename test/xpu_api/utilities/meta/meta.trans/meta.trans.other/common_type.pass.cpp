@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// common_type
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>
