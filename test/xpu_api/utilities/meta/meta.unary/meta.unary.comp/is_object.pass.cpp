@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// is_object
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/cstddef>           // for dpl::nullptr_t

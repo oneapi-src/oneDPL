@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// UNSUPPORTED: c++98, c++03
-
-// type_traits
-
-// rvalue_ref
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>
