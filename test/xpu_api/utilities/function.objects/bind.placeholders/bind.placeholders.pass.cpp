@@ -43,9 +43,9 @@ kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::range<1> numOfItems{1};
-    sycl::cl_int result = 10;
+    std::int32_t = 10;
     {
-        sycl::buffer<sycl::cl_int, 1> buffer1(&result, numOfItems);
+        sycl::buffer<std::int32_t, 1> buffer1(&result, numOfItems);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto res_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {

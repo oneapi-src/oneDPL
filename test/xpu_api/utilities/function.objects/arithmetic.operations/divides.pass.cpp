@@ -32,7 +32,7 @@ kernel_test()
 
     int div_array[2] = {10, 5};
     sycl::range<1> numOfItems2{2};
-    sycl::buffer<sycl::cl_int, 1> div_buffer(div_array, numOfItems2);
+    sycl::buffer<std::int32_t, 1> div_buffer(div_array, numOfItems2);
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         auto div_access = div_buffer.get_access<sycl::access::mode::read>(cgh);
