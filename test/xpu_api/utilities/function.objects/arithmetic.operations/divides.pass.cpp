@@ -35,7 +35,7 @@ kernel_test()
     sycl::buffer<sycl::cl_int, 1> div_buffer(div_array, numOfItems2);
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
-        auto div_access = div_buffer.get_access<sycl::access::mode::write>(cgh);
+        auto div_access = div_buffer.get_access<sycl::access::mode::read>(cgh);
         cgh.single_task<class KernelDividesTest>([=]() {
             const dpl::divides<int> f1;
             ret_access[0] = (f1(36, 4) == 9);
