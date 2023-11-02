@@ -49,7 +49,7 @@ the profiling phase periodically.
       auto get_resources() const;
       auto get_submission_group();
       
-      // other implementaton defined functions...
+      // other implementation defined functions...
     };
   
   }
@@ -125,7 +125,7 @@ Selection Algorithm
  
 The selection algorithm for ``auto_tune_policy`` uses runtime profiling
 to choose the best resource for the given function. A simplified, expository 
-implementaton of the selection algorithm follows:
+implementation of the selection algorithm follows:
  
 .. code::
 

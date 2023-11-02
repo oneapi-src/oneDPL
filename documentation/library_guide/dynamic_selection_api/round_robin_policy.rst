@@ -42,7 +42,7 @@ will achieve a good load balancing.
       auto get_resources() const;
       auto get_submission_group();
       
-      // other implementaton defined functions...
+      // other implementation defined functions...
     };
   
   }
