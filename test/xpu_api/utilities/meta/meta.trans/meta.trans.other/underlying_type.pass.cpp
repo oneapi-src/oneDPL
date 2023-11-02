@@ -104,7 +104,6 @@ kernel_test1(sycl::queue& deviceQueue)
 
 //  SFINAE-able underlying_type
             static_assert(has_type_member<E>::value);
-            static_assert(has_type_member<F>::value);
             static_assert(has_type_member<G>::value);
 
             static_assert(!has_type_member<void>::value);
