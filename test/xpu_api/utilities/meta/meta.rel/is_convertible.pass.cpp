@@ -64,9 +64,9 @@ struct StringType
     StringType(const char*) {}
 };
 
-class NonCopyable
+struct NonCopyable
 {
-    NonCopyable(NonCopyable&);
+    NonCopyable(NonCopyable&) = delete;
 };
 
 template <typename T>
