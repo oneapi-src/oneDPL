@@ -32,7 +32,7 @@ class MoveOnly
 {
     MoveOnly(const MoveOnly&) = delete;
     MoveOnly&
-    operator=(const MoveOnly&);
+    operator=(const MoveOnly&) = delete;
 
     int data_;
 
