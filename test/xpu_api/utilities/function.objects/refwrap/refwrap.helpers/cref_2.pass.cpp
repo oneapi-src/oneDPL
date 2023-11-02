@@ -26,10 +26,6 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#    include "support/counting_predicates.h"
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-#if TEST_DPCPP_BACKEND_PRESENT
 class KernelCRef2PassTest;
 
 void
