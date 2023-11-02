@@ -37,8 +37,7 @@ kernel_test()
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         auto div_access = div_buffer.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelDividesTest>([=]() {
-            typedef dpl::divides<int> Fint;
-            const Fint f1 = Fint();
+            const dpl::divides<int> f1;
             ret_access[0] = (f1(36, 4) == 9);
             ret_access[0] &= (f1(div_access[0], div_access[1]) == 2);
 
