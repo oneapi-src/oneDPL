@@ -43,7 +43,7 @@ kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::range<1> numOfItems{1};
-    std::int32_t = 10;
+    std::int32_t result = 10;
     {
         sycl::buffer<std::int32_t, 1> buffer1(&result, numOfItems);
         deviceQueue.submit([&](sycl::handler& cgh) {
