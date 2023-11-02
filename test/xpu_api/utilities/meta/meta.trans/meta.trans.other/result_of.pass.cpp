@@ -114,6 +114,7 @@ test_no_result(sycl::queue& deviceQueue)
         cgh.single_task<KernelTest>([=]() {
             static_assert(!HasType<dpl::result_of<T>>::value);
             test_invoke_no_result<T>::call();
+        });
     });
 }
 
