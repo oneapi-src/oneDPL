@@ -65,13 +65,8 @@ template <class T>
 struct has_result_type
 {
   private:
-    struct two
-    {
-        char _;
-        char __;
-    };
     template <class U>
-    static two
+    static int
     test(...);
     template <class U>
     static char
