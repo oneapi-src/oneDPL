@@ -63,7 +63,7 @@ kernel_test2(sycl::queue& deviceQueue)
         });
     });
 
-    auto ret_access_host = buffer1.gget_host_access(sycl::read_only);
+    auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Error in work with dpl::plus (kernel_test2)");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
