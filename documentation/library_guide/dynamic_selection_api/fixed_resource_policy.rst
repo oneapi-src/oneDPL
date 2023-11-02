@@ -7,10 +7,11 @@ The dynamic selection API is an experimental feature in the |onedpl_long|
 of the API. Policies encapsulate the logic and any associated state needed 
 to make a selection. 
 
-The fixed-resource policy always returns the same resource selection. ``fixed_resource_policy`` 
-is designed for two primary scenarios: (1) debugging the use of dynamic selection 
-and (2) special casing a dynamic selection capable application for a specific 
-resource is always best on a specific platform.
+The fixed-resource policy always returns the same resource selection. 
+``fixed_resource_policy`` is designed for two primary scenarios: 
+
+#. debugging the use of dynamic selection
+#. special casing a dynamic selection capable application for a specific resource when it is known to be best on that platform.
 
 .. code:: cpp
 
@@ -58,8 +59,8 @@ Example
 
 In the following example, a ``fixed_resource_policy`` is used when the code is
 compiled so that it selects a specific device.  When ``USE_CPU`` is defined at 
-compile-time, this example will always use the CPU queue. When ``USE_GPU`` is defined 
-at compile-time, it will always use the GPU queue. Otherwise, it uses an 
+compile-time, this example always uses the CPU queue. When ``USE_GPU`` is defined 
+at compile-time, it always uses the GPU queue. Otherwise, it uses an 
 ``auto_tune_policy`` to dynamically select between these two queues. Such a scenario 
 could be used for debugging or simply to maintain the dynamic selection code even if 
 the best device to use is known for some subset of platforms.  
@@ -93,9 +94,9 @@ the best device to use is known for some subset of platforms.
   #endif
 
     {
-      sycl::buffer<float> ab(av);
-      sycl::buffer<float> bb(bv);
-      sycl::buffer<float> cb(cv);
+      sycl::buffer<float> a_b(av);
+      sycl::buffer<float> b_b(bv);
+      sycl::buffer<float> c_b(cv);
 
 
       for (int i = 0; i < 6; ++i) {
@@ -103,10 +104,10 @@ the best device to use is known for some subset of platforms.
           // (4)
           std::cout << (q.get_device().is_cpu() ? "using cpu\n" : "using gpu\n");
           return q.submit([&](sycl::handler &h) {   // (5)
-            sycl::accessor aa(ab, h, sycl::read_only);
-            sycl::accessor ba(bb, h, sycl::read_only);
-            sycl::accessor ca(cb, h, sycl::read_write);
-            h.parallel_for(N, [=](auto i) { ca[i] = aa[i] + ba[i]; }); 
+            sycl::accessor a_a(a_b, h, sycl::read_only);
+            sycl::accessor b_a(b_b, h, sycl::read_only);
+            sycl::accessor c_a(c_b, h, sycl::read_write);
+            h.parallel_for(N, [=](auto i) { c_a[i] = a_a[i] + b_a[i]; }); 
           });
         }); 
       };  
@@ -165,11 +166,11 @@ Constructors
   
   * - Signature
     - Description
-  * - fixed_resource_policy(deferred_initialization_t);
+  * - ``fixed_resource_policy(deferred_initialization_t);``
     - Defers initialization. An ``initialize`` function must be called prior to use.
-  * - fixed_resource_policy(std::size_t offset = 0);
+  * - ``fixed_resource_policy(std::size_t offset = 0);``
     - Sets the index for the resource to be selected. Uses the default set of resources.
-  * - fixed_resource_policy(const std::vector<resource_type>& u, std::size_t offset = 0);
+  * - ``fixed_resource_policy(const std::vector<resource_type>& u, std::size_t offset = 0);``
     - Overrides the default set of resources and optionally sets the index for the resource to be selected.
 
 Deferred Initialization
@@ -185,9 +186,9 @@ to select or submit.
   
   * - Signature
     - Description
-  * - initialize(std::size_t offset = 0);
+  * - ``initialize(std::size_t offset = 0);``
     - Sets the index for the resource to be selected. Uses the default set of resources.
-  * - initialize(const std::vector<resource_type>& u, std::size_t offset = 0);
+  * - ``initialize(const std::vector<resource_type>& u, std::size_t offset = 0);``
     - Overrides the default set of resources and optionally sets the index for the resource to be selected.
 
 Queries
@@ -202,9 +203,9 @@ member functions.
   
   * - Signature
     - Description
-  * - std::vector<resource_type> get_resources();
+  * - ``std::vector<resource_type> get_resources();``
     - Returns the set of resources the policy is selecting from.
-  * - auto get_submission_group();
+  * - ``auto get_submission_group();``
     - Returns an object that can be used to wait for all active submissions.
 
 Reporting Requirements
@@ -221,7 +222,7 @@ is needed, as is summarized in the table below.
   :widths: 50 50
   :header-rows: 1
   
-  * - execution_info
+  * - ``execution_info``
     - is reporting required?
   * - ``task_submission``
     - No

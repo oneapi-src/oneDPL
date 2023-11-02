@@ -48,12 +48,12 @@ Common Reference Semantics
 --------------------------
 
 If a policy maintains state, the state is maintained separately for each 
-independent instance of a policy. So for example, two independenly constructed 
+independent instance of a policy. So for example, two independently constructed 
 instances of a ``round_robin_policy`` will operate independently of each other. 
 However, policies provide *common reference semantics*, so copies of a
 policy instance share state.
 
-An example, demonstrating this difference is shown below:
+An example, demonstrating this difference, is shown below:
 
 .. code:: cpp
 
@@ -117,7 +117,7 @@ The output of this example:
   p2 selection 4: cpu
 
 
-Available policies
+Available Policies
 ------------------
 
 More detailed information about the API is provided in the following sections:

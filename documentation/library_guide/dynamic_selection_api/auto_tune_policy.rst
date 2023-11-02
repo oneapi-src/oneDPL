@@ -8,8 +8,8 @@ of the API. Policies encapsulate the logic and any associated state needed
 to make a selection. 
 
 The auto-tune policy selects resources using runtime profiling. ``auto_tune_policy`` 
-is useful for determining which resource has the best performance
-for a given kernel. The choice is made based on runtime performance 
+is useful for determining which resource performs best
+for a given kernel. The choice is made based on runtime performance
 history, so this policy is only useful for kernels that have stable
 performance. Initially, this policy acts like ``round_robin_policy``,
 rotating through each resource (one or more times). Then, once it has
@@ -86,9 +86,9 @@ two queues, a CPU queue and a GPU queue.
     ex::auto_tune_policy p{r}; // (1)
 
     {
-      sycl::buffer<float> ab(av);
-      sycl::buffer<float> bb(bv);
-      sycl::buffer<float> cb(cv);
+      sycl::buffer<float> a_b(av);
+      sycl::buffer<float> b_b(bv);
+      sycl::buffer<float> c_b(cv);
 
 
       for (int i = 0; i < 6; ++i) {
@@ -96,10 +96,10 @@ two queues, a CPU queue and a GPU queue.
           // (3)
           std::cout << (q.get_device().is_cpu() ? "using cpu\n" : "using gpu\n");
           return q.submit([&](sycl::handler &h) { // (4)
-            sycl::accessor aa(ab, h, sycl::read_only);
-            sycl::accessor ba(bb, h, sycl::read_only);
-            sycl::accessor ca(cb, h, sycl::read_write);
-            h.parallel_for(N, [=](auto i) { ca[i] = aa[i] + ba[i]; }); 
+            sycl::accessor a_a(a_b, h, sycl::read_only);
+            sycl::accessor b_a(b_b, h, sycl::read_only);
+            sycl::accessor c_a(c_b, h, sycl::read_write);
+            h.parallel_for(N, [=](auto i) { c_a[i] = a_a[i] + b_a[i]; }); 
           });
         }); 
       };  
@@ -168,11 +168,11 @@ Constructors
   
   * - Signature
     - Description
-  * - auto_tune_policy(deferred_initialization_t);
+  * - ``auto_tune_policy(deferred_initialization_t);``
     - Defers initialization. An ``initialize`` function must be called prior to use.
-  * - auto_tune_policy(uint64_t resample_interval_in_milliseconds = 0);
+  * - ``auto_tune_policy(uint64_t resample_interval_in_milliseconds = 0);``
     - Initialized to use the default set of resources. An optional resampling interval can be provided.
-  * - auto_tune_policy(const std::vector<resource_type>& u, uint64_t resample_interval_in_milliseconds = 0);
+  * - ``auto_tune_policy(const std::vector<resource_type>& u, uint64_t resample_interval_in_milliseconds = 0);``
     - Overrides the default set of resources. An optional resampling interval can be provided.
 
 Deferred Initialization
@@ -188,9 +188,9 @@ to select or submit.
   
   * - Signature
     - Description
-  * - initialize(uint64_t resample_interval_in_milliseconds = 0);
+  * - ``initialize(uint64_t resample_interval_in_milliseconds = 0);``
     - Initialize to use the default set of resources. An optional resampling interval can be provided.
-  * - initialize(const std::vector<resource_type>& u, uint64_t resample_interval_in_milliseconds = 0);
+  * - ``initialize(const std::vector<resource_type>& u, uint64_t resample_interval_in_milliseconds = 0);``
     - Overrides the default set of resources. An optional resampling interval can be provided.
 
 Queries
@@ -205,9 +205,9 @@ member functions.
   
   * - Signature
     - Description
-  * - std::vector<resource_type> get_resources();
+  * - ``std::vector<resource_type> get_resources();``
     - Returns the set of resources the policy is selecting from.
-  * - auto get_submission_group();
+  * - ``auto get_submission_group();``
     - Returns an object that can be used to wait for all active submissions.
 
 Reporting Requirements
@@ -226,7 +226,7 @@ is necessary to explicitly report these events.
   :widths: 50 50
   :header-rows: 1
   
-  * - execution_info
+  * - ``execution_info``
     - is reporting required?
   * - ``task_submission``
     - No

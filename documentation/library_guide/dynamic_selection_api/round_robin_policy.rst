@@ -144,11 +144,11 @@ Constructors
   
   * - Signature
     - Description
-  * - round_round_policy(deferred_initialization_t);
+  * - ``round_round_policy(deferred_initialization_t);``
     - Defers initialization. An ``initialize`` function must be called prior to use.
-  * - round_robin_policy();
+  * - ``round_robin_policy();``
     - Initialized to use the default set of resources.
-  * - round_robin_policy(const std::vector<resource_type>& u);
+  * - ``round_robin_policy(const std::vector<resource_type>& u);``
     - Overrides the default set of resources.
 
 Deferred Initialization
@@ -164,9 +164,9 @@ to select or submit.
   
   * - Signature
     - Description
-  * - initialize();
+  * - ``initialize();``
     - Initialize to use the default set of resources.
-  * - initialize(const std::vector<resource_type>& u);
+  * - ``initialize(const std::vector<resource_type>& u);``
     - Overrides the default set of resources.
 
 Queries
@@ -181,9 +181,9 @@ member functions.
   
   * - Signature
     - Description
-  * - std::vector<resource_type> get_resources();
+  * - ``std::vector<resource_type> get_resources();``
     - Returns the set of resources the policy is selecting from.
-  * - auto get_submission_group();
+  * - ``auto get_submission_group();``
     - Returns an object that can be used to wait for all active submissions.
 
 Reporting Requirements
@@ -200,7 +200,7 @@ is needed, as is summarized in the table below.
   :widths: 50 50
   :header-rows: 1
   
-  * - execution_info
+  * - ``execution_info``
     - is reporting required?
   * - ``task_submission``
     - No

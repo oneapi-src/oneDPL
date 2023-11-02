@@ -48,7 +48,7 @@ by submitting tasks to a resource that completes work faster.
   
   }
   
-This policy can be used with all of the dynamic selection functions, such as ``select``, ``submit``,
+This policy can be used with all the dynamic selection functions, such as ``select``, ``submit``,
 and ``submit_and_wait``. It can also used with ``policy_traits``.
 
 Example
@@ -150,11 +150,11 @@ Constructors
   
   * - Signature
     - Description
-  * - dynamic_load_policy(deferred_initialization_t);
+  * - ``dynamic_load_policy(deferred_initialization_t);``
     - Defers initialization. An ``initialize`` function must be called prior to use.
-  * - dynamic_load_policy();
+  * - ``dynamic_load_policy();``
     - Initialized to use the default set of resources.
-  * - dynamic_load_policy(const std::vector<resource_type>& u);
+  * - ``dynamic_load_policy(const std::vector<resource_type>& u);``
     - Overrides the default set of resources.
 
 Deferred Initialization
@@ -170,9 +170,9 @@ to select or submit.
   
   * - Signature
     - Description
-  * - initialize();
+  * - ``initialize();``
     - Initialize to use the default set of resources.
-  * - initialize(const std::vector<resource_type>& u);
+  * - ``initialize(const std::vector<resource_type>& u);``
     - Overrides the default set of resources.
 
 Queries
@@ -187,9 +187,9 @@ member functions.
   
   * - Signature
     - Description
-  * - std::vector<resource_type> get_resources();
+  * - ``std::vector<resource_type> get_resources();``
     - Returns the set of resources the policy is selecting from.
-  * - auto get_submission_group();
+  * - ``auto get_submission_group();``
     - Returns an object that can be used to wait for all active submissions.
 
 Reporting Requirements
@@ -209,7 +209,7 @@ report these events.
   :widths: 50 50
   :header-rows: 1
   
-  * - execution_info
+  * - ``execution_info``
     - is reporting required?
   * - ``task_submission``
     - Yes
