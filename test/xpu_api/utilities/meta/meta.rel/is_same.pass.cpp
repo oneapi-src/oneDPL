@@ -60,9 +60,8 @@ test_is_not_same()
     static_assert(!dpl::is_same<T, U>::value);
 }
 
-class Class
+struct Class
 {
-  public:
     ~Class();
 };
 
