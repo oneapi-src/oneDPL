@@ -124,7 +124,7 @@ The key points in this example are:
 
 #. If ``USE_CPU`` is defined, a ``fixed_resouce_policy`` is constructed that targets the CPU.
 #. If ``USE_GPU`` is defined, a ``fixed_resouce_policy`` is constructed that targets the GPU.
-#. ``submit_and_wait`` is invoked with the policy as the first argument. The user-provided function will be passed the selected queue.
+#. ``submit_and_wait`` is invoked with the policy as the first argument. The selected queue will be passed to the user-provided function.
 #. For clarity when run, the type of device is displayed.
 #. The queue is used in a function to perform an asynchronous offload. The SYCL event returned from the call to ``submit`` is returned. Returning an event is required for functions passed to ``submit`` and ``submit_and_wait``.
 

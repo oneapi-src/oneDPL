@@ -116,7 +116,7 @@ two queues, a CPU queue and a GPU queue.
 The key points in this example are:
 
 #. An ``auto_tune_policy`` is constructed to select between the CPU and GPU.
-#. ``submit_and_wait`` is invoked with the policy as the first argument. The user-provided function will be passed the selected queue.
+#. ``submit_and_wait`` is invoked with the policy as the first argument. The selected queue will be passed to the user-provided function.
 #. For clarity when run, the type of device is displayed.
 #. The queue is used in function to perform and asynchronous offload. The SYCL event returned from the call to ``submit`` is returned. Returning an event is required for functions passed to ``submit`` and ``submit_and_wait``.
 

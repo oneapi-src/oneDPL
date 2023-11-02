@@ -231,8 +231,8 @@ Wait
   }
   
 The function ``wait`` blocks the calling thread until the work associated with
-object ``w`` is complete. This function can be passed the object returned from 
-a call to ``submit`` to wait for the completion of a specific submission or the
+object ``w`` is complete. The object returned from 
+a call to ``submit`` can be passed to this function to wait for the completion of a specific submission or the
 object returned from a call to ``get_submission_group`` to wait for all submissions
 made using a policy.  Example code that demonstrates waiting for a specific 
 submission can be seen in the section for ``submit``.  
