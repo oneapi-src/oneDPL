@@ -32,7 +32,6 @@
 namespace s = oneapi_cpp_ns;
 #else
 #    include <type_traits>
-
 #endif
 
 
