@@ -7,14 +7,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if __SYCL_PSTL_OFFLOAD__ == 1
-#elif __SYCL_PSTL_OFFLOAD__ == 2
+#if __SYCL_PSTL_OFFLOAD__ == 2
     #undef __SYCL_PSTL_OFFLOAD__
     #define __SYCL_PSTL_OFFLOAD__ 3
 #elif __SYCL_PSTL_OFFLOAD__ == 3
     #undef __SYCL_PSTL_OFFLOAD__
     #define __SYCL_PSTL_OFFLOAD__ 2
-#else
+#elif __SYCL_PSTL_OFFLOAD__ != 1
 #error "PSTL offload is not enabled or the selected value is unsupported"
 #endif
 
