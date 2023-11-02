@@ -30,7 +30,7 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 class MoveOnly
 {
-    MoveOnly(const MoveOnly&);
+    MoveOnly(const MoveOnly&) = delete;
     MoveOnly&
     operator=(const MoveOnly&);
 
