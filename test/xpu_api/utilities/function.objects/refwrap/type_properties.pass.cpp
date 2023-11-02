@@ -23,15 +23,16 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 class MoveOnly
 {
-    MoveOnly(const MoveOnly&) = delete;
-    MoveOnly&
-    operator=(const MoveOnly&) = delete;
-
     int data_;
 
   public:
     MoveOnly(int data = 1) : data_(data) {}
     MoveOnly(MoveOnly&& x) : data_(x.data_) { x.data_ = 0; }
+    MoveOnly(const MoveOnly&) = delete;
+
+    MoveOnly&
+    operator=(const MoveOnly&) = delete;
+
     MoveOnly&
     operator=(MoveOnly&& x)
     {
