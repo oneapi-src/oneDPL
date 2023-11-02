@@ -57,7 +57,7 @@ struct HasType : dpl::false_type
 };
 
 template <class T>
-struct HasType<T, typename Voider<typename T::type>::type> : dpl::true_type
+struct HasType<T, dpl::void_t<typename T::type>> : dpl::true_type
 {
 };
 
