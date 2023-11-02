@@ -25,8 +25,8 @@ template <class T, class U>
 void
 test_add_volatile_imp()
 {
-    ASSERT_SAME_TYPE(volatile U, typename dpl::add_volatile<T>::type);
-    ASSERT_SAME_TYPE(volatile U, dpl::add_volatile_t<T>);
+    ASSERT_SAME_TYPE(U, typename dpl::add_volatile<T>::type);
+    ASSERT_SAME_TYPE(U, dpl::add_volatile_t<T>);
 }
 
 template <class T>
