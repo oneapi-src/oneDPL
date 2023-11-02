@@ -471,17 +471,6 @@ __pstl_left_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __v
 using __or_semantic = ::std::true_type;
 using __first_semantic = ::std::false_type;
 
-// Define __void_type via this structure to handle redefinition issue.
-// See CWG 1558 for information about it.
-template <typename... _Ts>
-struct __make_void_type
-{
-    using __type = void;
-};
-
-template <typename... _Ts>
-using __void_type = typename __make_void_type<_Ts...>::__type;
-
 // is_callable_object
 template <typename _Tp, typename = void>
 struct __is_callable_object : ::std::false_type
@@ -489,7 +478,7 @@ struct __is_callable_object : ::std::false_type
 };
 
 template <typename _Tp>
-struct __is_callable_object<_Tp, __void_type<decltype(&_Tp::operator())>> : ::std::true_type
+struct __is_callable_object<_Tp, ::std::void_t<decltype(&_Tp::operator())>> : ::std::true_type
 {
 };
 
