@@ -13,13 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <functional>
-
-// reference_wrapper
-
-// Test that reference wrapper meets the requirements of CopyConstructible and
-// CopyAssignable, and TriviallyCopyable (starting in C++14).
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/functional>
