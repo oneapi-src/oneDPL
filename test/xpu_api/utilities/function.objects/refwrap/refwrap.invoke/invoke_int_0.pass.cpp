@@ -13,16 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <functional>
-
-// reference_wrapper
-
-// template <class... ArgTypes>
-//   requires Callable<T, ArgTypes&&...>
-//   Callable<T, ArgTypes&&...>::result_type
-//   operator()(ArgTypes&&... args) const;
-
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/functional>
