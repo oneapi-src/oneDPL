@@ -21,15 +21,6 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#ifdef USE_ONEAPI_STD
-namespace s = oneapi_cpp_ns;
-#else
-#    include <type_traits>
-#endif
-
-
-
-
 template <class T, class U>
 void
 test_add_pointer()
