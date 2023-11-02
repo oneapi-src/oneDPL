@@ -60,7 +60,7 @@ kernel_test()
         });
     });
 
-    auto ret_access_host = buffer1.get_access<sycl::access::mode::read>();
+    auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Error in work with copy constructor");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

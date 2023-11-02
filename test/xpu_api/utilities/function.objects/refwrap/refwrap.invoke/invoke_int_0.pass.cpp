@@ -67,7 +67,7 @@ kernel_test()
         cgh.single_task<class KernelInvokeInt0Test>([=]() { ret_access[0] = test_int_0(); });
     });
 
-    auto ret_access_host = buffer1.get_access<sycl::access::mode::read>();
+    auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Error in work with invoke (int)");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
