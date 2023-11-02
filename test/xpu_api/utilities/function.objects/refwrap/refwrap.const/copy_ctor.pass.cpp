@@ -36,8 +36,8 @@ template <class T>
 bool
 test(T& t)
 {
-    std::reference_wrapper<T> r(t);
-    std::reference_wrapper<T> r2 = r;
+    dpl::reference_wrapper<T> r(t);
+    dpl::reference_wrapper<T> r2 = r;
     return (&r2.get() == &t);
 }
 

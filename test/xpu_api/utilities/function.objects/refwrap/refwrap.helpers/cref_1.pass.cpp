@@ -39,7 +39,7 @@ kernel_test()
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelCRef1PassTest>([=]() {
             int i = 0;
-            std::reference_wrapper<const int> r = std::cref(i);
+            dpl::reference_wrapper<const int> r = std::cref(i);
             ret_access[0] = (&r.get() == &i);
         });
     });

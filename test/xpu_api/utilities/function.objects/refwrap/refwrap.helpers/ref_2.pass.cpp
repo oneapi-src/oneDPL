@@ -62,8 +62,8 @@ kernel_test()
         cgh.single_task<class KernelRef2PassTest>([=]() {
             {
                 int i = 0;
-                std::reference_wrapper<int> r1 = std::ref(i);
-                std::reference_wrapper<int> r2 = std::ref(r1);
+                dpl::reference_wrapper<int> r1 = std::ref(i);
+                dpl::reference_wrapper<int> r2 = std::ref(r1);
                 ret_access[0] = (&r2.get() == &i);
             }
 
@@ -81,7 +81,7 @@ kernel_test()
     });
 
     auto ret_access_host = buffer1.get_access<sycl::access::mode::read>();
-    EXPECT_TRUE(ret_access_host[0], "Error in work with std::reference_wrapper");
+    EXPECT_TRUE(ret_access_host[0], "Error in work with dpl::reference_wrapper");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

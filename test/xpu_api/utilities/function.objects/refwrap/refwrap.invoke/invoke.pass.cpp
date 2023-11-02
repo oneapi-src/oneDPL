@@ -118,7 +118,7 @@ kernel_test()
 
             {
                 A_void_1 a0(&count);
-                std::reference_wrapper<A_void_1> r1(a0);
+                dpl::reference_wrapper<A_void_1> r1(a0);
                 int i = 4;
                 r1(i);
                 ret_access[0] = (count == save_count + 4);
@@ -130,7 +130,7 @@ kernel_test()
 
             {
                 A_int_1 a0;
-                std::reference_wrapper<A_int_1> r1(a0);
+                dpl::reference_wrapper<A_int_1> r1(a0);
                 int i = 4;
                 ret_access[0] &= (r1(i) == 3);
             }
@@ -138,7 +138,7 @@ kernel_test()
             // member data pointer
             {
                 int A_int_1::*fp = &A_int_1::data_;
-                std::reference_wrapper<int A_int_1::*> r1(fp);
+                dpl::reference_wrapper<int A_int_1::*> r1(fp);
                 A_int_1 a;
                 ret_access[0] &= (r1(a) == 5);
                 r1(a) = 6;
@@ -151,7 +151,7 @@ kernel_test()
 
             {
                 A_void_2 a0(&count);
-                std::reference_wrapper<A_void_2> r1(a0);
+                dpl::reference_wrapper<A_void_2> r1(a0);
                 int i = 4;
                 int j = 5;
                 r1(i, j);
@@ -161,7 +161,7 @@ kernel_test()
 
             {
                 A_int_2 a0;
-                std::reference_wrapper<A_int_2> r1(a0);
+                dpl::reference_wrapper<A_int_2> r1(a0);
                 int i = 4;
                 int j = 5;
                 ret_access[0] &= (r1(i, j) == i + j);

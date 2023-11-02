@@ -37,7 +37,7 @@ template <class T>
 bool
 test(T& t)
 {
-    std::reference_wrapper<T> r(t);
+    dpl::reference_wrapper<T> r(t);
     T& r2 = t;
     return (&r2 == &t);
 }
@@ -63,7 +63,7 @@ kernel_test()
     });
 
     auto ret_access_host = buffer1.get_access<sycl::access::mode::read>();
-    EXPECT_TRUE(ret_access_host[0], "Error in work with std::reference_wrapper and conversion");
+    EXPECT_TRUE(ret_access_host[0], "Error in work with dpl::reference_wrapper and conversion");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

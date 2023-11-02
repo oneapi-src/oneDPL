@@ -57,7 +57,7 @@ kernel_test()
             int save_count = count;
             {
                 A_void_0 a0(&count);
-                std::reference_wrapper<A_void_0> r1(a0);
+                dpl::reference_wrapper<A_void_0> r1(a0);
                 r1();
                 ret_access[0] = (count == save_count + 1);
             }

@@ -48,7 +48,7 @@ test_int_0()
 {
     {
         A_int_0 a0;
-        std::reference_wrapper<A_int_0> r1(a0);
+        dpl::reference_wrapper<A_int_0> r1(a0);
         return (r1() == 4);
     }
 }
