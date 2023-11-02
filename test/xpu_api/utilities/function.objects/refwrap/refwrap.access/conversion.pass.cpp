@@ -30,7 +30,6 @@ class KernelConversionPassTest;
 
 class functor1
 {
-    // int a;
 };
 
 template <class T>
