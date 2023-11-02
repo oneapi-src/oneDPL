@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <functional>
-
-// reference_wrapper
-
-// template <ObjectType T> reference_wrapper<const T> cref(reference_wrapper<T> t);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/functional>
