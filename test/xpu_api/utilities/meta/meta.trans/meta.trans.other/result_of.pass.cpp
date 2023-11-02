@@ -144,7 +144,6 @@ void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    typedef NotDerived ND;
     { // functor object
         test_result_of<KernelTest1, S(int), short>(deviceQueue);
 
@@ -174,7 +173,7 @@ kernel_test()
         test_result_of<KernelTest18, PMD(const SD*), const char&>(deviceQueue);
         test_result_of<KernelTest19, PMD(dpl::reference_wrapper<S>), char&>(deviceQueue);
         test_result_of<KernelTest20, PMD(dpl::reference_wrapper<S const>), const char&>(deviceQueue);
-        test_no_result<KernelTest21, PMD(ND&)>(deviceQueue);
+        test_no_result<KernelTest21, PMD(NotDerived&)>(deviceQueue);
     }
 }
 
