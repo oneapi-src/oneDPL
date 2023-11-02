@@ -22,6 +22,7 @@
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/cstddef>
 
 #include "support/test_macros.h"
 #include "support/utils.h"
