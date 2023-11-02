@@ -199,3 +199,9 @@ foreach (_file IN LISTS UNIT_TESTS)
     endif()
 
 endforeach()
+
+# add additional TUs if required
+if (TARGET interop_allocs.pass)
+    target_sources(interop_allocs.pass PRIVATE "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_system.cpp"
+                                               "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_usm.cpp")
+endif()
