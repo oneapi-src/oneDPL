@@ -21,9 +21,6 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 #    include "support/counting_predicates.h"
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-#if TEST_DPCPP_BACKEND_PRESENT
 class KernelRef2PassTest;
 
 // bool is5 ( int i ) { return i == 5; }
