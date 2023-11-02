@@ -41,8 +41,7 @@ kernel_test()
             ret_access[0] = (f1(36, 4) == 9);
             ret_access[0] &= (f1(div_access[0], div_access[1]) == 2);
 
-            typedef dpl::divides<float> Ffloat;
-            const Ffloat f2 = Ffloat();
+            const dpl::divides<float> f2;
             ret_access[0] &= (f2(18, 4.0f) == 4.5f);
         });
     });
