@@ -54,7 +54,6 @@ __get_offload_device_selector()
 class __offload_policy_holder_type
 {
     using __set_active_device_func_type = void (*)(sycl::device*);
-    using __get_offload_device_func_type = sycl::device (*)();
 
   public:
     // Since the global object of __offload_policy_holder_type is static but the constructor
@@ -69,21 +68,18 @@ class __offload_policy_holder_type
         try
         {
             _M_offload_device.emplace(__device_selector);
+            _M_set_active_device(&_M_offload_device.value());
+            _M_offload_policy.emplace(*_M_offload_device);
         }
         catch (const sycl::exception& e)
         {
-            // e.code() == sycl::errc::runtime occurs when device selection unable to get offload device
-            // with required type. Do not pass an exception, as ctor is called for a static object and
-            // the exception can't be processed.
+            // __device_selector throws with e.code() == sycl::errc::runtime when device selection unable
+            // to get offload device with required type. Do not pass an exception, as ctor is called for
+            // a static object and the exception can't be processed.
             // Remember the situation and re-throw exception when asked for the policy from user's code.
+            // Re-throw in every other case, as we don't know the reason.
             if (e.code() != sycl::errc::runtime)
                 throw;
-        }
-
-        if (_M_offload_device.has_value())
-        {
-            _M_set_active_device(&*_M_offload_device);
-            _M_offload_policy.emplace(*_M_offload_device);
         }
     }
 
