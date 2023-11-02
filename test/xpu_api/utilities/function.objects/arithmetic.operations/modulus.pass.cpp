@@ -32,12 +32,10 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelModulusTest>([=]() {
-            typedef dpl::modulus<int> F;
-            const F f = F();
+            const dpl::modulus<int> f;
             ret_access[0] = (f(36, 8) == 4);
 
-            typedef dpl::modulus<long> FL;
-            const FL f1 = FL();
+            const dpl::modulus<long> f1;
             ret_access[0] &= (f1(36L, 8) == 4);
 
             ret_access[0] &= (f1(43L, 7L) == 1);

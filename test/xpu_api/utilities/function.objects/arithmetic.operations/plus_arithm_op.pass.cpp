@@ -34,12 +34,10 @@ kernel_test1(sycl::queue& deviceQueue)
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelPlusTest1>([=]() {
-            typedef dpl::plus<int> Fint;
-            const Fint f1 = Fint();
+            const dpl::plus<int> f1;
             ret_access[0] = (f1(3, 7) == 10);
 
-            typedef dpl::plus<float> Ffloat;
-            const Ffloat f2 = Ffloat();
+            const dpl::plus<float> f2;
             ret_access[0] &= (f2(3, 2.5f) == 5.5f);
         });
     });
@@ -57,8 +55,7 @@ kernel_test2(sycl::queue& deviceQueue)
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelPlusTest2>([=]() {
-            typedef dpl::plus<double> Fdouble;
-            const Fdouble f3 = Fdouble();
+            const dpl::plus<double> f3;
             ret_access[0] &= (f3(3.4, 2.5) == 5.9);
         });
     });

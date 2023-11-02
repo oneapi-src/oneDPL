@@ -33,8 +33,7 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelBitAndTest>([=]() {
-            typedef dpl::bit_and<int> F;
-            const F f = F();
+            const dpl::bit_and<int> f;
             static_assert(dpl::is_same<int, F::first_argument_type>::value);
             static_assert(dpl::is_same<int, F::second_argument_type>::value);
             static_assert(dpl::is_same<int, F::result_type>::value);
@@ -44,8 +43,7 @@ kernel_test()
             ret_access[0] &= (f(0x58D3, 0) == 0);
             ret_access[0] &= (f(0xFFFF, 0x58D3) == 0x58D3);
 
-            typedef dpl::bit_and<long> F2;
-            const F2 f2 = F2();
+            const dpl::bit_and<long> f2;
             ret_access[0] &= (f2(0xEA95L, 0xEA95) == 0xEA95);
             ret_access[0] &= (f2(0xEA95, 0xEA95L) == 0xEA95);
 

@@ -34,8 +34,7 @@ kernel_test()
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelBitXorTest>([=]() {
             {
-                typedef dpl::bit_xor<int> F;
-                const F f = F();
+                const dpl::bit_xor<int> f;
                 static_assert(dpl::is_same<int, F::first_argument_type>::value);
                 static_assert(dpl::is_same<int, F::second_argument_type>::value);
                 static_assert(dpl::is_same<int, F::result_type>::value);
@@ -47,8 +46,7 @@ kernel_test()
             }
 
             {
-                typedef dpl::bit_xor<long> F2;
-                const F2 f = F2();
+                const dpl::bit_xor<long> f;
                 ret_access[0] &= (f(0xEA95L, 0xEA95) == 0);
                 ret_access[0] &= (f(0xEA95, 0xEA95L) == 0);
 

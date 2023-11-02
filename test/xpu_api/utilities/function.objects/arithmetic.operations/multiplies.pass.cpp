@@ -32,12 +32,10 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelMultipliesTest>([=]() {
-            typedef dpl::multiplies<int> Fint;
-            const Fint f1 = Fint();
+            const dpl::multiplies<int> f1;
             ret_access[0] = (f1(3, 7) == 21);
 
-            typedef dpl::multiplies<float> Ffloat;
-            const Ffloat f2 = Ffloat();
+            const dpl::multiplies<float> f2;
             ret_access[0] &= (f2(3, 2.5f) == 7.5f);
         });
     });

@@ -32,16 +32,13 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelNegateTest>([=]() {
-            typedef dpl::negate<int> Fint;
-            const Fint fi = Fint();
+            const dpl::negate<int> fi;
             ret_access[0] = (fi(36) == -36);
 
-            typedef dpl::negate<long> Flong;
-            const Flong fl = Flong();
+            const dpl::negate<long> fl;
             ret_access[0] &= (fl(-36L) == 36);
 
-            typedef dpl::negate<float> Ffloat;
-            const Ffloat ff = Ffloat();
+            const dpl::negate<float> ff;
             ret_access[0] &= (ff(36.0f) == -36.0f);
         });
     });

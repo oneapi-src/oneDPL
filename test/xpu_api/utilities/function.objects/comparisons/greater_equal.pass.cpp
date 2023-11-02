@@ -33,8 +33,7 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelGreaterEqualTest>([=]() {
-            typedef dpl::greater_equal<int> F;
-            const F f = F();
+            const dpl::greater_equal<int> f;
             static_assert(dpl::is_same<int, F::first_argument_type>::value);
             static_assert(dpl::is_same<int, F::second_argument_type>::value);
             static_assert(dpl::is_same<bool, F::result_type>::value);
@@ -42,8 +41,7 @@ kernel_test()
             ret_access[0] &= (f(36, 6));
             ret_access[0] &= (!f(6, 36));
 
-            typedef dpl::greater_equal<float> Fd;
-            const Fd f2 = Fd();
+            const dpl::greater_equal<float> f2;
             ret_access[0] &= (f2(36, 6.0f));
             ret_access[0] &= (f2(36.0f, 6));
             ret_access[0] &= (!f2(6, 36.0f));
