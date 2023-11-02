@@ -94,7 +94,7 @@ using always_bool = typename always_bool_imp<Tp>::type;
 
 template <class... Args>
 constexpr auto
-no_common_type_imp(int) -> always_bool<typename dpl::common_type<Args...>::type>
+no_common_type_imp(int) -> always_bool<typename std::common_type<Args...>::type>
 {
     return false;
 }
@@ -129,10 +129,10 @@ test_bullet_one()
 void
 test_bullet_two()
 {
-    static_assert(dpl::is_same<dpl::common_type<void>::type, void>::value);
-    static_assert(dpl::is_same<dpl::common_type<int>::type, int>::value);
-    static_assert(dpl::is_same<dpl::common_type<int const>::type, int>::value);
-    static_assert(dpl::is_same<dpl::common_type<int volatile[]>::type, int volatile*>::value);
+    static_assert(dpl::is_same<std::common_type<void>::type, void>::value);
+    static_assert(dpl::is_same<std::common_type<int>::type, int>::value);
+    static_assert(dpl::is_same<std::common_type<int const>::type, int>::value);
+    static_assert(dpl::is_same<std::common_type<int volatile[]>::type, int volatile*>::value);
 }
 
 // (3.4)
@@ -182,65 +182,65 @@ kernel_test1(sycl::queue& deviceQueue)
 {
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest1>([=]() {
-            static_assert(dpl::is_same<dpl::common_type<int>::type, int>::value);
-            static_assert(dpl::is_same<dpl::common_type<char>::type, char>::value);
+            static_assert(dpl::is_same<std::common_type<int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<char>::type, char>::value);
             static_assert(dpl::is_same<dpl::common_type_t<int>, int>::value);
             static_assert(dpl::is_same<dpl::common_type_t<char>, char>::value);
 
-            static_assert(dpl::is_same<dpl::common_type<int>::type, int>::value);
-            static_assert(dpl::is_same<dpl::common_type<const int>::type, int>::value);
-            static_assert(dpl::is_same<dpl::common_type<volatile int>::type, int>::value);
-            static_assert(dpl::is_same<dpl::common_type<const volatile int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<const int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<volatile int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<const volatile int>::type, int>::value);
 
-            static_assert(dpl::is_same<dpl::common_type<int, int>::type, int>::value);
-            static_assert(dpl::is_same<dpl::common_type<int, const int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<int, int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<int, const int>::type, int>::value);
 
-            static_assert(dpl::is_same<dpl::common_type<long, const int>::type, long>::value);
-            static_assert(dpl::is_same<dpl::common_type<const long, int>::type, long>::value);
-            static_assert(dpl::is_same<dpl::common_type<long, volatile int>::type, long>::value);
-            static_assert(dpl::is_same<dpl::common_type<volatile long, int>::type, long>::value);
-            static_assert(dpl::is_same<dpl::common_type<const long, const int>::type, long>::value);
+            static_assert(dpl::is_same<std::common_type<long, const int>::type, long>::value);
+            static_assert(dpl::is_same<std::common_type<const long, int>::type, long>::value);
+            static_assert(dpl::is_same<std::common_type<long, volatile int>::type, long>::value);
+            static_assert(dpl::is_same<std::common_type<volatile long, int>::type, long>::value);
+            static_assert(dpl::is_same<std::common_type<const long, const int>::type, long>::value);
 
-            static_assert(dpl::is_same<dpl::common_type<short, char>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<short, char>::type, int>::value);
             static_assert(dpl::is_same<dpl::common_type_t<short, char>, int>::value);
 
-            static_assert(dpl::is_same<dpl::common_type<unsigned, char, long long>::type, long long>::value);
+            static_assert(dpl::is_same<std::common_type<unsigned, char, long long>::type, long long>::value);
             static_assert(dpl::is_same<dpl::common_type_t<unsigned, char, long long>, long long>::value);
 
-            static_assert(dpl::is_same<dpl::common_type<void>::type, void>::value);
-            static_assert(dpl::is_same<dpl::common_type<const void>::type, void>::value);
-            static_assert(dpl::is_same<dpl::common_type<volatile void>::type, void>::value);
-            static_assert(dpl::is_same<dpl::common_type<const volatile void>::type, void>::value);
+            static_assert(dpl::is_same<std::common_type<void>::type, void>::value);
+            static_assert(dpl::is_same<std::common_type<const void>::type, void>::value);
+            static_assert(dpl::is_same<std::common_type<volatile void>::type, void>::value);
+            static_assert(dpl::is_same<std::common_type<const volatile void>::type, void>::value);
 
-            static_assert(dpl::is_same<dpl::common_type<void, const void>::type, void>::value);
-            static_assert(dpl::is_same<dpl::common_type<const void, void>::type, void>::value);
-            static_assert(dpl::is_same<dpl::common_type<void, volatile void>::type, void>::value);
-            static_assert(dpl::is_same<dpl::common_type<volatile void, void>::type, void>::value);
-            static_assert(dpl::is_same<dpl::common_type<const void, const void>::type, void>::value);
+            static_assert(dpl::is_same<std::common_type<void, const void>::type, void>::value);
+            static_assert(dpl::is_same<std::common_type<const void, void>::type, void>::value);
+            static_assert(dpl::is_same<std::common_type<void, volatile void>::type, void>::value);
+            static_assert(dpl::is_same<std::common_type<volatile void, void>::type, void>::value);
+            static_assert(dpl::is_same<std::common_type<const void, const void>::type, void>::value);
 
-            static_assert(dpl::is_same<dpl::common_type<int, S<int>>::type, S<int>>::value);
-            static_assert(dpl::is_same<dpl::common_type<int, S<int>, S<int>>::type, S<int>>::value);
-            static_assert(dpl::is_same<dpl::common_type<int, int, S<int>>::type, S<int>>::value);
+            static_assert(dpl::is_same<std::common_type<int, S<int>>::type, S<int>>::value);
+            static_assert(dpl::is_same<std::common_type<int, S<int>, S<int>>::type, S<int>>::value);
+            static_assert(dpl::is_same<std::common_type<int, int, S<int>>::type, S<int>>::value);
 
             test_bullet_one();
             test_bullet_two();
 
             //  P0548
-            static_assert(dpl::is_same<dpl::common_type<S<int>>::type, S<int>>::value);
-            static_assert(dpl::is_same<dpl::common_type<S<int>, S<int>>::type, S<int>>::value);
+            static_assert(dpl::is_same<std::common_type<S<int>>::type, S<int>>::value);
+            static_assert(dpl::is_same<std::common_type<S<int>, S<int>>::type, S<int>>::value);
 
-            static_assert(dpl::is_same<dpl::common_type<int>::type, int>::value);
-            static_assert(dpl::is_same<dpl::common_type<const int>::type, int>::value);
-            static_assert(dpl::is_same<dpl::common_type<volatile int>::type, int>::value);
-            static_assert(dpl::is_same<dpl::common_type<const volatile int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<const int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<volatile int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<const volatile int>::type, int>::value);
 
-            static_assert(dpl::is_same<dpl::common_type<int, int>::type, int>::value);
-            static_assert(dpl::is_same<dpl::common_type<const int, int>::type, int>::value);
-            static_assert(dpl::is_same<dpl::common_type<int, const int>::type, int>::value);
-            static_assert(dpl::is_same<dpl::common_type<const int, const int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<int, int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<const int, int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<int, const int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<const int, const int>::type, int>::value);
 
             // Test that we're really variadic in C++11
-            static_assert(dpl::is_same<dpl::common_type<int, int, int, int, int, int, int, int>::type, int>::value);
+            static_assert(dpl::is_same<std::common_type<int, int, int, int, int, int, int, int>::type, int>::value);
         });
     });
 }
@@ -250,10 +250,10 @@ kernel_test2(sycl::queue& deviceQueue)
 {
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest2>([=]() {
-            static_assert(dpl::is_same<dpl::common_type<double, char>::type, double>::value);
+            static_assert(dpl::is_same<std::common_type<double, char>::type, double>::value);
             static_assert(dpl::is_same<dpl::common_type_t<double, char>, double>::value);
 
-            static_assert(dpl::is_same<dpl::common_type<double, char, long long>::type, double>::value);
+            static_assert(dpl::is_same<std::common_type<double, char, long long>::type, double>::value);
             static_assert(dpl::is_same<dpl::common_type_t<double, char, long long>, double>::value);
         });
     });
