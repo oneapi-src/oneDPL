@@ -68,7 +68,7 @@ class __offload_policy_holder_type
         try
         {
             _M_offload_device.emplace(__device_selector);
-            _M_set_active_device(&_M_offload_device.value());
+            _M_set_active_device(&*_M_offload_device);
             _M_offload_policy.emplace(*_M_offload_device);
         }
         catch (const sycl::exception& e)

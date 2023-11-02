@@ -29,7 +29,7 @@ int main() {
     // as ONEAPI_DEVICE_SELECTOR allows any offload policy in this case
     return TestUtils::done(0); // to get Skipped
 #else
-    size_t num = 10LLU * 1024 * 1024;
+    std::size_t num = 10LLU * 1024 * 1024;
     int* ptr = new int[num];
     try {
         std::fill(std::execution::par_unseq, ptr, ptr + num, 7);
