@@ -29,8 +29,8 @@ template <class T, class U>
 void
 test_add_const_imp()
 {
-    ASSERT_SAME_TYPE(const U, typename dpl::add_const<T>::type);
-    ASSERT_SAME_TYPE(const U, dpl::add_const_t<T>);
+    ASSERT_SAME_TYPE(U, typename dpl::add_const<T>::type);
+    ASSERT_SAME_TYPE(U, dpl::add_const_t<T>);
 }
 
 template <class T>
