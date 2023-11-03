@@ -96,7 +96,7 @@ struct custom_range_binhash
     inline bool
     is_valid(const _T2& value) const
     {
-        return value >= *__first && value < *__last;
+        return (value >= (*__first)) && (value < (*(__last-1)));
     }
 
 
