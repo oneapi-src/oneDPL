@@ -250,10 +250,11 @@ __histogram_impl(Policy&& policy, Iter1 __first, Iter1 __last, OutputIter __hist
     auto keep_boundaries =
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read, Iter3>();
     auto boundary_buf = keep_boundaries(__boundary_first, __boundary_last);
+    auto boundary_view = boundary_buf.all_view();
 
     internal::__pattern_histogram(
         ::std::forward<Policy>(policy), __first, __last, __histogram_first, (__boundary_last - __boundary_first) - 1,
-        internal::__custom_range_binhash{boundary_buf.all_view()}, boundary_buf.all_view());
+        internal::__custom_range_binhash{boundary_view}, boundary_view);
 }
 
 #endif // _ONEDPL_BACKEND_SYCL
