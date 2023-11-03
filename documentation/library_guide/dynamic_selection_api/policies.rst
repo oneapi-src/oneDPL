@@ -48,7 +48,7 @@ Common Reference Semantics
 --------------------------
 
 If a policy maintains state, the state is maintained separately for each 
-independent instance of a policy. So for example, two independently constructed 
+independent policy instance. So for example, two independently constructed 
 instances of a ``round_robin_policy`` will operate independently of each other. 
 However, policies provide *common reference semantics*, so copies of a
 policy instance share state.

@@ -49,7 +49,7 @@ by submitting tasks to a resource that completes work faster.
   }
   
 This policy can be used with all the dynamic selection functions, such as ``select``, ``submit``,
-and ``submit_and_wait``. It can also used with ``policy_traits``.
+and ``submit_and_wait``. It can also be used with ``policy_traits``.
 
 Example
 -------
@@ -109,7 +109,7 @@ The key points in this example are:
 #. ``submit`` is used to select a queue and pass it to the user's function, but does not block until the event returned by that function completes. This provides the opportunity for concurrency across the submissions.
 #. The queue is used in a function to perform an asynchronous offload. The SYCL event returned from the call to ``submit`` is returned. Returning an event is required for functions passed to ``submit`` and ``submit_and_wait``.
 #. Some additional work is done between calls to ``submit``. ``dynamic_load_policy`` is most useful when there is time for work to complete on some devices before the next assignment is made. If all submissions are performed simultaneously, all devices will appear equally loaded, since the fast devices would have had no time to complete their work.
-#. ``wait`` is called to block for all of the concurrent ``submission_group_size`` submissions to complete.
+#. ``wait`` is called to block for all the concurrent ``submission_group_size`` submissions to complete.
 
 Selection Algorithm
 -------------------

@@ -54,8 +54,8 @@ the profiling phase periodically.
   
   }
   
-This policy can be used with all of the dynamic selection functions, such as ``select``, ``submit``,
-and ``submit_and_wait``. It can also used with ``policy_traits``.
+This policy can be used with all the dynamic selection functions, such as ``select``, ``submit``,
+and ``submit_and_wait``. It can also be used with ``policy_traits``.
 
 Example
 -------

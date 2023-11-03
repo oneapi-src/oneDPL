@@ -47,8 +47,8 @@ will achieve a good load balancing.
   
   }
   
-This policy can be used with all of the dynamic selection functions, such as ``select``, ``submit``,
-and ``submit_and_wait``. It can also used with ``policy_traits``.
+This policy can be used with all the dynamic selection functions, such as ``select``, ``submit``,
+and ``submit_and_wait``. It can also be used with ``policy_traits``.
 
 Example
 -------
@@ -107,7 +107,7 @@ The key points in this example are:
 #. The inner ``j``-loop iterates over ``submission_group_size`` submissions.
 #. ``submit`` is used to select a queue and pass it to the user's function, but does not block until the event returned by that function completes. This provides the opportunity for concurrency across the submissions.
 #. The queue is used in a function to perform an asynchronous offload. The SYCL event returned from the call to ``submit`` is returned. Returning an event is required for functions passed to ``submit`` and ``submit_and_wait``.
-#. ``wait`` is called to block for all of the concurrent ``submission_group_size`` submissions to complete.
+#. ``wait`` is called to block for all the concurrent ``submission_group_size`` submissions to complete.
 
 Selection Algorithm
 -------------------

@@ -59,7 +59,7 @@ type, it can be determined by using traits:
 ``policy_trait<Policy>::selection_type`` or the helper trait ``selection_t<Policy>``.
 
 Unwrapping a *selection* returns the underlying resource. For example, unwrapping
-a selection when using SYCL (the default), results in a SYCL queue.
+a selection when using SYCL (the default) results in a SYCL queue.
 
 A selection can also be used to report *execution info*. More advanced policies,
 such as ``dynamic_load_policy`` and ``auto_tune_policy`` require that runtime
