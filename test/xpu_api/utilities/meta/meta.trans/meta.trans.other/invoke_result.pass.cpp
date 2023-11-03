@@ -47,12 +47,6 @@ struct NotDerived
 {
 };
 
-template <class Tp>
-struct Voider
-{
-    typedef void type;
-};
-
 template <class T>
 using HasType = has_type_member<T>;
 
