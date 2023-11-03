@@ -75,9 +75,10 @@ If the selected resource is used directly, this reporting must be done explicitl
 Submit
 ------
 
-``submit`` has two function signatures: (1) the first argument 
-is a *policy* object or (2) the first argument is a *selection* object 
-that was returned by a previous call to ``select``.
+``submit`` has two function signatures: 
+
+#. the first argument is a *policy* object. 
+#. the first argument is a *selection* object that was returned by a previous call to ``select``.
 
 Submit Using a Policy
 +++++++++++++++++++++
@@ -286,8 +287,9 @@ Submit and Wait
 ---------------
 
 Just like ``submit``, ``submit_and_wait`` has two function signatures: 
-(1) the first argument is a *policy* object or (2) the first argument is 
-a *selection* object that was returned by a previous call to ``select``.
+
+#. the first argument is a *policy* object. 
+#. the first argument is a *selection* object that was returned by a previous call to ``select``.
 
 The difference between ``submit_and_wait`` and ``submit`` is that 
 ``submit_and_wait`` blocks the calling thread until the work associated
@@ -477,7 +479,7 @@ The output from this example on a test machine is shown below.
 When passing queues to the policy, the results show that the policy uses those
 resources, a single CPU queue and a single GPU queue.
 
-The platform that was use to run this example has two GPU drivers installed, 
+The platform used to run this example has two GPU drivers installed, 
 as well as an FPGA emulator. When no resources are explicitly provided to the 
 policy constructor, the results show two non-GPU devices (the CPU and the FPGA 
 emulator) and two drivers for the GPU.
