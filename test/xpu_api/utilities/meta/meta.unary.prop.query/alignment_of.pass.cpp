@@ -30,7 +30,7 @@ test_alignment_of(sycl::queue& deviceQueue)
 {
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
-            const unsigned AlignofResult = TEST_ALIGNOF(T);
+            const unsigned AlignofResult = alignof(T);
             static_assert(AlignofResult == A, "Golden value does not match result of alignof keyword");
             static_assert(dpl::alignment_of<T>::value == AlignofResult);
             static_assert(dpl::alignment_of<T>::value == A);
@@ -64,7 +64,7 @@ kernel_test()
     test_alignment_of<unsigned, 4>(deviceQueue);
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
-        test_alignment_of<double, TEST_ALIGNOF(double)>(deviceQueue);
+        test_alignment_of<double, alignof(double)>(deviceQueue);
     }
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT

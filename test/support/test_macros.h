@@ -117,7 +117,6 @@
 #endif
 #endif
 
-# define TEST_ALIGNOF(...) alignof(__VA_ARGS__)
 # define TEST_ALIGNAS(...) alignas(__VA_ARGS__)
 # define TEST_CONSTEXPR constexpr
 # define TEST_NOEXCEPT noexcept
@@ -156,7 +155,7 @@
 # define TEST_CONSTEXPR_CXX20
 #endif
 
-#define TEST_ALIGNAS_TYPE(...) TEST_ALIGNAS(TEST_ALIGNOF(__VA_ARGS__))
+#define TEST_ALIGNAS_TYPE(...) TEST_ALIGNAS(alignof(__VA_ARGS__))
 
 #if !TEST_HAS_FEATURE(cxx_rtti) && !defined(__cpp_rtti) \
     && !defined(__GXX_RTTI)
