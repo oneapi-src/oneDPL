@@ -54,7 +54,7 @@ New in This Release
   with ``-fiopenmp``, ``-fiopenmp-simd``, ``-qopenmp``, ``-qopenmp-simd`` options on Linux.
   To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
 - Incorrect results may be produced with group reduce operation through ``reduce``, ``transform_reduce``
-  for 64-bit data types and ``std::multiplies`` operation on GPUs with the Intel® C++ Compiler 2021.3
+  for 64-bit data types and ``std::multiplies``, ``sycl::multiplies`` operation on GPUs with the Intel® C++ Compiler 2021.3
 
 Existing Issues
 ^^^^^^^^^^^^^^^
