@@ -24,7 +24,7 @@ struct has_type_member : dpl::false_type
 };
 
 template <class T>
-struct has_type_member<T, dpl::void_t<typename dpl::underlying_type<T>::type>> : dpl::true_type
+struct has_type_member<T, dpl::void_t<typename T::type>> : dpl::true_type
 {
 };
 
