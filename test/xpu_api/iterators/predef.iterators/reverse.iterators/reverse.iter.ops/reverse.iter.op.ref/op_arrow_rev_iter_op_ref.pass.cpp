@@ -92,23 +92,23 @@ class C
     int data_;
 
   public:
-    TEST_CONSTEXPR
+    constexpr
     C() : data_(1) {}
 
-    TEST_CONSTEXPR int
+    constexpr int
     get() const
     {
         return data_;
     }
 
-    friend TEST_CONSTEXPR bool
+    friend constexpr bool
     operator==(const C& x, const C& y)
     {
         return x.data_ == y.data_;
     }
 };
 
-TEST_CONSTEXPR C gC;
+constexpr C gC;
 
 bool
 kernel_test()
