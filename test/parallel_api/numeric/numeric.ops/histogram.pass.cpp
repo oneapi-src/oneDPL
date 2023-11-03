@@ -77,12 +77,12 @@ test_range_and_even_histogram(Size n, T min_boundary, T max_boundary, T overflow
 
 
     T offset = (max_boundary - min_boundary) / T(num_bins);
-    Sequence<T> boundaries(num_bins + 1, [&](size_t k){ return k * offset + (std::rand() % jitter);});
-
-    // invoke_on_all_hetero_policies<2>()(test_histogram_range_bins(), in.begin(), in.end(), boundaries.begin(), boundaries.end(),
-    //                             expected.begin(), expected.end(), out.begin(), out.end(), trash);
-    // invoke_on_all_hetero_policies<3>()(test_histogram_range_bins(), in.cbegin(), in.cend(), boundaries.cbegin(), boundaries.cend(),
-    //                             expected.begin(), expected.end(), out.begin(), out.end(), trash);
+    Sequence<T> boundaries(num_bins + 1, [&](size_t k){ return k * offset + (std::rand() % jitter) + min_boundary;});
+    
+    invoke_on_all_hetero_policies<2>()(test_histogram_range_bins(), in.begin(), in.end(), boundaries.begin(), boundaries.end(),
+                                 expected.begin(), expected.end(), out.begin(), out.end(), trash);
+    invoke_on_all_hetero_policies<3>()(test_histogram_range_bins(), in.cbegin(), in.cend(), boundaries.cbegin(), boundaries.cend(),
+                                 expected.begin(), expected.end(), out.begin(), out.end(), trash);
 }
 
 
