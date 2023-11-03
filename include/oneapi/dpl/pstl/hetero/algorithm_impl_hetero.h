@@ -1239,7 +1239,7 @@ __pattern_stable_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterat
     auto true_count = copy_result.first - __true_result;
 
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
-    __pattern_walk2</*_IsSync=*/::std::false_type>(
+    __pattern_walk2(
         __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec),
         __true_result, copy_result.first, __first, __brick_move<_ExecutionPolicy>{}, ::std::true_type{},
         ::std::true_type{});
@@ -1411,7 +1411,7 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
     {
         // If our output buffer is larger than the input buffer, simply copy elements to the output and use
         // full sort on them.
-        auto __out_end = __pattern_walk2</*_IsSync=*/::std::false_type>(
+        auto __out_end = __pattern_walk2(
             __par_backend_hetero::make_wrapped_policy<__initial_copy_1>(__exec), __first, __last, __out_first,
             __brick_copy<_ExecutionPolicy>{}, ::std::true_type{}, ::std::true_type{});
 
@@ -1441,7 +1441,7 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
             __par_backend_hetero::make_wrapped_policy<__partial_sort_2>(__exec),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_first),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_mid),
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_last), __comp);
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_last), __comp).wait();
 
         return __pattern_walk2(
             __par_backend_hetero::make_wrapped_policy<__copy_back>(::std::forward<_ExecutionPolicy>(__exec)),
@@ -1545,20 +1545,22 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __new_f
     auto __buf = __keep(__first, __last);
     auto __temp_buf = oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp>(__exec, __n);
 
-    auto __temp_rng =
+    auto __temp_rng_w =
         oneapi::dpl::__ranges::all_view<_Tp, __par_backend_hetero::access_mode::write>(__temp_buf.get_buffer());
 
     const auto __shift = __new_first - __first;
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__rotate_wrapper>(__exec),
         unseq_backend::__rotate_copy<typename ::std::iterator_traits<_Iterator>::difference_type>{__n, __shift}, __n,
-        __buf.all_view(), __temp_rng);
+        __buf.all_view(), __temp_rng_w).wait();
 
     using _Function = __brick_move<_ExecutionPolicy>;
     auto __brick = unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
 
+    auto __temp_rng_rw =
+        oneapi::dpl::__ranges::all_view<_Tp, __par_backend_hetero::access_mode::read_write>(__temp_buf.get_buffer());
     oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __brick, __n,
-                                                      __temp_rng, __buf.all_view())
+                                                      __temp_rng_rw, __buf.all_view())
         .wait();
 
     return __first + (__last - __new_first);
