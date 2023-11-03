@@ -74,11 +74,12 @@ enum struct K : short
     blue
 };
 
+template <typename T>
+using has_underlying_type_member = has_type_member<dpl::underlying_type<T>>;
+
 void
 kernel_test1(sycl::queue& deviceQueue)
 {
-    template <typename T>
-    using has_underlying_type_member = has_type_member<dpl::underlying_type<T>>;
 
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest1>([=]() {
