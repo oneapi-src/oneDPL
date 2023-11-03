@@ -77,6 +77,9 @@ enum struct K : short
 void
 kernel_test1(sycl::queue& deviceQueue)
 {
+    template <typename T>
+    using has_underlying_type_member = has_type_member<dpl::underlying_type<T>>;
+
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest1>([=]() {
             //  Basic tests
@@ -90,8 +93,6 @@ kernel_test1(sycl::queue& deviceQueue)
             check<K, short>();
 
 //  SFINAE-able underlying_type
-            template <typename T>
-            using has_underlying_type_member = has_type_member<dpl::underlying_type<T>>;
             static_assert(has_underlying_type_member<E>::value);
             static_assert(has_type_member<G>::value);
 
