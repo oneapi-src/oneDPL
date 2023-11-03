@@ -329,6 +329,7 @@ __parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2
                           const _Size& __num_bins, _IdxHashFunc __func, _Range&&... __opt_range)
 {
     using __local_histogram_type = ::std::uint32_t;
+    using __global_histogram_type = typename ::std::iterator_traits<_Iter2>::value_type;
 
     ::std::size_t __max_wgroup_size = oneapi::dpl::__internal::__max_work_group_size(policy);
 
@@ -337,19 +338,24 @@ __parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2
     auto __local_mem_size = policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
     constexpr ::std::uint8_t __max_work_item_private_bins = 16;
 
-    auto keep_input =
-        oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read, _Iter1>();
-    auto input_buf = keep_input(__first, __last);
 
     auto keep_bins =
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::write, _Iter2>();
     auto bins_buf = keep_bins(__histogram_first, __histogram_first + __num_bins);
 
-    auto init_e = oneapi::dpl::__internal::__pattern_fill_async(policy, bins_buf.all_view().begin(), bins_buf.all_view().end(), 0);
-
+    auto __f = oneapi::dpl::__internal::fill_functor<__global_histogram_type>{__global_histogram_type{0}};
+    //fill histogram bins with zeros
+    auto init_e = oneapi::dpl::__par_backend_hetero::__parallel_for(
+        ::std::forward<Policy>(policy), unseq_backend::walk_n<Policy, decltype(__f)>{__f}, __num_bins,
+        bins_buf.all_view());
     auto N = __last - __first;
+
     if (N > 0)
     {
+        auto keep_input =
+            oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read, _Iter1>();
+        auto input_buf = keep_input(__first, __last);
+
         ::std::size_t req_SLM_bytes = __func.get_required_SLM_memory();
         ::std::size_t extra_SLM_elements =
             oneapi::dpl::__internal::__dpl_ceiling_div(req_SLM_bytes, sizeof(__local_histogram_type));
