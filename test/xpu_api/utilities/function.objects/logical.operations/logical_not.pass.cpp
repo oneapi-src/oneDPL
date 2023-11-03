@@ -33,7 +33,8 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelLogicalNotTest>([=]() {
-            const dpl::logical_not<int> f;
+            typedef dpl::logical_not<int> F; 
+            const F f = F();
             static_assert(dpl::is_same<F::argument_type, int>::value);
             static_assert(dpl::is_same<F::result_type, bool>::value);
             ret_access[0] = (!f(36));
