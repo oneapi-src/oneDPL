@@ -117,8 +117,6 @@
 #endif
 #endif
 
-# define TEST_NOEXCEPT_COND(...) noexcept(__VA_ARGS__)
-
 #if TEST_STD_VER >= 11
 # define TEST_THROW_SPEC(...)
 #else
