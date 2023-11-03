@@ -16,6 +16,7 @@
 #include "support/test_config.h"
 
 #include <oneapi/dpl/cstddef>           // for dpl::nullptr_t
+#include <oneapi/dpl/type_traits>
 
 #include "support/test_macros.h"
 #include "support/utils.h"
