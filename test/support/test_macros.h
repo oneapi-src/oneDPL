@@ -117,7 +117,6 @@
 #endif
 #endif
 
-# define TEST_NOEXCEPT noexcept
 # define TEST_NOEXCEPT_FALSE noexcept(false)
 # define TEST_NOEXCEPT_COND(...) noexcept(__VA_ARGS__)
 
