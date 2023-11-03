@@ -90,7 +90,7 @@ template <typename T, typename Size>
 void
 test_histogram(T min_boundary, T max_boundary, T overflow, Size jitter, Size trash)
 {
-    for (Size bin_size = 8; bin_size <= 20000; bin_size = Size(2 * bin_size))
+    for (Size bin_size = 4; bin_size <= 20000; bin_size = Size(3.1415 * bin_size))
     {
         for (Size n = 0; n <= 100000; n = n <= 16 ? n + 1 : Size(3.1415 * n))
         {
@@ -116,6 +116,6 @@ int
 main()
 {
     test_histogram<float, int64_t>(10000.0, 110000.0, 300.0, int64_t(50), int64_t(99999));
-    test_histogram<std::int32_t, int64_t>(100, 3000, 10, int64_t(5), int64_t(99999));
+    test_histogram<std::int32_t, int64_t>(100, 300000, 10, int64_t(5), int64_t(99999));
     return done();
 }
