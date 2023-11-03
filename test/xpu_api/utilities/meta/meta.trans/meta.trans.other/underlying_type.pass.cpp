@@ -90,7 +90,9 @@ kernel_test1(sycl::queue& deviceQueue)
             check<K, short>();
 
 //  SFINAE-able underlying_type
-            static_assert(has_type_member<E>::value);
+            template <typename T>
+            using has_underlying_type_member = has_type_member<dpl::underlying_type<T>>;
+            static_assert(has_underlying_type_member<E>::value);
             static_assert(has_type_member<G>::value);
 
             static_assert(!has_type_member<void>::value);
