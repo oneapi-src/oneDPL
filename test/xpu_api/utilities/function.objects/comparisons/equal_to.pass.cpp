@@ -33,7 +33,8 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelEqualToTest>([=]() {
-            const dpl::equal_to<int> f;
+            typedef dpl::equal_to<int> F; 
+            const F f = F();
             static_assert(dpl::is_same<int, F::first_argument_type>::value);
             static_assert(dpl::is_same<int, F::second_argument_type>::value);
             static_assert(dpl::is_same<bool, F::result_type>::value);
