@@ -72,8 +72,8 @@ test_range_and_even_histogram(Size n, T min_boundary, T max_boundary, T overflow
     
     invoke_on_all_hetero_policies<0>()(test_histogram_even_bins(), in.begin(), in.end(), expected.begin(), expected.end(),
                                 out.begin(), out.end(), Size(in.size()), min_boundary, max_boundary, trash);
-    // invoke_on_all_hetero_policies<1>()(test_histogram_even_bins(), in.cbegin(), in.cend(), expected.begin(), expected.end(),
-    //                             out.begin(), out.end(), Size(in.size()), min_boundary, max_boundary, trash);
+    invoke_on_all_hetero_policies<1>()(test_histogram_even_bins(), in.cbegin(), in.cend(), expected.begin(), expected.end(),
+                                out.begin(), out.end(), Size(in.size()), min_boundary, max_boundary, trash);
 
 
     T offset = (max_boundary - min_boundary) / T(num_bins);
