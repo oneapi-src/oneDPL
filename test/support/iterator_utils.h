@@ -424,6 +424,21 @@ struct iterator_invoker
             make_iterator<InputIterator2>()(inputEnd2), make_iterator<OutputIterator>()(outputBegin),
             make_iterator<OutputIterator>()(outputEnd), ::std::forward<Rest>(rest)...);
     }
+    
+    template <typename Policy, typename Op, typename InputIterator1, typename InputIterator2, typename InputIterator3, typename OutputIterator,
+              typename... Rest>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
+    operator()(Policy&& exec, Op op, InputIterator1 inputBegin1, InputIterator1 inputEnd1, InputIterator2 inputBegin2,
+               InputIterator2 inputEnd2, InputIterator3 inputBegin3, InputIterator3 inputEnd3,
+               OutputIterator outputBegin, OutputIterator outputEnd, Rest&&... rest)
+    {
+        invoke_if<InputIterator1>()(
+            ::std::distance(inputBegin1, inputEnd1) <= sizeLimit, op, exec, make_iterator<InputIterator1>()(inputBegin1),
+            make_iterator<InputIterator1>()(inputEnd1), make_iterator<InputIterator2>()(inputBegin2),
+            make_iterator<InputIterator2>()(inputEnd2), make_iterator<InputIterator3>()(inputBegin3),
+            make_iterator<InputIterator3>()(inputEnd3), make_iterator<OutputIterator>()(outputBegin),
+            make_iterator<OutputIterator>()(outputEnd), ::std::forward<Rest>(rest)...);
+    }
 };
 
 // Invoker for reverse iterators only
@@ -522,6 +537,22 @@ struct iterator_invoker<IteratorTag, /* IsReverse = */ ::std::true_type>
                make_iterator<OutputIterator>()(outputEnd), make_iterator<OutputIterator>()(outputBegin),
                ::std::forward<Rest>(rest)...);
     }
+
+    template <typename Policy, typename Op, typename InputIterator1, typename InputIterator2, typename InputIterator3,
+              typename OutputIterator, typename... Rest>
+    ::std::enable_if_t<is_base_of_iterator_category<::std::random_access_iterator_tag, OutputIterator>::value>
+    operator()(Policy&& exec, Op op, InputIterator1 inputBegin1, InputIterator1 inputEnd1, InputIterator2 inputBegin2,
+               InputIterator2 inputEnd2, InputIterator3 inputBegin3, InputIterator3 inputEnd3,
+               OutputIterator outputBegin, OutputIterator outputEnd, Rest&&... rest)
+    {
+        if (::std::distance(inputBegin1, inputEnd1) <= sizeLimit)
+            op(exec, make_iterator<InputIterator1>()(inputEnd1), make_iterator<InputIterator1>()(inputBegin1),
+               make_iterator<InputIterator2>()(inputEnd2), make_iterator<InputIterator2>()(inputBegin2),
+               make_iterator<InputIterator3>()(inputEnd3), make_iterator<InputIterator3>()(inputBegin3),
+               make_iterator<OutputIterator>()(outputEnd), make_iterator<OutputIterator>()(outputBegin),
+               ::std::forward<Rest>(rest)...);
+    }
+
 };
 
 // We can't create reverse iterator from forward iterator
