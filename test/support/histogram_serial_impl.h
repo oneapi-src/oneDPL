@@ -23,35 +23,51 @@ template <typename _T>
 struct evenly_divided_binhash_impl<_T, /* is_floating_point = */ true>
 {
     _T __minimum;
+    _T __maximum;
     _T __scale;
-    evenly_divided_binhash_impl(const _T& min, const _T& max, const ::std::size_t& num_bins)
-        : __minimum(min), __scale(_T(num_bins) / (max - min))
+
+    evenly_divided_binhash_impl(const _T& min, const _T& max, const ::std::uint32_t& num_bins)
+        : __minimum(min), __maximum(max), __scale(_T(num_bins) / (max - min))
     {
     }
+
     template <typename _T2>
-    ::std::uint32_t
-    operator()(_T2&& value) const
+    inline ::std::uint32_t
+    get_bin(_T2&& value) const
     {
         return ::std::uint32_t((::std::forward<_T2>(value) - __minimum) * __scale);
     }
 
+    template <typename _T2>
+    inline bool
+    is_valid(const _T2& value) const
+    {
+        return (value >= __minimum) && (value < __maximum);
+    }
 };
 
 template <typename _T>
 struct evenly_divided_binhash_impl<_T, /* is_floating_point= */ false>
 {
     _T __minimum;
-    ::std::size_t __num_bins;
     _T __range_size;
-    evenly_divided_binhash_impl(const _T& min, const _T& max, const ::std::size_t& num_bins)
+    ::std::uint32_t __num_bins;
+    evenly_divided_binhash_impl(const _T& min, const _T& max, const ::std::uint32_t& num_bins)
         : __minimum(min), __num_bins(num_bins), __range_size(max - min)
     {
     }
     template <typename _T2>
-    ::std::uint32_t
-    operator()(_T2&& value) const
+    inline ::std::uint32_t
+    get_bin(_T2&& value) const
     {
-        return ::std::uint32_t(((_T(::std::forward<_T2>(value)) - __minimum) * _T(__num_bins)) / __range_size);
+        return ::std::uint32_t(((::std::uint64_t(::std::forward<_T2>(value)) - __minimum) * ::std::uint64_t(__num_bins)) / __range_size);
+    }
+
+    template <typename _T2>
+    inline bool
+    is_valid(const _T2& value) const
+    {
+        return (value >= __minimum) && (value < (__minimum + __range_size));
     }
 
 };
@@ -71,10 +87,18 @@ struct custom_range_binhash
 
     template <typename _T>
     ::std::uint32_t
-    operator()(_T&& value) const
+    get_bin(_T&& value) const
     {
         return (::std::upper_bound(__first, __last, ::std::forward<_T>(value)) - __first) - 1;
     }
+
+    template <typename _T2>
+    inline bool
+    is_valid(const _T2& value) const
+    {
+        return value >= *__first && value < *__last;
+    }
+
 
 };
 
@@ -90,9 +114,11 @@ histogram_general_sequential(_ForwardIterator __first, _ForwardIterator __last, 
 
     for (auto tmp = __first; tmp < __last; ++tmp)
     {
-        _Size bin = __func(*tmp);
-        if (bin >= 0 && bin < num_bins)
+        if (__func.is_valid(*tmp))
+        {
+            _Size bin = __func.get_bin(*tmp);
             ++(__histogram_first[bin]);
+        }
     }
     return __histogram_first + num_bins;
 }
