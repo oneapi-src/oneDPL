@@ -53,7 +53,7 @@ New in This Release
   with ``unseq`` or ``par_unseq`` policy when compiled by Intel® oneAPI DPC++/C++ Compiler
   with ``-fiopenmp``, ``-fiopenmp-simd``, ``-qopenmp``, ``-qopenmp-simd`` options on Linux.
   To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
-- Incorrect results may be produced with group reduce operation through ``std::reduce``
+- Incorrect results may be produced with group reduce operation through ``reduce``
   for 64-bit data types and ``std::multiplies`` operation on GPUs with the Intel® C++ Compiler 2021.3
 
 Existing Issues
