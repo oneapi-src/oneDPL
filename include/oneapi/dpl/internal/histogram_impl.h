@@ -174,7 +174,6 @@ struct __custom_range_binhash
         return value >= __boundaries[0] && value < __boundaries[__boundaries.size() - 1];
     }
 
-#if _ONEDPL_BACKEND_SYCL
 
     inline ::std::size_t
     get_required_SLM_memory()
