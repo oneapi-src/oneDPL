@@ -19,6 +19,7 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
+#include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T, unsigned A>
@@ -93,7 +94,7 @@ kernel_test()
     test_extent<KernelTest6, int, 0>(deviceQueue);
     test_extent<KernelTest7, bool, 0>(deviceQueue);
     test_extent<KernelTest8, unsigned, 0>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_extent<KernelTest9, double, 0>(deviceQueue);
     }

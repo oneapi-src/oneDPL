@@ -20,6 +20,7 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
+#include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
@@ -134,7 +135,7 @@ kernel_test()
     test_is_fundamental<KernelTest16, float>(deviceQueue);
     test_is_fundamental<KernelTest17, char16_t>(deviceQueue);
     test_is_fundamental<KernelTest18, char32_t>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_fundamental<KernelTest19, double>(deviceQueue);
     }

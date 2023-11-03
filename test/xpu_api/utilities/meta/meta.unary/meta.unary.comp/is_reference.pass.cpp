@@ -20,6 +20,7 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
+#include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
@@ -127,7 +128,7 @@ kernel_test()
     test_is_not_reference<KernelTest17, int(int)>(deviceQueue);
     test_is_not_reference<KernelTest18, int Empty::*>(deviceQueue);
     test_is_not_reference<KernelTest19, void (Empty::*)(int)>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_not_reference<KernelTest20, double>(deviceQueue);
     }

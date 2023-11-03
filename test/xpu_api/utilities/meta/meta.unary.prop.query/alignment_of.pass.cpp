@@ -19,6 +19,7 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
+#include "support/utils_invoke.h"
 
 #include <cstdint>
 
@@ -61,7 +62,7 @@ kernel_test()
     test_alignment_of<char[3], 1>(deviceQueue);
     test_alignment_of<int, 4>(deviceQueue);
     test_alignment_of<unsigned, 4>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_alignment_of<double, TEST_ALIGNOF(double)>(deviceQueue);
     }

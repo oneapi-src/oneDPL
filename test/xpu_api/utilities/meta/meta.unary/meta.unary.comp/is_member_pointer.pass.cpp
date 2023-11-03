@@ -20,6 +20,7 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
+#include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
@@ -132,7 +133,7 @@ kernel_test()
     test_is_not_member_pointer<KernelTest16, int(int)>(deviceQueue);
     test_is_not_member_pointer<KernelTest17, Enum>(deviceQueue);
     test_is_not_member_pointer<KernelTest18, FunctionPtr>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_is_not_member_pointer<KernelTest19, double>(deviceQueue);
     }

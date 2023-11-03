@@ -19,6 +19,7 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
+#include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <class T, unsigned A>
@@ -60,7 +61,7 @@ kernel_test()
     test_rank<char[3], 1>(deviceQueue);
     test_rank<char[][3], 2>(deviceQueue);
     test_rank<char[][4][3], 3>(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_rank<double, 0>(deviceQueue);
     }

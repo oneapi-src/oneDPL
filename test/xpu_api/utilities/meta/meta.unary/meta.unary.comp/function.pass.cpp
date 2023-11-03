@@ -19,6 +19,7 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
+#include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <class T>
@@ -52,7 +53,7 @@ void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();;
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_function<int(double)>(deviceQueue);
         test_function<int(double, char)>(deviceQueue);
