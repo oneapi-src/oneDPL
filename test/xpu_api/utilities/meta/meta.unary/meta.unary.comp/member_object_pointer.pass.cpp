@@ -44,7 +44,7 @@ test_member_object_pointer()
     test_member_object_pointer_imp<const volatile T>();
 }
 
-class Class
+struct Class
 {
 };
 

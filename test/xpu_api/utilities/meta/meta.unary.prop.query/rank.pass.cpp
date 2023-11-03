@@ -40,9 +40,8 @@ test_rank(sycl::queue& deviceQueue)
     });
 }
 
-class Class
+struct Class
 {
-  public:
     ~Class();
 };
 

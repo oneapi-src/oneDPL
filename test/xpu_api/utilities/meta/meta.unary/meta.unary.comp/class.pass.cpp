@@ -44,7 +44,7 @@ test_class()
     test_class_imp<const volatile T>();
 }
 
-class Class
+struct Class
 {
 };
 

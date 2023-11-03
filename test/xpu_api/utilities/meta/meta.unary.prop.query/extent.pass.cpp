@@ -59,9 +59,8 @@ test_extent1(sycl::queue& deviceQueue)
     });
 }
 
-class Class
+struct Class
 {
-  public:
     ~Class();
 };
 

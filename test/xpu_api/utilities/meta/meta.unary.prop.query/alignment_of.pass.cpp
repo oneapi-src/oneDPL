@@ -45,9 +45,8 @@ test_alignment_of(sycl::queue& deviceQueue)
     });
 }
 
-class Class
+struct Class
 {
-  public:
     ~Class();
 };
 
