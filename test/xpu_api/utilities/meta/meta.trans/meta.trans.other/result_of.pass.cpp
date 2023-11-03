@@ -22,6 +22,8 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
+#include "has_type_member.h"
+
 #if TEST_DPCPP_BACKEND_PRESENT
 struct S
 {
@@ -51,15 +53,8 @@ struct Voider
     typedef void type;
 };
 
-template <class T, class = void>
-struct HasType : dpl::false_type
-{
-};
-
 template <class T>
-struct HasType<T, dpl::void_t<typename T::type>> : dpl::true_type
-{
-};
+using HasType = has_type_member<T>;
 
 template <typename T, typename U>
 struct test_invoke_result;

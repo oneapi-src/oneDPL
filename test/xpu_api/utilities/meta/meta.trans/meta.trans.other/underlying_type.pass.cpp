@@ -22,17 +22,9 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
+#include "has_type_member.h"
+
 #if TEST_DPCPP_BACKEND_PRESENT
-template <class, class = dpl::void_t<>>
-struct has_type_member : dpl::false_type
-{
-};
-
-template <class T>
-struct has_type_member<T, dpl::void_t<typename dpl::underlying_type<T>::type>> : dpl::true_type
-{
-};
-
 struct S
 {
 };
