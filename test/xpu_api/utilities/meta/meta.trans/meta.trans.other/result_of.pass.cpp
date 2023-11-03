@@ -68,6 +68,7 @@ struct test_invoke_result<Fn(Args...), Ret>
         static_assert(dpl::is_invocable<Fn, Args...>::value);
         static_assert(dpl::is_invocable_r<Ret, Fn, Args...>::value);
         ASSERT_SAME_TYPE(Ret, typename dpl::invoke_result<Fn, Args...>::type);
+        ASSERT_SAME_TYPE(Ret, dpl::invoke_result_t<Fn, Args...>);
     }
 };
 
