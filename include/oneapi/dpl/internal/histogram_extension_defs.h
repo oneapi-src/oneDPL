@@ -25,7 +25,7 @@ namespace dpl
 
 template <typename _ExecutionPolicy, typename _InputIterator, typename _Size, typename _T, typename _OutputIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _OutputIterator>
-histogram(_ExecutionPolicy&& policy, _InputIterator __first, _InputIterator __last, const _Size& num_bins,
+histogram(_ExecutionPolicy&& policy, _InputIterator __first, _InputIterator __last, const _Size& __num_bins,
           const _T& __first_bin_min_val, const _T& __last_bin_max_val, _OutputIterator __histogram_first);
 
 template <typename _ExecutionPolicy, typename _InputIterator1, typename _InputIterator2, typename _OutputIterator>

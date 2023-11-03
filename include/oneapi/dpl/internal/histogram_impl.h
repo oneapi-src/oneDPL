@@ -222,28 +222,28 @@ struct __custom_range_binhash
 };
 
 template <typename Policy, typename _Iter1, typename _Iter2, typename _Size, typename _IdxHashFunc, typename... _Range>
-inline _Iter2
+inline void
 __pattern_histogram(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first, const _Size& num_bins,
                     _IdxHashFunc __func, _Range&&... __opt_range)
 {
-    return oneapi::dpl::__par_backend_hetero::__parallel_histogram(::std::forward<Policy>(policy), __first, __last,
+    oneapi::dpl::__par_backend_hetero::__parallel_histogram(::std::forward<Policy>(policy), __first, __last,
                                                                    __histogram_first, num_bins, __func, __opt_range...);
 }
 
 #if _ONEDPL_BACKEND_SYCL
 
 template <typename Policy, typename Iter1, typename OutputIter, typename _Size, typename _T>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIter>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type>
 __histogram_impl(Policy&& policy, Iter1 __first, Iter1 __last, OutputIter __histogram_first, const _Size& num_bins,
                  const _T& __first_bin_min_val, const _T& __last_bin_max_val)
 {
-    return internal::__pattern_histogram(
+    internal::__pattern_histogram(
         ::std::forward<Policy>(policy), __first, __last, __histogram_first, num_bins,
         internal::__evenly_divided_binhash<_T>(__first_bin_min_val, __last_bin_max_val, num_bins));
 }
 
 template <typename Policy, typename Iter1, typename OutputIter, typename Iter3>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIter>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type>
 __histogram_impl(Policy&& policy, Iter1 __first, Iter1 __last, OutputIter __histogram_first, Iter3 __boundary_first,
                  Iter3 __boundary_last)
 {
@@ -251,7 +251,7 @@ __histogram_impl(Policy&& policy, Iter1 __first, Iter1 __last, OutputIter __hist
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read, Iter3>();
     auto boundary_buf = keep_boundaries(__boundary_first, __boundary_last);
 
-    return internal::__pattern_histogram(
+    internal::__pattern_histogram(
         ::std::forward<Policy>(policy), __first, __last, __histogram_first, (__boundary_last - __boundary_first) - 1,
         internal::__custom_range_binhash{boundary_buf.all_view()}, boundary_buf.all_view());
 }
@@ -262,11 +262,17 @@ __histogram_impl(Policy&& policy, Iter1 __first, Iter1 __last, OutputIter __hist
 
 template <typename _ExecutionPolicy, typename _InputIterator, typename _Size, typename _T, typename _OutputIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _OutputIterator>
-histogram(_ExecutionPolicy&& policy, _InputIterator __first, _InputIterator __last, const _Size& num_bins,
+histogram(_ExecutionPolicy&& policy, _InputIterator __first, _InputIterator __last, const _Size& __num_bins,
           const _T& __first_bin_min_val, const _T& __last_bin_max_val, _OutputIterator __histogram_first)
 {
-    return internal::__histogram_impl(::std::forward<_ExecutionPolicy>(policy), __first, __last, __histogram_first,
-                                      num_bins, __first_bin_min_val, __last_bin_max_val);
+    //If there are no histogram bins there is nothing to do.  However, even if we have zero input elements,
+    // we still want to clear the output histogram
+    if (__num_bins > 0)
+    {
+        internal::__histogram_impl(::std::forward<_ExecutionPolicy>(policy), __first, __last, __histogram_first,
+                                      __num_bins, __first_bin_min_val, __last_bin_max_val);
+    }
+    return __histogram_first + __num_bins;
 }
 
 template <typename _ExecutionPolicy, typename _InputIterator1, typename _InputIterator2, typename _OutputIterator>
@@ -274,8 +280,15 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _OutputI
 histogram(_ExecutionPolicy&& policy, _InputIterator1 __first, _InputIterator1 __last, _InputIterator2 __boundary_first,
           _InputIterator2 __boundary_last, _OutputIterator __histogram_first)
 {
-    return internal::__histogram_impl(::std::forward<_ExecutionPolicy>(policy), __first, __last, __histogram_first,
+    auto __num_bins = __boundary_last - __boundary_first - 1;
+    //If there are no histogram bins there is nothing to do.  However, even if we have zero input elements,
+    // we still want to clear the output histogram
+    if (__num_bins > 0)
+    {
+        internal::__histogram_impl(::std::forward<_ExecutionPolicy>(policy), __first, __last, __histogram_first,
                                       __boundary_first, __boundary_last);
+    }
+    return __histogram_first + __num_bins;
 }
 
 } // end namespace dpl
