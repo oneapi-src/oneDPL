@@ -125,12 +125,6 @@
 # define TEST_IS_CONSTANT_EVALUATED false
 #endif
 
-#if TEST_STD_VER >= 14
-# define TEST_CONSTEXPR_CXX14 constexpr
-#else
-# define TEST_CONSTEXPR_CXX14
-#endif
-
 #if TEST_STD_VER >= 17
 # define TEST_CONSTEXPR_CXX17 constexpr
 #else
