@@ -59,8 +59,6 @@ struct D;
 
 struct C
 {
-    template <class U>
-    D operator,(U&&);
 };
 
 struct E
