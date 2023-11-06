@@ -23,33 +23,33 @@ namespace oneapi
 {
 namespace dpl
 {
-using ::std::complex;
+using std::complex;
 
-using ::std::abs;
-using ::std::acos;
-using ::std::acosh;
-using ::std::arg;
-using ::std::asin;
-using ::std::asinh;
-using ::std::atan;
-using ::std::atanh;
-using ::std::conj;
-using ::std::cos;
-using ::std::cosh;
-using ::std::exp;
-using ::std::imag;
-using ::std::log;
-using ::std::log10;
-using ::std::norm;
-using ::std::polar;
-using ::std::pow;
-using ::std::proj;
-using ::std::real;
-using ::std::sin;
-using ::std::sinh;
-using ::std::sqrt;
-using ::std::tan;
-using ::std::tanh;
+using std::abs;
+using std::acos;
+using std::acosh;
+using std::arg;
+using std::asin;
+using std::asinh;
+using std::atan;
+using std::atanh;
+using std::conj;
+using std::cos;
+using std::cosh;
+using std::exp;
+using std::imag;
+using std::log;
+using std::log10;
+using std::norm;
+using std::polar;
+using std::pow;
+using std::proj;
+using std::real;
+using std::sin;
+using std::sinh;
+using std::sqrt;
+using std::tan;
+using std::tanh;
 
 } // namespace dpl
 } // namespace oneapi

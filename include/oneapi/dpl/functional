@@ -25,35 +25,35 @@ namespace oneapi
 {
 namespace dpl
 {
-using ::std::bind;
-using ::std::bit_and;
-using ::std::bit_or;
-using ::std::bit_xor;
-using ::std::cref;
-using ::std::divides;
-using ::std::equal_to;
-using ::std::greater;
-using ::std::greater_equal;
-using ::std::less;
-using ::std::less_equal;
-using ::std::logical_and;
-using ::std::logical_not;
-using ::std::logical_or;
-using ::std::minus;
-using ::std::modulus;
-using ::std::multiplies;
-using ::std::negate;
-using ::std::not_equal_to;
-using ::std::plus;
-using ::std::ref;
-using ::std::reference_wrapper;
+using std::bind;
+using std::bit_and;
+using std::bit_or;
+using std::bit_xor;
+using std::cref;
+using std::divides;
+using std::equal_to;
+using std::greater;
+using std::greater_equal;
+using std::less;
+using std::less_equal;
+using std::logical_and;
+using std::logical_not;
+using std::logical_or;
+using std::minus;
+using std::modulus;
+using std::multiplies;
+using std::negate;
+using std::not_equal_to;
+using std::plus;
+using std::ref;
+using std::reference_wrapper;
 #if _ONEDPL___cplusplus < 202002L
-using ::std::binary_negate; // Deprecated in C++17, removed in C++20
-using ::std::not1;          // Deprecated in C++17, removed in C++20
-using ::std::not2;          // Deprecated in C++17, removed in C++20
-using ::std::unary_negate;  // Deprecated in C++17, removed in C++20
+using std::binary_negate; // Deprecated in C++17, removed in C++20
+using std::not1;          // Deprecated in C++17, removed in C++20
+using std::not2;          // Deprecated in C++17, removed in C++20
+using std::unary_negate;  // Deprecated in C++17, removed in C++20
 #endif                      // _ONEDPL___cplusplus < 202002L
-using ::std::bit_not;
+using std::bit_not;
 
 struct identity
 {
@@ -63,7 +63,7 @@ struct identity
     constexpr _T&&
     operator()(_T&& t) const noexcept
     {
-        return ::std::forward<_T>(t);
+        return std::forward<_T>(t);
     }
 };
 
@@ -73,7 +73,7 @@ struct maximum
     constexpr const _T&
     operator()(const _T& a, const _T& b) const
     {
-        return ::std::greater<_T>()(a, b) ? a : b;
+        return std::greater<_T>()(a, b) ? a : b;
     }
 };
 
@@ -83,7 +83,7 @@ struct minimum
     constexpr const _T&
     operator()(const _T& a, const _T& b) const
     {
-        return ::std::less<_T>()(a, b) ? a : b;
+        return std::less<_T>()(a, b) ? a : b;
     }
 };
 } // end namespace dpl

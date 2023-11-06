@@ -24,7 +24,7 @@ namespace oneapi
 namespace dpl
 {
 template <typename T>
-using numeric_limits = ::std::numeric_limits<T>;
+using numeric_limits = std::numeric_limits<T>;
 } // namespace dpl
 } // namespace oneapi
 

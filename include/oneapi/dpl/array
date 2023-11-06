@@ -23,11 +23,11 @@ namespace oneapi
 {
 namespace dpl
 {
-using ::std::array;
-using ::std::get;
-using ::std::swap;
-using ::std::tuple_element;
-using ::std::tuple_size;
+using std::array;
+using std::get;
+using std::swap;
+using std::tuple_element;
+using std::tuple_size;
 } // namespace dpl
 } // namespace oneapi
 

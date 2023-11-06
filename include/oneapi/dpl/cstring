@@ -23,9 +23,9 @@ namespace oneapi
 {
 namespace dpl
 {
-using ::std::memcmp;
-using ::std::memcpy;
-using ::std::memset;
+using std::memcmp;
+using std::memcpy;
+using std::memset;
 } // namespace dpl
 } // namespace oneapi
 

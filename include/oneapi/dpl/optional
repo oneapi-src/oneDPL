@@ -23,10 +23,10 @@ namespace oneapi
 {
 namespace dpl
 {
-using ::std::make_optional;
-using ::std::nullopt;
-using ::std::nullopt_t;
-using ::std::optional;
+using std::make_optional;
+using std::nullopt;
+using std::nullopt_t;
+using std::optional;
 } // namespace dpl
 } // namespace oneapi
 

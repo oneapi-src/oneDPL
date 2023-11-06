@@ -23,17 +23,17 @@ namespace oneapi
 {
 namespace dpl
 {
-using ::std::ratio;
-using ::std::ratio_add;
-using ::std::ratio_divide;
-using ::std::ratio_equal;
-using ::std::ratio_greater;
-using ::std::ratio_greater_equal;
-using ::std::ratio_less;
-using ::std::ratio_less_equal;
-using ::std::ratio_multiply;
-using ::std::ratio_not_equal;
-using ::std::ratio_subtract;
+using std::ratio;
+using std::ratio_add;
+using std::ratio_divide;
+using std::ratio_equal;
+using std::ratio_greater;
+using std::ratio_greater_equal;
+using std::ratio_less;
+using std::ratio_less_equal;
+using std::ratio_multiply;
+using std::ratio_not_equal;
+using std::ratio_subtract;
 } // namespace dpl
 } // namespace oneapi
 

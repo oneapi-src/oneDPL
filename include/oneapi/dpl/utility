@@ -23,20 +23,20 @@ namespace oneapi
 {
 namespace dpl
 {
-using ::std::declval;
-using ::std::exchange;
-using ::std::forward;
-using ::std::get;
-using ::std::in_place;
-using ::std::in_place_t;
-using ::std::make_pair;
-using ::std::move;
-using ::std::move_if_noexcept;
-using ::std::pair;
-using ::std::piecewise_construct;
-using ::std::swap;
-using ::std::tuple_element;
-using ::std::tuple_size;
+using std::declval;
+using std::exchange;
+using std::forward;
+using std::get;
+using std::in_place;
+using std::in_place_t;
+using std::make_pair;
+using std::move;
+using std::move_if_noexcept;
+using std::pair;
+using std::piecewise_construct;
+using std::swap;
+using std::tuple_element;
+using std::tuple_size;
 } // namespace dpl
 } // namespace oneapi
 
