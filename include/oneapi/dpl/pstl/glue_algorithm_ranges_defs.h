@@ -324,13 +324,13 @@ max_element(_ExecutionPolicy&& __exec, _Range&& __rng);
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<
     _ExecutionPolicy,
-    ::std::pair<oneapi::dpl::__internal::__difference_t<_Range>, oneapi::dpl::__internal::__difference_t<_Range>>>
+    std::pair<oneapi::dpl::__internal::__difference_t<_Range>, oneapi::dpl::__internal::__difference_t<_Range>>>
 minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp);
 
 template <typename _ExecutionPolicy, typename _Range>
 oneapi::dpl::__internal::__enable_if_execution_policy<
     _ExecutionPolicy,
-    ::std::pair<oneapi::dpl::__internal::__difference_t<_Range>, oneapi::dpl::__internal::__difference_t<_Range>>>
+    std::pair<oneapi::dpl::__internal::__difference_t<_Range>, oneapi::dpl::__internal::__difference_t<_Range>>>
 minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,

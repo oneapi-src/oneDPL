@@ -36,12 +36,12 @@ namespace __internal
 template <typename _ForwardIterator, typename _OutputIterator>
 _OutputIterator
 __brick_uninitialized_move(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __result,
-                           /*vector=*/::std::false_type) noexcept
+                           /*vector=*/std::false_type) noexcept
 {
-    using _ValueType = typename ::std::iterator_traits<_OutputIterator>::value_type;
+    using _ValueType = typename std::iterator_traits<_OutputIterator>::value_type;
     for (; __first != __last; ++__first, ++__result)
     {
-        ::new (::std::addressof(*__result)) _ValueType(::std::move(*__first));
+        ::new (std::addressof(*__result)) _ValueType(std::move(*__first));
     }
     return __result;
 }
@@ -49,22 +49,22 @@ __brick_uninitialized_move(_ForwardIterator __first, _ForwardIterator __last, _O
 template <typename _RandomAccessIterator, typename _OutputIterator>
 _OutputIterator
 __brick_uninitialized_move(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator __result,
-                           /*vector=*/::std::true_type) noexcept
+                           /*vector=*/std::true_type) noexcept
 {
-    using __ValueType = typename ::std::iterator_traits<_OutputIterator>::value_type;
-    using _ReferenceType1 = typename ::std::iterator_traits<_RandomAccessIterator>::reference;
-    using _ReferenceType2 = typename ::std::iterator_traits<_OutputIterator>::reference;
+    using __ValueType = typename std::iterator_traits<_OutputIterator>::value_type;
+    using _ReferenceType1 = typename std::iterator_traits<_RandomAccessIterator>::reference;
+    using _ReferenceType2 = typename std::iterator_traits<_OutputIterator>::reference;
 
     return __unseq_backend::__simd_walk_2(
         __first, __last - __first, __result,
-        [](_ReferenceType1 __x, _ReferenceType2 __y) { ::new (::std::addressof(__y)) __ValueType(::std::move(__x)); });
+        [](_ReferenceType1 __x, _ReferenceType2 __y) { ::new (std::addressof(__y)) __ValueType(std::move(__x)); });
 }
 
 template <typename _Iterator>
 void
-__brick_destroy(_Iterator __first, _Iterator __last, /*vector*/ ::std::false_type) noexcept
+__brick_destroy(_Iterator __first, _Iterator __last, /*vector*/ std::false_type) noexcept
 {
-    using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
+    using _ValueType = typename std::iterator_traits<_Iterator>::value_type;
 
     for (; __first != __last; ++__first)
         __first->~_ValueType();
@@ -72,10 +72,10 @@ __brick_destroy(_Iterator __first, _Iterator __last, /*vector*/ ::std::false_typ
 
 template <typename _RandomAccessIterator>
 void
-__brick_destroy(_RandomAccessIterator __first, _RandomAccessIterator __last, /*vector*/ ::std::true_type) noexcept
+__brick_destroy(_RandomAccessIterator __first, _RandomAccessIterator __last, /*vector*/ std::true_type) noexcept
 {
-    using _ValueType = typename ::std::iterator_traits<_RandomAccessIterator>::value_type;
-    using _ReferenceType = typename ::std::iterator_traits<_RandomAccessIterator>::reference;
+    using _ValueType = typename std::iterator_traits<_RandomAccessIterator>::value_type;
+    using _ReferenceType = typename std::iterator_traits<_RandomAccessIterator>::reference;
 
     __unseq_backend::__simd_walk_1(__first, __last - __first, [](_ReferenceType __x) { __x.~_ValueType(); });
 }
@@ -87,12 +87,12 @@ __brick_destroy(_RandomAccessIterator __first, _RandomAccessIterator __last, /*v
 template <typename _ForwardIterator, typename _OutputIterator>
 _OutputIterator
 __brick_uninitialized_copy(_ForwardIterator __first, _ForwardIterator __last, _OutputIterator __result,
-                           /*vector=*/::std::false_type) noexcept
+                           /*vector=*/std::false_type) noexcept
 {
-    using _ValueType = typename ::std::iterator_traits<_OutputIterator>::value_type;
+    using _ValueType = typename std::iterator_traits<_OutputIterator>::value_type;
     for (; __first != __last; ++__first, ++__result)
     {
-        ::new (::std::addressof(*__result)) _ValueType(*__first);
+        ::new (std::addressof(*__result)) _ValueType(*__first);
     }
     return __result;
 }
@@ -100,15 +100,15 @@ __brick_uninitialized_copy(_ForwardIterator __first, _ForwardIterator __last, _O
 template <typename _RandomAccessIterator, typename _OutputIterator>
 _OutputIterator
 __brick_uninitialized_copy(_RandomAccessIterator __first, _RandomAccessIterator __last, _OutputIterator __result,
-                           /*vector=*/::std::true_type) noexcept
+                           /*vector=*/std::true_type) noexcept
 {
-    using __ValueType = typename ::std::iterator_traits<_OutputIterator>::value_type;
-    using _ReferenceType1 = typename ::std::iterator_traits<_RandomAccessIterator>::reference;
-    using _ReferenceType2 = typename ::std::iterator_traits<_OutputIterator>::reference;
+    using __ValueType = typename std::iterator_traits<_OutputIterator>::value_type;
+    using _ReferenceType1 = typename std::iterator_traits<_RandomAccessIterator>::reference;
+    using _ReferenceType2 = typename std::iterator_traits<_OutputIterator>::reference;
 
     return __unseq_backend::__simd_walk_2(
         __first, __last - __first, __result,
-        [](_ReferenceType1 __x, _ReferenceType2 __y) { ::new (::std::addressof(__y)) __ValueType(__x); });
+        [](_ReferenceType1 __x, _ReferenceType2 __y) { ::new (std::addressof(__y)) __ValueType(__x); });
 }
 
 template <typename _ExecutionPolicy>
@@ -118,9 +118,9 @@ struct __op_uninitialized_copy<_ExecutionPolicy>
     void
     operator()(_SourceT&& __source, _TargetT& __target) const
     {
-        using _TargetValueType = ::std::decay_t<_TargetT>;
+        using _TargetValueType = std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType(::std::forward<_SourceT>(__source));
+        ::new (std::addressof(__target)) _TargetValueType(std::forward<_SourceT>(__source));
     }
 };
 
@@ -135,9 +135,9 @@ struct __op_uninitialized_move<_ExecutionPolicy>
     void
     operator()(_SourceT&& __source, _TargetT& __target) const
     {
-        using _TargetValueType = ::std::decay_t<_TargetT>;
+        using _TargetValueType = std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType(::std::move(__source));
+        ::new (std::addressof(__target)) _TargetValueType(std::move(__source));
     }
 };
 
@@ -154,9 +154,9 @@ struct __op_uninitialized_fill<_SourceT, _ExecutionPolicy>
     void
     operator()(_TargetT& __target) const
     {
-        using _TargetValueType = ::std::decay_t<_TargetT>;
+        using _TargetValueType = std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType(__source);
+        ::new (std::addressof(__target)) _TargetValueType(__source);
     }
 };
 
@@ -171,7 +171,7 @@ struct __op_destroy<_ExecutionPolicy>
     void
     operator()(_TargetT& __target) const
     {
-        using _TargetValueType = ::std::decay_t<_TargetT>;
+        using _TargetValueType = std::decay_t<_TargetT>;
         __target.~_TargetValueType();
     }
 };
@@ -187,9 +187,9 @@ struct __op_uninitialized_default_construct<_ExecutionPolicy>
     void
     operator()(_TargetT& __target) const
     {
-        using _TargetValueType = ::std::decay_t<_TargetT>;
+        using _TargetValueType = std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType;
+        ::new (std::addressof(__target)) _TargetValueType;
     }
 };
 
@@ -204,9 +204,9 @@ struct __op_uninitialized_value_construct<_ExecutionPolicy>
     void
     operator()(_TargetT& __target) const
     {
-        using _TargetValueType = ::std::decay_t<_TargetT>;
+        using _TargetValueType = std::decay_t<_TargetT>;
 
-        ::new (::std::addressof(__target)) _TargetValueType();
+        ::new (std::addressof(__target)) _TargetValueType();
     }
 };
 

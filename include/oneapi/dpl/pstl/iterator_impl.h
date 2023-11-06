@@ -36,14 +36,14 @@ struct __tuple_util
     static void
     __increment(_TupleType& __it, _DifferenceType __forward)
     {
-        ::std::get<_Np - 1>(__it) = ::std::get<_Np - 1>(__it) + __forward;
+        std::get<_Np - 1>(__it) = std::get<_Np - 1>(__it) + __forward;
         __tuple_util<_Np - 1>::__increment(__it, __forward);
     }
     template <typename _TupleType>
     static void
     __pre_increment(_TupleType& __it)
     {
-        ++::std::get<_Np - 1>(__it);
+        ++std::get<_Np - 1>(__it);
         __tuple_util<_Np - 1>::__pre_increment(__it);
     }
 };
@@ -66,11 +66,11 @@ struct __tuple_util<0>
 template <typename _TupleReturnType>
 struct __make_references
 {
-    template <typename _TupleType, ::std::size_t... _Ip>
+    template <typename _TupleType, std::size_t... _Ip>
     _TupleReturnType
-    operator()(const _TupleType& __t, ::std::index_sequence<_Ip...>)
+    operator()(const _TupleType& __t, std::index_sequence<_Ip...>)
     {
-        return _TupleReturnType(*::std::get<_Ip>(__t)...);
+        return _TupleReturnType(*std::get<_Ip>(__t)...);
     }
 };
 
@@ -79,18 +79,18 @@ struct __make_references
 template <typename... _Types>
 class zip_forward_iterator
 {
-    static const ::std::size_t __num_types = sizeof...(_Types);
-    typedef typename ::std::tuple<_Types...> __it_types;
+    static const std::size_t __num_types = sizeof...(_Types);
+    typedef typename std::tuple<_Types...> __it_types;
 
   public:
-    typedef ::std::make_signed_t<::std::size_t> difference_type;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
-    typedef ::std::forward_iterator_tag iterator_category;
+    typedef std::make_signed_t<std::size_t> difference_type;
+    typedef std::tuple<typename std::iterator_traits<_Types>::value_type...> value_type;
+    typedef std::tuple<typename std::iterator_traits<_Types>::reference...> reference;
+    typedef std::tuple<typename std::iterator_traits<_Types>::pointer...> pointer;
+    typedef std::forward_iterator_tag iterator_category;
 
     zip_forward_iterator() : __my_it_() {}
-    explicit zip_forward_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
+    explicit zip_forward_iterator(_Types... __args) : __my_it_(std::make_tuple(__args...)) {}
     zip_forward_iterator(const zip_forward_iterator& __input) : __my_it_(__input.__my_it_) {}
     zip_forward_iterator&
     operator=(const zip_forward_iterator& __input)
@@ -101,7 +101,7 @@ class zip_forward_iterator
 
     reference operator*() const
     {
-        return __make_references<reference>()(__my_it_, ::std::make_index_sequence<__num_types>());
+        return __make_references<reference>()(__my_it_, std::make_index_sequence<__num_types>());
     }
 
     zip_forward_iterator&
@@ -121,7 +121,7 @@ class zip_forward_iterator
     bool
     operator==(const zip_forward_iterator& __it) const
     {
-        return ::std::get<0>(__my_it_) == ::std::get<0>(__it.__my_it_);
+        return std::get<0>(__my_it_) == std::get<0>(__it.__my_it_);
     }
     bool
     operator!=(const zip_forward_iterator& __it) const
@@ -150,16 +150,16 @@ namespace dpl
 template <typename _Ip>
 class counting_iterator
 {
-    static_assert(::std::is_integral_v<_Ip>, "Cannot instantiate counting_iterator with a non-integer type");
+    static_assert(std::is_integral_v<_Ip>, "Cannot instantiate counting_iterator with a non-integer type");
 
   public:
-    typedef ::std::make_signed_t<_Ip> difference_type;
+    typedef std::make_signed_t<_Ip> difference_type;
     typedef _Ip value_type;
     typedef const _Ip* pointer;
     // There is no storage behind the iterator, so we return a value instead of reference.
     typedef _Ip reference;
-    typedef ::std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = ::std::true_type;
+    typedef std::random_access_iterator_tag iterator_category;
+    using is_passed_directly = std::true_type;
 
     counting_iterator() : __my_counter_() {}
     explicit counting_iterator(_Ip __init) : __my_counter_(__init) {}
@@ -265,19 +265,19 @@ template <typename... _Types>
 class zip_iterator
 {
     static_assert(sizeof...(_Types) > 0, "Cannot instantiate zip_iterator with empty template parameter pack");
-    static const ::std::size_t __num_types = sizeof...(_Types);
+    static const std::size_t __num_types = sizeof...(_Types);
     typedef oneapi::dpl::__internal::tuple<_Types...> __it_types;
 
   public:
-    typedef ::std::make_signed_t<::std::size_t> difference_type;
-    typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
-    typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
-    typedef ::std::random_access_iterator_tag iterator_category;
-    using is_zip = ::std::true_type;
+    typedef std::make_signed_t<std::size_t> difference_type;
+    typedef oneapi::dpl::__internal::tuple<typename std::iterator_traits<_Types>::value_type...> value_type;
+    typedef oneapi::dpl::__internal::tuple<typename std::iterator_traits<_Types>::reference...> reference;
+    typedef std::tuple<typename std::iterator_traits<_Types>::pointer...> pointer;
+    typedef std::random_access_iterator_tag iterator_category;
+    using is_zip = std::true_type;
 
     zip_iterator() : __my_it_() {}
-    explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
+    explicit zip_iterator(_Types... __args) : __my_it_(std::make_tuple(__args...)) {}
     explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
     zip_iterator(const zip_iterator& __input) : __my_it_(__input.__my_it_) {}
     zip_iterator&
@@ -290,7 +290,7 @@ class zip_iterator
     reference operator*() const
     {
         return oneapi::dpl::__internal::__make_references<reference>()(__my_it_,
-                                                                       ::std::make_index_sequence<__num_types>());
+                                                                       std::make_index_sequence<__num_types>());
     }
 
     reference operator[](difference_type __i) const { return *(*this + __i); }
@@ -298,7 +298,7 @@ class zip_iterator
     difference_type
     operator-(const zip_iterator& __it) const
     {
-        return ::std::get<0>(__my_it_) - ::std::get<0>(__it.__my_it_);
+        return std::get<0>(__my_it_) - std::get<0>(__it.__my_it_);
     }
 
     zip_iterator&
@@ -419,11 +419,11 @@ class transform_iterator
     const _UnaryFunc __my_unary_func_;
 
   public:
-    typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
-    typedef decltype(__my_unary_func_(::std::declval<typename ::std::iterator_traits<_Iter>::reference>())) reference;
-    typedef ::std::remove_reference_t<reference> value_type;
-    typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
-    typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
+    typedef typename std::iterator_traits<_Iter>::difference_type difference_type;
+    typedef decltype(__my_unary_func_(std::declval<typename std::iterator_traits<_Iter>::reference>())) reference;
+    typedef std::remove_reference_t<reference> value_type;
+    typedef typename std::iterator_traits<_Iter>::pointer pointer;
+    typedef typename std::iterator_traits<_Iter>::iterator_category iterator_category;
 
     transform_iterator(_Iter __it = _Iter(), _UnaryFunc __unary_func = _UnaryFunc())
         : __my_it_(__it), __my_unary_func_(__unary_func)
@@ -554,11 +554,11 @@ struct __functor_concept
 {
     template <typename _T>
     static auto
-    test(int) -> decltype(::std::declval<_T>()(0), ::std::true_type{});
+    test(int) -> decltype(std::declval<_T>()(0), std::true_type{});
 
     template <typename _T>
     static auto
-    test(...) -> ::std::false_type;
+    test(...) -> std::false_type;
 };
 
 template <typename _T>
@@ -572,32 +572,32 @@ class permutation_iterator
   public:
     typedef std::conditional_t<
         !__internal::__is_functor<_Permutation>, _Permutation,
-        transform_iterator<counting_iterator<typename ::std::iterator_traits<SourceIterator>::difference_type>,
+        transform_iterator<counting_iterator<typename std::iterator_traits<SourceIterator>::difference_type>,
                            _Permutation>>
         IndexMap;
-    typedef typename ::std::iterator_traits<SourceIterator>::difference_type difference_type;
-    typedef typename ::std::iterator_traits<SourceIterator>::value_type value_type;
-    typedef typename ::std::iterator_traits<SourceIterator>::pointer pointer;
-    typedef typename ::std::iterator_traits<SourceIterator>::reference reference;
+    typedef typename std::iterator_traits<SourceIterator>::difference_type difference_type;
+    typedef typename std::iterator_traits<SourceIterator>::value_type value_type;
+    typedef typename std::iterator_traits<SourceIterator>::pointer pointer;
+    typedef typename std::iterator_traits<SourceIterator>::reference reference;
     typedef SourceIterator base_type;
-    typedef ::std::random_access_iterator_tag iterator_category;
-    typedef ::std::true_type is_permutation;
+    typedef std::random_access_iterator_tag iterator_category;
+    typedef std::true_type is_permutation;
 
     permutation_iterator() = default;
 
-    template <typename _T = _Permutation, ::std::enable_if_t<!__internal::__is_functor<_T>, int> = 0>
+    template <typename _T = _Permutation, std::enable_if_t<!__internal::__is_functor<_T>, int> = 0>
     permutation_iterator(SourceIterator input1, _Permutation input2) : my_source_it(input1), my_index(input2)
     {
     }
 
-    template <typename _T = _Permutation, ::std::enable_if_t<__internal::__is_functor<_T>, int> = 0>
+    template <typename _T = _Permutation, std::enable_if_t<__internal::__is_functor<_T>, int> = 0>
     permutation_iterator(SourceIterator input1, _Permutation __f, difference_type __idx = 0)
         : my_source_it(input1), my_index(counting_iterator<difference_type>(__idx), __f)
     {
     }
 
   private:
-    template <typename _T = _Permutation, ::std::enable_if_t<__internal::__is_functor<_T>, int> = 0>
+    template <typename _T = _Permutation, std::enable_if_t<__internal::__is_functor<_T>, int> = 0>
     permutation_iterator(SourceIterator input1, IndexMap input2) : my_source_it(input1), my_index(input2)
     {
     }
@@ -771,13 +771,13 @@ inline constexpr ignore_copyable ignore{};
 class discard_iterator
 {
   public:
-    typedef ::std::ptrdiff_t difference_type;
+    typedef std::ptrdiff_t difference_type;
     typedef internal::ignore_copyable value_type;
     typedef void* pointer;
     typedef value_type reference;
-    typedef ::std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = ::std::true_type;
-    using is_discard = ::std::true_type;
+    typedef std::random_access_iterator_tag iterator_category;
+    using is_passed_directly = std::true_type;
+    using is_discard = std::true_type;
 
     discard_iterator() : __my_position_() {}
     explicit discard_iterator(difference_type __init) : __my_position_(__init) {}
@@ -902,9 +902,9 @@ struct make_zipiterator_functor
 {
     template <typename... Args>
     auto
-    operator()(Args&&... args) const -> decltype(oneapi::dpl::make_zip_iterator(::std::forward<Args>(args)...))
+    operator()(Args&&... args) const -> decltype(oneapi::dpl::make_zip_iterator(std::forward<Args>(args)...))
     {
-        return oneapi::dpl::make_zip_iterator(::std::forward<Args>(args)...);
+        return oneapi::dpl::make_zip_iterator(std::forward<Args>(args)...);
     }
 };
 
@@ -915,9 +915,9 @@ struct make_zipiterator_functor
 template <typename F, template <typename...> class TBig, typename... T, typename... RestTuples>
 auto
 map_zip(F f, TBig<T...> in, RestTuples... rest)
-    -> decltype(map_tuple_impl(make_zipiterator_functor{}, ::std::make_index_sequence<sizeof...(T)>(), in, rest...))
+    -> decltype(map_tuple_impl(make_zipiterator_functor{}, std::make_index_sequence<sizeof...(T)>(), in, rest...))
 {
-    return map_tuple_impl(make_zipiterator_functor{}, f, ::std::make_index_sequence<sizeof...(T)>(), in, rest...);
+    return map_tuple_impl(make_zipiterator_functor{}, f, std::make_index_sequence<sizeof...(T)>(), in, rest...);
 }
 
 } // namespace __internal

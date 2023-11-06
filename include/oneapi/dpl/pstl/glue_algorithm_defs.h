@@ -106,12 +106,12 @@ adjacent_find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardItera
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
 oneapi::dpl::__internal::__enable_if_execution_policy<
-    _ExecutionPolicy, typename ::std::iterator_traits<_ForwardIterator>::difference_type>
+    _ExecutionPolicy, typename std::iterator_traits<_ForwardIterator>::difference_type>
 count(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value);
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<
-    _ExecutionPolicy, typename ::std::iterator_traits<_ForwardIterator>::difference_type>
+    _ExecutionPolicy, typename std::iterator_traits<_ForwardIterator>::difference_type>
 count_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Predicate __pred);
 
 // [alg.search]
@@ -293,7 +293,7 @@ stable_partition(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _Bid
 template <class _ExecutionPolicy, class _ForwardIterator, class _ForwardIterator1, class _ForwardIterator2,
           class _UnaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      ::std::pair<_ForwardIterator1, _ForwardIterator2>>
+                                                      std::pair<_ForwardIterator1, _ForwardIterator2>>
 partition_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                _ForwardIterator1 __out_true, _ForwardIterator2 __out_false, _UnaryPredicate __pred);
 
@@ -334,25 +334,25 @@ sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _Ran
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      ::std::pair<_ForwardIterator1, _ForwardIterator2>>
+                                                      std::pair<_ForwardIterator1, _ForwardIterator2>>
 mismatch(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
          _ForwardIterator2 __last2, _BinaryPredicate __pred);
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      ::std::pair<_ForwardIterator1, _ForwardIterator2>>
+                                                      std::pair<_ForwardIterator1, _ForwardIterator2>>
 mismatch(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
          _BinaryPredicate __pred);
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      ::std::pair<_ForwardIterator1, _ForwardIterator2>>
+                                                      std::pair<_ForwardIterator1, _ForwardIterator2>>
 mismatch(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
          _ForwardIterator2 __last2);
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-                                                      ::std::pair<_ForwardIterator1, _ForwardIterator2>>
+                                                      std::pair<_ForwardIterator1, _ForwardIterator2>>
 mismatch(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2);
 
 // [alg.equal]
@@ -571,11 +571,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 max_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, ::std::pair<_ForwardIterator, _ForwardIterator>>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, std::pair<_ForwardIterator, _ForwardIterator>>
 minmax_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp);
 
 template <class _ExecutionPolicy, class _ForwardIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, ::std::pair<_ForwardIterator, _ForwardIterator>>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, std::pair<_ForwardIterator, _ForwardIterator>>
 minmax_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last);
 
 // [alg.lex.comparison]
@@ -593,12 +593,12 @@ lexicographical_compare(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
 template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-           typename ::std::iterator_traits<_ForwardIterator>::difference_type __n);
+           typename std::iterator_traits<_ForwardIterator>::difference_type __n);
 
 template <class _ExecutionPolicy, class _BidirectionalIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _BidirectionalIterator>
 shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
-            typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n);
+            typename std::iterator_traits<_BidirectionalIterator>::difference_type __n);
 
 } // namespace dpl
 } // namespace oneapi

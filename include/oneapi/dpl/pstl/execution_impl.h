@@ -32,27 +32,27 @@ namespace __internal
 /* predicate */
 
 template <typename _Tp>
-::std::false_type __lazy_and(_Tp, ::std::false_type)
+std::false_type __lazy_and(_Tp, std::false_type)
 {
-    return ::std::false_type{};
+    return std::false_type{};
 }
 
 template <typename _Tp>
 inline _Tp
-__lazy_and(_Tp __a, ::std::true_type)
+__lazy_and(_Tp __a, std::true_type)
 {
     return __a;
 }
 
 template <typename _Tp>
-::std::true_type __lazy_or(_Tp, ::std::true_type)
+std::true_type __lazy_or(_Tp, std::true_type)
 {
-    return ::std::true_type{};
+    return std::true_type{};
 }
 
 template <typename _Tp>
 inline _Tp
-__lazy_or(_Tp __a, ::std::false_type)
+__lazy_or(_Tp __a, std::false_type)
 {
     return __a;
 }
@@ -66,46 +66,46 @@ struct __policy_traits
 template <>
 struct __policy_traits<oneapi::dpl::execution::sequenced_policy>
 {
-    typedef ::std::false_type __allow_parallel;
-    typedef ::std::false_type __allow_unsequenced;
-    typedef ::std::false_type __allow_vector;
+    typedef std::false_type __allow_parallel;
+    typedef std::false_type __allow_unsequenced;
+    typedef std::false_type __allow_vector;
 };
 
 template <>
 struct __policy_traits<oneapi::dpl::execution::unsequenced_policy>
 {
-    typedef ::std::false_type __allow_parallel;
-    typedef ::std::true_type __allow_unsequenced;
-    typedef ::std::true_type __allow_vector;
+    typedef std::false_type __allow_parallel;
+    typedef std::true_type __allow_unsequenced;
+    typedef std::true_type __allow_vector;
 };
 
 template <>
 struct __policy_traits<oneapi::dpl::execution::parallel_policy>
 {
-    typedef ::std::true_type __allow_parallel;
-    typedef ::std::false_type __allow_unsequenced;
-    typedef ::std::false_type __allow_vector;
+    typedef std::true_type __allow_parallel;
+    typedef std::false_type __allow_unsequenced;
+    typedef std::false_type __allow_vector;
 };
 
 template <>
 struct __policy_traits<oneapi::dpl::execution::parallel_unsequenced_policy>
 {
-    typedef ::std::true_type __allow_parallel;
-    typedef ::std::true_type __allow_unsequenced;
-    typedef ::std::true_type __allow_vector;
+    typedef std::true_type __allow_parallel;
+    typedef std::true_type __allow_unsequenced;
+    typedef std::true_type __allow_vector;
 };
 
 template <typename _ExecutionPolicy>
-using __collector_t = typename __internal::__policy_traits<::std::decay_t<_ExecutionPolicy>>::__collector_type;
+using __collector_t = typename __internal::__policy_traits<std::decay_t<_ExecutionPolicy>>::__collector_type;
 
 template <typename _ExecutionPolicy>
-using __allow_vector = typename __internal::__policy_traits<::std::decay_t<_ExecutionPolicy>>::__allow_vector;
+using __allow_vector = typename __internal::__policy_traits<std::decay_t<_ExecutionPolicy>>::__allow_vector;
 
 template <typename _ExecutionPolicy>
-using __allow_unsequenced = typename __internal::__policy_traits<::std::decay_t<_ExecutionPolicy>>::__allow_unsequenced;
+using __allow_unsequenced = typename __internal::__policy_traits<std::decay_t<_ExecutionPolicy>>::__allow_unsequenced;
 
 template <typename _ExecutionPolicy>
-using __allow_parallel = typename __internal::__policy_traits<::std::decay_t<_ExecutionPolicy>>::__allow_parallel;
+using __allow_parallel = typename __internal::__policy_traits<std::decay_t<_ExecutionPolicy>>::__allow_parallel;
 
 template <typename _ExecutionPolicy, typename... _IteratorTypes>
 auto
@@ -132,7 +132,7 @@ struct __prefer_unsequenced_tag
 {
     static constexpr bool value =
         __internal::__allow_unsequenced<policy>::value && __internal::__is_random_access_iterator_v<_IteratorTypes...>;
-    typedef ::std::integral_constant<bool, value> type;
+    typedef std::integral_constant<bool, value> type;
 };
 
 template <typename policy, typename... _IteratorTypes>
@@ -140,7 +140,7 @@ struct __prefer_parallel_tag
 {
     static constexpr bool value =
         __internal::__allow_parallel<policy>::value && __internal::__is_random_access_iterator_v<_IteratorTypes...>;
-    typedef ::std::integral_constant<bool, value> type;
+    typedef std::integral_constant<bool, value> type;
 };
 
 } // namespace __internal

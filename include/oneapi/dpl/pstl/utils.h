@@ -50,7 +50,7 @@ namespace __internal
 
 template <typename Iterator>
 using is_const_iterator =
-    typename ::std::is_const<::std::remove_pointer_t<typename ::std::iterator_traits<Iterator>::pointer>>;
+    typename std::is_const<std::remove_pointer_t<typename std::iterator_traits<Iterator>::pointer>>;
 
 template <typename _Fp>
 auto
@@ -60,13 +60,13 @@ __except_handler(_Fp __f) -> decltype(__f())
     {
         return __f();
     }
-    catch (const ::std::bad_alloc&)
+    catch (const std::bad_alloc&)
     {
         throw; // re-throw bad_alloc according to the standard [algorithms.parallel.exceptions]
     }
     catch (...)
     {
-        ::std::terminate(); // Good bye according to the standard [algorithms.parallel.exceptions]
+        std::terminate(); // Good bye according to the standard [algorithms.parallel.exceptions]
     }
 }
 
@@ -79,7 +79,7 @@ struct __invoke_unary_op
     void
     operator()(_Input&& __x, _Output&& __y) const
     {
-        __y = __op(::std::forward<_Input>(__x));
+        __y = __op(std::forward<_Input>(__x));
     }
 };
 
@@ -90,7 +90,7 @@ struct __no_op
     _Tp&&
     operator()(_Tp&& __a) const
     {
-        return ::std::forward<_Tp>(__a);
+        return std::forward<_Tp>(__a);
     }
 };
 
@@ -107,7 +107,7 @@ class __not_pred
     bool
     operator()(_Args&&... __args) const
     {
-        return !_M_pred(::std::forward<_Args>(__args)...);
+        return !_M_pred(std::forward<_Args>(__args)...);
     }
 };
 
@@ -123,7 +123,7 @@ class __reorder_pred
     bool
     operator()(_FTp&& __a, _STp&& __b) const
     {
-        return _M_pred(::std::forward<_STp>(__b), ::std::forward<_FTp>(__a));
+        return _M_pred(std::forward<_STp>(__b), std::forward<_FTp>(__a));
     }
 };
 
@@ -137,13 +137,13 @@ class __pstl_assign
     void
     operator()(const _Xp& __x, _Yp&& __y) const
     {
-        ::std::forward<_Yp>(__y) = __x;
+        std::forward<_Yp>(__y) = __x;
     }
 };
 
 //! "==" comparison.
 /** Not called "equal" to avoid (possibly unfounded) concerns about accidental invocation via
-    argument-dependent name lookup by code expecting to find the usual ::std::equal. */
+    argument-dependent name lookup by code expecting to find the usual std::equal. */
 class __pstl_equal
 {
   public:
@@ -151,7 +151,7 @@ class __pstl_equal
     bool
     operator()(_Xp&& __x, _Yp&& __y) const
     {
-        return ::std::forward<_Xp>(__x) == ::std::forward<_Yp>(__y);
+        return std::forward<_Xp>(__x) == std::forward<_Yp>(__y);
     }
 };
 
@@ -163,7 +163,7 @@ class __pstl_less
     bool
     operator()(_Xp&& __x, _Yp&& __y) const
     {
-        return ::std::forward<_Xp>(__x) < ::std::forward<_Yp>(__y);
+        return std::forward<_Xp>(__x) < std::forward<_Yp>(__y);
     }
 };
 
@@ -175,7 +175,7 @@ class __pstl_greater
     bool
     operator()(_Xp&& __x, _Yp&& __y) const
     {
-        return ::std::forward<_Xp>(__x) > ::std::forward<_Yp>(__y);
+        return std::forward<_Xp>(__x) > std::forward<_Yp>(__y);
     }
 };
 
@@ -185,9 +185,9 @@ class __pstl_plus
   public:
     template <typename _Xp, typename _Yp>
     auto
-    operator()(_Xp&& __x, _Yp&& __y) const -> decltype(::std::forward<_Xp>(__x) + ::std::forward<_Yp>(__y))
+    operator()(_Xp&& __x, _Yp&& __y) const -> decltype(std::forward<_Xp>(__x) + std::forward<_Yp>(__y))
     {
-        return ::std::forward<_Xp>(__x) + ::std::forward<_Yp>(__y);
+        return std::forward<_Xp>(__x) + std::forward<_Yp>(__y);
     }
 };
 
@@ -198,11 +198,11 @@ class __pstl_min
     template <typename _Xp, typename _Yp>
     auto
     operator()(_Xp&& __x, _Yp&& __y) const
-        -> decltype((::std::forward<_Xp>(__x) < ::std::forward<_Yp>(__y)) ? ::std::forward<_Xp>(__x)
-                                                                          : ::std::forward<_Yp>(__y))
+        -> decltype((std::forward<_Xp>(__x) < std::forward<_Yp>(__y)) ? std::forward<_Xp>(__x)
+                                                                          : std::forward<_Yp>(__y))
     {
-        return (::std::forward<_Xp>(__x) < ::std::forward<_Yp>(__y)) ? ::std::forward<_Xp>(__x)
-                                                                     : ::std::forward<_Yp>(__y);
+        return (std::forward<_Xp>(__x) < std::forward<_Yp>(__y)) ? std::forward<_Xp>(__x)
+                                                                     : std::forward<_Yp>(__y);
     }
 };
 
@@ -213,11 +213,11 @@ class __pstl_max
     template <typename _Xp, typename _Yp>
     auto
     operator()(_Xp&& __x, _Yp&& __y) const
-        -> decltype((::std::forward<_Xp>(__x) > ::std::forward<_Yp>(__y)) ? ::std::forward<_Xp>(__x)
-                                                                          : ::std::forward<_Yp>(__y))
+        -> decltype((std::forward<_Xp>(__x) > std::forward<_Yp>(__y)) ? std::forward<_Xp>(__x)
+                                                                          : std::forward<_Yp>(__y))
     {
-        return (::std::forward<_Xp>(__x) > ::std::forward<_Yp>(__y)) ? ::std::forward<_Xp>(__x)
-                                                                     : ::std::forward<_Yp>(__y);
+        return (std::forward<_Xp>(__x) > std::forward<_Yp>(__y)) ? std::forward<_Xp>(__x)
+                                                                     : std::forward<_Yp>(__y);
     }
 };
 
@@ -235,7 +235,7 @@ class __equal_value_by_pred
     bool
     operator()(_Arg&& __arg) const
     {
-        return _M_pred(::std::forward<_Arg>(__arg), _M_value);
+        return _M_pred(std::forward<_Arg>(__arg), _M_value);
     }
 };
 
@@ -252,7 +252,7 @@ class __equal_value
     bool
     operator()(_Arg&& __arg) const
     {
-        return ::std::forward<_Arg>(__arg) == _M_value;
+        return std::forward<_Arg>(__arg) == _M_value;
     }
 };
 
@@ -269,7 +269,7 @@ class __not_equal_value
     bool
     operator()(_Arg&& __arg) const
     {
-        return !(::std::forward<_Arg>(__arg) == _M_value);
+        return !(std::forward<_Arg>(__arg) == _M_value);
     }
 };
 
@@ -324,12 +324,12 @@ class __replace_copy_functor
     }
 };
 
-//! Like ::std::next, but with specialization for dpcpp case
+//! Like std::next, but with specialization for dpcpp case
 template <typename _Iter>
 _Iter
-__pstl_next(_Iter __iter, typename ::std::iterator_traits<_Iter>::difference_type __n = 1)
+__pstl_next(_Iter __iter, typename std::iterator_traits<_Iter>::difference_type __n = 1)
 {
-    return ::std::next(__iter, __n);
+    return std::next(__iter, __n);
 }
 
 #if _ONEDPL_BACKEND_SYCL
@@ -337,7 +337,7 @@ template <sycl::access::mode _Mode, typename... _Params>
 oneapi::dpl::__internal::sycl_iterator<_Mode, _Params...>
 __pstl_next(
     oneapi::dpl::__internal::sycl_iterator<_Mode, _Params...> __iter,
-    typename ::std::iterator_traits<oneapi::dpl::__internal::sycl_iterator<_Mode, _Params...>>::difference_type __n = 1)
+    typename std::iterator_traits<oneapi::dpl::__internal::sycl_iterator<_Mode, _Params...>>::difference_type __n = 1)
 {
     return __iter + __n;
 }
@@ -399,7 +399,7 @@ __pstl_right_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __
 template <typename _IntType, typename _Acc>
 struct _ReverseCounter
 {
-    typedef ::std::make_signed_t<_IntType> difference_type;
+    typedef std::make_signed_t<_IntType> difference_type;
 
     _IntType __my_cn;
 
@@ -441,15 +441,15 @@ struct _ReverseCounter
 
     template <typename _Tp>
     static auto
-    __check_braces(int) -> decltype(::std::declval<_Tp>()[::std::declval<__integral>()], ::std::false_type{});
+    __check_braces(int) -> decltype(std::declval<_Tp>()[std::declval<__integral>()], std::false_type{});
 
     template <typename _Tp>
     static auto
-    __check_braces(...) -> ::std::true_type;
+    __check_braces(...) -> std::true_type;
 
     class __private_class;
 
-    operator ::std::conditional_t<decltype(__check_braces<_Acc>(0))::value, sycl::id<1>, __private_class>()
+    operator std::conditional_t<decltype(__check_braces<_Acc>(0))::value, sycl::id<1>, __private_class>()
     {
         return sycl::id<1>(__my_cn);
     }
@@ -468,38 +468,38 @@ __pstl_left_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __v
 }
 
 // Aliases for adjacent_find compile-time dispatching
-using __or_semantic = ::std::true_type;
-using __first_semantic = ::std::false_type;
+using __or_semantic = std::true_type;
+using __first_semantic = std::false_type;
 
 // is_callable_object
 template <typename _Tp, typename = void>
-struct __is_callable_object : ::std::false_type
+struct __is_callable_object : std::false_type
 {
 };
 
 template <typename _Tp>
-struct __is_callable_object<_Tp, ::std::void_t<decltype(&_Tp::operator())>> : ::std::true_type
+struct __is_callable_object<_Tp, std::void_t<decltype(&_Tp::operator())>> : std::true_type
 {
 };
 
 // is_pointer_to_const_member
 template <typename _Tp>
-struct __is_pointer_to_const_member_impl : ::std::false_type
+struct __is_pointer_to_const_member_impl : std::false_type
 {
 };
 
 template <typename _R, typename _U, typename... _Args>
-struct __is_pointer_to_const_member_impl<_R (_U::*)(_Args...) const> : ::std::true_type
+struct __is_pointer_to_const_member_impl<_R (_U::*)(_Args...) const> : std::true_type
 {
 };
 
 template <typename _R, typename _U, typename... _Args>
-struct __is_pointer_to_const_member_impl<_R (_U::*)(_Args...) const noexcept> : ::std::true_type
+struct __is_pointer_to_const_member_impl<_R (_U::*)(_Args...) const noexcept> : std::true_type
 {
 };
 
 template <typename _Tp, bool = __is_callable_object<_Tp>::value>
-struct __is_pointer_to_const_member : ::std::false_type
+struct __is_pointer_to_const_member : std::false_type
 {
 };
 
@@ -511,7 +511,7 @@ struct __is_pointer_to_const_member<_Tp, true> : __is_pointer_to_const_member_im
 // is_const_callable_object to check whether we call const or non-const object
 template <typename _Tp>
 using __is_const_callable_object =
-    ::std::integral_constant<bool, __is_callable_object<_Tp>::value && __is_pointer_to_const_member<_Tp>::value>;
+    std::integral_constant<bool, __is_callable_object<_Tp>::value && __is_pointer_to_const_member<_Tp>::value>;
 
 template <typename _Tp>
 inline constexpr bool __is_const_callable_object_v = __is_const_callable_object<_Tp>::value;
@@ -519,19 +519,19 @@ inline constexpr bool __is_const_callable_object_v = __is_const_callable_object<
 struct __next_to_last
 {
     template <typename _Iterator>
-    ::std::enable_if_t<::std::is_base_of_v<::std::random_access_iterator_tag,
-                                           typename ::std::iterator_traits<_Iterator>::iterator_category>,
+    std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag,
+                                           typename std::iterator_traits<_Iterator>::iterator_category>,
                        _Iterator>
-    operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
+    operator()(_Iterator __it, _Iterator __last, typename std::iterator_traits<_Iterator>::difference_type __n)
     {
         return __n > __last - __it ? __last : __it + __n;
     }
 
     template <typename _Iterator>
-    ::std::enable_if_t<!::std::is_base_of_v<::std::random_access_iterator_tag,
-                                            typename ::std::iterator_traits<_Iterator>::iterator_category>,
+    std::enable_if_t<!std::is_base_of_v<std::random_access_iterator_tag,
+                                            typename std::iterator_traits<_Iterator>::iterator_category>,
                        _Iterator>
-    operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
+    operator()(_Iterator __it, _Iterator __last, typename std::iterator_traits<_Iterator>::difference_type __n)
     {
         for (; --__n >= 0 && __it != __last; ++__it)
             ;
@@ -552,8 +552,8 @@ struct __lifetime_keeper_base
 template <typename... Ts>
 struct __lifetime_keeper : public __lifetime_keeper_base
 {
-    ::std::tuple<Ts...> __my_tmps;
-    __lifetime_keeper(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
+    std::tuple<Ts...> __my_tmps;
+    __lifetime_keeper(Ts... __t) : __my_tmps(std::make_tuple(__t...)) {}
 };
 
 //-----------------------------------------------------------------------
@@ -562,32 +562,32 @@ struct __lifetime_keeper : public __lifetime_keeper_base
 
 // Bitwise type casting, same as C++20 std::bit_cast
 template <typename _Dst, typename _Src>
-::std::enable_if_t<
-    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
+std::enable_if_t<
+    sizeof(_Dst) == sizeof(_Src) && std::is_trivially_copyable_v<_Dst> && std::is_trivially_copyable_v<_Src>, _Dst>
 __dpl_bit_cast(const _Src& __src) noexcept
 {
 #if __cpp_lib_bit_cast >= 201806L
-    return ::std::bit_cast<_Dst>(__src);
+    return std::bit_cast<_Dst>(__src);
 #elif _ONEDPL_BACKEND_SYCL && _ONEDPL_LIBSYCL_VERSION >= 50300
     return sycl::bit_cast<_Dst>(__src);
 #elif __has_builtin(__builtin_bit_cast)
     return __builtin_bit_cast(_Dst, __src);
 #else
     _Dst __result;
-    ::std::memcpy(&__result, &__src, sizeof(_Dst));
+    std::memcpy(&__result, &__src, sizeof(_Dst));
     return __result;
 #endif
 }
 
 // The max power of 2 not exceeding the given value, same as C++20 std::bit_floor
 template <typename _T>
-::std::enable_if_t<::std::is_integral_v<_T> && ::std::is_unsigned_v<_T>, _T>
+std::enable_if_t<std::is_integral_v<_T> && std::is_unsigned_v<_T>, _T>
 __dpl_bit_floor(_T __x) noexcept
 {
     if (__x == 0)
         return 0;
 #if __cpp_lib_int_pow2 >= 202002L
-    return ::std::bit_floor(__x);
+    return std::bit_floor(__x);
 #elif _ONEDPL_BACKEND_SYCL
     // Use the count-leading-zeros function
     return _T{1} << (sizeof(_T) * CHAR_BIT - sycl::clz(__x) - 1);
@@ -606,7 +606,7 @@ __dpl_bit_floor(_T __x) noexcept
 
 // The max power of 2 not smaller than the given value, same as C++20 std::bit_ceil
 template <typename _T>
-::std::enable_if_t<::std::is_integral_v<_T> && ::std::is_unsigned_v<_T>, _T>
+std::enable_if_t<std::is_integral_v<_T> && std::is_unsigned_v<_T>, _T>
 __dpl_bit_ceil(_T __x) noexcept
 {
     return ((__x & (__x - 1)) != 0) ? __dpl_bit_floor(__x) << 1 : __x;
@@ -630,7 +630,7 @@ struct __is_equality_comparable : std::false_type
 template <typename _Iterator1, typename _Iterator2>
 struct __is_equality_comparable<
     _Iterator1, _Iterator2,
-    std::void_t<decltype(::std::declval<::std::decay_t<_Iterator1>>() == ::std::declval<::std::decay_t<_Iterator2>>())>>
+    std::void_t<decltype(std::declval<std::decay_t<_Iterator1>>() == std::declval<std::decay_t<_Iterator2>>())>>
     : std::true_type
 {
 };
