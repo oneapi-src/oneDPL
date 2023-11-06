@@ -60,9 +60,8 @@ struct B
     ~B() { assert(i_ == 0); }
 };
 
-class C
+struct C
 {
-  public:
     C();
 };
 
