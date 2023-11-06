@@ -53,9 +53,8 @@ struct A
 {
 };
 
-class B
+struct B
 {
-  public:
     B();
 };
 
