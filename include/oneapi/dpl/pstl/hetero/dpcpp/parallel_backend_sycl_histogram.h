@@ -278,7 +278,7 @@ __histogram_general_private_global_atomics(Policy&& policy, const sycl::event& _
     ::std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(N, __work_group_size * iters_per_work_item);
 
     auto private_histograms =
-        oneapi::dpl::__par_backend_hetero::__internal::__buffer<Policy, __bin_type>(policy, segments * __num_bins)
+        oneapi::dpl::__par_backend_hetero::__buffer<Policy, __bin_type>(policy, segments * __num_bins)
             .get_buffer();
 
     auto e = policy.queue().submit([&](auto& h) {
