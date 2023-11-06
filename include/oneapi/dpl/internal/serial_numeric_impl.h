@@ -39,17 +39,17 @@ template <class _InputIterator, class _Tp>
 _Tp
 reduce(_InputIterator __first, _InputIterator __last, _Tp __init)
 {
-    return oneapi::dpl::reduce(__first, __last, __init, ::std::plus<_Tp>());
+    return oneapi::dpl::reduce(__first, __last, __init, std::plus<_Tp>());
 }
 
 template <class _InputIterator>
-typename ::std::iterator_traits<_InputIterator>::value_type
+typename std::iterator_traits<_InputIterator>::value_type
 reduce(_InputIterator __first, _InputIterator __last)
 {
-    return oneapi::dpl::reduce(__first, __last, typename ::std::iterator_traits<_InputIterator>::value_type{});
+    return oneapi::dpl::reduce(__first, __last, typename std::iterator_traits<_InputIterator>::value_type{});
 }
 #    else
-using ::std::reduce;
+using std::reduce;
 #    endif
 } // namespace dpl
 } // namespace oneapi

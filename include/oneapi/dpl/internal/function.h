@@ -29,16 +29,16 @@ namespace dpl
 {
 namespace internal
 {
-using ::std::get;
+using std::get;
 
 // struct for checking if iterator is a discard_iterator or not
 template <typename Iter, typename Void = void> // for non-discard iterators
-struct is_discard_iterator : ::std::false_type
+struct is_discard_iterator : std::false_type
 {
 };
 
 template <typename Iter> // for discard iterators
-struct is_discard_iterator<Iter, ::std::enable_if_t<Iter::is_discard::value>> : ::std::true_type
+struct is_discard_iterator<Iter, std::enable_if_t<Iter::is_discard::value>> : std::true_type
 {
 };
 
@@ -67,7 +67,7 @@ struct replace_if_fun
 template <typename ValueType, typename FlagType, typename BinaryOp>
 struct scan_by_key_fun
 {
-    using result_of = ::std::tuple<ValueType, FlagType>;
+    using result_of = std::tuple<ValueType, FlagType>;
 
     scan_by_key_fun(BinaryOp input) : binary_op(input) {}
 
@@ -75,8 +75,8 @@ struct scan_by_key_fun
     result_of
     operator()(_T1&& x, _T2&& y) const
     {
-        using ::std::get;
-        return ::std::make_tuple(get<1>(y) ? get<0>(y) : binary_op(get<0>(x), get<0>(y)), get<1>(x) | get<1>(y));
+        using std::get;
+        return std::make_tuple(get<1>(y) ? get<0>(y) : binary_op(get<0>(x), get<0>(y)), get<1>(x) | get<1>(y));
     }
 
   private:
@@ -93,8 +93,8 @@ struct segmented_scan_fun
     _T1
     operator()(const _T1& x, const _T2& y) const
     {
-        using ::std::get;
-        using x_t = ::std::tuple_element_t<0, _T1>;
+        using std::get;
+        using x_t = std::tuple_element_t<0, _T1>;
         auto new_x = get<1>(y) ? x_t(get<0>(y)) : x_t(binary_op(get<0>(x), get<0>(y)));
         auto new_y = get<1>(x) | get<1>(y);
         return _T1(new_x, new_y);
@@ -115,14 +115,14 @@ class scatter_and_accumulate_fun
     void
     operator()(_T&& x) const
     {
-        using ::std::get;
-        if (::std::get<2>(x))
+        using std::get;
+        if (std::get<2>(x))
         {
-            result1[::std::get<1>(x)] = ::std::get<0>(x);
+            result1[std::get<1>(x)] = std::get<0>(x);
         }
-        if (::std::get<4>(x))
+        if (std::get<4>(x))
         {
-            result2[::std::get<1>(x)] = ::std::get<3>(x);
+            result2[std::get<1>(x)] = std::get<3>(x);
         }
     }
 
@@ -144,7 +144,7 @@ class transform_if_stencil_fun
     void
     operator()(_T&& t) const
     {
-        using ::std::get;
+        using std::get;
         if (pred(get<1>(t)))
             get<2>(t) = op(get<0>(t));
     }

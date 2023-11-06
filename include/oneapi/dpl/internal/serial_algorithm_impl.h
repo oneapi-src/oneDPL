@@ -29,7 +29,7 @@ template <typename _InputIterator, typename _Size, typename _Function>
 _InputIterator
 for_each_n(_InputIterator __first, _Size __n, _Function __f)
 {
-    typename ::std::iterator_traits<_InputIterator>::difference_type __n2 = __n;
+    typename std::iterator_traits<_InputIterator>::difference_type __n2 = __n;
     while (__n2-- > 0)
     {
         __f(*__first);
@@ -38,7 +38,7 @@ for_each_n(_InputIterator __first, _Size __n, _Function __f)
     return __first;
 }
 #    else
-using ::std::for_each_n;
+using std::for_each_n;
 #    endif // _ONEDPL_HAS_NUMERIC_SERIAL_IMPL
 } // namespace dpl
 } // namespace oneapi

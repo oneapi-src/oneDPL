@@ -80,7 +80,7 @@ class Reduce4;
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, ::std::pair<OutputIterator1, OutputIterator2>>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, std::pair<OutputIterator1, OutputIterator2>>
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
                        BinaryOperator binary_op)
@@ -95,19 +95,19 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     //          keys_result   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 } -- result1
     //          values_result = { 1, 2, 3, 4, 2, 6, 2, 6, 0 } -- result2
 
-    const auto n = ::std::distance(first1, last1);
+    const auto n = std::distance(first1, last1);
 
     if (n <= 0)
-        return ::std::make_pair(result1, result2);
+        return std::make_pair(result1, result2);
     else if (n == 1)
     {
         *result1 = *first1;
         *result2 = *first2;
-        return ::std::make_pair(result1 + 1, result2 + 1);
+        return std::make_pair(result1 + 1, result2 + 1);
     }
 
     typedef uint64_t FlagType;
-    typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
+    typedef typename std::iterator_traits<InputIterator2>::value_type ValueType;
     typedef uint64_t CountType;
 
     // buffer that is used to store a flag indicating if the associated key is not equal to
@@ -143,7 +143,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     // Compute the indices each segment sum should be written
     oneapi::dpl::exclusive_scan(policy, _mask.get() + 1, _mask.get() + n + 1, _scanned_tail_flags.get(), CountType(0),
-                                ::std::plus<CountType>());
+                                std::plus<CountType>());
 
     // for example: _scanned_tail_flags = { 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8 }
 
@@ -154,7 +154,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     CountType N = scanned_tail_flags[n - 1] + 1;
 
     // scatter the keys and accumulated values
-    oneapi::dpl::for_each(::std::forward<Policy>(policy),
+    oneapi::dpl::for_each(std::forward<Policy>(policy),
                           make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1),
                           make_zip_iterator(first1, scanned_tail_flags, mask, scanned_values, mask + 1) + n,
                           internal::scatter_and_accumulate_fun<OutputIterator1, OutputIterator2>(result1, result2));
@@ -162,7 +162,7 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // for example: result1 = {1, 2, 3, 4, 1, 3, 1, 3, 0}
     // for example: result2 = {1, 2, 3, 4, 2, 6, 2, 6, 0}
 
-    return ::std::make_pair(result1 + N, result2 + N);
+    return std::make_pair(result1 + N, result2 + N);
 }
 
 #if _ONEDPL_BACKEND_SYCL
@@ -194,11 +194,11 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range3>>
 __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
                          _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
-                         ::std::false_type /* has_known_identity */)
+                         std::false_type /* has_known_identity */)
 {
     return oneapi::dpl::experimental::ranges::reduce_by_segment(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__keys), ::std::forward<_Range2>(__values),
-        ::std::forward<_Range3>(__out_keys), ::std::forward<_Range4>(__out_values), __binary_pred, __binary_op);
+        std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__keys), std::forward<_Range2>(__values),
+        std::forward<_Range3>(__out_keys), std::forward<_Range4>(__out_values), __binary_pred, __binary_op);
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
@@ -207,9 +207,9 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
                                                              oneapi::dpl::__internal::__difference_t<_Range3>>
 __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
                          _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
-                         ::std::true_type /* has_known_identity */)
+                         std::true_type /* has_known_identity */)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
+    using _Policy = std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
 
     using _SegReduceCountKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
@@ -229,12 +229,12 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
     using __key_type = oneapi::dpl::__internal::__value_t<_Range1>;
     using __val_type = oneapi::dpl::__internal::__value_t<_Range2>;
 
-    const ::std::size_t __n = __keys.size();
+    const std::size_t __n = __keys.size();
 
-    constexpr ::std::uint16_t __vals_per_item =
+    constexpr std::uint16_t __vals_per_item =
         16; // Each work item serially processes 16 items. Best observed performance on gpu
 
-    ::std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+    std::size_t __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
     // adjust __wgroup_size according to local memory limit. Double the requirement on __val_type due to sycl group algorithm's use
     // of SLM.
@@ -251,14 +251,14 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
     auto __seg_reduce_prefix_kernel =
         __par_backend_hetero::__internal::__kernel_compiler<_SegReducePrefixKernel>::__compile(__exec);
     __wgroup_size =
-        ::std::min({__wgroup_size,
+        std::min({__wgroup_size,
                     oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_count_kernel),
                     oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_offset_kernel),
                     oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_wg_kernel),
                     oneapi::dpl::__internal::__kernel_work_group_size(__exec, __seg_reduce_prefix_kernel)});
 #endif
 
-    ::std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
+    std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
     // intermediate reductions within a workgroup
     auto __partials =
@@ -288,21 +288,21 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 #endif
                                                                               sycl::nd_item<1> __item) {
                 auto __group = __item.get_group();
-                ::std::size_t __group_id = __item.get_group(0);
-                ::std::size_t __local_id = __item.get_local_id(0);
-                ::std::size_t __global_id = __item.get_global_id(0);
+                std::size_t __group_id = __item.get_group(0);
+                std::size_t __local_id = __item.get_local_id(0);
+                std::size_t __global_id = __item.get_global_id(0);
 
-                ::std::size_t __start = __global_id * __vals_per_item;
-                ::std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
-                ::std::size_t __item_segments = 0;
+                std::size_t __start = __global_id * __vals_per_item;
+                std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
+                std::size_t __item_segments = 0;
 
                 // 1a. Work item scan to identify segment ends
-                for (::std::size_t __i = __start; __i < __end; ++__i)
+                for (std::size_t __i = __start; __i < __end; ++__i)
                     if (__n - 1 == __i || !__binary_pred(__keys[__i], __keys[__i + 1]))
                         ++__item_segments;
 
                 // 1b. Work group reduction
-                ::std::size_t __num_segs = __dpl_sycl::__reduce_over_group(
+                std::size_t __num_segs = __dpl_sycl::__reduce_over_group(
                     __group, __item_segments, __dpl_sycl::__plus<decltype(__item_segments)>());
 
                 // 1c. First work item writes segment count to global memory
@@ -347,27 +347,27 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
             __seg_reduce_wg_kernel,
 #endif
             sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
-                ::std::array<__val_type, __vals_per_item> __loc_partials;
+                std::array<__val_type, __vals_per_item> __loc_partials;
 
                 auto __group = __item.get_group();
-                ::std::size_t __group_id = __item.get_group(0);
-                ::std::size_t __local_id = __item.get_local_id(0);
-                ::std::size_t __global_id = __item.get_global_id(0);
+                std::size_t __group_id = __item.get_group(0);
+                std::size_t __local_id = __item.get_local_id(0);
+                std::size_t __global_id = __item.get_global_id(0);
 
                 // 2a. Lookup the number of prior segs
                 auto __wg_num_prior_segs = __seg_ends_scan_acc[__group_id];
 
                 // 2b. Perform a serial scan within the work item over assigned elements. Store partial
                 // reductions in work group local memory.
-                ::std::size_t __start = __global_id * __vals_per_item;
-                ::std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
+                std::size_t __start = __global_id * __vals_per_item;
+                std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
 
-                ::std::size_t __max_end = 0;
-                ::std::size_t __item_segments = 0;
+                std::size_t __max_end = 0;
+                std::size_t __item_segments = 0;
                 auto __identity = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
 
                 __val_type __accumulator = __identity;
-                for (::std::size_t __i = __start; __i < __end; ++__i)
+                for (std::size_t __i = __start; __i < __end; ++__i)
                 {
                     __accumulator = __binary_op(__accumulator, __values[__i]);
                     if (__n - 1 == __i || !__binary_pred(__keys[__i], __keys[__i + 1]))
@@ -380,12 +380,12 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                 }
 
                 // 2c. Count the number of prior work segments cooperatively over group
-                ::std::size_t __prior_segs_in_wg = __dpl_sycl::__exclusive_scan_over_group(
+                std::size_t __prior_segs_in_wg = __dpl_sycl::__exclusive_scan_over_group(
                     __group, __item_segments, __dpl_sycl::__plus<decltype(__item_segments)>());
-                ::std::size_t __start_idx = __wg_num_prior_segs + __prior_segs_in_wg;
+                std::size_t __start_idx = __wg_num_prior_segs + __prior_segs_in_wg;
 
                 // 2d. Find the greatest segment end less than the current index (inclusive)
-                ::std::size_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
+                std::size_t __closest_seg_id = __dpl_sycl::__inclusive_scan_over_group(
                     __group, __max_end, __dpl_sycl::__maximum<decltype(__max_end)>());
 
                 // __wg_segmented_scan is a derivative work and responsible for the third header copyright
@@ -395,7 +395,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 
                 // 2e. Update local partial reductions in first segment and write to global memory.
                 bool __apply_aggs = true;
-                ::std::size_t __item_offset = 0;
+                std::size_t __item_offset = 0;
 
                 // first item in group does not have any work-group aggregates to apply
                 if (__local_id == 0)
@@ -409,11 +409,11 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                 }
 
                 // apply the aggregates and copy the locally stored values to destination buffer
-                for (::std::size_t __i = __start; __i < __end; ++__i)
+                for (std::size_t __i = __start; __i < __end; ++__i)
                 {
                     if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
                     {
-                        ::std::size_t __idx = __start_idx + __item_offset;
+                        std::size_t __idx = __start_idx + __item_offset;
                         if (__apply_aggs)
                         {
                             __out_values[__idx] = __binary_op(__carry_in, __loc_partials[__i - __start]);
@@ -471,15 +471,15 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 #endif
                 sycl::nd_range<1>{__n_groups * __wgroup_size, __wgroup_size}, [=](sycl::nd_item<1> __item) {
                     auto __group = __item.get_group();
-                    ::std::int64_t __group_id = __item.get_group(0);
-                    ::std::size_t __global_id = __item.get_global_id(0);
-                    ::std::size_t __local_id = __item.get_local_id(0);
+                    std::int64_t __group_id = __item.get_group(0);
+                    std::size_t __global_id = __item.get_global_id(0);
+                    std::size_t __local_id = __item.get_local_id(0);
 
-                    ::std::size_t __start = __global_id * __vals_per_item;
-                    ::std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
-                    ::std::size_t __item_segments = 0;
+                    std::size_t __start = __global_id * __vals_per_item;
+                    std::size_t __end = __dpl_sycl::__minimum<decltype(__n)>{}(__start + __vals_per_item, __n);
+                    std::size_t __item_segments = 0;
 
-                    ::std::int64_t __wg_agg_idx = __group_id - 1;
+                    std::int64_t __wg_agg_idx = __group_id - 1;
                     __val_type __agg_collector = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
 
                     bool __ag_exists = false;
@@ -489,17 +489,17 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                     {
                         __ag_exists = __start < __n;
                         // local reductions followed by a sweep
-                        constexpr ::std::int32_t __vals_to_explore = 16;
+                        constexpr std::int32_t __vals_to_explore = 16;
                         bool __last_it = false;
                         __loc_seg_ends_acc[__local_id] = false;
                         __loc_partials_acc[__local_id] = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
-                        for (::std::int32_t __i = __wg_agg_idx - __vals_to_explore * __local_id; !__last_it;
+                        for (std::int32_t __i = __wg_agg_idx - __vals_to_explore * __local_id; !__last_it;
                              __i -= __wgroup_size * __vals_to_explore)
                         {
                             __val_type __local_collector = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
                             // exploration phase
-                            for (::std::int32_t __j = __i;
-                                 __j > __dpl_sycl::__maximum<::std::int32_t>{}(-1L, __i - __vals_to_explore); --__j)
+                            for (std::int32_t __j = __i;
+                                 __j > __dpl_sycl::__maximum<std::int32_t>{}(-1L, __i - __vals_to_explore); --__j)
                             {
                                 __local_collector = __binary_op(__partials_acc[__j], __local_collector);
                                 if (__seg_ends_acc[__j] || __j == 0)
@@ -513,7 +513,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                             // serial aggregate collection and synchronization
                             if (__local_id == 0)
                             {
-                                for (::std::size_t __j = 0; __j < __wgroup_size; ++__j)
+                                for (std::size_t __j = 0; __j < __wgroup_size; ++__j)
                                 {
                                     __agg_collector = __binary_op(__loc_partials_acc[__j], __agg_collector);
                                     if (__loc_seg_ends_acc[__j])
@@ -534,25 +534,25 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                             return;
                     }
                     // 3b. count the segment ends
-                    for (::std::size_t __i = __start; __i < __end; ++__i)
+                    for (std::size_t __i = __start; __i < __end; ++__i)
                         if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
                             ++__item_segments;
 
-                    ::std::size_t __prior_segs_in_wg = __dpl_sycl::__exclusive_scan_over_group(
+                    std::size_t __prior_segs_in_wg = __dpl_sycl::__exclusive_scan_over_group(
                         __group, __item_segments, __dpl_sycl::__plus<decltype(__item_segments)>());
 
                     // 3c. Determine prior index
-                    ::std::size_t __wg_num_prior_segs = __seg_ends_scan_acc[__group_id];
+                    std::size_t __wg_num_prior_segs = __seg_ends_scan_acc[__group_id];
 
                     // 3d. Second pass over the keys, reidentifying end segments and applying work group
                     // aggregates if appropriate. Both the key and reduction value are written to the final output at the
                     // computed index
-                    ::std::size_t __item_offset = 0;
-                    for (::std::size_t __i = __start; __i < __end; ++__i)
+                    std::size_t __item_offset = 0;
+                    for (std::size_t __i = __start; __i < __end; ++__i)
                     {
                         if (__i == __n - 1 || !__binary_pred(__keys[__i], __keys[__i + 1]))
                         {
-                            ::std::size_t __idx = __wg_num_prior_segs + __prior_segs_in_wg + __item_offset;
+                            std::size_t __idx = __wg_num_prior_segs + __prior_segs_in_wg + __item_offset;
 
                             // apply the aggregate if it is the first segment end in the workgroup only
                             if (__prior_segs_in_wg == 0 && __item_offset == 0 && __ag_exists)
@@ -573,7 +573,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, ::std::pair<OutputIterator1, OutputIterator2>>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, std::pair<OutputIterator1, OutputIterator2>>
 reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
                        BinaryOperator binary_op)
@@ -587,14 +587,14 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     //          keys_result   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 } -- result1
     //          values_result = { 1, 2, 3, 4, 2, 6, 2, 6, 0 } -- result2
 
-    using _CountType = ::std::uint64_t;
+    using _CountType = std::uint64_t;
 
     namespace __bknd = __par_backend_hetero;
 
-    const auto n = ::std::distance(first1, last1);
+    const auto n = std::distance(first1, last1);
 
     if (n == 0)
-        return ::std::make_pair(result1, result2);
+        return std::make_pair(result1, result2);
 
     auto keep_keys = __ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto key_buf = keep_keys(first1, last1);
@@ -607,75 +607,75 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
 
     using has_known_identity =
         typename __dpl_sycl::__has_known_identity<BinaryOperator,
-                                                  typename ::std::iterator_traits<InputIterator2>::value_type>::type;
+                                                  typename std::iterator_traits<InputIterator2>::value_type>::type;
 
     // number of unique keys
-    _CountType __n = __sycl_reduce_by_segment(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
+    _CountType __n = __sycl_reduce_by_segment(std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
                                               key_output_buf.all_view(), value_output_buf.all_view(), binary_pred,
                                               binary_op, has_known_identity{});
 
-    return ::std::make_pair(result1 + __n, result2 + __n);
+    return std::make_pair(result1 + __n, result2 + __n);
 }
 #endif
 } // namespace internal
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_execution_policy<Policy, ::std::pair<OutputIterator1, OutputIterator2>>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, std::pair<OutputIterator1, OutputIterator2>>
 reduce_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                   OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred, BinaryOperator binary_op)
 {
-    return internal::reduce_by_segment_impl(::std::forward<Policy>(policy), first1, last1, first2, result1, result2,
+    return internal::reduce_by_segment_impl(std::forward<Policy>(policy), first1, last1, first2, result1, result2,
                                             binary_pred, binary_op);
 }
 
 template <typename Policy, typename InputIt1, typename InputIt2, typename OutputIt1, typename OutputIt2,
           typename BinaryPred>
-oneapi::dpl::__internal::__enable_if_execution_policy<Policy, ::std::pair<OutputIt1, OutputIt2>>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, std::pair<OutputIt1, OutputIt2>>
 reduce_by_segment(Policy&& policy, InputIt1 first1, InputIt1 last1, InputIt2 first2, OutputIt1 result1,
                   OutputIt2 result2, BinaryPred binary_pred)
 {
-    typedef typename ::std::iterator_traits<InputIt2>::value_type T;
+    typedef typename std::iterator_traits<InputIt2>::value_type T;
 
-    return reduce_by_segment(::std::forward<Policy>(policy), first1, last1, first2, result1, result2, binary_pred,
-                             ::std::plus<T>());
+    return reduce_by_segment(std::forward<Policy>(policy), first1, last1, first2, result1, result2, binary_pred,
+                             std::plus<T>());
 }
 
 template <typename Policy, typename InputIt1, typename InputIt2, typename OutputIt1, typename OutputIt2>
-oneapi::dpl::__internal::__enable_if_execution_policy<Policy, ::std::pair<OutputIt1, OutputIt2>>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, std::pair<OutputIt1, OutputIt2>>
 reduce_by_segment(Policy&& policy, InputIt1 first1, InputIt1 last1, InputIt2 first2, OutputIt1 result1,
                   OutputIt2 result2)
 {
-    typedef typename ::std::iterator_traits<InputIt1>::value_type T;
+    typedef typename std::iterator_traits<InputIt1>::value_type T;
 
-    return reduce_by_segment(::std::forward<Policy>(policy), first1, last1, first2, result1, result2,
-                             ::std::equal_to<T>());
+    return reduce_by_segment(std::forward<Policy>(policy), first1, last1, first2, result1, result2,
+                             std::equal_to<T>());
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_execution_policy<Policy, ::std::pair<OutputIterator1, OutputIterator2>>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, std::pair<OutputIterator1, OutputIterator2>>
 reduce_by_key(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
               OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred, BinaryOperator binary_op)
 {
-    return reduce_by_segment(::std::forward<Policy>(policy), first1, last1, first2, result1, result2, binary_pred,
+    return reduce_by_segment(std::forward<Policy>(policy), first1, last1, first2, result1, result2, binary_pred,
                              binary_op);
 }
 
 template <typename Policy, typename InputIt1, typename InputIt2, typename OutputIt1, typename OutputIt2,
           typename BinaryPred>
-oneapi::dpl::__internal::__enable_if_execution_policy<Policy, ::std::pair<OutputIt1, OutputIt2>>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, std::pair<OutputIt1, OutputIt2>>
 reduce_by_key(Policy&& policy, InputIt1 first1, InputIt1 last1, InputIt2 first2, OutputIt1 result1, OutputIt2 result2,
               BinaryPred binary_pred)
 {
-    return reduce_by_segment(::std::forward<Policy>(policy), first1, last1, first2, result1, result2, binary_pred);
+    return reduce_by_segment(std::forward<Policy>(policy), first1, last1, first2, result1, result2, binary_pred);
 }
 
 template <typename Policy, typename InputIt1, typename InputIt2, typename OutputIt1, typename OutputIt2>
-oneapi::dpl::__internal::__enable_if_execution_policy<Policy, ::std::pair<OutputIt1, OutputIt2>>
+oneapi::dpl::__internal::__enable_if_execution_policy<Policy, std::pair<OutputIt1, OutputIt2>>
 reduce_by_key(Policy&& policy, InputIt1 first1, InputIt1 last1, InputIt2 first2, OutputIt1 result1, OutputIt2 result2)
 {
-    return reduce_by_segment(::std::forward<Policy>(policy), first1, last1, first2, result1, result2);
+    return reduce_by_segment(std::forward<Policy>(policy), first1, last1, first2, result1, result2);
 }
 } // end namespace dpl
 } // end namespace oneapi

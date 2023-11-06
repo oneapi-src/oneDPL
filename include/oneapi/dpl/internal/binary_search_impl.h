@@ -48,7 +48,7 @@ struct custom_brick
     {
         T start_orig = 0;
         auto end_orig = size;
-        using ::std::get;
+        using std::get;
         switch (func)
         {
         case 0:
@@ -75,8 +75,8 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     return oneapi::dpl::transform(policy, value_start, value_end, result,
-                                  [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
-                                      return ::std::lower_bound(start, end, val, comp) - start;
+                                  [=](typename std::iterator_traits<InputIterator2>::reference val) {
+                                      return std::lower_bound(start, end, val, comp) - start;
                                   });
 }
 
@@ -87,8 +87,8 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     return oneapi::dpl::transform(policy, value_start, value_end, result,
-                                  [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
-                                      return ::std::upper_bound(start, end, val, comp) - start;
+                                  [=](typename std::iterator_traits<InputIterator2>::reference val) {
+                                      return std::upper_bound(start, end, val, comp) - start;
                                   });
 }
 
@@ -99,8 +99,8 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
                    InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     return oneapi::dpl::transform(policy, value_start, value_end, result,
-                                  [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
-                                      return ::std::binary_search(start, end, val, comp);
+                                  [=](typename std::iterator_traits<InputIterator2>::reference val) {
+                                      return std::binary_search(start, end, val, comp);
                                   });
 }
 
@@ -112,12 +112,12 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     namespace __bknd = __par_backend_hetero;
-    const auto size = ::std::distance(start, end);
+    const auto size = std::distance(start, end);
 
     if (size <= 0)
         return result;
 
-    const auto value_size = ::std::distance(value_start, value_end);
+    const auto value_size = std::distance(value_start, value_end);
 
     auto keep_input = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto input_buf = keep_input(start, end);
@@ -128,7 +128,7 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(::std::forward<Policy>(policy),
+    __bknd::__parallel_for(std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size,
                            zip_vw)
         .wait();
@@ -142,12 +142,12 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     namespace __bknd = __par_backend_hetero;
-    const auto size = ::std::distance(start, end);
+    const auto size = std::distance(start, end);
 
     if (size <= 0)
         return result;
 
-    const auto value_size = ::std::distance(value_start, value_end);
+    const auto value_size = std::distance(value_start, value_end);
 
     auto keep_input = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto input_buf = keep_input(start, end);
@@ -158,7 +158,7 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(::std::forward<Policy>(policy),
+    __bknd::__parallel_for(std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size,
                            zip_vw)
         .wait();
@@ -172,12 +172,12 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
                    InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     namespace __bknd = __par_backend_hetero;
-    const auto size = ::std::distance(start, end);
+    const auto size = std::distance(start, end);
 
     if (size <= 0)
         return result;
 
-    const auto value_size = ::std::distance(value_start, value_end);
+    const auto value_size = std::distance(value_start, value_end);
 
     auto keep_input = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read, InputIterator1>();
     auto input_buf = keep_input(start, end);
@@ -188,7 +188,7 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(::std::forward<Policy>(policy),
+    __bknd::__parallel_for(std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size,
                            zip_vw)
         .wait();
@@ -204,7 +204,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 lower_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result)
 {
-    return internal::lower_bound_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result,
+    return internal::lower_bound_impl(std::forward<Policy>(policy), start, end, value_start, value_end, result,
                                       oneapi::dpl::__internal::__pstl_less());
 }
 
@@ -214,7 +214,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 lower_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    return internal::lower_bound_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result, comp);
+    return internal::lower_bound_impl(std::forward<Policy>(policy), start, end, value_start, value_end, result, comp);
 }
 //Lower Bound end
 
@@ -225,7 +225,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 upper_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result)
 {
-    return internal::upper_bound_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result,
+    return internal::upper_bound_impl(std::forward<Policy>(policy), start, end, value_start, value_end, result,
                                       oneapi::dpl::__internal::__pstl_less());
 }
 
@@ -235,7 +235,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 upper_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    return internal::upper_bound_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result, comp);
+    return internal::upper_bound_impl(std::forward<Policy>(policy), start, end, value_start, value_end, result, comp);
 }
 
 //Upper Bound end
@@ -247,7 +247,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
               InputIterator2 value_end, OutputIterator result)
 {
-    return internal::binary_search_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result,
+    return internal::binary_search_impl(std::forward<Policy>(policy), start, end, value_start, value_end, result,
                                         oneapi::dpl::__internal::__pstl_less());
 }
 
@@ -257,7 +257,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
               InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    return internal::binary_search_impl(::std::forward<Policy>(policy), start, end, value_start, value_end, result,
+    return internal::binary_search_impl(std::forward<Policy>(policy), start, end, value_start, value_end, result,
                                         comp);
 }
 
