@@ -125,7 +125,7 @@ main()
         });
     }
 
-    EXPECT_TRUE(ret, "")
+    EXPECT_TRUE(ret, "Wrong result of dpl::is_nothrow_constructible check");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
