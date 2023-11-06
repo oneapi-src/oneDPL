@@ -41,9 +41,8 @@ class Empty
 {
 };
 
-class NotEmpty
+struct NotEmpty
 {
-  public:
     virtual ~NotEmpty();
 };
 
