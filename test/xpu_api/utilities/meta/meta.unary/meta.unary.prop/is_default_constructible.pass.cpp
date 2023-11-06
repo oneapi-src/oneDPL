@@ -64,7 +64,7 @@ class Empty
 
 class NoDefaultConstructor
 {
-    NoDefaultConstructor(int) {}
+    NoDefaultConstructor() = delete;
 };
 
 union Union {
