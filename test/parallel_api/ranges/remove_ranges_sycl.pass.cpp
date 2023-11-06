@@ -35,10 +35,10 @@ main()
 
     T val1 = 2;
     T val2 = 3;
-    ::std::vector<T> data = {2, 5, 2, 4, 2, 0, 6, -7, 7, 3};
+    std::vector<T> data = {2, 5, 2, 4, 2, 0, 6, -7, 7, 3};
 
-    ::std::vector<T> in(data);
-    ::std::vector<T>::difference_type in_end_n;
+    std::vector<T> in(data);
+    std::vector<T>::difference_type in_end_n;
     using namespace oneapi::dpl::experimental::ranges;
     {
         sycl::buffer<T> A(in.data(), sycl::range<1>(in.size()));
@@ -53,11 +53,11 @@ main()
     }
 
     //check result
-    ::std::vector<T> exp(data);
-    auto exp_end = ::std::remove(exp.begin(), exp.end(), val1);
-    exp_end = ::std::remove(exp.begin(), exp_end, val2);
+    std::vector<T> exp(data);
+    auto exp_end = std::remove(exp.begin(), exp.end(), val1);
+    exp_end = std::remove(exp.begin(), exp_end, val2);
 
-    EXPECT_TRUE(::std::distance(exp.begin(), exp_end) == in_end_n, "wrong effect from remove with sycl ranges");
+    EXPECT_TRUE(std::distance(exp.begin(), exp_end) == in_end_n, "wrong effect from remove with sycl ranges");
     EXPECT_EQ_N(exp.begin(), in.begin(), in_end_n, "wrong effect from remove with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING
     return TestUtils::done(_ENABLE_RANGES_TESTING);

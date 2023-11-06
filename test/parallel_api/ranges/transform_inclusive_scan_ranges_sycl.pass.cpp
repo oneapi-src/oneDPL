@@ -51,14 +51,14 @@ main()
         auto exec = TestUtils::default_dpcpp_policy;
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
-        ranges::transform_inclusive_scan(exec, A, view_res1, ::std::plus<int>(), lambda);
-        ranges::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, B2, ::std::plus<int>(), lambda, init);
+        ranges::transform_inclusive_scan(exec, A, view_res1, std::plus<int>(), lambda);
+        ranges::transform_inclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, B2, std::plus<int>(), lambda, init);
     }
 
     //check result
     int expected1[max_n], expected2[max_n];
-    ::std::transform_inclusive_scan(oneapi::dpl::execution::seq, data, data + max_n, expected1, ::std::plus<int>(), lambda);
-    ::std::transform_inclusive_scan(oneapi::dpl::execution::seq, data, data + max_n, expected2, ::std::plus<int>(), lambda, init);
+    std::transform_inclusive_scan(oneapi::dpl::execution::seq, data, data + max_n, expected1, std::plus<int>(), lambda);
+    std::transform_inclusive_scan(oneapi::dpl::execution::seq, data, data + max_n, expected2, std::plus<int>(), lambda, init);
 
     EXPECT_EQ_N(expected1, data1, max_n, "wrong effect from transform_inclusive_scan, sycl ranges");
     EXPECT_EQ_N(expected2, data2, max_n, "wrong effect from transform_inclusive_scan with init, sycl ranges");

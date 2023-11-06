@@ -42,8 +42,8 @@ main()
     reverse(TestUtils::default_dpcpp_policy, A);
 
     for(auto v: views::host_all(A))
-        ::std::cout << v << " ";
-    ::std::cout << ::std::endl;
+        std::cout << v << " ";
+    std::cout << std::endl;
     //check result
     EXPECT_EQ_RANGES(iota | views::reverse, views::host_all(A), "wrong effect from reverse");
 

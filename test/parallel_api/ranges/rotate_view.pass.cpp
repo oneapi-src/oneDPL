@@ -41,7 +41,7 @@ main()
     auto view2 = views::rotate(__nanorange::nano::ranges::views::all(data), rotate_val);
 
     //check result
-    ::std::rotate_copy(data, data + rotate_val, data + max_n, expected);
+    std::rotate_copy(data, data + rotate_val, data + max_n, expected);
 
     //check aasigment
     view1[0] = -1;

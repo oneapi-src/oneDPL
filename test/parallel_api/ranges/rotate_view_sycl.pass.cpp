@@ -44,7 +44,7 @@ main()
     }
 
     //check result
-    ::std::rotate(data, data + rotate_val, data + max_n);
+    std::rotate(data, data + rotate_val, data + max_n);
 
     EXPECT_EQ_N(expected, data, max_n, "wrong result from rotate view on a device");
 

@@ -52,13 +52,13 @@ main()
         auto exec1 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 0>>(exec);
         auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
 
-        ranges::transform_exclusive_scan(exec1, view, view_res, 100, ::std::plus<int>(), lambda);
-        ranges::transform_exclusive_scan(exec2, A, C, 100, ::std::plus<int>(), lambda);
+        ranges::transform_exclusive_scan(exec1, view, view_res, 100, std::plus<int>(), lambda);
+        ranges::transform_exclusive_scan(exec2, A, C, 100, std::plus<int>(), lambda);
     }
 
     //check result
     int expected[max_n];
-    ::std::transform_exclusive_scan(oneapi::dpl::execution::seq, data, data + max_n, expected, 100, ::std::plus<int>(), lambda);
+    std::transform_exclusive_scan(oneapi::dpl::execution::seq, data, data + max_n, expected, 100, std::plus<int>(), lambda);
 
     EXPECT_EQ_N(expected, data1, max_n, "wrong effect from transform_exclusive_scan with init, sycl ranges");
     EXPECT_EQ_N(expected, data2, max_n, "wrong effect from transform_exclusive_scan with init, sycl buffers");

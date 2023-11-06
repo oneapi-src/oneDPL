@@ -45,12 +45,12 @@ main()
 
         res1 = reduce(exec, A);
         res2 = reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, 100);
-        res3 = reduce(make_new_policy<new_kernel_name<Policy, 1>>(exec), view, 100, ::std::plus<int>());
+        res3 = reduce(make_new_policy<new_kernel_name<Policy, 1>>(exec), view, 100, std::plus<int>());
     }
 
     //check result
-    auto expected1 = ::std::accumulate(data, data + max_n, 0);
-    auto expected2 = ::std::accumulate(data, data + max_n, 100);
+    auto expected1 = std::accumulate(data, data + max_n, 0);
+    auto expected2 = std::accumulate(data, data + max_n, 100);
     auto expected3 = expected2;
 
     EXPECT_TRUE(res1 == expected1, "wrong effect from reduce with sycl ranges");

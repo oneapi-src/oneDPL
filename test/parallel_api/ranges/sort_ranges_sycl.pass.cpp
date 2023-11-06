@@ -48,24 +48,24 @@ main()
 
         sort(exec, A); //check passing sycl buffer directly
         sort(make_new_policy<new_kernel_name<Policy, 0>>(exec), all_view<int, sycl::access::mode::read_write>(B),
-            ::std::greater<int>());
+            std::greater<int>());
     }
 
     //check result
-    bool res1 = ::std::is_sorted(data1, data1 + max_n);
+    bool res1 = std::is_sorted(data1, data1 + max_n);
     EXPECT_TRUE(res1, "wrong effect from 'sort' with sycl ranges");
 
-    bool res2 = ::std::is_sorted(data2, data2 + max_n, ::std::greater<int>());
+    bool res2 = std::is_sorted(data2, data2 + max_n, std::greater<int>());
     EXPECT_TRUE(res2, "wrong effect from 'sort with comparator' with sycl ranges");
 
     //test with random number and projection usage
-    ::std::default_random_engine gen{std::random_device{}()};
-    ::std::uniform_real_distribution<float> dist(0.0, 100.0);
+    std::default_random_engine gen{std::random_device{}()};
+    std::uniform_real_distribution<float> dist(0.0, 100.0);
 
-    constexpr ::std::size_t N = 1 << 20;
-    ::std::vector<int> keys(N);
-    ::std::generate(keys.begin(), keys.end(), [&] { return dist(gen); });
-    ::std::vector<int> values(keys);
+    constexpr std::size_t N = 1 << 20;
+    std::vector<int> keys(N);
+    std::generate(keys.begin(), keys.end(), [&] { return dist(gen); });
+    std::vector<int> values(keys);
 
     {
         sycl::buffer<int> A(values.begin(), values.end());
@@ -75,10 +75,10 @@ main()
         B.set_final_data(keys.begin());
         B.set_write_back(true);
 
-        sort(make_new_policy<new_kernel_name<Policy, 1>>(exec), zip_view(views::all(A), views::all(B)), ::std::less{},
-             [](const auto& a) { return ::std::get<1>(a); });
+        sort(make_new_policy<new_kernel_name<Policy, 1>>(exec), zip_view(views::all(A), views::all(B)), std::less{},
+             [](const auto& a) { return std::get<1>(a); });
     }
-    bool res3 = ::std::is_sorted(values.begin(), values.end(), ::std::less{});
+    bool res3 = std::is_sorted(values.begin(), values.end(), std::less{});
     EXPECT_TRUE(res3, "wrong effect from 'sort by key'");
 #endif //_ENABLE_RANGES_TESTING
 

@@ -57,8 +57,8 @@ main()
 
     //check result
     int expected[max_n];
-    ::std::transform(data, data + max_n, expected, lambda1);
-    ::std::transform(expected, expected + max_n, expected, lambda2);
+    std::transform(data, data + max_n, expected, lambda1);
+    std::transform(expected, expected + max_n, expected, lambda2);
 
     EXPECT_EQ_N(expected, data2, max_n, "wrong effect from trasnform with sycl ranges");
     EXPECT_EQ_N(expected, data3, max_n, "wrong effect from trasnform with sycl buffer");

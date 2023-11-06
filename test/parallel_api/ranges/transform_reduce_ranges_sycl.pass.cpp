@@ -46,17 +46,17 @@ main()
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
         res1 = oneapi::dpl::experimental::ranges::transform_reduce(exec, A, view, 0);
-        res2 = oneapi::dpl::experimental::ranges::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, A, 0, ::std::plus<int>(), ::std::multiplies<int>());
-        res3 = oneapi::dpl::experimental::ranges::transform_reduce(make_new_policy<new_kernel_name<Policy, 1>>(exec), view, 0, ::std::plus<int>(), lambda1);
+        res2 = oneapi::dpl::experimental::ranges::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, A, 0, std::plus<int>(), std::multiplies<int>());
+        res3 = oneapi::dpl::experimental::ranges::transform_reduce(make_new_policy<new_kernel_name<Policy, 1>>(exec), view, 0, std::plus<int>(), lambda1);
     }
 
     //check result
-    auto expected1 = ::std::inner_product(data, data + max_n, data, 0);
-    auto expected2 = ::std::inner_product(data, data + max_n, data, 0, ::std::plus<int>(), ::std::multiplies<int>());
+    auto expected1 = std::inner_product(data, data + max_n, data, 0);
+    auto expected2 = std::inner_product(data, data + max_n, data, 0, std::plus<int>(), std::multiplies<int>());
 
     //the name nano::ranges::views::all is not injected into oneapi::dpl::experimental::ranges namespace
     auto data_view = __nanorange::nano::views::all(data) | oneapi::dpl::experimental::ranges::views::transform(lambda1);
-    auto expected3 = ::std::accumulate(data_view.begin(), data_view.end(), 0);
+    auto expected3 = std::accumulate(data_view.begin(), data_view.end(), 0);
 
     EXPECT_TRUE(res1 == expected1, "wrong effect from transform_reduce1 with sycl ranges");
     EXPECT_TRUE(res2 == expected2, "wrong effect from transform_reduce2 with sycl ranges");

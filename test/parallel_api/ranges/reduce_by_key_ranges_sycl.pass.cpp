@@ -52,15 +52,15 @@ main()
     int value_exp[n_res] = {9, 21, 9, 3}; // expected values
 
 #if _ONEDPL_DEBUG_SYCL
-    ::std::cout << "keys: ";
+    std::cout << "keys: ";
     for(auto v: views::host_all(C) | views::take(res))
-        ::std::cout << v << " ";
-    ::std::cout << ::std::endl;
+        std::cout << v << " ";
+    std::cout << std::endl;
 
-    ::std::cout << "values: ";
+    std::cout << "values: ";
     for(auto v: views::host_all(D) | views::take(res))
-        ::std::cout << v << " ";
-    ::std::cout << ::std::endl;
+        std::cout << v << " ";
+    std::cout << std::endl;
 #endif // _ONEDPL_DEBUG_SYCL
 
     //check result
@@ -69,7 +69,7 @@ main()
 
 // Check if a kernel name can be omitted when a compiler supports implicit names
 #if __SYCL_UNNAMED_LAMBDA__
-    sycl::buffer<::std::uint64_t> E(n);
+    sycl::buffer<std::uint64_t> E(n);
     reduce_by_segment(exec, views::all_read(A), views::all_read(B), views::all_write(C), views::all_write(E));
 #endif
 
