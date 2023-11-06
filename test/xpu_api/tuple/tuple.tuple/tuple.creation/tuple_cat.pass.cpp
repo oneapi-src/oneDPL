@@ -1,260 +1,289 @@
-#include "oneapi_std_test_config.h"
-#include "MoveOnly.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(tuple)
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-#    include _ONEAPI_STD_TEST_HEADER(array)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <tuple>
-#    include <utility>
-#    include <array>
-namespace s = std;
-#endif
+#include "support/test_config.h"
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include <oneapi/dpl/tuple>
+#include <oneapi/dpl/utility>
+#include <oneapi/dpl/array>
+
+#include "support/utils.h"
+#include "support/utils_invoke.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+
+struct MoveOnlyData
+{
+    int idx_ = 0;
+
+    MoveOnlyData(int idx) : idx_(idx) {}
+    MoveOnlyData(MoveOnlyData&& x) = default;
+    MoveOnlyData(const MoveOnlyData&) = delete;
+
+    MoveOnlyData& operator=(MoveOnlyData&& x) = default;
+    MoveOnlyData& operator=(const MoveOnlyData&) = delete;
+
+    bool
+    operator==(const MoveOnlyData& x) const
+    {
+        return idx_ == x.idx_;
+    }
+    bool
+    operator<(const MoveOnlyData& x) const
+    {
+        return idx_ < x.idx_;
+    }
+    MoveOnlyData
+    operator+(const MoveOnlyData& x) const
+    {
+        return MoveOnlyData{idx_ + x.idx_};
+    }
+    MoveOnlyData
+    operator*(const MoveOnlyData& x) const
+    {
+        return MoveOnlyData{idx_ * x.idx_};
+    }
+};
 
 class KernelTupleCatTest1;
 class KernelTupleCatTest2;
 
 void
-kernel_test1(cl::sycl::queue& deviceQueue)
+kernel_test1(sycl::queue& deviceQueue)
 {
-    cl::sycl::cl_bool ret = true;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
-        auto ret_access = buffer1.get_access<sycl_write>(cgh);
+    bool ret = true;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+    deviceQueue.submit([&](sycl::handler& cgh) {
+        auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelTupleCatTest1>([=]() {
             {
-                s::tuple<> t;
-                t = s::tuple_cat();
+                dpl::tuple<> t;
+                t = dpl::tuple_cat();
             }
 
             {
-                s::tuple<> t1;
-                s::tuple<> t2 = s::tuple_cat(t1);
+                dpl::tuple<> t1;
+                dpl::tuple<> t2 = dpl::tuple_cat(t1);
                 ((void)t2); // Prevent unused warning
             }
 
             {
-                s::tuple<> t = s::tuple_cat(s::tuple<>());
+                dpl::tuple<> t = dpl::tuple_cat(dpl::tuple<>());
                 ((void)t); // Prevent unused warning
             }
 
             {
-                s::tuple<> t = s::tuple_cat(s::array<int, 0>());
+                dpl::tuple<> t = dpl::tuple_cat(dpl::array<int, 0>());
                 ((void)t); // Prevent unused warning
             }
 
             {
-                s::tuple<int> t1(1);
-                s::tuple<int> t = s::tuple_cat(t1);
-                ret_access[0] &= (s::get<0>(t) == 1);
+                dpl::tuple<int> t1(1);
+                dpl::tuple<int> t = dpl::tuple_cat(t1);
+                ret_access[0] &= (dpl::get<0>(t) == 1);
             }
 
             {
-                constexpr s::tuple<> t = s::tuple_cat();
+                constexpr dpl::tuple<> t = dpl::tuple_cat();
                 ((void)t); // Prevent unused warning
             }
 
             {
-                constexpr s::tuple<> t1;
-                constexpr s::tuple<> t2 = s::tuple_cat(t1);
+                constexpr dpl::tuple<> t1;
+                constexpr dpl::tuple<> t2 = dpl::tuple_cat(t1);
                 ((void)t2); // Prevent unused warning
             }
 
             {
-                constexpr s::tuple<> t = s::tuple_cat(s::tuple<>());
+                constexpr dpl::tuple<> t = dpl::tuple_cat(dpl::tuple<>());
                 ((void)t); // Prevent unused warning
             }
 
             {
-                constexpr s::tuple<> t = s::tuple_cat(s::array<int, 0>());
+                constexpr dpl::tuple<> t = dpl::tuple_cat(dpl::array<int, 0>());
                 ((void)t); // Prevent unused warning
             }
 
             {
-                constexpr s::tuple<int> t1(1);
-                constexpr s::tuple<int> t = s::tuple_cat(t1);
-                static_assert(s::get<0>(t) == 1, "");
+                constexpr dpl::tuple<int> t1(1);
+                constexpr dpl::tuple<int> t = dpl::tuple_cat(t1);
+                static_assert(dpl::get<0>(t) == 1);
             }
 
             {
-                constexpr s::tuple<int> t1(1);
-                constexpr s::tuple<int, int> t = s::tuple_cat(t1, t1);
-                static_assert(s::get<0>(t) == 1, "");
-                static_assert(s::get<1>(t) == 1, "");
+                constexpr dpl::tuple<int> t1(1);
+                constexpr dpl::tuple<int, int> t = dpl::tuple_cat(t1, t1);
+                static_assert(dpl::get<0>(t) == 1);
+                static_assert(dpl::get<1>(t) == 1);
             }
 
             {
-                s::tuple<int, MoveOnly> t = s::tuple_cat(s::tuple<int, MoveOnly>(1, 2));
-                ret_access[0] &= (s::get<0>(t) == 1 && s::get<1>(t) == 2);
+                dpl::tuple<int, MoveOnlyData> t = dpl::tuple_cat(dpl::tuple<int, MoveOnlyData>(1, 2));
+                ret_access[0] &= (dpl::get<0>(t) == 1 && dpl::get<1>(t) == 2);
             }
 
             {
-                s::tuple<int, int, int> t = s::tuple_cat(s::array<int, 3>());
-                ret_access[0] &= (s::get<0>(t) == 0 && s::get<1>(t) == 0 && s::get<2>(t) == 0);
+                dpl::tuple<int, int, int> t = dpl::tuple_cat(dpl::array<int, 3>());
+                ret_access[0] &= (dpl::get<0>(t) == 0 && dpl::get<1>(t) == 0 && dpl::get<2>(t) == 0);
             }
 
             {
-                s::tuple<int, MoveOnly> t = s::tuple_cat(s::pair<int, MoveOnly>(2, 1));
-                ret_access[0] &= (s::get<0>(t) == 2 && s::get<1>(t) == 1);
+                dpl::tuple<int, MoveOnlyData> t = dpl::tuple_cat(dpl::pair<int, MoveOnlyData>(2, 1));
+                ret_access[0] &= (dpl::get<0>(t) == 2 && dpl::get<1>(t) == 1);
             }
 
             {
-                s::tuple<> t1;
-                s::tuple<> t2;
-                s::tuple<> t3 = s::tuple_cat(t1, t2);
+                dpl::tuple<> t1;
+                dpl::tuple<> t2;
+                dpl::tuple<> t3 = dpl::tuple_cat(t1, t2);
                 ((void)t3); // Prevent unused warning
             }
 
             {
-                s::tuple<> t1;
-                s::tuple<int> t2(2);
-                s::tuple<int> t3 = s::tuple_cat(t1, t2);
-                ret_access[0] &= (s::get<0>(t3) == 2);
+                dpl::tuple<> t1;
+                dpl::tuple<int> t2(2);
+                dpl::tuple<int> t3 = dpl::tuple_cat(t1, t2);
+                ret_access[0] &= (dpl::get<0>(t3) == 2);
             }
 
             {
-                s::tuple<> t1;
-                s::tuple<int> t2(2);
-                s::tuple<int> t3 = s::tuple_cat(t2, t1);
-                ret_access[0] &= (s::get<0>(t3) == 2);
+                dpl::tuple<> t1;
+                dpl::tuple<int> t2(2);
+                dpl::tuple<int> t3 = dpl::tuple_cat(t2, t1);
+                ret_access[0] &= (dpl::get<0>(t3) == 2);
             }
 
             {
-                s::tuple<int*> t1;
-                s::tuple<int> t2(2);
-                s::tuple<int*, int> t3 = s::tuple_cat(t1, t2);
-                ret_access[0] &= (s::get<0>(t3) == nullptr && s::get<1>(t3) == 2);
+                dpl::tuple<int*> t1;
+                dpl::tuple<int> t2(2);
+                dpl::tuple<int*, int> t3 = dpl::tuple_cat(t1, t2);
+                ret_access[0] &= (dpl::get<0>(t3) == nullptr && dpl::get<1>(t3) == 2);
             }
 
             {
-                s::tuple<int*> t1;
-                s::tuple<int> t2(2);
-                s::tuple<int, int*> t3 = s::tuple_cat(t2, t1);
-                ret_access[0] &= (s::get<0>(t3) == 2 && s::get<1>(t3) == nullptr);
+                dpl::tuple<int*> t1;
+                dpl::tuple<int> t2(2);
+                dpl::tuple<int, int*> t3 = dpl::tuple_cat(t2, t1);
+                ret_access[0] &= (dpl::get<0>(t3) == 2 && dpl::get<1>(t3) == nullptr);
             }
 
             {
-                s::tuple<MoveOnly, MoveOnly> t1(1, 2);
-                s::tuple<int*, MoveOnly> t2(nullptr, 4);
-                s::tuple<MoveOnly, MoveOnly, int*, MoveOnly> t3 = s::tuple_cat(s::move(t1), s::move(t2));
+                dpl::tuple<MoveOnlyData, MoveOnlyData> t1(1, 2);
+                dpl::tuple<int*, MoveOnlyData> t2(nullptr, 4);
+                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 = dpl::tuple_cat(dpl::move(t1), dpl::move(t2));
                 ret_access[0] &=
-                    (s::get<0>(t3) == 1 && s::get<1>(t3) == 2 && s::get<2>(t3) == nullptr && s::get<3>(t3) == 4);
+                    (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr && dpl::get<3>(t3) == 4);
             }
 
             {
-                s::tuple<MoveOnly, MoveOnly> t1(1, 2);
-                s::tuple<int*, MoveOnly> t2(nullptr, 4);
-                s::tuple<MoveOnly, MoveOnly, int*, MoveOnly> t3 = s::tuple_cat(s::tuple<>(), s::move(t1), s::move(t2));
+                dpl::tuple<MoveOnlyData, MoveOnlyData> t1(1, 2);
+                dpl::tuple<int*, MoveOnlyData> t2(nullptr, 4);
+                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 = dpl::tuple_cat(dpl::tuple<>(), dpl::move(t1), dpl::move(t2));
                 ret_access[0] &=
-                    (s::get<0>(t3) == 1 && s::get<1>(t3) == 2 && s::get<2>(t3) == nullptr && s::get<3>(t3) == 4);
+                    (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr && dpl::get<3>(t3) == 4);
             }
 
             {
-                s::tuple<MoveOnly, MoveOnly> t1(1, 2);
-                s::tuple<int*, MoveOnly> t2(nullptr, 4);
-                s::tuple<MoveOnly, MoveOnly, int*, MoveOnly> t3 = s::tuple_cat(s::move(t1), s::tuple<>(), s::move(t2));
+                dpl::tuple<MoveOnlyData, MoveOnlyData> t1(1, 2);
+                dpl::tuple<int*, MoveOnlyData> t2(nullptr, 4);
+                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 = dpl::tuple_cat(dpl::move(t1), dpl::tuple<>(), dpl::move(t2));
                 ret_access[0] &=
-                    (s::get<0>(t3) == 1 && s::get<1>(t3) == 2 && s::get<2>(t3) == nullptr && s::get<3>(t3) == 4);
+                    (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr && dpl::get<3>(t3) == 4);
             }
 
             {
-                s::tuple<MoveOnly, MoveOnly> t1(1, 2);
-                s::tuple<int*, MoveOnly> t2(nullptr, 4);
-                s::tuple<MoveOnly, MoveOnly, int*, MoveOnly> t3 = s::tuple_cat(s::move(t1), s::move(t2), s::tuple<>());
+                dpl::tuple<MoveOnlyData, MoveOnlyData> t1(1, 2);
+                dpl::tuple<int*, MoveOnlyData> t2(nullptr, 4);
+                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 = dpl::tuple_cat(dpl::move(t1), dpl::move(t2), dpl::tuple<>());
                 ret_access[0] &=
-                    (s::get<0>(t3) == 1 && s::get<1>(t3) == 2 && s::get<2>(t3) == nullptr && s::get<3>(t3) == 4);
+                    (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr && dpl::get<3>(t3) == 4);
             }
 
             {
-                s::tuple<MoveOnly, MoveOnly> t1(1, 2);
-                s::tuple<int*, MoveOnly> t2(nullptr, 4);
-                s::tuple<MoveOnly, MoveOnly, int*, MoveOnly, int> t3 =
-                    s::tuple_cat(s::move(t1), s::move(t2), s::tuple<int>(5));
-                ret_access[0] &= (s::get<0>(t3) == 1 && s::get<1>(t3) == 2 && s::get<2>(t3) == nullptr &&
-                                  s::get<3>(t3) == 4 && s::get<4>(t3) == 5);
+                dpl::tuple<MoveOnlyData, MoveOnlyData> t1(1, 2);
+                dpl::tuple<int*, MoveOnlyData> t2(nullptr, 4);
+                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData, int> t3 =
+                    dpl::tuple_cat(dpl::move(t1), dpl::move(t2), dpl::tuple<int>(5));
+                ret_access[0] &= (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr &&
+                                  dpl::get<3>(t3) == 4 && dpl::get<4>(t3) == 5);
             }
         });
     });
 
-    auto ret_access_host = buffer1.get_access<sycl_read>();
-    if (ret_access_host[0])
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    auto ret_access_host = buffer1.get_host_access(sycl::read_only);
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::tuple_cat check in kernel_test1");
 }
 
 void
-kernel_test2(cl::sycl::queue& deviceQueue)
+kernel_test2(sycl::queue& deviceQueue)
 {
-    cl::sycl::cl_bool ret = true;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
-        auto ret_access = buffer1.get_access<sycl_write>(cgh);
+    bool ret = true;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+    deviceQueue.submit([&](sycl::handler& cgh) {
+        auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelTupleCatTest>([=]() {
             {
-                s::tuple<int*> t1;
-                s::tuple<int, double> t2(2, 3.5);
-                s::tuple<int*, int, double> t3 = s::tuple_cat(t1, t2);
-                ret_access[0] &= (s::get<0>(t3) == nullptr && s::get<1>(t3) == 2 && s::get<2>(t3) == 3.5);
+                dpl::tuple<int*> t1;
+                dpl::tuple<int, double> t2(2, 3.5);
+                dpl::tuple<int*, int, double> t3 = dpl::tuple_cat(t1, t2);
+                ret_access[0] &= (dpl::get<0>(t3) == nullptr && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == 3.5);
             }
 
             {
-                s::tuple<int*> t1;
-                s::tuple<int, double> t2(2, 3.5);
-                s::tuple<int, double, int*> t3 = s::tuple_cat(t2, t1);
-                ret_access[0] &= (s::get<0>(t3) == 2 && s::get<1>(t3) == 3.5 && s::get<2>(t3) == nullptr);
+                dpl::tuple<int*> t1;
+                dpl::tuple<int, double> t2(2, 3.5);
+                dpl::tuple<int, double, int*> t3 = dpl::tuple_cat(t2, t1);
+                ret_access[0] &= (dpl::get<0>(t3) == 2 && dpl::get<1>(t3) == 3.5 && dpl::get<2>(t3) == nullptr);
             }
 
             {
-                s::tuple<int*, MoveOnly> t1(nullptr, 1);
-                s::tuple<int, double> t2(2, 3.5);
-                s::tuple<int*, MoveOnly, int, double> t3 = s::tuple_cat(s::move(t1), t2);
+                dpl::tuple<int*, MoveOnlyData> t1(nullptr, 1);
+                dpl::tuple<int, double> t2(2, 3.5);
+                dpl::tuple<int*, MoveOnlyData, int, double> t3 = dpl::tuple_cat(dpl::move(t1), t2);
                 ret_access[0] &=
-                    (s::get<0>(t3) == nullptr && s::get<1>(t3) == 1 && s::get<2>(t3) == 2 && s::get<3>(t3) == 3.5);
+                    (dpl::get<0>(t3) == nullptr && dpl::get<1>(t3) == 1 && dpl::get<2>(t3) == 2 && dpl::get<3>(t3) == 3.5);
             }
 
             {
-                s::tuple<int*, MoveOnly> t1(nullptr, 1);
-                s::tuple<int, double> t2(2, 3.5);
-                s::tuple<int, double, int*, MoveOnly> t3 = s::tuple_cat(t2, s::move(t1));
+                dpl::tuple<int*, MoveOnlyData> t1(nullptr, 1);
+                dpl::tuple<int, double> t2(2, 3.5);
+                dpl::tuple<int, double, int*, MoveOnlyData> t3 = dpl::tuple_cat(t2, dpl::move(t1));
                 ret_access[0] &=
-                    (s::get<0>(t3) == 2 && s::get<1>(t3) == 3.5 && s::get<2>(t3) == nullptr && s::get<3>(t3) == 1);
+                    (dpl::get<0>(t3) == 2 && dpl::get<1>(t3) == 3.5 && dpl::get<2>(t3) == nullptr && dpl::get<3>(t3) == 1);
             }
         });
     });
 
-    auto ret_access_host = buffer1.get_access<sycl_read>();
-    if (ret_access_host[0])
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    auto ret_access_host = buffer1.get_host_access(sycl::read_only);
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::tuple_cat check in kernel_test2");
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-    cl::sycl::queue deviceQueue;
+#if TEST_DPCPP_BACKEND_PRESENT
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         kernel_test2(deviceQueue);
     }
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

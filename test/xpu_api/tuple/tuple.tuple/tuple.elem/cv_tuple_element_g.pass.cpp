@@ -1,64 +1,69 @@
-// Tuple
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(tuple)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <tuple>
-namespace s = std;
-#endif
+#include <oneapi/dpl/tuple>
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
+#include "support/utils_invoke.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 void
-kernel_test1(cl::sycl::queue& deviceQueue)
+kernel_test1(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest1>([=]() {
             {
                 static_assert(
-                    s::is_same<s::tuple_element<0, const s::tuple<float, void, int>>::type, const float>::value,
-                    "Error");
+                    dpl::is_same<dpl::tuple_element<0, const dpl::tuple<float, void, int>>::type, const float>::value);
                 static_assert(
-                    s::is_same<s::tuple_element<1, volatile s::tuple<short, void>>::type, volatile void>::value,
-                    "Error");
-                static_assert(s::is_same<s::tuple_element<2, const volatile s::tuple<float, char, int>>::type,
-                                         const volatile int>::value,
-                              "Error");
+                    dpl::is_same<dpl::tuple_element<1, volatile dpl::tuple<short, void>>::type, volatile void>::value);
+                static_assert(dpl::is_same<dpl::tuple_element<2, const volatile dpl::tuple<float, char, int>>::type,
+                                           const volatile int>::value);
             }
         });
     });
 }
 void
-kernel_test2(cl::sycl::queue& deviceQueue)
+kernel_test2(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest2>([=]() {
             {
-                static_assert(
-                    s::is_same<s::tuple_element<0, const s::tuple<double, void, int>>::type, const double>::value,
-                    "Error");
+                static_assert(dpl::is_same<dpl::tuple_element<0, const dpl::tuple<double, void, int>>::type,
+                                           const double>::value);
             }
         });
     });
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-    cl::sycl::queue deviceQueue;
+#if TEST_DPCPP_BACKEND_PRESENT
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         kernel_test2(deviceQueue);
     }
-    std::cout << "pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

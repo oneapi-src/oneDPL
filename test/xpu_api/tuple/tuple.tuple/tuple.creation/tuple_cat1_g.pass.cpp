@@ -1,156 +1,150 @@
-// Tuple
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(tuple)
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-#    include _ONEAPI_STD_TEST_HEADER(array)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <tuple>
-#    include <utility>
-namespace s = std;
-#endif
+#include <oneapi/dpl/tuple>
+#include <oneapi/dpl/utility>
+#include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/array>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
+#include "support/utils_invoke.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 void
-kernel_test1(cl::sycl::queue& deviceQueue)
+kernel_test1(sycl::queue& deviceQueue)
 {
     {
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        deviceQueue.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest1>([=]() {
-                static_assert(s::is_same<decltype(s::tuple_cat()), s::tuple<>>::value, "Error");
-                static_assert(s::is_same<decltype(s::tuple_cat(s::declval<s::tuple<>>())), s::tuple<>>::value, "Error");
-                static_assert(s::is_same<decltype(s::tuple_cat(s::declval<s::tuple<>&>())), s::tuple<>>::value,
-                              "Error");
-                static_assert(s::is_same<decltype(s::tuple_cat(s::declval<const s::tuple<>>())), s::tuple<>>::value,
-                              "Error");
-                static_assert(s::is_same<decltype(s::tuple_cat(s::declval<const s::tuple<>&>())), s::tuple<>>::value,
-                              "Error");
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat()), dpl::tuple<>>::value);
                 static_assert(
-                    s::is_same<decltype(s::tuple_cat(s::declval<s::pair<int, bool>>())), s::tuple<int, bool>>::value,
-                    "Error");
+                    dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::tuple<>>())), dpl::tuple<>>::value);
                 static_assert(
-                    s::is_same<decltype(s::tuple_cat(s::declval<s::pair<int, bool>&>())), s::tuple<int, bool>>::value,
-                    "Error");
-                static_assert(s::is_same<decltype(s::tuple_cat(s::declval<const s::pair<int, bool>>())),
-                                         s::tuple<int, bool>>::value,
-                              "Error");
-                static_assert(s::is_same<decltype(s::tuple_cat(s::declval<const s::pair<int, bool>&>())),
-                                         s::tuple<int, bool>>::value,
-                              "Error");
+                    dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::tuple<>&>())), dpl::tuple<>>::value);
                 static_assert(
-                    s::is_same<decltype(s::tuple_cat(s::declval<s::array<int, 3>>())), s::tuple<int, int, int>>::value,
-                    "Error");
+                    dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<const dpl::tuple<>>())), dpl::tuple<>>::value);
                 static_assert(
-                    s::is_same<decltype(s::tuple_cat(s::declval<s::array<int, 3>&>())), s::tuple<int, int, int>>::value,
-                    "Error");
-                static_assert(s::is_same<decltype(s::tuple_cat(s::declval<const s::array<int, 3>>())),
-                                         s::tuple<int, int, int>>::value,
-                              "Error");
-                static_assert(s::is_same<decltype(s::tuple_cat(s::declval<const s::array<int, 3>&>())),
-                                         s::tuple<int, int, int>>::value,
-                              "Error");
-                static_assert(s::is_same<decltype(s::tuple_cat(s::declval<s::tuple<>>(), s::declval<s::tuple<>>())),
-                                         s::tuple<>>::value,
-                              "Error");
-                static_assert(s::is_same<decltype(s::tuple_cat(s::declval<s::tuple<>>(), s::declval<s::tuple<>>(),
-                                                               s::declval<s::tuple<>>())),
-                                         s::tuple<>>::value,
-                              "Error");
+                    dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<const dpl::tuple<>&>())), dpl::tuple<>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::pair<int, bool>>())),
+                                           dpl::tuple<int, bool>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::pair<int, bool>&>())),
+                                           dpl::tuple<int, bool>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<const dpl::pair<int, bool>>())),
+                                           dpl::tuple<int, bool>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<const dpl::pair<int, bool>&>())),
+                                           dpl::tuple<int, bool>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::array<int, 3>>())),
+                                           dpl::tuple<int, int, int>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::array<int, 3>&>())),
+                                           dpl::tuple<int, int, int>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<const dpl::array<int, 3>>())),
+                                           dpl::tuple<int, int, int>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<const dpl::array<int, 3>&>())),
+                                           dpl::tuple<int, int, int>>::value);
                 static_assert(
-                    s::is_same<decltype(s::tuple_cat(s::declval<s::tuple<>>(), s::declval<s::array<char, 0>>(),
-                                                     s::declval<s::array<int, 0>>(), s::declval<s::tuple<>>())),
-                               s::tuple<>>::value,
-                    "Error");
+                    dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::tuple<>>(), dpl::declval<dpl::tuple<>>())),
+                                 dpl::tuple<>>::value);
                 static_assert(
-                    s::is_same<decltype(s::tuple_cat(s::declval<s::tuple<int>>(), s::declval<s::tuple<float>>())),
-                               s::tuple<int, float>>::value,
-                    "Error");
+                    dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::tuple<>>(), dpl::declval<dpl::tuple<>>(),
+                                                         dpl::declval<dpl::tuple<>>())),
+                                 dpl::tuple<>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(
+                                               dpl::declval<dpl::tuple<>>(), dpl::declval<dpl::array<char, 0>>(),
+                                               dpl::declval<dpl::array<int, 0>>(), dpl::declval<dpl::tuple<>>())),
+                                           dpl::tuple<>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::tuple<int>>(),
+                                                                   dpl::declval<dpl::tuple<float>>())),
+                                           dpl::tuple<int, float>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::tuple<int>>(),
+                                                                   dpl::declval<dpl::tuple<float>>(),
+                                                                   dpl::declval<dpl::tuple<const long&>>())),
+                                           dpl::tuple<int, float, const long&>>::value);
                 static_assert(
-                    s::is_same<decltype(s::tuple_cat(s::declval<s::tuple<int>>(), s::declval<s::tuple<float>>(),
-                                                     s::declval<s::tuple<const long&>>())),
-                               s::tuple<int, float, const long&>>::value,
-                    "Error");
-                static_assert(
-                    s::is_same<decltype(s::tuple_cat(s::declval<s::array<wchar_t, 3>&>(), s::declval<s::tuple<float>>(),
-                                                     s::declval<s::tuple<>>(), s::declval<s::tuple<unsigned&>>(),
-                                                     s::declval<s::pair<bool, std::nullptr_t>>())),
-                               s::tuple<wchar_t, wchar_t, wchar_t, float, unsigned&, bool, std::nullptr_t>>::value,
-                    "Error");
+                    dpl::is_same<decltype(dpl::tuple_cat(
+                                     dpl::declval<dpl::array<wchar_t, 3>&>(), dpl::declval<dpl::tuple<float>>(),
+                                     dpl::declval<dpl::tuple<>>(), dpl::declval<dpl::tuple<unsigned&>>(),
+                                     dpl::declval<dpl::pair<bool, std::nullptr_t>>())),
+                                 dpl::tuple<wchar_t, wchar_t, wchar_t, float, unsigned&, bool, std::nullptr_t>>::value);
 
-                s::array<int, 3> a3;
-                s::pair<float, bool> pdb;
-                s::tuple<unsigned, float, std::nullptr_t, void*> t;
+                dpl::array<int, 3> a3;
+                dpl::pair<float, bool> pdb;
+                dpl::tuple<unsigned, float, std::nullptr_t, void*> t;
                 int i{};
                 float d{};
                 int* pi{};
-                s::tuple<int&, float&, int*&> to{i, d, pi};
+                dpl::tuple<int&, float&, int*&> to{i, d, pi};
 
-                static_assert(s::is_same<decltype(s::tuple_cat(a3, pdb, t, a3, pdb, t)),
-                                         s::tuple<int, int, int, float, bool, unsigned, float, std::nullptr_t, void*, int,
-                                                  int, int, float, bool, unsigned, float, std::nullptr_t, void*>>::value,
-                              "Error");
+                static_assert(
+                    dpl::is_same<decltype(dpl::tuple_cat(a3, pdb, t, a3, pdb, t)),
+                                 dpl::tuple<int, int, int, float, bool, unsigned, float, std::nullptr_t, void*, int,
+                                            int, int, float, bool, unsigned, float, std::nullptr_t, void*>>::value);
 
-                s::tuple_cat(s::tuple<int, char, void*>{}, to, a3, s::tuple<>{}, s::pair<float, std::nullptr_t>{}, pdb,
-                             to);
+                dpl::tuple_cat(dpl::tuple<int, char, void*>{}, to, a3, dpl::tuple<>{},
+                               dpl::pair<float, std::nullptr_t>{}, pdb, to);
             });
         });
     }
 }
 
 void
-kernel_test2(cl::sycl::queue& deviceQueue)
+kernel_test2(sycl::queue& deviceQueue)
 {
     {
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        deviceQueue.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest2>([=]() {
-                static_assert(
-                    s::is_same<decltype(s::tuple_cat(s::declval<s::tuple<int>>(), s::declval<s::tuple<double>>())),
-                               s::tuple<int, double>>::value,
-                    "Error");
-                static_assert(
-                    s::is_same<decltype(s::tuple_cat(s::declval<s::tuple<int>>(), s::declval<s::tuple<double>>(),
-                                                     s::declval<s::tuple<const long&>>())),
-                               s::tuple<int, double, const long&>>::value,
-                    "Error");
-                static_assert(
-                    s::is_same<decltype(s::tuple_cat(s::declval<s::array<wchar_t, 3>&>(),
-                                                     s::declval<s::tuple<double>>(), s::declval<s::tuple<>>(),
-                                                     s::declval<s::tuple<unsigned&>>(),
-                                                     s::declval<s::pair<bool, std::nullptr_t>>())),
-                               s::tuple<wchar_t, wchar_t, wchar_t, double, unsigned&, bool, std::nullptr_t>>::value,
-                    "Error");
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::tuple<int>>(),
+                                                                   dpl::declval<dpl::tuple<double>>())),
+                                           dpl::tuple<int, double>>::value);
+                static_assert(dpl::is_same<decltype(dpl::tuple_cat(dpl::declval<dpl::tuple<int>>(),
+                                                                   dpl::declval<dpl::tuple<double>>(),
+                                                                   dpl::declval<dpl::tuple<const long&>>())),
+                                           dpl::tuple<int, double, const long&>>::value);
+                static_assert(dpl::is_same<
+                              decltype(dpl::tuple_cat(dpl::declval<dpl::array<wchar_t, 3>&>(),
+                                                      dpl::declval<dpl::tuple<double>>(), dpl::declval<dpl::tuple<>>(),
+                                                      dpl::declval<dpl::tuple<unsigned&>>(),
+                                                      dpl::declval<dpl::pair<bool, std::nullptr_t>>())),
+                              dpl::tuple<wchar_t, wchar_t, wchar_t, double, unsigned&, bool, std::nullptr_t>>::value);
 
-                s::array<int, 3> a3;
-                s::pair<double, bool> pdb;
-                s::tuple<unsigned, float, std::nullptr_t, void*> t;
+                dpl::array<int, 3> a3;
+                dpl::pair<double, bool> pdb;
+                dpl::tuple<unsigned, float, std::nullptr_t, void*> t;
                 static_assert(
-                    s::is_same<decltype(s::tuple_cat(a3, pdb, t, a3, pdb, t)),
-                               s::tuple<int, int, int, double, bool, unsigned, float, std::nullptr_t, void*, int, int,
-                                        int, double, bool, unsigned, float, std::nullptr_t, void*>>::value,
-                    "Error");
+                    dpl::is_same<decltype(dpl::tuple_cat(a3, pdb, t, a3, pdb, t)),
+                                 dpl::tuple<int, int, int, double, bool, unsigned, float, std::nullptr_t, void*, int,
+                                            int, int, double, bool, unsigned, float, std::nullptr_t, void*>>::value);
             });
         });
     }
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-    cl::sycl::queue deviceQueue;
+#if TEST_DPCPP_BACKEND_PRESENT
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         kernel_test2(deviceQueue);
     }
-    std::cout << "pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

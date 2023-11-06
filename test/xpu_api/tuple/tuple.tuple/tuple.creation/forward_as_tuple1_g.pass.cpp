@@ -1,109 +1,111 @@
-// Tuple
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(tuple)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <tuple>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include <oneapi/dpl/tuple>
+#include <oneapi/dpl/type_traits>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
+#include "support/utils_invoke.h"
 
-cl::sycl::cl_bool
-kernel_test1(cl::sycl::queue& deviceQueue)
+#if TEST_DPCPP_BACKEND_PRESENT
+bool
+kernel_test1(sycl::queue& deviceQueue)
 {
-    cl::sycl::cl_bool ret = true;
-    cl::sycl::range<1> numOfItems{1};
+    bool ret = true;
+    sycl::range<1> numOfItems{1};
     {
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
-                s::forward_as_tuple();
+                dpl::forward_as_tuple();
 
-                ret_access[0] &= (s::get<0>(s::forward_as_tuple(-1)) == -1);
-                ret_access[0] &= ((s::is_same<decltype(s::forward_as_tuple(-1)), s::tuple<int&&>>::value));
+                ret_access[0] &= (dpl::get<0>(dpl::forward_as_tuple(-1)) == -1);
+                ret_access[0] &= ((dpl::is_same<decltype(dpl::forward_as_tuple(-1)), dpl::tuple<int&&>>::value));
 
                 const int i1 = 1;
                 const int i2 = 2;
                 const float d1 = 4.0f;
-                auto t1 = s::forward_as_tuple(i1, i2, d1);
-                ret_access[0] &= ((s::is_same<decltype(t1), s::tuple<const int&, const int&, const float&>>::value));
-                ret_access[0] &= (s::get<0>(t1) == i1);
-                ret_access[0] &= (s::get<1>(t1) == i2);
-                ret_access[0] &= (s::get<2>(t1) == d1);
+                auto t1 = dpl::forward_as_tuple(i1, i2, d1);
+                ret_access[0] &= ((dpl::is_same<decltype(t1), dpl::tuple<const int&, const int&, const float&>>::value));
+                ret_access[0] &= (dpl::get<0>(t1) == i1);
+                ret_access[0] &= (dpl::get<1>(t1) == i2);
+                ret_access[0] &= (dpl::get<2>(t1) == d1);
 
                 typedef const int a_type1[3];
                 a_type1 a1 = {-1, 1, 2};
-                auto t2 = s::forward_as_tuple(a1);
-                ret_access[0] &= ((s::is_same<decltype(t2), s::tuple<a_type1&>>::value));
-                ret_access[0] &= (s::get<0>(t2)[0] == a1[0]);
-                ret_access[0] &= (s::get<0>(t2)[1] == a1[1]);
-                ret_access[0] &= (s::get<0>(t2)[2] == a1[2]);
+                auto t2 = dpl::forward_as_tuple(a1);
+                ret_access[0] &= ((dpl::is_same<decltype(t2), dpl::tuple<a_type1&>>::value));
+                ret_access[0] &= (dpl::get<0>(t2)[0] == a1[0]);
+                ret_access[0] &= (dpl::get<0>(t2)[1] == a1[1]);
+                ret_access[0] &= (dpl::get<0>(t2)[2] == a1[2]);
 
                 typedef int a_type2[2];
                 a_type2 a2 = {2, -2};
                 volatile int i4 = 1;
-                auto t3 = s::forward_as_tuple(a2, i4);
-                ret_access[0] &= ((s::is_same<decltype(t3), s::tuple<a_type2&, volatile int&>>::value));
-                ret_access[0] &= (s::get<0>(t3)[0] == a2[0]);
-                ret_access[0] &= (s::get<0>(t3)[1] == a2[1]);
-                ret_access[0] &= (s::get<1>(t3) == i4);
+                auto t3 = dpl::forward_as_tuple(a2, i4);
+                ret_access[0] &= ((dpl::is_same<decltype(t3), dpl::tuple<a_type2&, volatile int&>>::value));
+                ret_access[0] &= (dpl::get<0>(t3)[0] == a2[0]);
+                ret_access[0] &= (dpl::get<0>(t3)[1] == a2[1]);
+                ret_access[0] &= (dpl::get<1>(t3) == i4);
             });
         });
     }
     return ret;
 }
 
-cl::sycl::cl_bool
-kernel_test2(cl::sycl::queue& deviceQueue)
+bool
+kernel_test2(sycl::queue& deviceQueue)
 {
-    cl::sycl::cl_bool ret = true;
-    cl::sycl::range<1> numOfItems{1};
+    bool ret = true;
+    sycl::range<1> numOfItems{1};
     {
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest2>([=]() {
                 const int i1 = 1;
                 const int i2 = 2;
                 const double d1 = 4.0;
-                auto t1 = s::forward_as_tuple(i1, i2, d1);
-                ret_access[0] &= ((s::is_same<decltype(t1), s::tuple<const int&, const int&, const double&>>::value));
-                ret_access[0] &= (s::get<0>(t1) == i1);
-                ret_access[0] &= (s::get<1>(t1) == i2);
-                ret_access[0] &= (s::get<2>(t1) == d1);
+                auto t1 = dpl::forward_as_tuple(i1, i2, d1);
+                ret_access[0] &= ((dpl::is_same<decltype(t1), dpl::tuple<const int&, const int&, const double&>>::value));
+                ret_access[0] &= (dpl::get<0>(t1) == i1);
+                ret_access[0] &= (dpl::get<1>(t1) == i2);
+                ret_access[0] &= (dpl::get<2>(t1) == d1);
             });
         });
     }
     return ret;
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-    cl::sycl::queue deviceQueue;
+#if TEST_DPCPP_BACKEND_PRESENT
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     auto ret = kernel_test1(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         ret &= kernel_test2(deviceQueue);
     }
-    if (ret)
-    {
-        std::cout << "pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "fail" << std::endl;
-    }
-    return 0;
+    EXPECT_TRUE(ret, "Wrong result of dpl::forward_as_tuple check in kernel_test1 or kernel_test2");
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
