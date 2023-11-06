@@ -41,6 +41,26 @@ test_is_not_abstract(sycl::queue& deviceQueue)
     });
 }
 
+template <class T>
+void
+test_is_abstract(sycl::queue& deviceQueue)
+{
+    deviceQueue.submit([&](sycl::handler& cgh) {
+        cgh.single_task<T>([=]() {
+            static_assert(dpl::is_abstract<T>::value);
+            static_assert(dpl::is_abstract<const T>::value);
+            static_assert(dpl::is_abstract<volatile T>::value);
+            static_assert(dpl::is_abstract<const volatile T>::value);
+
+            static_assert(dpl::is_abstract_v<T>);
+            static_assert(dpl::is_abstract_v<const T>);
+            static_assert(dpl::is_abstract_v<volatile T>);
+            static_assert(dpl::is_abstract_v<const volatile T>);
+        });
+    });
+}
+
+
 class Empty
 {
 };
@@ -51,6 +71,15 @@ union Union {
 struct bit_zero
 {
     int : 0;
+};
+
+struct Base
+{
+    virtual void fnc() = 0;
+};
+
+struct Deriver : Base
+{
 };
 
 void
@@ -71,6 +100,9 @@ kernel_test()
     {
         test_is_not_abstract<double>(deviceQueue);
     }
+
+    test_is_abstract<Base>(deviceQueue);
+    test_is_abstract<Deriver>(deviceQueue);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
