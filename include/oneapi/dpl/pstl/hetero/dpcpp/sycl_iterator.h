@@ -35,18 +35,18 @@ template <access_mode Mode, typename T, typename Allocator = __dpl_sycl::__buffe
 struct sycl_iterator
 {
   private:
-    using Size = ::std::size_t;
+    using Size = std::size_t;
     static constexpr int dim = 1;
     sycl::buffer<T, dim, Allocator> buffer;
     Size idx;
 
   public:
     using value_type = T;
-    using difference_type = ::std::make_signed_t<Size>;
+    using difference_type = std::make_signed_t<Size>;
     using pointer = T*;
     using reference = T&;
-    using iterator_category = ::std::random_access_iterator_tag;
-    using is_hetero = ::std::true_type;
+    using iterator_category = std::random_access_iterator_tag;
+    using is_hetero = std::true_type;
     static constexpr access_mode mode = Mode;
 
     // required for make_sycl_iterator

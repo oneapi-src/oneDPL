@@ -33,14 +33,14 @@ template <typename _Tp>
 oneapi::dpl::__internal::__induction_object<_Tp, void>
 induction(_Tp&& __var)
 {
-    return {::std::forward<_Tp>(__var)};
+    return {std::forward<_Tp>(__var)};
 }
 
 template <typename _Tp, typename _Sp>
 oneapi::dpl::__internal::__induction_object<_Tp, _Sp>
 induction(_Tp&& __var, _Sp __stride)
 {
-    return {::std::forward<_Tp>(__var), __stride};
+    return {std::forward<_Tp>(__var), __stride};
 }
 
 } // namespace parallelism_v2

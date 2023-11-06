@@ -28,7 +28,7 @@ template <typename... _Name>
 class __radix_sort_one_wg_kernel;
 
 template <typename _KernelNameBase, uint16_t __wg_size = 256 /*work group size*/, uint16_t __block_size = 16,
-          ::std::uint32_t __radix = 4, bool __is_asc = true,
+          std::uint32_t __radix = 4, bool __is_asc = true,
           uint16_t __req_sub_group_size = (__block_size < 4 ? 32 : 16)>
 struct __subgroup_radix_sort
 {
@@ -36,11 +36,11 @@ struct __subgroup_radix_sort
     auto
     operator()(sycl::queue __q, _RangeIn&& __src, _Proj __proj)
     {
-        using __wg_size_t = ::std::integral_constant<::std::uint16_t, __wg_size>;
-        using __block_size_t = ::std::integral_constant<::std::uint16_t, __block_size>;
-        using __call_0_t = ::std::integral_constant<::std::uint16_t, 0>;
-        using __call_1_t = ::std::integral_constant<::std::uint16_t, 1>;
-        using __call_2_t = ::std::integral_constant<::std::uint16_t, 2>;
+        using __wg_size_t = std::integral_constant<std::uint16_t, __wg_size>;
+        using __block_size_t = std::integral_constant<std::uint16_t, __block_size>;
+        using __call_0_t = std::integral_constant<std::uint16_t, 0>;
+        using __call_1_t = std::integral_constant<std::uint16_t, 1>;
+        using __call_2_t = std::integral_constant<std::uint16_t, 2>;
 
         using _SortKernelLoc = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
             __radix_sort_one_wg_kernel<_KernelNameBase, __wg_size_t, __block_size_t, __call_0_t>>;
@@ -53,14 +53,14 @@ struct __subgroup_radix_sort
         //check SLM size
         const auto __SLM_available = __check_slm_size<_KeyT>(__q, __src.size());
         if (__SLM_available.first && __SLM_available.second)
-            return __one_group_submitter<_SortKernelLoc>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                           ::std::true_type{} /*SLM*/, ::std::true_type{} /*SLM*/);
+            return __one_group_submitter<_SortKernelLoc>()(__q, std::forward<_RangeIn>(__src), __proj,
+                                                           std::true_type{} /*SLM*/, std::true_type{} /*SLM*/);
         if (__SLM_available.second)
-            return __one_group_submitter<_SortKernelPartGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                                ::std::false_type{} /*No SLM*/,
-                                                                ::std::true_type{} /*SLM*/);
-        return __one_group_submitter<_SortKernelGlob>()(__q, ::std::forward<_RangeIn>(__src), __proj,
-                                                            ::std::false_type{} /*No SLM*/, ::std::false_type{} /*No SLM*/);
+            return __one_group_submitter<_SortKernelPartGlob>()(__q, std::forward<_RangeIn>(__src), __proj,
+                                                                std::false_type{} /*No SLM*/,
+                                                                std::true_type{} /*SLM*/);
+        return __one_group_submitter<_SortKernelGlob>()(__q, std::forward<_RangeIn>(__src), __proj,
+                                                            std::false_type{} /*No SLM*/, std::false_type{} /*No SLM*/);
     }
 
   private:
@@ -68,7 +68,7 @@ struct __subgroup_radix_sort
     class _TempBuf;
 
     template <typename _KeyT>
-    class _TempBuf<_KeyT, ::std::true_type /*shared local memory buffer*/>
+    class _TempBuf<_KeyT, std::true_type /*shared local memory buffer*/>
     {
         uint16_t __buf_size;
 
@@ -82,7 +82,7 @@ struct __subgroup_radix_sort
     };
 
     template <typename _KeyT>
-    class _TempBuf<_KeyT, ::std::false_type /*global memory buffer*/>
+    class _TempBuf<_KeyT, std::false_type /*global memory buffer*/>
     {
         sycl::buffer<_KeyT> __buf;
 
@@ -104,7 +104,7 @@ struct __subgroup_radix_sort
         {
             const uint16_t __idx = __wi * __block_size + __i;
             if (__idx < __n)
-                new (&__values[__i]) _ValueT(::std::move(__src[__idx]));
+                new (&__values[__i]) _ValueT(std::move(__src[__idx]));
         }
     }
 
@@ -122,17 +122,17 @@ struct __subgroup_radix_sort
 
         // Pessimistically only use half of the memory to take into account
         // a SYCL group algorithm might use a portion of SLM
-        const ::std::size_t __max_slm_size =
+        const std::size_t __max_slm_size =
             __q.get_device().template get_info<sycl::info::device::local_mem_size>() / 2;
 
-        const auto __n_uniform = 1 << (::std::uint32_t(log2(__n - 1)) + 1);
+        const auto __n_uniform = 1 << (std::uint32_t(log2(__n - 1)) + 1);
         const auto __req_slm_size_val = sizeof(_T) * __n_uniform;
 
         if (__req_slm_size_val + __req_slm_size_counters <= __max_slm_size)
-            return ::std::make_pair(true, true);  //the values and the counters are placed in SLM
+            return std::make_pair(true, true);  //the values and the counters are placed in SLM
         if (__req_slm_size_counters <= __max_slm_size)
-            return ::std::make_pair(false, true); //the counters are placed in SLM, the values - in the global memory
-        return ::std::make_pair(false, false);    //the values and the counters are placed in the global memory
+            return std::make_pair(false, true); //the counters are placed in SLM, the values - in the global memory
+        return std::make_pair(false, false);    //the values and the counters are placed in the global memory
     }
 
     template <typename _KernelName>
@@ -167,7 +167,7 @@ struct __subgroup_radix_sort
                         union __storage { _ValT __v[__block_size]; __storage(){} } __values;
                         uint16_t __wi = __it.get_local_linear_id();
                         uint16_t __begin_bit = 0;
-                        constexpr uint16_t __end_bit = sizeof(_KeyT) * ::std::numeric_limits<unsigned char>::digits;
+                        constexpr uint16_t __end_bit = sizeof(_KeyT) * std::numeric_limits<unsigned char>::digits;
 
                         //copy(move) values construction
                         __block_load<_ValT>(__wi, __src, __values.__v, __n);
@@ -251,7 +251,7 @@ struct __subgroup_radix_sort
                                     if (__r < __n)
                                     {
                                         //move the values to source range and destroy the values
-                                        __src[__r] = ::std::move(__values.__v[__i]);
+                                        __src[__r] = std::move(__values.__v[__i]);
                                         __values.__v[__i].~_ValT();
                                     }
                                 }
@@ -276,7 +276,7 @@ struct __subgroup_radix_sort
                                 {
                                     const uint16_t __r = __indices[__i];
                                     if (__r < __n)
-                                        new (&__exchange_lacc[__r]) _ValT(::std::move(__values.__v[__i]));
+                                        new (&__exchange_lacc[__r]) _ValT(std::move(__values.__v[__i]));
                                 }
                             }
                             else
@@ -286,7 +286,7 @@ struct __subgroup_radix_sort
                                 {
                                     const uint16_t __r = __indices[__i];
                                     if (__r < __n)
-                                        __exchange_lacc[__r] = ::std::move(__values.__v[__i]);
+                                        __exchange_lacc[__r] = std::move(__values.__v[__i]);
                                 }
                             }
 
@@ -297,7 +297,7 @@ struct __subgroup_radix_sort
                             {
                                 const uint16_t __idx = __wi * __block_size + __i;
                                 if (__idx < __n)
-                                    __values.__v[__i] = ::std::move(__exchange_lacc[__idx]);
+                                    __values.__v[__i] = std::move(__exchange_lacc[__idx]);
                             }
 
                             __dpl_sycl::__group_barrier(__it);

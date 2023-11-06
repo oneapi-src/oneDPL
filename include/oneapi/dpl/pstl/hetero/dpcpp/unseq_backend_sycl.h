@@ -40,24 +40,24 @@ namespace unseq_backend
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity =
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
-    typename ::std::disjunction<
+    typename std::disjunction<
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
-        ::std::conjunction<::std::is_arithmetic<_Tp>,
-                           ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
-                                              ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
-                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
-                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>,
-                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<_Tp>>,
-                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
-                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
-                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>;
+        std::conjunction<std::is_arithmetic<_Tp>,
+                           std::disjunction<std::is_same<std::decay_t<_BinaryOp>, std::plus<_Tp>>,
+                                              std::is_same<std::decay_t<_BinaryOp>, std::plus<void>>,
+                                              std::is_same<std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
+                                              std::is_same<std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>,
+                                              std::is_same<std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<_Tp>>,
+                                              std::is_same<std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
+                                              std::is_same<std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
+                                              std::is_same<std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>;
 #    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
-    typename ::std::conjunction<
-        ::std::is_arithmetic<_Tp>,
-        ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>;
+    typename std::conjunction<
+        std::is_arithmetic<_Tp>,
+        std::disjunction<std::is_same<std::decay_t<_BinaryOp>, std::plus<_Tp>>,
+                           std::is_same<std::decay_t<_BinaryOp>, std::plus<void>>,
+                           std::is_same<std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
+                           std::is_same<std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>;
 #    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
 
 #else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
@@ -70,10 +70,10 @@ using __has_known_identity = std::false_type;
 template <typename _BinaryOp, typename _Tp>
 struct __known_identity_for_plus
 {
-    static_assert(::std::is_same_v<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>> ||
-                  ::std::is_same_v<::std::decay_t<_BinaryOp>, ::std::plus<void>> ||
-                  ::std::is_same_v<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>> ||
-                  ::std::is_same_v<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>);
+    static_assert(std::is_same_v<std::decay_t<_BinaryOp>, std::plus<_Tp>> ||
+                  std::is_same_v<std::decay_t<_BinaryOp>, std::plus<void>> ||
+                  std::is_same_v<std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>> ||
+                  std::is_same_v<std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>);
     static constexpr _Tp value = 0;
 };
 
@@ -127,7 +127,7 @@ struct walk_adjacent_difference
     void
     operator()(const _ItemId __idx, const _Acc1& _acc_src, _Acc2& _acc_dst) const
     {
-        using ::std::get;
+        using std::get;
 
         // just copy an element if it is the first one
         if (__idx == 0)
@@ -191,7 +191,7 @@ struct __init_processing
 
 // Load elements consecutively from global memory, transform them, and apply a local reduction. Each local result is
 // stored in local memory.
-template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2>
+template <typename _ExecutionPolicy, std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2>
 struct transform_reduce
 {
     _Operation1 __binary_op;
@@ -262,7 +262,7 @@ struct reduce_over_group
         auto __global_idx = __item_id.get_global_id(0);
         auto __group_size = __item_id.get_local_range().size();
 
-        for (::std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
+        for (std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
         {
             __dpl_sycl::__group_barrier(__item_id);
             if ((__local_idx & (2 * __power_2 - 1)) == 0 && __local_idx + __power_2 < __group_size &&
@@ -391,14 +391,14 @@ struct first_match_pred
 //------------------------------------------------------------------------
 
 // mask assigner for tuples
-template <::std::size_t N>
+template <std::size_t N>
 struct __mask_assigner
 {
     template <typename _Acc, typename _OutAcc, typename _OutIdx, typename _InAcc, typename _InIdx>
     void
     operator()(_Acc& __acc, _OutAcc&, const _OutIdx __out_idx, const _InAcc& __in_acc, const _InIdx __in_idx) const
     {
-        using ::std::get;
+        using std::get;
         get<N>(__acc[__out_idx]) = __in_acc[__in_idx];
     }
 };
@@ -440,7 +440,7 @@ struct __create_mask
     _Tp
     operator()(const _Idx __idx, const _Input& __input) const
     {
-        using ::std::get;
+        using std::get;
         // 1. apply __pred
         auto __temp = __pred(get<0>(__input[__idx]));
         // 2. initialize mask
@@ -450,7 +450,7 @@ struct __create_mask
 };
 
 // functors for scan
-template <typename _BinaryOp, typename _Assigner, typename _Inclusive, ::std::size_t N>
+template <typename _BinaryOp, typename _Assigner, typename _Inclusive, std::size_t N>
 struct __copy_by_mask
 {
     _BinaryOp __binary_op;
@@ -462,15 +462,15 @@ struct __copy_by_mask
     operator()(_Item __item, _OutAcc& __out_acc, const _InAcc& __in_acc, const _WgSumsAcc& __wg_sums_acc, _Size __n,
                _SizePerWg __size_per_wg) const
     {
-        using ::std::get;
+        using std::get;
         auto __item_idx = __item.get_linear_id();
         if (__item_idx < __n && get<N>(__in_acc[__item_idx]))
         {
             auto __out_idx = get<N>(__in_acc[__item_idx]) - 1;
 
             using __tuple_type =
-                typename __internal::__get_tuple_type<::std::decay_t<decltype(get<0>(__in_acc[__item_idx]))>,
-                                                      ::std::decay_t<decltype(__out_acc[__out_idx])>>::__type;
+                typename __internal::__get_tuple_type<std::decay_t<decltype(get<0>(__in_acc[__item_idx]))>,
+                                                      std::decay_t<decltype(__out_acc[__out_idx])>>::__type;
 
             // calculation of position for copy
             if (__item_idx >= __size_per_wg)
@@ -479,19 +479,19 @@ struct __copy_by_mask
                 __out_idx = __binary_op(__out_idx, __wg_sums_acc[__wg_sums_idx]);
             }
             if (__item_idx % __size_per_wg == 0 || (get<N>(__in_acc[__item_idx]) != get<N>(__in_acc[__item_idx - 1])))
-                // If we work with tuples we might have a situation when internal tuple is assigned to ::std::tuple
+                // If we work with tuples we might have a situation when internal tuple is assigned to std::tuple
                 // (e.g. returned by user-provided lambda).
-                // For internal::tuple<T...> we have a conversion operator to ::std::tuple<T..>. The problem here
+                // For internal::tuple<T...> we have a conversion operator to std::tuple<T..>. The problem here
                 // is that the types of these 2 tuples may be different but still convertible to each other.
                 // Technically this should be solved by adding to internal::tuple<T..> an additional conversion
-                // operator to ::std::tuple<U...>, but for some reason this doesn't work(conversion from
-                // ::std::tuple<T...> to ::std::tuple<U..> fails). What does work is the explicit cast below:
-                // for internal::tuple<T..> we define a field that provides a corresponding ::std::tuple<T..>
+                // operator to std::tuple<U...>, but for some reason this doesn't work(conversion from
+                // std::tuple<T...> to std::tuple<U..> fails). What does work is the explicit cast below:
+                // for internal::tuple<T..> we define a field that provides a corresponding std::tuple<T..>
                 // with matching types. We get this type(see __typle_type definition above) and use it
-                // for static cast to explicitly convert internal::tuple<T..> -> ::std::tuple<T..>.
-                // Now we have the following assignment ::std::tuple<U..> = ::std::tuple<T..> which works as expected.
+                // for static cast to explicitly convert internal::tuple<T..> -> std::tuple<T..>.
+                // Now we have the following assignment std::tuple<U..> = std::tuple<T..> which works as expected.
                 // NOTE: we only need this explicit conversion when we have internal::tuple and
-                // ::std::tuple as operands, in all the other cases this is not necessary and no conversion
+                // std::tuple as operands, in all the other cases this is not necessary and no conversion
                 // is performed(i.e. __typle_type is the same type as its operand).
                 __assigner(static_cast<__tuple_type>(get<0>(__in_acc[__item_idx])), __out_acc[__out_idx]);
         }
@@ -512,8 +512,8 @@ struct __partition_by_mask
         auto __item_idx = __item.get_linear_id();
         if (__item_idx < __n)
         {
-            using ::std::get;
-            using __in_type = ::std::decay_t<decltype(get<0>(__in_acc[__item_idx]))>;
+            using std::get;
+            using __in_type = std::decay_t<decltype(get<0>(__in_acc[__item_idx]))>;
             auto __wg_sums_idx = __item_idx / __size_per_wg;
             bool __not_first_wg = __item_idx >= __size_per_wg;
             if (get<1>(__in_acc[__item_idx]) &&
@@ -521,7 +521,7 @@ struct __partition_by_mask
             {
                 auto __out_idx = get<1>(__in_acc[__item_idx]) - 1;
                 using __tuple_type = typename __internal::__get_tuple_type<
-                    __in_type, ::std::decay_t<decltype(get<0>(__out_acc[__out_idx]))>>::__type;
+                    __in_type, std::decay_t<decltype(get<0>(__out_acc[__out_idx]))>>::__type;
 
                 if (__not_first_wg)
                     __out_idx = __binary_op(__out_idx, __wg_sums_acc[__wg_sums_idx - 1]);
@@ -531,7 +531,7 @@ struct __partition_by_mask
             {
                 auto __out_idx = __item_idx - get<1>(__in_acc[__item_idx]);
                 using __tuple_type = typename __internal::__get_tuple_type<
-                    __in_type, ::std::decay_t<decltype(get<1>(__out_acc[__out_idx]))>>::__type;
+                    __in_type, std::decay_t<decltype(get<1>(__out_acc[__out_idx]))>>::__type;
 
                 if (__not_first_wg)
                     __out_idx -= __wg_sums_acc[__wg_sums_idx - 1];
@@ -562,8 +562,8 @@ struct __global_scan_functor
             // an initial value precedes the first group for the exclusive scan
             __item_idx += __shift;
             auto __bin_op_result = __binary_op(__wg_sums_acc[__wg_sums_idx], __out_acc[__item_idx]);
-            using __out_type = ::std::decay_t<decltype(__out_acc[__item_idx])>;
-            using __in_type = ::std::decay_t<decltype(__bin_op_result)>;
+            using __out_type = std::decay_t<decltype(__out_acc[__item_idx])>;
+            using __in_type = std::decay_t<decltype(__bin_op_result)>;
             __out_acc[__item_idx] =
                 static_cast<typename __internal::__get_tuple_type<__in_type, __out_type>::__type>(__bin_op_result);
         }
@@ -596,14 +596,14 @@ struct __scan
               _WGSumsAcc& __wg_sums_acc, _SizePerWG __size_per_wg, _WGSize __wgroup_size, _ItersPerWG __iters_per_wg,
               _InitType __init, std::false_type /*has_known_identity*/) const
     {
-        ::std::size_t __group_id = __item.get_group(0);
-        ::std::size_t __global_id = __item.get_global_id(0);
-        ::std::size_t __local_id = __item.get_local_id(0);
+        std::size_t __group_id = __item.get_group(0);
+        std::size_t __global_id = __item.get_global_id(0);
+        std::size_t __local_id = __item.get_local_id(0);
         __init_processing<_Tp> __use_init{};
 
-        constexpr ::std::size_t __shift = _Inclusive{} ? 0 : 1;
+        constexpr std::size_t __shift = _Inclusive{} ? 0 : 1;
 
-        ::std::size_t __adjusted_global_id = __local_id + __size_per_wg * __group_id;
+        std::size_t __adjusted_global_id = __local_id + __size_per_wg * __group_id;
         auto __adder = __local_acc[0];
         for (_ItersPerWG __iter = 0; __iter < __iters_per_wg; ++__iter, __adjusted_global_id += __wgroup_size)
         {
@@ -620,7 +620,7 @@ struct __scan
                 __use_init(__init, __local_acc[__global_id], __bin_op);
 
             // 1. reduce
-            ::std::size_t __k = 1;
+            std::size_t __k = 1;
             // TODO: use adjacent work items for better SIMD utilization
             // Consider the example with the mask of work items performing reduction:
             // iter    now         proposed
@@ -645,7 +645,7 @@ struct __scan
             do
             {
                 // use signed type to avoid overflowing
-                ::std::int32_t __shifted_local_id = __local_id - __local_id % __k - 1;
+                std::int32_t __shifted_local_id = __local_id - __local_id % __k - 1;
                 if (__shifted_local_id >= 0 && __adjusted_global_id < __n && __local_id % (2 * __k) >= __k &&
                     __local_id % (2 * __k) < 2 * __k - 1)
                 {
@@ -745,7 +745,7 @@ struct __brick_includes
     bool
     operator()(_ItemId __idx, const _Acc1& __b_acc, const _Acc2& __a_acc) const
     {
-        using ::std::get;
+        using std::get;
 
         auto __a = __a_acc;
         auto __b = __b_acc;
@@ -794,7 +794,7 @@ struct __reverse_functor
     void
     operator()(const _Idx __idx, _Accessor& __acc) const
     {
-        using ::std::swap;
+        using std::swap;
         swap(__acc[__idx], __acc[__size - __idx - 1]);
     }
 };
@@ -833,10 +833,10 @@ struct __rotate_copy
 //------------------------------------------------------------------------
 // brick_set_op for difference and intersection operations
 //------------------------------------------------------------------------
-struct _IntersectionTag : public ::std::false_type
+struct _IntersectionTag : public std::false_type
 {
 };
-struct _DifferenceTag : public ::std::true_type
+struct _DifferenceTag : public std::true_type
 {
 };
 
@@ -854,7 +854,7 @@ class __brick_set_op
     bool
     operator()(_ItemId __idx, const _Acc& __inout_acc) const
     {
-        using ::std::get;
+        using std::get;
         auto __a = get<0>(__inout_acc.tuple()); // first sequence
         auto __b = get<1>(__inout_acc.tuple()); // second sequence
         auto __c = get<2>(__inout_acc.tuple()); // mask buffer
@@ -914,7 +914,7 @@ struct __brick_shift_left
         for (_DiffType __k = __n; __k < __size; __k += __n)
         {
             if (__k + __idx < __size)
-                __rng[__k + __i] = ::std::move(__rng[__k + __idx]);
+                __rng[__k + __i] = std::move(__rng[__k + __idx]);
         }
     }
 };
@@ -927,8 +927,8 @@ struct __brick_assign_key_position
     void
     operator()(const _T1& __a, _T2&& __b) const
     {
-        ::std::get<0>(::std::forward<_T2>(__b)) = ::std::get<2>(__a); // store new key value
-        ::std::get<1>(::std::forward<_T2>(__b)) = ::std::get<0>(__a); // store index of new key
+        std::get<0>(std::forward<_T2>(__b)) = std::get<2>(__a); // store new key value
+        std::get<1>(std::forward<_T2>(__b)) = std::get<0>(__a); // store index of new key
     }
 };
 

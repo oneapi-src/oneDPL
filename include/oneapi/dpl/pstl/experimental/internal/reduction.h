@@ -33,7 +33,7 @@ inline namespace parallelism_v2
 
 // Reduction functions definitions
 
-// Generic version of ::std::reduction, all the specific ones are implemented in terms of it.
+// Generic version of std::reduction, all the specific ones are implemented in terms of it.
 template <typename _Tp, typename _BinaryOperation>
 oneapi::dpl::__internal::__reduction_object<_Tp, _BinaryOperation>
 reduction(_Tp& __var, const _Tp& __identity, _BinaryOperation __combiner)
@@ -42,38 +42,38 @@ reduction(_Tp& __var, const _Tp& __identity, _BinaryOperation __combiner)
 }
 
 template <typename _Tp>
-oneapi::dpl::__internal::__reduction_object<_Tp, ::std::plus<_Tp>>
+oneapi::dpl::__internal::__reduction_object<_Tp, std::plus<_Tp>>
 reduction_plus(_Tp& __var)
 {
-    return oneapi::dpl::experimental::parallelism_v2::reduction(__var, _Tp(), ::std::plus<_Tp>());
+    return oneapi::dpl::experimental::parallelism_v2::reduction(__var, _Tp(), std::plus<_Tp>());
 }
 
 template <typename _Tp>
-oneapi::dpl::__internal::__reduction_object<_Tp, ::std::multiplies<_Tp>>
+oneapi::dpl::__internal::__reduction_object<_Tp, std::multiplies<_Tp>>
 reduction_multiplies(_Tp& __var)
 {
-    return oneapi::dpl::experimental::parallelism_v2::reduction(__var, _Tp(1), ::std::multiplies<_Tp>());
+    return oneapi::dpl::experimental::parallelism_v2::reduction(__var, _Tp(1), std::multiplies<_Tp>());
 }
 
 template <typename _Tp>
-oneapi::dpl::__internal::__reduction_object<_Tp, decltype(::std::bit_and<_Tp>{})>
+oneapi::dpl::__internal::__reduction_object<_Tp, decltype(std::bit_and<_Tp>{})>
 reduction_bit_and(_Tp& __var)
 {
-    return oneapi::dpl::experimental::parallelism_v2::reduction(__var, ~_Tp(), ::std::bit_and<_Tp>{});
+    return oneapi::dpl::experimental::parallelism_v2::reduction(__var, ~_Tp(), std::bit_and<_Tp>{});
 }
 
 template <typename _Tp>
-oneapi::dpl::__internal::__reduction_object<_Tp, decltype(::std::bit_or<_Tp>{})>
+oneapi::dpl::__internal::__reduction_object<_Tp, decltype(std::bit_or<_Tp>{})>
 reduction_bit_or(_Tp& __var)
 {
-    return oneapi::dpl::experimental::parallelism_v2::reduction(__var, _Tp(), ::std::bit_or<_Tp>{});
+    return oneapi::dpl::experimental::parallelism_v2::reduction(__var, _Tp(), std::bit_or<_Tp>{});
 }
 
 template <typename _Tp>
-oneapi::dpl::__internal::__reduction_object<_Tp, decltype(::std::bit_xor<_Tp>{})>
+oneapi::dpl::__internal::__reduction_object<_Tp, decltype(std::bit_xor<_Tp>{})>
 reduction_bit_xor(_Tp& __var)
 {
-    return oneapi::dpl::experimental::parallelism_v2::reduction(__var, _Tp(), ::std::bit_xor<_Tp>{});
+    return oneapi::dpl::experimental::parallelism_v2::reduction(__var, _Tp(), std::bit_xor<_Tp>{});
 }
 
 template <typename _Tp>

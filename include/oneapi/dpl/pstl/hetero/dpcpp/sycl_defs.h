@@ -220,9 +220,9 @@ constexpr auto
 __any_of_group(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::any_of_group(::std::forward<_Args>(__args)...);
+    return sycl::any_of_group(std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::any_of(::std::forward<_Args>(__args)...);
+    return sycl::ONEAPI::any_of(std::forward<_Args>(__args)...);
 #endif
 }
 
@@ -231,9 +231,9 @@ constexpr auto
 __all_of_group(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::all_of_group(::std::forward<_Args>(__args)...);
+    return sycl::all_of_group(std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::all_of(::std::forward<_Args>(__args)...);
+    return sycl::ONEAPI::all_of(std::forward<_Args>(__args)...);
 #endif
 }
 
@@ -242,9 +242,9 @@ constexpr auto
 __none_of_group(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::none_of_group(::std::forward<_Args>(__args)...);
+    return sycl::none_of_group(std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::none_of(::std::forward<_Args>(__args)...);
+    return sycl::ONEAPI::none_of(std::forward<_Args>(__args)...);
 #endif
 }
 
@@ -253,9 +253,9 @@ constexpr auto
 __joint_exclusive_scan(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_exclusive_scan(::std::forward<_Args>(__args)...);
+    return sycl::joint_exclusive_scan(std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::exclusive_scan(::std::forward<_Args>(__args)...);
+    return sycl::ONEAPI::exclusive_scan(std::forward<_Args>(__args)...);
 #endif
 }
 
@@ -264,9 +264,9 @@ constexpr auto
 __joint_inclusive_scan(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_inclusive_scan(::std::forward<_Args>(__args)...);
+    return sycl::joint_inclusive_scan(std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::inclusive_scan(::std::forward<_Args>(__args)...);
+    return sycl::ONEAPI::inclusive_scan(std::forward<_Args>(__args)...);
 #endif
 }
 
@@ -275,9 +275,9 @@ constexpr auto
 __joint_reduce(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_reduce(::std::forward<_Args>(__args)...);
+    return sycl::joint_reduce(std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::reduce(::std::forward<_Args>(__args)...);
+    return sycl::ONEAPI::reduce(std::forward<_Args>(__args)...);
 #endif
 }
 
@@ -286,9 +286,9 @@ constexpr auto
 __joint_any_of(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_any_of(::std::forward<_Args>(__args)...);
+    return sycl::joint_any_of(std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::any_of(::std::forward<_Args>(__args)...);
+    return sycl::ONEAPI::any_of(std::forward<_Args>(__args)...);
 #endif
 }
 
@@ -297,9 +297,9 @@ constexpr auto
 __joint_all_of(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_all_of(::std::forward<_Args>(__args)...);
+    return sycl::joint_all_of(std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::all_of(::std::forward<_Args>(__args)...);
+    return sycl::ONEAPI::all_of(std::forward<_Args>(__args)...);
 #endif
 }
 
@@ -308,9 +308,9 @@ constexpr auto
 __joint_none_of(_Args&&... __args)
 {
 #if _ONEDPL_SYCL2020_COLLECTIVES_PRESENT
-    return sycl::joint_none_of(::std::forward<_Args>(__args)...);
+    return sycl::joint_none_of(std::forward<_Args>(__args)...);
 #else
-    return sycl::ONEAPI::none_of(::std::forward<_Args>(__args)...);
+    return sycl::ONEAPI::none_of(std::forward<_Args>(__args)...);
 #endif
 }
 
@@ -399,9 +399,9 @@ auto
 __get_host_access(_Buf&& __buf)
 {
 #if _ONEDPL_LIBSYCL_VERSION >= 60200
-    return ::std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
+    return std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
 #else
-    return ::std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
+    return std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
 #endif
 }
 

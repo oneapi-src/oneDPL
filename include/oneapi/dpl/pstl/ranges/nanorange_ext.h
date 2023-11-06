@@ -158,12 +158,12 @@ struct rotate_view : view_interface<rotate_view<V>>
   public:
     rotate_view() = default;
 
-    constexpr rotate_view(V base, range_difference_t<V> offset) : base_(::std::move(base)), offset_(offset) {}
+    constexpr rotate_view(V base, range_difference_t<V> offset) : base_(std::move(base)), offset_(offset) {}
 
     template <typename R,
-              ::std::enable_if_t<input_range<R> && viewable_range<R> && constructible_from<V, all_view<R>>, int> = 0>
+              std::enable_if_t<input_range<R> && viewable_range<R> && constructible_from<V, all_view<R>>, int> = 0>
     constexpr rotate_view(R&& r, range_difference_t<V> offset)
-        : base_(views::all(::std::forward<R>(r))), offset_(offset)
+        : base_(views::all(std::forward<R>(r))), offset_(offset)
     {
     }
 
@@ -212,9 +212,9 @@ struct rotate_view_fn
 {
     template <typename E>
     constexpr auto
-    operator()(E&& e, range_difference_t<E> offset) const -> decltype(rotate_view{::std::forward<E>(e), offset})
+    operator()(E&& e, range_difference_t<E> offset) const -> decltype(rotate_view{std::forward<E>(e), offset})
     {
-        return rotate_view{::std::forward<E>(e), offset};
+        return rotate_view{std::forward<E>(e), offset};
     }
 
     template <typename D>
@@ -223,10 +223,10 @@ struct rotate_view_fn
     {
         return detail::rao_proxy{[offset](auto&& r) mutable
 #ifndef NANO_MSVC_LAMBDA_PIPE_WORKAROUND
-                                 -> decltype(rotate_view{::std::forward<decltype(r)>(r), offset})
+                                 -> decltype(rotate_view{std::forward<decltype(r)>(r), offset})
 #endif
                                  {
-                                     return rotate_view{::std::forward<decltype(r)>(r), offset};
+                                     return rotate_view{std::forward<decltype(r)>(r), offset};
                                  }};
     }
 };

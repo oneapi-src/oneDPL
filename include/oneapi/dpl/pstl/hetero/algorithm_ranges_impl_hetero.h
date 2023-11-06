@@ -46,9 +46,9 @@ __pattern_walk_n(_ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     if (__n > 0)
     {
-        oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::__par_backend_hetero::__parallel_for(std::forward<_ExecutionPolicy>(__exec),
                                                           unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-                                                          ::std::forward<_Ranges>(__rngs)...)
+                                                          std::forward<_Ranges>(__rngs)...)
             .wait();
     }
 }
@@ -75,14 +75,14 @@ __pattern_swap(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _F
     {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap1_wrapper>(
-                ::std::forward<_ExecutionPolicy>(__exec)),
+                std::forward<_ExecutionPolicy>(__exec)),
             __f, __rng1, __rng2);
         return __rng1.size();
     }
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap2_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)),
+            std::forward<_ExecutionPolicy>(__exec)),
         __f, __rng2, __rng1);
     return __rng2.size();
 }
@@ -103,9 +103,9 @@ __pattern_equal(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
     // TODO: in case of confilicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
     return !oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
+        std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
         oneapi::dpl::__par_backend_hetero::__parallel_or_tag{},
-        oneapi::dpl::__ranges::zip_view(::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2)));
+        oneapi::dpl::__ranges::zip_view(std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2)));
 }
 
 //------------------------------------------------------------------------
@@ -126,8 +126,8 @@ __pattern_find_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Pred __pred)
 
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__find_policy_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, _TagType{}, ::std::forward<_Range>(__rng));
+            std::forward<_ExecutionPolicy>(__exec)),
+        _Predicate{__pred}, _TagType{}, std::forward<_Range>(__rng));
 }
 
 //------------------------------------------------------------------------
@@ -145,8 +145,8 @@ __pattern_find_end(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2
 
     if (__rng1.size() == __rng2.size())
     {
-        const bool __res = __pattern_equal(::std::forward<_ExecutionPolicy>(__exec), __rng1,
-                                           ::std::forward<_Range2>(__rng2), __pred);
+        const bool __res = __pattern_equal(std::forward<_ExecutionPolicy>(__exec), __rng1,
+                                           std::forward<_Range2>(__rng2), __pred);
         return __res ? 0 : __rng1.size();
     }
 
@@ -155,8 +155,8 @@ __pattern_find_end(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2
 
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__find_policy_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
+            std::forward<_ExecutionPolicy>(__exec)),
+        _Predicate{__pred}, _TagType{}, std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2));
 }
 
 //------------------------------------------------------------------------
@@ -178,8 +178,8 @@ __pattern_find_first_of(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& _
     //TODO: To check whether it makes sense to iterate over the second sequence in case of __rng1.size() < __rng2.size()
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__find_policy_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
+            std::forward<_ExecutionPolicy>(__exec)),
+        _Predicate{__pred}, _TagType{}, std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2));
 }
 
 //------------------------------------------------------------------------
@@ -196,8 +196,8 @@ __pattern_any_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Pred __pred)
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         __par_backend_hetero::make_wrapped_policy<oneapi::dpl::__par_backend_hetero::__or_policy_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, oneapi::dpl::__par_backend_hetero::__parallel_or_tag{}, ::std::forward<_Range>(__rng));
+            std::forward<_ExecutionPolicy>(__exec)),
+        _Predicate{__pred}, oneapi::dpl::__par_backend_hetero::__parallel_or_tag{}, std::forward<_Range>(__rng));
 }
 
 //------------------------------------------------------------------------
@@ -223,8 +223,8 @@ __pattern_search(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
     if (__rng1.size() == __rng2.size())
     {
         const bool __res = __pattern_equal(
-            __par_backend_hetero::make_wrapped_policy<equal_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
-            __rng1, ::std::forward<_Range2>(__rng2), __pred);
+            __par_backend_hetero::make_wrapped_policy<equal_wrapper>(std::forward<_ExecutionPolicy>(__exec)),
+            __rng1, std::forward<_Range2>(__rng2), __pred);
         return __res ? 0 : __rng1.size();
     }
 
@@ -233,8 +233,8 @@ __pattern_search(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
 
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<oneapi::dpl::__par_backend_hetero::__find_policy_wrapper>
-            (::std::forward<_ExecutionPolicy>(__exec)),
-        _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
+            (std::forward<_ExecutionPolicy>(__exec)),
+        _Predicate{__pred}, _TagType{}, std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2));
 }
 
 //------------------------------------------------------------------------
@@ -252,19 +252,19 @@ __pattern_search_n(_ExecutionPolicy&& __exec, _Range&& __rng, _Size __count, con
     auto __s_rng = oneapi::dpl::experimental::ranges::views::iota(0, __count) |
                    oneapi::dpl::experimental::ranges::views::transform([__value](auto) { return __value; });
 
-    return __pattern_search(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __s_rng, __pred);
+    return __pattern_search(std::forward<_ExecutionPolicy>(__exec), std::forward<_Range>(__rng), __s_rng, __pred);
 }
 
 template <typename _Size>
 _Size
-return_value(bool __res, _Size __size, ::std::true_type)
+return_value(bool __res, _Size __size, std::true_type)
 {
     return __res ? 0 : __size;
 }
 
 template <typename _Size>
 _Size
-return_value(_Size __res, _Size __size, ::std::false_type)
+return_value(_Size __res, _Size __size, std::false_type)
 {
     return __res == __size - 1 ? __size : __res;
 }
@@ -284,7 +284,7 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredic
 
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, adjacent_find_fn<_BinaryPredicate>>;
-    using _TagType = ::std::conditional_t<__is__or_semantic(), oneapi::dpl::__par_backend_hetero::__parallel_or_tag,
+    using _TagType = std::conditional_t<__is__or_semantic(), oneapi::dpl::__par_backend_hetero::__parallel_or_tag,
                                           oneapi::dpl::__par_backend_hetero::__parallel_find_forward_tag<_Range>>;
 
     auto __rng1 = __rng | oneapi::dpl::experimental::ranges::views::take(__rng.size() - 1);
@@ -293,7 +293,7 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredic
     // TODO: in case of confilicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
     auto result = oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        ::std::forward<_ExecutionPolicy>(__exec), _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}},
+        std::forward<_ExecutionPolicy>(__exec), _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}},
         _TagType{}, oneapi::dpl::__ranges::zip_view(__rng1, __rng2));
 
     // inverted conditional because of
@@ -311,7 +311,7 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
 
     using _ReduceValueType = oneapi::dpl::__internal::__difference_t<_Range>;
 
-    auto __reduce_fn = ::std::plus<_ReduceValueType>{};
+    auto __reduce_fn = std::plus<_ReduceValueType>{};
     // int is being implicitly casted to difference_type
     // otherwise we can only pass the difference_type as a functor template parameter
     auto __transform_fn = [__predicate](auto __gidx, auto __acc) -> int {
@@ -319,10 +319,10 @@ __pattern_count(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __predicat
     };
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
-                                                                          ::std::true_type /*is_commutative*/>(
-               ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                                                                          std::true_type /*is_commutative*/>(
+               std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
                unseq_backend::__no_init_value{}, // no initial value
-               ::std::forward<_Range>(__rng))
+               std::forward<_Range>(__rng))
         .get();
 }
 
@@ -340,7 +340,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng
         return __rng1.size();
 
     using _SizeType = decltype(__rng1.size());
-    using _ReduceOp = ::std::plus<_SizeType>;
+    using _ReduceOp = std::plus<_SizeType>;
     using _Assigner = unseq_backend::__scan_assigner;
     using _NoAssign = unseq_backend::__scan_no_assign;
     using _MaskAssigner = unseq_backend::__mask_assigner<1>;
@@ -356,17 +356,17 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng
 
     auto __res =
         __par_backend_hetero::__parallel_transform_scan_base(
-            ::std::forward<_ExecutionPolicy>(__exec),
+            std::forward<_ExecutionPolicy>(__exec),
             oneapi::dpl::__ranges::zip_view(
                 __rng1, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
                             __mask_buf.get_buffer())),
             __rng2, __reduce_op, _InitType{},
             // local scan
-            unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
+            unseq_backend::__scan</*inclusive*/ std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
                                   _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
                                                                            __add_mask_op, __create_mask_op},
             // scan between groups
-            unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
+            unseq_backend::__scan</*inclusive*/ std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
                                   _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
                                                                   __get_data_op},
             // global scan
@@ -383,13 +383,13 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
 __pattern_copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Predicate __pred, _Assign)
 {
     using _SizeType = decltype(__rng1.size());
-    using _ReduceOp = ::std::plus<_SizeType>;
+    using _ReduceOp = std::plus<_SizeType>;
 
     unseq_backend::__create_mask<_Predicate, _SizeType> __create_mask_op{__pred};
-    unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
+    unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ std::true_type, 1> __copy_by_mask_op;
 
-    return __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
-                               ::std::forward<_Range2>(__rng2), __create_mask_op, __copy_by_mask_op);
+    return __pattern_scan_copy(std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng1),
+                               std::forward<_Range2>(__rng2), __create_mask_op, __copy_by_mask_op);
 }
 
 //------------------------------------------------------------------------
@@ -413,9 +413,9 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred
                                             oneapi::dpl::__internal::__pstl_assign());
     auto __copy_rng_truncated = __copy_rng | oneapi::dpl::experimental::ranges::views::take(__copy_last_id);
 
-    oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec),
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(std::forward<_ExecutionPolicy>(__exec),
                                                         oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
-                                                        __copy_rng_truncated, ::std::forward<_Range>(__rng));
+                                                        __copy_rng_truncated, std::forward<_Range>(__rng));
 
     return __copy_last_id;
 }
@@ -431,13 +431,13 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
 __pattern_unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred, _Assign)
 {
     using _It1DifferenceType = oneapi::dpl::__internal::__difference_t<_Range1>;
-    unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, _Assign, /*inclusive*/ ::std::true_type, 1>
+    unseq_backend::__copy_by_mask<std::plus<_It1DifferenceType>, _Assign, /*inclusive*/ std::true_type, 1>
         __copy_by_mask_op;
     __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
         __not_pred<_BinaryPredicate>{__pred}};
 
-    return __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng),
-                               ::std::forward<_Range2>(__result), __create_mask_op, __copy_by_mask_op);
+    return __pattern_scan_copy(std::forward<_ExecutionPolicy>(__exec), std::forward<_Range1>(__rng),
+                               std::forward<_Range2>(__result), __create_mask_op, __copy_by_mask_op);
 }
 
 //------------------------------------------------------------------------
@@ -458,8 +458,8 @@ __pattern_unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __p
     auto res_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
     auto res = __pattern_unique_copy(__exec, __rng, res_rng, __pred, oneapi::dpl::__internal::__pstl_assign());
 
-    __pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __brick_copy<_ExecutionPolicy>{}, res_rng,
-                     ::std::forward<_Range>(__rng));
+    __pattern_walk_n(std::forward<_ExecutionPolicy>(__exec), __brick_copy<_ExecutionPolicy>{}, res_rng,
+                     std::forward<_Range>(__rng));
     return res;
 }
 
@@ -493,23 +493,23 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _
     {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy1_wrapper>(
-                ::std::forward<_ExecutionPolicy>(__exec)),
-            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::forward<_Range2>(__rng2),
-            ::std::forward<_Range3>(__rng3));
+                std::forward<_ExecutionPolicy>(__exec)),
+            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, std::forward<_Range2>(__rng2),
+            std::forward<_Range3>(__rng3));
     }
     else if (__n2 == 0)
     {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy2_wrapper>(
-                ::std::forward<_ExecutionPolicy>(__exec)),
-            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::forward<_Range1>(__rng1),
-            ::std::forward<_Range3>(__rng3));
+                std::forward<_ExecutionPolicy>(__exec)),
+            oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, std::forward<_Range1>(__rng1),
+            std::forward<_Range3>(__rng3));
     }
     else
     {
-        __par_backend_hetero::__parallel_merge(::std::forward<_ExecutionPolicy>(__exec),
-                                               ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-                                               ::std::forward<_Range3>(__rng3), __comp)
+        __par_backend_hetero::__parallel_merge(std::forward<_ExecutionPolicy>(__exec),
+                                               std::forward<_Range1>(__rng1), std::forward<_Range2>(__rng2),
+                                               std::forward<_Range3>(__rng3), __comp)
             .wait();
     }
 
@@ -525,8 +525,8 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
     if (__rng.size() >= 2)
-        __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec),
-                                                     ::std::forward<_Range>(__rng), __comp, __proj)
+        __par_backend_hetero::__parallel_stable_sort(std::forward<_ExecutionPolicy>(__exec),
+                                                     std::forward<_Range>(__rng), __comp, __proj)
             .wait();
 }
 
@@ -543,14 +543,14 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
     if (__rng.size() < 2)
         return 0;
 
-    using _IteratorValueType = typename ::std::iterator_traits<decltype(__rng.begin())>::value_type;
+    using _IteratorValueType = typename std::iterator_traits<decltype(__rng.begin())>::value_type;
     using _IndexValueType = oneapi::dpl::__internal::__difference_t<_Range>;
     using _ReduceValueType = oneapi::dpl::__internal::tuple<_IndexValueType, _IteratorValueType>;
 
     // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
     // not commutative.
     auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
-        using ::std::get;
+        using std::get;
         if (__comp(get<1>(__b), get<1>(__a)))
         {
             return __b;
@@ -561,13 +561,13 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
 
     auto __ret_idx =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
-                                                                       ::std::false_type /*is_commutative*/>(
-            ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                                                                       std::false_type /*is_commutative*/>(
+            std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
             unseq_backend::__no_init_value{}, // no initial value
-            ::std::forward<_Range>(__rng))
+            std::forward<_Range>(__rng))
             .get();
 
-    using ::std::get;
+    using std::get;
     return get<0>(__ret_idx);
 }
 
@@ -578,14 +578,14 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<
     _ExecutionPolicy,
-    ::std::pair<oneapi::dpl::__internal::__difference_t<_Range>, oneapi::dpl::__internal::__difference_t<_Range>>>
+    std::pair<oneapi::dpl::__internal::__difference_t<_Range>, oneapi::dpl::__internal::__difference_t<_Range>>>
 __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
     //If size == 1, result is the zero-indexed element. If size == 0, result is 0.
     if (__rng.size() < 2)
-        return ::std::make_pair(0, 0);
+        return std::make_pair(0, 0);
 
-    using _IteratorValueType = typename ::std::iterator_traits<decltype(__rng.begin())>::value_type;
+    using _IteratorValueType = typename std::iterator_traits<decltype(__rng.begin())>::value_type;
     using _IndexValueType = oneapi::dpl::__internal::__difference_t<_Range>;
     using _ReduceValueType =
         oneapi::dpl::__internal::tuple<_IndexValueType, _IndexValueType, _IteratorValueType, _IteratorValueType>;
@@ -593,7 +593,7 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
     // This operator doesn't track the lowest found index in case of equal min. values and the highest found index in
     // case of equal max. values. Thus, this operator is not commutative.
     auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
-        using ::std::get;
+        using std::get;
         auto __chosen_for_min = __a;
         auto __chosen_for_max = __b;
 
@@ -601,9 +601,9 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
         assert(get<1>(__a) < get<1>(__b));
 
         if (__comp(get<2>(__b), get<2>(__a)))
-            __chosen_for_min = ::std::move(__b);
+            __chosen_for_min = std::move(__b);
         if (__comp(get<3>(__b), get<3>(__a)))
-            __chosen_for_max = ::std::move(__a);
+            __chosen_for_max = std::move(__a);
         return _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
                                 get<3>(__chosen_for_max)};
     };
@@ -617,14 +617,14 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __c
 
     _ReduceValueType __ret =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
-                                                                       ::std::false_type /*is_commutative*/>(
-            ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                                                                       std::false_type /*is_commutative*/>(
+            std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
             unseq_backend::__no_init_value{}, // no initial value
-            ::std::forward<_Range>(__rng))
+            std::forward<_Range>(__rng))
             .get();
 
-    using ::std::get;
-    return ::std::make_pair(get<0>(__ret), get<1>(__ret));
+    using std::get;
+    return std::make_pair(get<0>(__ret), get<1>(__ret));
 }
 
 //------------------------------------------------------------------------
@@ -688,12 +688,12 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_keys_wrapper>(__exec),
-            __copy_range, ::std::forward<_Range1>(__keys), ::std::forward<_Range3>(__out_keys));
+            __copy_range, std::forward<_Range1>(__keys), std::forward<_Range3>(__out_keys));
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_values_wrapper>
-                (::std::forward<_ExecutionPolicy>(__exec)),
-            __copy_range, ::std::forward<_Range2>(__values), ::std::forward<_Range4>(__out_values));
+                (std::forward<_ExecutionPolicy>(__exec)),
+            __copy_range, std::forward<_Range2>(__values), std::forward<_Range4>(__out_values));
 
         return 1;
     }
@@ -723,7 +723,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
                                                   experimental::ranges::views::all_write(__idx));
 
     // use work group size adjusted to shared local memory as the maximum segment size.
-    ::std::size_t __wgroup_size =
+    std::size_t __wgroup_size =
         oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(__key_type) + sizeof(__val_type));
 
     // element is copied if it is the 0th element (marks beginning of first segment), is in an index
@@ -735,11 +735,11 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
         [__n, __binary_pred, __wgroup_size](const auto& __a) {
             // The size of key range for the (i-1) view is one less, so for the 0th index we do not check the keys
             // for (i-1), but we still need to get its key value as it is the start of a segment
-            const auto index = ::std::get<0>(__a);
+            const auto index = std::get<0>(__a);
             if (index == 0)
                 return true;
             return index % __wgroup_size == 0                                 // segment size
-                   || !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); // key comparison
+                   || !__binary_pred(std::get<1>(__a), std::get<2>(__a)); // key comparison
         },
         unseq_backend::__brick_assign_key_position{});
 
@@ -749,7 +749,7 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
         unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__n)>(__binary_op, __n), __intermediate_result_end,
         oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx),
                                                 __intermediate_result_end),
-        ::std::forward<_Range2>(__values), experimental::ranges::views::all_write(__tmp_out_values))
+        std::forward<_Range2>(__values), experimental::ranges::views::all_write(__tmp_out_values))
         .wait();
 
     // Round 2: final reduction to get result for each segment of equal adjacent keys
@@ -778,21 +778,21 @@ __pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2
         [__binary_pred](const auto& __a) {
             // The size of key range for the (i-1) view is one less, so for the 0th index we do not check the keys
             // for (i-1), but we still need to get its key value as it is the start of a segment
-            if (::std::get<0>(__a) == 0)
+            if (std::get<0>(__a) == 0)
                 return true;
-            return !__binary_pred(::std::get<1>(__a), ::std::get<2>(__a)); // keys comparison
+            return !__binary_pred(std::get<1>(__a), std::get<2>(__a)); // keys comparison
         },
         unseq_backend::__brick_assign_key_position{});
 
     //reduce by segment
     oneapi::dpl::__par_backend_hetero::__parallel_for(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce2_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)),
+            std::forward<_ExecutionPolicy>(__exec)),
         unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__intermediate_result_end)>(
             __binary_op, __intermediate_result_end),
         __result_end,
         oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx), __result_end),
-        experimental::ranges::views::all_read(__tmp_out_values), ::std::forward<_Range4>(__out_values))
+        experimental::ranges::views::all_read(__tmp_out_values), std::forward<_Range4>(__out_values))
         .wait();
 
     return __result_end;

@@ -52,17 +52,17 @@ struct fixed_resource_policy
     struct state_t
     {
         resource_container_t resources_;
-        ::std::size_t offset_ = 0;
+        std::size_t offset_ = 0;
     };
 
     std::shared_ptr<state_t> state_;
 
   public:
-    fixed_resource_policy(::std::size_t offset = 0) { initialize(offset); }
+    fixed_resource_policy(std::size_t offset = 0) { initialize(offset); }
 
     fixed_resource_policy(deferred_initialization_t) {}
 
-    fixed_resource_policy(const std::vector<resource_type>& u, ::std::size_t offset = 0) { initialize(u, offset); }
+    fixed_resource_policy(const std::vector<resource_type>& u, std::size_t offset = 0) { initialize(u, offset); }
 
     auto
     get_resources() const
@@ -78,7 +78,7 @@ struct fixed_resource_policy
     }
 
     void
-    initialize(::std::size_t offset = 0)
+    initialize(std::size_t offset = 0)
     {
         if (!state_)
         {
@@ -90,7 +90,7 @@ struct fixed_resource_policy
     }
 
     void
-    initialize(const std::vector<resource_type>& u, ::std::size_t offset = 0)
+    initialize(const std::vector<resource_type>& u, std::size_t offset = 0)
     {
         if (!state_)
         {

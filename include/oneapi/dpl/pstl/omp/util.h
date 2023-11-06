@@ -68,7 +68,7 @@ class __buffer_impl
     operator=(const __buffer_impl&) = delete;
 
   public:
-    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+    static_assert(std::is_same_v<_ExecutionPolicy, std::decay_t<_ExecutionPolicy>>);
 
     __buffer_impl(std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
 
@@ -83,7 +83,7 @@ class __buffer_impl
 };
 
 template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
+using __buffer = __buffer_impl<std::decay_t<_ExecutionPolicy>, _Tp>;
 
 // Preliminary size of each chunk: requires further discussion
 constexpr std::size_t __default_chunk_size = 2048;

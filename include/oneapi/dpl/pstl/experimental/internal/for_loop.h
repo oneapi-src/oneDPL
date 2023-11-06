@@ -46,9 +46,9 @@ using type_identity_t = typename type_identity<_Tp>::type;
 // template <>
 // struct __policy_traits<oneapi::dpl::execution::vector_policy>
 // {
-//     typedef ::std::false_type __allow_parallel;
-//     typedef ::std::false_type __allow_unsequenced;
-//     typedef ::std::true_type __allow_vector;
+//     typedef std::false_type __allow_parallel;
+//     typedef std::false_type __allow_unsequenced;
+//     typedef std::true_type __allow_vector;
 // };
 
 // TODO: add static asserts for parameters according to the requirements
@@ -56,34 +56,34 @@ template <typename _ExecutionPolicy, typename _Ip, typename... _Rest>
 void
 for_loop(_ExecutionPolicy&& __exec, type_identity_t<_Ip> __start, _Ip __finish, _Rest&&... __rest)
 {
-    oneapi::dpl::__internal::__for_loop_repack(::std::forward<_ExecutionPolicy>(__exec), __start, __finish,
+    oneapi::dpl::__internal::__for_loop_repack(std::forward<_ExecutionPolicy>(__exec), __start, __finish,
                                                oneapi::dpl::__internal::__single_stride_type{},
-                                               ::std::forward_as_tuple(::std::forward<_Rest>(__rest)...));
+                                               std::forward_as_tuple(std::forward<_Rest>(__rest)...));
 }
 
 template <typename _ExecutionPolicy, typename _Ip, typename _Sp, typename... _Rest>
 void
 for_loop_strided(_ExecutionPolicy&& __exec, type_identity_t<_Ip> __start, _Ip __finish, _Sp __stride, _Rest&&... __rest)
 {
-    oneapi::dpl::__internal::__for_loop_repack(::std::forward<_ExecutionPolicy>(__exec), __start, __finish, __stride,
-                                               ::std::forward_as_tuple(::std::forward<_Rest>(__rest)...));
+    oneapi::dpl::__internal::__for_loop_repack(std::forward<_ExecutionPolicy>(__exec), __start, __finish, __stride,
+                                               std::forward_as_tuple(std::forward<_Rest>(__rest)...));
 }
 
 template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename... _Rest>
 void
 for_loop_n(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Rest&&... __rest)
 {
-    oneapi::dpl::__internal::__for_loop_repack_n(::std::forward<_ExecutionPolicy>(__exec), __start, __n,
+    oneapi::dpl::__internal::__for_loop_repack_n(std::forward<_ExecutionPolicy>(__exec), __start, __n,
                                                  oneapi::dpl::__internal::__single_stride_type{},
-                                                 ::std::forward_as_tuple(::std::forward<_Rest>(__rest)...));
+                                                 std::forward_as_tuple(std::forward<_Rest>(__rest)...));
 }
 
 template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Sp, typename... _Rest>
 void
 for_loop_n_strided(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Sp __stride, _Rest&&... __rest)
 {
-    oneapi::dpl::__internal::__for_loop_repack_n(::std::forward<_ExecutionPolicy>(__exec), __start, __n, __stride,
-                                                 ::std::forward_as_tuple(::std::forward<_Rest>(__rest)...));
+    oneapi::dpl::__internal::__for_loop_repack_n(std::forward<_ExecutionPolicy>(__exec), __start, __n, __stride,
+                                                 std::forward_as_tuple(std::forward<_Rest>(__rest)...));
 }
 
 // Serial implementations
@@ -92,7 +92,7 @@ void
 for_loop(type_identity_t<_Ip> __start, _Ip __finish, _Rest&&... __rest)
 {
     oneapi::dpl::experimental::parallelism_v2::for_loop(oneapi::dpl::execution::v1::seq, __start, __finish,
-                                                        ::std::forward<_Rest>(__rest)...);
+                                                        std::forward<_Rest>(__rest)...);
 }
 
 template <typename _Ip, typename _Sp, typename... _Rest>
@@ -100,7 +100,7 @@ void
 for_loop_strided(type_identity_t<_Ip> __start, _Ip __finish, _Sp __stride, _Rest&&... __rest)
 {
     oneapi::dpl::experimental::parallelism_v2::for_loop_strided(oneapi::dpl::execution::v1::seq, __start, __finish,
-                                                                __stride, ::std::forward<_Rest>(__rest)...);
+                                                                __stride, std::forward<_Rest>(__rest)...);
 }
 
 template <typename _Ip, typename _Size, typename... _Rest>
@@ -108,7 +108,7 @@ void
 for_loop_n(_Ip __start, _Size __n, _Rest&&... __rest)
 {
     oneapi::dpl::experimental::parallelism_v2::for_loop_n(oneapi::dpl::execution::v1::seq, __start, __n,
-                                                          ::std::forward<_Rest>(__rest)...);
+                                                          std::forward<_Rest>(__rest)...);
 }
 
 template <typename _Ip, typename _Size, typename _Sp, typename... _Rest>
@@ -116,7 +116,7 @@ void
 for_loop_n_strided(_Ip __start, _Size __n, _Sp __stride, _Rest&&... __rest)
 {
     oneapi::dpl::experimental::parallelism_v2::for_loop_n_strided(oneapi::dpl::execution::v1::seq, __start, __n,
-                                                                  __stride, ::std::forward<_Rest>(__rest)...);
+                                                                  __stride, std::forward<_Rest>(__rest)...);
 }
 
 } // namespace parallelism_v2

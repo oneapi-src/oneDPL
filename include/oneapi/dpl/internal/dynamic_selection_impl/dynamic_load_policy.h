@@ -162,7 +162,7 @@ struct dynamic_load_policy
                 if (!least_loaded || v < least_load)
                 {
                     least_load = v;
-                    least_loaded = ::std::move(r);
+                    least_loaded = std::move(r);
                 }
             }
             return selection_type{dynamic_load_policy<Backend>(*this), least_loaded};

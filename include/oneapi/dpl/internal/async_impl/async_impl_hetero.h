@@ -43,12 +43,12 @@ __pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forw
     auto __buf = __keep(__first, __last);
 
     auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+        std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
         __buf.all_view());
     return __future_obj;
 }
 
-template <typename _IsSync = ::std::false_type,
+template <typename _IsSync = std::false_type,
           __par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
           __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::write,
           typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function,
@@ -67,7 +67,7 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
     auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+        std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
         __buf1.all_view(), __buf2.all_view());
 
     if constexpr (_IsSync::value)
@@ -96,7 +96,7 @@ __pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
     auto __buf3 = __keep3(__first3, __first3 + __n);
 
     auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+        std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
         __buf1.all_view(), __buf2.all_view(), __buf3.all_view());
 
     return __future.__make_future(__first3 + __n);
@@ -109,7 +109,7 @@ __pattern_walk2_brick_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first
                             _ForwardIterator2 __first2, _Brick __brick)
 {
     return __pattern_walk2_async(
-        __par_backend_hetero::make_wrapped_policy<__walk2_brick_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __par_backend_hetero::make_wrapped_policy<__walk2_brick_wrapper>(std::forward<_ExecutionPolicy>(__exec)),
         __first1, __last1, __first2, __brick);
 }
 
@@ -140,8 +140,8 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
-                                                                          ::std::true_type /*is_commutative*/>(
-        ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
+                                                                          std::true_type /*is_commutative*/>(
+        std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
         unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
         __buf1.all_view(), __buf2.all_view());
 }
@@ -167,8 +167,8 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
     auto __buf = __keep(__first, __last);
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
-                                                                          ::std::true_type /*is_commutative*/>(
-        ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
+                                                                          std::true_type /*is_commutative*/>(
+        std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
         unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
         __buf.all_view());
 }
@@ -179,7 +179,7 @@ auto
 __pattern_fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _T& __value)
 {
     return __pattern_walk1_async(
-        ::std::forward<_ExecutionPolicy>(__exec),
+        std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
         fill_functor<_T>{__value});
@@ -206,7 +206,7 @@ __pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __firs
     auto __buf2 = __keep2(__result, __result + __n);
 
     auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init,
+        std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init,
         __binary_op, _Inclusive{});
     return __res.__make_future(__result + __n);
 }
@@ -221,7 +221,7 @@ __pattern_transform_scan_async(_ExecutionPolicy&& __exec, _Iterator1 __first, _I
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
     using _InitType = unseq_backend::__init_value<_RepackedType>;
 
-    return __pattern_transform_scan_base_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+    return __pattern_transform_scan_base_async(std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
                                                __unary_op, _InitType{__init}, __binary_op, _Inclusive{});
 }
 
@@ -233,11 +233,11 @@ auto
 __pattern_transform_scan_async(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
                                _UnaryOperation __unary_op, _BinaryOperation __binary_op, _Inclusive)
 {
-    using _ValueType = typename ::std::iterator_traits<_Iterator1>::value_type;
+    using _ValueType = typename std::iterator_traits<_Iterator1>::value_type;
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_ValueType>;
     using _InitType = unseq_backend::__no_init_value<_RepackedType>;
 
-    return __pattern_transform_scan_base_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+    return __pattern_transform_scan_base_async(std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
                                                __unary_op, _InitType{}, __binary_op, _Inclusive{});
 }
 

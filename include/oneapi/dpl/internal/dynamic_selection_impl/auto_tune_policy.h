@@ -150,7 +150,7 @@ class auto_tune_policy
 
       public:
         auto_tune_selection_type(const policy_t& p, resource_with_index_t r, std::shared_ptr<tuner_t> t)
-            : policy_(p), resource_(r), tuner_(::std::move(t))
+            : policy_(p), resource_(r), tuner_(std::move(t))
         {
         }
 

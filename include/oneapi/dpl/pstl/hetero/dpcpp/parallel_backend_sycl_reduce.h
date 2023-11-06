@@ -92,10 +92,10 @@ __device_reduce_kernel(const _NDItemId __item_id, const _Size __n, const _Size _
 
 // Parallel_transform_reduce for a small arrays using a single work group.
 // Transforms and reduces __work_group_size * __iters_per_work_item elements.
-template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _KernelName>
+template <typename _Tp, std::uint16_t __work_group_size, std::uint8_t __iters_per_work_item, typename _KernelName>
 struct __parallel_transform_reduce_small_submitter;
 
-template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename... _Name>
+template <typename _Tp, std::uint16_t __work_group_size, std::uint8_t __iters_per_work_item, typename... _Name>
 struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __iters_per_work_item,
                                                    __internal::__optional_kernel_name<_Name...>>
 {
@@ -134,30 +134,30 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
     }
 }; // struct __parallel_transform_reduce_small_submitter
 
-template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item,
+template <typename _Tp, std::uint16_t __work_group_size, std::uint8_t __iters_per_work_item,
           typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
 __parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, const _Size __n, _ReduceOp __reduce_op,
                                        _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
+    using _Policy = std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
     using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __reduce_small_kernel<::std::integral_constant<::std::uint8_t, __iters_per_work_item>, _CustomName>>;
+        __reduce_small_kernel<std::integral_constant<std::uint8_t, __iters_per_work_item>, _CustomName>>;
 
     return __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __iters_per_work_item, _ReduceKernel>()(
-        ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-        ::std::forward<_Ranges>(__rngs)...);
+        std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
+        std::forward<_Ranges>(__rngs)...);
 }
 
 // Submits the first kernel of the parallel_transform_reduce for mid-sized arrays.
 // Uses multiple work groups that each reduce __work_group_size * __iters_per_work_item items and store the preliminary
 // results in __temp.
-template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _KernelName>
+template <typename _Tp, std::uint16_t __work_group_size, std::uint8_t __iters_per_work_item, typename _KernelName>
 struct __parallel_transform_reduce_device_kernel_submitter;
 
-template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item,
+template <typename _Tp, std::uint16_t __work_group_size, std::uint8_t __iters_per_work_item,
           typename... _KernelName>
 struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_size, __iters_per_work_item,
                                                            __internal::__optional_kernel_name<_KernelName...>>
@@ -196,10 +196,10 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_siz
 // Submits the second kernel of the parallel_transform_reduce for mid-sized arrays.
 // Uses a single work groups to reduce __n preliminary results stored in __temp and returns a future object with the
 // result buffer.
-template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _KernelName>
+template <typename _Tp, std::uint16_t __work_group_size, std::uint8_t __iters_per_work_item, typename _KernelName>
 struct __parallel_transform_reduce_work_group_kernel_submitter;
 
-template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item,
+template <typename _Tp, std::uint16_t __work_group_size, std::uint8_t __iters_per_work_item,
           typename... _KernelName>
 struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group_size, __iters_per_work_item,
                                                                __internal::__optional_kernel_name<_KernelName...>>
@@ -253,15 +253,15 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group
     }
 }; // struct __parallel_transform_reduce_work_group_kernel_submitter
 
-template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item_device_kernel,
-          ::std::uint8_t __iters_per_work_item_work_group_kernel, typename _ExecutionPolicy, typename _Size,
+template <typename _Tp, std::uint16_t __work_group_size, std::uint8_t __iters_per_work_item_device_kernel,
+          std::uint8_t __iters_per_work_item_work_group_kernel, typename _ExecutionPolicy, typename _Size,
           typename _ReduceOp, typename _TransformOp, typename _InitType,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
 auto
 __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _ReduceOp __reduce_op,
                                      _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
+    using _Policy = std::decay_t<_ExecutionPolicy>;
     using _CustomName = typename _Policy::kernel_name;
 
     // The same value for __iters_per_work_item_device_kernel is currently used. Include
@@ -270,7 +270,7 @@ __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _Redu
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__reduce_mid_device_kernel<_CustomName>>;
     using _ReduceWorkGroupKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__reduce_mid_work_group_kernel<
-            ::std::integral_constant<::std::uint8_t, __iters_per_work_item_work_group_kernel>, _CustomName>>;
+            std::integral_constant<std::uint8_t, __iters_per_work_item_work_group_kernel>, _CustomName>>;
 
     // number of buffer elements processed within workgroup
     constexpr _Size __size_per_work_group = __iters_per_work_item_device_kernel * __work_group_size;
@@ -280,26 +280,26 @@ __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _Redu
     sycl::event __reduce_event =
         __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_size, __iters_per_work_item_device_kernel,
                                                             _ReduceDeviceKernel>()(
-            __exec, __n, __reduce_op, __transform_op, __init, __temp, ::std::forward<_Ranges>(__rngs)...);
+            __exec, __n, __reduce_op, __transform_op, __init, __temp, std::forward<_Ranges>(__rngs)...);
 
     __n = __n_groups; // Number of preliminary results from the device kernel.
     return __parallel_transform_reduce_work_group_kernel_submitter<
         _Tp, __work_group_size, __iters_per_work_item_work_group_kernel, _ReduceWorkGroupKernel>()(
-        ::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __n, __reduce_op, __transform_op, __init, __temp);
+        std::forward<_ExecutionPolicy>(__exec), __reduce_event, __n, __reduce_op, __transform_op, __init, __temp);
 }
 
 // General implementation using a tree reduction
-template <typename _Tp, ::std::uint8_t __iters_per_work_item>
+template <typename _Tp, std::uint8_t __iters_per_work_item>
 struct __parallel_transform_reduce_impl
 {
     template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0,
               typename... _Ranges>
     static auto
-    submit(_ExecutionPolicy&& __exec, _Size __n, ::std::uint16_t __work_group_size, _ReduceOp __reduce_op,
+    submit(_ExecutionPolicy&& __exec, _Size __n, std::uint16_t __work_group_size, _ReduceOp __reduce_op,
            _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
     {
-        using _Policy = ::std::decay_t<_ExecutionPolicy>;
+        using _Policy = std::decay_t<_ExecutionPolicy>;
         using _CustomName = typename _Policy::kernel_name;
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
         using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
@@ -315,8 +315,8 @@ struct __parallel_transform_reduce_impl
 
 #if _ONEDPL_COMPILE_KERNEL
         auto __kernel = __internal::__kernel_compiler<_ReduceKernel>::__compile(__exec);
-        __work_group_size = ::std::min(
-            __work_group_size, (::std::uint16_t)oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
+        __work_group_size = std::min(
+            __work_group_size, (std::uint16_t)oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
 #endif
 
         _Size __size_per_work_group =
@@ -386,7 +386,7 @@ struct __parallel_transform_reduce_impl
             });
             if (__is_first)
                 __is_first = false;
-            ::std::swap(__offset_1, __offset_2);
+            std::swap(__offset_1, __offset_2);
             __n = __n_groups;
             __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
             __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
@@ -423,46 +423,46 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
     // Get the work group size adjusted to the local memory limit.
     // Pessimistically double the memory requirement to take into account memory used by compiled kernel.
     // TODO: find a way to generalize getting of reliable work-group size.
-    ::std::size_t __work_group_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_Tp) * 2);
+    std::size_t __work_group_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_Tp) * 2);
 
     // Use single work group implementation if array < __work_group_size * __iters_per_work_item.
     if (__work_group_size >= 256)
     {
         if (__n <= 256)
         {
-            return __parallel_transform_reduce_small_impl<_Tp, 256, 1>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_small_impl<_Tp, 256, 1>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                        __reduce_op, __transform_op, __init,
-                                                                       ::std::forward<_Ranges>(__rngs)...);
+                                                                       std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 512)
         {
-            return __parallel_transform_reduce_small_impl<_Tp, 256, 2>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_small_impl<_Tp, 256, 2>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                        __reduce_op, __transform_op, __init,
-                                                                       ::std::forward<_Ranges>(__rngs)...);
+                                                                       std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 1024)
         {
-            return __parallel_transform_reduce_small_impl<_Tp, 256, 4>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_small_impl<_Tp, 256, 4>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                        __reduce_op, __transform_op, __init,
-                                                                       ::std::forward<_Ranges>(__rngs)...);
+                                                                       std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 2048)
         {
-            return __parallel_transform_reduce_small_impl<_Tp, 256, 8>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_small_impl<_Tp, 256, 8>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                        __reduce_op, __transform_op, __init,
-                                                                       ::std::forward<_Ranges>(__rngs)...);
+                                                                       std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 4096)
         {
-            return __parallel_transform_reduce_small_impl<_Tp, 256, 16>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_small_impl<_Tp, 256, 16>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                         __reduce_op, __transform_op, __init,
-                                                                        ::std::forward<_Ranges>(__rngs)...);
+                                                                        std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 8192)
         {
-            return __parallel_transform_reduce_small_impl<_Tp, 256, 32>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_small_impl<_Tp, 256, 32>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                         __reduce_op, __transform_op, __init,
-                                                                        ::std::forward<_Ranges>(__rngs)...);
+                                                                        std::forward<_Ranges>(__rngs)...);
         }
 
         // Use two-step tree reduction.
@@ -470,45 +470,45 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
         // Second step reduces __work_group_size * __iters_per_work_item_work_group_kernel elements.
         else if (__n <= 2097152)
         {
-            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 1>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 1>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                          __reduce_op, __transform_op, __init,
-                                                                         ::std::forward<_Ranges>(__rngs)...);
+                                                                         std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 4194304)
         {
-            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 2>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 2>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                          __reduce_op, __transform_op, __init,
-                                                                         ::std::forward<_Ranges>(__rngs)...);
+                                                                         std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 8388608)
         {
-            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 4>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 4>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                          __reduce_op, __transform_op, __init,
-                                                                         ::std::forward<_Ranges>(__rngs)...);
+                                                                         std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 16777216)
         {
-            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 8>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 8>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                          __reduce_op, __transform_op, __init,
-                                                                         ::std::forward<_Ranges>(__rngs)...);
+                                                                         std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 33554432)
         {
-            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 16>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 16>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                           __reduce_op, __transform_op, __init,
-                                                                          ::std::forward<_Ranges>(__rngs)...);
+                                                                          std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 67108864)
         {
-            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 32>(::std::forward<_ExecutionPolicy>(__exec), __n,
+            return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 32>(std::forward<_ExecutionPolicy>(__exec), __n,
                                                                           __reduce_op, __transform_op, __init,
-                                                                          ::std::forward<_Ranges>(__rngs)...);
+                                                                          std::forward<_Ranges>(__rngs)...);
         }
     }
     // Otherwise use a recursive tree reduction.
-    return __parallel_transform_reduce_impl<_Tp, 32>::submit(::std::forward<_ExecutionPolicy>(__exec), __n,
+    return __parallel_transform_reduce_impl<_Tp, 32>::submit(std::forward<_ExecutionPolicy>(__exec), __n,
                                                              __work_group_size, __reduce_op, __transform_op, __init,
-                                                             ::std::forward<_Ranges>(__rngs)...);
+                                                             std::forward<_Ranges>(__rngs)...);
 }
 
 } // namespace __par_backend_hetero
