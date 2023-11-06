@@ -50,17 +50,17 @@ template <typename T>
 struct test_without_compare
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1> && can_use_default_less_operator_v<T>>
+    std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1> && can_use_default_less_operator_v<T>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
     {
-        auto expect_res = ::std::includes(first1, last1, first2, last2);
-        auto res = ::std::includes(exec, first1, last1, first2, last2);
+        auto expect_res = std::includes(first1, last1, first2, last2);
+        auto res = std::includes(exec, first1, last1, first2, last2);
 
         EXPECT_TRUE(expect_res == res, "wrong result for includes without predicate");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1> || !can_use_default_less_operator_v<T>>
+    std::enable_if_t<TestUtils::is_reverse_v<InputIterator1> || !can_use_default_less_operator_v<T>>
     operator()(Policy&& /* exec */, InputIterator1 /* first1 */, InputIterator1 /* last1 */, InputIterator2 /* first2 */, InputIterator2 /* last2 */)
     {
     }
@@ -70,19 +70,19 @@ template <typename T>
 struct test_with_compare
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
 
-        auto expect_res = ::std::includes(first1, last1, first2, last2, comp);
-        auto res = ::std::includes(exec, first1, last1, first2, last2, comp);
+        auto expect_res = std::includes(first1, last1, first2, last2, comp);
+        auto res = std::includes(exec, first1, last1, first2, last2, comp);
 
         EXPECT_TRUE(expect_res == res, "wrong result for includes with predicate");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& /* exec */, InputIterator1 /* first1 */, InputIterator1 /* last1 */, InputIterator2 /* first2 */, InputIterator2 /* last2 */,
                Compare /* comp */)
     {
@@ -93,24 +93,24 @@ template <typename T1, typename T2, typename Compare>
 void
 test_includes(Compare compare)
 {
-    ::std::srand(42);
-    const ::std::size_t n_max = 1000000;
+    std::srand(42);
+    const std::size_t n_max = 1000000;
 
-    Sequence<T1> in1(n_max, [](::std::size_t k) { return rand() % (2 * k + 1); });
-    Sequence<T2> in2(n_max, [](::std::size_t k) { return rand() % (k + 1); });
+    Sequence<T1> in1(n_max, [](std::size_t k) { return rand() % (2 * k + 1); });
+    Sequence<T2> in2(n_max, [](std::size_t k) { return rand() % (k + 1); });
 
-    Sequence<T1> in3(n_max, [](::std::size_t k) { return rand() % (k + 1); });
-    Sequence<T2> in4(n_max, [](::std::size_t k) { return rand() % (k/2 + 1); });
+    Sequence<T1> in3(n_max, [](std::size_t k) { return rand() % (k + 1); });
+    Sequence<T2> in4(n_max, [](std::size_t k) { return rand() % (k/2 + 1); });
 
     //prepare the input ranges: 1-2 for testing with compare, 3-4 for testing without compare
-    ::std::sort(in1.begin(), in1.end(), compare);
-    ::std::sort(in2.begin(), in2.end(), compare);
-    ::std::sort(in3.begin(), in3.end());
-    ::std::sort(in4.begin(), in4.end());
+    std::sort(in1.begin(), in1.end(), compare);
+    std::sort(in2.begin(), in2.end(), compare);
+    std::sort(in3.begin(), in3.end());
+    std::sort(in4.begin(), in4.end());
 
-    for (::std::size_t n = 0; n < n_max; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (std::size_t n = 0; n < n_max; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        for (::std::size_t m = 0; m < n_max; m = m <= 16 ? m + 1 : size_t(2.71828 * m))
+        for (std::size_t m = 0; m < n_max; m = m <= 16 ? m + 1 : size_t(2.71828 * m))
         {
             invoke_on_all_policies<0>()(test_with_compare<T1>(), in1.begin(), in1.begin() + n, in2.cbegin(),
                                         in2.cbegin() + m, compare);

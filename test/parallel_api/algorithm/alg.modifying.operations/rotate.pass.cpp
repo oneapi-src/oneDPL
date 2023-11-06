@@ -86,25 +86,25 @@ struct test_one_policy
     {
         using namespace std;
         using T = typename iterator_traits<Iterator>::value_type;
-        Iterator actual_m = ::std::next(actual_b, shift);
+        Iterator actual_m = std::next(actual_b, shift);
 
         copy(data_b, data_e, actual_b);
         Iterator actual_return = rotate(exec, actual_b, actual_m, actual_e);
 
-        EXPECT_TRUE(actual_return == ::std::next(actual_b, ::std::distance(actual_m, actual_e)), "wrong result of rotate");
+        EXPECT_TRUE(actual_return == std::next(actual_b, std::distance(actual_m, actual_e)), "wrong result of rotate");
         auto comparator = compare<T>();
-        bool check = ::std::equal(actual_return, actual_e, data_b, comparator);
-        check = check && ::std::equal(actual_b, actual_return, ::std::next(data_b, shift), comparator);
+        bool check = std::equal(actual_return, actual_e, data_b, comparator);
+        check = check && std::equal(actual_b, actual_return, std::next(data_b, shift), comparator);
 
         EXPECT_TRUE(check, "wrong effect of rotate");
         EXPECT_TRUE(check_move(exec, actual_b, actual_e, shift), "wrong move test of rotate");
     }
 
     template <typename ExecutionPolicy, typename Iterator, typename Size>
-    ::std::enable_if_t<
-        is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator> &&
-        !::std::is_same_v<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy> &&
-        ::std::is_same_v<typename ::std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>,
+    std::enable_if_t<
+        is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator> &&
+        !std::is_same_v<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy> &&
+        std::is_same_v<typename std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>,
         bool>
     check_move(ExecutionPolicy&& /* exec */, Iterator b, Iterator e, Size shift)
     {
@@ -117,10 +117,10 @@ struct test_one_policy
     }
 
     template <typename ExecutionPolicy, typename Iterator, typename Size>
-    ::std::enable_if_t<
-        !(is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator> &&
-        !::std::is_same_v<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy> &&
-        ::std::is_same_v<typename ::std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>),
+    std::enable_if_t<
+        !(is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator> &&
+        !std::is_same_v<ExecutionPolicy, oneapi::dpl::execution::sequenced_policy> &&
+        std::is_same_v<typename std::iterator_traits<Iterator>::value_type, wrapper<float32_t>>),
         bool>
     check_move(ExecutionPolicy&& /* exec */, Iterator /* b */, Iterator /* e */, Size /* shift */)
     {
@@ -134,8 +134,8 @@ test()
 {
     const std::int32_t max_len = 100000;
 
-    Sequence<T> actual(max_len, [](::std::size_t i) { return T(i); });
-    Sequence<T> data(max_len, [](::std::size_t i) { return T(i); });
+    Sequence<T> actual(max_len, [](std::size_t i) { return T(i); });
+    Sequence<T> data(max_len, [](std::size_t i) { return T(i); });
 
     for (std::int32_t len = 0; len < max_len; len = len <= 16 ? len + 1 : std::int32_t(3.1415 * len))
     {

@@ -39,8 +39,8 @@ struct run_unique
         ForwardIt i = unique(first1, last1);
         ForwardIt k = unique(exec, first2, last2);
 
-        auto n = ::std::distance(first1, i);
-        EXPECT_TRUE(::std::distance(first2, k) == n, "wrong return value from unique without predicate");
+        auto n = std::distance(first1, i);
+        EXPECT_TRUE(std::distance(first2, k) == n, "wrong return value from unique without predicate");
         EXPECT_EQ_N(first1, first2, n, "wrong effect from unique without predicate");
     }
 };
@@ -62,8 +62,8 @@ struct run_unique_predicate
         ForwardIt i = unique(first1, last1, pred);
         ForwardIt k = unique(exec, first2, last2, pred);
 
-        auto n = ::std::distance(first1, i);
-        EXPECT_TRUE(::std::distance(first2, k) == n, "wrong return value from unique with predicate");
+        auto n = std::distance(first1, i);
+        EXPECT_TRUE(std::distance(first2, k) == n, "wrong return value from unique with predicate");
         EXPECT_EQ_N(first1, first2, n, "wrong effect from unique with predicate");
     }
 };
@@ -72,7 +72,7 @@ template <typename T, typename Generator, typename Predicate>
 void
 test(Generator generator, Predicate pred)
 {
-    const ::std::size_t max_size = 1000000;
+    const std::size_t max_size = 1000000;
     Sequence<T> in(max_size, [](size_t v) { return T(v); });
     Sequence<T> exp(max_size, [](size_t v) { return T(v); });
 
@@ -91,11 +91,11 @@ struct LocalWrapper
     T my_val;
 
     explicit LocalWrapper(T k) : my_val(k) {}
-    LocalWrapper(LocalWrapper&& input) : my_val(::std::move(input.my_val)) {}
+    LocalWrapper(LocalWrapper&& input) : my_val(std::move(input.my_val)) {}
     LocalWrapper&
     operator=(LocalWrapper&& input)
     {
-        my_val = ::std::move(input.my_val);
+        my_val = std::move(input.my_val);
         return *this;
     }
     friend bool
@@ -112,7 +112,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, Iterator iter)
     {
-        invoke_if(exec, [&]() { unique(exec, iter, iter, non_const(::std::equal_to<T>())); });
+        invoke_if(exec, [&]() { unique(exec, iter, iter, non_const(std::equal_to<T>())); });
     }
 };
 
@@ -132,7 +132,7 @@ main()
                                      return val1.my_val != val2.my_val;
                                  });
     test<MemoryChecker>(
-        [](::std::size_t idx){ return MemoryChecker{::std::int32_t(idx / 3)}; },
+        [](std::size_t idx){ return MemoryChecker{std::int32_t(idx / 3)}; },
         [](const MemoryChecker& val1, const MemoryChecker& val2){ return val1.value() == val2.value(); });
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from unique: number of ctor and dtor calls is not equal");
 #endif

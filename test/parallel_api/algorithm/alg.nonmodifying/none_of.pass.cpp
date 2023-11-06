@@ -38,7 +38,7 @@ struct test_none_of
     void
     operator()(ExecutionPolicy&& exec, Iterator begin, Iterator end, Predicate pred, bool expected)
     {
-        auto actualr = ::std::none_of(exec, begin, end, pred);
+        auto actualr = std::none_of(exec, begin, end, pred);
         EXPECT_EQ(expected, actualr, "result for none_of");
     }
 };

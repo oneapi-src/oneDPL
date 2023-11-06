@@ -56,8 +56,8 @@ struct run_unique_copy
                Size n, T trash)
     {
         // Cleaning
-        ::std::fill_n(expected_first, n, trash);
-        ::std::fill_n(out_first, n, trash);
+        std::fill_n(expected_first, n, trash);
+        std::fill_n(out_first, n, trash);
 
         // Run unique_copy
         auto i = unique_copy(first, last, expected_first);
@@ -70,8 +70,8 @@ struct run_unique_copy
         }
         EXPECT_TRUE(out_last == k, "wrong return value from unique_copy");
 #else
-        auto expected_count = ::std::distance(expected_first, i);
-        auto out_count = ::std::distance(out_first, k);
+        auto expected_count = std::distance(expected_first, i);
+        auto out_count = std::distance(out_first, k);
 
         EXPECT_TRUE(expected_count == out_count, "wrong return value from unique_copy");
         EXPECT_EQ_N(expected_first, out_first, expected_count, "wrong unique_copy effect");
@@ -115,8 +115,8 @@ struct run_unique_copy_predicate
                Predicate pred, T trash)
     {
         // Cleaning
-        ::std::fill_n(expected_first, n, trash);
-        ::std::fill_n(out_first, n, trash);
+        std::fill_n(expected_first, n, trash);
+        std::fill_n(out_first, n, trash);
 
         // Run unique_copy with predicate
         auto i = unique_copy(first, last, expected_first, pred);
@@ -129,8 +129,8 @@ struct run_unique_copy_predicate
         }
         EXPECT_TRUE(out_last == k, "wrong return value from unique_copy with predicate");
 #else
-        auto expected_count = ::std::distance(expected_first, i);
-        auto out_count = ::std::distance(out_first, k);
+        auto expected_count = std::distance(expected_first, i);
+        auto out_count = std::distance(out_first, k);
 
         EXPECT_TRUE(expected_count == out_count, "wrong return value from unique_copy with predicate");
         EXPECT_EQ_N(expected_first, out_first, expected_count, "wrong unique_copy with predicate effect");
@@ -178,7 +178,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
     {
-        unique_copy(exec, input_iter, input_iter, out_iter, non_const(::std::equal_to<T>()));
+        unique_copy(exec, input_iter, input_iter, out_iter, non_const(std::equal_to<T>()));
     }
 };
 
@@ -186,11 +186,11 @@ int
 main()
 {
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test<Number>(Number(42, OddTag()), ::std::equal_to<Number>(),
+    test<Number>(Number(42, OddTag()), std::equal_to<Number>(),
                  [](std::int32_t j) { return Number(3 * j / 13 ^ (j & 8), OddTag()); });
 #endif
 
-    test<float64_t>(float64_t(42), ::std::equal_to<float64_t>(),
+    test<float64_t>(float64_t(42), std::equal_to<float64_t>(),
                     [](std::int32_t j) { return float64_t(5 * j / 23 ^ (j / 7)); });
 #if !ONEDPL_FPGA_DEVICE
     test<float32_t>(float32_t(42), [](float32_t, float32_t) { return false; },

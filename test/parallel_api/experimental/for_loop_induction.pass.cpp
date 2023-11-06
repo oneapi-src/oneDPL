@@ -28,8 +28,8 @@ void
 test_body_induction(Policy&& exec, Iterator /* first */, Iterator /* last */, Iterator /* expected_first */,
                     Iterator /* expected_last */, Size n)
 {
-    using T = typename ::std::iterator_traits<Iterator>::value_type;
-    static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
+    using T = typename std::iterator_traits<Iterator>::value_type;
+    static_assert(std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
     // Init with different arbitrary values on each iteration
     const T ind_init = n % 97;
@@ -44,11 +44,11 @@ test_body_induction(Policy&& exec, Iterator /* first */, Iterator /* last */, It
     const T clval_sind = ind_init;
     T rval_sind = ind_init;
 
-    ::std::experimental::for_loop(
-        ::std::forward<Policy>(exec), Size(0), n, ::std::experimental::induction(lval_ind),
-        ::std::experimental::induction(clval_ind), ::std::experimental::induction(::std::move(rval_ind)),
-        ::std::experimental::induction(lval_sind, stride), ::std::experimental::induction(clval_sind, stride),
-        ::std::experimental::induction(::std::move(rval_sind), stride),
+    std::experimental::for_loop(
+        std::forward<Policy>(exec), Size(0), n, std::experimental::induction(lval_ind),
+        std::experimental::induction(clval_ind), std::experimental::induction(std::move(rval_ind)),
+        std::experimental::induction(lval_sind, stride), std::experimental::induction(clval_sind, stride),
+        std::experimental::induction(std::move(rval_sind), stride),
         [ind_init, stride](Size idx, T ind1, T ind2, T ind3, T sind1, T sind2, T sind3) {
             EXPECT_TRUE(ind1 == ind2, "wrong induction value");
             EXPECT_TRUE(ind1 == ind3, "wrong induction value");
@@ -71,8 +71,8 @@ void
 test_body_induction_strided(Policy&& exec, Iterator first, Iterator last, Iterator /* expected_first */,
                             Iterator /* expected_last */, Size n)
 {
-    using T = typename ::std::iterator_traits<Iterator>::value_type;
-    static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
+    using T = typename std::iterator_traits<Iterator>::value_type;
+    static_assert(std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
     for (int loop_stride : {-1, 1, 10, -5})
     {
@@ -80,10 +80,10 @@ test_body_induction_strided(Policy&& exec, Iterator first, Iterator last, Iterat
         const T ind_init = n % 97;
         T lval_ind = ind_init;
 
-        using Ssize = ::std::make_signed_t<Size>;
+        using Ssize = std::make_signed_t<Size>;
 
-        ::std::experimental::for_loop_n_strided(::std::forward<Policy>(exec), Ssize(0), Ssize(n), loop_stride,
-                                              ::std::experimental::induction(lval_ind),
+        std::experimental::for_loop_n_strided(std::forward<Policy>(exec), Ssize(0), Ssize(n), loop_stride,
+                                              std::experimental::induction(lval_ind),
                                               [ind_init, loop_stride](Ssize val, T ind) {
                                                   // We have either 0, stride, 2 * stride, .. or 0, -|stride|, 2 * -|stride|
                                                   // sequences, so current index can be simply calculated with this.
@@ -96,7 +96,7 @@ test_body_induction_strided(Policy&& exec, Iterator first, Iterator last, Iterat
 
         // Negative strides are not allowed with forward iterators
         if (loop_stride < 0 &&
-            ::std::is_same_v<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>)
+            std::is_same_v<typename std::iterator_traits<Iterator>::iterator_category, std::forward_iterator_tag>)
             continue;
 
         auto new_first = first;
@@ -106,25 +106,25 @@ test_body_induction_strided(Policy&& exec, Iterator first, Iterator last, Iterat
         // just use 'first' for this purpose. Meaning that the resulting sequence shrinks to n - 1 element.
         if (loop_stride < 0 && n > 0)
         {
-            ::std::advance(new_first, n - 1);
+            std::advance(new_first, n - 1);
             new_last = first;
         }
 
         // Re-init the value after for_loop_n_strided
         lval_ind = ind_init;
 
-        ::std::experimental::for_loop_strided(
-            ::std::forward<Policy>(exec), new_first, new_last, loop_stride, ::std::experimental::induction(lval_ind),
+        std::experimental::for_loop_strided(
+            std::forward<Policy>(exec), new_first, new_last, loop_stride, std::experimental::induction(lval_ind),
             [ind_init, loop_stride, new_first](Iterator iter, T ind) {
-                auto dist = (loop_stride > 0) ? ::std::distance(new_first, iter) : ::std::distance(iter, new_first);
-                auto real_idx = dist / ::std::abs(loop_stride);
+                auto dist = (loop_stride > 0) ? std::distance(new_first, iter) : std::distance(iter, new_first);
+                auto real_idx = dist / std::abs(loop_stride);
 
                 EXPECT_TRUE(ind == (ind_init + real_idx), "wrong induction value");
             });
 
         if (loop_stride < 0 && n > 0)
         {
-            EXPECT_TRUE(lval_ind == ((n - 1) / ::std::abs(loop_stride) + !!((n - 1) % ::std::abs(loop_stride))),
+            EXPECT_TRUE(lval_ind == ((n - 1) / std::abs(loop_stride) + !!((n - 1) % std::abs(loop_stride))),
                         "wrong result of induction");
         }
         else
@@ -140,8 +140,8 @@ struct test_body
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Iterator expected_first, Iterator expected_last, Size n)
     {
-        test_body_induction(::std::forward<Policy>(exec), first, last, expected_first, expected_last, n);
-        test_body_induction_strided(::std::forward<Policy>(exec), first, last, expected_first, expected_last, n);
+        test_body_induction(std::forward<Policy>(exec), first, last, expected_first, expected_last, n);
+        test_body_induction_strided(std::forward<Policy>(exec), first, last, expected_first, expected_last, n);
     }
 };
 

@@ -85,46 +85,46 @@ struct test_search_predicate
 
 template <typename T>
 void
-test(const ::std::size_t bits)
+test(const std::size_t bits)
 {
 
-    const ::std::size_t max_n1 = 1000;
-    const ::std::size_t max_n2 = (max_n1 * 10) / 8;
-    Sequence<T> in(max_n1, [=](::std::size_t) { return T(2 * HashBits(max_n1, bits - 1) ^ 1); });
-    Sequence<T> sub(max_n2, [=](::std::size_t) { return T(2 * HashBits(max_n1, bits - 1)); });
-    for (::std::size_t n1 = 0; n1 <= max_n1; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
+    const std::size_t max_n1 = 1000;
+    const std::size_t max_n2 = (max_n1 * 10) / 8;
+    Sequence<T> in(max_n1, [=](std::size_t) { return T(2 * HashBits(max_n1, bits - 1) ^ 1); });
+    Sequence<T> sub(max_n2, [=](std::size_t) { return T(2 * HashBits(max_n1, bits - 1)); });
+    for (std::size_t n1 = 0; n1 <= max_n1; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
     {
-        ::std::size_t sub_n[] = {0, 1, 3, n1, (n1 * 10) / 8};
-        ::std::size_t res[] = {0, 1, n1 / 2, n1};
+        std::size_t sub_n[] = {0, 1, 3, n1, (n1 * 10) / 8};
+        std::size_t res[] = {0, 1, n1 / 2, n1};
         for (auto n2 : sub_n)
         {
             for (auto r : res)
             {
-                ::std::size_t i = r, isub = 0;
+                std::size_t i = r, isub = 0;
                 for (; i < n1 && isub < n2; ++i, ++isub)
                     in[i] = sub[isub];
 #ifdef _PSTL_TEST_FIND_END
                 invoke_on_all_policies<0>()(test_find_end<T>(), in.begin(), in.begin() + n1, sub.begin(),
-                                            sub.begin() + n2, ::std::equal_to<T>());
+                                            sub.begin() + n2, std::equal_to<T>());
                 invoke_on_all_policies<1>()(test_find_end_predicate<T>(), in.begin(), in.begin() + n1, sub.begin(),
-                                            sub.begin() + n2, ::std::equal_to<T>());
+                                            sub.begin() + n2, std::equal_to<T>());
 #if !ONEDPL_FPGA_DEVICE
                 invoke_on_all_policies<2>()(test_find_end<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),
-                                            sub.cbegin() + n2, ::std::equal_to<T>());
+                                            sub.cbegin() + n2, std::equal_to<T>());
                 invoke_on_all_policies<3>()(test_find_end_predicate<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),
-                                            sub.cbegin() + n2, ::std::equal_to<T>());
+                                            sub.cbegin() + n2, std::equal_to<T>());
 #endif
 #endif
 #ifdef _PSTL_TEST_SEARCH
                 invoke_on_all_policies<4>()(test_search<T>(), in.begin(), in.begin() + n1, sub.begin(),
-                                            sub.begin() + n2, ::std::equal_to<T>());
+                                            sub.begin() + n2, std::equal_to<T>());
                 invoke_on_all_policies<5>()(test_search_predicate<T>(), in.begin(), in.begin() + n1, sub.begin(),
-                                            sub.begin() + n2, ::std::equal_to<T>());
+                                            sub.begin() + n2, std::equal_to<T>());
 #if !ONEDPL_FPGA_DEVICE
                 invoke_on_all_policies<6>()(test_search<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),
-                                            sub.cbegin() + n2, ::std::equal_to<T>());
+                                            sub.cbegin() + n2, std::equal_to<T>());
                 invoke_on_all_policies<7>()(test_search_predicate<T>(), in.cbegin(), in.cbegin() + n1, sub.cbegin(),
-                                            sub.cbegin() + n2, ::std::equal_to<T>());
+                                            sub.cbegin() + n2, std::equal_to<T>());
 #endif
 #endif
             }
@@ -140,7 +140,7 @@ struct test_non_const_find_end
     operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter)
     {
         invoke_if(exec, [&]() {
-            find_end(exec, first_iter, first_iter, second_iter, second_iter, non_const(::std::equal_to<T>()));
+            find_end(exec, first_iter, first_iter, second_iter, second_iter, non_const(std::equal_to<T>()));
         });
     }
 };
@@ -153,7 +153,7 @@ struct test_non_const_search
     operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter)
     {
         invoke_if(exec, [&]() {
-            search(exec, first_iter, first_iter, second_iter, second_iter, non_const(::std::equal_to<T>()));
+            search(exec, first_iter, first_iter, second_iter, second_iter, non_const(std::equal_to<T>()));
         });
     }
 };

@@ -55,8 +55,8 @@ struct test_generate
         using namespace std;
         Generator_count<T> g;
         generate(exec, first, last, g);
-        EXPECT_TRUE(::std::count(first, last, g.default_value()) == n, "generate wrong result for generate");
-        ::std::fill(first, last, T(0));
+        EXPECT_TRUE(std::count(first, last, g.default_value()) == n, "generate wrong result for generate");
+        std::fill(first, last, T(0));
     }
 };
 
@@ -72,9 +72,9 @@ struct test_generate_n
         Generator_count<T> g;
         const auto m = n / 2;
         auto gen_last = generate_n(exec, first, m, g);
-        EXPECT_TRUE(::std::count(first, gen_last, g.default_value()) == m && gen_last == ::std::next(first, m),
+        EXPECT_TRUE(std::count(first, gen_last, g.default_value()) == m && gen_last == std::next(first, m),
                     "generate_n wrong result for generate_n");
-        ::std::fill(first, gen_last, T(0));
+        std::fill(first, gen_last, T(0));
     }
 };
 

@@ -50,13 +50,13 @@ main()
         using Policy = decltype(TestUtils::default_dpcpp_policy);
 
         ranges::exclusive_scan(exec, A, view_res1, 100);
-        ranges::exclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, B2, 100, ::std::plus<int>());
+        ranges::exclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, B2, 100, std::plus<int>());
     }
 
     //check result
     int expected1[max_n], expected2[max_n], expected3[max_n];
-    ::std::exclusive_scan(oneapi::dpl::execution::seq, data, data + max_n, expected1, 100);
-    ::std::exclusive_scan(oneapi::dpl::execution::seq, data, data + max_n, expected2, 100, ::std::plus<int>());
+    std::exclusive_scan(oneapi::dpl::execution::seq, data, data + max_n, expected1, 100);
+    std::exclusive_scan(oneapi::dpl::execution::seq, data, data + max_n, expected2, 100, std::plus<int>());
 
     EXPECT_EQ_N(expected1, data1, max_n, "wrong effect from exclusive_scan with init, sycl ranges");
     EXPECT_EQ_N(expected2, data2, max_n, "wrong effect from exclusive_scan with init andbinary operation, sycl ranges");

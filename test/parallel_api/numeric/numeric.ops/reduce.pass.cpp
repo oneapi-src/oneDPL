@@ -29,7 +29,7 @@ struct test_long_reduce
     void
     operator()(Policy&& exec, Iterator first, Iterator last, T init, BinaryOp binary, T expected)
     {
-        T result_r = ::std::reduce(exec, first, last, init, binary);
+        T result_r = std::reduce(exec, first, last, init, binary);
         EXPECT_EQ(expected, result_r, "bad result from reduce(exec, first, last, init, binary_op)");
     }
 };
@@ -105,8 +105,8 @@ int
 main()
 {
     // Test for popular types
-    test_long_form(42, ::std::plus<std::int32_t>(), [](std::int32_t x) { return x; });
-    test_long_form(42.0, ::std::plus<float64_t>(), [](float64_t x) { return x; });
+    test_long_form(42, std::plus<std::int32_t>(), [](std::int32_t x) { return x; });
+    test_long_form(42.0, std::plus<float64_t>(), [](float64_t x) { return x; });
 
 #if !TEST_DPCPP_BACKEND_PRESENT
     // Test for strict types

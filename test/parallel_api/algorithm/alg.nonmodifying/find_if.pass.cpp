@@ -35,7 +35,7 @@ struct test_find_if
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred, NotPredicate /* not_pred */)
     {
-        auto i = ::std::find_if(first, last, pred);
+        auto i = std::find_if(first, last, pred);
         auto j = find_if(exec, first, last, pred);
         EXPECT_TRUE(i == j, "wrong return value from find_if");
     }
@@ -48,7 +48,7 @@ struct test_find_if_not
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred, NotPredicate not_pred)
     {
-        auto i = ::std::find_if(first, last, pred);
+        auto i = std::find_if(first, last, pred);
         auto i_not = find_if_not(exec, first, last, not_pred);
         EXPECT_TRUE(i_not == i, "wrong return value from find_if_not");
     }

@@ -234,17 +234,17 @@ template <typename T>
 constexpr auto __tol = std::numeric_limits<T>::epsilon() * 1e5;
 
 template <typename X, typename Y>
-::std::enable_if_t<!std::numeric_limits<X>::is_integer || !std::numeric_limits<Y>::is_integer>
+std::enable_if_t<!std::numeric_limits<X>::is_integer || !std::numeric_limits<Y>::is_integer>
 is_about(X x, Y y, const X eps = __tol<X>)
 {
     assert(std::fabs(x - y) <= eps);
 }
 
 template <typename T>
-::std::enable_if_t<!std::numeric_limits<T>::is_integer>
+std::enable_if_t<!std::numeric_limits<T>::is_integer>
 is_about(const dpl::complex<T>& x, const dpl::complex<T>& y, const T eps = __tol<T>)
 {
-    return is_about(::std::abs(y - x), T(0.), eps);
+    return is_about(std::abs(y - x), T(0.), eps);
 }
 
 #endif // _CASES_H

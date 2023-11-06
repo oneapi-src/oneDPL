@@ -50,8 +50,8 @@ main()
     }
 
     //check result
-    ::std::for_each(expected, expected + max_n, lambda1);
-    ::std::for_each(expected, expected + max_n, lambda1);
+    std::for_each(expected, expected + max_n, lambda1);
+    std::for_each(expected, expected + max_n, lambda1);
 
     EXPECT_EQ_N(expected, data, max_n, "wrong effect from for_each with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING

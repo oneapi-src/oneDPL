@@ -40,14 +40,14 @@ template <typename InputIterator1, typename InputIterator2, typename OutputItera
 void
 check_and_reset(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, OutputIterator out_first)
 {
-    typedef typename ::std::iterator_traits<OutputIterator>::value_type Out;
-    typename ::std::iterator_traits<OutputIterator>::difference_type k = 0;
+    typedef typename std::iterator_traits<OutputIterator>::value_type Out;
+    typename std::iterator_traits<OutputIterator>::difference_type k = 0;
     for (; first1 != last1; ++first1, ++first2, ++out_first, ++k)
     {
         // check
         Out expected = Out(1.5) + *first1 - *first2;
         Out actual = *out_first;
-        if (::std::is_floating_point_v<Out>)
+        if (std::is_floating_point_v<Out>)
         {
             EXPECT_TRUE((expected > actual ? expected - actual : actual - expected) < Out(1e-7),
                         "wrong value in output sequence");
@@ -70,7 +70,7 @@ struct test_one_policy
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 /* last2 */,
                OutputIterator out_first, OutputIterator /* out_last */, BinaryOp op)
     {
-        ::std::transform(exec, first1, last1, first2, out_first, op);
+        std::transform(exec, first1, last1, first2, out_first, op);
         check_and_reset(first1, last1, first2, out_first);
     }
 };
@@ -102,7 +102,7 @@ struct test_non_const
     {
         invoke_if(exec, [&]() {
             InputIterator input_iter2 = input_iter;
-            transform(exec, input_iter, input_iter, input_iter2, out_iter, non_const(::std::plus<T>()));
+            transform(exec, input_iter, input_iter, input_iter2, out_iter, non_const(std::plus<T>()));
         });
     }
 };

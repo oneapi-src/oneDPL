@@ -29,7 +29,7 @@ template <typename T>
 struct wrapper
 {
     T t;
-    ::std::size_t number_of_swaps = 0;
+    std::size_t number_of_swaps = 0;
     wrapper(): t() {}
     explicit wrapper(T t_) : t(t_) {}
     template <typename U>
@@ -49,7 +49,7 @@ template <typename T>
 void
 swap(wrapper<T>& a, wrapper<T>& b)
 {
-    ::std::swap(a.t, b.t);
+    std::swap(a.t, b.t);
     a.number_of_swaps++;
     b.number_of_swaps++;
 }
@@ -88,14 +88,14 @@ struct test_one_policy
         using T = typename iterator_traits<Iterator1>::value_type;
 
         iota(data_b, data_e, 0);
-        iota(actual_b, actual_e, ::std::distance(data_b, data_e));
+        iota(actual_b, actual_e, std::distance(data_b, data_e));
 
         Iterator2 actual_return = swap_ranges(exec, data_b, data_e, actual_b);
         bool check_return = (actual_return == actual_e);
         EXPECT_TRUE(check_return, "wrong result of swap_ranges");
         if (check_return)
         {
-            ::std::size_t i = 0;
+            std::size_t i = 0;
             bool check = all_of(actual_b, actual_e, [&i](T_ref a) { return a == T(i++); }) &&
                          all_of(data_b, data_e, [&i](T_ref a) { return a == T(i++); });
 
@@ -115,12 +115,12 @@ template <typename T>
 void
 test()
 {
-    const ::std::size_t max_len = 100000;
+    const std::size_t max_len = 100000;
 
     Sequence<T> data(max_len);
     Sequence<T> actual(max_len);
 
-    for (::std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : ::std::size_t(3.1415 * len))
+    for (std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : std::size_t(3.1415 * len))
     {
         invoke_on_all_policies<>()(test_one_policy<T>(), data.begin(), data.begin() + len, actual.begin(),
                                    actual.begin() + len);

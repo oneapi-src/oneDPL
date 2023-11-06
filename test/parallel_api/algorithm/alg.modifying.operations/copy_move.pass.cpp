@@ -40,8 +40,8 @@ struct run_copy
                Size, T trash)
     {
         // Cleaning
-        ::std::fill_n(expected_first, size, trash);
-        ::std::fill_n(out_first, size, trash);
+        std::fill_n(expected_first, size, trash);
+        std::fill_n(out_first, size, trash);
 
         // Run copy
         copy(first, last, expected_first);
@@ -63,8 +63,8 @@ struct run_copy_n
                Size n, T trash)
     {
         // Cleaning
-        ::std::fill_n(expected_first, size, trash);
-        ::std::fill_n(out_first, size, trash);
+        std::fill_n(expected_first, size, trash);
+        std::fill_n(out_first, size, trash);
 
         // Run copy_n
         copy(first, last, expected_first);
@@ -86,8 +86,8 @@ struct run_move
                Size, T trash)
     {
         // Cleaning
-        ::std::fill_n(expected_first, size, trash);
-        ::std::fill_n(out_first, size, trash);
+        std::fill_n(expected_first, size, trash);
+        std::fill_n(out_first, size, trash);
 
         // Run move
         move(first, last, expected_first);
@@ -109,7 +109,7 @@ struct run_move<Wrapper<T>>
                Size /* n */, Wrapper<T> trash)
     {
         // Cleaning
-        ::std::fill_n(out_first, size, trash);
+        std::fill_n(out_first, size, trash);
         Wrapper<T>::SetMoveCount(0);
 
         // Run move

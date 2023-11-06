@@ -31,7 +31,7 @@ struct test_adjacent_find
     {
         using namespace std;
 
-        auto k = ::std::adjacent_find(first, last);
+        auto k = std::adjacent_find(first, last);
         auto i = adjacent_find(exec, first, last);
         EXPECT_TRUE(i == k, "wrong return value from adjacent_find without predicate");
     }
@@ -46,7 +46,7 @@ struct test_adjacent_find_predicate
     {
         using namespace std;
 
-        auto k = ::std::adjacent_find(first, last, pred);
+        auto k = std::adjacent_find(first, last, pred);
         auto i = adjacent_find(exec, first, last, pred);
         EXPECT_TRUE(i == k, "wrong return value from adjacent_find with predicate");
     }
@@ -66,8 +66,8 @@ test_adjacent_find_by_type()
             Sequence<T> in(counts[c], [](std::int32_t v) -> T { return T(v); }); //fill 0...n
             in[e] = in[e + 1]+2;                                         //make an adjacent pair
 
-            auto i = ::std::adjacent_find(in.cbegin(), in.cend(), custom_pred);
-            EXPECT_TRUE(i == in.cbegin() + e, "::std::adjacent_find returned wrong result");
+            auto i = std::adjacent_find(in.cbegin(), in.cend(), custom_pred);
+            EXPECT_TRUE(i == in.cbegin() + e, "std::adjacent_find returned wrong result");
 
             invoke_on_all_policies<0>()(test_adjacent_find<T>(), in.begin(), in.end());
             invoke_on_all_policies<1>()(test_adjacent_find_predicate<T>(), in.begin(), in.end(), custom_pred);
@@ -82,8 +82,8 @@ test_adjacent_find_by_type()
     for (std::int32_t expect = 0; expect < 1; ++expect)
     {
         Sequence<T> in(expect, [](std::int32_t v) -> T { return T(v); }); //fill 0...n
-        auto i = ::std::adjacent_find(in.cbegin(), in.cend(), custom_pred);
-        EXPECT_TRUE(i == in.cbegin() + expect, "::std::adjacent_find returned wrong result");
+        auto i = std::adjacent_find(in.cbegin(), in.cend(), custom_pred);
+        EXPECT_TRUE(i == in.cbegin() + expect, "std::adjacent_find returned wrong result");
 
         invoke_on_all_policies<4>()(test_adjacent_find<T>(), in.begin(), in.end());
         invoke_on_all_policies<5>()(test_adjacent_find_predicate<T>(), in.begin(), in.end(), custom_pred);
@@ -136,7 +136,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, Iterator iter)
     {
-        adjacent_find(exec, iter, iter, non_const(::std::equal_to<T>()));
+        adjacent_find(exec, iter, iter, non_const(std::equal_to<T>()));
     }
 };
 

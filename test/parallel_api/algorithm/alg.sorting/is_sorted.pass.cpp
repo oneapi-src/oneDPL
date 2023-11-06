@@ -51,11 +51,11 @@ struct test_is_sorted_predicate
     operator()(Policy&& exec, Iterator first, Iterator last)
     {
         using namespace std;
-        typedef typename ::std::iterator_traits<Iterator>::value_type T;
+        typedef typename std::iterator_traits<Iterator>::value_type T;
 
         //try random-access iterator with a predicate
-        bool exam = is_sorted(first, last, ::std::less<T>());
-        bool res = is_sorted(exec, first, last, ::std::less<T>());
+        bool exam = is_sorted(first, last, std::less<T>());
+        bool res = is_sorted(exec, first, last, std::less<T>());
         EXPECT_TRUE(exam == res, "is_sorted wrong result for random-access iterator");
     }
 };
@@ -84,11 +84,11 @@ struct test_is_sorted_until_predicate
     operator()(Policy&& exec, Iterator first, Iterator last)
     {
         using namespace std;
-        typedef typename ::std::iterator_traits<Iterator>::value_type T;
+        typedef typename std::iterator_traits<Iterator>::value_type T;
 
         //try random-access iterator with a predicate
-        auto iexam = is_sorted_until(first, last, ::std::less<T>());
-        auto ires = is_sorted_until(exec, first, last, ::std::less<T>());
+        auto iexam = is_sorted_until(first, last, std::less<T>());
+        auto ires = is_sorted_until(exec, first, last, std::less<T>());
         EXPECT_TRUE(iexam == ires, "is_sorted_until with predicate wrong result for random-access iterator");
     }
 };
@@ -97,11 +97,11 @@ template <typename T>
 void
 test_is_sorted_by_type()
 {
-    const ::std::size_t max_n = 1000000;
+    const std::size_t max_n = 1000000;
 
-    for (::std::size_t n1 = 1; n1 <= max_n; n1 = n1 <= 16 ? n1 + 1 : ::std::size_t(3.1415 * n1))
+    for (std::size_t n1 = 1; n1 <= max_n; n1 = n1 <= 16 ? n1 + 1 : std::size_t(3.1415 * n1))
     {
-        Sequence<T> in(n1, [](::std::size_t v) -> T { return T(v); }); //fill 0..n
+        Sequence<T> in(n1, [](std::size_t v) -> T { return T(v); }); //fill 0..n
 #ifdef _PSTL_TEST_IS_SORTED
         invoke_on_all_policies<0>()(test_is_sorted<T>(), in.begin(), in.end());
         invoke_on_all_policies<1>()(test_is_sorted_predicate<T>(), in.begin(), in.end());
@@ -207,7 +207,7 @@ struct test_non_const_is_sorted
     void
     operator()(Policy&& exec, Iterator iter)
     {
-        is_sorted(exec, iter, iter, ::std::less<T>());
+        is_sorted(exec, iter, iter, std::less<T>());
     }
 };
 
@@ -218,7 +218,7 @@ struct test_non_const_is_sorted_until
     void
     operator()(Policy&& exec, Iterator iter)
     {
-        is_sorted_until(exec, iter, iter, ::std::less<T>());
+        is_sorted_until(exec, iter, iter, std::less<T>());
     }
 };
 

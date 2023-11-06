@@ -49,14 +49,14 @@ struct TestingAlgoritmInclusiveScan
     void
     call_onedpl(TArgs&&... args)
     {
-        oneapi::dpl::inclusive_scan(::std::forward<TArgs>(args)...);
+        oneapi::dpl::inclusive_scan(std::forward<TArgs>(args)...);
     }
 
     template <typename... TArgs>
     void
     call_serial(TArgs&&... args)
     {
-        inclusive_scan_serial(::std::forward<TArgs>(args)...);
+        inclusive_scan_serial(std::forward<TArgs>(args)...);
     }
 
     const char*
@@ -73,14 +73,14 @@ struct TestingAlgoritmInclusiveScanExt
     void
     call_onedpl(TArgs&&... args)
     {
-        oneapi::dpl::inclusive_scan(::std::forward<TArgs>(args)..., BinaryOp(), InitValue);
+        oneapi::dpl::inclusive_scan(std::forward<TArgs>(args)..., BinaryOp(), InitValue);
     }
 
     template <typename... TArgs>
     void
     call_serial(TArgs&&... args)
     {
-        inclusive_scan_serial(::std::forward<TArgs>(args)..., BinaryOp(), InitValue);
+        inclusive_scan_serial(std::forward<TArgs>(args)..., BinaryOp(), InitValue);
     }
 
     const char*
@@ -97,14 +97,14 @@ struct TestingAlgoritmExclusiveScan
     void
     call_onedpl(TArgs&&... args)
     {
-        oneapi::dpl::exclusive_scan(::std::forward<TArgs>(args)..., InitValue);
+        oneapi::dpl::exclusive_scan(std::forward<TArgs>(args)..., InitValue);
     }
 
     template <typename... TArgs>
     void
     call_serial(TArgs&&... args)
     {
-        exclusive_scan_serial(::std::forward<TArgs>(args)..., InitValue);
+        exclusive_scan_serial(std::forward<TArgs>(args)..., InitValue);
     }
 
     const char*
@@ -121,14 +121,14 @@ struct TestingAlgoritmExclusiveScanExt
     void
     call_onedpl(TArgs&&... args)
     {
-        oneapi::dpl::exclusive_scan(::std::forward<TArgs>(args)..., InitValue, BinaryOp());
+        oneapi::dpl::exclusive_scan(std::forward<TArgs>(args)..., InitValue, BinaryOp());
     }
 
     template <typename... TArgs>
     void
     call_serial(TArgs&&... args)
     {
-        exclusive_scan_serial(::std::forward<TArgs>(args)..., InitValue, BinaryOp());
+        exclusive_scan_serial(std::forward<TArgs>(args)..., InitValue, BinaryOp());
     }
 
     const char*
@@ -145,15 +145,15 @@ DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
 
     // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
-    ::std::enable_if_t<
-        oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
-            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
+    std::enable_if_t<
+        oneapi::dpl::__internal::__is_hetero_execution_policy_v<std::decay_t<Policy>> &&
+            is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator1>>
     operator()(Policy&& exec,
                Iterator1 keys_first, Iterator1 keys_last,
                Iterator2 vals_first, Iterator2 vals_last,
                Size n)
     {
-        using ValT = typename ::std::iterator_traits<Iterator2>::value_type;
+        using ValT = typename std::iterator_traits<Iterator2>::value_type;
 
         TestingAlgoritm testingAlgo;
 
@@ -192,15 +192,15 @@ DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
 
     // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
-    ::std::enable_if_t<
-        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
-            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
+    std::enable_if_t<
+        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<std::decay_t<Policy>> &&
+            is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator1>>
     operator()(Policy&& exec,
                Iterator1 keys_first, Iterator1 keys_last,
                Iterator2 vals_first, Iterator2 vals_last,
                Size n)
     {
-        using ValT = typename ::std::iterator_traits<Iterator2>::value_type;
+        using ValT = typename std::iterator_traits<Iterator2>::value_type;
 
         TestingAlgoritm testingAlgo;
 
@@ -216,7 +216,7 @@ DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
 
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
+    std::enable_if_t<!is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator1>>
     operator()(Policy&& exec,
                Iterator1 keys_first, Iterator1 keys_last,
                Iterator2 vals_first, Iterator2 vals_last,
@@ -231,12 +231,12 @@ DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
 
     // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Size>
-    ::std::enable_if_t<
-        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
-            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
+    std::enable_if_t<
+        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<std::decay_t<Policy>> &&
+            is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator1>>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Size n)
     {
-        using KeyT = typename ::std::iterator_traits<Iterator1>::value_type;
+        using KeyT = typename std::iterator_traits<Iterator1>::value_type;
 
         TestingAlgoritm testingAlgo;
 
@@ -254,13 +254,13 @@ DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
 
     // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Size>
-    ::std::enable_if_t<
-        oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
-            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
+    std::enable_if_t<
+        oneapi::dpl::__internal::__is_hetero_execution_policy_v<std::decay_t<Policy>> &&
+            is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator1>>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last,
                Size n)
     {
-        using KeyT = typename ::std::iterator_traits<Iterator1>::value_type;
+        using KeyT = typename std::iterator_traits<Iterator1>::value_type;
 
         TestingAlgoritm testingAlgo;
 
@@ -285,7 +285,7 @@ DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
 
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
+    std::enable_if_t<!is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator1>>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Size n)
     {
     }
@@ -325,7 +325,7 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
 
     using ValueType = int;
-    using BinaryOperation = ::std::plus<ValueType>;
+    using BinaryOperation = std::plus<ValueType>;
 
     // Run tests for USM shared memory
     run_test<sycl::usm::alloc::shared, ValueType, BinaryOperation>();

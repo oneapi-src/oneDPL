@@ -55,7 +55,7 @@ template<typename T1, typename T2>
 struct test_one_policy
 {
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, Iterator1>>
+    std::enable_if_t<is_base_of_iterator_category_v<std::bidirectional_iterator_tag, Iterator1>>
     operator()(ExecutionPolicy&& exec, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b, Iterator2 actual_e)
     {
         using namespace std;
@@ -64,15 +64,15 @@ struct test_one_policy
 
         EXPECT_TRUE(actual_return == actual_e, "wrong result of reverse_copy");
 
-        const auto n = ::std::distance(data_b, data_e);
+        const auto n = std::distance(data_b, data_e);
         Sequence<T2> res(n);
-        ::std::copy(::std::reverse_iterator<Iterator1>(data_e), ::std::reverse_iterator<Iterator1>(data_b), res.begin());
+        std::copy(std::reverse_iterator<Iterator1>(data_e), std::reverse_iterator<Iterator1>(data_b), res.begin());
 
         EXPECT_EQ_N(res.begin(), actual_b, n, "wrong effect of reverse_copy");
     }
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, Iterator1>>
+    std::enable_if_t<!is_base_of_iterator_category_v<std::bidirectional_iterator_tag, Iterator1>>
     operator()(ExecutionPolicy&& /* exec */, Iterator1 /* data_b */, Iterator1 /* data_e */, Iterator2 /* actual_b */, Iterator2 /* actual_e*/)
     {
     }
@@ -82,11 +82,11 @@ template <typename T1, typename T2>
 void
 test()
 {
-    const ::std::size_t max_len = 100000;
+    const std::size_t max_len = 100000;
     Sequence<T2> actual(max_len);
-    Sequence<T1> data(max_len, [](::std::size_t i) { return T1(i); });
+    Sequence<T1> data(max_len, [](std::size_t i) { return T1(i); });
 
-    for (::std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : ::std::size_t(3.1415 * len))
+    for (std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : std::size_t(3.1415 * len))
     {
         invoke_on_all_policies<0>()(test_one_policy<T1, T2>(),
                                     data.begin(), data.begin() + len, actual.begin(), actual.begin() + len);

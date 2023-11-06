@@ -40,12 +40,12 @@ main()
     auto permutation_first = dpl::make_permutation_iterator(first, multiply_index_by_two());
     auto permutation_last = permutation_first + num_elements;
     auto it = std::copy(TestUtils::default_dpcpp_policy, permutation_first, permutation_last, result.begin());
-    auto count = ::std::distance(result.begin(), it);
+    auto count = std::distance(result.begin(), it);
 
     for (int i = 0; i < count; i++)
-        ::std::cout << result[i] << " ";
+        std::cout << result[i] << " ";
 
-    ::std::cout << ::std::endl;
+    std::cout << std::endl;
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

@@ -36,31 +36,31 @@ int main() {
     const auto policy = TestUtils::default_dpcpp_policy;
     auto buf_begin_discard_write = oneapi::dpl::begin(buf, sycl::write_only, __dpl_sycl::__no_init{});
 
-    ::std::fill(policy, buf_begin_discard_write, buf_begin_discard_write + n, 1);
+    std::fill(policy, buf_begin_discard_write, buf_begin_discard_write + n, 1);
 #if __SYCL_UNNAMED_LAMBDA__
-    ::std::sort(policy, buf_begin, buf_end);
-    ::std::for_each(policy, buf_begin, buf_end, [](int& x) { x += 41; });
+    std::sort(policy, buf_begin, buf_end);
+    std::for_each(policy, buf_begin, buf_end, [](int& x) { x += 41; });
 
 #if !ONEDPL_FPGA_DEVICE
     sycl::buffer<float> out_buf_2{ sycl::range<1>(n) };
     auto buf_out_begin_2 = oneapi::dpl::begin(out_buf_2);
-    ::std::copy(policy, buf_begin, buf_end, buf_out_begin_2);
-    ::std::copy(policy, buf_out_begin_2, buf_out_begin_2 + n, buf_begin);
-    ::std::inplace_merge(policy, buf_begin, buf_begin + n / 2, buf_end);
-    auto red_val = ::std::reduce(policy, buf_begin, buf_end, 1);
+    std::copy(policy, buf_begin, buf_end, buf_out_begin_2);
+    std::copy(policy, buf_out_begin_2, buf_out_begin_2 + n, buf_begin);
+    std::inplace_merge(policy, buf_begin, buf_begin + n / 2, buf_end);
+    auto red_val = std::reduce(policy, buf_begin, buf_end, 1);
     EXPECT_TRUE(red_val == 42001, "wrong return value from reduce");
     auto buf_out_begin = oneapi::dpl::begin(out_buf);
-    ::std::inclusive_scan(policy, buf_begin, buf_end, buf_out_begin);
-    bool is_equal = ::std::equal(policy, buf_begin, buf_end, buf_out_begin);
+    std::inclusive_scan(policy, buf_begin, buf_end, buf_out_begin);
+    bool is_equal = std::equal(policy, buf_begin, buf_end, buf_out_begin);
     EXPECT_TRUE(!is_equal, "wrong return value from equal");
-    auto does_1_exist = ::std::find(policy, buf_begin, buf_end, 1);
+    auto does_1_exist = std::find(policy, buf_begin, buf_end, 1);
     EXPECT_TRUE(does_1_exist - buf_begin == 1000, "wrong return value from find");
 #endif // !ONEDPL_FPGA_DEVICE
 
 #else
-    // ::std::for_each(policy, buf_begin, buf_end, [](int& x) { x++; }); // It's not allowed. Policy with different name is needed
-    ::std::for_each(TestUtils::make_device_policy<class ForEach>(policy), buf_begin, buf_end, [](int& x) { x++; });
-    auto red_val = ::std::reduce(policy, buf_begin, buf_end, 1);
+    // std::for_each(policy, buf_begin, buf_end, [](int& x) { x++; }); // It's not allowed. Policy with different name is needed
+    std::for_each(TestUtils::make_device_policy<class ForEach>(policy), buf_begin, buf_end, [](int& x) { x++; });
+    auto red_val = std::reduce(policy, buf_begin, buf_end, 1);
     EXPECT_TRUE(red_val == 2001, "wrong return value from reduce");
 #endif // __SYCL_UNNAMED_LAMBDA__
 #endif // TEST_DPCPP_BACKEND_PRESENT

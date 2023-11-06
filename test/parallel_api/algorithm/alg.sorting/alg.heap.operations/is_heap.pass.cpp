@@ -48,7 +48,7 @@ template <typename T>
 struct test_is_heap
 {
     template <typename Policy, typename Iterator>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    std::enable_if_t<is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator>>
     operator()(Policy&& exec, Iterator first, Iterator last)
     {
         using namespace std;
@@ -59,7 +59,7 @@ struct test_is_heap
 
     // is_heap works only with random access iterators
     template <typename Policy, typename Iterator>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    std::enable_if_t<!is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator>>
     operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */)
     {
     }
@@ -69,7 +69,7 @@ template <typename T>
 struct test_is_heap_predicate
 {
     template <typename Policy, typename Iterator, typename Predicate>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    std::enable_if_t<is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator>>
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred)
     {
         using namespace std;
@@ -80,7 +80,7 @@ struct test_is_heap_predicate
 
     // is_heap works only with random access iterators
     template <typename Policy, typename Iterator, typename Predicate>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    std::enable_if_t<!is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator>>
     operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Predicate /* pred */)
     {
     }
@@ -90,7 +90,7 @@ template <typename T>
 struct test_is_heap_until
 {
     template <typename Policy, typename Iterator>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    std::enable_if_t<is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator>>
     operator()(Policy&& exec, Iterator first, Iterator last)
     {
         using namespace std;
@@ -101,7 +101,7 @@ struct test_is_heap_until
 
     // is_heap, is_heap_until works only with random access iterators
     template <typename Policy, typename Iterator>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    std::enable_if_t<!is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator>>
     operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */)
     {
     }
@@ -111,7 +111,7 @@ template <typename T>
 struct test_is_heap_until_predicate
 {
     template <typename Policy, typename Iterator, typename Predicate>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    std::enable_if_t<is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator>>
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred)
     {
         using namespace std;
@@ -122,7 +122,7 @@ struct test_is_heap_until_predicate
 
     // is_heap, is_heap_until works only with random access iterators
     template <typename Policy, typename Iterator, typename Predicate>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    std::enable_if_t<!is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator>>
     operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Predicate /* pred */)
     {
     }
@@ -143,15 +143,15 @@ test_is_heap_by_type(Comp comp)
         invoke_on_all_policies<0>()(test_is_heap<T>(), in.begin(), in.end());
         invoke_on_all_policies<1>()(test_is_heap_predicate<T>(), in.begin(), in.end(), comp);
 
-        ::std::make_heap(in.begin(), in.begin() + n / 4, comp);
+        std::make_heap(in.begin(), in.begin() + n / 4, comp);
         invoke_on_all_policies<2>()(test_is_heap<T>(), in.cbegin(), in.cend());
         invoke_on_all_policies<3>()(test_is_heap_predicate<T>(), in.cbegin(), in.cend(), comp);
 
-        ::std::make_heap(in.begin(), in.begin() + n / 3, comp);
+        std::make_heap(in.begin(), in.begin() + n / 3, comp);
         invoke_on_all_policies<4>()(test_is_heap<T>(), in.begin(), in.end());
         invoke_on_all_policies<5>()(test_is_heap_predicate<T>(), in.begin(), in.end(), comp);
 
-        ::std::make_heap(in.begin(), in.end(), comp);
+        std::make_heap(in.begin(), in.end(), comp);
         invoke_on_all_policies<6>()(test_is_heap<T>(), in.cbegin(), in.cend());
         invoke_on_all_policies<7>()(test_is_heap_predicate<T>(), in.cbegin(), in.cend(), comp);
 
@@ -161,15 +161,15 @@ test_is_heap_by_type(Comp comp)
         invoke_on_all_policies<8>()(test_is_heap_until<T>(), in.begin(), in.end());
         invoke_on_all_policies<9>()(test_is_heap_until_predicate<T>(), in.begin(), in.end(), comp);
 
-        ::std::make_heap(in.begin(), in.begin() + n / 4, comp);
+        std::make_heap(in.begin(), in.begin() + n / 4, comp);
         invoke_on_all_policies<10>()(test_is_heap_until<T>(), in.cbegin(), in.cend());
         invoke_on_all_policies<11>()(test_is_heap_until_predicate<T>(), in.cbegin(), in.cend(), comp);
 
-        ::std::make_heap(in.begin(), in.begin() + n / 3, comp);
+        std::make_heap(in.begin(), in.begin() + n / 3, comp);
         invoke_on_all_policies<12>()(test_is_heap_until<T>(), in.begin(), in.end());
         invoke_on_all_policies<13>()(test_is_heap_until_predicate<T>(), in.begin(), in.end(), comp);
 
-        ::std::make_heap(in.begin(), in.end(), comp);
+        std::make_heap(in.begin(), in.end(), comp);
         invoke_on_all_policies<14>()(test_is_heap_until<T>(), in.cbegin(), in.cend());
         invoke_on_all_policies<15>()(test_is_heap_until_predicate<T>(), in.cbegin(), in.cend(), comp);
 #endif
@@ -194,7 +194,7 @@ struct test_non_const_is_heap
     operator()(Policy&& exec, Iterator iter)
     {
         invoke_if(exec, [&]() {
-            is_heap(exec, iter, iter, non_const(::std::less<T>()));
+            is_heap(exec, iter, iter, non_const(std::less<T>()));
         });
     }
 };
@@ -207,7 +207,7 @@ struct test_non_const_is_heap_until
     operator()(Policy&& exec, Iterator iter)
     {
         invoke_if(exec, [&]() {
-            is_heap_until(exec, iter, iter, non_const(::std::less<T>()));
+            is_heap_until(exec, iter, iter, non_const(std::less<T>()));
         });
     }
 };
@@ -215,8 +215,8 @@ struct test_non_const_is_heap_until
 int
 main()
 {
-    test_is_heap_by_type<float32_t>(::std::greater<float32_t>());
-    test_is_heap_by_type<WithCmpOp>(::std::less<WithCmpOp>());
+    test_is_heap_by_type<float32_t>(std::greater<float32_t>());
+    test_is_heap_by_type<WithCmpOp>(std::less<WithCmpOp>());
     test_is_heap_by_type<std::uint64_t>([](std::uint64_t x, std::uint64_t y) { return x % 100 < y % 100; });
 
 #ifdef _PSTL_TEST_IS_HEAP

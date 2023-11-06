@@ -32,7 +32,7 @@ struct test_mismatch
         using namespace std;
         typedef typename iterator_traits<Iterator1>::value_type T;
         {
-            const auto expected = ::std::mismatch(first1, last1, first2, ::std::equal_to<T>());
+            const auto expected = std::mismatch(first1, last1, first2, std::equal_to<T>());
             const auto res4 = mismatch(exec, first1, last1, first2);
             EXPECT_TRUE(expected == res4, "wrong return result from mismatch");
         }
@@ -44,7 +44,7 @@ struct test_mismatch
         using namespace std;
         typedef typename iterator_traits<Iterator1>::value_type T;
         {
-            const auto expected = mismatch(oneapi::dpl::execution::seq, first1, last1, first2, last2, ::std::equal_to<T>());
+            const auto expected = mismatch(oneapi::dpl::execution::seq, first1, last1, first2, last2, std::equal_to<T>());
             const auto res2 = mismatch(exec, first1, last1, first2, last2);
             EXPECT_TRUE(expected == res2, "wrong return result from mismatch");
         }
@@ -61,8 +61,8 @@ struct test_mismatch_predicate
         using namespace std;
         typedef typename iterator_traits<Iterator1>::value_type T;
         {
-            const auto expected = ::std::mismatch(first1, last1, first2, ::std::equal_to<T>());
-            const auto res3 = mismatch(exec, first1, last1, first2, ::std::equal_to<T>());
+            const auto expected = std::mismatch(first1, last1, first2, std::equal_to<T>());
+            const auto res3 = mismatch(exec, first1, last1, first2, std::equal_to<T>());
             EXPECT_TRUE(expected == res3, "wrong return result from mismatch with predicate");
         }
     }
@@ -73,8 +73,8 @@ struct test_mismatch_predicate
         using namespace std;
         typedef typename iterator_traits<Iterator1>::value_type T;
         {
-            const auto expected = mismatch(oneapi::dpl::execution::seq, first1, last1, first2, last2, ::std::equal_to<T>());
-            const auto res1 = mismatch(exec, first1, last1, first2, last2, ::std::equal_to<T>());
+            const auto expected = mismatch(oneapi::dpl::execution::seq, first1, last1, first2, last2, std::equal_to<T>());
+            const auto res1 = mismatch(exec, first1, last1, first2, last2, std::equal_to<T>());
             EXPECT_TRUE(expected == res1, "wrong return result from mismatch with predicate");
         }
     }
@@ -127,7 +127,7 @@ test_mismatch_by_type()
             Sequence<T> in2(100, [](size_t v) -> T { return T(v); });
             invoke_on_all_policies<12>()(test_mismatch<T>(), in2.begin(), in2.end(), in.begin(), in.end());
             invoke_on_all_policies<13>()(test_mismatch_predicate<T>(), in2.begin(), in2.end(), in.begin(), in.end());
-            //  We can't call ::std::mismatch with semantic below when size of second sequence less than size of first sequence
+            //  We can't call std::mismatch with semantic below when size of second sequence less than size of first sequence
             if (in2.size() <= in.size())
             {
                 invoke_on_all_policies<14>()(test_mismatch<T>(), in2.begin(), in2.end(), in.begin());
@@ -173,7 +173,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter)
     {
-        mismatch(exec, first_iter, first_iter, second_iter, second_iter, non_const(::std::less<T>()));
+        mismatch(exec, first_iter, first_iter, second_iter, second_iter, non_const(std::less<T>()));
     }
 };
 

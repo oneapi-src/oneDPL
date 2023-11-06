@@ -43,7 +43,7 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         //T keys[n] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
         //T vals[n] = { n random numbers between 0 and 4 };
 
-        ::std::srand(42);
+        std::srand(42);
         Size segment_length = 1;
         Size j = 0;
         for (Size i = 0; i != n; ++i)
@@ -64,14 +64,14 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
     template <typename Iterator, typename Size>
     void display_param(const char* msg, Iterator it, Size n)
     {
-        ::std::cout << msg;
+        std::cout << msg;
         for (Size i = 0; i < n; ++i)
         {
             if (i > 0)
-                ::std::cout << ", ";
-            ::std::cout << it[i];
+                std::cout << ", ";
+            std::cout << it[i];
         }
-        ::std::cout << ::std::endl;
+        std::cout << std::endl;
     }
 #endif // DUMP_CHECK_RESULTS
 
@@ -90,14 +90,14 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         if (n < 1)
             return;
 
-        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
+        typedef typename std::iterator_traits<Iterator2>::value_type ValT;
 
-        ::std::vector<ValT> expected_val_res(n);
-        inclusive_scan_by_segment_serial(host_keys, host_vals, ::std::begin(expected_val_res),
+        std::vector<ValT> expected_val_res(n);
+        inclusive_scan_by_segment_serial(host_keys, host_vals, std::begin(expected_val_res),
             n, pred, op);
 
 #ifdef DUMP_CHECK_RESULTS
-        ::std::cout << "check_values(n = " << n << ") : " << ::std::endl;
+        std::cout << "check_values(n = " << n << ") : " << std::endl;
         display_param("           keys:   ", host_keys, n);
         display_param("         values: ", host_vals, n);
         display_param("         result: ", val_res, n);
@@ -110,8 +110,8 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 #if TEST_DPCPP_BACKEND_PRESENT
     // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
-                       is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3>>
+    std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy_v<std::decay_t<Policy>> &&
+                       is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator3>>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
     {
@@ -119,7 +119,7 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
         TestDataTransfer<UDTKind::eRes, Size> host_res(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
+        typedef typename std::iterator_traits<Iterator1>::value_type KeyT;
 
         // call algorithm with no optional arguments
         initialize_data(host_keys.get(), host_vals.get(), host_res.get(), n);
@@ -161,15 +161,15 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 
     // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    ::std::enable_if_t<
+    std::enable_if_t<
 #if TEST_DPCPP_BACKEND_PRESENT
-        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
+        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<std::decay_t<Policy>> &&
 #endif
-            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3>>
+            is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator3>>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
     {
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
+        typedef typename std::iterator_traits<Iterator1>::value_type KeyT;
 
         // call algorithm with no optional arguments
         initialize_data(keys_first, vals_first, val_res_first, n);
@@ -191,7 +191,7 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
 
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3>>
+    std::enable_if_t<!is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator3>>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 val_res_first, Iterator3 val_res_last, Size n)
     {
@@ -202,7 +202,7 @@ int
 main()
 {
     {
-        using ValueType = ::std::uint64_t;
+        using ValueType = std::uint64_t;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
         using BinaryOperation = MaxFunctor<ValueType>;
 
@@ -223,7 +223,7 @@ main()
     }
 
     {
-        using ValueType = ::std::complex<float>;
+        using ValueType = std::complex<float>;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
         using BinaryOperation = MaxFunctor<ValueType>;
 

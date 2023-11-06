@@ -50,18 +50,18 @@ main()
         auto exec = TestUtils::default_dpcpp_policy;
 
         merge(exec, all_view(A), all_view(B), all_view<T, sycl::access::mode::write>(D));
-        merge(TestUtils::make_device_policy<class merge_2>(exec), A, B, E, ::std::less<T>()); //check passing sycl buffers directly
+        merge(TestUtils::make_device_policy<class merge_2>(exec), A, B, E, std::less<T>()); //check passing sycl buffers directly
     }
 
     //check result
-    bool res1 = ::std::is_sorted(out1, out1 + out_n, ::std::less<T>());
-    res1 &= ::std::includes(out1, out1 + out_n, in1, in1 + in_n, ::std::less<T>());
-    res1 &= ::std::includes(out1, out1 + out_n, in2, in2 + in_n, ::std::less<T>());
+    bool res1 = std::is_sorted(out1, out1 + out_n, std::less<T>());
+    res1 &= std::includes(out1, out1 + out_n, in1, in1 + in_n, std::less<T>());
+    res1 &= std::includes(out1, out1 + out_n, in2, in2 + in_n, std::less<T>());
     EXPECT_TRUE(res1, "wrong effect from 'merge' with sycl ranges");
 
-    bool res2 = ::std::is_sorted(out2, out2 + out_n, ::std::less<T>());
-    res2 &= ::std::includes(out2, out2 + out_n, in1, in1 + in_n, ::std::less<T>());
-    res2 &= ::std::includes(out2, out2 + out_n, in2, in2 + in_n, ::std::less<T>());
+    bool res2 = std::is_sorted(out2, out2 + out_n, std::less<T>());
+    res2 &= std::includes(out2, out2 + out_n, in1, in1 + in_n, std::less<T>());
+    res2 &= std::includes(out2, out2 + out_n, in2, in2 + in_n, std::less<T>());
     EXPECT_TRUE(res2, "wrong effect from 'merge' with sycl ranges with predicate");
 #endif //_ENABLE_RANGES_TESTING
 

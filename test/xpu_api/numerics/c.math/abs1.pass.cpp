@@ -28,7 +28,7 @@ void test_abs()
     Source pos_val = 5;
     Result res = 5;
 
-    static_assert(::std::is_same_v<decltype(dpl::abs(neg_val)), Result>);
+    static_assert(std::is_same_v<decltype(dpl::abs(neg_val)), Result>);
 
     assert(dpl::abs(neg_val) == res);
     assert(dpl::abs(pos_val) == res);
@@ -48,7 +48,7 @@ ONEDPL_TEST_NUM_MAIN
 {
     // On some systems char is unsigned.
     // If that is the case, we should just test signed char twice.
-    typedef ::std::conditional_t<std::is_signed_v<char>, char, signed char> SignedChar;
+    typedef std::conditional_t<std::is_signed_v<char>, char, signed char> SignedChar;
 
     // All types less than or equal to and not greater than int are promoted to int.
     test_abs<short int, int>();

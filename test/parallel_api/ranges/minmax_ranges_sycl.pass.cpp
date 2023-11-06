@@ -38,8 +38,8 @@ main()
     const int idx_max = max_n - 1;
 
     int res1 = -1, res2 = - 1, res3 = -1, res4 = -1, res5 = -1;
-    ::std::pair<int, int> res_minmax1(-1, -1);
-    ::std::pair<int, int> res_minmax2(-1, -1);
+    std::pair<int, int> res_minmax1(-1, -1);
+    std::pair<int, int> res_minmax2(-1, -1);
     using namespace TestUtils;
     using namespace oneapi::dpl::experimental::ranges;
     {
@@ -52,15 +52,15 @@ main()
 
         //min element
         res1 = min_element(exec, A);
-        res2 = min_element(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, ::std::less<int>());
+        res2 = min_element(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, std::less<int>());
         res3 = min_element(make_new_policy<new_kernel_name<Policy, 1>>(exec), view | views::take(1));
 
         //max_element
         res4 = max_element(make_new_policy<new_kernel_name<Policy, 2>>(exec), A);
-        res5 = max_element(make_new_policy<new_kernel_name<Policy, 3>>(exec), view, ::std::less<int>());
+        res5 = max_element(make_new_policy<new_kernel_name<Policy, 3>>(exec), view, std::less<int>());
 
         res_minmax1 = minmax_element(make_new_policy<new_kernel_name<Policy, 4>>(exec), A);
-        res_minmax2 = minmax_element(make_new_policy<new_kernel_name<Policy, 5>>(exec), view, ::std::less<int>());
+        res_minmax2 = minmax_element(make_new_policy<new_kernel_name<Policy, 5>>(exec), view, std::less<int>());
     }
 
     //check result

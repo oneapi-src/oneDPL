@@ -32,7 +32,7 @@
 
 template <sycl::usm::alloc alloc_type>
 void
-test_with_usm(sycl::queue& q, const ::std::size_t count)
+test_with_usm(sycl::queue& q, const std::size_t count)
 {
     // Prepare source data
     std::vector<int> h_idx(count);
@@ -40,7 +40,7 @@ test_with_usm(sycl::queue& q, const ::std::size_t count)
         h_idx[i] = i + 1;
 
     // Copy source data to USM shared/device memory
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_idx(q, ::std::begin(h_idx), ::std::end(h_idx));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_idx(q, std::begin(h_idx), std::end(h_idx));
     auto d_idx = dt_helper_h_idx.get_data();
 
     TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_val(q, count);
@@ -66,7 +66,7 @@ template <sycl::usm::alloc alloc_type>
 void
 test_with_usm(sycl::queue& q)
 {
-    for (::std::size_t n = 0; n <= TestUtils::max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (std::size_t n = 0; n <= TestUtils::max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         test_with_usm<alloc_type>(q, n);
     }

@@ -47,7 +47,7 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         // T keys[n] = { 1, 2, 3, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 1, ...};
         // T vals[n] = { n random numbers between 0 and 4 };
 
-        ::std::srand(42);
+        std::srand(42);
         Size segment_length = 1;
         Size j = 0;
         for (Size i = 0; i != n; ++i)
@@ -68,14 +68,14 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
     template <typename Iterator, typename Size>
     void display_param(const char* msg, Iterator it, Size n)
     {
-        ::std::cout << msg;
+        std::cout << msg;
         for (Size i = 0; i < n; ++i)
         {
             if (i > 0)
-                ::std::cout << ", ";
-            ::std::cout << it[i];
+                std::cout << ", ";
+            std::cout << it[i];
         }
-        ::std::cout << ::std::endl;
+        std::cout << std::endl;
     }
 #endif // DUMP_CHECK_RESULTS
 
@@ -97,18 +97,18 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         if (n < 1)
             return;
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
-        typedef typename ::std::iterator_traits<Iterator2>::value_type ValT;
+        typedef typename std::iterator_traits<Iterator1>::value_type KeyT;
+        typedef typename std::iterator_traits<Iterator2>::value_type ValT;
 
-        ::std::vector<KeyT> expected_key_res(n);
-        ::std::vector<ValT> expected_val_res(n);
+        std::vector<KeyT> expected_key_res(n);
+        std::vector<ValT> expected_val_res(n);
 
-        ::std::size_t num_segments =
-            reduce_by_segment_serial(host_keys, host_vals, ::std::begin(expected_key_res),
-                ::std::begin(expected_val_res), n, pred, op);
+        std::size_t num_segments =
+            reduce_by_segment_serial(host_keys, host_vals, std::begin(expected_key_res),
+                std::begin(expected_val_res), n, pred, op);
 
 #ifdef DUMP_CHECK_RESULTS
-        ::std::cout << "check_values(n = " << n << ", segments = " << num_keys << ") : " << ::std::endl;
+        std::cout << "check_values(n = " << n << ", segments = " << num_keys << ") : " << std::endl;
         display_param("           keys: ", host_keys, n);
         display_param("         values: ", host_vals, n);
         display_param("    result keys: ", key_res, num_keys);
@@ -127,9 +127,9 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
     // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
               typename Size>
-    ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
-                       is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3> &&
-                       is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator4>>
+    std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy_v<std::decay_t<Policy>> &&
+                       is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator3> &&
+                       is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator4>>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {
@@ -138,7 +138,7 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         TestDataTransfer<UDTKind::eRes, Size> host_res_keys(*this, n);
         TestDataTransfer<UDTKind::eRes2, Size> host_res(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
+        typedef typename std::iterator_traits<Iterator1>::value_type KeyT;
 
         // call algorithm with no optional arguments
         initialize_data(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n);
@@ -150,8 +150,8 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res_keys, host_res);
-        size_t segments_key_ret1 = ::std::distance(key_res_first, res1.first);
-        size_t segments_val_ret1 = ::std::distance(val_res_first, res1.second);
+        size_t segments_key_ret1 = std::distance(key_res_first, res1.first);
+        size_t segments_val_ret1 = std::distance(val_res_first, res1.second);
         check_values(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n, segments_key_ret1,
                      segments_val_ret1);
 
@@ -165,8 +165,8 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res_keys, host_res);
-        size_t segments_key_ret2 = ::std::distance(key_res_first, res2.first);
-        size_t segments_val_ret2 = ::std::distance(val_res_first, res2.second);
+        size_t segments_key_ret2 = std::distance(key_res_first, res2.first);
+        size_t segments_val_ret2 = std::distance(val_res_first, res2.second);
         check_values(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n, segments_key_ret2,
                      segments_val_ret2, BinaryPredicate());
 
@@ -180,8 +180,8 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         exec.queue().wait_and_throw();
 
         retrieve_data(host_keys, host_vals, host_res_keys, host_res);
-        size_t segments_key_ret3 = ::std::distance(key_res_first, res3.first);
-        size_t segments_val_ret3 = ::std::distance(val_res_first, res3.second);
+        size_t segments_key_ret3 = std::distance(key_res_first, res3.first);
+        size_t segments_val_ret3 = std::distance(val_res_first, res3.second);
         check_values(host_keys.get(), host_vals.get(), host_res_keys.get(), host_res.get(), n, segments_key_ret3,
                      segments_val_ret3, BinaryPredicate(), BinaryOperation());
     }
@@ -190,12 +190,12 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
     // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
               typename Size>
-    ::std::enable_if_t<
+    std::enable_if_t<
 #if TEST_DPCPP_BACKEND_PRESENT
-        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
+        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<std::decay_t<Policy>> &&
 #endif
-            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3> &&
-            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator4>>
+            is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator3> &&
+            is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator4>>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {
@@ -203,16 +203,16 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
         auto res1 =
             oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first);
-        size_t segments_key_ret1 = ::std::distance(key_res_first, res1.first);
-        size_t segments_val_ret1 = ::std::distance(val_res_first, res1.second);
+        size_t segments_key_ret1 = std::distance(key_res_first, res1.first);
+        size_t segments_val_ret1 = std::distance(val_res_first, res1.second);
         check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret1, segments_val_ret1);
 
         // call algorithm with predicate
         initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
         auto res2 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
                                                    val_res_first, BinaryPredicate());
-        size_t segments_key_ret2 = ::std::distance(key_res_first, res2.first);
-        size_t segments_val_ret2 = ::std::distance(val_res_first, res2.second);
+        size_t segments_key_ret2 = std::distance(key_res_first, res2.first);
+        size_t segments_val_ret2 = std::distance(val_res_first, res2.second);
         check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret2, segments_val_ret2,
                      BinaryPredicate());
 
@@ -220,8 +220,8 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
         initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
         auto res3 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
                                                    val_res_first, BinaryPredicate(), BinaryOperation());
-        size_t segments_key_ret3 = ::std::distance(key_res_first, res3.first);
-        size_t segments_val_ret3 = ::std::distance(val_res_first, res3.second);
+        size_t segments_key_ret3 = std::distance(key_res_first, res3.first);
+        size_t segments_val_ret3 = std::distance(val_res_first, res3.second);
         check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret3, segments_val_ret3,
                      BinaryPredicate(), BinaryOperation());
     }
@@ -229,8 +229,8 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
     // specialization for non-random_access iterators
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
               typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3> ||
-                           !is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator4>>
+    std::enable_if_t<!is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator3> ||
+                           !is_base_of_iterator_category_v<std::random_access_iterator_tag, Iterator4>>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
                Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
     {
@@ -268,7 +268,7 @@ test_flag_pred()
 
     prepare_data(n, key_head_on_host, val_head_on_host, key_res_head_on_host, val_res_head_on_host);
     auto flag_pred = [](const auto& a, const auto& b) {
-        using KeyT = ::std::decay_t<decltype(b)>;
+        using KeyT = std::decay_t<decltype(b)>;
         return b != KeyT(1);
     };
     // allocate USM memory and copying data to USM shared/device memory
@@ -312,7 +312,7 @@ int
 main()
 {
     {
-        using ValueType = ::std::uint64_t;
+        using ValueType = std::uint64_t;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
         using BinaryOperation = MaxFunctor<ValueType>;
 
@@ -333,7 +333,7 @@ main()
     }
 
     {
-        using ValueType = ::std::complex<float>;
+        using ValueType = std::complex<float>;
         using BinaryPredicate = UserBinaryPredicate<ValueType>;
         using BinaryOperation = MaxAbsFunctor<ValueType>;
 

@@ -62,10 +62,10 @@ compare(const wrapper<T>& a, const wrapper<T>& b)
 }
 
 template <typename Iterator1, typename Iterator2, typename T, typename Function>
-::std::enable_if_t<!::std::is_floating_point_v<T>, bool>
+std::enable_if_t<!std::is_floating_point_v<T>, bool>
 compute_and_check(Iterator1 first, Iterator1 last, Iterator2 d_first, T, Function f)
 {
-    using T2 = typename ::std::iterator_traits<Iterator2>::value_type;
+    using T2 = typename std::iterator_traits<Iterator2>::value_type;
 
     if (first == last)
         return true;
@@ -73,7 +73,7 @@ compute_and_check(Iterator1 first, Iterator1 last, Iterator2 d_first, T, Functio
     T2 temp(*first);
     if (!compare(temp, *d_first))
         return false;
-    Iterator1 second = ::std::next(first);
+    Iterator1 second = std::next(first);
 
     ++d_first;
     for (; second != last; ++first, ++second, ++d_first)
@@ -89,7 +89,7 @@ compute_and_check(Iterator1 first, Iterator1 last, Iterator2 d_first, T, Functio
 // we don't want to check equality here
 // because we can't be sure it will be strictly equal for floating point types
 template <typename Iterator1, typename Iterator2, typename T, typename Function>
-::std::enable_if_t<::std::is_floating_point_v<T>, bool>
+std::enable_if_t<std::is_floating_point_v<T>, bool>
 compute_and_check(Iterator1 /* first */, Iterator1 /* last */, Iterator2 /* d_first */, T, Function)
 {
     return true;
@@ -104,12 +104,12 @@ struct test_adjacent_difference
                T trash)
     {
         using namespace std;
-        using T2 = typename ::std::iterator_traits<Iterator1>::value_type;
+        using T2 = typename std::iterator_traits<Iterator1>::value_type;
 
         fill(actual_b, actual_e, trash);
 
         Iterator2 actual_return = adjacent_difference(exec, data_b, data_e, actual_b);
-        EXPECT_TRUE(compute_and_check(data_b, data_e, actual_b, T2(0), ::std::minus<T2>()),
+        EXPECT_TRUE(compute_and_check(data_b, data_e, actual_b, T2(0), std::minus<T2>()),
                     "wrong effect of adjacent_difference");
         EXPECT_TRUE(actual_return == actual_e, "wrong result of adjacent_difference");
     }
@@ -124,7 +124,7 @@ struct test_adjacent_difference_functor
                T trash, Function f)
     {
         using namespace std;
-        using T2 = typename ::std::iterator_traits<Iterator1>::value_type;
+        using T2 = typename std::iterator_traits<Iterator1>::value_type;
 
         fill(actual_b, actual_e, trash);
 
@@ -139,16 +139,16 @@ template <typename T1, typename T2, typename Pred>
 void
 test(Pred pred)
 {
-    const ::std::size_t max_len = 100000;
+    const std::size_t max_len = 100000;
 
     const T2 value = T2(77);
     const T1 trash = T1(31);
 
-    Sequence<T1> actual(max_len, [](::std::size_t i) { return T1(i); });
+    Sequence<T1> actual(max_len, [](std::size_t i) { return T1(i); });
 
-    Sequence<T2> data(max_len, [=](::std::size_t i) { return i % 3 == 2 ? T2(i * i) : value; });
+    Sequence<T2> data(max_len, [=](std::size_t i) { return i % 3 == 2 ? T2(i * i) : value; });
 
-    for (::std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : ::std::size_t(3.1415 * len))
+    for (std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : std::size_t(3.1415 * len))
     {
         invoke_on_all_policies<0>()(test_adjacent_difference<T1>(), data.begin(), data.begin() + len, actual.begin(),
                                     actual.begin() + len, trash);

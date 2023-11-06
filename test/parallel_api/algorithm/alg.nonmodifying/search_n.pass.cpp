@@ -55,30 +55,30 @@ void
 test()
 {
 
-    const ::std::size_t max_n1 = 100000;
+    const std::size_t max_n1 = 100000;
     const T value = T(1);
-    for (::std::size_t n1 = 0; n1 <= max_n1; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
+    for (std::size_t n1 = 0; n1 <= max_n1; n1 = n1 <= 16 ? n1 + 1 : size_t(3.1415 * n1))
     {
-        ::std::size_t sub_n[] = {0, 1, 3, n1, (n1 * 10) / 8};
-        ::std::size_t res[] = {0, 1, n1 / 2, n1};
+        std::size_t sub_n[] = {0, 1, 3, n1, (n1 * 10) / 8};
+        std::size_t res[] = {0, 1, n1 / 2, n1};
         for (auto n2 : sub_n)
         {
             for (auto r : res)
             {
-                Sequence<T> in(n1, [](::std::size_t) { return T(0); });
-                ::std::size_t i = r, isub = 0;
+                Sequence<T> in(n1, [](std::size_t) { return T(0); });
+                std::size_t i = r, isub = 0;
                 for (; i < n1 && isub < n2; ++i, ++isub)
                     in[i] = value;
 
                 invoke_on_all_policies<0>()(test_search_n<T>(), in.begin(), in.begin() + n1, n2, value,
-                                            ::std::equal_to<T>());
+                                            std::equal_to<T>());
                 invoke_on_all_policies<1>()(test_search_n_predicate<T>(), in.begin(), in.begin() + n1, n2, value,
-                                            ::std::equal_to<T>());
+                                            std::equal_to<T>());
 #if !ONEDPL_FPGA_DEVICE
                 invoke_on_all_policies<2>()(test_search_n<T>(), in.cbegin(), in.cbegin() + n1, n2, value,
-                                            ::std::equal_to<T>());
+                                            std::equal_to<T>());
                 invoke_on_all_policies<3>()(test_search_n_predicate<T>(), in.cbegin(), in.cbegin() + n1, n2, value,
-                                            ::std::equal_to<T>());
+                                            std::equal_to<T>());
 #endif
             }
         }
@@ -92,7 +92,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, Iterator iter)
     {
-        invoke_if(exec, [&]() { search_n(exec, iter, iter, 0, T(0), non_const(::std::equal_to<T>())); });
+        invoke_if(exec, [&]() { search_n(exec, iter, iter, 0, T(0), non_const(std::equal_to<T>())); });
     }
 };
 

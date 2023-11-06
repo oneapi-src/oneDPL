@@ -49,7 +49,7 @@ main()
         auto exec2 = TestUtils::make_new_policy<TestUtils::new_kernel_name<Policy, 1>>(exec);
              
         res1 = equal(exec1, view, B);
-        res2 = equal(exec2, C, view, ::std::equal_to<>{});
+        res2 = equal(exec2, C, view, std::equal_to<>{});
     }
 
     //check result

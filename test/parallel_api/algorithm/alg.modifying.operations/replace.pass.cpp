@@ -84,10 +84,10 @@ struct test_replace
     }
 
     template <typename T, typename Iterator1>
-    ::std::enable_if_t<::std::is_same_v<T, copy_int>, bool>
+    std::enable_if_t<std::is_same_v<T, copy_int>, bool>
     check(Iterator1 b, Iterator1 e)
     {
-        return ::std::all_of(b, e, [](const copy_int& elem) { return elem.copied_times == 0; });
+        return std::all_of(b, e, [](const copy_int& elem) { return elem.copied_times == 0; });
     }
 };
 
@@ -114,7 +114,7 @@ template <typename T1, typename T2, typename Pred>
 void
 test(Pred pred)
 {
-    const ::std::size_t max_len = 100000;
+    const std::size_t max_len = 100000;
 
     const T1 value = T1(0);
     const T1 new_value = T1(666);
@@ -122,9 +122,9 @@ test(Pred pred)
     Sequence<T2> expected(max_len);
     Sequence<T2> actual(max_len);
 
-    Sequence<T2> data(max_len, [=](::std::size_t i) { return i % 3 == 2 ? T1(i) : value; });
+    Sequence<T2> data(max_len, [=](std::size_t i) { return i % 3 == 2 ? T1(i) : value; });
 
-    for (::std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : ::std::size_t(3.1415 * len))
+    for (std::size_t len = 0; len < max_len; len = len <= 16 ? len + 1 : std::size_t(3.1415 * len))
     {
 #ifdef _PSTL_TEST_REPLACE
         invoke_on_all_policies<0>()(test_replace<T1, T2>{},

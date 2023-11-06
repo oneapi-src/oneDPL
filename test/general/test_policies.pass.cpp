@@ -34,14 +34,14 @@ void test_policy_instance(const Policy& policy)
     EXPECT_TRUE(__max_compute_units > 0, "policy: wrong number of compute units");
 
     const int n = 10;
-    static ::std::vector<int> a(n);
+    static std::vector<int> a(n);
 
-    ::std::fill(a.begin(), a.end(), 0);
-    ::std::fill(policy, a.begin(), a.end(), -1);
+    std::fill(a.begin(), a.end(), 0);
+    std::fill(policy, a.begin(), a.end(), -1);
 #if _PSTL_SYCL_TEST_USM
     policy.queue().wait_and_throw();
 #endif
-    EXPECT_TRUE(::std::all_of(a.begin(), a.end(), [](int i) { return i == -1; }), "wrong result of ::std::fill with policy");
+    EXPECT_TRUE(std::all_of(a.begin(), a.end(), [](int i) { return i == -1; }), "wrong result of std::fill with policy");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 

@@ -70,8 +70,8 @@ struct UserType
         tmp.key = !key;
         return tmp;
     }
-    friend ::std::ostream&
-    operator<<(::std::ostream& stream, const UserType a)
+    friend std::ostream&
+    operator<<(std::ostream& stream, const UserType a)
     {
         stream << a.key;
         return stream;
@@ -102,7 +102,7 @@ struct test_with_4_iters
     void
     operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, bool is_true_equal)
     {
-        auto is_equal = ::std::equal(::std::forward<ExecutionPolicy>(exec), first1, last1, first2, last2);
+        auto is_equal = std::equal(std::forward<ExecutionPolicy>(exec), first1, last1, first2, last2);
         EXPECT_TRUE(is_true_equal == is_equal, "result for equal (4 iterators, without predicate) for random-access iterator, bool");
     }
 
@@ -110,7 +110,7 @@ struct test_with_4_iters
     void
     operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Compare comp, bool is_true_equal)
     {
-        auto is_equal = ::std::equal(::std::forward<ExecutionPolicy>(exec), first1, last1, first2, last2, comp);
+        auto is_equal = std::equal(std::forward<ExecutionPolicy>(exec), first1, last1, first2, last2, comp);
         EXPECT_TRUE(is_true_equal == is_equal, "result for equal (4 iterators, with predicate) for random-access iterator, bool");
     }
 };
@@ -122,7 +122,7 @@ struct test_with_3_iters
     void
     operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, bool is_true_equal)
     {
-        auto is_equal = ::std::equal(::std::forward<ExecutionPolicy>(exec), first1, last1, first2);
+        auto is_equal = std::equal(std::forward<ExecutionPolicy>(exec), first1, last1, first2);
         EXPECT_TRUE(is_true_equal == is_equal, "result for equal (3 iterators, without predicate) for random-access iterator, bool");
     }
 
@@ -130,7 +130,7 @@ struct test_with_3_iters
     void
     operator()(ExecutionPolicy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Compare comp, bool is_true_equal)
     {
-        auto is_equal = ::std::equal(::std::forward<ExecutionPolicy>(exec), first1, last1, first2, comp);
+        auto is_equal = std::equal(std::forward<ExecutionPolicy>(exec), first1, last1, first2, comp);
         EXPECT_TRUE(is_true_equal == is_equal, "result for equal (3 iterators, with predicate) for random-access iterator, bool");
     }
 };
@@ -139,7 +139,7 @@ template <typename T, typename Compare>
 void
 test(size_t bits, Compare comp)
 {
-    constexpr ::std::size_t max_size = 100000;
+    constexpr std::size_t max_size = 100000;
 
     // Sequence of odd values
     Sequence<T> in(max_size, [bits](size_t k) { return T(2 * HashBits(k, bits - 1) ^ 1); });
@@ -171,7 +171,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, FirstIterator first_iter, SecondInterator second_iter)
     {
-        equal(::std::forward<Policy>(exec), first_iter, first_iter, second_iter, second_iter, non_const(::std::equal_to<T>()));
+        equal(std::forward<Policy>(exec), first_iter, first_iter, second_iter, second_iter, non_const(std::equal_to<T>()));
     }
 };
 

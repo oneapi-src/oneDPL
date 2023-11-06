@@ -104,10 +104,10 @@ DEFINE_TEST(test_uninitialized_fill)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
 
-        ::std::uninitialized_fill(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2),
+        std::uninitialized_fill(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2),
                                   value);
         wait_and_throw(exec);
 
@@ -128,10 +128,10 @@ DEFINE_TEST(test_uninitialized_fill_n)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
 
-        ::std::uninitialized_fill_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, value + 1);
+        std::uninitialized_fill_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, value + 1);
         wait_and_throw(exec);
 
         host_keys.retrieve_data();
@@ -150,14 +150,14 @@ DEFINE_TEST(test_uninitialized_default_construct)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1{ 2 };
 
         T1 exp_value; // default-constructed value
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::uninitialized_default_construct(make_new_policy<new_kernel_name<Policy, 0>>(exec),
+        std::uninitialized_default_construct(make_new_policy<new_kernel_name<Policy, 0>>(exec),
                                              first1 + (n / 3), first1 + (n / 2));
         wait_and_throw(exec);
 
@@ -177,14 +177,14 @@ DEFINE_TEST(test_uninitialized_default_construct_n)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1{ 2 };
 
         T1 exp_value; // default-constructed value
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::uninitialized_default_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n);
+        std::uninitialized_default_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n);
         wait_and_throw(exec);
 
         host_keys.retrieve_data();
@@ -203,12 +203,12 @@ DEFINE_TEST(test_uninitialized_value_construct)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::uninitialized_value_construct(make_new_policy<new_kernel_name<Policy, 0>>(exec),
+        std::uninitialized_value_construct(make_new_policy<new_kernel_name<Policy, 0>>(exec),
                                            first1 + (n / 3), first1 + (n / 2));
         wait_and_throw(exec);
 
@@ -228,13 +228,13 @@ DEFINE_TEST(test_uninitialized_value_construct_n)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
 
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::uninitialized_value_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n);
+        std::uninitialized_value_construct_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n);
         wait_and_throw(exec);
 
         host_keys.retrieve_data();
@@ -253,14 +253,14 @@ DEFINE_TEST(test_destroy)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1{ 2 };
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::destroy(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec), first1 + (n / 3),
+        std::destroy(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec), first1 + (n / 3),
                        first1 + (n / 2));
-        if (!::std::is_trivially_destructible_v<T1>)
+        if (!std::is_trivially_destructible_v<T1>)
             value = T1{-2};
         wait_and_throw(exec);
 
@@ -280,14 +280,14 @@ DEFINE_TEST(test_destroy_n)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1{ 2 };
 
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::destroy_n(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec), first1, n);
-        if(!::std::is_trivially_destructible_v<T1>)
+        std::destroy_n(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec), first1, n);
+        if(!std::is_trivially_destructible_v<T1>)
             value = T1{-2};
         wait_and_throw(exec);
 
@@ -307,10 +307,10 @@ DEFINE_TEST(test_fill)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
 
-        ::std::fill(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2), value);
+        std::fill(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2), value);
         wait_and_throw(exec);
 
         host_keys.retrieve_data();
@@ -328,10 +328,10 @@ DEFINE_TEST(test_fill_n)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
 
-        ::std::fill_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, value + 1);
+        std::fill_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, value + 1);
         wait_and_throw(exec);
 
         host_keys.retrieve_data();
@@ -349,10 +349,10 @@ DEFINE_TEST(test_generate)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(4);
 
-        ::std::generate(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2),
+        std::generate(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2),
                       Generator_count<T1>(value));
         wait_and_throw(exec);
 
@@ -372,10 +372,10 @@ DEFINE_TEST(test_generate_n)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(4);
 
-        ::std::generate_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, Generator_count<T1>(value + 1));
+        std::generate_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, Generator_count<T1>(value + 1));
         wait_and_throw(exec);
 
         host_keys.retrieve_data();
@@ -394,14 +394,14 @@ DEFINE_TEST(test_for_each)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(6);
 
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
-        ::std::fill(host_keys.get() + (n / 3), host_keys.get() + (n / 2), value - 1);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get() + (n / 3), host_keys.get() + (n / 2), value - 1);
         host_keys.update_data();
 
-        ::std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2), Inc());
+        std::for_each(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + (n / 3), first1 + (n / 2), Inc());
         wait_and_throw(exec);
 
         // We call due to SYCL 1.2.1: 4.7.2.3.
@@ -423,13 +423,13 @@ DEFINE_TEST(test_for_each_n)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(6);
 
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::for_each_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, Inc());
+        std::for_each_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, Inc());
         wait_and_throw(exec);
 
         host_keys.retrieve_data();
@@ -448,13 +448,13 @@ DEFINE_TEST(test_replace)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(5);
 
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::replace(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, value, T1(value + 1));
+        std::replace(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, value, T1(value + 1));
         wait_and_throw(exec);
 
         host_keys.retrieve_data();
@@ -473,12 +473,12 @@ DEFINE_TEST(test_replace_if)
     {
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(6);
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::replace_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1,
+        std::replace_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1,
                           oneapi::dpl::__internal::__equal_value<T1>(value), T1(value + 1));
         wait_and_throw(exec);
 
@@ -499,13 +499,13 @@ DEFINE_TEST(test_reverse)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         host_keys.retrieve_data();
 
-        using IteratorValyeType = typename ::std::iterator_traits<Iterator1>::value_type;
+        using IteratorValyeType = typename std::iterator_traits<Iterator1>::value_type;
 
-        ::std::vector<IteratorValyeType> local_copy(n);
+        std::vector<IteratorValyeType> local_copy(n);
         local_copy.assign(host_keys.get(), host_keys.get() + n);
-        ::std::reverse(local_copy.begin(), local_copy.end());
+        std::reverse(local_copy.begin(), local_copy.end());
 
-        ::std::reverse(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
+        std::reverse(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last);
         wait_and_throw(exec);
 
         host_keys.retrieve_data();
@@ -526,13 +526,13 @@ DEFINE_TEST(test_rotate)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         host_keys.retrieve_data();
 
-        using IteratorValyeType = typename ::std::iterator_traits<Iterator1>::value_type;
+        using IteratorValyeType = typename std::iterator_traits<Iterator1>::value_type;
 
-        ::std::vector<IteratorValyeType> local_copy(n);
+        std::vector<IteratorValyeType> local_copy(n);
         local_copy.assign(host_keys.get(), host_keys.get() + n);
-        ::std::rotate(local_copy.begin(), local_copy.begin() + 1, local_copy.end());
+        std::rotate(local_copy.begin(), local_copy.begin() + 1, local_copy.end());
 
-        ::std::rotate(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, first + 1, last);
+        std::rotate(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, first + 1, last);
         wait_and_throw(exec);
 
         host_keys.retrieve_data();
@@ -557,21 +557,21 @@ DEFINE_TEST(test_includes)
         last1 = first1 + a_size;
         last2 = first2 + b_size;
 
-        ::std::copy(a, a + a_size, host_keys.get());
-        ::std::copy(b, b + b_size, host_vals.get());
+        std::copy(a, a + a_size, host_keys.get());
+        std::copy(b, b + b_size, host_vals.get());
         host_keys.update_data(a_size);
         host_vals.update_data(b_size);
 
-        auto result = ::std::includes(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2);
+        auto result = std::includes(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, last2);
         wait_and_throw(exec);
 
         EXPECT_TRUE(result, "wrong effect from includes a, b");
 
         host_vals.retrieve_data();
-        ::std::copy(c, c + c_size, host_vals.get());
+        std::copy(c, c + c_size, host_vals.get());
         host_vals.update_data(c_size);
 
-        result = ::std::includes(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, last2);
+        result = std::includes(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2, last2);
         wait_and_throw(exec);
 
         EXPECT_TRUE(!result, "wrong effect from includes a, c");
@@ -589,14 +589,14 @@ DEFINE_TEST(test_swap_ranges)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        using value_type = typename ::std::iterator_traits<Iterator1>::value_type;
-        using reference = typename ::std::iterator_traits<Iterator1>::reference;
+        using value_type = typename std::iterator_traits<Iterator1>::value_type;
+        using reference = typename std::iterator_traits<Iterator1>::reference;
 
-        ::std::iota(host_keys.get(), host_keys.get() + n, value_type(0));
-        ::std::iota(host_vals.get(), host_vals.get() + n, value_type(n));
+        std::iota(host_keys.get(), host_keys.get() + n, value_type(0));
+        std::iota(host_vals.get(), host_vals.get() + n, value_type(n));
         update_data(host_keys, host_vals);
 
-        Iterator2 actual_return = ::std::swap_ranges(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
+        Iterator2 actual_return = std::swap_ranges(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
 
         wait_and_throw(exec);
 
@@ -604,15 +604,15 @@ DEFINE_TEST(test_swap_ranges)
         EXPECT_TRUE(check_return, "wrong result of swap_ranges");
         if (check_return)
         {
-            ::std::size_t i = 0;
+            std::size_t i = 0;
 
             retrieve_data(host_keys, host_vals);
 
             auto host_first1 = host_keys.get();
             auto host_first2 = host_vals.get();
             bool check =
-                ::std::all_of(host_first2, host_first2 + n, [&i](reference a) { return a == value_type(i++); }) &&
-                ::std::all_of(host_first1, host_first1 + n, [&i](reference a) { return a == value_type(i++); });
+                std::all_of(host_first2, host_first2 + n, [&i](reference a) { return a == value_type(i++); }) &&
+                std::all_of(host_first1, host_first1 + n, [&i](reference a) { return a == value_type(i++); });
 
             EXPECT_TRUE(check, "wrong effect of swap_ranges");
         }
@@ -632,13 +632,13 @@ DEFINE_TEST(test_reverse_copy)
 
         host_keys.retrieve_data();
 
-        using IteratorValyeType = typename ::std::iterator_traits<Iterator1>::value_type;
+        using IteratorValyeType = typename std::iterator_traits<Iterator1>::value_type;
 
-        ::std::vector<IteratorValyeType> local_copy(n);
+        std::vector<IteratorValyeType> local_copy(n);
         local_copy.assign(host_keys.get(), host_keys.get() + n);
-        ::std::reverse(local_copy.begin(), local_copy.end());
+        std::reverse(local_copy.begin(), local_copy.end());
 
-        ::std::reverse_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, result_first);
+        std::reverse_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, last, result_first);
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -661,13 +661,13 @@ DEFINE_TEST(test_rotate_copy)
 
         host_keys.retrieve_data();
 
-        using IteratorValyeType = typename ::std::iterator_traits<Iterator1>::value_type;
+        using IteratorValyeType = typename std::iterator_traits<Iterator1>::value_type;
 
-        ::std::vector<IteratorValyeType> local_copy(n);
+        std::vector<IteratorValyeType> local_copy(n);
         local_copy.assign(host_keys.get(), host_keys.get() + n);
-        ::std::rotate(local_copy.begin(), local_copy.begin() + 1, local_copy.end());
+        std::rotate(local_copy.begin(), local_copy.begin() + 1, local_copy.end());
 
-        ::std::rotate_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, first + 1, last, result_first);
+        std::rotate_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first, first + 1, last, result_first);
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -687,14 +687,14 @@ DEFINE_TEST(test_uninitialized_copy)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
+        using IteratorValueType = typename std::iterator_traits<Iterator1>::value_type;
         auto value = IteratorValueType(42);
 
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
-        ::std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{ -1 });
+        std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{ -1 });
         update_data(host_keys, host_vals);
 
-        ::std::uninitialized_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
+        std::uninitialized_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -713,14 +713,14 @@ DEFINE_TEST(test_uninitialized_copy_n)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
+        using IteratorValueType = typename std::iterator_traits<Iterator1>::value_type;
         auto value = IteratorValueType(42);
 
-        ::std::fill_n(host_keys.get(), n, value);
-        ::std::fill_n(host_vals.get(), n, IteratorValueType{0});
+        std::fill_n(host_keys.get(), n, value);
+        std::fill_n(host_vals.get(), n, IteratorValueType{0});
         update_data(host_keys, host_vals);
 
-        ::std::uninitialized_copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
+        std::uninitialized_copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -739,13 +739,13 @@ DEFINE_TEST(test_uninitialized_move)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
+        using IteratorValueType = typename std::iterator_traits<Iterator1>::value_type;
         auto value = IteratorValueType(42);
-        ::std::fill_n(host_keys.get(), n, value);
-        ::std::fill_n(host_vals.get(), n, IteratorValueType{ -1 });
+        std::fill_n(host_keys.get(), n, value);
+        std::fill_n(host_vals.get(), n, IteratorValueType{ -1 });
         update_data(host_keys, host_vals);
 
-        ::std::uninitialized_move(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
+        std::uninitialized_move(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -764,14 +764,14 @@ DEFINE_TEST(test_uninitialized_move_n)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
+        using IteratorValueType = typename std::iterator_traits<Iterator1>::value_type;
         auto value = IteratorValueType(42);
 
-        ::std::fill_n(host_keys.get(), n, value);
-        ::std::fill_n(host_vals.get(), n, IteratorValueType{ -1 });
+        std::fill_n(host_keys.get(), n, value);
+        std::fill_n(host_vals.get(), n, IteratorValueType{ -1 });
         update_data(host_keys, host_vals);
 
-        ::std::uninitialized_move_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
+        std::uninitialized_move_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -791,14 +791,14 @@ DEFINE_TEST(test_transform_unary)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(2);
 
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
-        ::std::fill(host_vals.get(), host_vals.get() + n, value + 1);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_vals.get(), host_vals.get() + n, value + 1);
         update_data(host_keys, host_vals);
 
-        ::std::transform(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + n / 2, last1, first2 + n / 2, Flip(7));
+        std::transform(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1 + n / 2, last1, first2 + n / 2, Flip(7));
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -820,13 +820,13 @@ DEFINE_TEST(test_transform_binary)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(3);
 
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::transform(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first1, first2, Plus());
+        std::transform(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first1, first2, Plus());
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -846,12 +846,12 @@ DEFINE_TEST(test_replace_copy)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(5);
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::replace_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, value, T1(value + 1));
+        std::replace_copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, value, T1(value + 1));
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -871,12 +871,12 @@ DEFINE_TEST(test_replace_copy_if)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        typedef typename ::std::iterator_traits<Iterator1>::value_type T1;
+        typedef typename std::iterator_traits<Iterator1>::value_type T1;
         auto value = T1(6);
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_keys.get(), host_keys.get() + n, value);
         host_keys.update_data();
 
-        ::std::replace_copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2,
+        std::replace_copy_if(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2,
                              oneapi::dpl::__internal::__equal_value<T1>(value), T1(value + 1));
         wait_and_throw(exec);
 
@@ -897,13 +897,13 @@ DEFINE_TEST(test_copy)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
+        using IteratorValueType = typename std::iterator_traits<Iterator1>::value_type;
         auto value = IteratorValueType(42);
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
-        ::std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{0});
+        std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{0});
         update_data(host_keys, host_vals);
 
-        ::std::copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
+        std::copy(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -923,14 +923,14 @@ DEFINE_TEST(test_copy_n)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
+        using IteratorValueType = typename std::iterator_traits<Iterator1>::value_type;
         auto value = IteratorValueType(42);
 
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
-        ::std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{ 0 });
+        std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{ 0 });
         update_data(host_keys, host_vals);
 
-        ::std::copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
+        std::copy_n(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, n, first2);
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -949,14 +949,14 @@ DEFINE_TEST(test_move)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        using IteratorValueType = typename ::std::iterator_traits<Iterator1>::value_type;
+        using IteratorValueType = typename std::iterator_traits<Iterator1>::value_type;
         auto value = IteratorValueType(42);
 
-        ::std::fill(host_keys.get(), host_keys.get() + n, value);
-        ::std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{ 0 });
+        std::fill(host_keys.get(), host_keys.get() + n, value);
+        std::fill(host_vals.get(), host_vals.get() + n, IteratorValueType{ 0 });
         update_data(host_keys, host_vals);
 
-        ::std::move(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
+        std::move(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2);
         wait_and_throw(exec);
 
         host_vals.retrieve_data();
@@ -976,8 +976,8 @@ DEFINE_TEST(test_adjacent_difference)
         TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
         TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);
 
-        using Iterator1ValueType = typename ::std::iterator_traits<Iterator1>::value_type;
-        using Iterator2ValueType = typename ::std::iterator_traits<Iterator2>::value_type;
+        using Iterator1ValueType = typename std::iterator_traits<Iterator1>::value_type;
+        using Iterator2ValueType = typename std::iterator_traits<Iterator2>::value_type;
 
         Iterator1ValueType fill_value{1};
         Iterator2ValueType blank_value{0};
@@ -985,13 +985,13 @@ DEFINE_TEST(test_adjacent_difference)
         auto __f = [](Iterator1ValueType& a, Iterator1ValueType& b) -> Iterator2ValueType { return a + b; };
 
         // init
-        ::std::for_each(host_keys.get(), host_keys.get() + n,
+        std::for_each(host_keys.get(), host_keys.get() + n,
                         [&fill_value](Iterator1ValueType& val) { val = (fill_value++ % 10) + 1; });
-        ::std::fill(host_vals.get(), host_vals.get() + n, blank_value);
+        std::fill(host_vals.get(), host_vals.get() + n, blank_value);
         update_data(host_keys, host_vals);
 
         // test with custom functor
-        ::std::adjacent_difference(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, __f);
+        std::adjacent_difference(make_new_policy<new_kernel_name<Policy, 0>>(exec), first1, last1, first2, __f);
         wait_and_throw(exec);
 
         {
@@ -1008,10 +1008,10 @@ DEFINE_TEST(test_adjacent_difference)
         }
 
         // test with default functor
-        ::std::fill(host_vals.get(), host_vals.get() + n, blank_value);
+        std::fill(host_vals.get(), host_vals.get() + n, blank_value);
         host_vals.update_data();
 
-        ::std::adjacent_difference(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2);
+        std::adjacent_difference(make_new_policy<new_kernel_name<Policy, 1>>(exec), first1, last1, first2);
         wait_and_throw(exec);
 
         retrieve_data(host_keys, host_vals);
@@ -1034,7 +1034,7 @@ template <sycl::usm::alloc alloc_type>
 void
 test_usm_and_buffer()
 {
-    using ValueType = ::std::int32_t;
+    using ValueType = std::int32_t;
 
     // test1buffer
     PRINT_DEBUG("test_for_each");
@@ -1126,7 +1126,7 @@ main()
         test_usm_and_buffer<sycl::usm::alloc::device>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
     }
-    catch (const ::std::exception& exc)
+    catch (const std::exception& exc)
     {
         std::cout << "Exception: " << exc.what() << std::endl;
         return EXIT_FAILURE;

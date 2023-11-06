@@ -18,7 +18,7 @@
 
 template <class T, int x>
 void
-test(::std::enable_if_t<std::is_integral_v<T>>* = 0)
+test(std::enable_if_t<std::is_integral_v<T>>* = 0)
 {
     static_assert((std::is_same_v<decltype(dpl::real(T(x))), double>));
     assert(dpl::real(x) == x);
@@ -31,7 +31,7 @@ test(::std::enable_if_t<std::is_integral_v<T>>* = 0)
 
 template <class T, int x>
 void
-test(::std::enable_if_t<!std::is_integral_v<T>>* = 0)
+test(std::enable_if_t<!std::is_integral_v<T>>* = 0)
 {
     static_assert((std::is_same_v<decltype(dpl::real(T(x))), T>));
     assert(dpl::real(x) == x);

@@ -38,14 +38,14 @@ struct run_remove
                const T& value)
     {
         // Cleaning
-        ::std::copy(first, last, expected_first);
-        ::std::copy(first, last, out_first);
+        std::copy(first, last, expected_first);
+        std::copy(first, last, out_first);
 
         // Run remove
         OutputIterator i = remove(expected_first, expected_last, value);
         OutputIterator k = remove(exec, out_first, out_last, value);
-        EXPECT_TRUE(::std::distance(expected_first, i) == ::std::distance(out_first, k), "wrong return value from remove");
-        EXPECT_EQ_N(expected_first, out_first, ::std::distance(expected_first, i), "wrong remove effect");
+        EXPECT_TRUE(std::distance(expected_first, i) == std::distance(out_first, k), "wrong return value from remove");
+        EXPECT_EQ_N(expected_first, out_first, std::distance(expected_first, i), "wrong remove effect");
     }
 };
 
@@ -59,15 +59,15 @@ struct run_remove_if
                Predicate pred)
     {
         // Cleaning
-        ::std::copy(first, last, expected_first);
-        ::std::copy(first, last, out_first);
+        std::copy(first, last, expected_first);
+        std::copy(first, last, out_first);
 
         // Run remove_if
         OutputIterator i = remove_if(expected_first, expected_last, pred);
         OutputIterator k = remove_if(exec, out_first, out_last, pred);
-        EXPECT_TRUE(::std::distance(expected_first, i) == ::std::distance(out_first, k),
+        EXPECT_TRUE(std::distance(expected_first, i) == std::distance(out_first, k),
                     "wrong return value from remove_if");
-        EXPECT_EQ_N(expected_first, out_first, ::std::distance(expected_first, i), "wrong remove_if effect");
+        EXPECT_EQ_N(expected_first, out_first, std::distance(expected_first, i), "wrong remove_if effect");
     }
 };
 
@@ -75,7 +75,7 @@ template <typename T, typename Predicate, typename Convert>
 void
 test(T trash, const T& value, Predicate pred, Convert convert)
 {
-    const ::std::size_t max_size = 100000;
+    const std::size_t max_size = 100000;
     Sequence<T> out(max_size, [trash](size_t) { return trash; });
     Sequence<T> expected(max_size, [trash](size_t) { return trash; });
 
@@ -132,7 +132,7 @@ main()
 #if !TEST_DPCPP_BACKEND_PRESENT
     test<MemoryChecker>(MemoryChecker{0}, MemoryChecker{1},
         [](const MemoryChecker& val){ return val.value() == 1; },
-        [](::std::size_t idx){ return MemoryChecker{::std::int32_t(idx % 3 == 0)}; }
+        [](std::size_t idx){ return MemoryChecker{std::int32_t(idx % 3 == 0)}; }
     );
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from remove,remove_if: number of ctor and dtor calls is not equal");
 #endif

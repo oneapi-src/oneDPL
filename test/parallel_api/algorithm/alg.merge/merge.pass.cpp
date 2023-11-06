@@ -41,19 +41,19 @@ struct test_merge
     // for reverse iterators
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator>
     void
-    operator()(Policy&& exec, ::std::reverse_iterator<InputIterator1> first1, ::std::reverse_iterator<InputIterator1> last1,
-               ::std::reverse_iterator<InputIterator2> first2, ::std::reverse_iterator<InputIterator2> last2,
-               ::std::reverse_iterator<OutputIterator> out_first, ::std::reverse_iterator<OutputIterator> out_last)
+    operator()(Policy&& exec, std::reverse_iterator<InputIterator1> first1, std::reverse_iterator<InputIterator1> last1,
+               std::reverse_iterator<InputIterator2> first2, std::reverse_iterator<InputIterator2> last2,
+               std::reverse_iterator<OutputIterator> out_first, std::reverse_iterator<OutputIterator> out_last)
     {
         using namespace std;
-        typedef typename ::std::iterator_traits<::std::reverse_iterator<InputIterator1>>::value_type T;
-        const auto res = merge(exec, first1, last1, first2, last2, out_first, ::std::greater<T>());
+        typedef typename std::iterator_traits<std::reverse_iterator<InputIterator1>>::value_type T;
+        const auto res = merge(exec, first1, last1, first2, last2, out_first, std::greater<T>());
 
         EXPECT_TRUE(res == out_last, "wrong return result from merge with predicate");
-        EXPECT_TRUE(is_sorted(out_first, res, ::std::greater<T>()), "wrong result from merge with predicate");
-        EXPECT_TRUE(includes(out_first, res, first1, last1, ::std::greater<T>()),
+        EXPECT_TRUE(is_sorted(out_first, res, std::greater<T>()), "wrong result from merge with predicate");
+        EXPECT_TRUE(includes(out_first, res, first1, last1, std::greater<T>()),
                     "first sequence is not a part of result");
-        EXPECT_TRUE(includes(out_first, res, first2, last2, ::std::greater<T>()),
+        EXPECT_TRUE(includes(out_first, res, first2, last2, std::greater<T>()),
                     "second sequence is not a part of result");
     }
 };
@@ -79,20 +79,20 @@ struct test_merge_compare
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
     typename Compare>
     void
-    operator()(Policy&& exec, ::std::reverse_iterator<InputIterator1> first1, ::std::reverse_iterator<InputIterator1> last1,
-               ::std::reverse_iterator<InputIterator2> first2, ::std::reverse_iterator<InputIterator2> last2,
-               ::std::reverse_iterator<OutputIterator> out_first, ::std::reverse_iterator<OutputIterator> out_last,
+    operator()(Policy&& exec, std::reverse_iterator<InputIterator1> first1, std::reverse_iterator<InputIterator1> last1,
+               std::reverse_iterator<InputIterator2> first2, std::reverse_iterator<InputIterator2> last2,
+               std::reverse_iterator<OutputIterator> out_first, std::reverse_iterator<OutputIterator> out_last,
                Compare /* comp */)
     {
         using namespace std;
-        typedef typename ::std::iterator_traits<::std::reverse_iterator<InputIterator1>>::value_type T;
-        const auto res = merge(exec, first1, last1, first2, last2, out_first, ::std::greater<T>());
+        typedef typename std::iterator_traits<std::reverse_iterator<InputIterator1>>::value_type T;
+        const auto res = merge(exec, first1, last1, first2, last2, out_first, std::greater<T>());
 
         EXPECT_TRUE(res == out_last, "wrong return result from merge with predicate");
-        EXPECT_TRUE(is_sorted(out_first, res, ::std::greater<T>()), "wrong result from merge with predicate");
-        EXPECT_TRUE(includes(out_first, res, first1, last1, ::std::greater<T>()),
+        EXPECT_TRUE(is_sorted(out_first, res, std::greater<T>()), "wrong result from merge with predicate");
+        EXPECT_TRUE(includes(out_first, res, first1, last1, std::greater<T>()),
                     "first sequence is not a part of result");
-        EXPECT_TRUE(includes(out_first, res, first2, last2, ::std::greater<T>()),
+        EXPECT_TRUE(includes(out_first, res, first2, last2, std::greater<T>()),
                     "second sequence is not a part of result");
     }
 };
@@ -106,8 +106,8 @@ test_merge_by_type(Generator1 generator1, Generator2 generator2)
     Sequence<T> in1(max_size, generator1);
     Sequence<T> in2(max_size / 2, generator2);
     Sequence<T> out(in1.size() + in2.size());
-    ::std::sort(in1.begin(), in1.end());
-    ::std::sort(in2.begin(), in2.end());
+    std::sort(in1.begin(), in1.end());
+    std::sort(in2.begin(), in2.end());
 
     size_t start_size = 0;
 #if TEST_DPCPP_BACKEND_PRESENT
@@ -119,7 +119,7 @@ test_merge_by_type(Generator1 generator1, Generator2 generator2)
         invoke_on_all_policies<0>()(test_merge<T>(),  in1.cbegin(), in1.cbegin() + size,  in2.data(),
                                     in2.data() + size / 2, out.begin(), out.begin() + 1.5 * size);
         invoke_on_all_policies<1>()(test_merge_compare<T>(), in1.cbegin(), in1.cbegin() + size, in2.data(),
-                                    in2.data() + size / 2, out.begin(), out.begin() + 1.5 * size, ::std::less<T>());
+                                    in2.data() + size / 2, out.begin(), out.begin() + 1.5 * size, std::less<T>());
 #endif
 
         // Currently test harness doesn't execute the testcase for inputs with more than 1000 elements for const iterators to optimize execution time,
@@ -128,13 +128,13 @@ test_merge_by_type(Generator1 generator1, Generator2 generator2)
         invoke_on_all_policies<2>()(test_merge<T>(),  in1.begin(), in1.begin() + size,  in2.cbegin(),
                                     in2.cbegin() + size / 2, out.begin(), out.begin() + 1.5 * size);
         invoke_on_all_policies<3>()(test_merge_compare<T>(), in1.begin(), in1.begin() + size, in2.cbegin(),
-                                    in2.cbegin() + size / 2, out.begin(), out.begin() + 1.5 * size, ::std::less<T>());
+                                    in2.cbegin() + size / 2, out.begin(), out.begin() + 1.5 * size, std::less<T>());
 
 #if !TEST_DPCPP_BACKEND_PRESENT
         invoke_on_all_policies<4>()(test_merge<T>(), in1.data(), in1.data() + size, in2.cbegin(),
                                     in2.cbegin() + size / 2, out.begin(), out.begin() + 3 * size / 2);
         invoke_on_all_policies<5>()(test_merge_compare<T>(), in1.data(), in1.data() + size, in2.cbegin(),
-                                    in2.cbegin() + size / 2, out.begin(), out.begin() + 3 * size / 2, ::std::less<T>());
+                                    in2.cbegin() + size / 2, out.begin(), out.begin() + 3 * size / 2, std::less<T>());
 #endif
     }
 }
@@ -146,7 +146,7 @@ struct test_non_const
     void
     operator()(Policy&& exec, InputIterator input_iter, OutputIterator out_iter)
     {
-        merge(exec, input_iter, input_iter, input_iter, input_iter, out_iter, non_const(::std::less<T>()));
+        merge(exec, input_iter, input_iter, input_iter, input_iter, out_iter, non_const(std::less<T>()));
     }
 };
 

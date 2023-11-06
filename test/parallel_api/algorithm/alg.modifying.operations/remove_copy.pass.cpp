@@ -36,8 +36,8 @@ struct run_remove_copy
                const T& value, T trash)
     {
         // Cleaning
-        ::std::fill_n(expected_first, n, trash);
-        ::std::fill_n(out_first, n, trash);
+        std::fill_n(expected_first, n, trash);
+        std::fill_n(out_first, n, trash);
 
         // Run copy_if
         auto i = remove_copy(first, last, expected_first, value);
@@ -50,8 +50,8 @@ struct run_remove_copy
         }
         EXPECT_TRUE(out_last == k, "wrong return value from remove_copy");
 #else
-        auto expected_count = ::std::distance(expected_first, i);
-        auto out_count = ::std::distance(out_first, k);
+        auto expected_count = std::distance(expected_first, i);
+        auto out_count = std::distance(out_first, k);
         EXPECT_TRUE(expected_count == out_count, "wrong return value from remove_copy");
         EXPECT_EQ_N(expected_first, out_first, expected_count, "wrong remove_copy effect");
 #endif

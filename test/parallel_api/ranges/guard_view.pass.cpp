@@ -32,7 +32,7 @@ main()
     using CountItr = oneapi::dpl::counting_iterator<uint64_t>;
     CountItr count_itr(0UL);
 
-    const size_t max_int32p2 = (size_t)::std::numeric_limits<int32_t>::max() + 2UL;
+    const size_t max_int32p2 = (size_t)std::numeric_limits<int32_t>::max() + 2UL;
 
     oneapi::dpl::__ranges::guard_view<CountItr> gview{count_itr, max_int32p2};
 

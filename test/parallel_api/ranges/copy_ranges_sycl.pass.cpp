@@ -57,8 +57,8 @@ main()
 
     //check result
     int expected[max_n];
-    ::std::reverse(data, data + max_n);
-    ::std::transform(data, data + max_n, expected, lambda1);
+    std::reverse(data, data + max_n);
+    std::transform(data, data + max_n, expected, lambda1);
 
     EXPECT_EQ_N(expected, data2, max_n, "wrong effect from copy with sycl ranges");
 #endif //_ENABLE_RANGES_TESTING

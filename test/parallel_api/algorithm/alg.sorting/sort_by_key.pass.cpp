@@ -88,8 +88,8 @@ test_with_usm(sycl::queue& q)
         h_key[i] = i * 10;
     }
 
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_key(q, ::std::begin(h_key), ::std::end(h_key));
-    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_val(q, ::std::begin(h_val), ::std::end(h_val));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_key(q, std::begin(h_key), std::end(h_key));
+    TestUtils::usm_data_transfer<alloc_type, int> dt_helper_h_val(q, std::begin(h_val), std::end(h_val));
 
     int* d_key = dt_helper_h_key.get_data();
     int* d_val = dt_helper_h_val.get_data();

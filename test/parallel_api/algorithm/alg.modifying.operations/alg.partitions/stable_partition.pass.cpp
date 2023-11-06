@@ -30,11 +30,11 @@ template <typename T>
 struct DataType
 {
     explicit DataType(std::int32_t k) : my_val(k) {}
-    DataType(DataType&& input) { my_val = ::std::move(input.my_val); }
+    DataType(DataType&& input) { my_val = std::move(input.my_val); }
     DataType&
     operator=(DataType&& input)
     {
-        my_val = ::std::move(input.my_val);
+        my_val = std::move(input.my_val);
         return *this;
     }
     T
@@ -43,8 +43,8 @@ struct DataType
         return my_val;
     }
 
-    friend ::std::ostream&
-    operator<<(::std::ostream& stream, const DataType<T>& input)
+    friend std::ostream&
+    operator<<(std::ostream& stream, const DataType<T>& input)
     {
         return stream << input.my_val;
     }
@@ -54,14 +54,14 @@ struct DataType
 };
 
 template <typename Iterator>
-::std::enable_if_t<::std::is_trivial_v<typename ::std::iterator_traits<Iterator>::value_type>, bool>
+std::enable_if_t<std::is_trivial_v<typename std::iterator_traits<Iterator>::value_type>, bool>
 is_equal(Iterator first, Iterator last, Iterator d_first)
 {
-    return ::std::equal(first, last, d_first);
+    return std::equal(first, last, d_first);
 }
 
 template <typename Iterator>
-::std::enable_if_t<!::std::is_trivial_v<typename ::std::iterator_traits<Iterator>::value_type>, bool>
+std::enable_if_t<!std::is_trivial_v<typename std::iterator_traits<Iterator>::value_type>, bool>
 is_equal(Iterator /* first */, Iterator /* last */, Iterator /* d_first */)
 {
     return true;
@@ -71,22 +71,22 @@ template <typename T>
 struct test_stable_partition
 {
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>>
+    std::enable_if_t<is_base_of_iterator_category_v<std::bidirectional_iterator_tag, BiDirIt>>
     operator()(Policy&& exec, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last, Size /* n */,
                UnaryOp unary_op, Generator generator)
     {
         fill_data(exp_first, exp_last, generator);
-        BiDirIt exp_ret = ::std::stable_partition(exp_first, exp_last, unary_op);
+        BiDirIt exp_ret = std::stable_partition(exp_first, exp_last, unary_op);
         fill_data(first, last, generator);
-        BiDirIt actual_ret = ::std::stable_partition(exec, first, last, unary_op);
+        BiDirIt actual_ret = std::stable_partition(exec, first, last, unary_op);
 
-        EXPECT_TRUE(::std::distance(first, actual_ret) == ::std::distance(exp_first, exp_ret),
+        EXPECT_TRUE(std::distance(first, actual_ret) == std::distance(exp_first, exp_ret),
                     "wrong result from stable_partition");
         EXPECT_TRUE((is_equal<BiDirIt>(exp_first, exp_last, first)), "wrong effect from stable_partition");
     }
 
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>>
+    std::enable_if_t<!is_base_of_iterator_category_v<std::bidirectional_iterator_tag, BiDirIt>>
     operator()(Policy&& /* exec */, BiDirIt /* first */, BiDirIt /* last */, BiDirIt /* exp_first */, BiDirIt /* exp_last */, Size /* n */,
                UnaryOp /* unary_op */, Generator /* generator */)
     {

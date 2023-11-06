@@ -68,24 +68,24 @@ struct Num
 template<typename InputIterator1, typename InputIterator2>
 auto
 init(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2) ->
-::std::pair<Sequence<typename ::std::iterator_traits<InputIterator1>::value_type>,
-            Sequence<typename ::std::iterator_traits<InputIterator1>::value_type>>
+std::pair<Sequence<typename std::iterator_traits<InputIterator1>::value_type>,
+            Sequence<typename std::iterator_traits<InputIterator1>::value_type>>
 {
-    using T1 = typename ::std::iterator_traits<InputIterator1>::value_type;
+    using T1 = typename std::iterator_traits<InputIterator1>::value_type;
 
-    auto n1 = ::std::distance(first1, last1);
-    auto n2 = ::std::distance(first2, last2);
+    auto n1 = std::distance(first1, last1);
+    auto n2 = std::distance(first2, last2);
     auto n = n1 + n2;
     Sequence<T1> expect(n);
     Sequence<T1> out(n);
-    return ::std::make_pair(expect,out);
+    return std::make_pair(expect,out);
 }
 
 template <typename Type>
 struct test_set_union
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
@@ -93,35 +93,35 @@ struct test_set_union
         auto sequences = init(first1, last1, first2, last2);
         auto expect = sequences.first;
         auto out = sequences.second;
-        auto expect_res = ::std::set_union(first1, last1, first2, last2, expect.begin(), comp);
-        auto res = ::std::set_union(exec, first1, last1, first2, last2, out.begin(), comp);
+        auto expect_res = std::set_union(first1, last1, first2, last2, expect.begin(), comp);
+        auto res = std::set_union(exec, first1, last1, first2, last2, out.begin(), comp);
 
         EXPECT_TRUE(expect_res - expect.begin() == res - out.begin(), "wrong result for set_union");
-        EXPECT_EQ_N(expect.begin(), out.begin(), ::std::distance(out.begin(), res), "wrong set_union effect");
+        EXPECT_EQ_N(expect.begin(), out.begin(), std::distance(out.begin(), res), "wrong set_union effect");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
     {
         auto sequences = init(first1, last1, first2, last2);
         auto expect = sequences.first;
         auto out = sequences.second;
-        auto expect_res = ::std::set_union(first1, last1, first2, last2, expect.begin());
-        auto res = ::std::set_union(exec, first1, last1, first2, last2, out.begin());
+        auto expect_res = std::set_union(first1, last1, first2, last2, expect.begin());
+        auto res = std::set_union(exec, first1, last1, first2, last2, out.begin());
 
         EXPECT_TRUE(expect_res - expect.begin() == res - out.begin(), "wrong result for set_union without comparator");
-        EXPECT_EQ_N(expect.begin(), out.begin(), ::std::distance(out.begin(), res), "wrong set_union effect without comparator");
+        EXPECT_EQ_N(expect.begin(), out.begin(), std::distance(out.begin(), res), "wrong set_union effect without comparator");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2)
     {
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }
@@ -131,42 +131,42 @@ template <typename Type>
 struct test_set_intersection
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
         auto sequences = init(first1, last1, first2, last2);
         auto expect = sequences.first;
         auto out = sequences.second;
-        auto expect_res = ::std::set_intersection(first1, last1, first2, last2, expect.begin(), comp);
-        auto res = ::std::set_intersection(exec, first1, last1, first2, last2, out.begin(), comp);
+        auto expect_res = std::set_intersection(first1, last1, first2, last2, expect.begin(), comp);
+        auto res = std::set_intersection(exec, first1, last1, first2, last2, out.begin(), comp);
 
         EXPECT_TRUE(expect_res - expect.begin() == res - out.begin(), "wrong result for set_intersection");
-        EXPECT_EQ_N(expect.begin(), out.begin(), ::std::distance(out.begin(), res), "wrong set_intersection effect");
+        EXPECT_EQ_N(expect.begin(), out.begin(), std::distance(out.begin(), res), "wrong set_intersection effect");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
     {
         auto sequences = init(first1, last1, first2, last2);
         auto expect = sequences.first;
         auto out = sequences.second;
-        auto expect_res = ::std::set_intersection(first1, last1, first2, last2, expect.begin());
-        auto res = ::std::set_intersection(exec, first1, last1, first2, last2, out.begin());
+        auto expect_res = std::set_intersection(first1, last1, first2, last2, expect.begin());
+        auto res = std::set_intersection(exec, first1, last1, first2, last2, out.begin());
 
         EXPECT_TRUE(expect_res - expect.begin() == res - out.begin(), "wrong result for set_intersection without comparator");
-        EXPECT_EQ_N(expect.begin(), out.begin(), ::std::distance(out.begin(), res), "wrong set_intersection effect without comparator");
+        EXPECT_EQ_N(expect.begin(), out.begin(), std::distance(out.begin(), res), "wrong set_intersection effect without comparator");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2)
     {
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }
@@ -176,44 +176,44 @@ template <typename Type>
 struct test_set_difference
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
         auto sequences = init(first1, last1, first2, last2);
         auto expect = sequences.first;
         auto out = sequences.second;
-        auto expect_res = ::std::set_difference(first1, last1, first2, last2, expect.begin(), comp);
-        auto res = ::std::set_difference(exec, first1, last1, first2, last2, out.begin(), comp);
+        auto expect_res = std::set_difference(first1, last1, first2, last2, expect.begin(), comp);
+        auto res = std::set_difference(exec, first1, last1, first2, last2, out.begin(), comp);
 
         EXPECT_TRUE(expect_res - expect.begin() == res - out.begin(), "wrong result for set_difference");
-        EXPECT_EQ_N(expect.begin(), out.begin(), ::std::distance(out.begin(), res), "wrong set_difference effect");
+        EXPECT_EQ_N(expect.begin(), out.begin(), std::distance(out.begin(), res), "wrong set_difference effect");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
     {
         auto sequences = init(first1, last1, first2, last2);
         auto expect = sequences.first;
         auto out = sequences.second;
-        auto expect_res = ::std::set_difference(first1, last1, first2, last2, expect.begin());
-        auto res = ::std::set_difference(exec, first1, last1, first2, last2, out.begin());
+        auto expect_res = std::set_difference(first1, last1, first2, last2, expect.begin());
+        auto res = std::set_difference(exec, first1, last1, first2, last2, out.begin());
 
         EXPECT_TRUE(expect_res - expect.begin() == res - out.begin(),
                     "wrong result for set_difference without comparator");
-        EXPECT_EQ_N(expect.begin(), out.begin(), ::std::distance(out.begin(), res),
+        EXPECT_EQ_N(expect.begin(), out.begin(), std::distance(out.begin(), res),
                     "wrong set_difference effect without comparator");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2)
     {
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }
@@ -223,45 +223,45 @@ template <typename Type>
 struct test_set_symmetric_difference
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2,
                Compare comp)
     {
         auto sequences = init(first1, last1, first2, last2);
         auto expect = sequences.first;
         auto out = sequences.second;
-        auto expect_res = ::std::set_symmetric_difference(first1, last1, first2, last2, expect.begin(), comp);
-        auto res = ::std::set_symmetric_difference(exec, first1, last1, first2, last2, out.begin(), comp);
+        auto expect_res = std::set_symmetric_difference(first1, last1, first2, last2, expect.begin(), comp);
+        auto res = std::set_symmetric_difference(exec, first1, last1, first2, last2, out.begin(), comp);
 
         EXPECT_TRUE(expect_res - expect.begin() == res - out.begin(), "wrong result for set_symmetric_difference");
-        EXPECT_EQ_N(expect.begin(), out.begin(), ::std::distance(out.begin(), res),
+        EXPECT_EQ_N(expect.begin(), out.begin(), std::distance(out.begin(), res),
                     "wrong set_symmetric_difference effect");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<!TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
     {
         auto sequences = init(first1, last1, first2, last2);
         auto expect = sequences.first;
         auto out = sequences.second;
-        auto expect_res = ::std::set_symmetric_difference(first1, last1, first2, last2, expect.begin());
-        auto res = ::std::set_symmetric_difference(exec, first1, last1, first2, last2, out.begin());
+        auto expect_res = std::set_symmetric_difference(first1, last1, first2, last2, expect.begin());
+        auto res = std::set_symmetric_difference(exec, first1, last1, first2, last2, out.begin());
 
         EXPECT_TRUE(expect_res - expect.begin() == res - out.begin(),
                     "wrong result for set_symmetric_difference without comparator");
-        EXPECT_EQ_N(expect.begin(), out.begin(), ::std::distance(out.begin(), res),
+        EXPECT_EQ_N(expect.begin(), out.begin(), std::distance(out.begin(), res),
                     "wrong set_symmetric_difference effect without comparator");
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2)
     {
     }
 
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename Compare>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
+    std::enable_if_t<TestUtils::is_reverse_v<InputIterator1>>
     operator()(Policy&&, InputIterator1, InputIterator1, InputIterator2, InputIterator2, Compare)
     {
     }
@@ -272,21 +272,21 @@ void
 test_set(Compare compare, bool comp_flag)
 {
 
-    const ::std::size_t n_max = 100000;
+    const std::size_t n_max = 100000;
 
     // The rand()%(2*n+1) encourages generation of some duplicates.
-    ::std::srand(4200);
+    std::srand(4200);
 
-    for (::std::size_t n = 0; n < n_max; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    for (std::size_t n = 0; n < n_max; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
-        for (::std::size_t m = 0; m < n_max; m = m <= 16 ? m + 1 : size_t(2.71828 * m))
+        for (std::size_t m = 0; m < n_max; m = m <= 16 ? m + 1 : size_t(2.71828 * m))
         {
             //prepare the input ranges
-            Sequence<T1> in1(n, [](::std::size_t k) { return rand() % (2 * k + 1); });
-            Sequence<T2> in2(m, [m](::std::size_t k) { return (m % 2) * rand() + rand() % (k + 1); });
+            Sequence<T1> in1(n, [](std::size_t k) { return rand() % (2 * k + 1); });
+            Sequence<T2> in2(m, [m](std::size_t k) { return (m % 2) * rand() + rand() % (k + 1); });
 
-            ::std::sort(in1.begin(), in1.end(), compare);
-            ::std::sort(in2.begin(), in2.end(), compare);
+            std::sort(in1.begin(), in1.end(), compare);
+            std::sort(in2.begin(), in2.end(), compare);
 
 #ifdef _PSTL_TEST_SET_UNION
             if(comp_flag)

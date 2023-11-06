@@ -53,25 +53,25 @@ struct test_uninit_default_construct
 {
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/::std::false_type)
+    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/std::false_type)
     {
-        typedef typename ::std::iterator_traits<Iterator>::value_type T;
+        typedef typename std::iterator_traits<Iterator>::value_type T;
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        ::std::destroy_n(oneapi::dpl::execution::seq, begin, n);
+        std::destroy_n(oneapi::dpl::execution::seq, begin, n);
         T::SetCount(0);
 
-        ::std::uninitialized_default_construct(exec, begin, end);
+        std::uninitialized_default_construct(exec, begin, end);
         EXPECT_TRUE(T::Count() == n, "wrong uninitialized_default_construct");
 
     }
 
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator end, size_t /* n */, /*is_trivial<T>=*/::std::true_type)
+    operator()(Policy&& exec, Iterator begin, Iterator end, size_t /* n */, /*is_trivial<T>=*/std::true_type)
     {
-        ::std::uninitialized_default_construct(exec, begin, end);
+        std::uninitialized_default_construct(exec, begin, end);
     }
 };
 
@@ -80,24 +80,24 @@ struct test_uninit_default_construct_n
 {
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator /* end */, size_t n, /*is_trivial<T>=*/::std::false_type)
+    operator()(Policy&& exec, Iterator begin, Iterator /* end */, size_t n, /*is_trivial<T>=*/std::false_type)
     {
-        typedef typename ::std::iterator_traits<Iterator>::value_type T;
+        typedef typename std::iterator_traits<Iterator>::value_type T;
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        ::std::destroy_n(oneapi::dpl::execution::seq, begin, n);
+        std::destroy_n(oneapi::dpl::execution::seq, begin, n);
         T::SetCount(0);
 
-        ::std::uninitialized_default_construct_n(exec, begin, n);
+        std::uninitialized_default_construct_n(exec, begin, n);
         EXPECT_TRUE(T::Count() == n, "wrong uninitialized_default_construct_n");
     }
 
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator /* end */, size_t n, /*is_trivial<T>=*/::std::true_type)
+    operator()(Policy&& exec, Iterator begin, Iterator /* end */, size_t n, /*is_trivial<T>=*/std::true_type)
     {
-        ::std::uninitialized_default_construct_n(exec, begin, n);
+        std::uninitialized_default_construct_n(exec, begin, n);
     }
 };
 
@@ -106,26 +106,26 @@ struct test_uninit_value_construct
 {
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/::std::false_type)
+    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/std::false_type)
     {
-        typedef typename ::std::iterator_traits<Iterator>::value_type T;
+        typedef typename std::iterator_traits<Iterator>::value_type T;
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        ::std::destroy_n(oneapi::dpl::execution::seq, begin, n);
+        std::destroy_n(oneapi::dpl::execution::seq, begin, n);
         T::SetCount(0);
 
-        ::std::uninitialized_value_construct(exec, begin, end);
+        std::uninitialized_value_construct(exec, begin, end);
         EXPECT_TRUE(T::Count() == n, "wrong uninitialized_value_construct");
     }
 
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator end, size_t /* n */, /*is_trivial<T>=*/::std::true_type)
+    operator()(Policy&& exec, Iterator begin, Iterator end, size_t /* n */, /*is_trivial<T>=*/std::true_type)
     {
-        typedef typename ::std::iterator_traits<Iterator>::value_type T;
+        typedef typename std::iterator_traits<Iterator>::value_type T;
 
-        ::std::uninitialized_value_construct(exec, begin, end);
+        std::uninitialized_value_construct(exec, begin, end);
         EXPECT_TRUE(IsCheckValueCorrectness<T>(begin, end), "wrong uninitialized_value_construct");
     }
 };
@@ -135,26 +135,26 @@ struct test_uninit_value_construct_n
 {
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator /* end */, size_t n, /*is_trivial<T>=*/::std::false_type)
+    operator()(Policy&& exec, Iterator begin, Iterator /* end */, size_t n, /*is_trivial<T>=*/std::false_type)
     {
-        typedef typename ::std::iterator_traits<Iterator>::value_type T;
+        typedef typename std::iterator_traits<Iterator>::value_type T;
         // it needs for cleaning memory that was filled by default constructors in unique_ptr<T[]> p(new T[n])
         // and for cleaning memory after last calling of uninitialized_value_construct_n.
         // It is important for non-trivial types
-        ::std::destroy_n(oneapi::dpl::execution::seq, begin, n);
+        std::destroy_n(oneapi::dpl::execution::seq, begin, n);
         T::SetCount(0);
 
-        ::std::uninitialized_value_construct_n(exec, begin, n);
+        std::uninitialized_value_construct_n(exec, begin, n);
         EXPECT_TRUE(T::Count() == n, "wrong uninitialized_value_construct_n");
     }
 
     template <typename Policy, typename Iterator>
     void
-    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/::std::true_type)
+    operator()(Policy&& exec, Iterator begin, Iterator end, size_t n, /*is_trivial<T>=*/std::true_type)
     {
-        typedef typename ::std::iterator_traits<Iterator>::value_type T;
+        typedef typename std::iterator_traits<Iterator>::value_type T;
 
-        ::std::uninitialized_value_construct_n(exec, begin, n);
+        std::uninitialized_value_construct_n(exec, begin, n);
         EXPECT_TRUE(IsCheckValueCorrectness<T>(begin, end), "wrong uninitialized_value_construct_n");
     }
 };
@@ -163,33 +163,33 @@ template <typename T>
 void
 test_uninit_construct_by_type()
 {
-    ::std::size_t N = 100000;
+    std::size_t N = 100000;
     for (size_t n = 0; n <= N; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
 #if !TEST_DPCPP_BACKEND_PRESENT
-        ::std::unique_ptr<T[]> p(new T[n]);
+        std::unique_ptr<T[]> p(new T[n]);
         auto p_begin = p.get();
 #else
         Sequence<T> p(n, [](size_t){ return T{}; });
         auto p_begin = p.begin();
 #endif
-        auto p_end = ::std::next(p_begin, n);
+        auto p_end = std::next(p_begin, n);
 
 #ifdef _PSTL_TEST_UNITIALIZED_DEFAULT_CONSTRUCT
         invoke_on_all_policies<>()(test_uninit_default_construct<T>(), p_begin, p_end, n,
-                                   ::std::is_trivial<T>());
+                                   std::is_trivial<T>());
 #endif
 #ifdef _PSTL_TEST_UNITIALIZED_DEFAULT_CONSTRUCT_N
         invoke_on_all_policies<>()(test_uninit_default_construct_n<T>(), p_begin, p_end, n,
-                                   ::std::is_trivial<T>());
+                                   std::is_trivial<T>());
 #endif
 #ifdef _PSTL_TEST_UNITIALIZED_VALUE_CONSTRUCT
         invoke_on_all_policies<>()(test_uninit_value_construct<T>(), p_begin, p_end, n,
-                                   ::std::is_trivial<T>());
+                                   std::is_trivial<T>());
 #endif
 #ifdef _PSTL_TEST_UNITIALIZED_VALUE_CONSTRUCT_N
         invoke_on_all_policies<>()(test_uninit_value_construct_n<T>(), p_begin, p_end, n,
-                                   ::std::is_trivial<T>());
+                                   std::is_trivial<T>());
 #endif
     }
 }
@@ -201,7 +201,7 @@ main()
 #if !TEST_DPCPP_BACKEND_PRESENT
     // for user-defined types
     test_uninit_construct_by_type<Wrapper<std::int32_t>>();
-    test_uninit_construct_by_type<Wrapper<::std::vector<::std::string>>>();
+    test_uninit_construct_by_type<Wrapper<std::vector<std::string>>>();
 #endif
 
     // for trivial types

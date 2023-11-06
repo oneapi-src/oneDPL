@@ -36,12 +36,12 @@ struct test_partition_copy
                OutputIterator, OutputIterator2 false_first, OutputIterator2, UnaryOp unary_op)
     {
 
-        auto actual_ret = ::std::partition_copy(exec, first, last, true_first, false_first, unary_op);
+        auto actual_ret = std::partition_copy(exec, first, last, true_first, false_first, unary_op);
 
-        EXPECT_TRUE(::std::distance(true_first, actual_ret.first) == ::std::count_if(first, last, unary_op),
+        EXPECT_TRUE(std::distance(true_first, actual_ret.first) == std::count_if(first, last, unary_op),
                     "partition_copy has wrong effect from true sequence");
-        EXPECT_TRUE(::std::distance(false_first, actual_ret.second) ==
-                        ::std::count_if(first, last, oneapi::dpl::__internal::__not_pred<UnaryOp>(unary_op)),
+        EXPECT_TRUE(std::distance(false_first, actual_ret.second) ==
+                        std::count_if(first, last, oneapi::dpl::__internal::__not_pred<UnaryOp>(unary_op)),
                     "partition_copy has wrong effect from false sequence");
     }
 
@@ -70,11 +70,11 @@ void
 test(UnaryPred pred)
 {
 
-    const ::std::size_t max_size = 100000;
-    Sequence<T> in(max_size, [](::std::size_t v) -> T { return T(v); });
+    const std::size_t max_size = 100000;
+    Sequence<T> in(max_size, [](std::size_t v) -> T { return T(v); });
     Sequence<T> actual_true(max_size);
     Sequence<T> actual_false(max_size);
-    for (::std::size_t n = 0; n <= max_size; n = n <= 16 ? n + 1 : ::std::size_t(3.1415 * n))
+    for (std::size_t n = 0; n <= max_size; n = n <= 16 ? n + 1 : std::size_t(3.1415 * n))
     {
 
         // for non-const input iterators

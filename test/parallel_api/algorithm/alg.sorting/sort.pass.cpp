@@ -39,7 +39,7 @@
 static bool Stable;
 
 //! Number of extant keys
-static ::std::atomic<std::int32_t> KeyCount;
+static std::atomic<std::int32_t> KeyCount;
 
 //! One more than highest index in array to be sorted.
 static std::uint32_t LastIndex;
@@ -106,7 +106,7 @@ class ParanoidKey
     ParanoidKey(ParanoidKey&& k) : value(k.value), index(k.index)
     {
         EXPECT_TRUE(k.isConstructed(), "source for move-construction is dead");
-// ::std::stable_sort() fails in move semantics on paranoid test before VS2015
+// std::stable_sort() fails in move semantics on paranoid test before VS2015
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
         k.index = Empty;
 #endif // !defined(_MSC_VER) || _MSC_VER >= 1900
@@ -119,7 +119,7 @@ class ParanoidKey
         EXPECT_TRUE(isConstructed(), "destination for move-assignment is dead");
         value = k.value;
         index = k.index;
-// ::std::stable_sort() fails in move semantics on paranoid test before VS2015
+// std::stable_sort() fails in move semantics on paranoid test before VS2015
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
         k.index = Empty;
 #endif // !defined(_MSC_VER) || _MSC_VER >= 1900
@@ -191,8 +191,8 @@ void
 copy_data(InputIterator first, OutputIterator1 expected_first, OutputIterator1 expected_last, OutputIterator2 tmp_first,
           Size n)
 {
-    ::std::copy_n(first, n, expected_first);
-    ::std::copy_n(first, n, tmp_first);
+    std::copy_n(first, n, expected_first);
+    std::copy_n(first, n, tmp_first);
 }
 
 template <typename ...Params>
@@ -200,9 +200,9 @@ void
 sort_data(Params&& ...params)
 {
     if (Stable)
-        ::std::stable_sort(::std::forward<Params>(params)...);
+        std::stable_sort(std::forward<Params>(params)...);
     else
-        ::std::sort(::std::forward<Params>(params)...);
+        std::sort(std::forward<Params>(params)...);
 }
 
 template <typename OutputIterator1, typename OutputIterator2, typename Size, typename... Compare>
@@ -249,7 +249,7 @@ test_usm(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
 
     // Call sort algorithm on prepared data
     const auto _size = _it_to - _it_from;
-    sort_data(::std::forward<Policy>(exec), sortingData, sortingData + _size, compare...);
+    sort_data(std::forward<Policy>(exec), sortingData, sortingData + _size, compare...);
 
     // check result
     dt_helper.retrieve_data(_it_from);
@@ -281,7 +281,7 @@ run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
 
     // Call sort algorithm on prepared data
     const std::int32_t count0 = KeyCount;
-    sort_data(::std::forward<Policy>(exec), tmp_first + 1, tmp_last - 1, compare...);
+    sort_data(std::forward<Policy>(exec), tmp_first + 1, tmp_last - 1, compare...);
 
     check_results(expected_first, tmp_first, n, "wrong result from sort without predicate #1", compare...);
 
@@ -298,10 +298,10 @@ run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
             OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n, Compare ...compare)
 {
     // Run tests for USM shared memory (external testing for USM shared memory, once already covered in sycl_iterator.pass.cpp)
-    test_usm<sycl::usm::alloc::shared>(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
+    test_usm<sycl::usm::alloc::shared>(std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
                                        first, last, n, compare...);
     // Run tests for USM device memory
-    test_usm<sycl::usm::alloc::device>(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
+    test_usm<sycl::usm::alloc::device>(std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last,
                                        first, last, n, compare...);
 }
 #endif // _PSTL_SYCL_TEST_USM
@@ -312,20 +312,20 @@ struct test_sort_op
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename... Compare>
-    ::std::enable_if_t<
-        TestUtils::is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator> &&
+    std::enable_if_t<
+        TestUtils::is_base_of_iterator_category_v<std::random_access_iterator_tag, InputIterator> &&
             (TestUtils::can_use_default_less_operator_v<T> || sizeof...(Compare) > 0)>
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n, Compare ...compare)
     {
-        run_test(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last, first, last, n,
+        run_test(std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last, first, last, n,
                  compare...);
     }
 
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename... Compare>
-    ::std::enable_if_t<
-        !TestUtils::is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator> ||
+    std::enable_if_t<
+        !TestUtils::is_base_of_iterator_category_v<std::random_access_iterator_tag, InputIterator> ||
             !(TestUtils::can_use_default_less_operator_v<T> || sizeof...(Compare) > 0)>
     operator()(Policy&& /* exec */, OutputIterator /* tmp_first */, OutputIterator /* tmp_last */,
                OutputIterator2 /* expected_first */, OutputIterator2 /* expected_last */, InputIterator /* first */,
@@ -348,19 +348,19 @@ test_default_name_gen(Convert convert, size_t n)
     TestUtils::Sequence<T> tmp(in);
     auto my_policy = TestUtils::make_device_policy(TestUtils::get_test_queue());
 
-    TestUtils::iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
+    TestUtils::iterator_invoker<std::random_access_iterator_tag, /*IsReverse*/ std::false_type>()(
                 my_policy, test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(),
-                    in.size(), ::std::greater<void>());
-    TestUtils::iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
+                    in.size(), std::greater<void>());
+    TestUtils::iterator_invoker<std::random_access_iterator_tag, /*IsReverse*/ std::false_type>()(
                 my_policy, test_sort_op<T>(), tmp.begin(), tmp.end(), expected.begin(), expected.end(), in.begin(), in.end(),
-                    in.size(), ::std::less<void>());
+                    in.size(), std::less<void>());
 
 }
 #    endif //__SYCL_UNNAMED_LAMBDA__
 #endif //TEST_DPCPP_BACKEND_PRESENT
 
 
-template <::std::size_t CallNumber, typename T, typename Compare, typename Convert>
+template <std::size_t CallNumber, typename T, typename Compare, typename Convert>
 void
 test_sort(Compare compare, Convert convert)
 {
@@ -391,10 +391,10 @@ struct test_non_const
     operator()(Policy&& exec, Iterator iter)
     {
 #ifdef _PSTL_TEST_SORT
-        ::std::sort(::std::forward<Policy>(exec), iter, iter, TestUtils::non_const(::std::less<T>()));
+        std::sort(std::forward<Policy>(exec), iter, iter, TestUtils::non_const(std::less<T>()));
 #endif // _PSTL_TEST_SORT
 #ifdef _PSTL_TEST_STABLE_SORT
-        ::std::stable_sort(::std::forward<Policy>(exec), iter, iter, TestUtils::non_const(::std::less<T>()));
+        std::stable_sort(std::forward<Policy>(exec), iter, iter, TestUtils::non_const(std::less<T>()));
 #endif // _PSTL_TEST_STABLE_SORT
     }
 };
@@ -411,7 +411,7 @@ struct NonConstCmp
 int
 main()
 {
-    ::std::srand(42);
+    std::srand(42);
     std::int32_t start = 0;
     std::int32_t end = 2;
 #ifndef _PSTL_TEST_SORT

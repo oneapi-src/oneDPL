@@ -76,7 +76,7 @@ test_with_usm()
     auto new_last = oneapi::dpl::reduce_by_segment(
         TestUtils::make_device_policy<KernelName>(q), begin_keys_in,
         end_keys_in, begin_vals_in, begin_keys_out, begin_vals_out,
-       ::std::equal_to<>(), TestUtils::TupleAddFunctor());
+       std::equal_to<>(), TestUtils::TupleAddFunctor());
 
     //retrieve result on the host and check the result
     dt_helper5.retrieve_data(output_keys1);

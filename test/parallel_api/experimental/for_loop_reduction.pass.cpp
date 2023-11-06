@@ -28,8 +28,8 @@ void
 test_body_reduction(Policy&& exec, Iterator first, Iterator last, Iterator /* expected_first */,
                     Iterator /* expected_last */, Size n)
 {
-    using T = typename ::std::iterator_traits<Iterator>::value_type;
-    static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
+    using T = typename std::iterator_traits<Iterator>::value_type;
+    static_assert(std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
     // Init with different arbitrary values on each iteration
     const T var1_init = n % 11;
@@ -38,12 +38,12 @@ test_body_reduction(Policy&& exec, Iterator first, Iterator last, Iterator /* ex
     T var1 = var1_init;
     T var2 = var2_init;
 
-    ::std::experimental::for_loop(::std::forward<Policy>(exec), first, last,
-                                ::std::experimental::reduction(var1, T(0), ::std::plus<T>{}),
-                                ::std::experimental::reduction(var2, T(var2_init), oneapi::dpl::__internal::__pstl_min{}),
+    std::experimental::for_loop(std::forward<Policy>(exec), first, last,
+                                std::experimental::reduction(var1, T(0), std::plus<T>{}),
+                                std::experimental::reduction(var2, T(var2_init), oneapi::dpl::__internal::__pstl_min{}),
                                 [](Iterator iter, T& acc1, T& acc2) {
                                     acc1 += *iter;
-                                    acc2 = ::std::min(acc2, *iter);
+                                    acc2 = std::min(acc2, *iter);
                                 });
 
     T var1_exp = var1_init;
@@ -52,7 +52,7 @@ test_body_reduction(Policy&& exec, Iterator first, Iterator last, Iterator /* ex
     for (auto iter = first; iter != last; ++iter)
     {
         var1_exp += *iter;
-        var2_exp = ::std::min(var2_exp, *iter);
+        var2_exp = std::min(var2_exp, *iter);
     }
 
     EXPECT_TRUE(var1 == var1_exp, "wrong result of reduction 1");
@@ -65,7 +65,7 @@ struct test_body
     void
     operator()(Policy&& exec, Iterator first, Iterator last, Iterator expected_first, Iterator expected_last, Size n)
     {
-        test_body_reduction(::std::forward<Policy>(exec), first, last, expected_first, expected_last, n);
+        test_body_reduction(std::forward<Policy>(exec), first, last, expected_first, expected_last, n);
     }
 };
 
@@ -89,8 +89,8 @@ struct test_body_predefined
     operator()(Policy&& exec, Iterator first, Iterator last, Iterator /*expected_first*/, Iterator /*expected_last*/,
                Size /* n */)
     {
-        using T = typename ::std::iterator_traits<Iterator>::value_type;
-        static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
+        using T = typename std::iterator_traits<Iterator>::value_type;
+        static_assert(std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
         // Initialize with arbitrary values
         T plus_var = 10, plus_exp = 10;
@@ -98,23 +98,23 @@ struct test_body_predefined
         T min_var = 15, min_exp = 15;
         T max_var = 5, max_exp = 5;
 
-        ::std::experimental::for_loop(
-            ::std::forward<Policy>(exec), first, last, ::std::experimental::reduction_plus(plus_var),
-            ::std::experimental::reduction_multiplies(mult_var), ::std::experimental::reduction_min(min_var),
-            ::std::experimental::reduction_max(max_var),
+        std::experimental::for_loop(
+            std::forward<Policy>(exec), first, last, std::experimental::reduction_plus(plus_var),
+            std::experimental::reduction_multiplies(mult_var), std::experimental::reduction_min(min_var),
+            std::experimental::reduction_max(max_var),
             [](Iterator iter, T& plus_acc, T& mult_acc, T& min_acc, T& max_acc) {
                 plus_acc += *iter;
                 mult_acc *= *iter;
-                min_acc = ::std::min(min_acc, *iter);
-                max_acc = ::std::max(max_acc, *iter);
+                min_acc = std::min(min_acc, *iter);
+                max_acc = std::max(max_acc, *iter);
             });
 
         for (auto iter = first; iter != last; ++iter)
         {
             plus_exp += *iter;
             mult_exp *= *iter;
-            min_exp = ::std::min(min_exp, *iter);
-            max_exp = ::std::max(max_exp, *iter);
+            min_exp = std::min(min_exp, *iter);
+            max_exp = std::max(max_exp, *iter);
         }
 
         EXPECT_TRUE(plus_var == plus_exp, "wrong result of reduction_plus");
@@ -127,21 +127,21 @@ struct test_body_predefined
 struct test_body_predefined_bits
 {
     template <typename Policy, typename Iterator, typename Size>
-    ::std::enable_if_t<!::std::is_floating_point_v<typename ::std::iterator_traits<Iterator>::value_type>>
+    std::enable_if_t<!std::is_floating_point_v<typename std::iterator_traits<Iterator>::value_type>>
     operator()(Policy&& exec, Iterator first, Iterator last, Iterator /*expected_first*/, Iterator /*expected_last*/,
                Size /* n */)
     {
-        using T = typename ::std::iterator_traits<Iterator>::value_type;
-        static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
+        using T = typename std::iterator_traits<Iterator>::value_type;
+        static_assert(std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
 
         // Initialize with arbitrary values
         T bit_or_var = 10, bit_or_exp = 10;
         T bit_xor_var = 4, bit_xor_exp = 4;
         T bit_and_var = 15, bit_and_exp = 15;
 
-        ::std::experimental::for_loop(
-            ::std::forward<Policy>(exec), first, last, ::std::experimental::reduction_bit_or(bit_or_var),
-            ::std::experimental::reduction_bit_and(bit_and_var), ::std::experimental::reduction_bit_xor(bit_xor_var),
+        std::experimental::for_loop(
+            std::forward<Policy>(exec), first, last, std::experimental::reduction_bit_or(bit_or_var),
+            std::experimental::reduction_bit_and(bit_and_var), std::experimental::reduction_bit_xor(bit_xor_var),
             [](Iterator iter, T& bit_or_acc, T& bit_and_acc, T& bit_xor_acc) {
                 bit_or_acc |= *iter;
                 bit_and_acc &= *iter;
@@ -161,7 +161,7 @@ struct test_body_predefined_bits
     }
 
     template <typename Policy, typename Iterator, typename Size>
-    ::std::enable_if_t<::std::is_floating_point_v<typename ::std::iterator_traits<Iterator>::value_type>>
+    std::enable_if_t<std::is_floating_point_v<typename std::iterator_traits<Iterator>::value_type>>
     operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Iterator /*expected_first*/, Iterator /*expected_last*/,
                Size /* n */)
     {
@@ -171,7 +171,7 @@ struct test_body_predefined_bits
 
 template <typename T>
 void
-test_predefined(::std::initializer_list<T> init_list)
+test_predefined(std::initializer_list<T> init_list)
 {
     // Just arbitrary numbers
     Sequence<T> in_out = init_list;
@@ -187,7 +187,7 @@ test_predef()
 {
     // Test with arbitrary values
     test_predefined({1, 20, -14, 0, -100, 150});
-    test_predefined(::std::initializer_list<int>{});
+    test_predefined(std::initializer_list<int>{});
     test_predefined({10, 20});
     test_predefined({1.f, 20.f, -14.f, 0.f, -100.f, 150.f});
 }

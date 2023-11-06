@@ -20,7 +20,7 @@
 
 template <class T>
 void
-test(T x, ::std::enable_if_t<std::is_integral_v<T>>* = 0)
+test(T x, std::enable_if_t<std::is_integral_v<T>>* = 0)
 {
     static_assert((std::is_same_v<decltype(dpl::proj(x)), dpl::complex<double> >));
     assert(dpl::proj(x) == dpl::proj(dpl::complex<double>(x, 0)));
@@ -28,7 +28,7 @@ test(T x, ::std::enable_if_t<std::is_integral_v<T>>* = 0)
 
 template <class T>
 void
-test(T x, ::std::enable_if_t<std::is_floating_point_v<T>>* = 0)
+test(T x, std::enable_if_t<std::is_floating_point_v<T>>* = 0)
 {
     static_assert((std::is_same_v<decltype(dpl::proj(x)), dpl::complex<T> >));
     assert(dpl::proj(x) == dpl::proj(dpl::complex<T>(x, 0)));
@@ -36,7 +36,7 @@ test(T x, ::std::enable_if_t<std::is_floating_point_v<T>>* = 0)
 
 template <class T>
 void
-test(T x, ::std::enable_if_t<!std::is_integral_v<T> && !std::is_floating_point_v<T>>* = 0)
+test(T x, std::enable_if_t<!std::is_integral_v<T> && !std::is_floating_point_v<T>>* = 0)
 {
     static_assert((std::is_same_v<decltype(dpl::proj(x)), dpl::complex<T> >));
     assert(dpl::proj(x) == dpl::proj(dpl::complex<T>(x, 0)));
