@@ -58,9 +58,8 @@ test_is_not_signed(sycl::queue& deviceQueue)
     });
 }
 
-class Class
+struct Class
 {
-  public:
     ~Class();
 };
 
