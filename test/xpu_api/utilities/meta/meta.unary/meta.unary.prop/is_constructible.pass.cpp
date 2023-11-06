@@ -118,9 +118,6 @@ kernel_test1(sycl::queue& deviceQueue)
 {
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest1>([=]() {
-            typedef Base B;
-            typedef Derived D;
-
             test_is_constructible<int>();
             test_is_constructible<int, const int>();
             test_is_constructible<int&, int&>();
@@ -185,10 +182,10 @@ kernel_test1(sycl::queue& deviceQueue)
             test_is_constructible<int&&, ImplicitTo<int&&>>();
             test_is_constructible<const int&, ImplicitTo<int>>();
 
-            test_is_not_constructible<B&&, B&>();
-            test_is_not_constructible<B&&, D&>();
-            test_is_constructible<B&&, ImplicitTo<D&&>>();
-            test_is_constructible<B&&, ImplicitTo<D&&>&>();
+            test_is_not_constructible<Base&&, Base&>();
+            test_is_not_constructible<Base&&, Derived&>();
+            test_is_constructible<Base&&, ImplicitTo<Derived&&>>();
+            test_is_constructible<Base&&, ImplicitTo<Derived&&>&>();
             test_is_constructible<const int&, ImplicitTo<int&>&>();
             test_is_constructible<const int&, ImplicitTo<int&>>();
             test_is_constructible<const int&, ExplicitTo<int&>&>();
