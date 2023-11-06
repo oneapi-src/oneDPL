@@ -41,6 +41,25 @@ test_has_not_virtual_destructor(sycl::queue& deviceQueue)
     });
 }
 
+template <class T>
+void
+test_has_virtual_destructor(sycl::queue& deviceQueue)
+{
+    deviceQueue.submit([&](sycl::handler& cgh) {
+        cgh.single_task<T>([=]() {
+            static_assert(dpl::has_virtual_destructor<T>::value);
+            static_assert(dpl::has_virtual_destructor<const T>::value);
+            static_assert(dpl::has_virtual_destructor<volatile T>::value);
+            static_assert(dpl::has_virtual_destructor<const volatile T>::value);
+
+            static_assert(dpl::has_virtual_destructor_v<T>);
+            static_assert(dpl::has_virtual_destructor_v<const T>);
+            static_assert(dpl::has_virtual_destructor_v<volatile T>);
+            static_assert(dpl::has_virtual_destructor_v<const volatile T>);
+        });
+    });
+}
+
 class Empty
 {
 };
@@ -56,6 +75,20 @@ struct bit_zero
 struct A
 {
     ~A();
+};
+
+struct BaseSimple
+{
+    ~BaseSimple() = default;
+};
+
+struct Base
+{
+    virtual ~Base() = default;
+};
+
+struct Derived : Base
+{
 };
 
 void
@@ -77,6 +110,10 @@ kernel_test()
     {
         test_has_not_virtual_destructor<double>(deviceQueue);
     }
+
+    test_has_not_virtual_destructor<BaseSimple>(deviceQueue);
+    test_has_virtual_destructor<Base>(deviceQueue);
+    test_has_virtual_destructor<Derived>(deviceQueue);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
