@@ -59,9 +59,8 @@ test_is_not_pod(sycl::queue deviceQueue)
     });
 }
 
-class Class
+struct Class
 {
-  public:
     ~Class();
 };
 
