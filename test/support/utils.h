@@ -51,7 +51,7 @@ namespace TestUtils
 typedef double float64_t;
 typedef float float32_t;
 
-template <class T, ::std::size_t N>
+template <class T, std::size_t N>
 constexpr size_t
 const_size(const T (&)[N]) noexcept
 {
@@ -77,11 +77,11 @@ const_size(const T (&)[N]) noexcept
 // Issue error message from outstr, adding a newline.
 // Real purpose of this routine is to have a place to hang a breakpoint.
 inline void
-issue_error_message(::std::stringstream& outstr)
+issue_error_message(std::stringstream& outstr)
 {
-    outstr << ::std::endl;
-    ::std::cerr << outstr.str();
-    ::std::exit(EXIT_FAILURE);
+    outstr << std::endl;
+    std::cerr << outstr.str();
+    std::exit(EXIT_FAILURE);
 }
 
 inline void
@@ -89,7 +89,7 @@ expect(bool expected, bool condition, const char* file, std::int32_t line, const
 {
     if (condition != expected)
     {
-        ::std::stringstream outstr;
+        std::stringstream outstr;
         outstr << "error at " << file << ":" << line << " - " << message;
         issue_error_message(outstr);
     }
@@ -103,7 +103,7 @@ expect_equal_val(T& expected, T& actual, const char* file, std::int32_t line, co
 {
     if (!(expected == actual))
     {
-        ::std::stringstream outstr;
+        std::stringstream outstr;
         outstr << "error at " << file << ":" << line << " - " << message << ", expected " << expected << " got "
                << actual;
         issue_error_message(outstr);
@@ -118,7 +118,7 @@ expect_equal(const R1& expected, const R2& actual, const char* file, std::int32_
     size_t m = actual.size();
     if (n != m)
     {
-        ::std::stringstream outstr;
+        std::stringstream outstr;
         outstr << "error at " << file << ":" << line << " - " << message << ", expected sequence of size " << n
                << " got sequence of size " << m;
         issue_error_message(outstr);
@@ -129,7 +129,7 @@ expect_equal(const R1& expected, const R2& actual, const char* file, std::int32_
     {
         if (!(expected[k] == actual[k]))
         {
-            ::std::stringstream outstr;
+            std::stringstream outstr;
             outstr << "error at " << file << ":" << line << " - " << message << ", at index " << k << " expected "
                    << expected[k] << " got " << actual[k];
             issue_error_message(outstr);
@@ -155,7 +155,7 @@ expect_equal(Iterator1 expected_first, Iterator2 actual_first, Size n, const cha
     {
         if (!(*expected_first == *actual_first))
         {
-            ::std::stringstream outstr;
+            std::stringstream outstr;
             outstr << "error at " << file << ":" << line << " - " << message << ", at index " << k;
             issue_error_message(outstr);
             ++error_count;
@@ -178,17 +178,17 @@ check_data(const T1* device_iter, const T2* host_iter, int N)
 struct MemoryChecker
 {
     // static counters and state tags
-    static ::std::atomic<::std::size_t> alive_object_counter; // initialized outside
+    static std::atomic<std::size_t> alive_object_counter; // initialized outside
     // since it can truncate the value on 32-bit platforms
     // we have to explicitly cast it to desired type to avoid any warnings
-    static constexpr ::std::size_t alive_state = ::std::size_t(0xAAAAAAAAAAAAAAAA);
-    static constexpr ::std::size_t dead_state = 0; // only used as a set value to cancel alive_state
+    static constexpr std::size_t alive_state = std::size_t(0xAAAAAAAAAAAAAAAA);
+    static constexpr std::size_t dead_state = 0; // only used as a set value to cancel alive_state
 
-    ::std::int32_t _value; // object value used for algorithms
-    ::std::size_t _state;  // state tag used for checks
+    std::int32_t _value; // object value used for algorithms
+    std::size_t _state;  // state tag used for checks
 
     // ctors, dtors, assign ops
-    explicit MemoryChecker(::std::int32_t value = 0) : _value(value)
+    explicit MemoryChecker(std::int32_t value = 0) : _value(value)
     {
         // check for EXPECT_TRUE(state() != alive_state, ...) has not been done since we cannot guarantee that
         // raw memory for object being constructed does not have a bit sequence being equal to alive_state
@@ -249,22 +249,22 @@ struct MemoryChecker
         EXPECT_TRUE(state() == alive_state,
                     "wrong effect from ~MemoryChecker(): attempt to destroy non-existing object");
         // set destructed state and decrement counter for living object
-        static_cast<volatile ::std::size_t&>(_state) = dead_state;
+        static_cast<volatile std::size_t&>(_state) = dead_state;
         dec_alive_objects();
     }
 
     // getters
-    ::std::int32_t
+    std::int32_t
     value() const
     {
         return _value;
     }
-    ::std::size_t
+    std::size_t
     state() const
     {
         return _state;
     }
-    static ::std::size_t
+    static std::size_t
     alive_objects()
     {
         return alive_object_counter.load();
@@ -284,10 +284,10 @@ struct MemoryChecker
     }
 };
 
-inline ::std::atomic<::std::size_t> MemoryChecker::alive_object_counter{0};
+inline std::atomic<std::size_t> MemoryChecker::alive_object_counter{0};
 
-inline ::std::ostream&
-operator<<(::std::ostream& os, const MemoryChecker& val)
+inline std::ostream&
+operator<<(std::ostream& os, const MemoryChecker& val)
 {
     return (os << val.value());
 }
@@ -368,8 +368,8 @@ class Number
     {
         return x.value == y.value;
     }
-    friend ::std::ostream&
-    operator<<(::std::ostream& o, const Number& d)
+    friend std::ostream&
+    operator<<(std::ostream& o, const Number& d)
     {
         return o << d.value;
     }
@@ -449,8 +449,8 @@ class MonoidElement
     {
         return x.a == y.a && x.b == y.b;
     }
-    friend ::std::ostream&
-    operator<<(::std::ostream& o, const MonoidElement& x)
+    friend std::ostream&
+    operator<<(std::ostream& o, const MonoidElement& x)
     {
         return o << "[" << x.a << ".." << x.b << ")";
     }
@@ -518,10 +518,10 @@ struct NonConstAdapter
 
     template <typename... Types>
     auto
-    operator()(Types&&... args) -> decltype(::std::declval<F>().
-                                            operator()(::std::forward<Types>(args)...))
+    operator()(Types&&... args) -> decltype(std::declval<F>().
+                                            operator()(std::forward<Types>(args)...))
     {
-        return my_f(::std::forward<Types>(args)...);
+        return my_f(std::forward<Types>(args)...);
     }
 };
 
@@ -538,12 +538,12 @@ class Wrapper
 {
   public:
     Wrapper()
-        : my_field(::std::make_shared<T>())
+        : my_field(std::make_shared<T>())
     {
         ++my_count;
     }
     Wrapper(const T& input)
-        : my_field(::std::make_shared<T>(input))
+        : my_field(std::make_shared<T>(input))
     {
         ++my_count;
     }
@@ -553,7 +553,7 @@ class Wrapper
         ++my_count;
     }
     Wrapper(Wrapper&& input)
-        : my_field(::std::move(input.my_field))
+        : my_field(std::move(input.my_field))
     {
         ++move_count;
     }
@@ -566,7 +566,7 @@ class Wrapper
     Wrapper&
     operator=(Wrapper&& input)
     {
-        my_field = ::std::move(input.my_field);
+        my_field = std::move(input.my_field);
         ++move_count;
         return *this;
     }
@@ -585,8 +585,8 @@ class Wrapper
     {
         return *my_field > *input.my_field;
     }
-    friend ::std::ostream&
-    operator<<(::std::ostream& stream, const Wrapper& input)
+    friend std::ostream&
+    operator<<(std::ostream& stream, const Wrapper& input)
     {
         return stream << *(input.my_field);
     }
@@ -625,16 +625,16 @@ class Wrapper
     }
 
   private:
-    static ::std::atomic<size_t> my_count;
-    static ::std::atomic<size_t> move_count;
-    ::std::shared_ptr<T> my_field;
+    static std::atomic<size_t> my_count;
+    static std::atomic<size_t> move_count;
+    std::shared_ptr<T> my_field;
 };
 
 template <typename T>
-::std::atomic<size_t> Wrapper<T>::my_count = {0};
+std::atomic<size_t> Wrapper<T>::my_count = {0};
 
 template <typename T>
-::std::atomic<size_t> Wrapper<T>::move_count = {0};
+std::atomic<size_t> Wrapper<T>::move_count = {0};
 
 template <typename InputIterator, typename T, typename BinaryOperation, typename UnaryOperation>
 T
@@ -654,15 +654,15 @@ done(int is_done = 1)
     if (is_done)
     {
 #if _PSTL_TEST_SUCCESSFUL_KEYWORD
-        ::std::cout << "done\n";
+        std::cout << "done\n";
 #else
-        ::std::cout << "passed\n";
+        std::cout << "passed\n";
 #endif
         return 0;
     }
     else
     {
-        ::std::cout << "Skipped\n";
+        std::cout << "Skipped\n";
         return _SKIP_RETURN_CODE;
     }
 }
@@ -677,7 +677,7 @@ test_algo_basic_single(F&& f)
 {
     size_t N = 10;
     Sequence<T> in(N, [](size_t v) -> T { return T(v); });
-    invoke_on_all_host_policies()(::std::forward<F>(f), in.begin());
+    invoke_on_all_host_policies()(std::forward<F>(f), in.begin());
 }
 
 // Should be used with binary predicate
@@ -688,7 +688,7 @@ test_algo_basic_double(F&& f)
     size_t N = 10;
     Sequence<T> in(N, [](size_t v) -> T { return T(v); });
     Sequence<T> out(N, [](size_t v) -> T { return T(v); });
-    invoke_on_all_host_policies()(::std::forward<F>(f), in.begin(), out.begin());
+    invoke_on_all_host_policies()(std::forward<F>(f), in.begin(), out.begin());
 }
 
 template <typename Policy, typename F>
@@ -699,12 +699,12 @@ invoke_if(Policy&&, F f)
 }
 
 template <typename T, typename = bool>
-struct can_use_default_less_operator : ::std::false_type
+struct can_use_default_less_operator : std::false_type
 {
 };
 
 template <typename T>
-struct can_use_default_less_operator<T, decltype(::std::declval<T>() < ::std::declval<T>())> : ::std::true_type
+struct can_use_default_less_operator<T, decltype(std::declval<T>() < std::declval<T>())> : std::true_type
 {
 };
 
@@ -719,7 +719,7 @@ struct UserBinaryPredicate
     bool
     operator()(const _Tp& __x, const _Tp& __y) const
     {
-        using KeyT = ::std::decay_t<_Tp>;
+        using KeyT = std::decay_t<_Tp>;
         return __y != KeyT(1);
     }
 };
@@ -734,18 +734,18 @@ struct MaxFunctor
     }
 };
 
-// TODO: Investigate why we cannot call ::std::abs on complex
+// TODO: Investigate why we cannot call std::abs on complex
 // types with the CUDA backend.
 template <typename _Tp>
-struct MaxFunctor<::std::complex<_Tp>>
+struct MaxFunctor<std::complex<_Tp>>
 {
     auto
-    complex_abs(const ::std::complex<_Tp>& __x) const
+    complex_abs(const std::complex<_Tp>& __x) const
     {
-        return ::std::sqrt(__x.real() * __x.real() + __x.imag() * __x.imag());
+        return std::sqrt(__x.real() * __x.real() + __x.imag() * __x.imag());
     }
-    ::std::complex<_Tp>
-    operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
+    std::complex<_Tp>
+    operator()(const std::complex<_Tp>& __x, const std::complex<_Tp>& __y) const
     {
         return (complex_abs(__x) < complex_abs(__y)) ? __y : __x;
     }
@@ -756,15 +756,15 @@ struct MaxAbsFunctor;
 
 // A modification of the functor we use in reduce_by_segment
 template <typename _Tp>
-struct MaxAbsFunctor<::std::complex<_Tp>>
+struct MaxAbsFunctor<std::complex<_Tp>>
 {
     auto
-    complex_abs(const ::std::complex<_Tp>& __x) const
+    complex_abs(const std::complex<_Tp>& __x) const
     {
-        return ::std::sqrt(__x.real() * __x.real() + __x.imag() * __x.imag());
+        return std::sqrt(__x.real() * __x.real() + __x.imag() * __x.imag());
     }
-    ::std::complex<_Tp>
-    operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
+    std::complex<_Tp>
+    operator()(const std::complex<_Tp>& __x, const std::complex<_Tp>& __y) const
     {
         return (complex_abs(__x) < complex_abs(__y)) ? complex_abs(__y) : complex_abs(__x);
     }
@@ -776,8 +776,8 @@ struct TupleAddFunctor
     auto
     operator()(const Tup1& lhs, const Tup2& rhs) const
     {
-        using ::std::get;
-        Tup1 tup_sum = ::std::make_tuple(get<0>(lhs) + get<0>(rhs), get<1>(lhs) + get<1>(rhs));
+        using std::get;
+        Tup1 tup_sum = std::make_tuple(get<0>(lhs) + get<0>(rhs), get<1>(lhs) + get<1>(rhs));
         return tup_sum;
     }
 };

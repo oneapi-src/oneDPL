@@ -96,8 +96,8 @@ template <class InputIterator, class OutputIterator>
 OutputIterator
 inclusive_scan_serial(InputIterator first, InputIterator last, OutputIterator result)
 {
-    typedef typename ::std::iterator_traits<InputIterator>::value_type input_type;
-    return inclusive_scan_serial(first, last, result, ::std::plus<input_type>());
+    typedef typename std::iterator_traits<InputIterator>::value_type input_type;
+    return inclusive_scan_serial(first, last, result, std::plus<input_type>());
 }
 
 template <typename RandAccessItKeysIn, typename RandAccessItValsIn, typename RandAccessItValsOut,

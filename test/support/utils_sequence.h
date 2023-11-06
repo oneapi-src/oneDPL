@@ -38,20 +38,20 @@ namespace TestUtils
 template <typename T>
 class Sequence
 {
-    ::std::vector<T> m_storage;
+    std::vector<T> m_storage;
 
 public:
 
     using value_type = T;
 
-    using iterator       = typename ::std::vector<T>::iterator;
-    using const_iterator = typename ::std::vector<T>::const_iterator;
+    using iterator       = typename std::vector<T>::iterator;
+    using const_iterator = typename std::vector<T>::const_iterator;
 
-    using forward_iterator       = ForwardIterator<iterator, ::std::forward_iterator_tag>;
-    using const_forward_iterator = ForwardIterator<const_iterator, ::std::forward_iterator_tag>;
+    using forward_iterator       = ForwardIterator<iterator, std::forward_iterator_tag>;
+    using const_forward_iterator = ForwardIterator<const_iterator, std::forward_iterator_tag>;
 
-    using bidirectional_iterator       = BidirectionalIterator<iterator, ::std::bidirectional_iterator_tag>;
-    using const_bidirectional_iterator = BidirectionalIterator<const_iterator, ::std::bidirectional_iterator_tag>;
+    using bidirectional_iterator       = BidirectionalIterator<iterator, std::bidirectional_iterator_tag>;
+    using const_bidirectional_iterator = BidirectionalIterator<const_iterator, std::bidirectional_iterator_tag>;
 
     explicit Sequence(size_t size);
 
@@ -59,7 +59,7 @@ public:
     // f can rely on its invocations being sequential from 0 to size-1.
     template <typename Func>
     Sequence(size_t size, Func f);
-    Sequence(const ::std::initializer_list<T>& data);
+    Sequence(const std::initializer_list<T>& data);
 
     const_iterator               begin   () const { return m_storage.begin();                                };
     const_iterator               end     () const { return m_storage.end();                                  };
@@ -78,12 +78,12 @@ public:
     bidirectional_iterator       bibegin ()       { return bidirectional_iterator(m_storage.begin());        };
     bidirectional_iterator       biend   ()       { return bidirectional_iterator(m_storage.end());          };
 
-    ::std::size_t size() const;
+    std::size_t size() const;
     T* data();
     const T* data() const;
 
-    typename ::std::vector<T>::reference operator[](size_t j);
-    typename ::std::vector<T>::const_reference operator[](size_t j) const;
+    typename std::vector<T>::reference operator[](size_t j);
+    typename std::vector<T>::const_reference operator[](size_t j) const;
 
     // Fill with given value
     void fill(const T& value);
@@ -99,8 +99,8 @@ template <typename Iterator, typename F>
 void
 fill_data(Iterator first, Iterator last, F f)
 {
-    typedef typename ::std::iterator_traits<Iterator>::value_type T;
-    for (::std::size_t i = 0; first != last; ++first, ++i)
+    typedef typename std::iterator_traits<Iterator>::value_type T;
+    for (std::size_t i = 0; first != last; ++first, ++i)
     {
         *first = T(f(i));
     }
@@ -126,14 +126,14 @@ Sequence<T>::Sequence(size_t size, Func f)
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T>
-Sequence<T>::Sequence(const ::std::initializer_list<T>& data)
+Sequence<T>::Sequence(const std::initializer_list<T>& data)
     : m_storage(data)
 {
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T>
-::std::size_t
+std::size_t
 Sequence<T>::size() const
 {
     return m_storage.size();
@@ -157,7 +157,7 @@ Sequence<T>::data() const
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T>
-typename ::std::vector<T>::reference
+typename std::vector<T>::reference
 Sequence<T>::operator[](size_t j)
 {
     return m_storage[j];
@@ -165,7 +165,7 @@ Sequence<T>::operator[](size_t j)
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T>
-typename ::std::vector<T>::const_reference
+typename std::vector<T>::const_reference
 Sequence<T>::operator[](size_t j) const
 {
     return m_storage[j];
@@ -194,16 +194,16 @@ template <typename T>
 void
 Sequence<T>::print() const
 {
-    constexpr ::std::size_t max_print_count = 100;
+    constexpr std::size_t max_print_count = 100;
 
-    ::std::cout << "size = " << size() << ": { ";
+    std::cout << "size = " << size() << ": { ";
 #if PRINT_FULL_SEQUENCE_CONTENT
-    ::std::copy(begin(), end(), ::std::ostream_iterator<T>(::std::cout, " "));
+    std::copy(begin(), end(), std::ostream_iterator<T>(std::cout, " "));
 #else
-    const auto printable_size = ::std::min(max_print_count, size());
-    ::std::copy(begin(), begin() + printable_size, ::std::ostream_iterator<T>(::std::cout, " "));
+    const auto printable_size = std::min(max_print_count, size());
+    std::copy(begin(), begin() + printable_size, std::ostream_iterator<T>(std::cout, " "));
 #endif // PRINT_FULL_SEQUENCE_CONTENT
-    ::std::cout << " } " << ::std::endl;
+    std::cout << " } " << std::endl;
 }
 
 //--------------------------------------------------------------------------------------------------------------------//

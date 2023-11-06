@@ -54,7 +54,7 @@ print_debug(const char*
 )
 {
 #if _ONEDPL_DEBUG_SYCL
-    ::std::cout << message << ::std::endl;
+    std::cout << message << std::endl;
 #endif
 }
 
@@ -63,7 +63,7 @@ template <typename Iterator, typename T>
 bool
 check_values(Iterator first, Iterator last, const T& val)
 {
-    return ::std::all_of(first, last, [&val](const T& x) { return x == val; });
+    return std::all_of(first, last, [&val](const T& x) { return x == val; });
 }
 
 auto async_handler = [](sycl::exception_list ex_list) {
@@ -71,12 +71,12 @@ auto async_handler = [](sycl::exception_list ex_list) {
     {
         try
         {
-            ::std::rethrow_exception(ex);
+            std::rethrow_exception(ex);
         }
         catch (sycl::exception& ex)
         {
-            ::std::cerr << ex.what() << ::std::endl;
-            ::std::exit(EXIT_FAILURE);
+            std::cerr << ex.what() << std::endl;
+            std::exit(EXIT_FAILURE);
         }
     }
 };
@@ -86,9 +86,9 @@ template <typename _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
 auto
 make_new_policy(_Policy&& __policy)
-    -> decltype(TestUtils::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy)))
+    -> decltype(TestUtils::make_device_policy<_NewKernelName>(std::forward<_Policy>(__policy)))
 {
-    return TestUtils::make_device_policy<_NewKernelName>(::std::forward<_Policy>(__policy));
+    return TestUtils::make_device_policy<_NewKernelName>(std::forward<_Policy>(__policy));
 }
 
 #if ONEDPL_FPGA_DEVICE
@@ -96,11 +96,11 @@ template <typename _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
 auto
 make_new_policy(_Policy&& __policy)
-    -> decltype(TestUtils::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
-        ::std::forward<_Policy>(__policy)))
+    -> decltype(TestUtils::make_fpga_policy<std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
+        std::forward<_Policy>(__policy)))
 {
-    return TestUtils::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
-        ::std::forward<_Policy>(__policy));
+    return TestUtils::make_fpga_policy<std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
+        std::forward<_Policy>(__policy));
 }
 #endif
 
@@ -160,7 +160,7 @@ test1buffer()
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
         {
 #    if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
+            std::cout << "n = " << n << std::endl;
 #    endif
             invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
@@ -180,7 +180,7 @@ test1buffer()
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
         {
 #if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
+            std::cout << "n = " << n << std::endl;
 #endif
             invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
@@ -210,7 +210,7 @@ test2buffers()
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
         {
 #    if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
+            std::cout << "n = " << n << std::endl;
 #    endif
             invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
@@ -233,7 +233,7 @@ test2buffers()
         for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
         {
 #if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
+            std::cout << "n = " << n << std::endl;
 #endif
             invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
@@ -267,7 +267,7 @@ test3buffers(int mult = kDefaultMultValue)
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
         {
 #    if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
+            std::cout << "n = " << n << std::endl;
 #    endif
             invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
@@ -293,7 +293,7 @@ test3buffers(int mult = kDefaultMultValue)
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
         {
 #if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
+            std::cout << "n = " << n << std::endl;
 #endif
             invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
@@ -330,7 +330,7 @@ test4buffers(int mult = kDefaultMultValue)
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
         {
 #    if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
+            std::cout << "n = " << n << std::endl;
 #    endif
             invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
@@ -359,7 +359,7 @@ test4buffers(int mult = kDefaultMultValue)
         for (size_t n = 1; n <= max_n; n = (n <= 16 ? n + 1 : size_t(3.1415 * n)))
         {
 #if _ONEDPL_DEBUG_SYCL
-            ::std::cout << "n = " << n << ::std::endl;
+            std::cout << "n = " << n << std::endl;
 #endif
             invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
@@ -372,28 +372,28 @@ test4buffers(int mult = kDefaultMultValue)
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+std::enable_if_t<std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test1buffer()
 {
     test1buffer<alloc_type, typename TestName::UsedValueType, TestName>();
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+std::enable_if_t<std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test2buffers()
 {
     test2buffers<alloc_type, typename TestName::UsedValueType, TestName>();
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+std::enable_if_t<std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test3buffers(int mult = kDefaultMultValue)
 {
     test3buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+std::enable_if_t<std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test4buffers(int mult = kDefaultMultValue)
 {
     test4buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);

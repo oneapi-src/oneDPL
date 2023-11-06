@@ -43,15 +43,15 @@ enum class UDTKind
 template <typename TEnum>
 auto
 enum_val_to_index(TEnum enumVal)
-    -> decltype(static_cast<::std::underlying_type_t<TEnum>>(enumVal))
+    -> decltype(static_cast<std::underlying_type_t<TEnum>>(enumVal))
 {
-    return static_cast<::std::underlying_type_t<TEnum>>(enumVal);
+    return static_cast<std::underlying_type_t<TEnum>>(enumVal);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// First field - data size
 /// Second field - offset from test data
-using InitParams = ::std::initializer_list<::std::pair<::std::size_t, ::std::size_t>>;
+using InitParams = std::initializer_list<std::pair<std::size_t, std::size_t>>;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// struct test_base_data - test source data base class
@@ -103,10 +103,10 @@ struct test_base_data_usm : test_base_data<TestValueType>
     struct Data
     {
         usm_data_transfer<alloc_type, TestValueType> src_data_usm;      // USM data transfer helper
-        ::std::size_t                                offset = 0;        // Offset in USM buffer
+        std::size_t                                offset = 0;        // Offset in USM buffer
 
         template<typename _Size>
-        Data(sycl::queue __q, _Size __sz, ::std::size_t __offset)
+        Data(sycl::queue __q, _Size __sz, std::size_t __offset)
             : src_data_usm(__q, __sz + __offset)
             , offset(__offset)
         {
@@ -140,7 +140,7 @@ struct test_base_data_usm : test_base_data<TestValueType>
             src_data_usm.update_data(__it, offset, __objects_count);
         }
     };
-    ::std::vector<Data> data;   // Vector of source test data:
+    std::vector<Data> data;   // Vector of source test data:
                                 //  - 1 item for test1buffer;
                                 //  - 2 items for test2buffers;
                                 //  - 3 items for test3buffers
@@ -177,16 +177,16 @@ struct test_base_data_buffer : test_base_data<TestValueType>
         using TSourceData = sycl::buffer<TestValueType, 1>;
 
         TSourceData   src_data_buf;     // SYCL buffer
-        ::std::size_t offset = 0;       // Offset in SYCL buffer
+        std::size_t offset = 0;       // Offset in SYCL buffer
 
         template<typename _Size>
-        Data(_Size __sz, ::std::size_t __offset)
+        Data(_Size __sz, std::size_t __offset)
             : src_data_buf(sycl::range<1>(__sz + __offset))
             , offset(__offset)
         {
         }
     };
-    ::std::vector<Data> data;   // Vector of source test data:
+    std::vector<Data> data;   // Vector of source test data:
                                 //  - 1 item for test1buffer;
                                 //  - 2 items for test2buffers;
                                 //  - 3 items for test3buffers
@@ -226,15 +226,15 @@ struct test_base_data_sequence : test_base_data<TestValueType>
         using TSourceData = Sequence<TestValueType>;
 
         TSourceData   src_data_seq;     // Sequence
-        ::std::size_t offset = 0;       // Offset in sequence
+        std::size_t offset = 0;       // Offset in sequence
 
-        Data(::std::size_t size, ::std::size_t __offset)
+        Data(std::size_t size, std::size_t __offset)
             : src_data_seq(size)
             , offset(__offset)
         {
         }
     };
-    ::std::vector<Data> data;   // Vector of source test data:
+    std::vector<Data> data;   // Vector of source test data:
                                 //  - 3 items for test_algo_three_sequences
                                 //  - 4 items for test_algo_four_sequences
 
@@ -342,7 +342,7 @@ template <typename TTestDataTransfer, typename... Args>
 void retrieve_data(TTestDataTransfer& helper, Args&& ...args)
 {
     helper.retrieve_data();
-    retrieve_data(::std::forward<Args>(args)...);
+    retrieve_data(std::forward<Args>(args)...);
 }
 
 /// Copy data from local buffers into source test data storage
@@ -350,7 +350,7 @@ template <typename TTestDataTransfer, typename... Args>
 void update_data(TTestDataTransfer& helper, Args&& ...args)
 {
     helper.update_data();
-    update_data(::std::forward<Args>(args)...);
+    update_data(std::forward<Args>(args)...);
 }
 
 // 1) define class as
@@ -404,14 +404,14 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T, typename TestName, typename TestBaseData>
-::std::enable_if_t<::std::is_base_of_v<test_base<T>, TestName>, TestName>
+std::enable_if_t<std::is_base_of_v<test_base<T>, TestName>, TestName>
 create_test_obj(TestBaseData& data)
 {
     return TestName(data);
 }
 
 template <typename T, typename TestName, typename TestBaseData>
-::std::enable_if_t<!::std::is_base_of_v<test_base<T>, TestName>, TestName>
+std::enable_if_t<!std::is_base_of_v<test_base<T>, TestName>, TestName>
 create_test_obj(TestBaseData&)
 {
     return TestName();
@@ -420,7 +420,7 @@ create_test_obj(TestBaseData&)
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and one output sequences
 template <typename T, typename TestName>
-//::std::enable_if_t<::std::is_base_of<test_base<T>, TestName>::value>
+//std::enable_if_t<std::is_base_of<test_base<T>, TestName>::value>
 void
 test_algo_three_sequences()
 {
@@ -448,7 +448,7 @@ test_algo_three_sequences()
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestName>
-::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+std::enable_if_t<std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test_algo_three_sequences()
 {
     test_algo_three_sequences<typename TestName::UsedValueType, TestName>();
@@ -457,7 +457,7 @@ test_algo_three_sequences()
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and two output sequencess
 template <typename T, typename TestName>
-//::std::enable_if_t<::std::is_base_of<test_base<T>, TestName>::value>
+//std::enable_if_t<std::is_base_of<test_base<T>, TestName>::value>
 void
 test_algo_four_sequences()
 {
@@ -488,7 +488,7 @@ test_algo_four_sequences()
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestName>
-::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+std::enable_if_t<std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test_algo_four_sequences()
 {
     test_algo_four_sequences<typename TestName::UsedValueType, TestName>();

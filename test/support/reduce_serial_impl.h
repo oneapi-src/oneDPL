@@ -22,8 +22,8 @@ reduce_by_segment_serial(RandAccessItKeysIn keys, RandAccessItValsIn vals,
     if (n < 1)
         return 0;
     
-    using ValT = ::std::decay_t<decltype(vals[0])>;
-    using KeyT = ::std::decay_t<decltype(keys[0])>;
+    using ValT = std::decay_t<decltype(vals[0])>;
+    using KeyT = std::decay_t<decltype(keys[0])>;
     KeyT tmp_key = keys[0];
     ValT tmp_val = vals[0];
     Size segment_count = 0;

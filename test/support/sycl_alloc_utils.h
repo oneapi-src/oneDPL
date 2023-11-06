@@ -50,7 +50,7 @@ class usm_data_transfer
                   "Invalid allocation type for usm_data_transfer class");
 
     template<sycl::usm::alloc __type>
-    using __alloc_type = ::std::integral_constant<sycl::usm::alloc, __type>;
+    using __alloc_type = std::integral_constant<sycl::usm::alloc, __type>;
     using __shared_alloc_type = __alloc_type<sycl::usm::alloc::shared>;
     using __device_alloc_type = __alloc_type<sycl::usm::alloc::device>;
 
@@ -67,7 +67,7 @@ class usm_data_transfer
 
 public:
 
-    using __difference_type = typename ::std::iterator_traits<_ValueType*>::difference_type;
+    using __difference_type = typename std::iterator_traits<_ValueType*>::difference_type;
 
     template<typename _Size>
     usm_data_transfer(sycl::queue __q, _Size __sz)
@@ -99,9 +99,9 @@ public:
     usm_data_transfer(usm_data_transfer&) = delete;
     usm_data_transfer(usm_data_transfer&& other)
     {
-        ::std::swap(__queue, other.__queue);
-        ::std::swap(__ptr,   other.__ptr);
-        ::std::swap(__count, other.__count);
+        std::swap(__queue, other.__queue);
+        std::swap(__ptr,   other.__ptr);
+        std::swap(__count, other.__count);
     }
 
     ~usm_data_transfer()
@@ -114,9 +114,9 @@ public:
     {
         reset();
 
-        ::std::swap(__queue, other.__queue);
-        ::std::swap(__ptr,   other.__ptr);
-        ::std::swap(__count, other.__count);
+        std::swap(__queue, other.__queue);
+        std::swap(__ptr,   other.__ptr);
+        std::swap(__count, other.__count);
 
         return *this;
     }
@@ -199,7 +199,7 @@ private:
         auto __c = __count;
         __queue.submit([__src, __c, __p](sycl::handler& __cgh) {
             __cgh.parallel_for(sycl::range<1>(__c), [__src, __c, __p](sycl::item<1>__item) {
-                ::std::size_t __id = __item.get_linear_id();
+                std::size_t __id = __item.get_linear_id();
                 *(__p + __id) = *(__src + __id);
                 });
             });
