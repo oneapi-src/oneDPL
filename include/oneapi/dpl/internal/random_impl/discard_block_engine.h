@@ -31,7 +31,7 @@ namespace oneapi
 namespace dpl
 {
 
-template <class _Engine, ::std::size_t _P, ::std::size_t _R>
+template <class _Engine, std::size_t _P, std::size_t _R>
 class discard_block_engine
 {
   public:
@@ -40,8 +40,8 @@ class discard_block_engine
     using scalar_type = internal::element_type_t<result_type>;
 
     // Engine characteristics
-    static constexpr ::std::size_t block_size = _P;
-    static constexpr ::std::size_t used_block = _R;
+    static constexpr std::size_t block_size = _P;
+    static constexpr std::size_t used_block = _R;
     static constexpr scalar_type
     min()
     {
@@ -57,7 +57,7 @@ class discard_block_engine
     discard_block_engine() : n_(0) {}
 
     explicit discard_block_engine(const _Engine& __e) : engine_(__e), n_(0) {}
-    explicit discard_block_engine(_Engine&& __e) : engine_(::std::move(__e)), n_(0) {}
+    explicit discard_block_engine(_Engine&& __e) : engine_(std::move(__e)), n_(0) {}
     explicit discard_block_engine(scalar_type __seed, unsigned long long __offset = 0)
     {
         engine_.seed(__seed);
@@ -139,7 +139,7 @@ class discard_block_engine
 
     // Function for state adjustment
     template <int _N>
-    ::std::enable_if_t<(_N == 0), scalar_type>
+    std::enable_if_t<(_N == 0), scalar_type>
     generate_internal_scalar()
     {
         if (n_ >= used_block)
@@ -152,7 +152,7 @@ class discard_block_engine
     };
 
     template <int N>
-    ::std::enable_if_t<(N > 0), scalar_type>
+    std::enable_if_t<(N > 0), scalar_type>
     generate_internal_scalar()
     {
         if (n_ >= used_block)
@@ -166,21 +166,21 @@ class discard_block_engine
 
     // Generate implementation
     template <int _N>
-    ::std::enable_if_t<(_N == 0), result_type>
+    std::enable_if_t<(_N == 0), result_type>
     generate_internal()
     {
         return generate_internal_scalar<internal::type_traits_t<result_type>::num_elems>();
     }
 
     template <int _N>
-    ::std::enable_if_t<(_N > 0), result_type>
+    std::enable_if_t<(_N > 0), result_type>
     generate_internal()
     {
         result_type __res;
-        if (static_cast<::std::size_t>(_N) < (used_block - n_))
+        if (static_cast<std::size_t>(_N) < (used_block - n_))
         {
             __res = engine_();
-            n_ += static_cast<::std::size_t>(_N);
+            n_ += static_cast<std::size_t>(_N);
         }
         else
         {
@@ -193,7 +193,7 @@ class discard_block_engine
     }
 
     template <int _N>
-    ::std::enable_if_t<(_N > 0), result_type>
+    std::enable_if_t<(_N > 0), result_type>
     generate_internal(unsigned int __random_nums)
     {
         if (__random_nums >= _N)
@@ -210,7 +210,7 @@ class discard_block_engine
     }
 
     _Engine engine_;
-    ::std::size_t n_ = 0;
+    std::size_t n_ = 0;
 };
 
 } // namespace dpl

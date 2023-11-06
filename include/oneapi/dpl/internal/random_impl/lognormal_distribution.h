@@ -148,11 +148,11 @@ class lognormal_distribution
     static constexpr int size_of_type_ = internal::type_traits_t<result_type>::num_elems;
 
     using normal_distr =
-        oneapi::dpl::normal_distribution<::std::conditional_t<(size_of_type_ <= 3), scalar_type, result_type>>;
+        oneapi::dpl::normal_distribution<std::conditional_t<(size_of_type_ <= 3), scalar_type, result_type>>;
     using normal_distr_param_type = typename normal_distr::param_type;
 
     // Static asserts
-    static_assert(::std::is_floating_point_v<scalar_type>,
+    static_assert(std::is_floating_point_v<scalar_type>,
                   "oneapi::dpl::lognormal_distribution. Error: unsupported data type");
 
     // Distribution parameters
@@ -160,7 +160,7 @@ class lognormal_distribution
 
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
-    ::std::enable_if_t<(_Ndistr != 0), result_type>
+    std::enable_if_t<(_Ndistr != 0), result_type>
     generate(_Engine& __engine, const param_type& __params)
     {
         return generate_vec<_Ndistr, _Engine>(__engine, __params);
@@ -168,7 +168,7 @@ class lognormal_distribution
 
     // Specialization of the scalar generation
     template <int _Ndistr, class _Engine>
-    ::std::enable_if_t<(_Ndistr == 0), result_type>
+    std::enable_if_t<(_Ndistr == 0), result_type>
     generate(_Engine& __engine, const param_type& __params)
     {
         return sycl::exp(nd_(__engine, normal_distr_param_type(__params.m(), __params.s())));
@@ -176,7 +176,7 @@ class lognormal_distribution
 
     // Specialization of the vector generation with size = [1; 2; 3]
     template <int __N, class _Engine>
-    ::std::enable_if_t<(__N <= 3), result_type>
+    std::enable_if_t<(__N <= 3), result_type>
     generate_vec(_Engine& __engine, const param_type& __params)
     {
         result_type __res;
@@ -187,7 +187,7 @@ class lognormal_distribution
 
     // Specialization of the vector generation with size = [4; 8; 16]
     template <int __N, class _Engine>
-    ::std::enable_if_t<(__N > 3), result_type>
+    std::enable_if_t<(__N > 3), result_type>
     generate_vec(_Engine& __engine, const param_type& __params)
     {
         return sycl::exp(nd_(__engine, normal_distr_param_type(__params.m(), __params.s())));
@@ -195,7 +195,7 @@ class lognormal_distribution
 
     // Implementation for the N vector's elements generation with size = [4; 8; 16]
     template <int _Ndistr, class _Engine>
-    ::std::enable_if_t<(_Ndistr > 3), result_type>
+    std::enable_if_t<(_Ndistr > 3), result_type>
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res = nd_(__engine, normal_distr_param_type(__params.m(), __params.s()), __N);
@@ -206,7 +206,7 @@ class lognormal_distribution
 
     // Implementation for the N vector's elements generation with size = [1; 2; 3]
     template <int _Ndistr, class _Engine>
-    ::std::enable_if_t<(_Ndistr <= 3), result_type>
+    std::enable_if_t<(_Ndistr <= 3), result_type>
     generate_n_elems(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __res;
@@ -217,7 +217,7 @@ class lognormal_distribution
 
     // Implementation for result_portion function
     template <int _Ndistr, class _Engine>
-    ::std::enable_if_t<(_Ndistr != 0), result_type>
+    std::enable_if_t<(_Ndistr != 0), result_type>
     result_portion_internal(_Engine& __engine, const param_type& __params, unsigned int __N)
     {
         result_type __part_vec;

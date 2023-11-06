@@ -75,8 +75,8 @@ class linear_congruential_engine
         // Skipping sequence
         if (__num_to_skip == 0)
             return;
-        constexpr bool __flag = (increment == 0) && (modulus < ::std::numeric_limits<::std::uint32_t>::max()) &&
-                                (multiplier < ::std::numeric_limits<::std::uint32_t>::max());
+        constexpr bool __flag = (increment == 0) && (modulus < std::numeric_limits<std::uint32_t>::max()) &&
+                                (multiplier < std::numeric_limits<std::uint32_t>::max());
         skip_seq<internal::type_traits_t<result_type>::num_elems, __flag>(__num_to_skip);
     }
 
@@ -108,13 +108,13 @@ class linear_congruential_engine
     scalar_type
     mod_scalar(scalar_type __state_input)
     {
-        ::std::uint64_t __mult = multiplier, __mod = modulus, __inc = increment;
-        return static_cast<scalar_type>((__mult * ::std::uint64_t(__state_input) + __inc) % __mod);
+        std::uint64_t __mult = multiplier, __mod = modulus, __inc = increment;
+        return static_cast<scalar_type>((__mult * std::uint64_t(__state_input) + __inc) % __mod);
     }
 
     // Initialization function
     template <int _N = 0>
-    ::std::enable_if_t<(_N == 0)>
+    std::enable_if_t<(_N == 0)>
     init(scalar_type __seed)
     {
         if ((increment % modulus == 0) && (__seed % modulus == 0))
@@ -129,7 +129,7 @@ class linear_congruential_engine
     }
 
     template <int _N = 0>
-    ::std::enable_if_t<(_N > 0)>
+    std::enable_if_t<(_N > 0)>
     init(scalar_type __seed)
     {
         if ((increment % modulus == 0) && (__seed % modulus == 0))
@@ -151,16 +151,16 @@ class linear_congruential_engine
     scalar_type
     pow_mult_n(unsigned long long __num_to_skip)
     {
-        ::std::uint64_t __a2;
-        ::std::uint64_t __mod = static_cast<::std::uint64_t>(modulus);
-        ::std::uint64_t __a = static_cast<::std::uint64_t>(multiplier);
+        std::uint64_t __a2;
+        std::uint64_t __mod = static_cast<std::uint64_t>(modulus);
+        std::uint64_t __a = static_cast<std::uint64_t>(multiplier);
         scalar_type __r = 1;
 
         do
         {
             if (__num_to_skip & 1)
             {
-                __a2 = static_cast<::std::uint64_t>(__r) * __a;
+                __a2 = static_cast<std::uint64_t>(__r) * __a;
                 __r = static_cast<scalar_type>(__a2 % __mod);
             }
 
@@ -177,7 +177,7 @@ class linear_congruential_engine
     // _FLAG - is flag that used for optimizations
     // if _FLAG == true in this case we can used optimized versions of skip_seq
     template <int _N = 0, bool _FLAG = false>
-    ::std::enable_if_t<(_N == 0) && (_FLAG == false)>
+    std::enable_if_t<(_N == 0) && (_FLAG == false)>
     skip_seq(unsigned long long __num_to_skip)
     {
         for (; __num_to_skip > 0; --__num_to_skip)
@@ -185,7 +185,7 @@ class linear_congruential_engine
     }
 
     template <int _N = 0, bool _FLAG = false>
-    ::std::enable_if_t<(_N == 1) && (_FLAG == false)>
+    std::enable_if_t<(_N == 1) && (_FLAG == false)>
     skip_seq(unsigned long long __num_to_skip)
     {
         for (; __num_to_skip > 0; --__num_to_skip)
@@ -193,7 +193,7 @@ class linear_congruential_engine
     }
 
     template <int _N = 0, bool _FLAG = false>
-    ::std::enable_if_t<(_N > 1) && (_FLAG == false)>
+    std::enable_if_t<(_N > 1) && (_FLAG == false)>
     skip_seq(unsigned long long __num_to_skip)
     {
         for (; __num_to_skip > 0; --__num_to_skip)
@@ -207,35 +207,35 @@ class linear_congruential_engine
     }
 
     template <int _N = 0, bool _FLAG = false>
-    ::std::enable_if_t<(_N == 0) && (_FLAG == true)>
+    std::enable_if_t<(_N == 0) && (_FLAG == true)>
     skip_seq(unsigned long long __num_to_skip)
     {
-        ::std::uint64_t __mod = modulus;
-        ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
-        state_ = static_cast<scalar_type>((__mult * static_cast<::std::uint64_t>(state_)) % __mod);
+        std::uint64_t __mod = modulus;
+        std::uint64_t __mult = pow_mult_n(__num_to_skip);
+        state_ = static_cast<scalar_type>((__mult * static_cast<std::uint64_t>(state_)) % __mod);
     }
 
     template <int _N = 0, bool _FLAG = false>
-    ::std::enable_if_t<(_N == 1) && (_FLAG == true)>
+    std::enable_if_t<(_N == 1) && (_FLAG == true)>
     skip_seq(unsigned long long __num_to_skip)
     {
-        ::std::uint64_t __mod = modulus;
-        ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
-        state_[0] = static_cast<scalar_type>((__mult * static_cast<::std::uint64_t>(state_[0])) % __mod);
+        std::uint64_t __mod = modulus;
+        std::uint64_t __mult = pow_mult_n(__num_to_skip);
+        state_[0] = static_cast<scalar_type>((__mult * static_cast<std::uint64_t>(state_[0])) % __mod);
     }
 
     template <int _N = 0, bool _FLAG = false>
-    ::std::enable_if_t<(_N > 1) && (_FLAG == true)>
+    std::enable_if_t<(_N > 1) && (_FLAG == true)>
     skip_seq(unsigned long long __num_to_skip)
     {
-        ::std::uint64_t __mod = modulus;
-        ::std::uint64_t __mult = pow_mult_n(__num_to_skip);
-        state_ = ((__mult * state_.template convert<::std::uint64_t>()) % __mod).template convert<scalar_type>();
+        std::uint64_t __mod = modulus;
+        std::uint64_t __mult = pow_mult_n(__num_to_skip);
+        state_ = ((__mult * state_.template convert<std::uint64_t>()) % __mod).template convert<scalar_type>();
     }
 
     // result_portion implementation
     template <int _N>
-    ::std::enable_if_t<(_N > 0), result_type>
+    std::enable_if_t<(_N > 0), result_type>
     result_portion_internal(unsigned int __random_nums)
     {
         result_type __part_vec;
