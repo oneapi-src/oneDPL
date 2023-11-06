@@ -49,9 +49,8 @@ test_is_not_unsigned()
     static_assert(!dpl::is_unsigned_v<const volatile T>);
 }
 
-class Class
+struct Class
 {
-  public:
     ~Class();
 };
 
