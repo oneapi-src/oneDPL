@@ -46,7 +46,7 @@ kernel_test()
     });
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
-    EXPECT_TRUE(ret_access_host[0], "");
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::get(const dpl::tuple) check");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
