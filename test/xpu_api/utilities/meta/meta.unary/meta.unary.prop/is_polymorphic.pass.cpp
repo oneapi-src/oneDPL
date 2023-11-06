@@ -40,6 +40,25 @@ test_is_not_polymorphic(sycl::queue& deviceQueue)
     });
 }
 
+template <class T>
+void
+test_is_polymorphic(sycl::queue& deviceQueue)
+{
+    deviceQueue.submit([&](sycl::handler& cgh) {
+        cgh.single_task<T>([=]() {
+            static_assert(dpl::is_polymorphic<T>::value);
+            static_assert(dpl::is_polymorphic<const T>::value);
+            static_assert(dpl::is_polymorphic<volatile T>::value);
+            static_assert(dpl::is_polymorphic<const volatile T>::value);
+            static_assert(dpl::is_polymorphic_v<T>);
+            static_assert(dpl::is_polymorphic_v<const T>);
+            static_assert(dpl::is_polymorphic_v<volatile T>);
+            static_assert(dpl::is_polymorphic_v<const volatile T>);
+        });
+    });
+}
+
+
 class Empty
 {
 };
@@ -53,6 +72,15 @@ struct bit_zero
 };
 
 class Final final
+{
+};
+
+struct Base
+{
+    virtual ~Base() = default;
+};
+
+struct Derived : Base
 {
 };
 
@@ -76,6 +104,9 @@ kernel_test()
     {
         test_is_not_polymorphic<double>(deviceQueue);
     }
+
+    test_is_polymorphic<Base>(deviceQueue);
+    test_is_polymorphic<Derived>(deviceQueue);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
