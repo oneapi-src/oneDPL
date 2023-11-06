@@ -13,17 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// is_empty
-
-// T is a non-union class type with:
-//  no non-static data members,
-//  no unnamed bit-fields of non-zero length,
-//  no virtual member functions,
-//  no virtual base classes,
-//  and no base class B for which is_empty_v<B> is false.
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>
@@ -33,6 +22,14 @@
 #include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
+
+// T is a non-union class type with:
+//  no non-static data members,
+//  no unnamed bit-fields of non-zero length,
+//  no virtual member functions,
+//  no virtual base classes,
+//  and no base class B for which is_empty_v<B> is false.
+
 template <class T>
 void
 test_is_empty(sycl::queue& deviceQueue)

@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// is_move_assignable
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

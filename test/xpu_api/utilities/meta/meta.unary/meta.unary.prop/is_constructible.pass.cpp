@@ -13,9 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// template <class T, class... Args>
-//   struct is_constructible;
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

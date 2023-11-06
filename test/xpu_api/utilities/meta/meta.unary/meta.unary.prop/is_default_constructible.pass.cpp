@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// is_default_constructible
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

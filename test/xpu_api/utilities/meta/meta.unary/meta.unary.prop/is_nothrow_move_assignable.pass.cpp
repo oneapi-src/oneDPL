@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// has_nothrow_move_assign
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

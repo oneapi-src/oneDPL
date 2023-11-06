@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// type_traits
-
-// is_nothrow_destructible
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>
