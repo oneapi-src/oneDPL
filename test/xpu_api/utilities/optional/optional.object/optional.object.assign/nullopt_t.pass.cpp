@@ -23,7 +23,6 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 using dpl::nullopt;
-using dpl::nullopt_t;
 using dpl::optional;
 
 bool
