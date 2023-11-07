@@ -69,7 +69,6 @@ struct AssignableFrom
         return *this;
     }
 
-  private:
     AssignableFrom(AssignableFrom const&) = delete;
     AssignableFrom&
     operator=(AssignableFrom const&) = delete;
