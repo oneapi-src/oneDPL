@@ -63,11 +63,19 @@ struct PublicDestructor
   public:
     ~PublicDestructor() {}
 };
+
+struct PublicDestructorT
+{
+  public:
+    ~PublicDestructorT() noexcept(false) {}
+};
+
 struct ProtectedDestructor
 {
   protected:
     ~ProtectedDestructor() {}
 };
+
 struct PrivateDestructor
 {
   private:
@@ -103,6 +111,8 @@ kernel_test()
     {
         test_is_nothrow_destructible<double>(deviceQueue);
     }
+
+    test_is_not_nothrow_destructible<PublicDestructorT>(deviceQueue);
 
     // requires noexcept. These are all destructible.
     test_is_nothrow_destructible<PublicDestructor>(deviceQueue);
