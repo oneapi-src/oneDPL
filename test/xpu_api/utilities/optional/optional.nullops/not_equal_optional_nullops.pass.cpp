@@ -38,8 +38,6 @@ kernel_test()
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             auto ia_acc = buffer2.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
-                using dpl::optional;
-                using dpl::nullopt_t;
                 using dpl::nullopt;
 
                 ret_access[0] &= (!(nullopt != ia_acc[0]));
