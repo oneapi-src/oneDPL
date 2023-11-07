@@ -57,7 +57,7 @@ kernel_test()
                     static_assert(*opt == 5);
                 }
                 {
-                    typedef double T;
+                    typedef float T;
                     constexpr T t(3);
                     constexpr optional<T> opt(t);
                     static_assert(static_cast<bool>(opt) == true);

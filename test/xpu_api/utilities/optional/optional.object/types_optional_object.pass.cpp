@@ -20,6 +20,7 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
+#include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
@@ -50,8 +51,11 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     test<KernelTest1, optional<int>, int>();
     test<KernelTest2, optional<const int>, const int>();
-    test<KernelTest3, optional<double>, double>();
-    test<KernelTest4, optional<const double>, const double>();
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
+    {
+        test<KernelTest3, optional<double>, double>();
+        test<KernelTest4, optional<const double>, const double>();
+    }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

@@ -56,7 +56,7 @@ kernel_test()
                     static_assert(dpl::is_trivially_destructible<optional<T>>::value);
                 }
                 {
-                    typedef double T;
+                    typedef float T;
                     static_assert(dpl::is_trivially_destructible<T>::value);
                     static_assert(dpl::is_trivially_destructible<optional<T>>::value);
                 }
