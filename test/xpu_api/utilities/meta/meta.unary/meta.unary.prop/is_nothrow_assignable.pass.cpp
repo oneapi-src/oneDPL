@@ -52,6 +52,18 @@ struct C
     operator=(C&); // not const
 };
 
+struct BNT
+{
+    void operator=(A) noexcept;
+};
+
+struct CNT
+{
+    void
+    operator=(C&) noexcept; // not const
+};
+
+
 bool
 kernel_test()
 {
@@ -64,6 +76,10 @@ kernel_test()
     test_is_not_nothrow_assignable<B, A>();
     test_is_not_nothrow_assignable<A, B>();
     test_is_not_nothrow_assignable<C, C&>();
+
+    test_is_nothrow_assignable<BNT, A>();
+    test_is_nothrow_assignable<CNT, C&>();
+
     return true;
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
