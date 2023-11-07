@@ -102,10 +102,11 @@ kernel_test()
     test_is_not_nothrow_constructible<A, int, float>();
     test_is_not_nothrow_constructible<A>();
     test_is_not_nothrow_constructible<C>();
-    test_is_nothrow_constructible<Tuple&&, Empty>(); // See bug #19616.
+    test_is_nothrow_constructible<Tuple&&, Empty>();
 
     static_assert(!dpl::is_constructible<Tuple&, Empty>::value);
-    test_is_not_nothrow_constructible<Tuple&, Empty>(); // See bug #19616.
+    test_is_not_nothrow_constructible<Tuple&, Empty>();
+
     return true;
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
