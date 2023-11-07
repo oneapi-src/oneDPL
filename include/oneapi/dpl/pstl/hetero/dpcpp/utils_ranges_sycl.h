@@ -331,23 +331,6 @@ struct __range_holder
     }
 };
 
-// We have to keep sycl buffer instance here by sync reasons, at least in case of host iterators. SYCL runtime has sync
-// in buffer destruction and a sycl view instance keeps just placeholder accessor, not a buffer.
-template <typename _T>
-using buf_type = sycl::buffer<_T, 1>;
-
-template <typename _T, sycl::access::mode AccMode>
-struct __buffer_holder
-{
-    buf_type<_T> __buf;
-
-    constexpr oneapi::dpl::__ranges::all_view<_T, AccMode>
-    all_view() const
-    {
-        return oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf);
-    }
-};
-
 template <sycl::access::mode AccMode, typename _Iterator>
 struct __get_sycl_range
 {
@@ -359,33 +342,6 @@ struct __get_sycl_range
   private:
     //We have to keep sycl buffer(s) instance here by sync reasons;
     ::std::vector<::std::shared_ptr<oneapi::dpl::__internal::__lifetime_keeper_base>> m_buffers;
-
-    template <typename _Iter>
-    buf_type<val_t<_Iter>>
-    copy_back(_Iter __first, buf_type<val_t<_Iter>> buf, /*_copy_back*/ ::std::false_type)
-    {
-        return buf;
-    }
-
-    template <typename _Iter>
-    buf_type<val_t<_Iter>>
-    copy_back(_Iter __first, buf_type<val_t<_Iter>> buf, /*_copy_back*/ ::std::true_type)
-    {
-        buf.set_final_data(__first);
-        buf.set_write_back(true);
-        return buf;
-    }
-
-    template <typename _Iter, typename _CopyDirectTag>
-    buf_type<val_t<_Iter>>
-    copy_direct(_Iter __first, _Iter __last, _CopyDirectTag)
-    {
-        //create a SYCL buffer and copy data [first, last) or create a empty SYCL buffer with size = (last - first)
-        if constexpr (_CopyDirectTag::value)
-            return sycl::buffer<val_t<_Iter>, 1>(__first, __last);
-        else
-            return sycl::buffer<val_t<_Iter>, 1>(__last - __first);
-    }
 
     template <typename _F, typename _It, typename _DiffType>
     static auto
@@ -543,25 +499,37 @@ struct __get_sycl_range
     auto
     operator()(_Iter __first, _Iter __last)
         -> ::std::enable_if_t<is_temp_buff<_Iter>::value && !is_zip<_Iter>::value && !is_permutation<_Iter>::value,
-                              __buffer_holder<val_t<_Iter>, AccMode>>
+                              __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
         static_assert(!oneapi::dpl::__internal::is_const_iterator<_Iter>::value || AccMode == sycl::access::mode::read,
                       "Should be non-const iterator for a modifying algorithm.");
 
         assert(__first < __last);
 
-        using copy_direct_tag = ::std::integral_constant<bool, AccMode == sycl::access::mode::read_write ||
-                                                                   AccMode == sycl::access::mode::read>;
-        using copy_back_tag = ::std::integral_constant<bool, AccMode == sycl::access::mode::read_write ||
-                                                                 AccMode == sycl::access::mode::write>;
+        using _T = val_t<_Iter>;
 
-        auto buf = copy_direct(__first, __last, copy_direct_tag());
-        buf = copy_back(__first, buf, copy_back_tag());
+        constexpr bool __is_copy_direct = AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::read;
+        constexpr bool __is_copy_back = AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::write;
 
+        auto __get_buf = [&]()
+        {
+            if constexpr(__is_copy_direct)
+                return sycl::buffer<_T, 1>(std::addressof(*__first), __last - __first);
+            else
+                return sycl::buffer<_T, 1>(__last - __first);
+        };
+        auto buf = __get_buf();
+        buf.set_write_back(__is_copy_back);
+        if(__is_copy_back)
+            buf.set_final_data(__first);
+
+        // We have to extend sycl buffer lifetime by sync reasons in case of host iterators. SYCL runtime has sync
+        // in buffer destruction and a sycl view instance keeps just placeholder accessor, not a buffer.
         using BufferType = oneapi::dpl::__internal::__lifetime_keeper<decltype(buf)>;
-        m_buffers.push_back(::std::make_shared<BufferType>(buf));
+        m_buffers.push_back(::std::make_unique<BufferType>(buf));
 
-        return __buffer_holder<val_t<_Iter>, AccMode>{buf};
+        return __range_holder<oneapi::dpl::__ranges::all_view<_T, AccMode>>{
+            oneapi::dpl::__ranges::all_view<_T, AccMode>(buf)};
     }
 };
 
