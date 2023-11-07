@@ -71,12 +71,19 @@ struct A
     A(const A&);
 };
 
+struct ANT
+{
+    ANT(const ANT&) noexcept;
+};
+
 void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_has_not_nothrow_move_constructor<void>(deviceQueue);
     test_has_not_nothrow_move_constructor<A>(deviceQueue);
+
+    test_is_nothrow_move_constructible<ANT>(deviceQueue);
 
     test_is_nothrow_move_constructible<int&>(deviceQueue);
     test_is_nothrow_move_constructible<Union>(deviceQueue);
