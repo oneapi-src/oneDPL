@@ -416,6 +416,50 @@ __get_accessor_ptr(const _Acc& __acc)
 #endif
 }
 
+class __event
+{
+    sycl::event __m_event;
+    sycl::queue __m_queue;
+    bool __in_order = false;
+
+  public:
+    __event(sycl::event __e): __m_event(__e) {}
+    __event() {}
+
+    __event(sycl::queue __q): __m_queue(__q), __in_order(true) {}
+
+    void wait()
+    {
+        if(__in_order)
+            __m_queue.wait_and_throw();
+        else
+            __m_event.wait_and_throw();
+    }
+
+    bool has_event() const { return !__in_order; }
+    operator sycl::event() const
+    { 
+        assert(has_event());
+        return __m_event;
+    }
+};
+
+template <typename _Body>
+auto
+__submit(sycl::queue __queue, _Body __body, __event __e = {})
+{
+     if(__queue.is_in_order())
+     {
+        __queue.submit(__body);
+        return __event(__queue);
+     }
+
+     return __event(__queue.submit([&](sycl::handler& __hdl) {
+        __hdl.depends_on(__e);
+        __body(__hdl);
+        }));
+}
+
 } // namespace __dpl_sycl
 
 #endif // _ONEDPL_SYCL_DEFS_H

@@ -117,7 +117,7 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
         __usm_host_or_buffer_storage __res_container =
             __usm_host_or_buffer_storage<_ExecutionPolicy, _Tp>(__exec, __use_usm, 1);
 
-        sycl::event __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
+        auto __reduce_event = __dpl_sycl::__submit(__exec.queue(), [&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
             auto __res_acc = __res_container.__get_acc(__cgh);
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
@@ -179,7 +179,7 @@ struct __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_siz
         const _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
         _Size __n_items = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
 
-        return __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
+        return __dpl_sycl::__submit(__exec.queue(), [&, __n, __n_items](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...); // get an access to data under SYCL buffer
             sycl::accessor __temp_acc{__temp, __cgh, sycl::write_only, __dpl_sycl::__no_init{}};
             __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
@@ -204,10 +204,10 @@ template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iter
 struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group_size, __iters_per_work_item,
                                                                __internal::__optional_kernel_name<_KernelName...>>
 {
-    template <typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
+    template <typename _ExecutionPolicy, typename _Event, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
               oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
     auto
-    operator()(_ExecutionPolicy&& __exec, sycl::event& __reduce_event, _Size __n, _ReduceOp __reduce_op,
+    operator()(_ExecutionPolicy&& __exec, _Event& __reduce_event, _Size __n, _ReduceOp __reduce_op,
                _TransformOp __transform_op, _InitType __init, sycl::buffer<_Tp>& __temp) const
     {
         using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
@@ -233,8 +233,7 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group
         __usm_host_or_buffer_storage __res_container =
             __usm_host_or_buffer_storage<_ExecutionPolicy, _Tp>(__exec, __use_usm, 1);
 
-        __reduce_event = __exec.queue().submit([&, __n, __n_items](sycl::handler& __cgh) {
-            __cgh.depends_on(__reduce_event);
+        __reduce_event = __dpl_sycl::__submit(__exec.queue(), [&, __n, __n_items](sycl::handler& __cgh) {
 
             sycl::accessor __temp_acc{__temp, __cgh, sycl::read_only};
             auto __res_acc = __res_container.__get_acc(__cgh);
@@ -247,7 +246,7 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, __work_group
                     __work_group_reduce_kernel<_Tp>(__item_id, __n, __n_items, __transform_pattern, __reduce_pattern,
                                                     __init, __temp_local, __res_ptr, __temp_acc);
                 });
-        });
+        }, __reduce_event);
 
         return __future(__reduce_event, __res_container);
     }
@@ -277,7 +276,7 @@ __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _Redu
     const _Size __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __size_per_work_group);
     sycl::buffer<_Tp> __temp{sycl::range<1>(__n_groups)};
 
-    sycl::event __reduce_event =
+    auto __reduce_event =
         __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_size, __iters_per_work_item_device_kernel,
                                                             _ReduceDeviceKernel>()(
             __exec, __n, __reduce_op, __transform_op, __init, __temp, ::std::forward<_Ranges>(__rngs)...);
@@ -338,12 +337,11 @@ struct __parallel_transform_reduce_impl
         _Size __offset_1 = 0;
         _Size __offset_2 = __n_groups;
 
-        sycl::event __reduce_event;
+        __dpl_sycl::__event __reduce_event;
         do
         {
-            __reduce_event = __exec.queue().submit([&, __is_first, __offset_1, __offset_2, __n, __n_items,
+            __reduce_event = __dpl_sycl::__submit(__exec.queue(), [&, __is_first, __offset_1, __offset_2, __n, __n_items,
                                                     __n_groups](sycl::handler& __cgh) {
-                __cgh.depends_on(__reduce_event);
 
                 // get an access to data under SYCL buffer
                 oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
@@ -383,7 +381,7 @@ struct __parallel_transform_reduce_impl
                             __temp_acc[__offset_1 + __group_idx] = __result;
                         }
                     });
-            });
+            }, __reduce_event);
             if (__is_first)
                 __is_first = false;
             ::std::swap(__offset_1, __offset_2);
