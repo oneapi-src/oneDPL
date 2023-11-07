@@ -76,12 +76,8 @@ struct __scan_status_flag
             } while (!sycl::all_of_group(subgroup, flag != NOT_READY)); // Loop till all ready
 
             bool is_full = flag == FULL_MASK;
-
             auto is_full_ballot = sycl::ext::oneapi::group_ballot(subgroup, is_full);
-            ::std::uint32_t is_full_ballot_bits{};
-            is_full_ballot.extract_bits(is_full_ballot_bits);
-
-            auto lowest_item_with_full = sycl::ctz(is_full_ballot_bits);
+            auto lowest_item_with_full = is_full_ballot.find_low();
 
             // The partial scan results and the full scan sum values are in contiguous memory.
             // Each section of the memory is of size num_elements.
@@ -97,7 +93,7 @@ struct __scan_status_flag
             // If we found a full value, we can stop looking at previous tiles. Otherwise,
             // keep going through tiles until we either find a full tile or we've completely
             // recomputed the prefix using partial values
-            if (is_full_ballot_bits)
+            if (is_full_ballot.any())
                 break;
 
         }
@@ -121,18 +117,14 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     static_assert(_Inclusive, "Single-pass scan only available for inclusive scan");
 
     const ::std::size_t n = __in_rng.size();
-#ifdef _ONEDPL_SCAN_ITER_SIZE
-    constexpr ::std::size_t __elems_per_workitem = _ONEDPL_SCAN_ITER_SIZE;
-#else
-    constexpr ::std::size_t __elems_per_workitem = 8;
-#endif
-    // Next power of 2 greater than or equal to __n
-    auto __n_uniform = n;
-    if ((__n_uniform & (__n_uniform - 1)) != 0)
-        __n_uniform = oneapi::dpl::__internal::__dpl_bit_floor(n) << 1;
-    std::size_t num_workitems = __n_uniform / __elems_per_workitem;
-    std::size_t wgsize = num_workitems > 256 ? 256 : num_workitems;
-    std::size_t num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(num_workitems, wgsize);
+
+    constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+
+    // Avoid non_uniform n by padding up to a multiple of wgsize
+    std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
+    ::std::size_t num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(n, elems_in_tile);
+    ::std::size_t num_workitems = num_wgs * wgsize;
 
     constexpr int status_flag_padding = SUBGROUP_SIZE;
     std::uint32_t status_flags_size = num_wgs + status_flag_padding + 1;
@@ -150,8 +142,6 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
                                                             : __scan_status_flag<_Type>::NOT_READY;
         });
     });
-
-    std::uint32_t elems_in_tile = wgsize*__elems_per_workitem;
 
     auto event = __queue.submit([&](sycl::handler& hdl) {
         auto tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, hdl);
@@ -214,10 +204,10 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
 }
 
 // The generic structure for configuring a kernel
-template <std::uint16_t DataPerWorkItem, std::uint16_t WorkGroupSize, typename KernelName>
+template <std::uint16_t ElemsPerWorkItem, std::uint16_t WorkGroupSize, typename KernelName>
 struct kernel_param
 {
-    static constexpr std::uint16_t data_per_workitem = DataPerWorkItem;
+    static constexpr std::uint16_t elems_per_workitem = ElemsPerWorkItem;
     static constexpr std::uint16_t workgroup_size = WorkGroupSize;
     using kernel_name = KernelName;
 };

@@ -33,7 +33,7 @@ main()
         int* out_ptr = sycl::malloc_device<int>(n, q);
 
         q.copy(v.data(), in_ptr, n).wait();
-        using KernelParams = oneapi::dpl::experimental::kt::kernel_param<128, 2, class ScanKernel>;
+        using KernelParams = oneapi::dpl::experimental::kt::kernel_param<8, 128, class ScanKernel>;
         oneapi::dpl::experimental::kt::single_pass_inclusive_scan<KernelParams>(q, in_ptr, in_ptr+n, out_ptr, ::std::plus<int>());
 
         std::vector<int> tmp(n, 0);
