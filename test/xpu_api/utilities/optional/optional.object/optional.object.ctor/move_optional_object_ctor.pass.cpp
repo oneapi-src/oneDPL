@@ -42,7 +42,7 @@ kernel_test1(InitArgs&&... args)
 
         q.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
-            auto orig_access = buffer2.template get_access<sycl::access::mode::write>(cgh);
+            auto orig_access = buffer2.template get_access<sycl::access::mode::read>(cgh);
             cgh.single_task<KernelTest>([=]() {
                 optional<T> rhs(orig_access[0]);
                 bool rhs_engaged = static_cast<bool>(rhs);
