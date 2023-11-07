@@ -27,7 +27,7 @@ using dpl::optional;
 
 template <class KernelTest, class T, class U>
 bool
-test(optional<U>&& rhs, bool is_going_to_throw = false)
+test(optional<U>&& rhs)
 {
     sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
