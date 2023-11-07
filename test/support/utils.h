@@ -284,19 +284,19 @@ struct MemoryChecker
     }
 };
 
-::std::atomic<::std::size_t> MemoryChecker::alive_object_counter{0};
+inline ::std::atomic<::std::size_t> MemoryChecker::alive_object_counter{0};
 
-::std::ostream&
+inline ::std::ostream&
 operator<<(::std::ostream& os, const MemoryChecker& val)
 {
     return (os << val.value());
 }
-bool
+inline bool
 operator==(const MemoryChecker& v1, const MemoryChecker& v2)
 {
     return v1.value() == v2.value();
 }
-bool
+inline bool
 operator<(const MemoryChecker& v1, const MemoryChecker& v2)
 {
     return v1.value() < v2.value();
@@ -648,7 +648,7 @@ transform_reduce_serial(InputIterator first, InputIterator last, T init, BinaryO
     return init;
 }
 
-int
+inline int
 done(int is_done = 1)
 {
     if (is_done)

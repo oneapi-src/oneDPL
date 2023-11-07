@@ -110,7 +110,15 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
 
-    if (DEFINED DEVICE_SELECTION_LINE)
+    if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
+        if (DEFINED DEVICE_SELECTION_LINE)
+            message(FATAL_ERROR "PSTL offload tests ${_test_name} don't need ${DEVICE_SELECTION_LINE} variable, so one should be not set.")
+        endif()
+        # This test is only one requiring device selection environment, set it manually.
+        if ("${_test_name}" STREQUAL selected_different_device.pass AND _ONEDPL_PSTL_OFFLOAD MATCHES "(cpu|gpu)")
+            set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT  "${DEVICE_SELECTION_VARIABLE}=${ONEDPL_DEVICE_BACKEND}:${_ONEDPL_PSTL_OFFLOAD}")
+        endif()
+    elseif (DEFINED DEVICE_SELECTION_LINE)
         file(GLOB_RECURSE DS_TESTS "parallel_api/dynamic_selection/*.cpp")
         if (NOT "${DS_TESTS}" MATCHES "${_test_name}") # do not set SYCL_DEVICE_FILTER for dynamic selection tests
             set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
@@ -199,3 +207,9 @@ foreach (_file IN LISTS UNIT_TESTS)
     endif()
 
 endforeach()
+
+# add additional TUs if required
+if (TARGET interop_allocs.pass)
+    target_sources(interop_allocs.pass PRIVATE "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_system.cpp"
+                                               "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_usm.cpp")
+endif()

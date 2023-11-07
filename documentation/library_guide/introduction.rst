@@ -66,7 +66,7 @@ Difference with Standard C++ Parallel Algorithms
 * oneDPL execution policies only result in parallel execution if random access iterators are provided,
   the execution will remain serial for other iterator types.
 * Function objects passed in to algorithms executed with device policies must provide ``const``-qualified ``operator()``.
-  `The SYCL specification<https://registry.khronos.org/SYCL/>`_ states that writing to such an object during a SYCL
+  `The SYCL specification <https://registry.khronos.org/SYCL/>`_ states that writing to such an object during a SYCL
   kernel is undefined behavior.
 * For the following algorithms, par_unseq and unseq policies do not result in vectorized execution:
   ``includes``, ``inplace_merge``, ``merge``, ``set_difference``, ``set_intersection``,
@@ -94,6 +94,15 @@ When called with |dpcpp_short| execution policies, |onedpl_short| algorithms app
 Known Limitations
 *****************
 
+* When compiled with ``-fsycl-pstl-offload`` option of Intel oneAPI DPC++/C++ compiler and with
+  ``libstdc++`` version 8 or ``libc++``, ``oneapi::dpl::execution::par_unseq`` offloads
+  standard parallel algorithms to the SYCL device similarly to ``std::execution::par_unseq``
+  in accordance with the ``-fsycl-pstl-offload`` option value.
+* For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
+  used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
+  it is required that the provided input and destination iterators are equality comparable.
+  Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
+  If these conditions are not met, the result of these algorithm calls is undefined.
 * For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms the result of the unary operation should be
   convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
