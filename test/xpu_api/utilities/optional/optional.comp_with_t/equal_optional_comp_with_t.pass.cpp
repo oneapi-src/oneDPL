@@ -52,7 +52,7 @@ kernel_test()
 
         q.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
-            auto ia_acc = buffer2.get_access<sycl::access::mode::write>(cgh);
+            auto ia_acc = buffer2.get_access<sycl::access::mode::read>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 {
 
