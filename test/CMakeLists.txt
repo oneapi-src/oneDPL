@@ -15,6 +15,19 @@
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
+# If TBB headers are available, libstdc++ enables TBB backend; some TBB symbols become undefined unless it is linked.
+# The undefined symbol error arises only with GCC compiler.
+# There is no known way to limit the workaround to libstdc++ only.
+if (CMAKE_CXX_COMPILER_ID STREQUAL GNU AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11)
+    if (ONEDPL_BACKEND MATCHES "^(serial|omp|dpcpp_only)$")
+        find_package(TBB 2021 QUIET COMPONENTS tbb OPTIONAL_COMPONENTS tbbmalloc)
+        if (TBB_FOUND)
+            message(STATUS "Tests are linked against TBB to avoid undefined symbol errors due to TBB usage in libstdc++")
+            set(_gcc_link_tbb TRUE)
+        endif()
+    endif()
+endif()
+
 # disable fast math for ALL TESTS
 # icpx and dpcpp accept -fno-fast-math, but icx-cl and dpcpp-cl only accept /clang:-fno-fast-math
 foreach(_fno_fast_math_flag -fno-fast-math /clang:-fno-fast-math)
@@ -91,6 +104,9 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
     target_link_libraries(${_test_name} PRIVATE oneDPL)
+    if (_gcc_link_tbb)
+        target_link_libraries(${_test_name} PRIVATE TBB::tbb)
+    endif()
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
 
     add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
