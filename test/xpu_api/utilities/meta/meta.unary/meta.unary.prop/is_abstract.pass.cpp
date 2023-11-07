@@ -78,7 +78,7 @@ struct Base
     virtual void fnc() = 0;
 };
 
-struct Deriver : Base
+struct Derived : Base
 {
 };
 
@@ -102,7 +102,7 @@ kernel_test()
     }
 
     test_is_abstract<Base>(deviceQueue);
-    test_is_abstract<Deriver>(deviceQueue);
+    test_is_abstract<Derived>(deviceQueue);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
