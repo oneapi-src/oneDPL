@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// optional<T>& operator=(const optional<T>& rhs); // constexpr in C++20
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

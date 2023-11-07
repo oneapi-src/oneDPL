@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// From LWG2451:
-// template <class U>
-// optional<T>& operator=(optional<U>&& rhs);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

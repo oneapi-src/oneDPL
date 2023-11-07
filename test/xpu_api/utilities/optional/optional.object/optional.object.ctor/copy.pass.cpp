@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// constexpr optional(const optional<T>& rhs);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

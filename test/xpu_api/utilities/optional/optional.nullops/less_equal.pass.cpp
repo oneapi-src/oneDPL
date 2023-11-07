@@ -13,11 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// template <class T> constexpr bool operator<=(const optional<T>& x, nullopt_t) noexcept;
-// template <class T> constexpr bool operator<=(nullopt_t, const optional<T>& x) noexcept;
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

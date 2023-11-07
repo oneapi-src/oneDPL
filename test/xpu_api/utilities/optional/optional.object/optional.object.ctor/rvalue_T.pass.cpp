@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// XFAIL: dylib-has-no-bad_optional_access && !libcpp-no-exceptions
-
-// <optional>
-
-// constexpr optional(T&& v);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

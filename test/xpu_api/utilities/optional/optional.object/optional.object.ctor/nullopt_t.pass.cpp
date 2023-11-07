@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// constexpr optional(nullopt_t) noexcept;
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

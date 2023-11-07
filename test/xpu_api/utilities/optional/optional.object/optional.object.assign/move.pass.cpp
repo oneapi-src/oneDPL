@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// optional<T>& operator=(optional<T>&& rhs)
-//     noexcept(is_nothrow_move_assignable<T>::value &&
-//              is_nothrow_move_constructible<T>::value); // constexpr in C++20
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

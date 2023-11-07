@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// template <class U> optional<T>& operator=(U&& v);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// template <class... Args> T& optional<T>::emplace(Args&&... args);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

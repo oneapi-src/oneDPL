@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// template <class U, class... Args>
-//     constexpr
-//     explicit optional(in_place_t, initializer_list<U> il, Args&&... args);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

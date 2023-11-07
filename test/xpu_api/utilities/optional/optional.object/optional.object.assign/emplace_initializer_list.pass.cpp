@@ -13,11 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// template <class U, class... Args>
-//   T& optional<T>::emplace(initializer_list<U> il, Args&&... args);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

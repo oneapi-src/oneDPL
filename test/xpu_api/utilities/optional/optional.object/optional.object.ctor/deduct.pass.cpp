@@ -13,11 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// template<class T>
-//   optional(T) -> optional<T>;
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

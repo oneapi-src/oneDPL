@@ -13,15 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// struct nullopt_t{see below};
-// inline constexpr nullopt_t nullopt(unspecified);
-
-// [optional.nullopt]/2:
-//   Type nullopt_t shall not have a default constructor or an initializer-list
-//   constructor, and shall not be an aggregate.
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>
