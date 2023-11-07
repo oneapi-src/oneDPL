@@ -78,11 +78,25 @@ struct A
     A(const A&);
 };
 
+struct ANT
+{
+    ANT() noexcept;
+    ANT(const ANT&) noexcept;
+};
+
 struct C
 {
     C(C&); // not const
     void
     operator=(C&); // not const
+};
+
+struct CNT
+{
+    CNT() noexcept;
+    CNT(CNT&) noexcept; // not const
+    void
+    operator=(CNT&) noexcept; // not const
 };
 
 struct Tuple
@@ -97,12 +111,18 @@ kernel_test()
     test_is_nothrow_constructible<int, const int&>();
     test_is_nothrow_constructible<Empty>();
     test_is_nothrow_constructible<Empty, const Empty&>();
+    test_is_nothrow_constructible<ANT>();
+    test_is_nothrow_constructible<ANT, const ANT&>();
+    test_is_nothrow_constructible<CNT>();
+    test_is_nothrow_constructible<CNT, CNT&>();
+    test_is_nothrow_constructible<Tuple&&, Empty>();
 
     test_is_not_nothrow_constructible<A, int>();
     test_is_not_nothrow_constructible<A, int, float>();
     test_is_not_nothrow_constructible<A>();
+    test_is_not_nothrow_constructible<A, const A&>();
     test_is_not_nothrow_constructible<C>();
-    test_is_nothrow_constructible<Tuple&&, Empty>();
+    test_is_not_nothrow_constructible<C, C&>();
 
     static_assert(!dpl::is_constructible<Tuple&, Empty>::value);
     test_is_not_nothrow_constructible<Tuple&, Empty>();
