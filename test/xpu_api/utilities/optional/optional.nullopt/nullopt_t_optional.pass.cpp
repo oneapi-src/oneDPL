@@ -36,7 +36,7 @@ test()
 void
 kernel_test()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     q.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest>([=]() {
             static_assert(dpl::is_empty_v<nullopt_t>);

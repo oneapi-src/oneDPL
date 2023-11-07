@@ -30,7 +30,7 @@ template <class Opt>
 void
 test_constexpr()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     sycl::range<1> numOfItems1{1};
     {
         q.submit([&](sycl::handler& cgh) {

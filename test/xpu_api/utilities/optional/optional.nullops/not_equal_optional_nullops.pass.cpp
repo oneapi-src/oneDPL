@@ -24,7 +24,7 @@
 bool
 kernel_test()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     typedef int T;
     typedef dpl::optional<T> O;

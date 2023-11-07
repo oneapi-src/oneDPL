@@ -29,7 +29,7 @@ template <class Tp>
 bool
 assign_empty(optional<Tp>&& lhs)
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     sycl::range<1> numOfItems1{1};
     {
@@ -53,7 +53,7 @@ template <class Tp>
 bool
 assign_value(optional<Tp>&& lhs)
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     sycl::range<1> numOfItems1{1};
     {
@@ -77,7 +77,7 @@ assign_value(optional<Tp>&& lhs)
 bool
 kernel_test()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     sycl::range<1> numOfItems1{1};
     {

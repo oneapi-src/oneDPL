@@ -29,7 +29,7 @@ template <class KernelTest, class Opt, class T>
 void
 test()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     {
 
         q.submit([&](sycl::handler& cgh) {
@@ -49,6 +49,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test<KernelTest1, optional<int>, int>();
     test<KernelTest2, optional<const int>, const int>();
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))

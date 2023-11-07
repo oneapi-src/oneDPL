@@ -32,7 +32,7 @@ template <class KernelTest, class T, class... InitArgs>
 bool
 kernel_test1(InitArgs&&... args)
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     const optional<T> orig(dpl::forward<InitArgs>(args)...);
     sycl::range<1> numOfItems1{1};
@@ -58,7 +58,7 @@ kernel_test1(InitArgs&&... args)
 bool
 kernel_test2()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     sycl::range<1> numOfItems1{1};
     {

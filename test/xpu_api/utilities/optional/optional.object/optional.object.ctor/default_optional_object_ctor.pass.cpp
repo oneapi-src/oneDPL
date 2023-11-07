@@ -28,7 +28,7 @@ template <class Opt>
 void
 test_constexpr()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     {
         q.submit([&](sycl::handler& cgh) {
             cgh.single_task<Opt>([=]() {

@@ -73,7 +73,7 @@ struct FromOptionalType
 void
 test_sfinae()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     sycl::range<1> numOfItems1{1};
     {
 
@@ -98,7 +98,7 @@ bool
 test_with_type()
 {
 
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     sycl::range<1> numOfItems1{1};
     {

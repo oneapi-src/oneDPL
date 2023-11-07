@@ -85,7 +85,7 @@ struct AssignableFrom
 bool
 test_ambigious_assign()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     sycl::range<1> numOfItems1{1};
     {
@@ -149,7 +149,7 @@ test_ambigious_assign()
 bool
 kernel_test()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     sycl::range<1> numOfItems1{1};
     {

@@ -29,7 +29,7 @@ template <class KernelTest, class T, class U>
 bool
 test(optional<U>&& rhs)
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     sycl::range<1> numOfItems1{1};
     {

@@ -39,7 +39,7 @@ operator==(const X& lhs, const X& rhs)
 bool
 kernel_test()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     typedef X T;
     typedef optional<T> O;
