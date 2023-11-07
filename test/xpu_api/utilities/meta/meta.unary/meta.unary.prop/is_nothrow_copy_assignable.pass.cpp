@@ -64,6 +64,13 @@ struct A
     operator=(const A&);
 };
 
+struct ANT
+{
+    ANT&
+    operator=(const ANT&) noexcept;
+};
+
+
 void
 kernel_test()
 {
@@ -71,6 +78,7 @@ kernel_test()
     test_has_nothrow_assign<int&>(deviceQueue);
     test_has_nothrow_assign<Union>(deviceQueue);
     test_has_nothrow_assign<Empty>(deviceQueue);
+    test_has_nothrow_assign<ANT>(deviceQueue);
     test_has_nothrow_assign<int>(deviceQueue);
     test_has_nothrow_assign<int*>(deviceQueue);
     test_has_nothrow_assign<const int*>(deviceQueue);
