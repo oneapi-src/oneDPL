@@ -66,6 +66,12 @@ struct A
     A();
 };
 
+struct ANT
+{
+    ANT() noexcept;
+};
+
+
 bool
 kernel_test()
 {
@@ -73,6 +79,7 @@ kernel_test()
     test_has_not_nothrow_default_constructor<int&>();
     test_has_not_nothrow_default_constructor<A>();
 
+    test_is_nothrow_default_constructible<ANT>();
     test_is_nothrow_default_constructible<Union>();
     test_is_nothrow_default_constructible<Empty>();
     test_is_nothrow_default_constructible<int>();
