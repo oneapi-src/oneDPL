@@ -64,6 +64,13 @@ struct A
     operator=(const A&);
 };
 
+struct ANT
+{
+    ANT&
+    operator=(const ANT&) noexcept;
+};
+
+
 class KernelTest1;
 class KernelTest2;
 class KernelTest3;
@@ -74,6 +81,7 @@ class KernelTest7;
 class KernelTest8;
 class KernelTest9;
 class KernelTest10;
+class KernelTest11;
 
 void
 kernel_test()
@@ -93,6 +101,8 @@ kernel_test()
 
     test_has_not_nothrow_assign<KernelTest9, void>(deviceQueue);
     test_has_not_nothrow_assign<KernelTest10, A>(deviceQueue);
+
+    test_has_nothrow_assign<KernelTest11, ANT>(deviceQueue);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
