@@ -73,7 +73,7 @@ main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
-    EXPECT_TRUE(ret, "Wrong result of emplace initalization list check");
+    EXPECT_TRUE(ret, "Wrong result of emplace initialization list check");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
