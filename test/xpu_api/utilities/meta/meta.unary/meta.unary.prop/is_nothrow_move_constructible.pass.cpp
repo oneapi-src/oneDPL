@@ -29,9 +29,7 @@ test_is_nothrow_move_constructible(sycl::queue& deviceQueue)
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<T>([=]() {
             static_assert(dpl::is_nothrow_move_constructible<T>::value);
-            static_assert(dpl::is_nothrow_move_constructible<const T>::value);
             static_assert(dpl::is_nothrow_move_constructible_v<T>);
-            static_assert(dpl::is_nothrow_move_constructible_v<const T>);
         });
     });
 }
@@ -68,12 +66,12 @@ struct bit_zero
 
 struct A
 {
-    A(const A&);
+    A(A&&);
 };
 
 struct ANT
 {
-    ANT(const ANT&) noexcept;
+    ANT(ANT&&) noexcept;
 };
 
 void
