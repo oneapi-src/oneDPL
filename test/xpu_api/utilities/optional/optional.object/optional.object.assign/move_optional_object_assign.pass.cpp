@@ -37,8 +37,8 @@ assign_empty(optional<Tp>&& lhs)
         sycl::buffer<optional<Tp>, 1> buffer2(&lhs, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl::accesdpl::mode::write>(cgh);
-            auto lhs_access = buffer2.template get_access<sycl::accesdpl::mode::write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto lhs_access = buffer2.template get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
                 optional<Tp> rhs;
                 lhs_access[0] = dpl::move(rhs);
@@ -61,8 +61,8 @@ assign_value(optional<Tp>&& lhs)
         sycl::buffer<optional<Tp>, 1> buffer2(&lhs, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl::accesdpl::mode::write>(cgh);
-            auto lhs_access = buffer2.template get_access<sycl::accesdpl::mode::write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto lhs_access = buffer2.template get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest2>([=]() {
                 optional<Tp> rhs(101);
                 lhs_access[0] = dpl::move(rhs);
@@ -84,7 +84,7 @@ kernel_test()
         sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl::accesdpl::mode::write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest3>([=]() {
                 {
                     static_assert(dpl::is_nothrow_move_assignable<optional<int>>::value);

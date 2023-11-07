@@ -52,7 +52,7 @@ test_one_arg()
         sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl::accesdpl::mode::write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<T>([=]() {
                 using Opt = dpl::optional<T>;
                 {
@@ -103,7 +103,7 @@ kernel_test()
         sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl::accesdpl::mode::write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest2>([=]() {
                 optional<const int> opt;
                 auto& v = opt.emplace(42);

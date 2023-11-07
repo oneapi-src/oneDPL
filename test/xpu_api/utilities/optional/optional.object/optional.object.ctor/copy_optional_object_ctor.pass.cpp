@@ -41,8 +41,8 @@ test1(InitArgs&&... args)
         sycl::buffer<optional<T>, 1> buffer2(&rhs, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl::accesdpl::mode::write>(cgh);
-            auto rhs_access = buffer2.template get_access<sycl::accesdpl::mode::write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto rhs_access = buffer2.template get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<KernelTest>([=]() {
                 bool rhs_engaged = static_cast<bool>(rhs_access[0]);
                 optional<T> lhs = rhs_access[0];
@@ -67,8 +67,8 @@ test2()
         sycl::buffer<optional<const int>, 1> buffer2(&o, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl::accesdpl::mode::write>(cgh);
-            auto o_access = buffer2.template get_access<sycl::accesdpl::mode::write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto o_access = buffer2.template get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 optional<const int> o2(o_access[0]);
                 ret_access[0] &= (*o2 == 42);

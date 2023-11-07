@@ -36,7 +36,7 @@ kernel_test()
         sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl::accesdpl::mode::write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 //  Test the explicit deduction guides
                 {

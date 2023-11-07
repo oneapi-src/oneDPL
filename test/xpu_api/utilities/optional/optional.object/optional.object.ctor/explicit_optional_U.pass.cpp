@@ -37,8 +37,8 @@ test(optional<U>&& rhs, bool is_going_to_throw = false)
         sycl::buffer<optional<U>, 1> buffer2(&rhs, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl::accesdpl::mode::write>(cgh);
-            auto rhs_access = buffer2.template get_access<sycl::accesdpl::mode::write>(cgh);
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto rhs_access = buffer2.template get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<KernelTest>([=]() {
                 static_assert(!(dpl::is_convertible<optional<U>&&, optional<T>>::value));
                 bool rhs_engaged = static_cast<bool>(rhs_access[0]);
