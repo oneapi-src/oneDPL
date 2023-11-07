@@ -91,40 +91,28 @@ test()
 {
     bool ret = true;
     {
-        typedef short U;
-        typedef int T;
-        optional<U> rhs;
-        ret &= kernel_test<KernelTest1, T>(rhs);
+        optional<short> rhs;
+        ret &= kernel_test<KernelTest1, int>(rhs);
     }
     {
-        typedef short U;
-        typedef int T;
-        optional<U> rhs(U{3});
-        ret &= kernel_test<KernelTest2, T>(rhs);
+        optional<short> rhs(short{3});
+        ret &= kernel_test<KernelTest2, int>(rhs);
     }
     {
-        typedef X T;
-        typedef int U;
-        optional<U> rhs;
-        ret &= kernel_test<KernelTest3, T>(rhs);
+        optional<int> rhs;
+        ret &= kernel_test<KernelTest3, X>(rhs);
     }
     {
-        typedef X T;
-        typedef int U;
-        optional<U> rhs(U{3});
-        ret &= kernel_test<KernelTest4, T>(rhs);
+        optional<int> rhs(int{3});
+        ret &= kernel_test<KernelTest4, X>(rhs);
     }
     {
-        typedef Y T;
-        typedef int U;
-        optional<U> rhs;
-        ret &= kernel_test<KernelTest5, T>(rhs);
+        optional<int> rhs;
+        ret &= kernel_test<KernelTest5, Y>(rhs);
     }
     {
-        typedef Y T;
-        typedef int U;
-        optional<U> rhs(U{3});
-        ret &= kernel_test<KernelTest6, T>(rhs);
+        optional<int> rhs(int{3});
+        ret &= kernel_test<KernelTest6, Y>(rhs);
     }
     return ret;
 }

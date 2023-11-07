@@ -38,25 +38,23 @@ kernel_test()
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 {
-                    typedef int T;
-                    constexpr optional<T> opt(T(5));
+                    constexpr optional<int> opt(int(5));
                     static_assert(static_cast<bool>(opt) == true);
                     static_assert(*opt == 5);
 
-                    struct test_constexpr_ctor : public optional<T>
+                    struct test_constexpr_ctor : public optional<int>
                     {
-                        constexpr test_constexpr_ctor(T&&) {}
+                        constexpr test_constexpr_ctor(int&&) {}
                     };
                 }
                 {
-                    typedef float T;
-                    constexpr optional<T> opt(T(3));
+                    constexpr optional<float> opt(float(3));
                     static_assert(static_cast<bool>(opt) == true);
                     static_assert(*opt == 3);
 
-                    struct test_constexpr_ctor : public optional<T>
+                    struct test_constexpr_ctor : public optional<float>
                     {
-                        constexpr test_constexpr_ctor(T&&) {}
+                        constexpr test_constexpr_ctor(float&&) {}
                     };
                 }
                 {

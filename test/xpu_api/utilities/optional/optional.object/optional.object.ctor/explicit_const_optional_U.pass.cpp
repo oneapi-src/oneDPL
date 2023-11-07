@@ -90,28 +90,20 @@ test()
 {
     bool ret = true;
     {
-        typedef X T;
-        typedef int U;
-        optional<U> rhs;
-        ret &= kernel_test<KernelTest1, T>(rhs);
+        optional<int> rhs;
+        ret &= kernel_test<KernelTest1, X>(rhs);
     }
     {
-        typedef X T;
-        typedef int U;
-        optional<U> rhs(3);
-        ret &= kernel_test<KernelTest2, T>(rhs);
+        optional<int> rhs(3);
+        ret &= kernel_test<KernelTest2, X>(rhs);
     }
     {
-        typedef Y T;
-        typedef int U;
-        optional<U> rhs;
-        ret &= kernel_test<KernelTest3, T>(rhs);
+        optional<int> rhs;
+        ret &= kernel_test<KernelTest3, Y>(rhs);
     }
     {
-        typedef Y T;
-        typedef int U;
-        optional<U> rhs(3);
-        ret &= kernel_test<KernelTest4, T>(rhs);
+        optional<int> rhs(3);
+        ret &= kernel_test<KernelTest4, Y>(rhs);
     }
     return ret;
 }

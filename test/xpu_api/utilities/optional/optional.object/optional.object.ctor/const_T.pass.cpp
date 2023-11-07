@@ -50,16 +50,14 @@ kernel_test()
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 {
-                    typedef int T;
-                    constexpr T t(5);
-                    constexpr optional<T> opt(t);
+                    constexpr int t(5);
+                    constexpr optional<int> opt(t);
                     static_assert(static_cast<bool>(opt) == true);
                     static_assert(*opt == 5);
                 }
                 {
-                    typedef float T;
-                    constexpr T t(3);
-                    constexpr optional<T> opt(t);
+                    constexpr float t(3);
+                    constexpr optional<float> opt(t);
                     static_assert(static_cast<bool>(opt) == true);
                     static_assert(*opt == 3);
                 }
@@ -69,9 +67,8 @@ kernel_test()
                     ret_access[0] &= (*o == x);
                 }
                 {
-                    typedef X T;
-                    const T t(3);
-                    optional<T> opt = t;
+                    const X t(3);
+                    optional<X> opt = t;
                     ret_access[0] &= (static_cast<bool>(opt) == true);
                 }
             });

@@ -41,9 +41,8 @@ kernel_test()
 {
     sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
-    typedef X T;
-    typedef optional<T> O;
-    T val(2);
+    typedef optional<X> O;
+    X val(2);
     O ia[3] = {O{}, O{1}, O{val}};
     sycl::range<1> numOfItems1{1};
     sycl::range<1> numOfItems2{3};
@@ -57,16 +56,16 @@ kernel_test()
             cgh.single_task<class KernelTest>([=]() {
                 {
 
-                    ret_access[0] &= ((ia_acc[0] != T(1)));
-                    ret_access[0] &= (!(ia_acc[1] != T(1)));
-                    ret_access[0] &= ((ia_acc[2] != T(1)));
-                    ret_access[0] &= (!(ia_acc[2] != T(2)));
+                    ret_access[0] &= ((ia_acc[0] != X(1)));
+                    ret_access[0] &= (!(ia_acc[1] != X(1)));
+                    ret_access[0] &= ((ia_acc[2] != X(1)));
+                    ret_access[0] &= (!(ia_acc[2] != X(2)));
                     ret_access[0] &= (!(ia_acc[2] != val));
 
-                    ret_access[0] &= ((T(1) != ia_acc[0]));
-                    ret_access[0] &= (!(T(1) != ia_acc[1]));
-                    ret_access[0] &= ((T(1) != ia_acc[2]));
-                    ret_access[0] &= (!(T(2) != ia_acc[2]));
+                    ret_access[0] &= ((X(1) != ia_acc[0]));
+                    ret_access[0] &= (!(X(1) != ia_acc[1]));
+                    ret_access[0] &= ((X(1) != ia_acc[2]));
+                    ret_access[0] &= (!(X(2) != ia_acc[2]));
                     ret_access[0] &= (!(val != ia_acc[2]));
                 }
                 {

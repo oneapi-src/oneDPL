@@ -51,24 +51,20 @@ kernel_test()
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 {
-                    typedef int T;
-                    static_assert(dpl::is_trivially_destructible<T>::value);
-                    static_assert(dpl::is_trivially_destructible<optional<T>>::value);
+                    static_assert(dpl::is_trivially_destructible<int>::value);
+                    static_assert(dpl::is_trivially_destructible<optional<int>>::value);
                 }
                 {
-                    typedef float T;
-                    static_assert(dpl::is_trivially_destructible<T>::value);
-                    static_assert(dpl::is_trivially_destructible<optional<T>>::value);
+                    static_assert(dpl::is_trivially_destructible<float>::value);
+                    static_assert(dpl::is_trivially_destructible<optional<float>>::value);
                 }
                 {
-                    typedef PODType T;
-                    static_assert(dpl::is_trivially_destructible<T>::value);
-                    static_assert(dpl::is_trivially_destructible<optional<T>>::value);
+                    static_assert(dpl::is_trivially_destructible<PODType>::value);
+                    static_assert(dpl::is_trivially_destructible<optional<PODType>>::value);
                 }
                 {
-                    typedef X T;
-                    static_assert(!dpl::is_trivially_destructible<T>::value);
-                    static_assert(!dpl::is_trivially_destructible<optional<T>>::value);
+                    static_assert(!dpl::is_trivially_destructible<X>::value);
+                    static_assert(!dpl::is_trivially_destructible<optional<X>>::value);
                     {
                         X x;
                         optional<X> opt{x};

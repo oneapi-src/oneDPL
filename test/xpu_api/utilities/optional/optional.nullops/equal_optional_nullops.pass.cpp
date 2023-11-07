@@ -28,8 +28,7 @@ kernel_test()
 {
     sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
-    typedef int T;
-    typedef optional<T> O;
+    typedef optional<int> O;
     O ia[2] = {O{}, O{1}};
     sycl::range<1> numOfItems1{1};
     sycl::range<1> numOfItems2{2};
