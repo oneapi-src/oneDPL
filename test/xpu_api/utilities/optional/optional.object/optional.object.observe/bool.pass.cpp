@@ -32,14 +32,11 @@ kernel_test()
             cgh.single_task<class KernelTest>([=]() {
                 using dpl::optional;
                 {
-                    const optional<int> opt;
-                    ((void)opt);
+                    constexpr optional<int> opt;
+                    
+                    static_assert(!opt);
                     static_assert(noexcept(bool(opt)));
                     static_assert(!dpl::is_convertible<optional<int>, bool>::value);
-                }
-                {
-                    constexpr optional<int> opt;
-                    static_assert(!opt);
                 }
                 {
                     constexpr optional<int> opt(0);
