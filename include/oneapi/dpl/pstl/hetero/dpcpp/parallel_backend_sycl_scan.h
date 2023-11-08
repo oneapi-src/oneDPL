@@ -146,13 +146,22 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     std::uint32_t* status_flags = reinterpret_cast<std::uint32_t*>(mem_pool);
     _Type* tile_sums = reinterpret_cast<_Type*>(mem_pool + tile_sums_offset);
 
-    auto fill_event = __queue.submit([&](sycl::handler& hdl) {
-        hdl.parallel_for<class scan_kt_init>(sycl::range<1>{status_flags_size}, [=](const sycl::item<1>& item)  {
-                int id = item.get_linear_id();
-                status_flags[id] = id < status_flag_padding ? __scan_status_flag<_Type>::OUT_OF_BOUNDS
-                                                            : __scan_status_flag<_Type>::NOT_READY;
+    ::std::size_t fill_num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(status_flags_size, wgsize);
+
+    auto fill_event = __queue.submit(
+        [&](sycl::handler& hdl)
+        {
+            hdl.parallel_for<class scan_kt_init>(sycl::nd_range<1>{fill_num_wgs * wgsize, wgsize},
+                                                 [=](const sycl::nd_item<1>& item)
+                                                 {
+                                                     int id = item.get_global_linear_id();
+                                                     if (id < status_flags_size)
+                                                         status_flags[id] =
+                                                             id < status_flag_padding
+                                                                 ? __scan_status_flag<_Type>::OUT_OF_BOUNDS
+                                                                 : __scan_status_flag<_Type>::NOT_READY;
+                                                 });
         });
-    });
 
     auto event = __queue.submit([&](sycl::handler& hdl) {
         auto tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, hdl);
