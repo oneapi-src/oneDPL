@@ -127,13 +127,24 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     ::std::size_t num_workitems = num_wgs * wgsize;
 
     constexpr int status_flag_padding = SUBGROUP_SIZE;
-    std::uint32_t status_flags_size = num_wgs + status_flag_padding + 1;
-    std::uint32_t tile_sums_size = num_wgs + status_flag_padding;
+    std::size_t status_flags_elems = num_wgs + status_flag_padding + 1;
+    std::size_t status_flags_size = status_flags_elems * sizeof(std::uint32_t);
 
-    uint32_t* status_flags = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
-    // First status_flags_size elements: partial scanned values (using _BinaryOp) of each workgroup
-    // Second status_flags_size elements: full scanned values, i.e. sum of the previous and current workgroup's partial sums
-    _Type* tile_sums = sycl::malloc_device<_Type>(tile_sums_size * 2, __queue);
+    std::size_t tile_sums_elems = num_wgs + status_flag_padding;
+    std::size_t tile_sums_size = status_flags_elems * sizeof(_Type);
+
+    std::size_t extra_mem_for_aligment = alignof(_Type) - (status_flags_size % alignof(_Type));
+    // status_flags_size for the status_flags
+    // extra_mem_for_aligment of the datatype _Type
+    // First tile_sums_size partial scanned values
+    // Second tile_sums_size full scanned values (current partial plus all previous workgroups partial)
+    char* mem_pool =
+        sycl::malloc_device<char>(status_flags_size + extra_mem_for_aligment + 2 * tile_sums_size, __queue);
+
+    std::size_t tile_sums_offset = status_flags_size + extra_mem_for_aligment;
+
+    std::uint32_t* status_flags = reinterpret_cast<std::uint32_t*>(mem_pool);
+    _Type* tile_sums = reinterpret_cast<_Type*>(mem_pool + tile_sums_offset);
 
     auto fill_event = __queue.submit([&](sycl::handler& hdl) {
         hdl.parallel_for<class scan_kt_init>(sycl::range<1>{status_flags_size}, [=](const sycl::item<1>& item)  {
@@ -180,7 +191,7 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             // The first sub-group will query the previous tiles to find a prefix
             if (subgroup.get_group_id() == 0)
             {
-                __scan_status_flag<_Type> flag(tile_id, status_flags, tile_sums, status_flags_size);
+                __scan_status_flag<_Type> flag(tile_id, status_flags, tile_sums, tile_sums_elems);
 
                 if (group.leader())
                     flag.set_partial(local_sum);
@@ -197,10 +208,14 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
         });
     });
 
-    event.wait();
+    auto free_event = __queue.submit(
+        [=](sycl::handler& hdl)
+        {
+            hdl.depends_on(event);
+            hdl.host_task([=](){ sycl::free(mem_pool, __queue); });
+        });
 
-    sycl::free(status_flags, __queue);
-    sycl::free(tile_sums, __queue);
+    event.wait();
 }
 
 // The generic structure for configuring a kernel
