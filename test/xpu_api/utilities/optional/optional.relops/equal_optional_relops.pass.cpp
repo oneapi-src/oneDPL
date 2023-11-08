@@ -44,8 +44,7 @@ kernel_test()
     q.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest>([=]() {
             {
-                typedef X T;
-                typedef optional<T> O;
+                typedef optional<X> O;
 
                 constexpr O o1;    // disengaged
                 constexpr O o2;    // disengaged
