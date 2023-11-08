@@ -51,6 +51,7 @@ kernel_test(const optional<U>& rhs)
     return ret;
 }
 
+// TODO required to unify
 class X
 {
     int i_;
@@ -66,6 +67,7 @@ class X
     }
 };
 
+// TODO required to unify
 class Y
 {
     int i_;

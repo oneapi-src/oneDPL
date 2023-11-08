@@ -49,6 +49,7 @@ test(optional<U>& opt)
     return ret;
 }
 
+// TODO required to unify
 class X
 {
     int i_;
