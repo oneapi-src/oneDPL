@@ -44,7 +44,7 @@ kernel_test()
 
                     struct test_constexpr_ctor : public optional<int>
                     {
-                        constexpr test_constexpr_ctor(int&&) {}
+                        constexpr test_constexpr_ctor(int&& arg) : optional<int>(std::move(arg)) {}
                     };
                 }
                 {
@@ -54,7 +54,7 @@ kernel_test()
 
                     struct test_constexpr_ctor : public optional<float>
                     {
-                        constexpr test_constexpr_ctor(float&&) {}
+                        constexpr test_constexpr_ctor(float&& arg) : optional<float>(std::move(arg)) {}
                     };
                 }
                 {
