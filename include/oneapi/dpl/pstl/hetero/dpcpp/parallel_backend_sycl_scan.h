@@ -146,7 +146,7 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     std::uint32_t* status_flags = reinterpret_cast<std::uint32_t*>(mem_pool);
     _Type* tile_sums = reinterpret_cast<_Type*>(mem_pool + tile_sums_offset);
 
-    ::std::size_t fill_num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(status_flags_size, wgsize);
+    ::std::size_t fill_num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(status_flags_elems, wgsize);
 
     auto fill_event = __queue.submit(
         [&](sycl::handler& hdl)
@@ -155,7 +155,7 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
                                                  [=](const sycl::nd_item<1>& item)
                                                  {
                                                      int id = item.get_global_linear_id();
-                                                     if (id < status_flags_size)
+                                                     if (id < status_flags_elems)
                                                          status_flags[id] =
                                                              id < status_flag_padding
                                                                  ? __scan_status_flag<_Type>::OUT_OF_BOUNDS
@@ -177,7 +177,7 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             {
                 sycl::atomic_ref<::std::uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::device,
                                  sycl::access::address_space::global_space>
-                    idx_atomic(status_flags[status_flags_size - 1]);
+                    idx_atomic(status_flags[status_flags_elems - 1]);
                 tile_id_lacc[0] = idx_atomic.fetch_add(1);
             }
             sycl::group_barrier(group);
