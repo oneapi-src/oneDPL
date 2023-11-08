@@ -69,8 +69,7 @@ kernel_test()
                     ret_access[0] &= (!(val != ia_acc[2]));
                 }
                 {
-                    using O = optional<int>;
-                    constexpr O o1(42);
+                    constexpr optional<int> o1(42);
                     static_assert(o1 != 101l);
                     static_assert(!(42l != o1));
                 }
