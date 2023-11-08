@@ -165,11 +165,14 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
 
     auto event = __queue.submit([&](sycl::handler& hdl) {
         auto tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, hdl);
+        auto tile_vals = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_in_tile}, hdl);
         hdl.depends_on(fill_event);
 
         oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng);
         hdl.parallel_for<class scan_kt_main>(sycl::nd_range<1>(num_workitems, wgsize), [=](const sycl::nd_item<1>& item)  [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
             auto group = item.get_group();
+            auto local_id = item.get_local_id(0);
+            auto stride = item.get_local_range(0);
             auto subgroup = item.get_sub_group();
 
             // Obtain unique ID for this work-group that will be used in decoupled lookback
@@ -183,16 +186,33 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             sycl::group_barrier(group);
             std::uint32_t tile_id = tile_id_lacc[0];
 
-            auto current_offset = (tile_id*elems_in_tile);
-            auto next_offset = ((tile_id+1)*elems_in_tile);
-            if (next_offset > n)
-                next_offset = n;
-            auto in_begin = __in_rng.begin() + current_offset;
-            auto in_end = __in_rng.begin() + next_offset;
-            auto out_begin = __out_rng.begin() + current_offset;
-
-            if (current_offset >= n)
+            // Global load into local
+            auto wg_current_offset = (tile_id*elems_in_tile);
+            auto wg_next_offset = ((tile_id+1)*elems_in_tile);
+            size_t wg_local_memory_size = elems_in_tile;
+            if (wg_current_offset >= n)
                 return;
+            if (wg_next_offset >= n) {
+                wg_local_memory_size = n - wg_current_offset;
+                wg_next_offset = n; // Not needed
+            }
+
+            // TODO: vectorize loads, where possible
+            if (wg_next_offset <= n) {
+                _ONEDPL_PRAGMA_UNROLL
+                for (std::uint32_t i = 0; i < elems_per_workitem; ++i)
+                    tile_vals[local_id + stride * i] = __in_rng[wg_current_offset + local_id + stride * i];
+            } else {
+                for (std::uint32_t i = 0; i < elems_per_workitem; ++i) {
+                    if (wg_current_offset + stride * i < n)
+                        tile_vals[local_id + stride * i] = __in_rng[wg_current_offset + stride * i];
+                }
+            }
+            sycl::group_barrier(group);
+
+            auto in_begin = tile_vals.get_pointer();
+            auto in_end = in_begin + wg_local_memory_size;
+            auto out_begin = __out_rng.begin() + wg_current_offset;
 
             auto local_sum = sycl::joint_reduce(group, in_begin, in_end, __binary_op);
             _Type prev_sum = 0;
