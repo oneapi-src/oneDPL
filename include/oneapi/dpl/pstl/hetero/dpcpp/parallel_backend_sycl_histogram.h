@@ -402,18 +402,9 @@ __parallel_histogram(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __hi
 {
     auto N = __last - __first;
     // std::cout<<"N = "<<N<<std::endl;
-    if (N <= 524288)
-    {
-        __parallel_histogram_impl</*iters_per_workitem = */ 4>(::std::forward<Policy>(policy), __first, __last,
-                                                                      __histogram_first, __num_bins, __func,
-                                                                      std::forward<_Range...>(__opt_range)...);
-    }
-    else
-    {
-        __parallel_histogram_impl</*iters_per_workitem = */ 32>(::std::forward<Policy>(policy), __first, __last,
-                                                                       __histogram_first, __num_bins, __func,
-                                                                       std::forward<_Range...>(__opt_range)...);
-    }
+    __parallel_histogram_impl</*iters_per_workitem = */ 8>(::std::forward<Policy>(policy), __first, __last,
+                                                                    __histogram_first, __num_bins, __func,
+                                                                    std::forward<_Range...>(__opt_range)...);
 }
 
 } // namespace __par_backend_hetero
