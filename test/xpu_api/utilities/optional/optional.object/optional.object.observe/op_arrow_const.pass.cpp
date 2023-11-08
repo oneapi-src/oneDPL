@@ -26,6 +26,12 @@ using dpl::optional;
 
 struct X
 {
+    int
+    test()
+    {
+        return 0;
+    }
+
     constexpr int
     test() const
     {
@@ -36,6 +42,12 @@ struct X
 struct Y
 {
     int
+    test() noexcept
+    {
+        return 0;
+    }
+
+    int
     test() const noexcept
     {
         return 2;
@@ -45,6 +57,13 @@ struct Y
 struct Z
 {
     const Z* operator&() const;
+
+    int
+    test()
+    {
+        return 0;
+    }
+
     constexpr int
     test() const
     {
@@ -65,12 +84,24 @@ kernel_test()
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 {
+                    optional<X> opt(X{});
+                    ret_access[0] &= (opt->test() == 0);
+                }
+                {
                     constexpr optional<X> opt(X{});
                     static_assert(opt->test() == 3);
                 }
                 {
+                    optional<Y> opt(Y{});
+                    ret_access[0] &= (opt->test() == 0);
+                }
+                {
                     constexpr optional<Y> opt(Y{});
                     ret_access[0] &= (opt->test() == 2);
+                }
+                {
+                    optional<Z> opt(Z{});
+                    ret_access[0] &= (opt->test() == 0);
                 }
                 {
                     constexpr optional<Z> opt(Z{});
