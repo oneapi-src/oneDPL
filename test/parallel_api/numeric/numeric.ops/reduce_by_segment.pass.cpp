@@ -242,7 +242,7 @@ template <sycl::usm::alloc alloc_type, typename KernelName, typename T>
 void
 test_flag_pred()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
 
     // Initialize data
     //T keys[n1] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 };
