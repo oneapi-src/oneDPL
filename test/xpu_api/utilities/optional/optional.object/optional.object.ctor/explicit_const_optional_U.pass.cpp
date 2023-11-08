@@ -44,7 +44,7 @@ kernel_test(const optional<U>& rhs)
                 optional<T> lhs(rhs_access[0]);
                 ret_access[0] &= (static_cast<bool>(lhs) == rhs_engaged);
                 if (rhs_engaged)
-                    ret_access[0] &= (*lhs == (T)*rhs_access[0]);
+                    ret_access[0] &= (*lhs == static_cast<T>(*rhs_access[0]));
             });
         });
     }
