@@ -26,28 +26,21 @@ void
 kernel_test()
 {
     sycl::queue q = TestUtils::get_test_queue();
-    {
-
-        q.submit([&](sycl::handler& cgh) {
-            cgh.single_task<class KernelTest>([=]() {
-                using dpl::optional;
-                {
-                    const optional<int> opt;
-                    ((void)opt);
-                    static_assert(noexcept(opt.has_value()));
-                    static_assert(dpl::is_same<decltype(opt.has_value()), bool>::value);
-                }
-                {
-                    constexpr optional<int> opt;
-                    static_assert(!opt.has_value());
-                }
-                {
-                    constexpr optional<int> opt(0);
-                    static_assert(opt.has_value());
-                }
-            });
+    q.submit([&](sycl::handler& cgh) {
+        cgh.single_task<class KernelTest>([=]() {
+            using dpl::optional;
+            {
+                constexpr optional<int> opt;
+                static_assert(!opt.has_value());
+                static_assert(noexcept(opt.has_value()));
+                static_assert(dpl::is_same<decltype(opt.has_value()), bool>::value);
+            }
+            {
+                constexpr optional<int> opt(0);
+                static_assert(opt.has_value());
+            }
         });
-    }
+    });
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
