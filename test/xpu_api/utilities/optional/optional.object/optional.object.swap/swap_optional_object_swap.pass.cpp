@@ -22,7 +22,7 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-
+#if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
 
 class X
