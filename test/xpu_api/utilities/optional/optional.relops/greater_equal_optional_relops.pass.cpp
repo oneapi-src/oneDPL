@@ -54,9 +54,9 @@ kernel_test()
 
                 static_assert(o1 >= o1);
                 static_assert(o1 >= o2);
-                static_assert!(o1 >= o3);
-                static_assert!(o1 >= o4);
-                static_assert!(o1 >= o5);
+                static_assert(!(o1 >= o3));
+                static_assert(!(o1 >= o4));
+                static_assert(!(o1 >= o5));
 
                 static_assert(o2 >= o1);
                 static_assert(o2 >= o2);
