@@ -74,8 +74,7 @@ kernel_test()
                     static_assert(!(42l < o1));
                 }
                 {
-                    using O = optional<const int>;
-                    constexpr O o1(42);
+                    constexpr optional<const int> o1(42);
                     static_assert(o1 < 101);
                     static_assert(!(42 < o1));
                 }
