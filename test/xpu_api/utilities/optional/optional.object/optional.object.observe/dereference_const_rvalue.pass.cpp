@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// constexpr T&& optional<T>::operator*() const &&;
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

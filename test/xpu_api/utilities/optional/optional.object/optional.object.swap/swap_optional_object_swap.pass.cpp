@@ -13,13 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-
-// <optional>
-
-// void swap(optional&)
-//     noexcept(is_nothrow_move_constructible<T>::value &&
-//              is_nothrow_swappable<T>::value)
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

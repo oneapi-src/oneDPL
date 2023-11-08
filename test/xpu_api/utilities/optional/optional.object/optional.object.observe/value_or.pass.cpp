@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// template <class U> constexpr T optional<T>::value_or(U&& v) &&;
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

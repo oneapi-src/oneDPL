@@ -13,13 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// XFAIL: dylib-has-no-bad_optional_access && !libcpp-no-exceptions
-
-// <optional>
-//
-// template <class T>
-//   constexpr optional<decay_t<T>> make_optional(T&& v);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

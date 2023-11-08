@@ -13,11 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// template <class T> void swap(optional<T>& x, optional<T>& y)
-//     noexcept(noexcept(x.swap(y)));
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

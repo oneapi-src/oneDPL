@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// constexpr bool optional<T>::has_value() const noexcept;
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>

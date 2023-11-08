@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <optional>
-
-// template <class T, class U> constexpr bool operator>= (const optional<T>& x, const optional<U>& y);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/optional>
