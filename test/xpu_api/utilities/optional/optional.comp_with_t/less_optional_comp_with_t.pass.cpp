@@ -51,7 +51,7 @@ kernel_test()
         sycl::buffer<O, 1> buffer2(ia, numOfItems2);
         q.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
-            auto ia_acc = buffer2.get_access<sycl::access::mode::write>(cgh);
+            auto ia_acc = buffer2.get_access<sycl::access::mode::read>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 {
                     ret_access[0] &= ((ia_acc[0] < X(1)));
