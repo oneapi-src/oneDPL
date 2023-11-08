@@ -26,14 +26,16 @@ using dpl::optional;
 
 template <class Tp>
 bool
-assign_empty(optional<Tp>&& lhs)
+assign_empty()
 {
+    optional<Tp> opt{42};
+
     sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     sycl::range<1> numOfItems1{1};
     {
         sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
-        sycl::buffer<optional<Tp>, 1> buffer2(&lhs, numOfItems1);
+        sycl::buffer<optional<Tp>, 1> buffer2(&opt, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
@@ -50,15 +52,16 @@ assign_empty(optional<Tp>&& lhs)
 
 template <class Tp>
 bool
-assign_value(optional<Tp>&& lhs)
+assign_value()
 {
+    optional<Tp> opt{42};
 
     sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     sycl::range<1> numOfItems1{1};
     {
         sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
-        sycl::buffer<optional<Tp>, 1> buffer2(&lhs, numOfItems1);
+        sycl::buffer<optional<Tp>, 1> buffer2(&opt, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
@@ -78,9 +81,8 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    using O = optional<int>;
-    auto ret = assign_empty(O{42});
-    ret &= assign_value(O{42});
+    auto ret = assign_empty<int>();
+    ret &= assign_value<int>();
     EXPECT_TRUE(ret, "Wrong result of dpl::optional copy check");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
