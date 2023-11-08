@@ -22,6 +22,8 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
+#include "assignable_from.h"
+
 #if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
 
@@ -42,36 +44,6 @@ struct Y2
     {
         return *this;
     }
-};
-
-template <class T>
-struct AssignableFrom
-{
-    int type_constructed = 0;
-    int type_assigned = 0;
-    int int_constructed = 0;
-    int int_assigned = 0;
-
-    AssignableFrom() = default;
-
-    explicit AssignableFrom(T) { ++type_constructed; }
-    AssignableFrom& operator=(T)
-    {
-        ++type_assigned;
-        return *this;
-    }
-
-    AssignableFrom(int) { ++int_constructed; }
-    AssignableFrom&
-    operator=(int)
-    {
-        ++int_assigned;
-        return *this;
-    }
-
-    AssignableFrom(AssignableFrom const&) = delete;
-    AssignableFrom&
-    operator=(AssignableFrom const&) = delete;
 };
 
 bool
