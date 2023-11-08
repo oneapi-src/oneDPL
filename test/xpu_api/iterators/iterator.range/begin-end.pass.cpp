@@ -60,7 +60,7 @@ template <typename C>
 bool
 test_const_container(const C& c, typename C::value_type val)
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     auto ret = true;
     sycl::range<1> numOfItems{1};
     sycl::buffer<C, 1> buffer1(&c, numOfItems);
@@ -91,7 +91,7 @@ test_const_container(const C& c, typename C::value_type val)
 bool
 test_initializer_list()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     auto ret = true;
     sycl::range<1> numOfItems{1};
     sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
@@ -114,7 +114,7 @@ template <typename C>
 bool
 test_container(C& c, typename C::value_type val)
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     auto ret = true;
     sycl::range<1> numOfItems{1};
     sycl::buffer<C, 1> buffer1(&c, numOfItems);
@@ -145,7 +145,7 @@ test_container(C& c, typename C::value_type val)
 void
 kernel_test()
 {
-    sycl::queue q;
+    sycl::queue q = TestUtils::get_test_queue();
     q.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest>([=]() {
             {
