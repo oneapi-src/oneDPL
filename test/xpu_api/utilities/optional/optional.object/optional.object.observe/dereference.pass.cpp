@@ -77,7 +77,13 @@ kernel_test()
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 optional<X> opt(X{});
+                const optional<X>& const_opt = opt;
+                
                 ret_access[0] &= ((*opt).test() == 4);
+                ret_access[0] &= ((*const_opt).test() == 3);
+                ret_access[0] &= ((*std::move(opt)).test() == 6);
+                ret_access[0] &= ((*std::move(const_opt)).test() == 5);
+                
                 static_assert(test() == 7);
             });
         });
