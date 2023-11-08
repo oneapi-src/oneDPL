@@ -355,11 +355,9 @@ __parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2
 
     if (N > 0)
     {
-        // std::cout<<"input"<<std::endl;
         auto keep_input =
             oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read, _Iter1>();
         auto input_buf = keep_input(__first, __last);
-        // std::cout<<"get required SLM"<<std::endl;
 
         ::std::size_t req_SLM_bytes = __func.get_required_SLM_memory();
         ::std::size_t extra_SLM_elements =
@@ -367,7 +365,6 @@ __parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2
         // if bins fit into registers, use register private accumulation
         if (__num_bins < __max_work_item_private_bins)
         {
-            // std::cout<<"registers"<<std::endl;
             __histogram_general_registers_local_reduction<__iters_per_work_item, __max_work_item_private_bins>(
                 ::std::forward<Policy>(policy), init_e, __work_group_size, input_buf.all_view(), bins_buf.all_view(),
                 __num_bins, __func, std::forward<_Range...>(__opt_range)...);
@@ -375,14 +372,12 @@ __parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2
         // if bins fit into SLM, use local atomics
         else if ((__num_bins + extra_SLM_elements) * sizeof(__local_histogram_type) < __local_mem_size)
         {
-            // std::cout<<"local atomics"<<std::endl;
             __histogram_general_local_atomics<__iters_per_work_item>(
                 ::std::forward<Policy>(policy), init_e, __work_group_size, input_buf.all_view(), bins_buf.all_view(),
                 __num_bins, __func, std::forward<_Range...>(__opt_range)...);
         }
         else // otherwise, use global atomics (private copies per workgroup)
         {
-            // std::cout<<"glocal atomics"<<std::endl;
             __histogram_general_private_global_atomics<__iters_per_work_item>(
                 ::std::forward<Policy>(policy), init_e, __work_group_size, input_buf.all_view(), bins_buf.all_view(),
                 __num_bins, __func, std::forward<_Range...>(__opt_range)...);
@@ -392,7 +387,6 @@ __parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2
     {
         init_e.wait();
     }
-    // std::cout<<"return"<<std::endl;
 }
 
 template <typename Policy, typename _Iter1, typename _Iter2, typename _Size, typename _IdxHashFunc, typename... _Range>
@@ -401,7 +395,6 @@ __parallel_histogram(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __hi
                      _IdxHashFunc __func, _Range&&... __opt_range)
 {
     auto N = __last - __first;
-    // std::cout<<"N = "<<N<<std::endl;
     __parallel_histogram_impl</*iters_per_workitem = */ 8>(::std::forward<Policy>(policy), __first, __last,
                                                                     __histogram_first, __num_bins, __func,
                                                                     std::forward<_Range...>(__opt_range)...);
