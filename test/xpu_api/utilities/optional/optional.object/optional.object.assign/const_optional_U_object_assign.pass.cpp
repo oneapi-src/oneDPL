@@ -84,7 +84,6 @@ test_ambigious_assign()
         sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
-            sycl::stream out(1024, 256, cgh);
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
                 using OptInt = dpl::optional<int>;
