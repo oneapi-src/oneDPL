@@ -27,14 +27,14 @@ using dpl::optional;
 
 template <class KernelTest, class T, class U>
 bool
-test(optional<U>&& rhs)
+test(optional<U>& opt)
 {
     sycl::queue q = TestUtils::get_test_queue();
     bool ret = true;
     sycl::range<1> numOfItems1{1};
     {
         sycl::buffer<bool, 1> buffer1(&ret, numOfItems1);
-        sycl::buffer<optional<U>, 1> buffer2(&rhs, numOfItems1);
+        sycl::buffer<optional<U>, 1> buffer2(&opt, numOfItems1);
 
         q.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
@@ -76,12 +76,12 @@ main()
 #if TEST_DPCPP_BACKEND_PRESENT
     bool ret = true;
     {
-        optional<int> rhs;
-        ret &= test<KernelTest1, X>(dpl::move(rhs));
+        optional<int> opt;
+        ret &= test<KernelTest1, X>(opt);
     }
     {
-        optional<int> rhs(3);
-        ret &= test<KernelTest2, X>(dpl::move(rhs));
+        optional<int> opt(3);
+        ret &= test<KernelTest2, X>(opt);
     }
     EXPECT_TRUE(ret, "Wrong result of dpl::optional moving constructor check");
 #endif // TEST_DPCPP_BACKEND_PRESENT
