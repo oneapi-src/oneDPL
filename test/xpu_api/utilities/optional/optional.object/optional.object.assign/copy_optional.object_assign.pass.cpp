@@ -39,7 +39,7 @@ assign_empty()
 
         q.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
-            auto lhs_access = buffer2.template get_access<sycl::access::mode::read>(cgh);
+            auto lhs_access = buffer2.template get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
                 const optional<Tp> rhs;
                 lhs_access[0] = rhs;
