@@ -22,6 +22,14 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
+struct TestT
+{
+    int x;
+    int size;
+    constexpr TestT(std::initializer_list<int> il) : x(*il.begin()), size(static_cast<int>(il.size())) {}
+    constexpr TestT(std::initializer_list<int> il, const int*) : x(*il.begin()), size(static_cast<int>(il.size())) {}
+};
+
 bool
 kernel_test()
 {
@@ -37,6 +45,23 @@ kernel_test()
                 {
                     optional<int> opt = make_optional(2);
                     ret_access[0] &= (*opt == 2);
+                }
+
+                {
+                    constexpr auto opt = make_optional<int>('a');
+                    static_assert(*opt == int('a'));
+                }
+
+                {
+                    constexpr auto opt = make_optional<TestT>({42, 2, 3});
+                    static_assert(opt->x == 42);
+                    static_assert(opt->size == 3);
+                }
+
+                {
+                    constexpr auto opt = make_optional<TestT>({42, 2, 3}, nullptr);
+                    static_assert(opt->x == 42);
+                    static_assert(opt->size == 3);
                 }
             });
         });
