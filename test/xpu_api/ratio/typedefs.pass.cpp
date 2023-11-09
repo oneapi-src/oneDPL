@@ -21,16 +21,13 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-bool
+void
 test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    bool ret = false;
     sycl::range<1> item1{1};
     {
-        sycl::buffer<bool, 1> buffer1(&ret, item1);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_acc = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 static_assert(std::atto::num == 1 && std::atto::den == 1000000000000000000ULL);
                 static_assert(std::femto::num == 1 && std::femto::den == 1000000000000000ULL);
@@ -48,11 +45,9 @@ test()
                 static_assert(std::tera::num == 1000000000000ULL && std::tera::den == 1);
                 static_assert(std::peta::num == 1000000000000000ULL && std::peta::den == 1);
                 static_assert(std::exa::num == 1000000000000000000ULL && std::exa::den == 1);
-                ret_acc[0] = true;
             });
         });
     }
-    return ret;
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -60,8 +55,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    auto ret = test();
-    EXPECT_TRUE(ret, "Wrong result of ratio typedefs check");
+    test();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
