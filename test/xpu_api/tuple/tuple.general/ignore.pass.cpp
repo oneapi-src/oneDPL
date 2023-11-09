@@ -55,14 +55,7 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelIgnoreTest>([=]() {
-            {
-                constexpr auto& ignore_v = dpl::ignore;
-                ((void)ignore_v);
-            }
-
-            {
-                ret_access[0] = test_ignore_constexpr();
-            }
+            ret_access[0] = test_ignore_constexpr();
         });
     });
 
