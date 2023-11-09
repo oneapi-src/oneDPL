@@ -93,8 +93,6 @@ struct __custom_range_binhash
     using __boundary_type = oneapi::dpl::__internal::__value_t<_Range>;
     _Range __boundaries;
 
-    __custom_range_binhash(const __custom_range_binhash<_Range>& other) : __boundaries(other.__boundaries) {}
-
     __custom_range_binhash(_Range boundaries) : __boundaries(boundaries) {}
 
     template <typename _T>

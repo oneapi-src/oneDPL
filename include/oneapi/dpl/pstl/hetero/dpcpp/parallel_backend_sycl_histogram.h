@@ -35,11 +35,12 @@ namespace dpl
 namespace __par_backend_hetero
 {
 
+//no boost baseline
 template <typename _BinHash>
-struct __no_sycl_boost
+struct __SLM_boost_impl
 {
     _BinHash bin_hash;
-    __no_sycl_boost(_BinHash __bin_hash) : bin_hash(__bin_hash) {}
+    __SLM_boost_impl(_BinHash __bin_hash) : bin_hash(__bin_hash) {}
 
     template <typename _T2>
     inline ::std::uint32_t
@@ -82,40 +83,35 @@ struct __no_sycl_boost
 };
 
 template <typename _Range>
-struct __sycl_boosted_custom_binhash
+struct __SLM_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
 {
-    using req_sycl_range_conversion = ::std::true_type;
-    using __boundary_type = oneapi::dpl::__internal::__value_t<_Range>;
-    _Range __boundaries;
+    oneapi::dpl::__internal::__custom_range_binhash<_Range> bin_hash;
 
-    __sycl_boosted_custom_binhash(_Range boundaries) : __boundaries(boundaries) {}
+    using __boundary_type = typename oneapi::dpl::__internal::__custom_range_binhash<_Range>::__boundary_type;
 
-    template <typename _T>
+    __SLM_boost_impl(oneapi::dpl::__internal::__custom_range_binhash<_Range> __bin_hash) : bin_hash(__bin_hash) {}
+
+    __SLM_boost_impl(const __SLM_boost_impl&) = default;
+    __SLM_boost_impl(__SLM_boost_impl&&) = default;
+
+    template <typename _T2>
     inline ::std::uint32_t
-    get_bin(_T&& value) const
+    get_bin(_T2&& value) const
     {
-        return (::std::upper_bound(__boundaries.begin(), __boundaries.end(), ::std::forward<_T>(value)) -
-                __boundaries.begin()) -
-               1;
+        return bin_hash.get_bin(::std::forward<_T2>(value));
     }
 
     template <typename _T2>
     inline bool
-    is_valid(const _T2& value) const
+    is_valid(_T2&& value) const
     {
-        return value >= __boundaries[0] && value < __boundaries[__boundaries.size() - 1];
-    }
-
-    _Range
-    get_range()
-    {
-        return __boundaries;
+        return bin_hash.is_valid(::std::forward<_T2>(value));
     }
 
     inline ::std::size_t
     get_required_SLM_memory()
     {
-        return sizeof(__boundary_type) * __boundaries.size();
+        return sizeof(__boundary_type) * bin_hash.__boundaries.size();
     }
 
     inline void
@@ -123,18 +119,18 @@ struct __sycl_boosted_custom_binhash
     {
         ::std::uint32_t gSize = self_item.get_local_range()[0];
         ::std::uint32_t self_lidx = self_item.get_local_id(0);
-        ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(__boundaries.size(), gSize);
+        ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(bin_hash.__boundaries.size(), gSize);
         ::std::uint8_t k;
         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
         _ONEDPL_PRAGMA_UNROLL
         for (k = 0; k < factor - 1; k++)
         {
-            d_boundaries[gSize * k + self_lidx] = __boundaries[gSize * k + self_lidx];
+            d_boundaries[gSize * k + self_lidx] = bin_hash.__boundaries[gSize * k + self_lidx];
         }
         // residual
-        if (gSize * k + self_lidx < __boundaries.size())
+        if (gSize * k + self_lidx < bin_hash.__boundaries.size())
         {
-            d_boundaries[gSize * k + self_lidx] = __boundaries[gSize * k + self_lidx];
+            d_boundaries[gSize * k + self_lidx] = bin_hash.__boundaries[gSize * k + self_lidx];
         }
     }
 
@@ -142,7 +138,8 @@ struct __sycl_boosted_custom_binhash
     ::std::uint32_t inline get_bin(_T2&& value, void* boost_mem) const
     {
         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
-        return (::std::upper_bound(d_boundaries, d_boundaries + __boundaries.size(), ::std::forward<_T2>(value)) -
+        return (::std::upper_bound(d_boundaries, d_boundaries + bin_hash.__boundaries.size(),
+                                   ::std::forward<_T2>(value)) -
                 d_boundaries) -
                1;
     }
@@ -151,77 +148,9 @@ struct __sycl_boosted_custom_binhash
     bool inline is_valid(const _T2& value, void* boost_mem) const
     {
         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
-        return (value >= d_boundaries[0]) && (value < d_boundaries[__boundaries.size()]);
+        return (value >= d_boundaries[0]) && (value < d_boundaries[bin_hash.__boundaries.size()]);
     }
 };
-
-// template <typename _Range>
-// struct __sycl_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
-// {
-//     oneapi::dpl::__internal::__custom_range_binhash<_Range> bin_hash;
-
-//     using __boundary_type = typename oneapi::dpl::__internal::__custom_range_binhash<_Range>::__boundary_type;
-
-//     _Range __boundaries;
-//     __sycl_boost_impl(oneapi::dpl::__internal::__custom_range_binhash<_Range> __bin_hash) : bin_hash(__bin_hash) {}
-
-//     template <typename _T2>
-//     inline ::std::uint32_t
-//     get_bin(_T2&& value) const
-//     {
-//         return bin_hash.get_bin(::std::forward<_T2>(value));
-//     }
-
-//     template <typename _T2>
-//     inline bool
-//     is_valid(_T2&& value) const
-//     {
-//         return bin_hash.is_valid(::std::forward<_T2>(value));
-//     }
-
-//     inline ::std::size_t
-//     get_required_SLM_memory()
-//     {
-//         return sizeof(__boundary_type) * bin_hash.__boundaries.size();
-//     }
-
-//     inline void
-//     init_SLM_memory(void* boost_mem, const sycl::nd_item<1>& self_item) const
-//     {
-//         ::std::uint32_t gSize = self_item.get_local_range()[0];
-//         ::std::uint32_t self_lidx = self_item.get_local_id(0);
-//         ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(bin_hash.__boundaries.size(), gSize);
-//         ::std::uint8_t k;
-//         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
-//         _ONEDPL_PRAGMA_UNROLL
-//         for (k = 0; k < factor - 1; k++)
-//         {
-//             d_boundaries[gSize * k + self_lidx] = bin_hash.__boundaries[gSize * k + self_lidx];
-//         }
-//         // residual
-//         if (gSize * k + self_lidx < bin_hash.__boundaries.size())
-//         {
-//             d_boundaries[gSize * k + self_lidx] = bin_hash.__boundaries[gSize * k + self_lidx];
-//         }
-//     }
-
-//     template <typename _T2>
-//     ::std::uint32_t inline get_bin(_T2&& value, void* boost_mem) const
-//     {
-//         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
-//         return (::std::upper_bound(d_boundaries, d_boundaries + bin_hash.__boundaries.size(), ::std::forward<_T2>(value)) -
-//                 d_boundaries) -
-//                1;
-//     }
-
-//     template <typename _T2>
-//     bool inline is_valid(const _T2& value, void* boost_mem) const
-//     {
-//         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
-//         return (value >= d_boundaries[0]) && (value < d_boundaries[bin_hash.__boundaries.size()]);
-//     }
-
-// };
 
 template <typename _HistAccessor, typename _OffsetT, typename _Size>
 inline void
@@ -577,22 +506,25 @@ __parallel_histogram_sycl_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _
 }
 
 template <::std::uint16_t __iters_per_work_item, typename Policy, typename _Iter1, typename _Iter2, typename _Size,
-          typename _IdxHashFunc>
-inline std::enable_if_t<!_IdxHashFunc::req_sycl_range_conversion::value>
+          typename _IdxHashFunc, typename... _Range>
+inline void
 __parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
-                          const _Size& __num_bins, _IdxHashFunc __func)
+                          const _Size& __num_bins, _IdxHashFunc __func, /*req_sycl_conversion = */ ::std::false_type,
+                          _Range&&... __opt_range)
 {
+    //wrap binhash in a wrapper to allow shared memory boost where available
     __parallel_histogram_sycl_impl<__iters_per_work_item>(::std::forward<Policy>(policy), __first, __last,
-                                                          __histogram_first, __num_bins, __no_sycl_boost(__func));
+                                                          __histogram_first, __num_bins, __SLM_boost_impl(__func),
+                                                          std::forward<_Range...>(__opt_range)...);
 }
 
 template <::std::uint16_t __iters_per_work_item, typename Policy, typename _Iter1, typename _Iter2, typename _Size,
           typename _InternalRange>
-inline std::enable_if_t<
-    oneapi::dpl::__internal::__custom_range_binhash<_InternalRange>::req_sycl_range_conversion::value>
+inline void
 __parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
                           const _Size& __num_bins,
-                          oneapi::dpl::__internal::__custom_range_binhash<_InternalRange> __func)
+                          oneapi::dpl::__internal::__custom_range_binhash<_InternalRange> __func,
+                          /*req_sycl_conversion = */ ::std::true_type)
 {
     auto range_to_upg = __func.get_range();
 
@@ -601,9 +533,10 @@ __parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2
                                                                    decltype(range_to_upg.begin())>();
     auto boundary_buf = keep_boundaries(range_to_upg.begin(), range_to_upg.end());
     auto boundary_view = boundary_buf.all_view();
-    __parallel_histogram_sycl_impl<__iters_per_work_item>(::std::forward<Policy>(policy), __first, __last,
-                                                          __histogram_first, __num_bins,
-                                                          __sycl_boosted_custom_binhash(boundary_view), boundary_view);
+    auto bin_hash = oneapi::dpl::__internal::__custom_range_binhash(boundary_view);
+    __parallel_histogram_impl<__iters_per_work_item>(::std::forward<Policy>(policy), __first, __last, __histogram_first,
+                                                     __num_bins, bin_hash,
+                                                     /*req_sycl_conversion = */ ::std::false_type{}, boundary_view);
 }
 
 template <typename Policy, typename _Iter1, typename _Iter2, typename _Size, typename _IdxHashFunc>
@@ -611,9 +544,10 @@ inline void
 __parallel_histogram(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first, const _Size& __num_bins,
                      _IdxHashFunc __func)
 {
+    using _ReqSyclConversion = typename _IdxHashFunc::req_sycl_range_conversion;
     auto N = __last - __first;
     __parallel_histogram_impl</*iters_per_workitem = */ 8>(::std::forward<Policy>(policy), __first, __last,
-                                                           __histogram_first, __num_bins, __func);
+                                                           __histogram_first, __num_bins, __func, _ReqSyclConversion{});
 }
 
 } // namespace __par_backend_hetero
