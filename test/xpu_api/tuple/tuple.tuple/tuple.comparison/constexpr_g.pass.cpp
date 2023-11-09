@@ -20,23 +20,6 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-struct constexpr_comparison_operators               // KSATODO
-{
-    template <typename _Tp>
-    void
-    operator()()
-    {
-        static_assert(!(_Tp() < _Tp()), "less");
-        static_assert(_Tp() <= _Tp(), "leq");
-        static_assert(!(_Tp() > _Tp()), "more");
-        static_assert(_Tp() >= _Tp(), "meq");
-        static_assert(_Tp() == _Tp(), "eq");
-        static_assert(!(_Tp() != _Tp()), "ne");
-    }
-};
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
 int
 main()
 {
@@ -45,9 +28,15 @@ main()
     {
         deviceQueue.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest>([=]() {
-                // KSATODO constexpr_comparison_operators
-                constexpr_comparison_operators test;
-                test.operator()<dpl::tuple<int, int>>();
+
+                constexpr dpl::tuple<int, int> tp;
+
+                static_assert(!(tp < tp));
+                static_assert(tp <= tp);
+                static_assert(!(tp > tp));
+                static_assert(tp >= tp);
+                static_assert(tp == tp);
+                static_assert(!(tp != tp));
             });
         });
     }
