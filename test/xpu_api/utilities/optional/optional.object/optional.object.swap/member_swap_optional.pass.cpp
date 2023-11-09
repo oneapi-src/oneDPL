@@ -48,6 +48,9 @@ class Y
     int i_;
 
   public:
+
+    int nsf = 0;
+
     Y(int i) : i_(i) {}
     Y(Y&&) = default;
     ~Y() {}
@@ -209,6 +212,10 @@ kernel_test()
                 {
                     optional<Y> opt1(1);
                     optional<Y> opt2(2);
+
+                    (*opt1).nsf = 100;
+                    (*opt2).nsf = 200;
+
                     static_assert(noexcept(opt1.swap(opt2)) == false);
                     ret_access[0] &= (static_cast<bool>(opt1) == true);
                     ret_access[0] &= (*opt1 == 1);
@@ -219,6 +226,9 @@ kernel_test()
                     ret_access[0] &= (*opt1 == 2);
                     ret_access[0] &= (static_cast<bool>(opt2) == true);
                     ret_access[0] &= (*opt2 == 1);
+
+                    ret_access[0] &= ((*opt1).nsf == 100);
+                    ret_access[0] &= ((*opt2).nsf == 200);
                 }
             });
         });
