@@ -43,15 +43,15 @@ kernel_test1()
                 // Test construction from values
                 dpl::tuple<int, int> tc(x1, x2);
                 dpl::tuple<int, int&> td(x1, x2);
-                dpl::tuple<const int&> te(z1);
+                dpl::tuple<const int&> t1(z1);
                 x1 = 1;
                 x2 = 1;
-                ret_access[0] = (get<0>(td) == 0 && get<1>(td) == 1 && get<0>(te) == 1);
+                ret_access[0] = (get<0>(td) == 0 && get<1>(td) == 1 && get<0>(t1) == 1);
 
                 // Test identical dpl::tuple copy constructor
                 dpl::tuple<int, int> tf(tc);
                 dpl::tuple<int, int> tg(td);
-                dpl::tuple<const int&> th(te);
+                dpl::tuple<const int&> th(t1);
                 // Test different dpl::tuple copy constructor
                 dpl::tuple<int, float> ti(tc);
                 dpl::tuple<int, float> tj(td);
