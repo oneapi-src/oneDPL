@@ -20,12 +20,12 @@
 #include <cstdint>
 #include <type_traits>
 
-
 #include "sycl_defs.h"
 #include "parallel_backend_sycl_utils.h"
 #include "execution_sycl_defs.h"
 #include "unseq_backend_sycl.h"
 #include "utils_ranges_sycl.h"
+#include "oneapi/dpl/internal/histogram_binhash_utils.h"
 #include "oneapi/dpl/internal/async_impl/async_impl_hetero.h"
 
 namespace oneapi
@@ -34,6 +34,194 @@ namespace dpl
 {
 namespace __par_backend_hetero
 {
+
+template <typename _BinHash>
+struct __no_sycl_boost
+{
+    _BinHash bin_hash;
+    __no_sycl_boost(_BinHash __bin_hash) : bin_hash(__bin_hash) {}
+
+    template <typename _T2>
+    inline ::std::uint32_t
+    get_bin(_T2&& value) const
+    {
+        return bin_hash.get_bin(::std::forward<_T2>(value));
+    }
+
+    template <typename _T2>
+    inline bool
+    is_valid(_T2&& value) const
+    {
+        return bin_hash.is_valid(::std::forward<_T2>(value));
+    }
+
+    inline ::std::size_t
+    get_required_SLM_memory() const
+    {
+        return 0;
+    }
+
+    inline void
+    init_SLM_memory(void* boost_mem, const sycl::nd_item<1>& self_item) const
+    {
+    }
+
+    template <typename _T2>
+    inline ::std::uint32_t
+    get_bin(_T2&& value, void* boost_mem) const
+    {
+        return get_bin(::std::forward<_T2>(value));
+    }
+
+    template <typename _T2>
+    inline bool
+    is_valid(const _T2& value, void* boost_mem) const
+    {
+        return is_valid(::std::forward<_T2>(value));
+    }
+};
+
+template <typename _Range>
+struct __sycl_boosted_custom_binhash
+{
+    using req_sycl_range_conversion = ::std::true_type;
+    using __boundary_type = oneapi::dpl::__internal::__value_t<_Range>;
+    _Range __boundaries;
+
+    __sycl_boosted_custom_binhash(_Range boundaries) : __boundaries(boundaries) {}
+
+    template <typename _T>
+    inline ::std::uint32_t
+    get_bin(_T&& value) const
+    {
+        return (::std::upper_bound(__boundaries.begin(), __boundaries.end(), ::std::forward<_T>(value)) -
+                __boundaries.begin()) -
+               1;
+    }
+
+    template <typename _T2>
+    inline bool
+    is_valid(const _T2& value) const
+    {
+        return value >= __boundaries[0] && value < __boundaries[__boundaries.size() - 1];
+    }
+
+    _Range
+    get_range()
+    {
+        return __boundaries;
+    }
+
+    inline ::std::size_t
+    get_required_SLM_memory()
+    {
+        return sizeof(__boundary_type) * __boundaries.size();
+    }
+
+    inline void
+    init_SLM_memory(void* boost_mem, const sycl::nd_item<1>& self_item) const
+    {
+        ::std::uint32_t gSize = self_item.get_local_range()[0];
+        ::std::uint32_t self_lidx = self_item.get_local_id(0);
+        ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(__boundaries.size(), gSize);
+        ::std::uint8_t k;
+        __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
+        _ONEDPL_PRAGMA_UNROLL
+        for (k = 0; k < factor - 1; k++)
+        {
+            d_boundaries[gSize * k + self_lidx] = __boundaries[gSize * k + self_lidx];
+        }
+        // residual
+        if (gSize * k + self_lidx < __boundaries.size())
+        {
+            d_boundaries[gSize * k + self_lidx] = __boundaries[gSize * k + self_lidx];
+        }
+    }
+
+    template <typename _T2>
+    ::std::uint32_t inline get_bin(_T2&& value, void* boost_mem) const
+    {
+        __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
+        return (::std::upper_bound(d_boundaries, d_boundaries + __boundaries.size(), ::std::forward<_T2>(value)) -
+                d_boundaries) -
+               1;
+    }
+
+    template <typename _T2>
+    bool inline is_valid(const _T2& value, void* boost_mem) const
+    {
+        __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
+        return (value >= d_boundaries[0]) && (value < d_boundaries[__boundaries.size()]);
+    }
+};
+
+// template <typename _Range>
+// struct __sycl_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
+// {
+//     oneapi::dpl::__internal::__custom_range_binhash<_Range> bin_hash;
+
+//     using __boundary_type = typename oneapi::dpl::__internal::__custom_range_binhash<_Range>::__boundary_type;
+
+//     _Range __boundaries;
+//     __sycl_boost_impl(oneapi::dpl::__internal::__custom_range_binhash<_Range> __bin_hash) : bin_hash(__bin_hash) {}
+
+//     template <typename _T2>
+//     inline ::std::uint32_t
+//     get_bin(_T2&& value) const
+//     {
+//         return bin_hash.get_bin(::std::forward<_T2>(value));
+//     }
+
+//     template <typename _T2>
+//     inline bool
+//     is_valid(_T2&& value) const
+//     {
+//         return bin_hash.is_valid(::std::forward<_T2>(value));
+//     }
+
+//     inline ::std::size_t
+//     get_required_SLM_memory()
+//     {
+//         return sizeof(__boundary_type) * bin_hash.__boundaries.size();
+//     }
+
+//     inline void
+//     init_SLM_memory(void* boost_mem, const sycl::nd_item<1>& self_item) const
+//     {
+//         ::std::uint32_t gSize = self_item.get_local_range()[0];
+//         ::std::uint32_t self_lidx = self_item.get_local_id(0);
+//         ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(bin_hash.__boundaries.size(), gSize);
+//         ::std::uint8_t k;
+//         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
+//         _ONEDPL_PRAGMA_UNROLL
+//         for (k = 0; k < factor - 1; k++)
+//         {
+//             d_boundaries[gSize * k + self_lidx] = bin_hash.__boundaries[gSize * k + self_lidx];
+//         }
+//         // residual
+//         if (gSize * k + self_lidx < bin_hash.__boundaries.size())
+//         {
+//             d_boundaries[gSize * k + self_lidx] = bin_hash.__boundaries[gSize * k + self_lidx];
+//         }
+//     }
+
+//     template <typename _T2>
+//     ::std::uint32_t inline get_bin(_T2&& value, void* boost_mem) const
+//     {
+//         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
+//         return (::std::upper_bound(d_boundaries, d_boundaries + bin_hash.__boundaries.size(), ::std::forward<_T2>(value)) -
+//                 d_boundaries) -
+//                1;
+//     }
+
+//     template <typename _T2>
+//     bool inline is_valid(const _T2& value, void* boost_mem) const
+//     {
+//         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
+//         return (value >= d_boundaries[0]) && (value < d_boundaries[bin_hash.__boundaries.size()]);
+//     }
+
+// };
 
 template <typename _HistAccessor, typename _OffsetT, typename _Size>
 inline void
@@ -92,7 +280,8 @@ __accum_local_atomics_iter(const _Iter1& in_acc, const ::std::size_t& __index, c
 template <typename _BinType, typename _HistAccessorIn, typename _OffsetT, typename _HistAccessorOut, typename _Size>
 inline void
 __reduce_out_histograms(const _HistAccessorIn& in_histogram, const _OffsetT& offset,
-                        const _HistAccessorOut& out_histogram, const _Size& __num_bins, const sycl::nd_item<1>& self_item)
+                        const _HistAccessorOut& out_histogram, const _Size& __num_bins,
+                        const sycl::nd_item<1>& self_item)
 {
     ::std::uint32_t gSize = self_item.get_local_range()[0];
     ::std::uint32_t self_lidx = self_item.get_local_id(0);
@@ -278,8 +467,7 @@ __histogram_general_private_global_atomics(Policy&& policy, const sycl::event& _
     ::std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(N, __work_group_size * iters_per_work_item);
 
     auto private_histograms =
-        oneapi::dpl::__par_backend_hetero::__buffer<Policy, __bin_type>(policy, segments * __num_bins)
-            .get_buffer();
+        oneapi::dpl::__par_backend_hetero::__buffer<Policy, __bin_type>(policy, segments * __num_bins).get_buffer();
 
     auto e = policy.queue().submit([&](auto& h) {
         h.depends_on(__init_e);
@@ -318,8 +506,8 @@ __histogram_general_private_global_atomics(Policy&& policy, const sycl::event& _
 
                            __dpl_sycl::__group_barrier(__self_item);
 
-                           __reduce_out_histograms<__bin_type>(hacc_private, __wgroup_idx * __num_bins, __bins, __num_bins,
-                                                               __self_item);
+                           __reduce_out_histograms<__bin_type>(hacc_private, __wgroup_idx * __num_bins, __bins,
+                                                               __num_bins, __self_item);
                        });
     });
     e.wait();
@@ -328,8 +516,8 @@ __histogram_general_private_global_atomics(Policy&& policy, const sycl::event& _
 template <::std::uint16_t __iters_per_work_item, typename Policy, typename _Iter1, typename _Iter2, typename _Size,
           typename _IdxHashFunc, typename... _Range>
 inline void
-__parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
-                          const _Size& __num_bins, _IdxHashFunc __func, _Range&&... __opt_range)
+__parallel_histogram_sycl_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
+                               const _Size& __num_bins, _IdxHashFunc __func, _Range&&... __opt_range)
 {
     using __local_histogram_type = ::std::uint32_t;
     using __global_histogram_type = typename ::std::iterator_traits<_Iter2>::value_type;
@@ -341,16 +529,15 @@ __parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2
     auto __local_mem_size = policy.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
     constexpr ::std::uint8_t __max_work_item_private_bins = 16;
 
-
     auto keep_bins =
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::write, _Iter2>();
     auto bins_buf = keep_bins(__histogram_first, __histogram_first + __num_bins);
 
     auto __f = oneapi::dpl::__internal::fill_functor<__global_histogram_type>{__global_histogram_type{0}};
     //fill histogram bins with zeros
-    auto init_e = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        ::std::forward<Policy>(policy), unseq_backend::walk_n<Policy, decltype(__f)>{__f}, __num_bins,
-        bins_buf.all_view());
+    auto init_e = oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<Policy>(policy),
+                                                                    unseq_backend::walk_n<Policy, decltype(__f)>{__f},
+                                                                    __num_bins, bins_buf.all_view());
     auto N = __last - __first;
 
     if (N > 0)
@@ -389,15 +576,44 @@ __parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2
     }
 }
 
-template <typename Policy, typename _Iter1, typename _Iter2, typename _Size, typename _IdxHashFunc, typename... _Range>
+template <::std::uint16_t __iters_per_work_item, typename Policy, typename _Iter1, typename _Iter2, typename _Size,
+          typename _IdxHashFunc>
+inline std::enable_if_t<!_IdxHashFunc::req_sycl_range_conversion::value>
+__parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
+                          const _Size& __num_bins, _IdxHashFunc __func)
+{
+    __parallel_histogram_sycl_impl<__iters_per_work_item>(::std::forward<Policy>(policy), __first, __last,
+                                                          __histogram_first, __num_bins, __no_sycl_boost(__func));
+}
+
+template <::std::uint16_t __iters_per_work_item, typename Policy, typename _Iter1, typename _Iter2, typename _Size,
+          typename _InternalRange>
+inline std::enable_if_t<
+    oneapi::dpl::__internal::__custom_range_binhash<_InternalRange>::req_sycl_range_conversion::value>
+__parallel_histogram_impl(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
+                          const _Size& __num_bins,
+                          oneapi::dpl::__internal::__custom_range_binhash<_InternalRange> __func)
+{
+    auto range_to_upg = __func.get_range();
+
+    //required to have this in the call stack to keep any created buffers alive
+    auto keep_boundaries = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
+                                                                   decltype(range_to_upg.begin())>();
+    auto boundary_buf = keep_boundaries(range_to_upg.begin(), range_to_upg.end());
+    auto boundary_view = boundary_buf.all_view();
+    __parallel_histogram_sycl_impl<__iters_per_work_item>(::std::forward<Policy>(policy), __first, __last,
+                                                          __histogram_first, __num_bins,
+                                                          __sycl_boosted_custom_binhash(boundary_view), boundary_view);
+}
+
+template <typename Policy, typename _Iter1, typename _Iter2, typename _Size, typename _IdxHashFunc>
 inline void
 __parallel_histogram(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first, const _Size& __num_bins,
-                     _IdxHashFunc __func, _Range&&... __opt_range)
+                     _IdxHashFunc __func)
 {
     auto N = __last - __first;
     __parallel_histogram_impl</*iters_per_workitem = */ 8>(::std::forward<Policy>(policy), __first, __last,
-                                                                    __histogram_first, __num_bins, __func,
-                                                                    std::forward<_Range...>(__opt_range)...);
+                                                           __histogram_first, __num_bins, __func);
 }
 
 } // namespace __par_backend_hetero
