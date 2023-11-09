@@ -31,7 +31,7 @@ struct X
     {
         return 3;
     }
-    int
+    constexpr int
     test() &
     {
         return 4;
@@ -41,28 +41,12 @@ struct X
     {
         return 5;
     }
-    int
+    constexpr int
     test() &&
     {
         return 6;
     }
 };
-
-struct Y
-{
-    constexpr int
-    test()
-    {
-        return 7;
-    }
-};
-
-constexpr int
-test()
-{
-    optional<Y> opt{Y{}};
-    return (*opt).test();
-}
 
 bool
 kernel_test()
@@ -83,8 +67,10 @@ kernel_test()
                 ret_access[0] &= ((*const_opt).test() == 3);
                 ret_access[0] &= ((*std::move(opt)).test() == 6);
                 ret_access[0] &= ((*std::move(const_opt)).test() == 5);
-                
-                static_assert(test() == 7);
+
+                constexpr optional<X> opt1(X{});
+                static_assert((*opt1).test() == 3);
+                static_assert((*std::move(opt1)).test() == 5);
             });
         });
     }
