@@ -542,7 +542,7 @@ __parallel_histogram(Policy&& policy, _Iter1 __first, _Iter1 __last, _Iter2 __hi
 {
     using _ReqSyclConversion = typename _IdxHashFunc::req_sycl_range_conversion;
     auto N = __last - __first;
-    __parallel_histogram_impl</*iters_per_workitem = */ 8>(::std::forward<Policy>(policy), __first, __last,
+    __parallel_histogram_impl</*iters_per_workitem = */ 4>(::std::forward<Policy>(policy), __first, __last,
                                                            __histogram_first, __num_bins, __func, _ReqSyclConversion{});
 }
 
