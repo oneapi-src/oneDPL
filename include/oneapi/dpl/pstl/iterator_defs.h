@@ -27,28 +27,7 @@ namespace dpl
 namespace __internal
 {
 
-// Internal wrapper around ::std::iterator_traits as it is required to be
-// SFINAE-friendly(not produce "hard" error when _Ip is not an iterator)
-// only starting with C++17. Although many standard library implementations
-// provide it for older versions, we cannot rely on that.
-template <typename _Ip, typename = void>
-struct __iterator_traits
-{
-};
-
-template <typename _Ip>
-struct __iterator_traits<_Ip,
-                         ::std::void_t<typename _Ip::iterator_category, typename _Ip::value_type,
-                                       typename _Ip::difference_type, typename _Ip::pointer, typename _Ip::reference>>
-    : ::std::iterator_traits<_Ip>
-{
-};
-
-// Handles _Tp* and const _Tp* specializations
-template <typename _Tp>
-struct __iterator_traits<_Tp*, void> : ::std::iterator_traits<_Tp*>
-{
-};
+#if _ONEDPL___cplusplus < 202002L
 
 // Make is_random_access_iterator not to fail with a 'hard' error when it's used in SFINAE with
 // a non-iterator type by providing a default value.
@@ -59,10 +38,19 @@ struct __is_random_access_iterator_impl : ::std::false_type
 
 template <typename _IteratorType>
 struct __is_random_access_iterator_impl<_IteratorType,
-                                        ::std::void_t<typename __iterator_traits<_IteratorType>::iterator_category>>
-    : ::std::is_same<typename __iterator_traits<_IteratorType>::iterator_category, ::std::random_access_iterator_tag>
+                                        ::std::void_t<typename ::std::iterator_traits<_IteratorType>::iterator_category>>
+    : ::std::is_same<typename ::std::iterator_traits<_IteratorType>::iterator_category, ::std::random_access_iterator_tag>
 {
 };
+
+#else
+
+template <typename _IteratorType>
+struct __is_random_access_iterator_impl : std::bool_constant<std::random_access_iterator<_IteratorType>>
+{
+};
+
+#endif
 
 /* iterator */
 template <typename _IteratorType, typename... _OtherIteratorTypes>
