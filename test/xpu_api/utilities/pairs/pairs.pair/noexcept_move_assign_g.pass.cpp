@@ -20,12 +20,12 @@
 
 #include "support/utils.h"
 
-// #include "testsuite_struct.h" KSATODO required to remove?
-// Looks like this code exist at https://github.com/search?q=NoexceptMoveAssignClass&type=code
-// For example: https://github.com/bfg-repo-cleaner-demos/gcc-original/blob/86eac679c8bd26de9c5a1d2d8c20adfe59b59924/libstdc%2B%2B-v3/testsuite/util/testsuite_tr1.h#L222
-// Repository: https://github.com/bfg-repo-cleaner-demos/gcc-original/tree/86eac679c8bd26de9c5a1d2d8c20adfe59b59924
-
 #if TEST_DPCPP_BACKEND_PRESENT
+
+struct TestStruct
+{
+};
+
 void
 kernel_test()
 {
@@ -35,7 +35,7 @@ kernel_test()
             cgh.single_task<class KernelTest>([=]() {
                 typedef dpl::pair<int, int> tt1;
                 typedef dpl::pair<int, float> tt2;
-                typedef dpl::pair<NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt3;
+                typedef dpl::pair<TestStruct, TestStruct> tt3;
 
                 static_assert(std::is_nothrow_move_assignable<tt1>::value);
                 static_assert(std::is_nothrow_move_assignable<tt2>::value);

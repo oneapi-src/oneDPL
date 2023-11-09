@@ -19,12 +19,11 @@
 
 #include "support/utils.h"
 
-// #include "testsuite_struct.h"        // KSATODO required to remove?
-// Looks like this code exist at https://github.com/search?q=NoexceptMoveAssignClass&type=code
-// For example: https://github.com/bfg-repo-cleaner-demos/gcc-original/blob/86eac679c8bd26de9c5a1d2d8c20adfe59b59924/libstdc%2B%2B-v3/testsuite/util/testsuite_tr1.h#L222
-// Repository: https://github.com/bfg-repo-cleaner-demos/gcc-original/tree/86eac679c8bd26de9c5a1d2d8c20adfe59b59924
-
 #if TEST_DPCPP_BACKEND_PRESENT
+struct TestStruct
+{
+};
+
 void
 kernel_test()
 {
@@ -34,12 +33,12 @@ kernel_test()
             cgh.single_task<class KernelTest>([=]() {
                 typedef dpl::pair<int, int> tt1;
                 typedef dpl::pair<int, float> tt2;
-                typedef dpl::pair<short, NoexceptMoveAssignClass> tt3;
-                typedef dpl::pair<short, NoexceptMoveConsClass> tt4;
-                typedef dpl::pair<NoexceptMoveConsClass, NoexceptMoveConsClass> tt5;
-                typedef dpl::pair<NoexceptMoveConsNoexceptMoveAssignClass, NoexceptMoveConsNoexceptMoveAssignClass> tt6;
-                typedef dpl::pair<NoexceptMoveConsNoexceptMoveAssignClass, float> tt7;
-                typedef dpl::pair<NoexceptMoveConsNoexceptMoveAssignClass, NoexceptMoveConsNoexceptMoveAssignClass> tt8;
+                typedef dpl::pair<short, TestStruct> tt3;
+                typedef dpl::pair<short, TestStruct> tt4;
+                typedef dpl::pair<TestStruct, TestStruct> tt5;
+                typedef dpl::pair<TestStruct, TestStruct> tt6;
+                typedef dpl::pair<TestStruct, float> tt7;
+                typedef dpl::pair<TestStruct, TestStruct> tt8;
 
                 static_assert(noexcept(dpl::declval<tt1&>().swap(dpl::declval<tt1&>())));
                 static_assert(noexcept(dpl::declval<tt2&>().swap(dpl::declval<tt2&>())));
