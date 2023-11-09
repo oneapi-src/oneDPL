@@ -38,7 +38,7 @@ kernel_test1()
                 const int& z1 = x1;
 
                 // Test empty constructor
-                dpl::tuple<> ta __attribute__((unused));
+                [[maybe_unused]] dpl::tuple<> ta;
                 dpl::tuple<int, int> tb;
                 // Test construction from values
                 dpl::tuple<int, int> tc(x1, x2);
