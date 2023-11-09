@@ -1,21 +1,27 @@
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(tuple)
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <tuple>
-#    include <utility>
-namespace s = std;
-#endif
+#include "support/test_config.h"
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include <oneapi/dpl/tuple>
+#include <oneapi/dpl/utility>
 
+#include "support/test_macros.h"
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
 struct ConvertibleToAny
 {
     template <class T>
@@ -24,17 +30,19 @@ struct ConvertibleToAny
         return T();
     }
 };
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-    cl::sycl::queue deviceQueue;
+#if TEST_DPCPP_BACKEND_PRESENT
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     {
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
-            cgh.single_task<class KernelTest>([=]() { s::tuple<ConvertibleToAny&&> t(ConvertibleToAny{}); });
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            cgh.single_task<class KernelTest>([=]() { dpl::tuple<ConvertibleToAny&&> t(ConvertibleToAny{}); });
         });
     }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    std::cout << "pass" << std::endl;
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

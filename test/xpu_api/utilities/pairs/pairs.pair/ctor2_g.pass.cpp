@@ -1,38 +1,45 @@
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <utility>
-namespace s = std;
-#endif
+#include "support/test_config.h"
 
-constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
-constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
+#include <oneapi/dpl/utility>
 
-cl::sycl::cl_bool
+#include "support/test_macros.h"
+#include "support/utils.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+bool
 kernel_test1()
 {
-    sycl::queue deviceQueue;
-    sycl::cl_bool ret = false;
-    sycl::cl_bool check = false;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = false;
+    bool check = false;
     sycl::range<1> numOfItem{1};
-    s::pair<s::pair<int, int>, int> p;
+    dpl::pair<dpl::pair<int, int>, int> p;
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItem);
-        sycl::buffer<sycl::cl_bool, 1> buffer2(&check, numOfItem);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItem);
+        sycl::buffer<bool, 1> buffer2(&check, numOfItem);
         sycl::buffer<decltype(p), 1> buffer3(&p, numOfItem);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_acc = buffer1.get_access<sycl_write>(cgh);
-            auto check_acc = buffer2.get_access<sycl_write>(cgh);
-            auto acc1 = buffer3.get_access<sycl_write>(cgh);
+            auto ret_acc = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto check_acc = buffer2.get_access<sycl::access::mode::write>(cgh);
+            auto acc1 = buffer3.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest1>([=]() {
                 // check if there is change from input after data transfer
-                check_acc[0] = (acc1[0].first == s::pair<int, int>());
+                check_acc[0] = (acc1[0].first == dpl::pair<int, int>());
                 check_acc[0] &= (acc1[0].second == 0);
                 if (check_acc[0])
                 {
@@ -44,7 +51,7 @@ kernel_test1()
         });
     }
     // check data after executing kernel function
-    check &= (p.first == s::pair<int, int>());
+    check &= (p.first == dpl::pair<int, int>());
     check &= (p.second == 0);
     if (!check)
         return false;
@@ -54,20 +61,20 @@ struct empty
 {
 };
 
-cl::sycl::cl_bool
+bool
 kernel_test2()
 {
-    sycl::queue deviceQueue;
-    sycl::cl_bool ret = false;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = false;
     sycl::range<1> numOfItem{1};
-    s::pair<s::pair<empty, empty>, empty> p;
+    dpl::pair<dpl::pair<empty, empty>, empty> p;
 
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItem);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItem);
         sycl::buffer<decltype(p), 1> buffer2(&p, numOfItem);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_acc = buffer1.get_access<sycl_write>(cgh);
-            auto acc1 = buffer2.get_access<sycl_write>(cgh);
+            auto ret_acc = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto acc1 = buffer2.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest2>([=]() {
                 static_assert(sizeof(acc1[0]) == (3 * sizeof(empty)), "assertion fail");
                 ret_acc[0] = ((void*)&acc1[0] == (void*)&acc1[0].first);
@@ -77,22 +84,22 @@ kernel_test2()
     return ret;
 }
 
-cl::sycl::cl_bool
+bool
 kernel_test3()
 {
-    sycl::queue deviceQueue;
-    sycl::cl_bool ret = false;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = false;
     sycl::range<1> numOfItem{1};
-    typedef s::pair<int, int> int_pair;
-    typedef s::pair<int_pair, int_pair> int_pair_pair;
-    s::pair<int_pair_pair, int_pair_pair> p;
+    typedef dpl::pair<int, int> int_pair;
+    typedef dpl::pair<int_pair, int_pair> int_pair_pair;
+    dpl::pair<int_pair_pair, int_pair_pair> p;
 
     {
-        sycl::buffer<sycl::cl_bool, 1> buffer1(&ret, numOfItem);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItem);
         sycl::buffer<decltype(p), 1> buffer2(&p, numOfItem);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_acc = buffer1.get_access<sycl_write>(cgh);
-            auto acc1 = buffer2.get_access<sycl_write>(cgh);
+            auto ret_acc = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto acc1 = buffer2.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest3>([=]() {
                 static_assert(sizeof(int_pair_pair) == (2 * sizeof(int_pair)), "nested");
                 static_assert(sizeof(acc1[0]) == (2 * sizeof(int_pair_pair)), "nested again");
@@ -104,17 +111,15 @@ kernel_test3()
     }
     return ret;
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test1() && kernel_test2() && kernel_test3();
-    if (ret)
-    {
-        std::cout << "pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "fail" << std::endl;
-    }
-    return 0;
+    EXPECT_TRUE(ret, "Wrong result of dpl::pair constructor check in kernel_test1, kernel_test2 or kernel_test3");
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

@@ -1,23 +1,29 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
 // Tuple
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-#    include _ONEAPI_STD_TEST_HEADER(tuple)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <utility>
-#    include <tuple>
-namespace s = std;
-#endif
+#include <oneapi/dpl/tuple>
+#include <oneapi/dpl/utility>
 
-constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
-constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 struct type_zero
 {
     type_zero() : n_(757) {}
@@ -74,27 +80,27 @@ struct type_two
     int n1_, n2_;
 };
 
-cl::sycl::cl_bool
+bool
 kernel_test()
 {
-    sycl::queue deviceQueue;
-    sycl::cl_bool ret = false;
-    sycl::cl_bool check = false;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = false;
+    bool check = false;
     sycl::range<1> numOfItem{1};
 
-    s::pair<type_one, type_zero> pp0(s::piecewise_construct, s::forward_as_tuple(-3), s::forward_as_tuple());
-    s::pair<type_one, type_two> pp1(s::piecewise_construct, s::forward_as_tuple(6), s::forward_as_tuple(5, 4));
-    s::pair<type_two, type_two> pp2(s::piecewise_construct, s::forward_as_tuple(2, 1), s::forward_as_tuple(-1, -3));
+    dpl::pair<type_one, type_zero> pp0(dpl::piecewise_construct, dpl::forward_as_tuple(-3), dpl::forward_as_tuple());
+    dpl::pair<type_one, type_two> pp1(dpl::piecewise_construct, dpl::forward_as_tuple(6), dpl::forward_as_tuple(5, 4));
+    dpl::pair<type_two, type_two> pp2(dpl::piecewise_construct, dpl::forward_as_tuple(2, 1), dpl::forward_as_tuple(-1, -3));
     {
-        sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItem);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItem);
         sycl::buffer<decltype(pp0), 1> buffer2(&pp0, numOfItem);
         sycl::buffer<decltype(pp1), 1> buffer3(&pp1, numOfItem);
         sycl::buffer<decltype(pp2), 1> buffer4(&pp2, numOfItem);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_acc1 = buffer1.get_access<sycl_write>(cgh);
-            auto acc1 = buffer2.get_access<sycl_write>(cgh);
-            auto acc2 = buffer3.get_access<sycl_write>(cgh);
-            auto acc3 = buffer4.get_access<sycl_write>(cgh);
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            auto ret_acc1 = buffer1.get_access<sycl::access::mode::write>(cgh);
+            auto acc1 = buffer2.get_access<sycl::access::mode::write>(cgh);
+            auto acc2 = buffer3.get_access<sycl::access::mode::write>(cgh);
+            auto acc3 = buffer4.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 ret_acc1[0] = (acc1[0].first.get() == -3);
                 ret_acc1[0] &= (acc1[0].second.get() == 757);
@@ -126,18 +132,15 @@ kernel_test()
         return false;
     return ret;
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
-    if (ret)
-    {
-        std::cout << "pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "fail" << std::endl;
-    }
-    return 0;
+    EXPECT_TRUE(ret, "Wrong result of dpl::pair piecewise construct check in kernel_test");
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

@@ -1,46 +1,50 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
 // <tuple>
 
 // constexpr unspecified ignore;
 
-// UNSUPPORTED: c++98, c++03
+#include "support/test_config.h"
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include <oneapi/dpl/tuple>
+#include <oneapi/dpl/functional>
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(tuple)
-#    include _ONEAPI_STD_TEST_HEADER(functional)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <tuple>
-#    include <functional>
-namespace s = std;
-#endif
+#include "support/test_macros.h"
+#include "support/utils.h"
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
-
+#if TEST_DPCPP_BACKEND_PRESENT
 class KernelIgnoreTest;
 
 bool __attribute__((always_inline)) test_ignore_constexpr()
 {
     bool ret = false;
-    { // Test that s::ignore provides constexpr converting assignment.
-        auto& res = (s::ignore = 42);
-        ret = (&res == &s::ignore);
+    { // Test that dpl::ignore provides constexpr converting assignment.
+        auto& res = (dpl::ignore = 42);
+        ret = (&res == &dpl::ignore);
     }
-    { // Test that s::ignore provides constexpr copy/move constructors
-        auto copy = s::ignore;
-        auto moved = s::move(copy);
+    { // Test that dpl::ignore provides constexpr copy/move constructors
+        auto copy = dpl::ignore;
+        auto moved = dpl::move(copy);
         ((void)moved);
     }
-    { // Test that s::ignore provides constexpr copy/move assignment
-        auto copy = s::ignore;
-        copy = s::ignore;
-        auto moved = s::ignore;
-        moved = s::move(copy);
+    { // Test that dpl::ignore provides constexpr copy/move assignment
+        auto copy = dpl::ignore;
+        copy = dpl::ignore;
+        auto moved = dpl::ignore;
+        moved = dpl::move(copy);
     }
     return ret;
 }
@@ -48,15 +52,15 @@ bool __attribute__((always_inline)) test_ignore_constexpr()
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
-        auto ret_access = buffer1.get_access<sycl_write>(cgh);
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = false;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+    deviceQueue.submit([&](sycl::handler& cgh) {
+        auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelIgnoreTest>([=]() {
             {
-                constexpr auto& ignore_v = s::ignore;
+                constexpr auto& ignore_v = dpl::ignore;
                 ((void)ignore_v);
             }
 
@@ -66,20 +70,17 @@ kernel_test()
         });
     });
 
-    auto ret_access_host = buffer1.get_access<sycl_read>();
-    if (ret_access_host[0])
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    auto ret_access_host = buffer1.get_host_access(sycl::read_only);
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::ignore check");
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

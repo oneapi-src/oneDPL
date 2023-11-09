@@ -1,26 +1,33 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
 // <utility>
 
 // template <class T1, class T2> struct pair
 
 // tuple_element<I, pair<T1, T2> >::type
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <utility>
-namespace s = std;
-#endif
+#include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/utility>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 template <typename T1, typename T2>
 bool
 test()
@@ -30,41 +37,41 @@ test()
     {
         typedef T1 Exp1;
         typedef T2 Exp2;
-        typedef s::pair<T1, T2> P;
-        static_assert((s::is_same<typename s::tuple_element<0, P>::type, Exp1>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<1, P>::type, Exp2>::value), "");
+        typedef dpl::pair<T1, T2> P;
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
 
-        result = (s::is_same<typename s::tuple_element<0, P>::type, Exp1>::value);
-        result &= (s::is_same<typename s::tuple_element<1, P>::type, Exp2>::value);
+        result = (dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
     }
     {
         typedef T1 const Exp1;
         typedef T2 const Exp2;
-        typedef s::pair<T1, T2> const P;
-        static_assert((s::is_same<typename s::tuple_element<0, P>::type, Exp1>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<1, P>::type, Exp2>::value), "");
+        typedef dpl::pair<T1, T2> const P;
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
 
-        result &= (s::is_same<typename s::tuple_element<0, P>::type, Exp1>::value);
-        result &= (s::is_same<typename s::tuple_element<1, P>::type, Exp2>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
     }
     {
         typedef T1 volatile Exp1;
         typedef T2 volatile Exp2;
-        typedef s::pair<T1, T2> volatile P;
-        static_assert((s::is_same<typename s::tuple_element<0, P>::type, Exp1>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<1, P>::type, Exp2>::value), "");
-        result &= (s::is_same<typename s::tuple_element<0, P>::type, Exp1>::value);
-        result &= (s::is_same<typename s::tuple_element<1, P>::type, Exp2>::value);
+        typedef dpl::pair<T1, T2> volatile P;
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
     }
     {
         typedef T1 const volatile Exp1;
         typedef T2 const volatile Exp2;
-        typedef s::pair<T1, T2> const volatile P;
-        static_assert((s::is_same<typename s::tuple_element<0, P>::type, Exp1>::value), "");
-        static_assert((s::is_same<typename s::tuple_element<1, P>::type, Exp2>::value), "");
+        typedef dpl::pair<T1, T2> const volatile P;
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
 
-        result &= (s::is_same<typename s::tuple_element<0, P>::type, Exp1>::value);
-        result &= (s::is_same<typename s::tuple_element<1, P>::type, Exp2>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
     }
 
     return result;
@@ -77,31 +84,27 @@ template <typename T1, typename T2, typename KC>
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
-        auto ret_access = buffer1.get_access<sycl_write>(cgh);
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = false;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+    deviceQueue.submit([&](sycl::handler& cgh) {
+        auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<KC>([=]() { ret_access[0] = test<T1, T2>(); });
     });
 
-    auto ret_access_host = buffer1.get_access<sycl_read>();
-    if (ret_access_host[0])
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    auto ret_access_host = buffer1.get_host_access(sycl::read_only);
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::pair elements check: should be dpl::tuple_element");
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test<int, short, KernelPairTest1>();
     kernel_test<int*, char, KernelPairTest2>();
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

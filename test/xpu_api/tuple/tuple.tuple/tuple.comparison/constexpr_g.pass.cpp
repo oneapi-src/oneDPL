@@ -1,33 +1,56 @@
-#include "oneapi_std_test_config.h"
-#include "testsuite_common_types.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(tuple)
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <tuple>
-#    include <utility>
-namespace s = std;
-#endif
+#include "support/test_config.h"
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include <oneapi/dpl/tuple>
+#include <oneapi/dpl/utility>
+
+#include "support/utils.h"
+
+// KSATODO constexpr_comparison_operators
+struct constexpr_comparison_operators
+{
+    template <typename _Tp>
+    void
+    operator()()
+    {
+        static_assert(!(_Tp() < _Tp()), "less");
+        static_assert(_Tp() <= _Tp(), "leq");
+        static_assert(!(_Tp() > _Tp()), "more");
+        static_assert(_Tp() >= _Tp(), "meq");
+        static_assert(_Tp() == _Tp(), "eq");
+        static_assert(!(_Tp() != _Tp()), "ne");
+    }
+};
 
 int
 main()
 {
-    cl::sycl::queue deviceQueue;
+#if TEST_DPCPP_BACKEND_PRESENT
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     {
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        deviceQueue.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest>([=]() {
+                // KSATODO constexpr_comparison_operators
                 constexpr_comparison_operators test;
-                test.operator()<s::tuple<int, int>>();
+                test.operator()<dpl::tuple<int, int>>();
             });
         });
     }
-    std::cout << "pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

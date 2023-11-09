@@ -1,3 +1,18 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
+
 // <utility>
 
 // template <class T1, class T2> struct pair
@@ -5,24 +20,15 @@
 // struct piecewise_construct_t { };
 // constexpr piecewise_construct_t piecewise_construct = piecewise_construct_t();
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_config.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(tuple)
-#    include _ONEAPI_STD_TEST_HEADER(functional)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <tuple>
-#    include <functional>
-namespace s = std;
-#endif
+#include <oneapi/dpl/tuple>
+#include <oneapi/dpl/functional>
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include "support/test_macros.h"
+#include "support/utils.h"
 
+#if TEST_DPCPP_BACKEND_PRESENT
 class A
 {
     int i_;
@@ -71,14 +77,14 @@ class KernelPairTest;
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::range<1> numOfItems{1};
-    cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
-        auto ret_access = buffer1.get_access<sycl_write>(cgh);
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = false;
+    sycl::range<1> numOfItems{1};
+    sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+    deviceQueue.submit([&](sycl::handler& cgh) {
+        auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelPairTest>([=]() {
-            s::pair<A, B> p(s::piecewise_construct, s::make_tuple(4, 'a'), s::make_tuple(3.5f, 6u, 2u));
+            dpl::pair<A, B> p(dpl::piecewise_construct, dpl::make_tuple(4, 'a'), dpl::make_tuple(3.5f, 6u, 2u));
             ret_access[0] = (p.first.get_i() == 4);
             ret_access[0] &= (p.first.get_c() == 'a');
             ret_access[0] &= (p.second.get_f() == 3.5f);
@@ -87,21 +93,17 @@ kernel_test()
         });
     });
 
-    auto ret_access_host = buffer1.get_access<sycl_read>();
-    if (ret_access_host[0])
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    auto ret_access_host = buffer1.get_host_access(sycl::read_only);
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::piecewise_construct check");
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

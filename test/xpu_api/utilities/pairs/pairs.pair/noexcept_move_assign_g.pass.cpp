@@ -1,44 +1,57 @@
-#include "oneapi_std_test_config.h"
-#include "testsuite_struct.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <utility>
-namespace s = std;
-#endif
+#include "support/test_config.h"
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/utility>
 
+#include "support/utils.h"
+
+// #include "testsuite_struct.h" KSATODO required to remove?
+// Looks like this code exist at https://github.com/search?q=NoexceptMoveAssignClass&type=code
+// For example: https://github.com/bfg-repo-cleaner-demos/gcc-original/blob/86eac679c8bd26de9c5a1d2d8c20adfe59b59924/libstdc%2B%2B-v3/testsuite/util/testsuite_tr1.h#L222
+// Repository: https://github.com/bfg-repo-cleaner-demos/gcc-original/tree/86eac679c8bd26de9c5a1d2d8c20adfe59b59924
+
+#if TEST_DPCPP_BACKEND_PRESENT
 void
 kernel_test()
 {
-    cl::sycl::queue deviceQueue;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     {
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
+        deviceQueue.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest>([=]() {
-                typedef s::pair<int, int> tt1;
-                typedef s::pair<int, float> tt2;
-                typedef s::pair<NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt3;
+                typedef dpl::pair<int, int> tt1;
+                typedef dpl::pair<int, float> tt2;
+                typedef dpl::pair<NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt3;
 
-                static_assert(s::is_nothrow_move_assignable<tt1>::value, "Error");
-                static_assert(s::is_nothrow_move_assignable<tt2>::value, "Error");
-                static_assert(s::is_nothrow_move_assignable<tt3>::value, "Error");
+                static_assert(std::is_nothrow_move_assignable<tt1>::value);
+                static_assert(std::is_nothrow_move_assignable<tt2>::value);
+                static_assert(std::is_nothrow_move_assignable<tt3>::value);
             });
         });
     }
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-    std::cout << "pass" << std::endl;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
