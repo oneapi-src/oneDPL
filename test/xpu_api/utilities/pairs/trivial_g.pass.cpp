@@ -22,11 +22,9 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-// pair and tuple vs. "passed in registers"
 bool
 test_trivial()
 {
-    // PODType, TType, NType, SLType, LType, NLType, LTypeDerived
     typedef dpl::pair<int, int> pair_type;
     static_assert(dpl::is_trivially_copy_constructible<pair_type>::value, "! triv copy");
     static_assert(dpl::is_trivially_destructible<pair_type>::value, "! triv destructor");
