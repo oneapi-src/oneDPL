@@ -19,6 +19,7 @@
 #include <oneapi/dpl/utility>
 
 #include "support/test_macros.h"
+#include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 class KernelPairTest;

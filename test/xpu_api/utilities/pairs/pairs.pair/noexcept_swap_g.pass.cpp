@@ -20,7 +20,18 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-struct TestStruct
+// KSATODO struct NoexceptMoveAssignClass
+struct NoexceptMoveAssignClass
+{
+};
+
+// KSATODO struct NoexceptMoveConsClass
+struct NoexceptMoveConsClass
+{
+};
+
+// KSATODO struct NoexceptMoveConsNoexceptMoveAssignClass
+struct NoexceptMoveConsNoexceptMoveAssignClass
 {
 };
 
@@ -33,12 +44,12 @@ kernel_test()
             cgh.single_task<class KernelTest>([=]() {
                 typedef dpl::pair<int, int> tt1;
                 typedef dpl::pair<int, float> tt2;
-                typedef dpl::pair<short, TestStruct> tt3;
-                typedef dpl::pair<short, TestStruct> tt4;
-                typedef dpl::pair<TestStruct, TestStruct> tt5;
-                typedef dpl::pair<TestStruct, TestStruct> tt6;
-                typedef dpl::pair<TestStruct, float> tt7;
-                typedef dpl::pair<TestStruct, TestStruct> tt8;
+                typedef dpl::pair<short, NoexceptMoveAssignClass> tt3;
+                typedef dpl::pair<short, NoexceptMoveConsClass> tt4;
+                typedef dpl::pair<NoexceptMoveConsClass, NoexceptMoveConsClass> tt5;
+                typedef dpl::pair<NoexceptMoveConsNoexceptMoveAssignClass, NoexceptMoveConsNoexceptMoveAssignClass> tt6;
+                typedef dpl::pair<NoexceptMoveConsNoexceptMoveAssignClass, float> tt7;
+                typedef dpl::pair<NoexceptMoveConsNoexceptMoveAssignClass, NoexceptMoveConsNoexceptMoveAssignClass> tt8;
 
                 static_assert(noexcept(dpl::declval<tt1&>().swap(dpl::declval<tt1&>())));
                 static_assert(noexcept(dpl::declval<tt2&>().swap(dpl::declval<tt2&>())));

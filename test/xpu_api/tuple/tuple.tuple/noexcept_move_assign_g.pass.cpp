@@ -22,7 +22,8 @@
 #include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-struct TestStruct
+// KSATODO struct NoexceptMoveAssignClass
+struct NoexceptMoveAssignClass
 {
 };
 
@@ -34,9 +35,9 @@ kernel_test1(sycl::queue& deviceQueue)
             typedef dpl::tuple<int> tt1;
             typedef dpl::tuple<int, float> tt2;
             typedef dpl::tuple<short, float, int> tt3;
-            typedef dpl::tuple<short, TestStruct, float> tt4;
-            typedef dpl::tuple<TestStruct, TestStruct, float> tt5;
-            typedef dpl::tuple<TestStruct, TestStruct, TestStruct> tt6;
+            typedef dpl::tuple<short, NoexceptMoveAssignClass, float> tt4;
+            typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, float> tt5;
+            typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt6;
 
             static_assert(std::is_nothrow_move_assignable<tt1>::value);
             static_assert(std::is_nothrow_move_assignable<tt2>::value);
@@ -56,9 +57,9 @@ kernel_test2(sycl::queue& deviceQueue)
             typedef dpl::tuple<int> tt1;
             typedef dpl::tuple<int, double> tt2;
             typedef dpl::tuple<short, double, int> tt3;
-            typedef dpl::tuple<short, TestStruct, double> tt4;
-            typedef dpl::tuple<TestStruct, TestStruct, double> tt5;
-            typedef dpl::tuple<TestStruct, TestStruct, TestStruct> tt6;
+            typedef dpl::tuple<short, NoexceptMoveAssignClass, double> tt4;
+            typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, double> tt5;
+            typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt6;
 
             static_assert(std::is_nothrow_move_assignable<tt1>::value);
             static_assert(std::is_nothrow_move_assignable<tt2>::value);

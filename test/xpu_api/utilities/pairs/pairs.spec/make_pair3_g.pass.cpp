@@ -82,10 +82,10 @@ kernel_test()
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_acc = buffer1.get_access<sycl::access::mode::write>(cgh);
             auto check_acc = buffer2.get_access<sycl::access::mode::write>(cgh);
-            auto acc1 = buffer3.get_access<sycl::access::mode::write>(cgh);
-            auto acc2 = buffer4.get_access<sycl::access::mode::write>(cgh);
-            auto acc3 = buffer5.get_access<sycl::access::mode::write>(cgh);
-            auto acc4 = buffer6.get_access<sycl::access::mode::write>(cgh);
+            auto acc1 = buffer3.get_access<sycl::access::mode::read>(cgh);
+            auto acc2 = buffer4.get_access<sycl::access::mode::read>(cgh);
+            auto acc3 = buffer5.get_access<sycl::access::mode::read>(cgh);
+            auto acc4 = buffer6.get_access<sycl::access::mode::read>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 // check if there is change from input after data transfer
                 check_acc[0] = (acc1[0].first == true);

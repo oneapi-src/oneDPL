@@ -21,7 +21,8 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-struct TestStruct
+// KSATODO struct NoexceptMoveConsClass
+struct NoexceptMoveConsClass
 {
 };
 
@@ -35,9 +36,9 @@ kernel_test()
                 typedef dpl::tuple<int> tt1;
                 typedef dpl::tuple<int, float> tt2;
                 typedef dpl::tuple<short, float, int> tt3;
-                typedef dpl::tuple<short, TestStruct, float> tt4;
-                typedef dpl::tuple<TestStruct, TestStruct, float> tt5;
-                typedef dpl::tuple<TestStruct, TestStruct, TestStruct> tt6;
+                typedef dpl::tuple<short, NoexceptMoveConsClass, float> tt4;
+                typedef dpl::tuple<NoexceptMoveConsClass, NoexceptMoveConsClass, float> tt5;
+                typedef dpl::tuple<NoexceptMoveConsClass, NoexceptMoveConsClass, NoexceptMoveConsClass> tt6;
 
                 static_assert(std::is_nothrow_move_constructible<tt1>::value);
                 static_assert(std::is_nothrow_move_constructible<tt2>::value);
