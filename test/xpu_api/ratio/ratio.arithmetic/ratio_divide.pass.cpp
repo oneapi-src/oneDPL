@@ -21,16 +21,13 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-bool
+void
 test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    bool ret = false;
     sycl::range<1> item1{1};
     {
-        sycl::buffer<bool, 1> buffer1(&ret, item1);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_acc = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 {
                     typedef dpl::ratio<1, 1> R1;
@@ -74,11 +71,9 @@ test()
                     typedef dpl::ratio_divide<R1, R2>::type R;
                     static_assert(R::num == 630992477165LL && R::den == 127339199162436LL);
                 }
-                ret_acc[0] = true;
             });
         });
     }
-    return ret;
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -86,8 +81,7 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    auto ret = test();
-    EXPECT_TRUE(ret, "Wrong result of dpl::ratio_divide check");
+    test();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
