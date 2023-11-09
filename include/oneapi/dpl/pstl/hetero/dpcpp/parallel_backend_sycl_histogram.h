@@ -122,7 +122,6 @@ struct __SLM_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
         ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(bin_hash.__boundaries.size(), gSize);
         ::std::uint8_t k;
         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
-        _ONEDPL_PRAGMA_UNROLL
         for (k = 0; k < factor - 1; k++)
         {
             d_boundaries[gSize * k + self_lidx] = bin_hash.__boundaries[gSize * k + self_lidx];
@@ -164,7 +163,6 @@ __clear_wglocal_histograms(const _HistAccessor& local_histogram, const _OffsetT&
     // no need for atomicity when we are explicitly assigning work-items to
     // locations
 
-    _ONEDPL_PRAGMA_UNROLL
     for (k = 0; k < factor - 1; k++)
     {
         local_histogram[offset + gSize * k + self_lidx] = 0;
@@ -217,7 +215,6 @@ __reduce_out_histograms(const _HistAccessorIn& in_histogram, const _OffsetT& off
     ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, gSize);
     ::std::uint8_t k;
 
-    _ONEDPL_PRAGMA_UNROLL
     for (k = 0; k < factor - 1; k++)
     {
         __dpl_sycl::__atomic_ref<_BinType, sycl::access::address_space::global_space> global_bin(
@@ -296,7 +293,6 @@ __histogram_general_registers_local_reduction(Policy&& policy, const sycl::event
                     }
                 }
 
-                _ONEDPL_PRAGMA_UNROLL
                 for (__histogram_index_type k = 0; k < __num_bins; k++)
                 {
                     __dpl_sycl::__atomic_ref<__local_histogram_type, sycl::access::address_space::local_space>
