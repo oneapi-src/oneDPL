@@ -60,10 +60,10 @@ __histogram_impl(Policy&& policy, Iter1 __first, Iter1 __last, OutputIter __hist
 
 } // namespace __internal
 
-template <typename _ExecutionPolicy, typename _InputIterator, typename _Size, typename _T, typename _OutputIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _OutputIterator>
-histogram(_ExecutionPolicy&& policy, _InputIterator __first, _InputIterator __last, const _Size& __num_bins,
-          const _T& __first_bin_min_val, const _T& __last_bin_max_val, _OutputIterator __histogram_first)
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _T, typename _RandomAccessIterator2>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
+histogram(_ExecutionPolicy&& policy, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last, const _Size& __num_bins,
+          const _T& __first_bin_min_val, const _T& __last_bin_max_val, _RandomAccessIterator2 __histogram_first)
 {
     //If there are no histogram bins there is nothing to do.  However, even if we have zero input elements,
     // we still want to clear the output histogram
@@ -75,10 +75,10 @@ histogram(_ExecutionPolicy&& policy, _InputIterator __first, _InputIterator __la
     return __histogram_first + __num_bins;
 }
 
-template <typename _ExecutionPolicy, typename _InputIterator1, typename _InputIterator2, typename _OutputIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _OutputIterator>
-histogram(_ExecutionPolicy&& policy, _InputIterator1 __first, _InputIterator1 __last, _InputIterator2 __boundary_first,
-          _InputIterator2 __boundary_last, _OutputIterator __histogram_first)
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator3>
+histogram(_ExecutionPolicy&& policy, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last, _RandomAccessIterator2 __boundary_first,
+          _RandomAccessIterator2 __boundary_last, _RandomAccessIterator3 __histogram_first)
 {
     auto __num_bins = __boundary_last - __boundary_first - 1;
     //If there are no histogram bins there is nothing to do.  However, even if we have zero input elements,

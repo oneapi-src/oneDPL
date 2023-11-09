@@ -23,15 +23,15 @@ namespace oneapi
 namespace dpl
 {
 
-template <typename _ExecutionPolicy, typename _InputIterator, typename _Size, typename _T, typename _OutputIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _OutputIterator>
-histogram(_ExecutionPolicy&& policy, _InputIterator __first, _InputIterator __last, const _Size& __num_bins,
-          const _T& __first_bin_min_val, const _T& __last_bin_max_val, _OutputIterator __histogram_first);
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _T, typename _RandomAccessIterator2>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
+histogram(_ExecutionPolicy&& policy, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last, const _Size& __num_bins,
+          const _T& __first_bin_min_val, const _T& __last_bin_max_val, _RandomAccessIterator2 __histogram_first);
 
-template <typename _ExecutionPolicy, typename _InputIterator1, typename _InputIterator2, typename _OutputIterator>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _OutputIterator>
-histogram(_ExecutionPolicy&& policy, _InputIterator1 __first, _InputIterator1 __last, _InputIterator2 __boundary_first,
-          _InputIterator2 __boundary_last, _OutputIterator __histogram_first);
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _RandomAccessIterator3>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator3>
+histogram(_ExecutionPolicy&& policy, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last, _RandomAccessIterator2 __boundary_first,
+          _RandomAccessIterator2 __boundary_last, _RandomAccessIterator3 __histogram_first);
 
 } // end namespace dpl
 } // end namespace oneapi
