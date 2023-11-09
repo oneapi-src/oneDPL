@@ -27,16 +27,16 @@ struct __evenly_divided_binhash_impl
 {
 };
 
-template <typename _T>
-struct __evenly_divided_binhash_impl<_T, /* is_floating_point = */ true>
+template <typename _T1>
+struct __evenly_divided_binhash_impl<_T1, /* is_floating_point = */ true>
 {
     using req_sycl_range_conversion = ::std::false_type;
-    _T __minimum;
-    _T __maximum;
-    _T __scale;
+    _T1 __minimum;
+    _T1 __maximum;
+    _T1 __scale;
 
-    __evenly_divided_binhash_impl(const _T& min, const _T& max, const ::std::uint32_t& num_bins)
-        : __minimum(min), __maximum(max), __scale(_T(num_bins) / (max - min))
+    __evenly_divided_binhash_impl(const _T1& min, const _T1& max, const ::std::uint32_t& num_bins)
+        : __minimum(min), __maximum(max), __scale(_T1(num_bins) / (max - min))
     {
     }
 
@@ -56,14 +56,14 @@ struct __evenly_divided_binhash_impl<_T, /* is_floating_point = */ true>
 };
 
 // non floating point type
-template <typename _T>
-struct __evenly_divided_binhash_impl<_T, /* is_floating_point= */ false>
+template <typename _T1>
+struct __evenly_divided_binhash_impl<_T1, /* is_floating_point= */ false>
 {
     using req_sycl_range_conversion = ::std::false_type;
-    _T __minimum;
-    _T __range_size;
+    _T1 __minimum;
+    _T1 __range_size;
     ::std::uint32_t __num_bins;
-    __evenly_divided_binhash_impl(const _T& min, const _T& max, const ::std::uint32_t& num_bins)
+    __evenly_divided_binhash_impl(const _T1& min, const _T1& max, const ::std::uint32_t& num_bins)
         : __minimum(min), __num_bins(num_bins), __range_size(max - min)
     {
     }
@@ -95,9 +95,9 @@ struct __custom_range_binhash
 
     __custom_range_binhash(_Range boundaries) : __boundaries(boundaries) {}
 
-    template <typename _T>
+    template <typename _T2>
     inline ::std::uint32_t
-    get_bin(_T&& value) const
+    get_bin(_T2&& value) const
     {
         return (::std::upper_bound(__boundaries.begin(), __boundaries.end(), ::std::forward<_T>(value)) -
                 __boundaries.begin()) -
