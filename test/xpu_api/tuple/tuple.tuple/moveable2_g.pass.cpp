@@ -26,13 +26,10 @@ struct MoveOnly
 {
     MoveOnly() {}
 
-    MoveOnly(MoveOnly&&) {}
+    MoveOnly(MoveOnly&&) = default;
 
     MoveOnly&
-    operator=(MoveOnly&&)
-    {
-        return *this;
-    }
+    operator=(MoveOnly&&) = default;
 
     MoveOnly(MoveOnly const&) = delete;
     MoveOnly&
