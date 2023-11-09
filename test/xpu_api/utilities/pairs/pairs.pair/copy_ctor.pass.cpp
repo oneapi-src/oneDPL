@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <utility>
-
-// template <class T1, class T2> struct pair
-
-// pair(const pair&) = default;
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/utility>

@@ -13,14 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <utility>
-
-// template <class T1, class T2> struct pair
-
-// template <class... Args1, class... Args2>
-//     pair(piecewise_construct_t, tuple<Args1...> first_args,
-//                                 tuple<Args2...> second_args);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/utility>

@@ -13,17 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <utility>
-
-// template <class T1, class T2> struct pair
-
-// template <class T1, class T2> bool operator==(const pair<T1,T2>&, const pair<T1,T2>&);
-// template <class T1, class T2> bool operator!=(const pair<T1,T2>&, const pair<T1,T2>&);
-// template <class T1, class T2> bool operator< (const pair<T1,T2>&, const pair<T1,T2>&);
-// template <class T1, class T2> bool operator> (const pair<T1,T2>&, const pair<T1,T2>&);
-// template <class T1, class T2> bool operator>=(const pair<T1,T2>&, const pair<T1,T2>&);
-// template <class T1, class T2> bool operator<=(const pair<T1,T2>&, const pair<T1,T2>&);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/utility>

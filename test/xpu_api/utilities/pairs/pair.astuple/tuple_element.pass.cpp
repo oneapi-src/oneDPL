@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <utility>
-
-// template <class T1, class T2> struct pair
-
-// tuple_element<I, pair<T1, T2> >::type
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>

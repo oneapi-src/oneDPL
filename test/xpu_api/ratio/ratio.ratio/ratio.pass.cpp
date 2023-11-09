@@ -13,9 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// test ratio:  The static data members num and den shall have the common
-//    divisor of the absolute values of N and D:
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/ratio>

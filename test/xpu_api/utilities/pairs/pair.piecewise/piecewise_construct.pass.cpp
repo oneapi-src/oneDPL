@@ -13,13 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <utility>
-
-// template <class T1, class T2> struct pair
-
-// struct piecewise_construct_t { };
-// constexpr piecewise_construct_t piecewise_construct = piecewise_construct_t();
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/tuple>

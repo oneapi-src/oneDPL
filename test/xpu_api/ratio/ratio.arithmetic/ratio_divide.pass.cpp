@@ -13,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// test ratio_divide
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/ratio>

@@ -13,12 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <utility>
-
-// template <class T1, class T2> struct pair
-
-// void swap(pair& p);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/utility>

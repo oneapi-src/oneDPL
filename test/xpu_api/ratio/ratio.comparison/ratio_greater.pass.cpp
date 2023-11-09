@@ -13,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// test ratio_greater
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/ratio>

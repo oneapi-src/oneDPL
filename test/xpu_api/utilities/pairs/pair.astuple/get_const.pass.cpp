@@ -13,14 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <utility>
-
-// template <class T1, class T2> struct pair
-
-// template<size_t I, class T1, class T2>
-//     const typename tuple_element<I, dpl::pair<T1, T2> >::type&
-//     get(const pair<T1, T2>&);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/utility>

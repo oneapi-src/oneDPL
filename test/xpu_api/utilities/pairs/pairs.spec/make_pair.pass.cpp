@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <utility>
-
-// template <class T1, class T2> pair<V1, V2> make_pair(T1&&, T2&&);
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/utility>

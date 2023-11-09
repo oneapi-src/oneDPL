@@ -22,8 +22,6 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-// pair and tuple are not correctly implemented for is_constructible
-// with no args
 bool
 test_default_constructible()
 {

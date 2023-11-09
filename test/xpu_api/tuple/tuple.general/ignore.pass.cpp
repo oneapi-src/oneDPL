@@ -13,10 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// <tuple>
-
-// constexpr unspecified ignore;
-
 #include "support/test_config.h"
 
 #include <oneapi/dpl/tuple>
