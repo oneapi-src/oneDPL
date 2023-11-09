@@ -22,7 +22,7 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-using namespace std;
+using namespace dpl;
 bool
 kernel_test1()
 {
