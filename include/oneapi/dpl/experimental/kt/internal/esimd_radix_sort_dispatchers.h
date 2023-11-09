@@ -18,6 +18,8 @@
 
 #include <cstdint>
 #include <cassert>
+#include <type_traits> // std::alignment_of_v, std::is_void_v
+#include <memory> // std::align
 
 #include "../kernel_param.h"
 #include "esimd_radix_sort_utils.h"
@@ -68,6 +70,107 @@ __one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n)
                                          _EsimRadixSortKernel>()(__q, ::std::forward<_Range>(__rng), __n);
 }
 
+template<typename _HistT, typename _KeyT, typename _ValT = void>
+class __onesweep_memory_holder
+{
+    static constexpr bool __has_values = !::std::is_void_v<_ValT>;
+
+    ::std::uint8_t* __m_raw_mem_ptr = nullptr;
+    // Memory to store global histograms, where each stage has its own histogram
+    _HistT* __m_global_hist_ptr = nullptr;
+    // Memory to store group historgrams, which contain offsets relative to "previous" groups
+    _HistT* __m_group_hist_ptr = nullptr;
+    // Memory to store intermediate results of sorting
+    _KeyT* __m_keys_ptr = nullptr;
+    _ValT* __m_vals_ptr = nullptr;
+
+    ::std::size_t __m_raw_mem_bytes = 0;
+    ::std::size_t __m_keys_bytes = 0;
+    ::std::size_t __m_vals_bytes = 0;
+    ::std::size_t __m_global_hist_bytes = 0;
+    ::std::size_t __m_group_hist_bytes = 0;
+
+    sycl::queue __m_q;
+
+    void __calculate_raw_memory_amount()
+    {
+        // Extra bytes are added for potentiall padding
+        __m_raw_mem_bytes = __m_keys_bytes + __m_global_hist_bytes + __m_group_hist_bytes + sizeof(_KeyT);
+        if constexpr (__has_values)
+        {
+            __m_raw_mem_bytes += (__m_vals_bytes + sizeof(_ValT));
+        }
+    }
+
+    void __allocate_raw_memory()
+    {
+        // Non-typed allocation is guaranteed to be aligned for any fundamental type according to SYCL spec
+        void* __mem = sycl::malloc_device(__m_raw_mem_bytes, __m_q);
+        __m_raw_mem_ptr = reinterpret_cast<::std::uint8_t*>(__mem);
+    }
+
+    void __appoint_aligned_memory_regions()
+    {
+        // It assumes that the raw pointer is already alligned for _HistT
+        __m_global_hist_ptr = reinterpret_cast<_HistT*>(__m_raw_mem_ptr);
+        __m_group_hist_ptr = reinterpret_cast<_HistT*>(__m_raw_mem_ptr + __m_global_hist_bytes);
+
+        void* __base_ptr = reinterpret_cast<void*>(__m_raw_mem_ptr + __m_global_hist_bytes + __m_group_hist_bytes);
+        ::std::size_t __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes);
+        void* __aligned_ptr = ::std::align(::std::alignment_of_v<_KeyT>, __m_keys_bytes, __base_ptr, __remainder);
+        __m_keys_ptr = reinterpret_cast<_KeyT*>(__aligned_ptr);
+
+        if constexpr (__has_values)
+        {
+            __base_ptr = reinterpret_cast<void*>(__m_keys_ptr + __m_keys_bytes / sizeof(_KeyT));
+            __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes + __m_keys_bytes);
+            __aligned_ptr = ::std::align(::std::alignment_of_v<_ValT>, __m_vals_bytes, __base_ptr, __remainder);
+            __m_vals_ptr = reinterpret_cast<_ValT*>(__aligned_ptr);
+        }
+    }
+
+public:
+    __onesweep_memory_holder(sycl::queue __q): __m_q(__q) {}
+
+    void __keys_alloc_count(::std::size_t __key_count)
+    {
+        __m_keys_bytes = __key_count * sizeof(_KeyT);
+    }
+    void __vals_alloc_count(::std::size_t __values_count)
+    {
+        __m_vals_bytes = __values_count * sizeof(_ValT);
+    }
+    void __global_hist_item_alloc_count(::std::size_t __global_hist_item_count)
+    {
+        __m_global_hist_bytes = __global_hist_item_count * sizeof(_HistT);
+    }
+    void __group_hist_item_alloc_count(::std::size_t __group_hist_item_count)
+    {
+        __m_group_hist_bytes = __group_hist_item_count * sizeof(_HistT);
+    }
+
+    _KeyT* __keys_ptr() { return __m_keys_ptr; }
+    _ValT* __vals_ptr() { return __m_vals_ptr; }
+    _HistT* __global_hist_ptr() { return __m_global_hist_ptr; }
+    _HistT* __group_hist_ptr() { return __m_group_hist_ptr; }
+
+    void __allocate()
+    {
+        __calculate_raw_memory_amount();
+        __allocate_raw_memory();
+        __appoint_aligned_memory_regions();
+    }
+
+    sycl::event __async_deallocate(sycl::event __dep_event)
+    {
+        auto __dealloc_task = [__q = __m_q, __event = __dep_event, __mem = __m_raw_mem_ptr](sycl::handler& __cgh) {
+            __cgh.depends_on(__event);
+            __cgh.host_task([=]() { sycl::free(__mem, __q); });
+        };
+        return __m_q.submit(__dealloc_task);
+    }
+};
+
 template <typename _KernelName, bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
           ::std::uint16_t __work_group_size, typename _KeysRng>
 sycl::event
@@ -89,47 +192,43 @@ __onesweep(sycl::queue __q, _KeysRng&& __keys_rng, ::std::size_t __n)
     using _GlobalHistT = ::std::uint32_t;
     constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
 
-    // TODO: consider adding a more versatile API, e.g. passing special kernel_config parameters for histogram computation
-    constexpr ::std::uint32_t __hist_work_group_count = 64;
-    constexpr ::std::uint32_t __hist_work_group_size = 64;
-
     const ::std::uint32_t __sweep_work_group_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __data_per_work_item);
     constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
     constexpr ::std::uint32_t __stage_count = oneapi::dpl::__internal::__dpl_ceiling_div(__bit_count, __radix_bits);
 
-    constexpr ::std::uint32_t __hist_mem_size = __bin_count * sizeof(_GlobalHistT);
-    constexpr ::std::uint32_t __global_hist_mem_size = __stage_count * __hist_mem_size;
-    const ::std::uint32_t __group_hists_mem_size = __sweep_work_group_count * __stage_count * __hist_mem_size;
-    const ::std::uint32_t __tmp_keys_mem_size =  __n * sizeof(_KeyT);
-    const ::std::size_t __tmp_mem_size = __group_hists_mem_size + __global_hist_mem_size + __tmp_keys_mem_size;
+    constexpr ::std::uint32_t __global_hist_item_count = __bin_count * __stage_count;
+    const ::std::uint32_t __group_hist_item_count = __bin_count * __stage_count * __sweep_work_group_count;
 
-    ::std::uint8_t* __p_tmp_mem = sycl::malloc_device<::std::uint8_t>(__tmp_mem_size, __q);
-    // Memory to store global histograms, where each stage has its own histogram
-    _GlobalHistT* __p_global_hist_all = reinterpret_cast<_GlobalHistT*>(__p_tmp_mem);
-    // Memory to store group historgrams, which contain offsets relative to "previous" groups
-    _GlobalHistT* __p_group_hists_all = reinterpret_cast<_GlobalHistT*>(__p_tmp_mem + __global_hist_mem_size);
-    // Memory to store intermediate results of sorting
-    _KeyT* __p_keys_tmp = reinterpret_cast<_KeyT*>(__p_tmp_mem + __global_hist_mem_size + __group_hists_mem_size);
+    __onesweep_memory_holder<_GlobalHistT, _KeyT> __mem_holder(__q);
+    __mem_holder.__keys_alloc_count(__n);
+    __mem_holder.__global_hist_item_alloc_count(__global_hist_item_count);
+    __mem_holder.__group_hist_item_alloc_count(__group_hist_item_count);
+    __mem_holder.__allocate();
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
                                                           _KeyT*>();
-    auto __keys_tmp_rng = __keep(__p_keys_tmp, __p_keys_tmp + __n).all_view();
+    auto __keys_tmp_rng = __keep(__mem_holder.__keys_ptr(), __mem_holder.__keys_ptr() + __n).all_view();
 
     // TODO: check if it is more performant to fill it inside the histgogram kernel
-    sycl::event __event_chain = __q.memset(__p_tmp_mem, 0, __global_hist_mem_size + __group_hists_mem_size);
+    // This line assumes that global and group histograms are stored sequentially
+    sycl::event __event_chain = __q.memset(__mem_holder.__global_hist_ptr(), 0,
+                                          (__global_hist_item_count + __group_hist_item_count) * sizeof(_GlobalHistT));
 
+    // TODO: consider adding a more versatile API, e.g. passing special kernel_config parameters for histogram computation
+    constexpr ::std::uint32_t __hist_work_group_count = 64;
+    constexpr ::std::uint32_t __hist_work_group_size = 64;
     __event_chain =
         __radix_sort_onesweep_histogram_submitter<_KeyT, __radix_bits, __stage_count, __hist_work_group_count, __hist_work_group_size,
-                                                  __is_ascending, _EsimdRadixSortHistogram>()(__q, __keys_rng, __p_global_hist_all,
+                                                  __is_ascending, _EsimdRadixSortHistogram>()(__q, __keys_rng, __mem_holder.__global_hist_ptr(),
                                                                                             __n, __event_chain);
 
-    __event_chain = __radix_sort_onesweep_scan_submitter<__stage_count, __bin_count, _EsimdRadixSortScan>()(__q, __p_global_hist_all,
+    __event_chain = __radix_sort_onesweep_scan_submitter<__stage_count, __bin_count, _EsimdRadixSortScan>()(__q, __mem_holder.__global_hist_ptr(),
                                                                                                 __n, __event_chain);
 
     for (::std::uint32_t __stage = 0; __stage < __stage_count; __stage++)
     {
-        _GlobalHistT* __p_global_hist = __p_global_hist_all + __bin_count * __stage;
-        _GlobalHistT* __p_group_hists = __p_group_hists_all + __sweep_work_group_count * __bin_count * __stage;
+        _GlobalHistT* __p_global_hist = __mem_holder.__global_hist_ptr() + __bin_count * __stage;
+        _GlobalHistT* __p_group_hists = __mem_holder.__group_hist_ptr() + __sweep_work_group_count * __bin_count * __stage;
         if ((__stage % 2) == 0)
         {
             __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
@@ -150,14 +249,7 @@ __onesweep(sycl::queue __q, _KeysRng&& __keys_rng, ::std::size_t __n)
             __radix_sort_copyback_submitter<_KeyT, _EsimdRadixSortCopyback>()(__q, __keys_tmp_rng, __keys_rng, __n, __event_chain);
     }
 
-    __event_chain = __q.submit(
-        [__event_chain, __p_tmp_mem, __q](sycl::handler& __cgh)
-        {
-            __cgh.depends_on(__event_chain);
-            __cgh.host_task([=]() { sycl::free(__p_tmp_mem, __q); });
-        });
-
-    return __event_chain;
+    return __mem_holder.__async_deallocate(__event_chain);
 }
 
 template <typename _KernelName, bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
@@ -182,53 +274,48 @@ __onesweep_by_key(sycl::queue __q, _KeysRng&& __keys_rng, _ValsRng&& __vals_rng,
     using _GlobalHistT = ::std::uint32_t;
     constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
 
-    // TODO: consider adding a more versatile API, e.g. passing special kernel_config parameters for histogram computation
-    constexpr ::std::uint32_t __hist_work_group_count = 64;
-    constexpr ::std::uint32_t __hist_work_group_size = 64;
-
     const ::std::uint32_t __sweep_work_group_count = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __data_per_work_item);
     constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
     constexpr ::std::uint32_t __stage_count = oneapi::dpl::__internal::__dpl_ceiling_div(__bit_count, __radix_bits);
 
-    constexpr ::std::uint32_t __hist_mem_size = __bin_count * sizeof(_GlobalHistT);
-    constexpr ::std::uint32_t __global_hist_mem_size = __stage_count * __hist_mem_size;
-    const ::std::uint32_t __group_hists_mem_size = __sweep_work_group_count * __stage_count * __hist_mem_size;
-    const ::std::uint32_t __tmp_keys_mem_size =  __n * sizeof(_KeyT);
-    const ::std::uint32_t __tmp_vals_mem_size =  __n * sizeof(_ValT);
-    const ::std::size_t __tmp_mem_size = __group_hists_mem_size + __global_hist_mem_size + __tmp_keys_mem_size + __tmp_vals_mem_size;
+    constexpr ::std::uint32_t __global_hist_item_count = __bin_count * __stage_count;
+    const ::std::uint32_t __group_hist_item_count = __bin_count * __stage_count * __sweep_work_group_count;
 
-    ::std::uint8_t* __p_tmp_mem = sycl::malloc_device<::std::uint8_t>(__tmp_mem_size, __q);
-    // Memory to store global histograms, where each stage has its own histogram
-    _GlobalHistT* __p_global_hist_all = reinterpret_cast<_GlobalHistT*>(__p_tmp_mem);
-    // Memory to store group historgrams, which contain offsets relative to "previous" groups
-    _GlobalHistT* __p_group_hists_all = reinterpret_cast<_GlobalHistT*>(__p_tmp_mem + __global_hist_mem_size);
-    // Memory to store intermediate results of sorting
-    _KeyT* __p_keys_tmp = reinterpret_cast<_KeyT*>(__p_tmp_mem + __global_hist_mem_size + __group_hists_mem_size);
-    _ValT* __p_vals_tmp = reinterpret_cast<_ValT*>(__p_tmp_mem + __global_hist_mem_size + __group_hists_mem_size + __tmp_keys_mem_size);
+    __onesweep_memory_holder<_GlobalHistT, _KeyT, _ValT> __mem_holder(__q);
+    __mem_holder.__keys_alloc_count(__n);
+    __mem_holder.__vals_alloc_count(__n);
+    __mem_holder.__global_hist_item_alloc_count(__global_hist_item_count);
+    __mem_holder.__group_hist_item_alloc_count(__group_hist_item_count);
+    __mem_holder.__allocate();
 
     auto __keys_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
                                                           _KeyT*>();
-    auto __keys_tmp_rng = __keys_tmp_keep(__p_keys_tmp, __p_keys_tmp + __n).all_view();
+    auto __keys_tmp_rng = __keys_tmp_keep(__mem_holder.__keys_ptr(), __mem_holder.__keys_ptr() + __n).all_view();
 
     auto __vals_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
                                                           _ValT*>();
-    auto __vals_tmp_rng = __vals_tmp_keep(__p_vals_tmp, __p_vals_tmp + __n).all_view();
+    auto __vals_tmp_rng = __vals_tmp_keep(__mem_holder.__vals_ptr(), __mem_holder.__vals_ptr() + __n).all_view();
 
     // TODO: check if it is more performant to fill it inside the histgogram kernel
-    sycl::event __event_chain = __q.memset(__p_tmp_mem, 0, __global_hist_mem_size + __group_hists_mem_size);
+    // This line assumes that global and group histograms are stored sequentially
+    sycl::event __event_chain = __q.memset(__mem_holder.__global_hist_ptr(), 0,
+                                          (__global_hist_item_count + __group_hist_item_count) * sizeof(_GlobalHistT));
 
+    // TODO: consider adding a more versatile API, e.g. passing special kernel_config parameters for histogram computation
+    constexpr ::std::uint32_t __hist_work_group_count = 64;
+    constexpr ::std::uint32_t __hist_work_group_size = 64;
     __event_chain =
         __radix_sort_onesweep_histogram_submitter<_KeyT, __radix_bits, __stage_count, __hist_work_group_count, __hist_work_group_size,
-                                                  __is_ascending, _EsimdRadixSortHistogram>()(__q, __keys_rng, __p_global_hist_all,
+                                                  __is_ascending, _EsimdRadixSortHistogram>()(__q, __keys_rng, __mem_holder.__global_hist_ptr(),
                                                                                             __n, __event_chain);
 
-    __event_chain = __radix_sort_onesweep_scan_submitter<__stage_count, __bin_count, _EsimdRadixSortScan>()(__q, __p_global_hist_all,
+    __event_chain = __radix_sort_onesweep_scan_submitter<__stage_count, __bin_count, _EsimdRadixSortScan>()(__q, __mem_holder.__global_hist_ptr(),
                                                                                                 __n, __event_chain);
 
     for (::std::uint32_t __stage = 0; __stage < __stage_count; __stage++)
     {
-        _GlobalHistT* __p_global_hist = __p_global_hist_all + __bin_count * __stage;
-        _GlobalHistT* __p_group_hists = __p_group_hists_all + __sweep_work_group_count * __bin_count * __stage;
+        _GlobalHistT* __p_global_hist = __mem_holder.__global_hist_ptr() + __bin_count * __stage;
+        _GlobalHistT* __p_group_hists = __mem_holder.__group_hist_ptr() + __sweep_work_group_count * __bin_count * __stage;
         if ((__stage % 2) == 0)
         {
             __event_chain = __radix_sort_onesweep_by_key_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
@@ -249,14 +336,7 @@ __onesweep_by_key(sycl::queue __q, _KeysRng&& __keys_rng, _ValsRng&& __vals_rng,
             __radix_sort_by_key_copyback_submitter<_KeyT, _ValT, _EsimdRadixSortCopyback>()(__q, __keys_tmp_rng, __keys_rng, __vals_tmp_rng, __vals_rng, __n, __event_chain);
     }
 
-    __event_chain = __q.submit(
-        [__event_chain, __p_tmp_mem, __q](sycl::handler& __cgh)
-        {
-            __cgh.depends_on(__event_chain);
-            __cgh.host_task([=]() { sycl::free(__p_tmp_mem, __q); });
-        });
-
-    return __event_chain;
+    return __mem_holder.__async_deallocate(__event_chain);
 }
 
 // TODO: allow calling it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
