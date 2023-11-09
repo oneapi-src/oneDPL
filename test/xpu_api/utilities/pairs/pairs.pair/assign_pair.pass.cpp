@@ -36,7 +36,6 @@ struct CopyAssignable
     CopyAssignable&
     operator=(CopyAssignable const&) = default;
     CopyAssignable&
-    operator=(CopyAssignable&&) = delete;
 };
 struct MoveAssignable
 {
