@@ -91,9 +91,6 @@ struct __SLM_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
 
     __SLM_boost_impl(oneapi::dpl::__internal::__custom_range_binhash<_Range> __bin_hash) : bin_hash(__bin_hash) {}
 
-    __SLM_boost_impl(const __SLM_boost_impl&) = default;
-    __SLM_boost_impl(__SLM_boost_impl&&) = default;
-
     template <typename _T2>
     inline ::std::uint32_t
     get_bin(_T2&& value) const
@@ -230,8 +227,8 @@ __reduce_out_histograms(const _HistAccessorIn& in_histogram, const _OffsetT& off
     }
 }
 
-template <::std::uint16_t __iters_per_work_item, ::std::uint8_t __bins_per_work_item, typename _ExecutionPolicy, typename _Range1,
-          typename _Range2, typename _Size, typename _IdxHashFunc, typename... _Range3>
+template <::std::uint16_t __iters_per_work_item, ::std::uint8_t __bins_per_work_item, typename _ExecutionPolicy,
+          typename _Range1, typename _Range2, typename _Size, typename _IdxHashFunc, typename... _Range3>
 inline void
 __histogram_general_registers_local_reduction(_ExecutionPolicy&& exec, const sycl::event& __init_e,
                                               ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
@@ -308,12 +305,12 @@ __histogram_general_registers_local_reduction(_ExecutionPolicy&& exec, const syc
     e.wait();
 }
 
-template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Size,
-          typename _IdxHashFunc, typename... _Range3>
+template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
+          typename _Size, typename _IdxHashFunc, typename... _Range3>
 inline void
-__histogram_general_local_atomics(_ExecutionPolicy&& exec, const sycl::event& __init_e, ::std::uint16_t __work_group_size,
-                                  _Range1&& __input, _Range2&& __bins, const _Size& __num_bins, _IdxHashFunc __func,
-                                  _Range3&&... __opt_range)
+__histogram_general_local_atomics(_ExecutionPolicy&& exec, const sycl::event& __init_e,
+                                  ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
+                                  const _Size& __num_bins, _IdxHashFunc __func, _Range3&&... __opt_range)
 {
 
     using __local_histogram_type = ::std::uint32_t;
@@ -392,7 +389,8 @@ __histogram_general_private_global_atomics(_ExecutionPolicy&& exec, const sycl::
     ::std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(N, __work_group_size * iters_per_work_item);
 
     auto private_histograms =
-        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __bin_type>(exec, segments * __num_bins).get_buffer();
+        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __bin_type>(exec, segments * __num_bins)
+            .get_buffer();
 
     auto e = exec.queue().submit([&](auto& h) {
         h.depends_on(__init_e);
@@ -438,8 +436,8 @@ __histogram_general_private_global_atomics(_ExecutionPolicy&& exec, const sycl::
     e.wait();
 }
 
-template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2, typename _Size,
-          typename _IdxHashFunc, typename... _Range>
+template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2,
+          typename _Size, typename _IdxHashFunc, typename... _Range>
 inline void
 __parallel_histogram_sycl_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
                                const _Size& __num_bins, _IdxHashFunc __func, _Range&&... __opt_range)
@@ -460,9 +458,9 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 _
 
     auto __f = oneapi::dpl::__internal::fill_functor<__global_histogram_type>{__global_histogram_type{0}};
     //fill histogram bins with zeros
-    auto init_e = oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(exec),
-                                                                    unseq_backend::walk_n<_ExecutionPolicy, decltype(__f)>{__f},
-                                                                    __num_bins, bins_buf.all_view());
+    auto init_e = oneapi::dpl::__par_backend_hetero::__parallel_for(
+        ::std::forward<_ExecutionPolicy>(exec), unseq_backend::walk_n<_ExecutionPolicy, decltype(__f)>{__f}, __num_bins,
+        bins_buf.all_view());
     auto N = __last - __first;
 
     if (N > 0)
@@ -478,21 +476,21 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 _
         if (__num_bins < __max_work_item_private_bins)
         {
             __histogram_general_registers_local_reduction<__iters_per_work_item, __max_work_item_private_bins>(
-                ::std::forward<_ExecutionPolicy>(exec), init_e, __work_group_size, input_buf.all_view(), bins_buf.all_view(),
-                __num_bins, __func, std::forward<_Range...>(__opt_range)...);
+                ::std::forward<_ExecutionPolicy>(exec), init_e, __work_group_size, input_buf.all_view(),
+                bins_buf.all_view(), __num_bins, __func, std::forward<_Range...>(__opt_range)...);
         }
         // if bins fit into SLM, use local atomics
         else if ((__num_bins + extra_SLM_elements) * sizeof(__local_histogram_type) < __local_mem_size)
         {
             __histogram_general_local_atomics<__iters_per_work_item>(
-                ::std::forward<_ExecutionPolicy>(exec), init_e, __work_group_size, input_buf.all_view(), bins_buf.all_view(),
-                __num_bins, __func, std::forward<_Range...>(__opt_range)...);
+                ::std::forward<_ExecutionPolicy>(exec), init_e, __work_group_size, input_buf.all_view(),
+                bins_buf.all_view(), __num_bins, __func, std::forward<_Range...>(__opt_range)...);
         }
         else // otherwise, use global atomics (private copies per workgroup)
         {
             __histogram_general_private_global_atomics<__iters_per_work_item>(
-                ::std::forward<_ExecutionPolicy>(exec), init_e, __work_group_size, input_buf.all_view(), bins_buf.all_view(),
-                __num_bins, __func, std::forward<_Range...>(__opt_range)...);
+                ::std::forward<_ExecutionPolicy>(exec), init_e, __work_group_size, input_buf.all_view(),
+                bins_buf.all_view(), __num_bins, __func, std::forward<_Range...>(__opt_range)...);
         }
     }
     else
@@ -501,8 +499,8 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 _
     }
 }
 
-template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2, typename _Size,
-          typename _IdxHashFunc, typename... _Range>
+template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2,
+          typename _Size, typename _IdxHashFunc, typename... _Range>
 inline void
 __parallel_histogram_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
                           const _Size& __num_bins, _IdxHashFunc __func, /*req_sycl_conversion = */ ::std::false_type,
@@ -514,8 +512,8 @@ __parallel_histogram_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last
                                                           std::forward<_Range...>(__opt_range)...);
 }
 
-template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2, typename _Size,
-          typename _InternalRange>
+template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2,
+          typename _Size, typename _InternalRange>
 inline void
 __parallel_histogram_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
                           const _Size& __num_bins,
@@ -530,15 +528,15 @@ __parallel_histogram_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last
     auto boundary_buf = keep_boundaries(range_to_upg.begin(), range_to_upg.end());
     auto boundary_view = boundary_buf.all_view();
     auto bin_hash = oneapi::dpl::__internal::__custom_range_binhash(boundary_view);
-    __parallel_histogram_impl<__iters_per_work_item>(::std::forward<_ExecutionPolicy>(exec), __first, __last, __histogram_first,
-                                                     __num_bins, bin_hash,
+    __parallel_histogram_impl<__iters_per_work_item>(::std::forward<_ExecutionPolicy>(exec), __first, __last,
+                                                     __histogram_first, __num_bins, bin_hash,
                                                      /*req_sycl_conversion = */ ::std::false_type{}, boundary_view);
 }
 
 template <typename _ExecutionPolicy, typename _Iter1, typename _Iter2, typename _Size, typename _IdxHashFunc>
 inline void
-__parallel_histogram(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first, const _Size& __num_bins,
-                     _IdxHashFunc __func)
+__parallel_histogram(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
+                     const _Size& __num_bins, _IdxHashFunc __func)
 {
     using DoSyclConversion = typename _IdxHashFunc::req_sycl_range_conversion;
     __parallel_histogram_impl</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(exec), __first, __last,
