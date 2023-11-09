@@ -39,21 +39,21 @@ namespace __par_backend_hetero
 template <typename _BinHash>
 struct __SLM_boost_impl
 {
-    _BinHash bin_hash;
-    __SLM_boost_impl(_BinHash __bin_hash) : bin_hash(__bin_hash) {}
+    _BinHash __bin_hash;
+    __SLM_boost_impl(_BinHash __bin_hash) : __bin_hash(__bin_hash) {}
 
     template <typename _T2>
     inline ::std::uint32_t
     get_bin(_T2&& value) const
     {
-        return bin_hash.get_bin(::std::forward<_T2>(value));
+        return __bin_hash.get_bin(::std::forward<_T2>(value));
     }
 
     template <typename _T2>
     inline bool
     is_valid(_T2&& value) const
     {
-        return bin_hash.is_valid(::std::forward<_T2>(value));
+        return __bin_hash.is_valid(::std::forward<_T2>(value));
     }
 
     inline ::std::size_t
@@ -85,30 +85,31 @@ struct __SLM_boost_impl
 template <typename _Range>
 struct __SLM_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
 {
-    oneapi::dpl::__internal::__custom_range_binhash<_Range> bin_hash;
+    using _BinHashType = typename oneapi::dpl::__internal::__custom_range_binhash<_Range>;
+    _BinHashType __bin_hash;
 
-    using __boundary_type = typename oneapi::dpl::__internal::__custom_range_binhash<_Range>::__boundary_type;
+    using __boundary_type = typename _BinHashType::__boundary_type;
 
-    __SLM_boost_impl(oneapi::dpl::__internal::__custom_range_binhash<_Range> __bin_hash) : bin_hash(__bin_hash) {}
+    __SLM_boost_impl(_BinHashType __bin_hash) : __bin_hash(__bin_hash) {}
 
     template <typename _T2>
     inline ::std::uint32_t
     get_bin(_T2&& value) const
     {
-        return bin_hash.get_bin(::std::forward<_T2>(value));
+        return __bin_hash.get_bin(::std::forward<_T2>(value));
     }
 
     template <typename _T2>
     inline bool
     is_valid(_T2&& value) const
     {
-        return bin_hash.is_valid(::std::forward<_T2>(value));
+        return __bin_hash.is_valid(::std::forward<_T2>(value));
     }
 
     inline ::std::size_t
     get_required_SLM_memory()
     {
-        return sizeof(__boundary_type) * bin_hash.__boundaries.size();
+        return sizeof(__boundary_type) * __bin_hash.__boundaries.size();
     }
 
     inline void
@@ -116,17 +117,17 @@ struct __SLM_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
     {
         ::std::uint32_t gSize = self_item.get_local_range()[0];
         ::std::uint32_t self_lidx = self_item.get_local_id(0);
-        ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(bin_hash.__boundaries.size(), gSize);
+        ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(__bin_hash.__boundaries.size(), gSize);
         ::std::uint8_t k;
         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
         for (k = 0; k < factor - 1; k++)
         {
-            d_boundaries[gSize * k + self_lidx] = bin_hash.__boundaries[gSize * k + self_lidx];
+            d_boundaries[gSize * k + self_lidx] = __bin_hash.__boundaries[gSize * k + self_lidx];
         }
         // residual
-        if (gSize * k + self_lidx < bin_hash.__boundaries.size())
+        if (gSize * k + self_lidx < __bin_hash.__boundaries.size())
         {
-            d_boundaries[gSize * k + self_lidx] = bin_hash.__boundaries[gSize * k + self_lidx];
+            d_boundaries[gSize * k + self_lidx] = __bin_hash.__boundaries[gSize * k + self_lidx];
         }
     }
 
@@ -134,7 +135,7 @@ struct __SLM_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
     ::std::uint32_t inline get_bin(_T2&& value, void* boost_mem) const
     {
         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
-        return (::std::upper_bound(d_boundaries, d_boundaries + bin_hash.__boundaries.size(),
+        return (::std::upper_bound(d_boundaries, d_boundaries + __bin_hash.__boundaries.size(),
                                    ::std::forward<_T2>(value)) -
                 d_boundaries) -
                1;
@@ -144,7 +145,7 @@ struct __SLM_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
     bool inline is_valid(const _T2& value, void* boost_mem) const
     {
         __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
-        return (value >= d_boundaries[0]) && (value < d_boundaries[bin_hash.__boundaries.size()]);
+        return (value >= d_boundaries[0]) && (value < d_boundaries[__bin_hash.__boundaries.size()]);
     }
 };
 
@@ -235,7 +236,7 @@ __histogram_general_registers_local_reduction(_ExecutionPolicy&& exec, const syc
                                               const _Size& __num_bins, _IdxHashFunc __func, _Range3&&... __opt_range)
 {
 
-    const ::std::size_t N = __input.size();
+    const ::std::size_t n = __input.size();
     using __local_histogram_type = ::std::uint32_t;
     using __private_histogram_type = ::std::uint16_t;
     using __histogram_index_type = ::std::uint8_t;
@@ -247,7 +248,7 @@ __histogram_general_registers_local_reduction(_ExecutionPolicy&& exec, const syc
     {
         extra = oneapi::dpl::__internal::__dpl_ceiling_div(required_slm_bytes, sizeof(__local_histogram_type));
     }
-    ::std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(N, __work_group_size * __iters_per_work_item);
+    ::std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(n, __work_group_size * __iters_per_work_item);
     auto e = exec.queue().submit([&](auto& h) {
         h.depends_on(__init_e);
         oneapi::dpl::__ranges::__require_access(h, __input, __bins, __opt_range...);
@@ -267,7 +268,7 @@ __histogram_general_registers_local_reduction(_ExecutionPolicy&& exec, const syc
                     histogram[k] = 0;
                 }
 
-                if (__seg_start + __work_group_size * __iters_per_work_item < N)
+                if (__seg_start + __work_group_size * __iters_per_work_item < n)
                 {
                     _ONEDPL_PRAGMA_UNROLL
                     for (__histogram_index_type idx = 0; idx < __iters_per_work_item; idx++)
@@ -319,8 +320,8 @@ __histogram_general_local_atomics(_ExecutionPolicy&& exec, const sycl::event& __
 
     ::std::size_t extra =
         oneapi::dpl::__internal::__dpl_ceiling_div(__func.get_required_SLM_memory(), sizeof(__local_histogram_type));
-    const ::std::size_t N = __input.size();
-    std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(N, __work_group_size * __iters_per_work_item);
+    const ::std::size_t n = __input.size();
+    std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(n, __work_group_size * __iters_per_work_item);
     auto e = exec.queue().submit([&](auto& h) {
         h.depends_on(__init_e);
         oneapi::dpl::__ranges::__require_access(h, __input, __bins, __opt_range...);
@@ -337,7 +338,7 @@ __histogram_general_local_atomics(_ExecutionPolicy&& exec, const sycl::event& __
 
                            __clear_wglocal_histograms(local_histogram, 0, __num_bins, __self_item);
 
-                           if (__seg_start + __work_group_size * __iters_per_work_item < N)
+                           if (__seg_start + __work_group_size * __iters_per_work_item < n)
                            {
                                _ONEDPL_PRAGMA_UNROLL
                                for (::std::uint8_t idx = 0; idx < __iters_per_work_item; idx++)
@@ -353,7 +354,7 @@ __histogram_general_local_atomics(_ExecutionPolicy&& exec, const sycl::event& __
                                for (::std::uint8_t idx = 0; idx < __iters_per_work_item; idx++)
                                {
                                    ::std::size_t __val_idx = __seg_start + idx * __work_group_size + __self_lidx;
-                                   if (__val_idx < N)
+                                   if (__val_idx < n)
                                    {
                                        __accum_local_atomics_iter<__histogram_index_type, _atomic_address_space>(
                                            __input, __val_idx, local_histogram, 0, __func, boost_mem);
@@ -376,17 +377,17 @@ __histogram_general_private_global_atomics(_ExecutionPolicy&& exec, const sycl::
                                            ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
                                            const _Size& __num_bins, _IdxHashFunc __func, _Range3&&... __opt_range)
 {
-    const ::std::size_t N = __input.size();
+    const ::std::size_t n = __input.size();
     using __bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
     using __histogram_index_type = ::std::uint32_t;
 
     auto __global_mem_size = exec.queue().get_device().template get_info<sycl::info::device::global_mem_size>();
     const ::std::size_t max_segments =
         ::std::min(__global_mem_size / (__num_bins * sizeof(__bin_type)),
-                   oneapi::dpl::__internal::__dpl_ceiling_div(N, __work_group_size * __min_iters_per_work_item));
+                   oneapi::dpl::__internal::__dpl_ceiling_div(n, __work_group_size * __min_iters_per_work_item));
     const ::std::size_t iters_per_work_item =
-        oneapi::dpl::__internal::__dpl_ceiling_div(N, max_segments * __work_group_size);
-    ::std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(N, __work_group_size * iters_per_work_item);
+        oneapi::dpl::__internal::__dpl_ceiling_div(n, max_segments * __work_group_size);
+    ::std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(n, __work_group_size * iters_per_work_item);
 
     auto private_histograms =
         oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __bin_type>(exec, segments * __num_bins)
@@ -405,7 +406,7 @@ __histogram_general_private_global_atomics(_ExecutionPolicy&& exec, const sycl::
 
                            __clear_wglocal_histograms(hacc_private, __wgroup_idx * __num_bins, __num_bins, __self_item);
 
-                           if (__seg_start + __work_group_size * iters_per_work_item < N)
+                           if (__seg_start + __work_group_size * iters_per_work_item < n)
                            {
                                for (::std::size_t idx = 0; idx < iters_per_work_item; idx++)
                                {
@@ -419,7 +420,7 @@ __histogram_general_private_global_atomics(_ExecutionPolicy&& exec, const sycl::
                                for (::std::size_t idx = 0; idx < iters_per_work_item; idx++)
                                {
                                    ::std::size_t __val_idx = __seg_start + idx * __work_group_size + __self_lidx;
-                                   if (__val_idx < N)
+                                   if (__val_idx < n)
                                    {
                                        __accum_local_atomics_iter<__histogram_index_type, _atomic_address_space>(
                                            __input, __val_idx, hacc_private, __wgroup_idx * __num_bins, __func);
@@ -461,9 +462,9 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 _
     auto init_e = oneapi::dpl::__par_backend_hetero::__parallel_for(
         ::std::forward<_ExecutionPolicy>(exec), unseq_backend::walk_n<_ExecutionPolicy, decltype(__f)>{__f}, __num_bins,
         bins_buf.all_view());
-    auto N = __last - __first;
+    auto n = __last - __first;
 
-    if (N > 0)
+    if (n > 0)
     {
         auto keep_input =
             oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read, _Iter1>();
