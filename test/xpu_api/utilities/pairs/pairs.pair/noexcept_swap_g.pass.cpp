@@ -20,13 +20,11 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-// KSATODO struct NoexceptMoveAssignClass
-struct NoexceptMoveAssignClass
+struct NoexceptMoveAssignClass                          // KSATODO (empty)
 {
 };
 
-// KSATODO struct NoexceptMoveConsClass
-struct NoexceptMoveConsClass
+struct NoexceptMoveConsClass                            // KSATODO (empty)
 {
 };
 

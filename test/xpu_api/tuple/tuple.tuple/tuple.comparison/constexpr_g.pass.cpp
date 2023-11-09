@@ -20,8 +20,8 @@
 
 #include "support/utils.h"
 
-// KSATODO constexpr_comparison_operators
-struct constexpr_comparison_operators
+#if TEST_DPCPP_BACKEND_PRESENT
+struct constexpr_comparison_operators               // KSATODO
 {
     template <typename _Tp>
     void
@@ -35,6 +35,7 @@ struct constexpr_comparison_operators
         static_assert(!(_Tp() != _Tp()), "ne");
     }
 };
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()

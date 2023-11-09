@@ -22,8 +22,7 @@
 #include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-// KSATODO struct NoexceptMoveAssignClass
-struct NoexceptMoveAssignClass
+struct NoexceptMoveAssignClass                          // KSATODO (empty)
 {
 };
 

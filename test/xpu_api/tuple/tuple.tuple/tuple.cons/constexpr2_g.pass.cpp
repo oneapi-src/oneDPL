@@ -21,8 +21,7 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-// KSATODO constexpr_default_constructible
-struct constexpr_default_constructible
+struct constexpr_default_constructible                  // KSATODO
 {
     template <typename _Tp, bool _IsLitp = __is_literal_type(_Tp)>
     struct _Concept;
@@ -61,8 +60,7 @@ struct constexpr_default_constructible
     }
 };
 
-// KSATODO constexpr_single_value_constructible
-struct constexpr_single_value_constructible
+struct constexpr_single_value_constructible         // KSATODO
 {
     template <typename _Ttesttype, typename _Tvaluetype, bool _IsLitp = __is_literal_type(_Ttesttype)>
     struct _Concept;
