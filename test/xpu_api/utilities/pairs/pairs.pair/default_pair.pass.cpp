@@ -34,8 +34,7 @@ kernel_test()
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelPairTest>([=]() {
             {
-                typedef dpl::pair<float, short*> P;
-                P p;
+                dpl::pair<float, short*> p;
                 ret_access[0] = (p.first == 0.0f);
                 ret_access[0] &= (p.second == nullptr);
             }
