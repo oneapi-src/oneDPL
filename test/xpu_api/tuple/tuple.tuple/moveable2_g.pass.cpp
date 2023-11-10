@@ -45,14 +45,14 @@ kernel_test()
             cgh.single_task<class KernelTest>([=]() {
                 typedef dpl::tuple<MoveOnly> move_only_tuple;
 
-                move_only_tuple t1(MoveOnly());
+                move_only_tuple t1(MoveOnly{});
                 move_only_tuple t2(dpl::move(t1));
                 move_only_tuple t3 = dpl::move(t2);
                 t1 = dpl::move(t3);
 
                 typedef dpl::tuple<MoveOnly, MoveOnly> move_only_tuple2;
 
-                move_only_tuple2 t4(MoveOnly(), MoveOnly());
+                move_only_tuple2 t4(MoveOnly{}, MoveOnly{});
                 move_only_tuple2 t5(dpl::move(t4));
                 move_only_tuple2 t6 = dpl::move(t5);
                 t4 = dpl::move(t6);
