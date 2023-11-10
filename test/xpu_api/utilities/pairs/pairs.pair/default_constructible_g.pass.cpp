@@ -23,7 +23,7 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 bool
-test_default_constructible()
+test_non_default_constructible()
 {
     struct X
     {
