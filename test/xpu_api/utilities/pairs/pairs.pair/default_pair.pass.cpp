@@ -15,12 +15,26 @@
 
 #include "support/test_config.h"
 
+#include <oneapi/dpl/type_traits>
 #include <oneapi/dpl/utility>
 
 #include "support/test_macros.h"
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
+void
+test_non_default_constructible()
+{
+    struct X
+    {
+        X() = delete;
+    };
+
+    typedef dpl::pair<int, X> P;
+    static_assert(!dpl::is_constructible<P>::value);
+    static_assert(!dpl::is_default_constructible<P>::value);
+}
+
 class KernelPairTest;
 
 void
@@ -45,6 +59,8 @@ kernel_test()
                 ret_access[0] &= (p.first == 0.0f);
                 ret_access[0] &= (p.second == nullptr);
             }
+
+            test_non_default_constructible();
         });
     });
 
