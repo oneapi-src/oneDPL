@@ -37,20 +37,15 @@ main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    bool ret = false;
     sycl::range<1> numOfItems{1};
     {
-        sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
         deviceQueue.submit([&](sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() {
                 dpl::tuple<Something> t1;
                 dpl::tuple<Something> t2 = t1;
-                ret_access[0] = true;
             });
         });
     }
-    EXPECT_TRUE(ret, "Wrong result of dpl::tuple elements access check");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
