@@ -192,20 +192,17 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             size_t wg_local_memory_size = elems_in_tile;
             if (wg_current_offset >= n)
                 return;
-            if (wg_next_offset >= n) {
+            if (wg_next_offset > n)
                 wg_local_memory_size = n - wg_current_offset;
-                wg_next_offset = n; // Not needed
-            }
 
-            // TODO: vectorize loads, where possible
             if (wg_next_offset <= n) {
                 _ONEDPL_PRAGMA_UNROLL
                 for (std::uint32_t i = 0; i < elems_per_workitem; ++i)
                     tile_vals[local_id + stride * i] = __in_rng[wg_current_offset + local_id + stride * i];
             } else {
                 for (std::uint32_t i = 0; i < elems_per_workitem; ++i) {
-                    if (wg_current_offset + stride * i < n)
-                        tile_vals[local_id + stride * i] = __in_rng[wg_current_offset + stride * i];
+                    if (wg_current_offset + local_id + stride * i < n)
+                        tile_vals[local_id + stride * i] = __in_rng[wg_current_offset + local_id + stride * i];
                 }
             }
             sycl::group_barrier(group);
