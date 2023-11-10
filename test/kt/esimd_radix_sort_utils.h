@@ -11,6 +11,8 @@
 #ifndef _ESIMD_RADIX_SORT_TEST_UTILS_H
 #define _ESIMD_RADIX_SORT_TEST_UTILS_H
 
+#include <oneapi/dpl/experimental/kernel_templates>
+
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
 #else
@@ -28,6 +30,32 @@
 #include <limits>
 #include <iostream>
 #include <cstdint>
+#include <vector>
+#include <type_traits>
+
+#if defined(TEST_DATA_PER_WORK_ITEM) && defined(TEST_WORK_GROUP_SIZE)
+using ParamType = oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE>;
+constexpr ParamType kernel_parameters;
+#endif
+
+template <typename KernelParam, typename KeyT, typename ValueT = void>
+bool can_run_test(sycl::queue q, KernelParam param)
+{
+    const auto max_slm_size = q.get_device().template get_info<sycl::info::device::local_mem_size>();
+    std::size_t slm_alloc_size = sizeof(KeyT) * param.data_per_workitem * param.workgroup_size;
+    if constexpr (!std::is_void_v<ValueT>)
+        slm_alloc_size += sizeof(ValueT) * param.data_per_workitem * param.workgroup_size;
+
+    // skip tests with error: LLVM ERROR: SLM size exceeds target limits
+    // TODO: get rid of that check: it is useless for AOT case. Proper configuration must be provided at compile time.
+    return slm_alloc_size < max_slm_size;
+}
+
+inline const std::vector<std::size_t> sort_sizes = {
+    1,       6,         16,      43,        256,           316,           2048,
+    5072,    8192,      14001,   1 << 14,   (1 << 14) + 1, 50000,         67543,
+    100'000, 1 << 17,   179'581, 250'000,   1 << 18,       (1 << 18) + 1, 500'000,
+    888'235, 1'000'000, 1 << 20, 10'000'000};
 
 template <typename T, bool Order>
 struct Compare : public std::less<T>

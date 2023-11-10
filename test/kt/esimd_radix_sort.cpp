@@ -10,19 +10,15 @@
 #include "../support/test_config.h"
 #include "esimd_radix_sort_utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-
 #include <oneapi/dpl/experimental/kernel_templates>
 #include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
 #if _ENABLE_RANGES_TESTING
 #    include <oneapi/dpl/ranges>
 #endif
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 #include "../support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
 #else
@@ -39,21 +35,6 @@
 #if LOG_TEST_INFO
 #include <iostream>
 #endif
-
-#ifndef TEST_DATA_TYPE
-#    define TEST_DATA_TYPE int
-#endif
-
-#ifndef TEST_DATA_PER_WORK_ITEM
-#    define TEST_DATA_PER_WORK_ITEM 256
-#endif
-
-#ifndef TEST_WORK_GROUP_SIZE
-#    define TEST_WORK_GROUP_SIZE 64
-#endif
-
-using ParamType = oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE>;
-constexpr ParamType kernel_parameters;
 
 #if _ENABLE_RANGES_TESTING
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
@@ -184,7 +165,6 @@ test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
     test_subrange_view<T, IsAscending, RadixBits>(q, size, param);
 #endif // _ENABLE_RANGES_TESTING
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 template <typename T, typename KernelParam>
 bool
@@ -198,41 +178,25 @@ can_run_test(sycl::queue q, KernelParam param)
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     auto q = TestUtils::get_test_queue();
-    bool run_test = can_run_test<TEST_DATA_TYPE>(q, kernel_parameters);
+    bool run_test = can_run_test<ParamType, TEST_KEY_TYPE>(q, kernel_parameters);
     if (run_test)
     {
-        const std::vector<std::size_t> sizes = {
-            1,       6,         16,      43,        256,           316,           2048,
-            5072,    8192,      14001,   1 << 14,   (1 << 14) + 1, 50000,         67543,
-            100'000, 1 << 17,   179'581, 250'000,   1 << 18,       (1 << 18) + 1, 500'000,
-            888'235, 1'000'000, 1 << 20, 10'000'000};
-
         try
         {
-#if TEST_LONG_RUN
-            for (auto size : sizes)
+            for (auto size : sort_sizes)
             {
-                test_general_cases<TEST_DATA_TYPE, Ascending, TestRadixBits>(q, size, kernel_parameters);
-                test_general_cases<TEST_DATA_TYPE, Descending, TestRadixBits>(q, size, kernel_parameters);
+                test_general_cases<TEST_KEY_TYPE, Ascending, TestRadixBits>(q, size, kernel_parameters);
+                test_general_cases<TEST_KEY_TYPE, Descending, TestRadixBits>(q, size, kernel_parameters);
             }
-            test_small_sizes<TEST_DATA_TYPE, Ascending, TestRadixBits>(q, kernel_parameters);
-#else
-            for (auto size : sizes)
-            {
-                test_usm<TEST_DATA_TYPE, Ascending, TestRadixBits, sycl::usm::alloc::shared>(q, size, kernel_parameters);
-                test_usm<TEST_DATA_TYPE, Descending, TestRadixBits, sycl::usm::alloc::shared>(q, size, kernel_parameters);
-            }
-#endif // TEST_LONG_RUN
+            test_small_sizes<TEST_KEY_TYPE, Ascending, TestRadixBits>(q, kernel_parameters);
         }
         catch (const ::std::exception& exc)
         {
             std::cerr << "Exception: " << exc.what() << std::endl;
-            return EXIT_FAILURE;
+            return 1;
         }
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && run_test);
+    return TestUtils::done(run_test);
 }

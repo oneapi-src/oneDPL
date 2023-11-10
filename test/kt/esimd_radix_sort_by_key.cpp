@@ -25,12 +25,11 @@
 #include <CL/sycl.hpp>
 #endif
 
+#include "../support/sycl_alloc_utils.h"
 
 template<typename KeyT, typename ValueT, bool isAscending, std::uint32_t RadixBits, typename KernelParam>
-void test_sycl_iterators(std::size_t size, KernelParam param)
+void test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
 {
-    sycl::queue q = TestUtils::get_test_queue();
-
     std::vector<KeyT> expected_keys(size);
     std::vector<ValueT> expected_values(size);
     generate_data(expected_keys.data(), size, 6);
@@ -60,10 +59,8 @@ void test_sycl_iterators(std::size_t size, KernelParam param)
 }
 
 template<typename KeyT, typename ValueT, bool isAscending, std::uint32_t RadixBits, sycl::usm::alloc _alloc_type, typename KernelParam>
-void test_usm(std::size_t size, KernelParam param)
+void test_usm(sycl::queue q, std::size_t size, KernelParam param)
 {
-    sycl::queue q = TestUtils::get_test_queue();
-
     std::vector<KeyT> expected_keys(size);
     std::vector<ValueT> expected_values(size);
     generate_data(expected_keys.data(), size, 6);
@@ -94,35 +91,31 @@ void test_usm(std::size_t size, KernelParam param)
     EXPECT_EQ_N(expected_values.begin(), actual_values.begin(), size, msg.c_str());
 }
 
-template <std::uint16_t DataPerWorkItem, std::uint16_t WorkGroupSize>
-using param_type = oneapi::dpl::experimental::kt::kernel_param<DataPerWorkItem, WorkGroupSize>;
-
 int main()
 {
-    const std::vector<std::size_t> sizes = {
-        6, 16, 43, 256, 316, 2048, 5072, 8192, 14001, 1<<14,
-        (1<<14)+1, 50000, 67543, 100'000, 1<<17, 179'581, 250'000, 1<<18,
-        (1<<18)+1, 500'000, 888'235, 1'000'000, 1<<20, 10'000'000
-    };
+    auto q = TestUtils::get_test_queue();
+    bool run_test = can_run_test<ParamType, TEST_KEY_TYPE, TEST_VALUE_TYPE>(q, kernel_parameters);
 
-    for(auto size: sizes)
+    if (run_test)
     {
-        test_usm<int16_t,  char,     Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<512, 64>{});
-        test_usm<float,    uint32_t, Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<192, 64>{});
-        test_usm<int32_t,  float,    Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<160, 64>{});
-        test_usm<uint32_t, int32_t,  Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<160, 32>{});
-        test_usm<int16_t,  uint64_t, Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<128, 64>{});
-        test_usm<int64_t,  int16_t,  Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<96, 32>{});
-        test_usm<uint32_t, double,   Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<64, 32>{});
-        test_usm<uint32_t, uint16_t, Ascending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<32, 64>{});
-
-        test_usm<int32_t,  uint16_t, Descending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<256, 32>{});
-        test_usm<uint32_t, int32_t,  Descending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<192, 64>{});
-        test_usm<float,    float,    Descending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<128, 64>{});
-        test_usm<int64_t,  double,   Descending, TestRadixBits, sycl::usm::alloc::shared>(size, param_type<64, 64>{});
-
-        test_sycl_iterators<uint32_t, int32_t, Ascending,   TestRadixBits>(size, param_type<192, 32>{});
-        test_sycl_iterators<int32_t,  double,  Descending,  TestRadixBits>(size, param_type<128, 64>{});
+        try
+        {
+            for (auto size : sort_sizes)
+            {
+                test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits, sycl::usm::alloc::shared>(
+                    q, size, kernel_parameters);
+                test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits, sycl::usm::alloc::shared>(
+                    q, size, kernel_parameters);
+                test_sycl_iterators<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits>(q, size, kernel_parameters);
+                test_sycl_iterators<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits>(q, size, kernel_parameters);
+            }
+        }
+        catch (const ::std::exception& exc)
+        {
+            std::cerr << "Exception: " << exc.what() << std::endl;
+            return 1;
+        }
     }
+
     return TestUtils::done();
 }
