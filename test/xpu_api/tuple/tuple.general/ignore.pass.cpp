@@ -37,12 +37,12 @@ kernel_test()
                 auto& res = (dpl::ignore = 42);
                 ret_access[0] = (&res == &dpl::ignore);
             }
-            { // Test that dpl::ignore provides constexpr copy/move constructors
+            {
                 auto copy = dpl::ignore;
                 auto moved = dpl::move(copy);
                 ((void)moved);
             }
-            { // Test that dpl::ignore provides constexpr copy/move assignment
+            {
                 auto copy = dpl::ignore;
                 copy = dpl::ignore;
                 auto moved = dpl::ignore;
