@@ -48,10 +48,10 @@ kernel_test()
                 dpl::tuple<int, int, int> b(0, 0, 1);
                 dpl::tuple<int&, int&, int&> c(i, j, k);
                 dpl::tuple<const int&, const int&, const int&> d(c);
-                test(a);
-                test(b);
-                test(c);
-                test(d);
+                ret_acc[0] &= test(a);
+                ret_acc[0] &= test(b);
+                ret_acc[0] &= test(c);
+                ret_acc[0] &= test(d);
                 ret_acc[0] &= (!(a > a) && !(b > b));
                 ret_acc[0] &= (a >= a && b >= b);
                 ret_acc[0] &= (a < b && !(b < a) && a <= b && !(b <= a));
