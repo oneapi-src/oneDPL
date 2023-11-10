@@ -38,11 +38,22 @@ kernel_test()
                 ret_access[0] = (dpl::get<0>(p) == 3);
                 ret_access[0] &= (dpl::get<1>(p) == 4);
             }
+
+            {
+                typedef dpl::pair<int, short> P;
+                P p = dpl::make_pair(3, static_cast<short>(4));
+                ret_access[0] = (dpl::get<0>(p) == 3);
+                ret_access[0] &= (dpl::get<1>(p) == 4);
+                dpl::get<0>(p) = 5;
+                dpl::get<1>(p) = 6;
+                ret_access[0] &= (dpl::get<0>(p) == 5);
+                ret_access[0] &= (dpl::get<1>(p) == 6);
+            }
         });
     });
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
-    EXPECT_TRUE(ret_access_host[0], "Wrong result of const dpl::pair::get check");
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::pair::get check");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
