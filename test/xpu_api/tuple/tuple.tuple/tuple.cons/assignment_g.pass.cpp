@@ -40,6 +40,8 @@ kernel_test()
                 dpl::tuple<int> tc(1);
                 dpl::tuple<int> td(0);
                 td = tc;
+                ret_access[0] &= (dpl::get<0>(td) == 1);
+
                 int i = 0;
                 dpl::tuple<int&> t1(i);
                 t1 = tc;
