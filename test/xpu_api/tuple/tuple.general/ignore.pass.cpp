@@ -34,6 +34,7 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelIgnoreTest>([=]() {
+            {
                 auto& res = (dpl::ignore = 42);
                 ret_access[0] = (&res == &dpl::ignore);
             }
