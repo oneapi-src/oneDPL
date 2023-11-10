@@ -59,7 +59,7 @@ class T19;
 class T20;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-void
+int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
