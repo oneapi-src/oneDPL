@@ -26,16 +26,6 @@ struct S
     int i;
     S() : i(0) {}
     S(int j) : i(j) {}
-    S* operator&()
-    {
-        assert(false);
-        return this;
-    }
-    S const* operator&() const
-    {
-        assert(false);
-        return this;
-    }
     bool
     operator==(int x) const
     {
