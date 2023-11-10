@@ -33,50 +33,44 @@ test()
         static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, T1>::value);
         static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, T2>::value);
 
-        static_assert(dpl::is_same<dpl::tuple_element_t<0, P>, T1>::value);
-        static_assert(dpl::is_same<dpl::tuple_element_t<1, P>, T2>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<0, P>, T1>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<1, P>, T2>::value);
 
         result = (dpl::is_same<typename dpl::tuple_element<0, P>::type, T1>::value);
         result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, T2>::value);
     }
     {
-        typedef T1 const Exp1;
-        typedef T2 const Exp2;
         typedef dpl::pair<T1, T2> const P;
-        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
-        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, const T1>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, const T2>::value);
 
-        static_assert(dpl::is_same<dpl::tuple_element_t<0, P>, Exp1>::value);
-        static_assert(dpl::is_same<dpl::tuple_element_t<1, P>, Exp2>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<0, P>, const T1>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<1, P>, const T2>::value);
 
-        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
-        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, const T1>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, const T2>::value);
     }
     {
-        typedef T1 volatile Exp1;
-        typedef T2 volatile Exp2;
         typedef dpl::pair<T1, T2> volatile P;
-        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
-        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, volatile T1>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, volatile T2>::value);
 
-        static_assert(dpl::is_same<dpl::tuple_element_t<0, P>, Exp1>::value);
-        static_assert(dpl::is_same<dpl::tuple_element_t<1, P>, Exp2>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<0, P>, volatile T1>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<1, P>, volatile T2>::value);
 
-        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
-        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, volatile T1>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, volatile T2>::value);
     }
     {
-        typedef T1 const volatile Exp1;
-        typedef T2 const volatile Exp2;
         typedef dpl::pair<T1, T2> const volatile P;
-        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
-        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, const volatile T1>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, const volatile T2>::value);
 
-        static_assert(dpl::is_same<dpl::tuple_element_t<0, P>, Exp1>::value);
-        static_assert(dpl::is_same<dpl::tuple_element_t<1, P>, Exp2>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<0, P>, const volatile T1>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<1, P>, const volatile T2>::value);
 
-        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
-        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, const volatile T1>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, const volatile T2>::value);
     }
 
     return result;
