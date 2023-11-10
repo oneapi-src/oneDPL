@@ -41,30 +41,7 @@ class A
     }
 };
 
-class B
-{
-    float f_;
-    unsigned u1_;
-    unsigned u2_;
-
-  public:
-    B(float f, unsigned u1, unsigned u2) : f_(f), u1_(u1), u2_(u2) {}
-    float
-    get_f() const
-    {
-        return f_;
-    }
-    unsigned
-    get_u1() const
-    {
-        return u1_;
-    }
-    unsigned
-    get_u2() const
-    {
-        return u2_;
-    }
-};
+using B = std::tuple<float, unsigned, unsigned>;
 
 class KernelPairTest;
 void
@@ -80,9 +57,9 @@ kernel_test()
             dpl::pair<A, B> p(dpl::piecewise_construct, dpl::make_tuple(4, 'a'), dpl::make_tuple(3.5f, 6u, 2u));
             ret_access[0] = (p.first.get_i() == 4);
             ret_access[0] &= (p.first.get_c() == 'a');
-            ret_access[0] &= (p.second.get_f() == 3.5f);
-            ret_access[0] &= (p.second.get_u1() == 6u);
-            ret_access[0] &= (p.second.get_u2() == 2u);
+            ret_access[0] &= (std::get<0>(p.second) == 3.5f);
+            ret_access[0] &= (std::get<1>(p.second) == 6u);
+            ret_access[0] &= (std::get<2>(p.second) == 2u);
         });
     });
 
