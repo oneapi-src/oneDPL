@@ -25,6 +25,29 @@ struct NoexceptMoveAssignClass
 {
 };
 
+struct NonNoexceptMoveAssignClass
+{
+    NonNoexceptMoveAssignClass(NonNoexceptMoveAssignClass&&) noexcept(false);
+    NonNoexceptMoveAssignClass&
+    operator=(NonNoexceptMoveAssignClass&&) noexcept(false);
+};
+
+template <typename T>
+void
+test_nothrow_move_assignable()
+{
+    static_assert(std::is_nothrow_move_assignable<T>::value);
+    static_assert(std::is_nothrow_move_assignable_v<T>);
+}
+
+template <typename T>
+void
+test_non_nothrow_move_assignable()
+{
+    static_assert(!std::is_nothrow_move_assignable<T>::value);
+    static_assert(!std::is_nothrow_move_assignable_v<T>);
+}
+
 void
 kernel_test()
 {
@@ -35,10 +58,13 @@ kernel_test()
                 typedef dpl::pair<int, int> tt1;
                 typedef dpl::pair<int, float> tt2;
                 typedef dpl::pair<NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt3;
+                typedef dpl::pair<NonNoexceptMoveAssignClass, NonNoexceptMoveAssignClass> tt3n;
 
-                static_assert(std::is_nothrow_move_assignable<tt1>::value);
-                static_assert(std::is_nothrow_move_assignable<tt2>::value);
-                static_assert(std::is_nothrow_move_assignable<tt3>::value);
+                test_nothrow_move_assignable<tt1>();
+                test_nothrow_move_assignable<tt2>();
+                test_nothrow_move_assignable<tt3>();
+
+                test_non_nothrow_move_assignable<tt3n>();
             });
         });
     }
