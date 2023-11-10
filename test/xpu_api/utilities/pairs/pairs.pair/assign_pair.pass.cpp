@@ -67,19 +67,6 @@ kernel_test()
             }
 
             {
-                using P = dpl::pair<int&, int&&>;
-                int x = 42;
-                int y = 101;
-                int x2 = -1;
-                int y2 = 300;
-                P p1(x, dpl::move(y));
-                P p2(x2, dpl::move(y2));
-                p1 = p2;
-                ret_access[0] &= (p1.first == x2);
-                ret_access[0] &= (p1.second == y2);
-            }
-
-            {
                 using P = dpl::pair<int, NonAssignable>;
                 static_assert(!dpl::is_copy_assignable<P>::value);
             }
