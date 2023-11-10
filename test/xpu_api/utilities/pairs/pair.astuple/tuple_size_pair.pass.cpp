@@ -35,24 +35,32 @@ kernel_test()
             {
                 typedef dpl::pair<int, short> P1;
                 static_assert(dpl::tuple_size<P1>::value == 2);
+                static_assert(std::tuple_size_v<P1> == 2);
                 ret_access[0] = (dpl::tuple_size<P1>::value == 2);
+                ret_access[0] &= (std::tuple_size_v<P1> == 2);
             }
 
             {
                 typedef dpl::pair<int, short> const P1;
                 static_assert(dpl::tuple_size<P1>::value == 2);
+                static_assert(std::tuple_size_v<P1> == 2);
                 ret_access[0] &= (dpl::tuple_size<P1>::value == 2);
+                ret_access[0] &= (std::tuple_size_v<P1> == 2);
             }
 
             {
                 typedef dpl::pair<int, short> volatile P1;
                 static_assert(dpl::tuple_size<P1>::value == 2);
+                static_assert(std::tuple_size_v<P1> == 2);
                 ret_access[0] &= (dpl::tuple_size<P1>::value == 2);
+                ret_access[0] &= (std::tuple_size_v<P1> == 2);
             }
 
             {
                 typedef dpl::pair<int, short> const volatile P1;
+                static_assert(std::tuple_size_v<P1> == 2);
                 ret_access[0] &= (dpl::tuple_size<P1>::value == 2);
+                ret_access[0] &= (std::tuple_size_v<P1> == 2);
             }
         });
     });
