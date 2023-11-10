@@ -22,58 +22,24 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <typename Tuple>
-constexpr bool
+constexpr void
 test_constexpr_default_ctor()
 {
     constexpr Tuple tpl;
     constexpr std::tuple_element_t<0, Tuple> desired_value{};
 
     static_assert(dpl::get<0>(tpl) == desired_value);
-    return true;
 }
 
-// KSATODO constexpr_single_value_constructible
-struct constexpr_single_value_constructible
+template <typename TTestTuple, typename TValueTuple>
+constexpr void
+test_constexpr_single_val_ctor()
 {
-    template <typename _Ttesttype, typename _Tvaluetype, bool _IsLitp = __is_literal_type(_Ttesttype)>
-    struct _Concept;
+    constexpr TValueTuple rhs;
+    constexpr TTestTuple lhs{rhs};
 
-    // NB: _Tvaluetype and _Ttesttype must be literal types.
-    // Additional constraint on _Tvaluetype needed.  Either assume
-    // user-defined default ctor as per
-    // constexpr_default_constructible and provide no initializer,
-    // provide an initializer, or assume empty-list init-able. Choose
-    // the latter.
-    template <typename _Ttesttype, typename _Tvaluetype>
-    struct _Concept<_Ttesttype, _Tvaluetype, true>
-    {
-        void
-        __constraint()
-        {
-            constexpr _Tvaluetype __v{};
-            constexpr _Ttesttype __obj(__v);
-        }
-    };
-
-    template <typename _Ttesttype, typename _Tvaluetype>
-    struct _Concept<_Ttesttype, _Tvaluetype, false>
-    {
-        void
-        __constraint()
-        {
-            const _Tvaluetype __v{};
-            static _Ttesttype __obj(__v);
-        }
-    };
-
-    template <typename _Ttesttype, typename _Tvaluetype>
-    void
-    operator()()
-    {
-        _Concept<_Ttesttype, _Tvaluetype> c;
-        c.__constraint();
-    }
-};
+    static_assert(dpl::get<0>(lhs) == dpl::get<0>(rhs));
+}
 
 void
 kernel_test()
@@ -88,8 +54,7 @@ kernel_test()
                 test_constexpr_default_ctor<tuple_type>();
 
                 // 02: default copy ctor
-                constexpr_single_value_constructible test2;
-                test2.operator()<tuple_type, tuple_type>();
+                test_constexpr_single_val_ctor<tuple_type, tuple_type>();
 
                 // 03: element move ctor, single element
                 const int i1(415);
@@ -106,13 +71,13 @@ kernel_test()
                 constexpr tuple_type t8(i4, i5);
 
                 // 06: pair conversion ctor
-                test2.operator()<tuple_type, dpl::pair<int, int>>();
-                test2.operator()<dpl::tuple<short, short>, dpl::pair<int, int>>();
-                test2.operator()<tuple_type, dpl::pair<short, short>>();
+                test_constexpr_single_val_ctor<tuple_type, dpl::pair<int, int>>();
+                test_constexpr_single_val_ctor<dpl::tuple<short, short>, dpl::pair<int, int>>();
+                test_constexpr_single_val_ctor<tuple_type, dpl::pair<short, short>>();
 
                 // 07: different-tuple-type conversion constructor
-                test2.operator()<tuple_type, dpl::tuple<short, short>>();
-                test2.operator()<dpl::tuple<short, short>, tuple_type>();
+                test_constexpr_single_val_ctor<tuple_type, dpl::tuple<short, short>>();
+                test_constexpr_single_val_ctor<dpl::tuple<short, short>, tuple_type>();
             });
         });
     }
