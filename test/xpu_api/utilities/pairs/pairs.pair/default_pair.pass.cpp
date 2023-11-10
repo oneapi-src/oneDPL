@@ -56,8 +56,8 @@ kernel_test()
             {
                 typedef dpl::pair<float, short*> P;
                 constexpr P p;
-                ret_access[0] &= (p.first == 0.0f);
-                ret_access[0] &= (p.second == nullptr);
+                static_assert(p.first == 0.0f);
+                static_assert(p.second == nullptr);
             }
 
             test_non_default_constructible();
