@@ -21,45 +21,16 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-// KSATODO constexpr_default_constructible
-struct constexpr_default_constructible
+template <typename Tuple>
+constexpr bool
+test_constexpr_default_ctor()
 {
-    template <typename _Tp, bool _IsLitp = __is_literal_type(_Tp)>
-    struct _Concept;
+    constexpr Tuple tpl;
+    constexpr std::tuple_element_t<0, Tuple> desired_value{};
 
-    // NB: _Tp must be a literal type.
-    // Have to have user-defined default ctor for this to work,
-    // or implicit default ctor must initialize all members.
-    template <typename _Tp>
-    struct _Concept<_Tp, true>
-    {
-        void
-        __constraint()
-        {
-            constexpr _Tp __obj;
-        }
-    };
-
-    // Non-literal type, declare local static and verify no
-    // constructors generated for _Tp within the translation unit.
-    template <typename _Tp>
-    struct _Concept<_Tp, false>
-    {
-        void
-        __constraint()
-        {
-            static _Tp __obj;
-        }
-    };
-
-    template <typename _Tp>
-    void
-    operator()()
-    {
-        _Concept<_Tp> c;
-        c.__constraint();
-    }
-};
+    static_assert(dpl::get<0>(tpl) == desired_value);
+    return true;
+}
 
 // KSATODO constexpr_single_value_constructible
 struct constexpr_single_value_constructible
@@ -114,8 +85,7 @@ kernel_test()
                 typedef dpl::tuple<int, int> tuple_type;
 
                 // 01: default ctor
-                constexpr_default_constructible test1;
-                test1.operator()<tuple_type>();
+                test_constexpr_default_ctor<tuple_type>();
 
                 // 02: default copy ctor
                 constexpr_single_value_constructible test2;
