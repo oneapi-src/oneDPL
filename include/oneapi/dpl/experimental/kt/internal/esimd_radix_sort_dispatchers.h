@@ -92,7 +92,7 @@ class __onesweep_memory_holder
 
     sycl::queue __m_q;
 
-    void __calculate_raw_memory_amount()
+    void __calculate_raw_memory_amount() noexcept
     {
         // Extra bytes are added for potentiall padding
         __m_raw_mem_bytes = __m_keys_bytes + __m_global_hist_bytes + __m_group_hist_bytes + sizeof(_KeyT);
@@ -105,6 +105,7 @@ class __onesweep_memory_holder
     void __allocate_raw_memory()
     {
         // Non-typed allocation is guaranteed to be aligned for any fundamental type according to SYCL spec
+        // TODO: handle a case when malloc_device fails to allocate the memory
         void* __mem = sycl::malloc_device(__m_raw_mem_bytes, __m_q);
         __m_raw_mem_ptr = reinterpret_cast<::std::uint8_t*>(__mem);
     }
@@ -132,27 +133,27 @@ class __onesweep_memory_holder
 public:
     __onesweep_memory_holder(sycl::queue __q): __m_q(__q) {}
 
-    void __keys_alloc_count(::std::size_t __key_count)
+    void __keys_alloc_count(::std::size_t __key_count) noexcept
     {
         __m_keys_bytes = __key_count * sizeof(_KeyT);
     }
-    void __vals_alloc_count(::std::size_t __values_count)
+    void __vals_alloc_count(::std::size_t __values_count) noexcept
     {
         __m_vals_bytes = __values_count * sizeof(_ValT);
     }
-    void __global_hist_item_alloc_count(::std::size_t __global_hist_item_count)
+    void __global_hist_item_alloc_count(::std::size_t __global_hist_item_count) noexcept
     {
         __m_global_hist_bytes = __global_hist_item_count * sizeof(_HistT);
     }
-    void __group_hist_item_alloc_count(::std::size_t __group_hist_item_count)
+    void __group_hist_item_alloc_count(::std::size_t __group_hist_item_count) noexcept
     {
         __m_group_hist_bytes = __group_hist_item_count * sizeof(_HistT);
     }
 
-    _KeyT* __keys_ptr() { return __m_keys_ptr; }
-    _ValT* __vals_ptr() { return __m_vals_ptr; }
-    _HistT* __global_hist_ptr() { return __m_global_hist_ptr; }
-    _HistT* __group_hist_ptr() { return __m_group_hist_ptr; }
+    _KeyT* __keys_ptr() noexcept { return __m_keys_ptr; }
+    _ValT* __vals_ptr() noexcept { return __m_vals_ptr; }
+    _HistT* __global_hist_ptr() noexcept { return __m_global_hist_ptr; }
+    _HistT* __group_hist_ptr() noexcept{ return __m_group_hist_ptr; }
 
     void __allocate()
     {
