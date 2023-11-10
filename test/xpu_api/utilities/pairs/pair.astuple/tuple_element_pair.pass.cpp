@@ -29,17 +29,15 @@ test()
 
     bool result = false;
     {
-        typedef T1 Exp1;
-        typedef T2 Exp2;
         typedef dpl::pair<T1, T2> P;
-        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
-        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, T1>::value);
+        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, T2>::value);
 
-        static_assert(dpl::is_same<dpl::tuple_element_t<0, P>, Exp1>::value);
-        static_assert(dpl::is_same<dpl::tuple_element_t<1, P>, Exp2>::value);
+        static_assert(dpl::is_same<dpl::tuple_element_t<0, P>, T1>::value);
+        static_assert(dpl::is_same<dpl::tuple_element_t<1, P>, T2>::value);
 
-        result = (dpl::is_same<typename dpl::tuple_element<0, P>::type, Exp1>::value);
-        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, Exp2>::value);
+        result = (dpl::is_same<typename dpl::tuple_element<0, P>::type, T1>::value);
+        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, T2>::value);
     }
     {
         typedef T1 const Exp1;
