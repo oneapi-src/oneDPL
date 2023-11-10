@@ -34,13 +34,20 @@ function(_generate_test _target_name _test_path)
 endfunction(_generate_test)
 
 function(_generate_test_randomly _target_name _test_path _probability_permille)
-    string(RANDOM LENGTH 3 ALPHABET "0123456789" __random)
-    if ((${__random} LESS_EQUAL ${_probability_permille}) AND (NOT TARGET ${_target_name}))
+    if (DEFINED ONEDPL_TEST_CMAKE_RANDOM_SEED)
+        string(RANDOM ${ONEDPL_TEST_CMAKE_RANDOM_SEED} LENGTH 3 ALPHABET "0123456789" _random)
+    else()
+        string(RANDOM LENGTH 3 ALPHABET "0123456789" _random)
+    endif()
+    if ((${_random} LESS ${_probability_permille}) AND (NOT TARGET ${_target_name}))
         _generate_test(${_target_name} ${_test_path})
     endif()
 endfunction()
 
-function(_generate_esimd_sort_test _data_per_work_item _work_group_size _key_type _val_type)
+# Arguments with special treatment:
+#   _val_type. Treated as absent for values: "" (empty string).
+#              If absent, key sort test is generated, otherwise key-value sort test
+function(_generate_esimd_sort_test _data_per_work_item _work_group_size _key_type _val_type _probability_permille)
     if ((NOT TARGET build-esimd-tests) AND (NOT TARGET run-esimd-tests))
         add_custom_target(build-esimd-tests COMMENT "Build all ESIMD-based kernel template tests")
         add_custom_target(run-esimd-tests
@@ -52,13 +59,11 @@ function(_generate_esimd_sort_test _data_per_work_item _work_group_size _key_typ
     string(REPLACE "_t" "" _key_type_short ${_key_type})
     if (NOT "${_val_type}" STREQUAL "")
         string(REPLACE "_t" "" _val_type_short ${_val_type})
-        set(_target_name "esimd_radix_sort_by_key_${_key_type_short}_${_val_type_short}_dpwi${_data_per_work_item}_wgs${_work_group_size}")
+        set(_target_name "esimd_radix_sort_dpwi${_data_per_work_item}_wgs${_work_group_size}_${_key_type_short}_${_val_type_short}")
         set(_test_path "esimd_radix_sort_by_key.cpp")
-        set(_probability_permille 20)
     else()
-        set(_target_name "esimd_radix_sort_${_key_type_short}_dpwi${_data_per_work_item}_wgs${_work_group_size}")
+        set(_target_name "esimd_radix_sort_dpwi${_data_per_work_item}_wgs${_work_group_size}_${_key_type_short}")
         set(_test_path "esimd_radix_sort.cpp")
-        set(_probability_permille 200)
     endif()
 
     _generate_test_randomly(${_target_name} ${_test_path} ${_probability_permille})
@@ -75,7 +80,7 @@ function(_generate_esimd_sort_test _data_per_work_item _work_group_size _key_typ
     endif()
 endfunction()
 
-function(_generate_esimd_sort_tests _key_value_test_type)
+function(_generate_esimd_sort_tests _key_value_pairs)
     set(_data_per_work_item_all "32" "64" "96" "128" "160" "192" "224" "256" "288" "320" "352" "384" "416" "448" "480" "512")
     set(_work_group_size_all "32" "64")
     set(_type_all "char" "uint16_t" "int" "uint64_t" "float" "double")
@@ -83,12 +88,12 @@ function(_generate_esimd_sort_tests _key_value_test_type)
     foreach (_data_per_work_item ${_data_per_work_item_all})
         foreach (_work_group_size ${_work_group_size_all})
             foreach (_key_type ${_type_all})
-                if(_key_value_test_type)
+                if(_key_value_pairs)
                     foreach (_val_type ${_type_all})
-                        _generate_esimd_sort_test(${_data_per_work_item} ${_work_group_size} ${_key_type} ${_val_type})
+                        _generate_esimd_sort_test(${_data_per_work_item} ${_work_group_size} ${_key_type} ${_val_type} 20)
                     endforeach()
                 else()
-                    _generate_esimd_sort_test(${_data_per_work_item} ${_work_group_size} ${_key_type} "")
+                    _generate_esimd_sort_test(${_data_per_work_item} ${_work_group_size} ${_key_type} "" 200)
                 endif()
             endforeach()
         endforeach()
@@ -98,4 +103,7 @@ endfunction()
 if (ONEDPL_TEST_ENABLE_KT_ESIMD)
     _generate_esimd_sort_tests(FALSE) # esimd_radix_sort, random
     _generate_esimd_sort_tests(TRUE) # esimd_radix_sort_by_key, random
+
+    # Pin some cases to track them, e.g. because they fail
+    _generate_esimd_sort_test("256" "32" "double" "" 1000) # segfault
 endif()
