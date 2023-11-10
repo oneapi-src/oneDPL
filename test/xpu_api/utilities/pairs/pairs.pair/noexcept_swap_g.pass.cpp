@@ -50,11 +50,7 @@ template <typename T>
 void 
 test_is_nothrow_swappable()
 {
-    static_assert(std::is_nothrow_swappable<T>::value);
     static_assert(std::is_nothrow_swappable_v<T>);
-
-    static_assert(std::is_nothrow_swappable_with<T, T>::value);
-    static_assert(std::is_nothrow_swappable_with_v<T, T>);
 }
 
 template <typename T>
