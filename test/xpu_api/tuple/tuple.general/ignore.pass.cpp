@@ -24,27 +24,6 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 class KernelIgnoreTest;
 
-bool __attribute__((always_inline)) test_ignore_constexpr()
-{
-    bool ret = false;
-    { // Test that dpl::ignore provides constexpr converting assignment.
-        auto& res = (dpl::ignore = 42);
-        ret = (&res == &dpl::ignore);
-    }
-    { // Test that dpl::ignore provides constexpr copy/move constructors
-        auto copy = dpl::ignore;
-        auto moved = dpl::move(copy);
-        ((void)moved);
-    }
-    { // Test that dpl::ignore provides constexpr copy/move assignment
-        auto copy = dpl::ignore;
-        copy = dpl::ignore;
-        auto moved = dpl::ignore;
-        moved = dpl::move(copy);
-    }
-    return ret;
-}
-
 void
 kernel_test()
 {
@@ -55,7 +34,21 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelIgnoreTest>([=]() {
-            ret_access[0] = test_ignore_constexpr();
+            { // Test that dpl::ignore provides constexpr converting assignment.
+                auto& res = (dpl::ignore = 42);
+                ret_access[0] = (&res == &dpl::ignore);
+            }
+            { // Test that dpl::ignore provides constexpr copy/move constructors
+                auto copy = dpl::ignore;
+                auto moved = dpl::move(copy);
+                ((void)moved);
+            }
+            { // Test that dpl::ignore provides constexpr copy/move assignment
+                auto copy = dpl::ignore;
+                copy = dpl::ignore;
+                auto moved = dpl::ignore;
+                moved = dpl::move(copy);
+            }
         });
     });
 
