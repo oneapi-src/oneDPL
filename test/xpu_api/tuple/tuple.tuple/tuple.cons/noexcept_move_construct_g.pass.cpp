@@ -21,8 +21,14 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-struct NoexceptMoveConsClass                            // KSATODO (empty)
+struct NoexceptMoveConsClass
 {
+};
+
+struct NonNoexceptMoveConsClass
+{
+    NonNoexceptMoveConsClass&
+    operator=(NonNoexceptMoveConsClass&&) noexcept(false);
 };
 
 void
@@ -39,12 +45,20 @@ kernel_test()
                 typedef dpl::tuple<NoexceptMoveConsClass, NoexceptMoveConsClass, float> tt5;
                 typedef dpl::tuple<NoexceptMoveConsClass, NoexceptMoveConsClass, NoexceptMoveConsClass> tt6;
 
+                typedef dpl::tuple<short, NonNoexceptMoveConsClass, float> tt4n;
+                typedef dpl::tuple<NonNoexceptMoveConsClass, NonNoexceptMoveConsClass, float> tt5n;
+                typedef dpl::tuple<NonNoexceptMoveConsClass, NonNoexceptMoveConsClass, NonNoexceptMoveConsClass> tt6n;
+
                 static_assert(std::is_nothrow_move_constructible<tt1>::value);
                 static_assert(std::is_nothrow_move_constructible<tt2>::value);
                 static_assert(std::is_nothrow_move_constructible<tt3>::value);
                 static_assert(std::is_nothrow_move_constructible<tt4>::value);
                 static_assert(std::is_nothrow_move_constructible<tt5>::value);
                 static_assert(std::is_nothrow_move_constructible<tt6>::value);
+
+                static_assert(!std::is_nothrow_move_constructible<tt4n>::value);
+                static_assert(!std::is_nothrow_move_constructible<tt5n>::value);
+                static_assert(!std::is_nothrow_move_constructible<tt6n>::value);
             });
         });
     }
