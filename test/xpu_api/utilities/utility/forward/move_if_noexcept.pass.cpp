@@ -47,11 +47,11 @@ kernel_test()
     A a;
     const A ca;
 
-    static_assert(dpl::is_same<decltype(dpl::move_if_noexcept(i)), int&&>::value);
-    static_assert(dpl::is_same<decltype(dpl::move_if_noexcept(ci)), const int&&>::value);
-    static_assert(dpl::is_same<decltype(dpl::move_if_noexcept(a)), A&&>::value);
-    static_assert(dpl::is_same<decltype(dpl::move_if_noexcept(ca)), const A&&>::value);
-    static_assert(dpl::is_same<decltype(dpl::move_if_noexcept(l)), const legacy&>::value);
+    static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(i)), int&&>);
+    static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(ci)), const int&&>);
+    static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(a)), A&&>);
+    static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(ca)), const A&&>);
+    static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(l)), const legacy&>);
 
     constexpr int i1 = 23;
     constexpr int i2 = dpl::move_if_noexcept(i1);

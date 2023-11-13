@@ -31,8 +31,8 @@ struct A
 void
 kernel_test()
 {
-    static_assert(dpl::is_same<decltype(dpl::declval<A>()), A&&>::value);
-    static_assert(dpl::is_same<decltype(dpl::declval<A&>()), A&>::value);
+    static_assert(dpl::is_same_v<decltype(dpl::declval<A>()), A&&>);
+    static_assert(dpl::is_same_v<decltype(dpl::declval<A&>()), A&>);
 }
 
 class KernelTest;

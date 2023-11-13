@@ -76,7 +76,7 @@ template <class Tp>
 constexpr bool
 can_swap()
 {
-    return dpl::is_same<decltype(can_swap_test<Tp>(0)), void>::value;
+    return dpl::is_same_v<decltype(can_swap_test<Tp>(0)), void>;
 }
 
 class KernelSwapTest;

@@ -56,23 +56,23 @@ kernel_test()
     ((void)a);  // Prevent unused warning
     ((void)ca); // Prevent unused warning
 
-    static_assert(dpl::is_same<decltype(dpl::forward<A&>(a)), A&>::value);
-    static_assert(dpl::is_same<decltype(dpl::forward<A>(a)), A&&>::value);
-    static_assert(dpl::is_same<decltype(dpl::forward<A>(source())), A&&>::value);
+    static_assert(dpl::is_same_v<decltype(dpl::forward<A&>(a)), A&>);
+    static_assert(dpl::is_same_v<decltype(dpl::forward<A>(a)), A&&>);
+    static_assert(dpl::is_same_v<decltype(dpl::forward<A>(source())), A&&>);
     ASSERT_NOEXCEPT(dpl::forward<A&>(a));
     ASSERT_NOEXCEPT(dpl::forward<A>(a));
     ASSERT_NOEXCEPT(dpl::forward<A>(source()));
 
-    static_assert(dpl::is_same<decltype(dpl::forward<const A&>(a)), const A&>::value);
-    static_assert(dpl::is_same<decltype(dpl::forward<const A>(a)), const A&&>::value);
-    static_assert(dpl::is_same<decltype(dpl::forward<const A>(source())), const A&&>::value);
+    static_assert(dpl::is_same_v<decltype(dpl::forward<const A&>(a)), const A&>);
+    static_assert(dpl::is_same_v<decltype(dpl::forward<const A>(a)), const A&&>);
+    static_assert(dpl::is_same_v<decltype(dpl::forward<const A>(source())), const A&&>);
     ASSERT_NOEXCEPT(dpl::forward<const A&>(a));
     ASSERT_NOEXCEPT(dpl::forward<const A>(a));
     ASSERT_NOEXCEPT(dpl::forward<const A>(source()));
 
-    static_assert(dpl::is_same<decltype(dpl::forward<const A&>(ca)), const A&>::value);
-    static_assert(dpl::is_same<decltype(dpl::forward<const A>(ca)), const A&&>::value);
-    static_assert(dpl::is_same<decltype(dpl::forward<const A>(csource())), const A&&>::value);
+    static_assert(dpl::is_same_v<decltype(dpl::forward<const A&>(ca)), const A&>);
+    static_assert(dpl::is_same_v<decltype(dpl::forward<const A>(ca)), const A&&>);
+    static_assert(dpl::is_same_v<decltype(dpl::forward<const A>(csource())), const A&&>);
     ASSERT_NOEXCEPT(dpl::forward<const A&>(ca));
     ASSERT_NOEXCEPT(dpl::forward<const A>(ca));
     ASSERT_NOEXCEPT(dpl::forward<const A>(csource()));

@@ -36,11 +36,11 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelTupleSizeTest>([=]() {
-            ret_access[0] = (dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<T>>::value);
-            ret_access[0] &= (dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const T>>::value);
-            ret_access[0] &= (dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<volatile T>>::value);
+            ret_access[0] = (dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<T>>);
+            ret_access[0] &= (dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const T>>);
+            ret_access[0] &= (dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<volatile T>>);
             ret_access[0] &=
-                (dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const volatile T>>::value);
+                (dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const volatile T>>);
         });
     });
 

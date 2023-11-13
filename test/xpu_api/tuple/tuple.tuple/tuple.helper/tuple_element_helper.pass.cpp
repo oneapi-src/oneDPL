@@ -26,19 +26,19 @@
 template <class T, dpl::size_t N, class U>
 void test_compile()
 {
-    static_assert(dpl::is_same<typename dpl::tuple_element<N, T>::type, U>::value);
-    static_assert(dpl::is_same<typename dpl::tuple_element<N, const T>::type, const U>::value);
-    static_assert(dpl::is_same<typename dpl::tuple_element<N, volatile T>::type, volatile U>::value);
-    static_assert(dpl::is_same<typename dpl::tuple_element<N, const volatile T>::type, const volatile U>::value);
+    static_assert(dpl::is_same_v<typename dpl::tuple_element<N, T>::type, U>);
+    static_assert(dpl::is_same_v<typename dpl::tuple_element<N, const T>::type, const U>);
+    static_assert(dpl::is_same_v<typename dpl::tuple_element<N, volatile T>::type, volatile U>);
+    static_assert(dpl::is_same_v<typename dpl::tuple_element<N, const volatile T>::type, const volatile U>);
 }
 
 template <class T, dpl::size_t N, class U>
 bool test_runtime()
 {
-    bool ret = (dpl::is_same<typename dpl::tuple_element<N, T>::type, U>::value);
-    ret &= (dpl::is_same<typename dpl::tuple_element<N, const T>::type, const U>::value);
-    ret &= (dpl::is_same<typename dpl::tuple_element<N, volatile T>::type, volatile U>::value);
-    ret &= (dpl::is_same<typename dpl::tuple_element<N, const volatile T>::type, const volatile U>::value);
+    bool ret = (dpl::is_same_v<typename dpl::tuple_element<N, T>::type, U>);
+    ret &= (dpl::is_same_v<typename dpl::tuple_element<N, const T>::type, const U>);
+    ret &= (dpl::is_same_v<typename dpl::tuple_element<N, volatile T>::type, volatile U>);
+    ret &= (dpl::is_same_v<typename dpl::tuple_element<N, const volatile T>::type, const volatile U>);
 
     return ret;
 }

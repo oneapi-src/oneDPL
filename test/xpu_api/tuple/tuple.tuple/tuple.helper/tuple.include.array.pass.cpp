@@ -29,27 +29,27 @@ class KernelTupleArrayTest;
 template <class T, dpl::size_t N, class U, size_t idx>
 void test_compile()
 {
-    static_assert(dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<T>>::value);
-    static_assert(dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const T>>::value);
-    static_assert(dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<volatile T>>::value);
-    static_assert(dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const volatile T>>::value);
-    static_assert(dpl::is_same<typename dpl::tuple_element<idx, T>::type, U>::value);
-    static_assert(dpl::is_same<typename dpl::tuple_element<idx, const T>::type, const U>::value);
-    static_assert(dpl::is_same<typename dpl::tuple_element<idx, volatile T>::type, volatile U>::value);
-    static_assert(dpl::is_same<typename dpl::tuple_element<idx, const volatile T>::type, const volatile U>::value);
+    static_assert(dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<T>>);
+    static_assert(dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const T>>);
+    static_assert(dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<volatile T>>);
+    static_assert(dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const volatile T>>);
+    static_assert(dpl::is_same_v<typename dpl::tuple_element<idx, T>::type, U>);
+    static_assert(dpl::is_same_v<typename dpl::tuple_element<idx, const T>::type, const U>);
+    static_assert(dpl::is_same_v<typename dpl::tuple_element<idx, volatile T>::type, volatile U>);
+    static_assert(dpl::is_same_v<typename dpl::tuple_element<idx, const volatile T>::type, const volatile U>);
 }
 
 template <class T, dpl::size_t N, class U, size_t idx>
 bool test_runtime()
 {
-    bool ret = (dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<T>>::value);
-    ret &= (dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const T>>::value);
-    ret &= (dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<volatile T>>::value);
-    ret &= (dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const volatile T>>::value);
-    ret &= (dpl::is_same<typename dpl::tuple_element<idx, T>::type, U>::value);
-    ret &= (dpl::is_same<typename dpl::tuple_element<idx, const T>::type, const U>::value);
-    ret &= (dpl::is_same<typename dpl::tuple_element<idx, volatile T>::type, volatile U>::value);
-    ret &= (dpl::is_same<typename dpl::tuple_element<idx, const volatile T>::type, const volatile U>::value);
+    bool ret = (dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<T>>);
+    ret &= (dpl::is_base_of<dpl::integral_constant_v<dpl::size_t, N>, dpl::tuple_size<const T>>);
+    ret &= (dpl::is_base_of<dpl::integral_constant_v<dpl::size_t, N>, dpl::tuple_size<volatile T>>);
+    ret &= (dpl::is_base_of<dpl::integral_constant_v<dpl::size_t, N>, dpl::tuple_size<const volatile T>>);
+    ret &= (dpl::is_same_v<typename dpl::tuple_element<idx, T>::type, U>);
+    ret &= (dpl::is_same_v<typename dpl::tuple_element<idx, const T>::type, const U>);
+    ret &= (dpl::is_same_v<typename dpl::tuple_element<idx, volatile T>::type, volatile U>);
+    ret &= (dpl::is_same_v<typename dpl::tuple_element<idx, const volatile T>::type, const volatile U>);
 
     return ret;
 }

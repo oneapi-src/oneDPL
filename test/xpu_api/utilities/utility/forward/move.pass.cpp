@@ -79,11 +79,11 @@ kernel_test()
     const int& cx = x;
     bool ret = false;
     { // Test return type and noexcept.
-        static_assert(dpl::is_same<decltype(dpl::move(x)), int&&>::value);
+        static_assert(dpl::is_same_v<decltype(dpl::move(x)), int&&>);
         ASSERT_NOEXCEPT(dpl::move(x));
-        static_assert(dpl::is_same<decltype(dpl::move(cx)), const int&&>::value);
+        static_assert(dpl::is_same_v<decltype(dpl::move(cx)), const int&&>);
         ASSERT_NOEXCEPT(dpl::move(cx));
-        static_assert(dpl::is_same<decltype(dpl::move(42)), int&&>::value);
+        static_assert(dpl::is_same_v<decltype(dpl::move(42)), int&&>);
         ASSERT_NOEXCEPT(dpl::move(42));
     }
     { // test copy and move semantics
