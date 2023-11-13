@@ -36,7 +36,7 @@ kernel_test()
         cgh.single_task<class KernelTieTest>([=]() {
             {
                 int i = 0;
-                float j;
+                float j = 0.f;
                 dpl::tie(i, dpl::ignore, j) = dpl::make_tuple(42, 3.14f, 2.5f);
                 ret_access[0] = (i == 42 && j == 2.5f);
             }
