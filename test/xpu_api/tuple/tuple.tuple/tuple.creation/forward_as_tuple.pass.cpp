@@ -24,9 +24,6 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
-template <class Tuple>
-bool
-test1a(const Tuple& t);
 
 template <class Tuple>
 bool
