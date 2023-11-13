@@ -30,6 +30,7 @@ struct __evenly_divided_binhash_impl
 template <typename _T1>
 struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint = */ true>
 {
+    //Does not require creation of any SYCL range in hetero backend
     using req_sycl_range_conversion = ::std::false_type;
     _T1 __minimum;
     _T1 __maximum;
@@ -55,10 +56,10 @@ struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint = */ true>
     }
 };
 
-// non floating point type
 template <typename _T1>
 struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint= */ false>
 {
+    //Does not require creation of any SYCL range in hetero backend
     using req_sycl_range_conversion = ::std::false_type;
     _T1 __minimum;
     _T1 __range_size;
@@ -89,6 +90,7 @@ using __evenly_divided_binhash = __evenly_divided_binhash_impl<_T1, std::is_floa
 template <typename _Range>
 struct __custom_range_binhash
 {
+    //Requires creation of __boundaries SYCL range if used in hetero backend
     using req_sycl_range_conversion = ::std::true_type;
     using __boundary_type = oneapi::dpl::__internal::__value_t<_Range>;
     _Range __boundaries;
