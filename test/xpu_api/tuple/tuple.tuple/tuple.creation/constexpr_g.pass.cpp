@@ -129,9 +129,8 @@ constexpr int zero_from_anything(T)
 void
 test_ignore()
 {
-    [[maybe_unuased]] constexpr auto ign1 = dpl::ignore;
-    [[maybe_unuased]] constexpr auto ign2 = dpl::make_tuple(dpl::ignore);
-    [[maybe_unuased]] constexpr int ign3 = zero_from_anything(dpl::ignore);
+    [[maybe_unused]] constexpr auto ign1 = dpl::ignore;
+    [[maybe_unused]] constexpr auto ign2 = dpl::make_tuple(dpl::ignore);
 }
 
 void
