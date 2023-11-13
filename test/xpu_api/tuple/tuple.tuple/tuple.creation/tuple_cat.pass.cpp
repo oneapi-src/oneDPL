@@ -101,8 +101,8 @@ kernel_test1(sycl::queue& deviceQueue)
             }
 
             {
-                constexpr dpl::tuple<> t = dpl::tuple_cat(dpl::array<int, 0>());
-                ((void)t); // Prevent unused warning
+                constexpr dpl::array<int, 0> empty_array;
+                constexpr [[maybe_unused]] dpl::tuple<> t = dpl::tuple_cat(empty_array);
             }
 
             {
