@@ -16,7 +16,6 @@
 #include "support/test_config.h"
 
 #include <oneapi/dpl/tuple>
-#include <oneapi/dpl/utility>
 
 #include "support/test_macros.h"
 #include "support/utils.h"
