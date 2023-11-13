@@ -508,17 +508,20 @@ struct __get_sycl_range
 
         using _T = val_t<_Iter>;
 
-        constexpr bool __is_copy_direct = AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::read;
-        constexpr bool __is_copy_back = AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::write;
+        constexpr bool __is_copy_direct =
+            AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::read;
+        constexpr bool __is_copy_back =
+            AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::write;
 
         auto __get_buf = [&]()
         {
             if constexpr(__is_copy_direct)
-                return sycl::buffer<_T, 1>(std::addressof(*__first), __last - __first); //buffer will wait and copying on destrcutor
+                //buffer will wait and copying on destructor
+                return sycl::buffer<_T, 1>(std::addressof(*__first), __last - __first);
             else
             {
                 sycl::buffer<_T, 1> __buf(__last - __first);
-                __buf.set_final_data(__first); //buffer wait and copying on destrcutor
+                __buf.set_final_data(__first); //buffer wait and copying on destructor
                 return __buf;
             }
         };
