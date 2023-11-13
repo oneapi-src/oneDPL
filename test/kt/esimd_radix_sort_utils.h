@@ -11,8 +11,6 @@
 #ifndef _ESIMD_RADIX_SORT_TEST_UTILS_H
 #define _ESIMD_RADIX_SORT_TEST_UTILS_H
 
-#include <oneapi/dpl/experimental/kernel_templates>
-
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
 #else
@@ -32,11 +30,6 @@
 #include <cstdint>
 #include <vector>
 #include <type_traits>
-
-#if defined(TEST_DATA_PER_WORK_ITEM) && defined(TEST_WORK_GROUP_SIZE)
-using ParamType = oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE>;
-constexpr ParamType kernel_parameters;
-#endif
 
 template <typename KernelParam, typename KeyT, typename ValueT = void>
 bool can_run_test(sycl::queue q, KernelParam param)

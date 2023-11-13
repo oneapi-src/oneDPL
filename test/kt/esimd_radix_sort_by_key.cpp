@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <string>
+#include <cstdlib>
 
 #if __has_include(<sycl/sycl.hpp>)
 #include <sycl/sycl.hpp>
@@ -93,8 +94,9 @@ void test_usm(sycl::queue q, std::size_t size, KernelParam param)
 
 int main()
 {
+    constexpr oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE> params;
     auto q = TestUtils::get_test_queue();
-    bool run_test = can_run_test<ParamType, TEST_KEY_TYPE, TEST_VALUE_TYPE>(q, kernel_parameters);
+    bool run_test = can_run_test<decltype(params), TEST_KEY_TYPE, TEST_VALUE_TYPE>(q, params);
 
     if (run_test)
     {
@@ -103,17 +105,17 @@ int main()
             for (auto size : sort_sizes)
             {
                 test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits, sycl::usm::alloc::shared>(
-                    q, size, kernel_parameters);
+                    q, size, params);
                 test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits, sycl::usm::alloc::shared>(
-                    q, size, kernel_parameters);
-                test_sycl_iterators<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits>(q, size, kernel_parameters);
-                test_sycl_iterators<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits>(q, size, kernel_parameters);
+                    q, size, params);
+                test_sycl_iterators<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits>(q, size, params);
+                test_sycl_iterators<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits>(q, size, params);
             }
         }
         catch (const ::std::exception& exc)
         {
             std::cerr << "Exception: " << exc.what() << std::endl;
-            return 1;
+            return EXIT_FAILURE;
         }
     }
 

@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <string>
 #include <cstdint>
+#include <cstdlib>
 
 #if LOG_TEST_INFO
 #include <iostream>
@@ -178,23 +179,24 @@ can_run_test(sycl::queue q, KernelParam param)
 int
 main()
 {
+    constexpr oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE> params;
     auto q = TestUtils::get_test_queue();
-    bool run_test = can_run_test<ParamType, TEST_KEY_TYPE>(q, kernel_parameters);
+    bool run_test = can_run_test<decltype(params), TEST_KEY_TYPE>(q, params);
     if (run_test)
     {
         try
         {
             for (auto size : sort_sizes)
             {
-                test_general_cases<TEST_KEY_TYPE, Ascending, TestRadixBits>(q, size, kernel_parameters);
-                test_general_cases<TEST_KEY_TYPE, Descending, TestRadixBits>(q, size, kernel_parameters);
+                test_general_cases<TEST_KEY_TYPE, Ascending, TestRadixBits>(q, size, params);
+                test_general_cases<TEST_KEY_TYPE, Descending, TestRadixBits>(q, size, params);
             }
-            test_small_sizes<TEST_KEY_TYPE, Ascending, TestRadixBits>(q, kernel_parameters);
+            test_small_sizes<TEST_KEY_TYPE, Ascending, TestRadixBits>(q, params);
         }
         catch (const ::std::exception& exc)
         {
             std::cerr << "Exception: " << exc.what() << std::endl;
-            return 1;
+            return EXIT_FAILURE;
         }
     }
 
