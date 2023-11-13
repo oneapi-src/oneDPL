@@ -156,7 +156,7 @@ int main() {
         // call algorithm:
         std::exclusive_scan(new_policy, src_it, src_end_it, dst_it, T(0), oneapi::dpl::maximum<T>());
         
-        auto dst = dst_buf.template get_access<sycl::access::mode::read>();
+        auto dst = dst_buf.template get_host_access(sycl::read_only);
         ASSERT_EQUAL(dst[0], 0);
         ASSERT_EQUAL(dst[1], 0);
         ASSERT_EQUAL(dst[2], 1);
@@ -192,7 +192,7 @@ int main() {
         // call algorithm:
         std::exclusive_scan(new_policy, src_it, src_end_it, dst_it, T(0), oneapi::dpl::minimum<T>());
     
-        auto dst = dst_buf.template get_access<sycl::access::mode::read>();
+        auto dst = dst_buf.template get_host_access(sycl::read_only);
         ASSERT_EQUAL(dst[0], 0);
         ASSERT_EQUAL(dst[1], 0);
         ASSERT_EQUAL(dst[2], -1);
