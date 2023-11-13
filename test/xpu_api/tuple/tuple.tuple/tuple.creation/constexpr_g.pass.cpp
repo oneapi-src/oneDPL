@@ -51,12 +51,13 @@ test_forward_as_tuple()
     }
 
     {
-        static const int i(22);
-        static const float f(22.222f);
-        static const int ii(77799);
-
+        constexpr int i = 22;
+        constexpr float f = 22.222f;
+        constexpr int ii = 77799;
+        
         typedef dpl::tuple<const int&, const float&, const int&&> tuple_type;
-        [[maybe_unuased]] constexpr tuple_type p1 = dpl::forward_as_tuple(i, f, dpl::move(ii));
+        constexpr tuple_type p1 = dpl::forward_as_tuple(i, f, dpl::move(ii));
+        static_assert(dpl::get<0>(p1) == i);
     }
 }
 
