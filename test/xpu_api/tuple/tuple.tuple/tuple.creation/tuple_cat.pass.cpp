@@ -148,8 +148,7 @@ kernel_test1(sycl::queue& deviceQueue)
             {
                 dpl::tuple<> t1;
                 dpl::tuple<> t2;
-                dpl::tuple<> t3 = dpl::tuple_cat(t1, t2);
-                ((void)t3); // Prevent unused warning
+                [[maybe_unused]] dpl::tuple<> t3 = dpl::tuple_cat(t1, t2);
             }
 
             {
