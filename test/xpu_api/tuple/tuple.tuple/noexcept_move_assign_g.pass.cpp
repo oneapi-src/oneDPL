@@ -45,12 +45,31 @@ kernel_test1(sycl::queue& deviceQueue)
             typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, float> tt5;
             typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt6;
 
+            typedef dpl::tuple<short, NonNoexceptMoveAssignClass, float> tt4n;
+            typedef dpl::tuple<NonNoexceptMoveAssignClass, NonNoexceptMoveAssignClass, float> tt5n;
+            typedef dpl::tuple<NonNoexceptMoveAssignClass, NonNoexceptMoveAssignClass, NonNoexceptMoveAssignClass> tt6n;
+
             static_assert(std::is_nothrow_move_assignable<tt1>::value);
             static_assert(std::is_nothrow_move_assignable<tt2>::value);
             static_assert(std::is_nothrow_move_assignable<tt3>::value);
             static_assert(std::is_nothrow_move_assignable<tt4>::value);
             static_assert(std::is_nothrow_move_assignable<tt5>::value);
             static_assert(std::is_nothrow_move_assignable<tt6>::value);
+
+            static_assert(std::is_nothrow_move_assignable_v<tt1>);
+            static_assert(std::is_nothrow_move_assignable_v<tt2>);
+            static_assert(std::is_nothrow_move_assignable_v<tt3>);
+            static_assert(std::is_nothrow_move_assignable_v<tt4>);
+            static_assert(std::is_nothrow_move_assignable_v<tt5>);
+            static_assert(std::is_nothrow_move_assignable_v<tt6>);
+
+            static_assert(!std::is_nothrow_move_assignable<tt4n>::value);
+            static_assert(!std::is_nothrow_move_assignable<tt5n>::value);
+            static_assert(!std::is_nothrow_move_assignable<tt6n>::value);
+
+            static_assert(!std::is_nothrow_move_assignable_v<tt4n>);
+            static_assert(!std::is_nothrow_move_assignable_v<tt5n>);
+            static_assert(!std::is_nothrow_move_assignable_v<tt6n>);
         });
     });
 }
@@ -67,12 +86,28 @@ kernel_test2(sycl::queue& deviceQueue)
             typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, double> tt5;
             typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt6;
 
+            typedef dpl::tuple<short, NonNoexceptMoveAssignClass, double> tt4n;
+            typedef dpl::tuple<NonNoexceptMoveAssignClass, NonNoexceptMoveAssignClass, double> tt5n;
+
             static_assert(std::is_nothrow_move_assignable<tt1>::value);
             static_assert(std::is_nothrow_move_assignable<tt2>::value);
             static_assert(std::is_nothrow_move_assignable<tt3>::value);
             static_assert(std::is_nothrow_move_assignable<tt4>::value);
             static_assert(std::is_nothrow_move_assignable<tt5>::value);
             static_assert(std::is_nothrow_move_assignable<tt6>::value);
+
+            static_assert(std::is_nothrow_move_assignable_v<tt2>);
+            static_assert(std::is_nothrow_move_assignable_v<tt1>);
+            static_assert(std::is_nothrow_move_assignable_v<tt3>);
+            static_assert(std::is_nothrow_move_assignable_v<tt4>);
+            static_assert(std::is_nothrow_move_assignable_v<tt5>);
+            static_assert(std::is_nothrow_move_assignable_v<tt6>);
+
+            static_assert(!std::is_nothrow_move_assignable<tt4n>::value);
+            static_assert(!std::is_nothrow_move_assignable<tt5n>::value);
+
+            static_assert(!std::is_nothrow_move_assignable_v<tt4n>);
+            static_assert(!std::is_nothrow_move_assignable_v<tt5n>);
         });
     });
 }
