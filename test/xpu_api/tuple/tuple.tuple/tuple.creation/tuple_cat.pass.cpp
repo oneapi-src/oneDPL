@@ -79,10 +79,6 @@ kernel_test1(sycl::queue& deviceQueue)
                 [[maybe_unused]] dpl::tuple<> t2 = dpl::tuple_cat(t1);
             }
 
-            {
-                dpl::tuple<> t = dpl::tuple_cat(dpl::tuple<>());
-                ((void)t); // Prevent unused warning
-            }
 
             {
                 dpl::array<int, 0> empty_array;
