@@ -23,10 +23,6 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 class KernelGetConstTest;
 
-struct Empty
-{
-};
-
 void
 kernel_test()
 {
