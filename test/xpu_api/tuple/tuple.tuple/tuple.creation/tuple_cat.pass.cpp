@@ -40,21 +40,6 @@ struct MoveOnlyData
     {
         return idx_ == x.idx_;
     }
-    bool
-    operator<(const MoveOnlyData& x) const
-    {
-        return idx_ < x.idx_;
-    }
-    MoveOnlyData
-    operator+(const MoveOnlyData& x) const
-    {
-        return MoveOnlyData{idx_ + x.idx_};
-    }
-    MoveOnlyData
-    operator*(const MoveOnlyData& x) const
-    {
-        return MoveOnlyData{idx_ * x.idx_};
-    }
 };
 
 class KernelTupleCatTest1;
@@ -92,17 +77,17 @@ kernel_test1(sycl::queue& deviceQueue)
             }
 
             {
-                constexpr [[maybe_unused]] dpl::tuple<> t = dpl::tuple_cat();
+                constexpr dpl::tuple<> t = dpl::tuple_cat();
             }
 
             {
                 constexpr dpl::tuple<> t1;
-                constexpr [[maybe_unused]] dpl::tuple<> t2 = dpl::tuple_cat(t1);
+                constexpr dpl::tuple<> t2 = dpl::tuple_cat(t1);
             }
 
             {
                 constexpr dpl::array<int, 0> empty_array;
-                constexpr [[maybe_unused]] dpl::tuple<> t = dpl::tuple_cat(empty_array);
+                constexpr dpl::tuple<> t = dpl::tuple_cat(empty_array);
             }
 
             {
