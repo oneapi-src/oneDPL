@@ -96,19 +96,12 @@ kernel_test1(sycl::queue& deviceQueue)
             }
 
             {
-                constexpr dpl::tuple<> t = dpl::tuple_cat();
-                ((void)t); // Prevent unused warning
+                constexpr [[maybe_unused]] dpl::tuple<> t = dpl::tuple_cat();
             }
 
             {
                 constexpr dpl::tuple<> t1;
-                constexpr dpl::tuple<> t2 = dpl::tuple_cat(t1);
-                ((void)t2); // Prevent unused warning
-            }
-
-            {
-                constexpr dpl::tuple<> t = dpl::tuple_cat(dpl::tuple<>());
-                ((void)t); // Prevent unused warning
+                constexpr [[maybe_unused]] dpl::tuple<> t2 = dpl::tuple_cat(t1);
             }
 
             {
