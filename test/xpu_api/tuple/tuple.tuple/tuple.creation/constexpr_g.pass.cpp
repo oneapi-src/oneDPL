@@ -27,8 +27,8 @@ void
 test_make_tuple()
 {
     {
-        typedef dpl::tuple<int, float> tuple_type;
-        [[maybe_unuased]] constexpr tuple_type p1 = dpl::make_tuple(22, 22.222f);
+        constexpr auto p1 = dpl::make_tuple(22, 22.222f);
+        static_assert(dpl::get<0>(p1) == 22);
     }
 
     {
