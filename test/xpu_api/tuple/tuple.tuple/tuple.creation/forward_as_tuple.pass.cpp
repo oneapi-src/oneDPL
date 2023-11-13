@@ -25,14 +25,15 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 // This code is used to test std::forward_tuple_as
 template <class Tuple>
-void __attribute__((always_inline)) test0(const Tuple&)
+void test0(const Tuple&)
 {
     static_assert(dpl::tuple_size<Tuple>::value == 0);
 }
 
 template <class Tuple>
 bool
-test1a(const Tuple& t) __attribute__((always_inline));
+test1a(const Tuple& t);
+
 template <class Tuple>
 bool
 test1a(const Tuple& t)
@@ -43,7 +44,7 @@ test1a(const Tuple& t)
 }
 
 template <class Tuple>
-bool __attribute__((always_inline)) test1b(const Tuple& t)
+bool test1b(const Tuple& t)
 {
     static_assert(dpl::tuple_size<Tuple>::value == 1);
     static_assert(dpl::is_same<typename dpl::tuple_element<0, Tuple>::type, int&>::value);
@@ -51,7 +52,7 @@ bool __attribute__((always_inline)) test1b(const Tuple& t)
 }
 
 template <class Tuple>
-bool __attribute__((always_inline)) test2a(const Tuple& t)
+bool test2a(const Tuple& t)
 {
     static_assert(dpl::tuple_size<Tuple>::value == 2);
     static_assert(dpl::is_same<typename dpl::tuple_element<0, Tuple>::type, float&>::value);
