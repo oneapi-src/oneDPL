@@ -22,7 +22,6 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-// This code is used to test std::make_tuple
 
 class KernelMakeTupleTest;
 
