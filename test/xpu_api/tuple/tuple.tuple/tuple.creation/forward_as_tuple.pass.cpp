@@ -87,7 +87,8 @@ kernel_test()
             char c = 'a';
             ret_access[0] &= test2a(dpl::forward_as_tuple(j, c));
 
-            ret_access[0] &= (test3(dpl::forward_as_tuple(j, c)) == 2);
+            const auto tpl1 = dpl::forward_as_tuple(2.5f, c);
+            static_assert(dpl::tuple_size_v<decltype(tpl1)> == 2);
         });
     });
 
