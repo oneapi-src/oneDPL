@@ -63,7 +63,8 @@ kernel_test()
                 a = d;
                 a = b;
                 //make_tuple
-                dpl::make_tuple(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+                [[maybe_unused]]const auto res1 = dpl::make_tuple(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
 
                 //dpl::tuple_size
                 ret_access[0] &= (dpl::tuple_size<type3>::value == 10);
