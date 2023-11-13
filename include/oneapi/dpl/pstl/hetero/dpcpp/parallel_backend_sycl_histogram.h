@@ -44,16 +44,16 @@ struct __SLM_boost_impl
 
     template <typename _T2>
     inline ::std::uint32_t
-    get_bin(_T2&& value) const
+    get_bin(_T2&& __value) const
     {
-        return __bin_hash.get_bin(::std::forward<_T2>(value));
+        return __bin_hash.get_bin(::std::forward<_T2>(__value));
     }
 
     template <typename _T2>
     inline bool
-    is_valid(_T2&& value) const
+    is_valid(_T2&& __value) const
     {
-        return __bin_hash.is_valid(::std::forward<_T2>(value));
+        return __bin_hash.is_valid(::std::forward<_T2>(__value));
     }
 
     inline ::std::size_t
@@ -63,22 +63,22 @@ struct __SLM_boost_impl
     }
 
     inline void
-    init_SLM_memory(void* boost_mem, const sycl::nd_item<1>& self_item) const
+    init_SLM_memory(void* __boost_mem, const sycl::nd_item<1>& __self_item) const
     {
     }
 
     template <typename _T2>
     inline ::std::uint32_t
-    get_bin(_T2&& value, void* boost_mem) const
+    get_bin(_T2&& __value, void* __boost_mem) const
     {
-        return get_bin(::std::forward<_T2>(value));
+        return get_bin(::std::forward<_T2>(__value));
     }
 
     template <typename _T2>
     inline bool
-    is_valid(const _T2& value, void* boost_mem) const
+    is_valid(const _T2& __value, void* __boost_mem) const
     {
-        return is_valid(::std::forward<_T2>(value));
+        return is_valid(::std::forward<_T2>(__value));
     }
 };
 
@@ -94,16 +94,16 @@ struct __SLM_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
 
     template <typename _T2>
     inline ::std::uint32_t
-    get_bin(_T2&& value) const
+    get_bin(_T2&& __value) const
     {
-        return __bin_hash.get_bin(::std::forward<_T2>(value));
+        return __bin_hash.get_bin(::std::forward<_T2>(__value));
     }
 
     template <typename _T2>
     inline bool
-    is_valid(_T2&& value) const
+    is_valid(_T2&& __value) const
     {
-        return __bin_hash.is_valid(::std::forward<_T2>(value));
+        return __bin_hash.is_valid(::std::forward<_T2>(__value));
     }
 
     inline ::std::size_t
@@ -113,75 +113,73 @@ struct __SLM_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
     }
 
     inline void
-    init_SLM_memory(void* boost_mem, const sycl::nd_item<1>& self_item) const
+    init_SLM_memory(void* __boost_mem, const sycl::nd_item<1>& __self_item) const
     {
-        ::std::uint32_t gSize = self_item.get_local_range()[0];
-        ::std::uint32_t self_lidx = self_item.get_local_id(0);
-        ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(__bin_hash.__boundaries.size(), gSize);
-        ::std::uint8_t k;
-        __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
-        for (k = 0; k < factor - 1; k++)
+        ::std::uint32_t __gSize = __self_item.get_local_range()[0];
+        ::std::uint32_t __self_lidx = __self_item.get_local_id(0);
+        ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__bin_hash.__boundaries.size(), __gSize);
+        ::std::uint8_t __k;
+        __boundary_type* __d_boundaries = (__boundary_type*)(__boost_mem);
+        for (__k = 0; __k < __factor - 1; __k++)
         {
-            d_boundaries[gSize * k + self_lidx] = __bin_hash.__boundaries[gSize * k + self_lidx];
+            __d_boundaries[__gSize * __k + __self_lidx] = __bin_hash.__boundaries[__gSize * __k + __self_lidx];
         }
         // residual
-        if (gSize * k + self_lidx < __bin_hash.__boundaries.size())
+        if (__gSize * __k + __self_lidx < __bin_hash.__boundaries.size())
         {
-            d_boundaries[gSize * k + self_lidx] = __bin_hash.__boundaries[gSize * k + self_lidx];
+            __d_boundaries[__gSize * __k + __self_lidx] = __bin_hash.__boundaries[__gSize * __k + __self_lidx];
         }
     }
 
     template <typename _T2>
-    ::std::uint32_t inline get_bin(_T2&& value, void* boost_mem) const
+    ::std::uint32_t inline get_bin(_T2&& __value, void* __boost_mem) const
     {
-        __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
-        return (::std::upper_bound(d_boundaries, d_boundaries + __bin_hash.__boundaries.size(),
-                                   ::std::forward<_T2>(value)) -
-                d_boundaries) -
+        __boundary_type* __d_boundaries = (__boundary_type*)(__boost_mem);
+        return (::std::upper_bound(__d_boundaries, __d_boundaries + __bin_hash.__boundaries.size(),
+                                   ::std::forward<_T2>(__value)) -
+                __d_boundaries) -
                1;
     }
 
     template <typename _T2>
-    bool inline is_valid(const _T2& value, void* boost_mem) const
+    bool inline is_valid(const _T2& __value, void* __boost_mem) const
     {
-        __boundary_type* d_boundaries = (__boundary_type*)(boost_mem);
-        return (value >= d_boundaries[0]) && (value < d_boundaries[__bin_hash.__boundaries.size()]);
+        __boundary_type* __d_boundaries = (__boundary_type*)(__boost_mem);
+        return (__value >= __d_boundaries[0]) && (__value < __d_boundaries[__bin_hash.__boundaries.size()]);
     }
 };
 
 template <typename _HistAccessor, typename _OffsetT, typename _Size>
 inline void
-__clear_wglocal_histograms(const _HistAccessor& local_histogram, const _OffsetT& offset, const _Size& __num_bins,
-                           const sycl::nd_item<1>& self_item)
+__clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _OffsetT& __offset, const _Size& __num_bins,
+                           const sycl::nd_item<1>& __self_item)
 {
-    ::std::uint32_t gSize = self_item.get_local_range()[0];
-    ::std::uint32_t self_lidx = self_item.get_local_id(0);
-    ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, gSize);
-    ::std::uint8_t k;
-    // no need for atomicity when we are explicitly assigning work-items to
-    // locations
+    ::std::uint32_t __gSize = __self_item.get_local_range()[0];
+    ::std::uint32_t __self_lidx = __self_item.get_local_id(0);
+    ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, __gSize);
+    ::std::uint8_t __k;
 
-    for (k = 0; k < factor - 1; k++)
+    for (__k = 0; __k < __factor - 1; __k++)
     {
-        local_histogram[offset + gSize * k + self_lidx] = 0;
+        __local_histogram[__offset + __gSize * __k + __self_lidx] = 0;
     }
     // residual
-    if (gSize * k + self_lidx < __num_bins)
+    if (__gSize * __k + __self_lidx < __num_bins)
     {
-        local_histogram[offset + gSize * k + self_lidx] = 0;
+        __local_histogram[__offset + __gSize * __k + __self_lidx] = 0;
     }
-    __dpl_sycl::__group_barrier(self_item);
+    __dpl_sycl::__group_barrier(__self_item);
 }
 
 template <typename _BinIdxType, typename _Iter1, typename _HistReg, typename _BinFunc>
 inline void
-__accum_local_register_iter(const _Iter1& in_acc, const ::std::size_t& __index, _HistReg* __histogram, _BinFunc __func,
+__accum_local_register_iter(const _Iter1& __in_acc, const ::std::size_t& __index, _HistReg* __histogram, _BinFunc __func,
                             void* __boost_mem)
 {
-    const auto& x = in_acc[__index];
-    if (__func.is_valid(x))
+    const auto& __x = __in_acc[__index];
+    if (__func.is_valid(__x))
     {
-        _BinIdxType c = __func.get_bin(x, __boost_mem);
+        _BinIdxType c = __func.get_bin(__x, __boost_mem);
         __histogram[c]++;
     }
 }
@@ -189,252 +187,249 @@ __accum_local_register_iter(const _Iter1& in_acc, const ::std::size_t& __index, 
 template <typename _BinIdxType, sycl::access::address_space _AddressSpace, typename _Iter1, typename _HistAccessor,
           typename _OffsetT, typename _BinFunc, typename... _VoidType>
 inline void
-__accum_local_atomics_iter(const _Iter1& in_acc, const ::std::size_t& __index, const _HistAccessor& wg_local_histogram,
-                           const _OffsetT& offset, _BinFunc func, _VoidType... __boost_mem)
+__accum_local_atomics_iter(const _Iter1& __in_acc, const ::std::size_t& __index, const _HistAccessor& __wg_local_histogram,
+                           const _OffsetT& __offset, _BinFunc __func, _VoidType... __boost_mem)
 {
-    using __histo_value_type = typename _HistAccessor::value_type;
-    const auto& x = in_acc[__index];
-    if (func.is_valid(x))
+    using _histo_value_type = typename _HistAccessor::value_type;
+    const auto& __x = __in_acc[__index];
+    if (__func.is_valid(__x))
     {
-        _BinIdxType c = func.get_bin(x, __boost_mem...);
-        __dpl_sycl::__atomic_ref<__histo_value_type, _AddressSpace> local_bin(wg_local_histogram[offset + c]);
-        local_bin++;
+        _BinIdxType __c = __func.get_bin(__x, __boost_mem...);
+        __dpl_sycl::__atomic_ref<_histo_value_type, _AddressSpace> __local_bin(__wg_local_histogram[__offset + __c]);
+        __local_bin++;
     }
 }
 
 template <typename _BinType, typename _HistAccessorIn, typename _OffsetT, typename _HistAccessorOut, typename _Size>
 inline void
-__reduce_out_histograms(const _HistAccessorIn& in_histogram, const _OffsetT& offset,
-                        const _HistAccessorOut& out_histogram, const _Size& __num_bins,
-                        const sycl::nd_item<1>& self_item)
+__reduce_out_histograms(const _HistAccessorIn& __in_histogram, const _OffsetT& __offset,
+                        const _HistAccessorOut& __out_histogram, const _Size& __num_bins,
+                        const sycl::nd_item<1>& __self_item)
 {
-    ::std::uint32_t gSize = self_item.get_local_range()[0];
-    ::std::uint32_t self_lidx = self_item.get_local_id(0);
-    ::std::uint8_t factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, gSize);
-    ::std::uint8_t k;
+    ::std::uint32_t __gSize = __self_item.get_local_range()[0];
+    ::std::uint32_t __self_lidx = __self_item.get_local_id(0);
+    ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, __gSize);
+    ::std::uint8_t __k;
 
-    for (k = 0; k < factor - 1; k++)
+    for (__k = 0; __k < __factor - 1; __k++)
     {
-        __dpl_sycl::__atomic_ref<_BinType, sycl::access::address_space::global_space> global_bin(
-            out_histogram[gSize * k + self_lidx]);
-        global_bin += in_histogram[offset + gSize * k + self_lidx];
+        __dpl_sycl::__atomic_ref<_BinType, sycl::access::address_space::global_space> __global_bin(
+            __out_histogram[__gSize * __k + __self_lidx]);
+        __global_bin += __in_histogram[__offset + __gSize * __k + __self_lidx];
     }
     // residual
-    if (gSize * k + self_lidx < __num_bins)
+    if (__gSize * __k + __self_lidx < __num_bins)
     {
-        __dpl_sycl::__atomic_ref<_BinType, sycl::access::address_space::global_space> global_bin(
-            out_histogram[gSize * k + self_lidx]);
-        global_bin += in_histogram[offset + gSize * k + self_lidx];
+        __dpl_sycl::__atomic_ref<_BinType, sycl::access::address_space::global_space> __global_bin(
+            __out_histogram[__gSize * __k + __self_lidx]);
+        __global_bin += __in_histogram[__offset + __gSize * __k + __self_lidx];
     }
 }
 
 template <::std::uint16_t __iters_per_work_item, ::std::uint8_t __bins_per_work_item, typename _ExecutionPolicy,
           typename _Range1, typename _Range2, typename _Size, typename _IdxHashFunc, typename... _Range3>
 inline void
-__histogram_general_registers_local_reduction(_ExecutionPolicy&& exec, const sycl::event& __init_e,
+__histogram_general_registers_local_reduction(_ExecutionPolicy&& __exec, const sycl::event& __init_e,
                                               ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
                                               const _Size& __num_bins, _IdxHashFunc __func, _Range3&&... __opt_range)
 {
+    const ::std::size_t __n = __input.size();
+    using _local_histogram_type = ::std::uint32_t;
+    using _private_histogram_type = ::std::uint16_t;
+    using _histogram_index_type = ::std::uint8_t;
+    using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
 
-    const ::std::size_t n = __input.size();
-    using __local_histogram_type = ::std::uint32_t;
-    using __private_histogram_type = ::std::uint16_t;
-    using __histogram_index_type = ::std::uint8_t;
-    using __bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
-
-    ::std::size_t required_slm_bytes = __func.get_required_SLM_memory();
-    ::std::size_t extra = 0;
-    if (required_slm_bytes != 0)
+    ::std::size_t __required_slm_bytes = __func.get_required_SLM_memory();
+    ::std::size_t __extra = 0;
+    if (__required_slm_bytes != 0)
     {
-        extra = oneapi::dpl::__internal::__dpl_ceiling_div(required_slm_bytes, sizeof(__local_histogram_type));
+        __extra = oneapi::dpl::__internal::__dpl_ceiling_div(__required_slm_bytes, sizeof(_local_histogram_type));
     }
-    ::std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(n, __work_group_size * __iters_per_work_item);
-    auto e = exec.queue().submit([&](auto& h) {
-        h.depends_on(__init_e);
-        oneapi::dpl::__ranges::__require_access(h, __input, __bins, __opt_range...);
-        __dpl_sycl::__local_accessor<__local_histogram_type> local_histogram(sycl::range(__num_bins + extra), h);
-        h.parallel_for(
-            sycl::nd_range<1>(segments * __work_group_size, __work_group_size), [=](sycl::nd_item<1> __self_item) {
-                const ::std::size_t __self_lidx = __self_item.get_local_id(0);
-                const ::std::size_t __wgroup_idx = __self_item.get_group(0);
-                const ::std::size_t __seg_start = __work_group_size * __iters_per_work_item * __wgroup_idx;
-                void* boost_mem = (void*)(&(local_histogram[0]) + __num_bins);
-                __func.init_SLM_memory(boost_mem, __self_item);
-                __clear_wglocal_histograms(local_histogram, 0, __num_bins, __self_item);
-                __private_histogram_type histogram[__bins_per_work_item];
+    ::std::size_t __segments = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __iters_per_work_item);
+    auto __e = __exec.queue().submit([&](auto& __h) {
+        __h.depends_on(__init_e);
+        oneapi::dpl::__ranges::__require_access(__h, __input, __bins, __opt_range...);
+        __dpl_sycl::__local_accessor<_local_histogram_type> __local_histogram(sycl::range(__num_bins + __extra), __h);
+        __h.parallel_for(sycl::nd_range<1>(__segments * __work_group_size, __work_group_size), [=](sycl::nd_item<1>
+                                                                                                   __self_item) {
+            const ::std::size_t __self_lidx = __self_item.get_local_id(0);
+            const ::std::size_t __wgroup_idx = __self_item.get_group(0);
+            const ::std::size_t __seg_start = __work_group_size * __iters_per_work_item * __wgroup_idx;
+            void* __boost_mem = (void*)(&(__local_histogram[0]) + __num_bins);
+            __func.init_SLM_memory(__boost_mem, __self_item);
+            __clear_wglocal_histograms(__local_histogram, 0, __num_bins, __self_item);
+            _private_histogram_type __histogram[__bins_per_work_item];
+            _ONEDPL_PRAGMA_UNROLL
+            for (_histogram_index_type __k = 0; __k < __bins_per_work_item; __k++)
+            {
+                __histogram[__k] = 0;
+            }
+
+            if (__seg_start + __work_group_size * __iters_per_work_item < __n)
+            {
                 _ONEDPL_PRAGMA_UNROLL
-                for (__histogram_index_type k = 0; k < __bins_per_work_item; k++)
+                for (_histogram_index_type __idx = 0; __idx < __iters_per_work_item; __idx++)
                 {
-                    histogram[k] = 0;
+                    __accum_local_register_iter<_histogram_index_type>(
+                        __input, __seg_start + __idx * __work_group_size + __self_lidx, __histogram, __func, __boost_mem);
                 }
-
-                if (__seg_start + __work_group_size * __iters_per_work_item < n)
+            }
+            else
+            {
+                _ONEDPL_PRAGMA_UNROLL
+                for (_histogram_index_type __idx = 0; __idx < __iters_per_work_item; __idx++)
                 {
-                    _ONEDPL_PRAGMA_UNROLL
-                    for (__histogram_index_type idx = 0; idx < __iters_per_work_item; idx++)
+                    ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
+                    if (__val_idx < __n)
                     {
-                        __accum_local_register_iter<__histogram_index_type>(
-                            __input, __seg_start + idx * __work_group_size + __self_lidx, histogram, __func, boost_mem);
+                        __accum_local_register_iter<_histogram_index_type>(__input, __val_idx, __histogram, __func,
+                                                                            __boost_mem);
                     }
                 }
-                else
-                {
-                    _ONEDPL_PRAGMA_UNROLL
-                    for (__histogram_index_type idx = 0; idx < __iters_per_work_item; idx++)
-                    {
-                        ::std::size_t __val_idx = __seg_start + idx * __work_group_size + __self_lidx;
-                        if (__val_idx < n)
-                        {
-                            __accum_local_register_iter<__histogram_index_type>(__input, __val_idx, histogram, __func,
-                                                                                boost_mem);
-                        }
-                    }
-                }
+            }
 
-                for (__histogram_index_type k = 0; k < __num_bins; k++)
-                {
-                    __dpl_sycl::__atomic_ref<__local_histogram_type, sycl::access::address_space::local_space>
-                        local_bin(local_histogram[k]);
-                    local_bin += histogram[k];
-                }
+            for (_histogram_index_type __k = 0; __k < __num_bins; __k++)
+            {
+                __dpl_sycl::__atomic_ref<_local_histogram_type, sycl::access::address_space::local_space> __local_bin(
+                    __local_histogram[__k]);
+                __local_bin += __histogram[__k];
+            }
 
-                __dpl_sycl::__group_barrier(__self_item);
+            __dpl_sycl::__group_barrier(__self_item);
 
-                __reduce_out_histograms<__bin_type>(local_histogram, 0, __bins, __num_bins, __self_item);
-            });
+            __reduce_out_histograms<_bin_type>(__local_histogram, 0, __bins, __num_bins, __self_item);
+        });
     });
-    e.wait();
+    __e.wait();
 }
 
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
           typename _Size, typename _IdxHashFunc, typename... _Range3>
 inline void
-__histogram_general_local_atomics(_ExecutionPolicy&& exec, const sycl::event& __init_e,
+__histogram_general_local_atomics(_ExecutionPolicy&& __exec, const sycl::event& __init_e,
                                   ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
                                   const _Size& __num_bins, _IdxHashFunc __func, _Range3&&... __opt_range)
 {
+    using _local_histogram_type = ::std::uint32_t;
+    using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
+    using _histogram_index_type = ::std::uint16_t;
 
-    using __local_histogram_type = ::std::uint32_t;
-    using __bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
-    using __histogram_index_type = ::std::uint16_t;
-
-    ::std::size_t extra =
-        oneapi::dpl::__internal::__dpl_ceiling_div(__func.get_required_SLM_memory(), sizeof(__local_histogram_type));
-    const ::std::size_t n = __input.size();
-    std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(n, __work_group_size * __iters_per_work_item);
-    auto e = exec.queue().submit([&](auto& h) {
-        h.depends_on(__init_e);
-        oneapi::dpl::__ranges::__require_access(h, __input, __bins, __opt_range...);
+    ::std::size_t __extra =
+        oneapi::dpl::__internal::__dpl_ceiling_div(__func.get_required_SLM_memory(), sizeof(_local_histogram_type));
+    const ::std::size_t __n = __input.size();
+    std::size_t __segments = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __iters_per_work_item);
+    auto __e = __exec.queue().submit([&](auto& __h) {
+        __h.depends_on(__init_e);
+        oneapi::dpl::__ranges::__require_access(__h, __input, __bins, __opt_range...);
         // minimum type size for atomics
-        __dpl_sycl::__local_accessor<__local_histogram_type> local_histogram(sycl::range(__num_bins + extra), h);
-        h.parallel_for(sycl::nd_range<1>(segments * __work_group_size, __work_group_size),
+        __dpl_sycl::__local_accessor<_local_histogram_type> __local_histogram(sycl::range(__num_bins + __extra), __h);
+        __h.parallel_for(sycl::nd_range<1>(__segments * __work_group_size, __work_group_size),
                        [=](sycl::nd_item<1> __self_item) {
                            constexpr auto _atomic_address_space = sycl::access::address_space::local_space;
                            const ::std::size_t __self_lidx = __self_item.get_local_id(0);
                            const ::std::uint32_t __wgroup_idx = __self_item.get_group(0);
                            const ::std::size_t __seg_start = __work_group_size * __wgroup_idx * __iters_per_work_item;
-                           void* boost_mem = (void*)(&(local_histogram[0]) + __num_bins);
-                           __func.init_SLM_memory(boost_mem, __self_item);
+                           void* __boost_mem = (void*)(&(__local_histogram[0]) + __num_bins);
+                           __func.init_SLM_memory(__boost_mem, __self_item);
 
-                           __clear_wglocal_histograms(local_histogram, 0, __num_bins, __self_item);
+                           __clear_wglocal_histograms(__local_histogram, 0, __num_bins, __self_item);
 
-                           if (__seg_start + __work_group_size * __iters_per_work_item < n)
+                           if (__seg_start + __work_group_size * __iters_per_work_item < __n)
                            {
                                _ONEDPL_PRAGMA_UNROLL
-                               for (::std::uint8_t idx = 0; idx < __iters_per_work_item; idx++)
+                               for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; __idx++)
                                {
-                                   ::std::size_t __val_idx = __seg_start + idx * __work_group_size + __self_lidx;
-                                   __accum_local_atomics_iter<__histogram_index_type, _atomic_address_space>(
-                                       __input, __val_idx, local_histogram, 0, __func, boost_mem);
+                                   ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
+                                   __accum_local_atomics_iter<_histogram_index_type, _atomic_address_space>(
+                                       __input, __val_idx, __local_histogram, 0, __func, __boost_mem);
                                }
                            }
                            else
                            {
                                _ONEDPL_PRAGMA_UNROLL
-                               for (::std::uint8_t idx = 0; idx < __iters_per_work_item; idx++)
+                               for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; __idx++)
                                {
-                                   ::std::size_t __val_idx = __seg_start + idx * __work_group_size + __self_lidx;
-                                   if (__val_idx < n)
+                                   ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
+                                   if (__val_idx < __n)
                                    {
-                                       __accum_local_atomics_iter<__histogram_index_type, _atomic_address_space>(
-                                           __input, __val_idx, local_histogram, 0, __func, boost_mem);
+                                       __accum_local_atomics_iter<_histogram_index_type, _atomic_address_space>(
+                                           __input, __val_idx, __local_histogram, 0, __func, __boost_mem);
                                    }
                                }
                            }
                            __dpl_sycl::__group_barrier(__self_item);
 
-                           __reduce_out_histograms<__bin_type>(local_histogram, 0, __bins, __num_bins, __self_item);
+                           __reduce_out_histograms<_bin_type>(__local_histogram, 0, __bins, __num_bins, __self_item);
                        });
     });
-
-    e.wait();
+    __e.wait();
 }
 
 template <::std::uint16_t __min_iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
           typename _Size, typename _IdxHashFunc, typename... _Range3>
 inline void
-__histogram_general_private_global_atomics(_ExecutionPolicy&& exec, const sycl::event& __init_e,
+__histogram_general_private_global_atomics(_ExecutionPolicy&& __exec, const sycl::event& __init_e,
                                            ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
                                            const _Size& __num_bins, _IdxHashFunc __func, _Range3&&... __opt_range)
 {
-    const ::std::size_t n = __input.size();
-    using __bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
-    using __histogram_index_type = ::std::uint32_t;
+    const ::std::size_t __n = __input.size();
+    using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
+    using _histogram_index_type = ::std::uint32_t;
 
-    auto __global_mem_size = exec.queue().get_device().template get_info<sycl::info::device::global_mem_size>();
-    const ::std::size_t max_segments =
-        ::std::min(__global_mem_size / (__num_bins * sizeof(__bin_type)),
-                   oneapi::dpl::__internal::__dpl_ceiling_div(n, __work_group_size * __min_iters_per_work_item));
-    const ::std::size_t iters_per_work_item =
-        oneapi::dpl::__internal::__dpl_ceiling_div(n, max_segments * __work_group_size);
-    ::std::size_t segments = oneapi::dpl::__internal::__dpl_ceiling_div(n, __work_group_size * iters_per_work_item);
+    auto __global_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::global_mem_size>();
+    const ::std::size_t __max_segments =
+        ::std::min(__global_mem_size / (__num_bins * sizeof(_bin_type)),
+                   oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __min_iters_per_work_item));
+    const ::std::size_t __iters_per_work_item =
+        oneapi::dpl::__internal::__dpl_ceiling_div(__n, __max_segments * __work_group_size);
+    ::std::size_t __segments = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __iters_per_work_item);
 
-    auto private_histograms =
-        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __bin_type>(exec, segments * __num_bins)
+    auto __private_histograms =
+        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _bin_type>(__exec, __segments * __num_bins)
             .get_buffer();
 
-    auto e = exec.queue().submit([&](auto& h) {
-        h.depends_on(__init_e);
-        oneapi::dpl::__ranges::__require_access(h, __input, __bins, __opt_range...);
-        sycl::accessor hacc_private{private_histograms, h, sycl::read_write, sycl::no_init};
-        h.parallel_for(sycl::nd_range<1>(segments * __work_group_size, __work_group_size),
+    auto __e = __exec.queue().submit([&](auto& __h) {
+        __h.depends_on(__init_e);
+        oneapi::dpl::__ranges::__require_access(__h, __input, __bins, __opt_range...);
+        sycl::accessor __hacc_private{__private_histograms, __h, sycl::read_write, sycl::no_init};
+        __h.parallel_for(sycl::nd_range<1>(__segments * __work_group_size, __work_group_size),
                        [=](sycl::nd_item<1> __self_item) {
                            constexpr auto _atomic_address_space = sycl::access::address_space::global_space;
                            const ::std::size_t __self_lidx = __self_item.get_local_id(0);
                            const ::std::size_t __wgroup_idx = __self_item.get_group(0);
-                           const ::std::size_t __seg_start = __work_group_size * iters_per_work_item * __wgroup_idx;
+                           const ::std::size_t __seg_start = __work_group_size * __iters_per_work_item * __wgroup_idx;
 
-                           __clear_wglocal_histograms(hacc_private, __wgroup_idx * __num_bins, __num_bins, __self_item);
+                           __clear_wglocal_histograms(__hacc_private, __wgroup_idx * __num_bins, __num_bins, __self_item);
 
-                           if (__seg_start + __work_group_size * iters_per_work_item < n)
+                           if (__seg_start + __work_group_size * __iters_per_work_item < __n)
                            {
-                               for (::std::size_t idx = 0; idx < iters_per_work_item; idx++)
+                               for (::std::size_t __idx = 0; __idx < __iters_per_work_item; __idx++)
                                {
-                                   ::std::size_t __val_idx = __seg_start + idx * __work_group_size + __self_lidx;
-                                   __accum_local_atomics_iter<__histogram_index_type, _atomic_address_space>(
-                                       __input, __val_idx, hacc_private, __wgroup_idx * __num_bins, __func);
+                                   ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
+                                   __accum_local_atomics_iter<_histogram_index_type, _atomic_address_space>(
+                                       __input, __val_idx, __hacc_private, __wgroup_idx * __num_bins, __func);
                                }
                            }
                            else
                            {
-                               for (::std::size_t idx = 0; idx < iters_per_work_item; idx++)
+                               for (::std::size_t __idx = 0; __idx < __iters_per_work_item; __idx++)
                                {
-                                   ::std::size_t __val_idx = __seg_start + idx * __work_group_size + __self_lidx;
-                                   if (__val_idx < n)
+                                   ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
+                                   if (__val_idx < __n)
                                    {
-                                       __accum_local_atomics_iter<__histogram_index_type, _atomic_address_space>(
-                                           __input, __val_idx, hacc_private, __wgroup_idx * __num_bins, __func);
+                                       __accum_local_atomics_iter<_histogram_index_type, _atomic_address_space>(
+                                           __input, __val_idx, __hacc_private, __wgroup_idx * __num_bins, __func);
                                    }
                                }
                            }
 
                            __dpl_sycl::__group_barrier(__self_item);
 
-                           __reduce_out_histograms<__bin_type>(hacc_private, __wgroup_idx * __num_bins, __bins,
+                           __reduce_out_histograms<_bin_type>(__hacc_private, __wgroup_idx * __num_bins, __bins,
                                                                __num_bins, __self_item);
                        });
     });
-    e.wait();
+    __e.wait();
 }
 
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2,
@@ -503,12 +498,12 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 _
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2,
           typename _Size, typename _IdxHashFunc, typename... _Range>
 inline void
-__parallel_histogram_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
+__parallel_histogram_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
                           const _Size& __num_bins, _IdxHashFunc __func, /*req_sycl_conversion = */ ::std::false_type,
                           _Range&&... __opt_range)
 {
     //wrap binhash in a wrapper to allow shared memory boost where available
-    __parallel_histogram_sycl_impl<__iters_per_work_item>(::std::forward<_ExecutionPolicy>(exec), __first, __last,
+    __parallel_histogram_sycl_impl<__iters_per_work_item>(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                                           __histogram_first, __num_bins, __SLM_boost_impl(__func),
                                                           std::forward<_Range...>(__opt_range)...);
 }
@@ -516,32 +511,31 @@ __parallel_histogram_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2,
           typename _Size, typename _InternalRange>
 inline void
-__parallel_histogram_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
+__parallel_histogram_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
                           const _Size& __num_bins,
                           oneapi::dpl::__internal::__custom_range_binhash<_InternalRange> __func,
                           /*req_sycl_conversion = */ ::std::true_type)
 {
-    auto range_to_upg = __func.get_range();
-
+    auto __range_to_upg = __func.get_range();
     //required to have this in the call stack to keep any created buffers alive
-    auto keep_boundaries = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
-                                                                   decltype(range_to_upg.begin())>();
-    auto boundary_buf = keep_boundaries(range_to_upg.begin(), range_to_upg.end());
-    auto boundary_view = boundary_buf.all_view();
-    auto bin_hash = oneapi::dpl::__internal::__custom_range_binhash(boundary_view);
-    __parallel_histogram_impl<__iters_per_work_item>(::std::forward<_ExecutionPolicy>(exec), __first, __last,
-                                                     __histogram_first, __num_bins, bin_hash,
-                                                     /*req_sycl_conversion = */ ::std::false_type{}, boundary_view);
+    auto __keep_boundaries = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
+                                                                   decltype(__range_to_upg.begin())>();
+    auto __boundary_buf = __keep_boundaries(__range_to_upg.begin(), __range_to_upg.end());
+    auto __boundary_view = __boundary_buf.all_view();
+    auto __bin_hash = oneapi::dpl::__internal::__custom_range_binhash(__boundary_view);
+    __parallel_histogram_impl<__iters_per_work_item>(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                                     __histogram_first, __num_bins, __bin_hash,
+                                                     /*req_sycl_conversion = */ ::std::false_type{}, __boundary_view);
 }
 
 template <typename _ExecutionPolicy, typename _Iter1, typename _Iter2, typename _Size, typename _IdxHashFunc>
 inline void
-__parallel_histogram(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
+__parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
                      const _Size& __num_bins, _IdxHashFunc __func)
 {
-    using DoSyclConversion = typename _IdxHashFunc::req_sycl_range_conversion;
-    __parallel_histogram_impl</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(exec), __first, __last,
-                                                           __histogram_first, __num_bins, __func, DoSyclConversion{});
+    using _DoSyclConversion = typename _IdxHashFunc::req_sycl_range_conversion;
+    __parallel_histogram_impl</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                                           __histogram_first, __num_bins, __func, _DoSyclConversion{});
 }
 
 } // namespace __par_backend_hetero
