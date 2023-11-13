@@ -36,6 +36,10 @@ test()
         static_assert(dpl::is_same<typename dpl::tuple_element<0, C>::type, Exp>::value);
         static_assert(dpl::is_same<typename dpl::tuple_element<1, C>::type, Exp>::value);
         static_assert(dpl::is_same<typename dpl::tuple_element<2, C>::type, Exp>::value);
+
+        static_assert(dpl::is_same<std::tuple_element_t<0, C>, Exp>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<1, C>, Exp>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<2, C>, Exp>::value);
     }
     {
         typedef T const Exp;
@@ -43,6 +47,10 @@ test()
         static_assert(dpl::is_same<typename dpl::tuple_element<0, C>::type, Exp>::value);
         static_assert(dpl::is_same<typename dpl::tuple_element<1, C>::type, Exp>::value);
         static_assert(dpl::is_same<typename dpl::tuple_element<2, C>::type, Exp>::value);
+
+        static_assert(dpl::is_same<std::tuple_element_t<0, C>, Exp>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<1, C>, Exp>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<2, C>, Exp>::value);
     }
     {
         typedef T volatile Exp;
@@ -50,6 +58,10 @@ test()
         static_assert(dpl::is_same<typename dpl::tuple_element<0, C>::type, Exp>::value);
         static_assert(dpl::is_same<typename dpl::tuple_element<1, C>::type, Exp>::value);
         static_assert(dpl::is_same<typename dpl::tuple_element<2, C>::type, Exp>::value);
+
+        static_assert(dpl::is_same<std::tuple_element_t<0, C>, Exp>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<1, C>, Exp>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<2, C>, Exp>::value);
     }
     {
         typedef T const volatile Exp;
@@ -57,6 +69,10 @@ test()
         static_assert(dpl::is_same<typename dpl::tuple_element<0, C>::type, Exp>::value);
         static_assert(dpl::is_same<typename dpl::tuple_element<1, C>::type, Exp>::value);
         static_assert(dpl::is_same<typename dpl::tuple_element<2, C>::type, Exp>::value);
+
+        static_assert(dpl::is_same<std::tuple_element_t<0, C>, Exp>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<1, C>, Exp>::value);
+        static_assert(dpl::is_same<std::tuple_element_t<2, C>, Exp>::value);
     }
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
