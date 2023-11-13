@@ -45,8 +45,9 @@ kernel_test2(sycl::queue& deviceQueue)
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest2>([=]() {
             {
-                static_assert(dpl::is_same<dpl::tuple_element<0, const dpl::tuple<double, void, int>>::type,
-                                           const double>::value);
+                using tuple_type = dpl::tuple<double, void, int>;
+                static_assert(dpl::is_same_v<dpl::tuple_element<0, const tuple_type>::type, const double>);
+                static_assert(dpl::is_same_v<dpl::tuple_element_t<0, const tuple_type>, const double>);
             }
         });
     });
