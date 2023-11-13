@@ -36,13 +36,13 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelMakeTupleTest>([=]() {
-            int i = 0;
-            float j = 0.f;
+            int i = 4;
+            float j = 5.f;
             dpl::tuple<int, int&, float&> t = dpl::make_tuple(1, dpl::ref(i), dpl::ref(j));
 
             ret_access[0] = (dpl::get<0>(t) == 1);
-            ret_access[0] &= (dpl::get<1>(t) == 0);
-            ret_access[0] &= (dpl::get<2>(t) == 0.f);
+            ret_access[0] &= (dpl::get<1>(t) == i);
+            ret_access[0] &= (dpl::get<2>(t) == j);
 
             i = 2;
             j = 3.5f;
