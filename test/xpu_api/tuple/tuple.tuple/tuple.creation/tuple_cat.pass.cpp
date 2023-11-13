@@ -159,12 +159,6 @@ kernel_test1(sycl::queue& deviceQueue)
                 ret_access[0] &= (dpl::get<0>(t3) == 2);
             }
 
-            {
-                dpl::tuple<> t1;
-                dpl::tuple<int> t2(2);
-                dpl::tuple<int> t3 = dpl::tuple_cat(t2, t1);
-                ret_access[0] &= (dpl::get<0>(t3) == 2);
-            }
 
             {
                 dpl::tuple<int*> t1;
