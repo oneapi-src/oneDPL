@@ -53,8 +53,7 @@ kernel_test()
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelGetNonConstTest>([=]() {
             {
-                typedef dpl::tuple<int> T;
-                T t(3);
+                dpl::tuple<int> t(3);
                 ret_access[0] = (dpl::get<0>(t) == 3);
                 dpl::get<0>(t) = 2;
                 ret_access[0] &= (dpl::get<0>(t) == 2);
