@@ -72,8 +72,10 @@ test_range_and_even_histogram(Size n, T min_boundary, T max_boundary, T overflow
     
     invoke_on_all_hetero_policies<0>()(test_histogram_even_bins(), in.begin(), in.end(), expected.begin(), expected.end(),
                                 out.begin(), out.end(), Size(in.size()), min_boundary, max_boundary, trash);
+#if !ONEDPL_FPGA_DEVICE
     invoke_on_all_hetero_policies<1>()(test_histogram_even_bins(), in.cbegin(), in.cend(), expected.begin(), expected.end(),
                                 out.begin(), out.end(), Size(in.size()), min_boundary, max_boundary, trash);
+#endif // !ONEDPL_FPGA_DEVICE
 
 
     T offset = (max_boundary - min_boundary) / T(num_bins);
@@ -81,8 +83,10 @@ test_range_and_even_histogram(Size n, T min_boundary, T max_boundary, T overflow
     
     invoke_on_all_hetero_policies<2>()(test_histogram_range_bins(), in.begin(), in.end(), boundaries.begin(), boundaries.end(),
                                  expected.begin(), expected.end(), out.begin(), out.end(), trash);
+#if !ONEDPL_FPGA_DEVICE
     invoke_on_all_hetero_policies<3>()(test_histogram_range_bins(), in.cbegin(), in.cend(), boundaries.cbegin(), boundaries.cend(),
                                  expected.begin(), expected.end(), out.begin(), out.end(), trash);
+#endif // !ONEDPL_FPGA_DEVICE
 }
 
 
@@ -90,6 +94,7 @@ template <typename T, typename Size>
 void
 test_histogram(T min_boundary, T max_boundary, T overflow, Size jitter, Size trash)
 {
+#if TEST_DPCPP_BACKEND_PRESENT
     for (Size bin_size = 4; bin_size <= 20000; bin_size = Size(3.1415 * bin_size))
     {
         for (Size n = 0; n <= 100000; n = n <= 16 ? n + 1 : Size(3.1415 * n))
@@ -97,7 +102,6 @@ test_histogram(T min_boundary, T max_boundary, T overflow, Size jitter, Size tra
             test_range_and_even_histogram(n, min_boundary, max_boundary, overflow, jitter, bin_size, trash);
         }
 
-#if TEST_DPCPP_BACKEND_PRESENT && !ONEDPL_FPGA_DEVICE
         // testing of large number of items may take too much time in debug mode
         Size n =
 #if PSTL_USE_DEBUG
@@ -105,11 +109,9 @@ test_histogram(T min_boundary, T max_boundary, T overflow, Size jitter, Size tra
 #else
             100000000;
 #endif
-
         test_range_and_even_histogram(n, min_boundary, max_boundary, overflow, jitter, bin_size, trash);
-
-#endif // TEST_DPCPP_BACKEND_PRESENT && !ONEDPL_FPGA_DEVICE
     }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 }
 
 int
