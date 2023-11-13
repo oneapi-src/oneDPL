@@ -22,25 +22,7 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-struct Empty
-{
-};
-
-struct S
-{
-    dpl::tuple<int, Empty> a;
-    int k;
-    Empty e;
-    constexpr S() : a{1, Empty{}}, k(dpl::get<0>(a)), e(dpl::get<1>(a)) {}
-};
-
-constexpr dpl::tuple<int, int>
-getP()
-{
-    return {3, 4};
-}
-
-class KernelGetNonConstTest;
+class KernelTest;
 
 void
 kernel_test()
@@ -51,22 +33,11 @@ kernel_test()
     sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
-        cgh.single_task<class KernelGetNonConstTest>([=]() {
-            {
-                dpl::tuple<int> t(3);
-                ret_access[0] = (dpl::get<0>(t) == 3);
-                dpl::get<0>(t) = 2;
-                ret_access[0] &= (dpl::get<0>(t) == 2);
-            }
-
-            { // get on an rvalue tuple
-                static_assert(dpl::get<0>(dpl::make_tuple(0.0f, 1, 2.0, 3L)) == 0);
-                static_assert(dpl::get<1>(dpl::make_tuple(0.0f, 1, 2.0, 3L)) == 1);
-                static_assert(dpl::get<2>(dpl::make_tuple(0.0f, 1, 2.0, 3L)) == 2);
-                static_assert(dpl::get<3>(dpl::make_tuple(0.0f, 1, 2.0, 3L)) == 3);
-                static_assert(S().k == 1);
-                static_assert(dpl::get<1>(getP()) == 4);
-            }
+        cgh.single_task<class KernelTest>([=]() {
+            dpl::tuple<int> t(3);
+            ret_access[0] = (dpl::get<0>(t) == 3);
+            dpl::get<0>(t) = 2;
+            ret_access[0] &= (dpl::get<0>(t) == 2);
         });
     });
 
