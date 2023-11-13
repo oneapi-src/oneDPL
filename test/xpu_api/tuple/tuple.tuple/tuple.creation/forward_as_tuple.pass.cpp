@@ -51,12 +51,6 @@ bool test2a(const Tuple& t)
     return (dpl::get<0>(t) == 2.5f && dpl::get<1>(t) == 'a');
 }
 
-template <class Tuple>
-constexpr int
-test3(const Tuple&)
-{
-    return dpl::tuple_size<Tuple>::value;
-}
 class KernelForwardAsTupleTest;
 
 void
