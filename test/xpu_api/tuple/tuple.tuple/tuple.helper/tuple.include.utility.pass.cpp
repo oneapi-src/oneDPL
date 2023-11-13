@@ -27,7 +27,7 @@
 class KernelTupleIncludeUtilityTest;
 
 template <class T, dpl::size_t N, class U, size_t idx>
-void __attribute__((always_inline)) test()
+void test()
 {
     static_assert(dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<T>>::value);
     static_assert(dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const T>>::value);
@@ -40,7 +40,7 @@ void __attribute__((always_inline)) test()
 }
 
 template <class T, dpl::size_t N, class U, size_t idx>
-bool __attribute__((always_inline)) test_runtime()
+bool test_runtime()
 {
     bool ret = (dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<T>>::value);
     ret &= (dpl::is_base_of<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const T>>::value);

@@ -24,7 +24,7 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <class T, dpl::size_t N, class U>
-void __attribute__((always_inline)) test_compile()
+void test_compile()
 {
     static_assert(dpl::is_same<typename dpl::tuple_element<N, T>::type, U>::value);
     static_assert(dpl::is_same<typename dpl::tuple_element<N, const T>::type, const U>::value);
@@ -33,7 +33,7 @@ void __attribute__((always_inline)) test_compile()
 }
 
 template <class T, dpl::size_t N, class U>
-bool __attribute__((always_inline)) test_runtime()
+bool test_runtime()
 {
     bool ret = (dpl::is_same<typename dpl::tuple_element<N, T>::type, U>::value);
     ret &= (dpl::is_same<typename dpl::tuple_element<N, const T>::type, const U>::value);

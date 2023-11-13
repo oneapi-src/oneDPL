@@ -82,7 +82,7 @@ struct tuple_size<Dummy1> : public integral_constant<std::size_t, 0>
 } // namespace std
 
 template <class T>
-void __attribute__((always_inline)) test_complete_compile()
+void test_complete_compile()
 {
     static_assert(is_complete<T>());
     static_assert(is_complete<const T>());
@@ -91,7 +91,7 @@ void __attribute__((always_inline)) test_complete_compile()
 }
 
 template <class T>
-bool __attribute__((always_inline)) test_complete_runtime()
+bool test_complete_runtime()
 {
     bool ret;
     ret = is_complete<T>();
@@ -102,7 +102,7 @@ bool __attribute__((always_inline)) test_complete_runtime()
 }
 
 template <class T>
-bool __attribute__((always_inline)) test_incomplete()
+bool test_incomplete()
 {
     bool ret;
     ret = !is_complete_runtime<T>();
