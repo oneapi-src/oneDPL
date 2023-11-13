@@ -297,7 +297,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 partition_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                _ForwardIterator1 __out_true, _ForwardIterator2 __out_false, _UnaryPredicate __pred);
 
-// [alg.sort]
+// [alg.sort]  
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
