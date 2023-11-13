@@ -20,6 +20,7 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
+#include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 bool
@@ -51,10 +52,17 @@ kernel_test()
 int
 main()
 {
+    bool processed = false;
 #if TEST_DPCPP_BACKEND_PRESENT
-    auto ret = kernel_test();
-    EXPECT_TRUE(ret, "Wrong result of dpl::tuple check in kernel_test");
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
+    {
+        auto ret = kernel_test();
+        EXPECT_TRUE(ret, "Wrong result of dpl::tuple check in kernel_test");
+
+        processed = true;
+    }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done(processed);
 }
