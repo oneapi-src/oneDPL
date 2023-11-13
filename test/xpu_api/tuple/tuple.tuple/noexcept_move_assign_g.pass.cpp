@@ -1,75 +1,94 @@
-#include "oneapi_std_test_config.h"
-#include "testsuite_struct.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+//
+//===----------------------------------------------------------------------===//
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(tuple)
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <tuple>
-#    include <utility>
-namespace s = std;
-#endif
+#include "support/test_config.h"
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
+#include <oneapi/dpl/tuple>
+#include <oneapi/dpl/utility>
+#include <oneapi/dpl/type_traits>
+
+#include "support/utils.h"
+#include "support/utils_invoke.h"
+
+#if TEST_DPCPP_BACKEND_PRESENT
+struct NoexceptMoveAssignClass
+{
+};
+
+struct NonNoexceptMoveAssignClass
+{
+    NonNoexceptMoveAssignClass&
+    operator=(NonNoexceptMoveAssignClass&&) noexcept(false);
+};
 
 void
-kernel_test1(cl::sycl::queue& deviceQueue)
+kernel_test1(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest1>([=]() {
-            typedef s::tuple<int> tt1;
-            typedef s::tuple<int, float> tt2;
-            typedef s::tuple<short, float, int> tt3;
-            typedef s::tuple<short, NoexceptMoveAssignClass, float> tt4;
-            typedef s::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, float> tt5;
-            typedef s::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt6;
+            typedef dpl::tuple<int> tt1;
+            typedef dpl::tuple<int, float> tt2;
+            typedef dpl::tuple<short, float, int> tt3;
+            typedef dpl::tuple<short, NoexceptMoveAssignClass, float> tt4;
+            typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, float> tt5;
+            typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt6;
 
-            static_assert(s::is_nothrow_move_assignable<tt1>::value, "Error");
-            static_assert(s::is_nothrow_move_assignable<tt2>::value, "Error");
-            static_assert(s::is_nothrow_move_assignable<tt3>::value, "Error");
-            static_assert(s::is_nothrow_move_assignable<tt4>::value, "Error");
-            static_assert(s::is_nothrow_move_assignable<tt5>::value, "Error");
-            static_assert(s::is_nothrow_move_assignable<tt6>::value, "Error");
+            static_assert(std::is_nothrow_move_assignable<tt1>::value);
+            static_assert(std::is_nothrow_move_assignable<tt2>::value);
+            static_assert(std::is_nothrow_move_assignable<tt3>::value);
+            static_assert(std::is_nothrow_move_assignable<tt4>::value);
+            static_assert(std::is_nothrow_move_assignable<tt5>::value);
+            static_assert(std::is_nothrow_move_assignable<tt6>::value);
         });
     });
 }
 
 void
-kernel_test2(cl::sycl::queue& deviceQueue)
+kernel_test2(sycl::queue& deviceQueue)
 {
-    deviceQueue.submit([&](cl::sycl::handler& cgh) {
+    deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest2>([=]() {
-            typedef s::tuple<int> tt1;
-            typedef s::tuple<int, double> tt2;
-            typedef s::tuple<short, double, int> tt3;
-            typedef s::tuple<short, NoexceptMoveAssignClass, double> tt4;
-            typedef s::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, double> tt5;
-            typedef s::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt6;
+            typedef dpl::tuple<int> tt1;
+            typedef dpl::tuple<int, double> tt2;
+            typedef dpl::tuple<short, double, int> tt3;
+            typedef dpl::tuple<short, NoexceptMoveAssignClass, double> tt4;
+            typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, double> tt5;
+            typedef dpl::tuple<NoexceptMoveAssignClass, NoexceptMoveAssignClass, NoexceptMoveAssignClass> tt6;
 
-            static_assert(s::is_nothrow_move_assignable<tt1>::value, "Error");
-            static_assert(s::is_nothrow_move_assignable<tt2>::value, "Error");
-            static_assert(s::is_nothrow_move_assignable<tt3>::value, "Error");
-            static_assert(s::is_nothrow_move_assignable<tt4>::value, "Error");
-            static_assert(s::is_nothrow_move_assignable<tt5>::value, "Error");
-            static_assert(s::is_nothrow_move_assignable<tt6>::value, "Error");
+            static_assert(std::is_nothrow_move_assignable<tt1>::value);
+            static_assert(std::is_nothrow_move_assignable<tt2>::value);
+            static_assert(std::is_nothrow_move_assignable<tt3>::value);
+            static_assert(std::is_nothrow_move_assignable<tt4>::value);
+            static_assert(std::is_nothrow_move_assignable<tt5>::value);
+            static_assert(std::is_nothrow_move_assignable<tt6>::value);
         });
     });
 }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-    cl::sycl::queue deviceQueue;
+#if TEST_DPCPP_BACKEND_PRESENT
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
-    if (deviceQueue.get_device().has_extension("cl_khr_fp64"))
+    if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         kernel_test2(deviceQueue);
     }
-    std::cout << "pass" << std::endl;
-    return 0;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

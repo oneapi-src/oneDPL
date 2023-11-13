@@ -1,45 +1,39 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
-// test move
+#include "support/test_config.h"
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/utility>
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <utility>
-#    include <type_traits>
-namespace s = std;
-#endif
+#include "support/test_macros.h"
+#include "support/utils.h"
 
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
-class move_only
+#if TEST_DPCPP_BACKEND_PRESENT
+struct move_only
 {
-    move_only(const move_only&);
-    move_only&
-    operator=(const move_only&);
+    move_only(const move_only&) = delete;
+    move_only& operator=(const move_only&) = delete;
 
-  public:
-    move_only(move_only&&) {}
+    move_only() = default;
+    move_only(move_only&&) = default;
     move_only&
     operator=(move_only&&)
     {
         return *this;
     }
-
-    move_only() {}
 };
 
 move_only
@@ -53,11 +47,13 @@ csource()
     return move_only();
 }
 
-void test(move_only) {}
+void test(move_only)
+{
+}
 
 struct A
 {
-    A() {}
+    A() = default;
     A(const A&) { ++copy_ctor; }
     A(A&&) { ++move_ctor; }
     A&
@@ -66,30 +62,29 @@ struct A
     int move_ctor = 0;
 };
 
-#if TEST_STD_VER > 11
 constexpr bool
 test_constexpr_move()
 {
     int y = 42;
     const int cy = y;
-    return s::move(y) == 42 && s::move(cy) == 42 && s::move(static_cast<int&&>(y)) == 42 &&
-           s::move(static_cast<int const&&>(y)) == 42;
+    return dpl::move(y) == 42 && dpl::move(cy) == 42 && dpl::move(static_cast<int&&>(y)) == 42 &&
+           dpl::move(static_cast<int const&&>(y)) == 42;
 }
-#endif
-cl::sycl::cl_bool
+
+bool
 kernel_test()
 {
 
     int x = 42;
     const int& cx = x;
-    cl::sycl::cl_bool ret = false;
+    bool ret = false;
     { // Test return type and noexcept.
-        static_assert(s::is_same<decltype(s::move(x)), int&&>::value, "");
-        ASSERT_NOEXCEPT(s::move(x));
-        static_assert(s::is_same<decltype(s::move(cx)), const int&&>::value, "");
-        ASSERT_NOEXCEPT(s::move(cx));
-        static_assert(s::is_same<decltype(s::move(42)), int&&>::value, "");
-        ASSERT_NOEXCEPT(s::move(42));
+        static_assert(dpl::is_same<decltype(dpl::move(x)), int&&>::value);
+        ASSERT_NOEXCEPT(dpl::move(x));
+        static_assert(dpl::is_same<decltype(dpl::move(cx)), const int&&>::value);
+        ASSERT_NOEXCEPT(dpl::move(cx));
+        static_assert(dpl::is_same<decltype(dpl::move(42)), int&&>::value);
+        ASSERT_NOEXCEPT(dpl::move(42));
     }
     { // test copy and move semantics
         A a;
@@ -102,7 +97,7 @@ kernel_test()
         ret &= (a2.copy_ctor == 1);
         ret &= (a2.move_ctor == 0);
 
-        A a3 = s::move(a);
+        A a3 = dpl::move(a);
         ret &= (a3.copy_ctor == 0);
         ret &= (a3.move_ctor == 1);
 
@@ -110,58 +105,45 @@ kernel_test()
         ret &= (a4.copy_ctor == 1);
         ret &= (a4.move_ctor == 0);
 
-        A a5 = s::move(ca);
+        A a5 = dpl::move(ca);
         ret &= (a5.copy_ctor == 1);
         ret &= (a5.move_ctor == 0);
     }
     { // test on a move only type
         move_only mo;
-        test(s::move(mo));
+        test(dpl::move(mo));
         test(source());
     }
-#if TEST_STD_VER > 11
+
     {
         constexpr int y = 42;
-        static_assert(s::move(y) == 42, "");
-        static_assert(test_constexpr_move(), "");
+        static_assert(dpl::move(y) == 42);
+        static_assert(test_constexpr_move());
     }
-#endif
-#if TEST_STD_VER == 11 && defined(_LIBCPP_VERSION)
-    // Test that s::forward is constexpr in C++11. This is an extension
-    // provided by both libc++ and libstdc++.
-    {
-        constexpr int y = 42;
-        static_assert(s::move(y) == 42, "");
-    }
-#endif
 
     return ret;
 }
 
 class KernelTest;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::range<1> numOfItems{1};
+#if TEST_DPCPP_BACKEND_PRESENT
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = false;
+    sycl::range<1> numOfItems{1};
     {
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
             cgh.single_task<class KernelTest>([=]() { ret_access[0] = kernel_test(); });
         });
     }
 
-    if (ret)
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
+    EXPECT_TRUE(ret, "Wrong result of dpl::move check");
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }

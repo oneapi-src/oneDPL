@@ -20,22 +20,9 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
+#include "support/MoveOnly.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-struct MoveOnly
-{
-    MoveOnly() {}
-
-    MoveOnly(MoveOnly&&) = default;
-
-    MoveOnly&
-    operator=(MoveOnly&&) = default;
-
-    MoveOnly(MoveOnly const&) = delete;
-    MoveOnly&
-    operator=(MoveOnly const&) = delete;
-};
-
 void
 kernel_test()
 {

@@ -1,58 +1,43 @@
+// -*- C++ -*-
 //===----------------------------------------------------------------------===//
+//
+// Copyright (C) Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// This file incorporates work covered by the following copyright and permission
+// notice:
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
-// <utility>
+#include "support/test_config.h"
 
-// template <class T>
-//     typename conditional
-//     <
-//         !is_nothrow_move_constructible<T>::value && is_copy_constructible<T>::value,
-//         const T&,
-//         T&&
-//     >::type
-//     move_if_noexcept(T& x);
+#include <oneapi/dpl/type_traits>
+#include <oneapi/dpl/utility>
 
-#include "oneapi_std_test_config.h"
-#include "test_macros.h"
-#include <CL/sycl.hpp>
-#include <iostream>
+#include "support/test_macros.h"
+#include "support/utils.h"
 
-#ifdef USE_ONEAPI_STD
-#    include _ONEAPI_STD_TEST_HEADER(type_traits)
-#    include _ONEAPI_STD_TEST_HEADER(utility)
-namespace s = oneapi_cpp_ns;
-#else
-#    include <utility>
-#    include <type_traits>
-namespace s = std;
-#endif
-
-constexpr cl::sycl::access::mode sycl_read = cl::sycl::access::mode::read;
-constexpr cl::sycl::access::mode sycl_write = cl::sycl::access::mode::write;
-
-class A
+#if TEST_DPCPP_BACKEND_PRESENT
+struct A
 {
-    A(const A&);
-    A&
-    operator=(const A&);
+    A(const A&) = delete
+    A& operator=(const A&) = delete;
 
-  public:
-    A() {}
-    A(A&&) {}
+    A() = default;
+    A(A&&) = default;
 };
 
 struct legacy
 {
-    legacy() {}
-    legacy(const legacy&);
+    legacy() = default;
+    legacy(const legacy&) = delete;
 };
 
-cl::sycl::cl_bool
+void
 kernel_test()
 {
     int i = 0;
@@ -62,54 +47,32 @@ kernel_test()
     A a;
     const A ca;
 
-#if TEST_STD_VER >= 11
-    static_assert((s::is_same<decltype(s::move_if_noexcept(i)), int&&>::value), "");
-    static_assert((s::is_same<decltype(s::move_if_noexcept(ci)), const int&&>::value), "");
-    static_assert((s::is_same<decltype(s::move_if_noexcept(a)), A&&>::value), "");
-    static_assert((s::is_same<decltype(s::move_if_noexcept(ca)), const A&&>::value), "");
-    static_assert((s::is_same<decltype(s::move_if_noexcept(l)), const legacy&>::value), "");
-#else // C++ < 11
-    // In C++03 we don't have noexcept so we can never move :-(
-    static_assert((s::is_same<decltype(s::move_if_noexcept(i)), const int&>::value), "");
-    static_assert((s::is_same<decltype(s::move_if_noexcept(ci)), const int&>::value), "");
-    static_assert((s::is_same<decltype(s::move_if_noexcept(a)), const A&>::value), "");
-    static_assert((s::is_same<decltype(s::move_if_noexcept(ca)), const A&>::value), "");
-    static_assert((s::is_same<decltype(s::move_if_noexcept(l)), const legacy&>::value), "");
-#endif
+    static_assert(dpl::is_same<decltype(dpl::move_if_noexcept(i)), int&&>::value);
+    static_assert(dpl::is_same<decltype(dpl::move_if_noexcept(ci)), const int&&>::value);
+    static_assert(dpl::is_same<decltype(dpl::move_if_noexcept(a)), A&&>::value);
+    static_assert(dpl::is_same<decltype(dpl::move_if_noexcept(ca)), const A&&>::value);
+    static_assert(dpl::is_same<decltype(dpl::move_if_noexcept(l)), const legacy&>::value);
 
-#if TEST_STD_VER > 11
     constexpr int i1 = 23;
-    constexpr int i2 = s::move_if_noexcept(i1);
-    static_assert(i2 == 23, "");
-#endif
-
-    return true;
+    constexpr int i2 = dpl::move_if_noexcept(i1);
+    static_assert(i2 == 23);
 }
 
 class KernelTest;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-    cl::sycl::queue deviceQueue;
-    cl::sycl::cl_bool ret = false;
-    cl::sycl::range<1> numOfItems{1};
+#if TEST_DPCPP_BACKEND_PRESENT
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    sycl::range<1> numOfItems{1};
     {
-        cl::sycl::buffer<cl::sycl::cl_bool, 1> buffer1(&ret, numOfItems);
-        deviceQueue.submit([&](cl::sycl::handler& cgh) {
-            auto ret_access = buffer1.get_access<sycl_write>(cgh);
-            cgh.single_task<class KernelTest>([=]() { ret_access[0] = kernel_test(); });
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            cgh.single_task<class KernelTest>([=]() { kernel_test(); });
         });
     }
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    if (ret)
-    {
-        std::cout << "Pass" << std::endl;
-    }
-    else
-    {
-        std::cout << "Fail" << std::endl;
-    }
-
-    return 0;
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
