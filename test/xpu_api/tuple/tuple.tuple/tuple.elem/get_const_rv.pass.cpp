@@ -36,8 +36,8 @@ kernel_test()
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelGetConstRvTest>([=]() {
             {
-                dpl::tuple<int> t(3);
-                static_assert(dpl::is_same<int&&, decltype(dpl::get<0>(dpl::move(t)))>::value);
+                const dpl::tuple<int> t(3);
+                static_assert(dpl::is_same<const int&&, decltype(dpl::get<0>(dpl::move(t)))>::value);
                 static_assert(noexcept(dpl::get<0>(dpl::move(t))));
                 const int&& i = dpl::get<0>(dpl::move(t));
                 ret_access[0] = (i == 3);
