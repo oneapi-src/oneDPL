@@ -107,6 +107,8 @@ test_ignore()
     [[maybe_unused]] constexpr auto ign2 = dpl::make_tuple(dpl::ignore);
 }
 
+class KernelTest;
+
 void
 kernel_test()
 {
