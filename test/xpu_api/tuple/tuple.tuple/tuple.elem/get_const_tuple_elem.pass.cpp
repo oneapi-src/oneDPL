@@ -38,8 +38,7 @@ kernel_test()
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelGetConstTest>([=]() {
             {
-                typedef dpl::tuple<int> T;
-                const T t(3);
+                const dpl::tuple<int> t(3);
                 ret_access[0] = (dpl::get<0>(t) == 3);
             }
         });
