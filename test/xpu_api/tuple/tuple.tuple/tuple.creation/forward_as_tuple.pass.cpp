@@ -23,12 +23,6 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-// This code is used to test std::forward_tuple_as
-template <class Tuple>
-void test0(const Tuple&)
-{
-    static_assert(dpl::tuple_size<Tuple>::value == 0);
-}
 
 template <class Tuple>
 bool
