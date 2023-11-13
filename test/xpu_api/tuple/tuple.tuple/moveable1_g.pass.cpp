@@ -23,8 +23,11 @@
 #include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
+class KernelTest1;
+class KernelTest2;
+
 bool
-kernel_test()
+kernel_test1()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     bool ret = true;
@@ -33,7 +36,28 @@ kernel_test()
         sycl::buffer<bool, 1> buffer1(&ret, numOfItem);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
-            cgh.single_task<class KernelTest>([=]() {
+            cgh.single_task<class KernelTest1>([=]() {
+                dpl::tuple<int, float> a(1, 2.f), b;
+                b = dpl::move(a);
+                ret_access[0] &= (dpl::get<0>(b) == 1 && dpl::get<1>(b) == 2.f);
+                ret_access[0] &= (dpl::get<0>(a) == 1 && dpl::get<1>(a) == 2.f);
+            });
+        });
+    }
+    return ret;
+}
+
+bool
+kernel_test2()
+{
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    bool ret = true;
+    sycl::range<1> numOfItem{1};
+    {
+        sycl::buffer<bool, 1> buffer1(&ret, numOfItem);
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
+            cgh.single_task<class KernelTest2>([=]() {
                 dpl::tuple<int, float> a(1, 2.f), b;
                 b = dpl::move(a);
                 ret_access[0] &= (dpl::get<0>(b) == 1 && dpl::get<1>(b) == 2.f);
@@ -52,17 +76,15 @@ kernel_test()
 int
 main()
 {
-    bool processed = false;
 #if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
+    auto ret = kernel_test1();
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
-        auto ret = kernel_test();
-        EXPECT_TRUE(ret, "Wrong result of dpl::tuple check in kernel_test");
-
-        processed = true;
+        ret &= kernel_test2();
     }
+    EXPECT_TRUE(ret, "Wrong result of dpl::tuple check in kernel_test");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(processed);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
