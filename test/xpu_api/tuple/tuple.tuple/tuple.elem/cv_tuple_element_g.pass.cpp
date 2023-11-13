@@ -29,12 +29,14 @@ kernel_test1(sycl::queue& deviceQueue)
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest1>([=]() {
             {
-                static_assert(
-                    dpl::is_same<dpl::tuple_element<0, const dpl::tuple<float, void, int>>::type, const float>::value);
-                static_assert(
-                    dpl::is_same<dpl::tuple_element<1, volatile dpl::tuple<short, void>>::type, volatile void>::value);
-                static_assert(dpl::is_same<dpl::tuple_element<2, const volatile dpl::tuple<float, char, int>>::type,
-                                           const volatile int>::value);
+                using tuple_type = dpl::tuple<float, short, int>;
+                static_assert(dpl::is_same_v<dpl::tuple_element<0, const tuple_type>::type, const float>);
+                static_assert(dpl::is_same_v<dpl::tuple_element<1, volatile tuple_type>::type, volatile short>);
+                static_assert(dpl::is_same_v<dpl::tuple_element<2, const volatile tuple_type>::type, const volatile int>);
+                
+                static_assert(dpl::is_same_v<dpl::tuple_element_t<0, const tuple_type>, const float>;
+                static_assert(dpl::is_same_v<dpl::tuple_element_t<1, volatile tuple_type>, volatile short>);
+                static_assert(dpl::is_same_v<dpl::tuple_element_t<2, const volatile tuple_type>, const volatile int>);
             }
         });
     });
