@@ -73,7 +73,8 @@ kernel_test()
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelForwardAsTupleTest>([=]() {
             int i = 2;
-            test0(dpl::forward_as_tuple());
+            const auto tpl = dpl::forward_as_tuple();
+            static_assert(dpl::tuple_size_v<decltype(tpl)> == 0);
             ret_access[0] = test1a(dpl::forward_as_tuple(1));
             ret_access[0] &= test1b(dpl::forward_as_tuple(i));
 
