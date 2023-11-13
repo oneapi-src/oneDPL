@@ -514,22 +514,24 @@ struct __get_sycl_range
         auto __get_buf = [&]()
         {
             if constexpr(__is_copy_direct)
-                return sycl::buffer<_T, 1>(std::addressof(*__first), __last - __first);
+                return sycl::buffer<_T, 1>(std::addressof(*__first), __last - __first); //buffer will wait and copying on destrcutor
             else
-                return sycl::buffer<_T, 1>(__last - __first);
+            {
+                sycl::buffer<_T, 1> __buf(__last - __first);
+                __buf.set_final_data(__first); //buffer wait and copying on destrcutor
+                return __buf;
+            }
         };
-        auto buf = __get_buf();
-        buf.set_write_back(__is_copy_back);
-        if(__is_copy_back)
-            buf.set_final_data(__first);
+        auto __buf = __get_buf();
+        __buf.set_write_back(__is_copy_back);
 
         // We have to extend sycl buffer lifetime by sync reasons in case of host iterators. SYCL runtime has sync
         // in buffer destruction and a sycl view instance keeps just placeholder accessor, not a buffer.
-        using BufferType = oneapi::dpl::__internal::__lifetime_keeper<decltype(buf)>;
-        m_buffers.push_back(::std::make_unique<BufferType>(buf));
+        using BufferType = oneapi::dpl::__internal::__lifetime_keeper<decltype(__buf)>;
+        m_buffers.push_back(::std::make_unique<BufferType>(__buf));
 
         return __range_holder<oneapi::dpl::__ranges::all_view<_T, AccMode>>{
-            oneapi::dpl::__ranges::all_view<_T, AccMode>(buf)};
+            oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf)};
     }
 };
 
