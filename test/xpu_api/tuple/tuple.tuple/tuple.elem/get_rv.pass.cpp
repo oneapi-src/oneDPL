@@ -35,8 +35,7 @@ kernel_test()
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelGetRvTest>([=]() {
             int test_val = 3;
-            typedef dpl::tuple<int*> T;
-            T t(&test_val);
+            dpl::tuple<int*> t(&test_val);
             int* p = dpl::get<0>(std::move(t));
             ret_access[0] = (*p == 3);
         });
