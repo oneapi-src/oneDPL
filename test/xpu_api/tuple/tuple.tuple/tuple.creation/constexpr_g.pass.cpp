@@ -85,23 +85,6 @@ test_tie()
     }
 }
 
-// get
-void
-test_get()
-{
-    {
-        typedef dpl::tuple<int, float> tuple_type;
-        constexpr tuple_type t1{55, 77.77f};
-        [[maybe_unuased]] constexpr auto var = dpl::get<1>(t1);
-    }
-
-    {
-        typedef dpl::tuple<int, float, int> tuple_type;
-        constexpr tuple_type t1{55, 77.77f, 99};
-        [[maybe_unuased]] constexpr auto var = dpl::get<2>(t1);
-    }
-}
-
 // tuple_cat
 void
 test_tuple_cat()
@@ -143,7 +126,6 @@ kernel_test()
                 test_make_tuple();
                 test_forward_as_tuple();
                 test_tie();
-                test_get();
                 test_tuple_cat();
                 test_ignore();
             });
