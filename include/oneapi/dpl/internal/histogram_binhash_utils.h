@@ -28,7 +28,7 @@ struct __evenly_divided_binhash_impl
 };
 
 template <typename _T1>
-struct __evenly_divided_binhash_impl<_T1, /* is_floating_point = */ true>
+struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint = */ true>
 {
     using req_sycl_range_conversion = ::std::false_type;
     _T1 __minimum;
@@ -57,7 +57,7 @@ struct __evenly_divided_binhash_impl<_T1, /* is_floating_point = */ true>
 
 // non floating point type
 template <typename _T1>
-struct __evenly_divided_binhash_impl<_T1, /* is_floating_point= */ false>
+struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint= */ false>
 {
     using req_sycl_range_conversion = ::std::false_type;
     _T1 __minimum;
