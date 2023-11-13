@@ -283,7 +283,7 @@ __histogram_general_registers_local_reduction(_ExecutionPolicy&& exec, const syc
                     for (__histogram_index_type idx = 0; idx < __iters_per_work_item; idx++)
                     {
                         ::std::size_t __val_idx = __seg_start + idx * __work_group_size + __self_lidx;
-                        if (__val_idx < N)
+                        if (__val_idx < n)
                         {
                             __accum_local_register_iter<__histogram_index_type>(__input, __val_idx, histogram, __func,
                                                                                 boost_mem);
