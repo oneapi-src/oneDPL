@@ -99,15 +99,6 @@ test_tuple_cat()
     static_assert(dpl::get<0>(cat1) == 55);
 }
 
-namespace
-{
-template <class T>
-constexpr int zero_from_anything(T)
-{
-    return 0;
-}
-} // namespace
-
 // ignore
 void
 test_ignore()
