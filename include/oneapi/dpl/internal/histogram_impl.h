@@ -20,7 +20,10 @@
 #include "histogram_extension_defs.h"
 #include "histogram_binhash_utils.h"
 #include "../pstl/iterator_impl.h"
-#include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_histogram.h"
+
+#if _ONEDPL_HETERO_BACKEND
+#    include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_histogram.h"
+#endif
 
 namespace oneapi
 {
