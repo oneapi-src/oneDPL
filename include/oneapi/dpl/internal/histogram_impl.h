@@ -31,21 +31,25 @@ namespace __internal
 
 template <typename _ExecutionPolicy, typename _Iter1, typename _Iter2, typename _Size, typename _IdxHashFunc, typename... _Range>
 inline void
-__pattern_histogram(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first, const _Size& num_bins,
+__pattern_histogram(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first, const _Size& __num_bins,
                     _IdxHashFunc __func, _Range&&... __opt_range)
 {
-    oneapi::dpl::__par_backend_hetero::__parallel_histogram(::std::forward<_ExecutionPolicy>(exec), __first, __last,
-                                                            __histogram_first, num_bins, __func, __opt_range...);
+    //If there are no histogram bins there is nothing to do
+    if (__num_bins > 0)
+    {
+        oneapi::dpl::__par_backend_hetero::__parallel_histogram(::std::forward<_ExecutionPolicy>(exec), __first, __last,
+                                                            __histogram_first, __num_bins, __func, __opt_range...);
+    }
 }
 
 template <typename _ExecutionPolicy, typename Iter1, typename OutputIter, typename _Size, typename _T>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
-__histogram_impl(_ExecutionPolicy&& exec, Iter1 __first, Iter1 __last, OutputIter __histogram_first, const _Size& num_bins,
+__histogram_impl(_ExecutionPolicy&& exec, Iter1 __first, Iter1 __last, OutputIter __histogram_first, const _Size& __num_bins,
                  const _T& __first_bin_min_val, const _T& __last_bin_max_val)
 {
     __internal::__pattern_histogram(
-        ::std::forward<_ExecutionPolicy>(exec), __first, __last, __histogram_first, num_bins,
-        __internal::__evenly_divided_binhash<_T>(__first_bin_min_val, __last_bin_max_val, num_bins));
+        ::std::forward<_ExecutionPolicy>(exec), __first, __last, __histogram_first, __num_bins,
+        __internal::__evenly_divided_binhash<_T>(__first_bin_min_val, __last_bin_max_val, __num_bins));
 }
 
 template <typename _ExecutionPolicy, typename Iter1, typename OutputIter, typename Iter3>
@@ -65,13 +69,8 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomA
 histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last, const _Size& __num_bins,
           const _T& __first_bin_min_val, const _T& __last_bin_max_val, _RandomAccessIterator2 __histogram_first)
 {
-    //If there are no histogram bins there is nothing to do.  However, even if we have zero input elements,
-    // we still want to clear the output histogram
-    if (__num_bins > 0)
-    {
-        __internal::__histogram_impl(::std::forward<_ExecutionPolicy>(exec), __first, __last, __histogram_first,
-                                     __num_bins, __first_bin_min_val, __last_bin_max_val);
-    }
+    __internal::__histogram_impl(::std::forward<_ExecutionPolicy>(exec), __first, __last, __histogram_first,
+                                    __num_bins, __first_bin_min_val, __last_bin_max_val);
     return __histogram_first + __num_bins;
 }
 
@@ -80,14 +79,9 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomA
 histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last, _RandomAccessIterator2 __boundary_first,
           _RandomAccessIterator2 __boundary_last, _RandomAccessIterator3 __histogram_first)
 {
-    auto __num_bins = __boundary_last - __boundary_first - 1;
-    //If there are no histogram bins there is nothing to do.  However, even if we have zero input elements,
-    // we still want to clear the output histogram
-    if (__num_bins > 0)
-    {
-        __internal::__histogram_impl(::std::forward<_ExecutionPolicy>(exec), __first, __last, __histogram_first,
-                                     __boundary_first, __boundary_last);
-    }
+    ::std::ptrdiff_t __num_bins = __boundary_last - __boundary_first - 1;
+    __internal::__histogram_impl(::std::forward<_ExecutionPolicy>(exec), __first, __last, __histogram_first,
+                                    __boundary_first, __boundary_last);
     return __histogram_first + __num_bins;
 }
 
