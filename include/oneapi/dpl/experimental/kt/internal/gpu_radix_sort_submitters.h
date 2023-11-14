@@ -52,9 +52,12 @@ struct __radix_sort_onesweep_histogram_submitter<
             __cgh.depends_on(__e);
             auto __data = __keys_rng.data();
             __cgh.parallel_for<_Name...>(__nd_range, [=](sycl::nd_item<1> __nd_item) {
-                __global_histogram<_KeyT, decltype(__data), __radix_bits, __stage_count, __hist_work_group_count,
-                                   __hist_work_group_size, __is_ascending>(__nd_item, __n, __data,
-                                                                           __global_offset_data);
+                // __global_histogram<_KeyT, decltype(__data), __radix_bits, __stage_count, __hist_work_group_count,
+                //                    __hist_work_group_size, __is_ascending>(__nd_item, __n, __data,
+                //                                                            __global_offset_data);
+                RadixSortHistogram<HISTOGRAM_GROUP_THREADS, HISTOGRAM_ITEMS_PER_THREADS> kernel(
+                    digits_histograms, shared_histogram.get_pointer(), array, size);
+                kernel.process(id);
             });
         });
     }
