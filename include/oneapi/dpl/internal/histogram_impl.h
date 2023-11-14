@@ -36,7 +36,7 @@ namespace __internal
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Size,
           typename _IdxHashFunc, typename... _Range>
-inline void
+inline oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
 __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                     _RandomAccessIterator2 __histogram_first, const _Size& __num_bins, _IdxHashFunc __func,
                     _Range&&... __opt_range)
@@ -48,10 +48,21 @@ __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _Ra
                                                                 __histogram_first, __num_bins, __func, __opt_range...);
     }
 }
+#endif // _ONEDPL_BACKEND_SYCL
+
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Size,
+          typename _IdxHashFunc, typename... _Range>
+inline oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
+__pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
+                    _RandomAccessIterator2 __histogram_first, const _Size& __num_bins, _IdxHashFunc __func,
+                    _Range&&... __opt_range)
+{
+    static_assert(false, "Histogram APIs are not currently supported with host execution policies.");
+}
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Size,
           typename _T>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
+inline void
 __histogram_impl(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                  _RandomAccessIterator2 __histogram_first, const _Size& __num_bins, const _T& __first_bin_min_val,
                  const _T& __last_bin_max_val)
@@ -62,7 +73,7 @@ __histogram_impl(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _Rando
 }
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename Iter3>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
+inline void
 __histogram_impl(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                  _RandomAccessIterator2 __histogram_first, Iter3 __boundary_first, Iter3 __boundary_last)
 {
@@ -70,8 +81,6 @@ __histogram_impl(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _Rando
     __internal::__pattern_histogram(::std::forward<_ExecutionPolicy>(exec), __first, __last, __histogram_first,
                                     boundary_view.size() - 1, __internal::__custom_range_binhash{boundary_view});
 }
-
-#endif // _ONEDPL_BACKEND_SYCL
 
 } // namespace __internal
 
