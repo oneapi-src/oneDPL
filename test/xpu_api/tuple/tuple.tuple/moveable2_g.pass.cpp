@@ -20,7 +20,7 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
-#include "support/MoveOnly.h"
+#include "support/move_only.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
 MoveOnly

@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _MOVEONLY_H
-#define _MOVEONLY_H
+#ifndef _MOVE_ONLY_H
+#define _MOVE_ONLY_H
 
 #include <utility>
 
@@ -70,4 +70,4 @@ struct MoveOnly
     }
 };
 
-#endif  // _MOVEONLY_H
+#endif  // _MOVE_ONLY_H
