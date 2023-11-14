@@ -27,12 +27,12 @@ struct A
 };
 
 A
-source() TEST_NOEXCEPT
+source() noexcept
 {
     return A();
 }
 const A
-csource() TEST_NOEXCEPT
+csource() noexcept
 {
     return A();
 }
