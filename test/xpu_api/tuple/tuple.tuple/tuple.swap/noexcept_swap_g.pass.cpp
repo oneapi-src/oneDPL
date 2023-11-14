@@ -17,6 +17,7 @@
 
 #include <oneapi/dpl/tuple>
 #include <oneapi/dpl/utility>
+#include <oneapi/dpl/type_traits>
 
 #include "support/utils.h"
 
@@ -45,6 +46,14 @@ struct NoexceptMoveConsNoexceptMoveAssignClass
 {
 };
 
+struct NonNoexceptMoveConsNoexceptMoveAssignClass
+{
+    NonNoexceptMoveConsNoexceptMoveAssignClass(const NonNoexceptMoveConsNoexceptMoveAssignClass&&) noexcept(false);
+
+    NonNoexceptMoveConsNoexceptMoveAssignClass&
+    operator=(const NonNoexceptMoveConsNoexceptMoveAssignClass&&) noexcept(false);
+};
+
 void
 kernel_test()
 {
@@ -56,29 +65,53 @@ kernel_test()
                 typedef dpl::tuple<int, float> tt2;
                 typedef dpl::tuple<short, float, int> tt3;
                 typedef dpl::tuple<short, NoexceptMoveAssignClass, float> tt4;
+                typedef dpl::tuple<short, NonNoexceptMoveAssignClass, float> tt4n;
                 typedef dpl::tuple<short, NoexceptMoveConsClass, float> tt5;
+                typedef dpl::tuple<short, NonNoexceptMoveConsClass, float> tt5n;
                 typedef dpl::tuple<NoexceptMoveConsClass> tt6;
+                typedef dpl::tuple<NonNoexceptMoveConsClass> tt6n;
                 typedef dpl::tuple<NoexceptMoveConsNoexceptMoveAssignClass> tt7;
+                typedef dpl::tuple<NonNoexceptMoveConsNoexceptMoveAssignClass> tt7n;
                 typedef dpl::tuple<NoexceptMoveConsNoexceptMoveAssignClass, float> tt8;
+                typedef dpl::tuple<NonNoexceptMoveConsNoexceptMoveAssignClass, float> tt8n;
                 typedef dpl::tuple<float, NoexceptMoveConsNoexceptMoveAssignClass, short> tt9;
+                typedef dpl::tuple<float, NonNoexceptMoveConsNoexceptMoveAssignClass, short> tt9n;
                 typedef dpl::tuple<NoexceptMoveConsNoexceptMoveAssignClass, NoexceptMoveConsNoexceptMoveAssignClass,
                                    char>
                     tt10;
+                typedef dpl::tuple<NonNoexceptMoveConsNoexceptMoveAssignClass,
+                                   NonNoexceptMoveConsNoexceptMoveAssignClass,
+                                   char>
+                    tt10n;
                 typedef dpl::tuple<NoexceptMoveConsNoexceptMoveAssignClass, NoexceptMoveConsNoexceptMoveAssignClass,
                                    NoexceptMoveConsNoexceptMoveAssignClass>
                     tt11;
+                typedef dpl::tuple<NonNoexceptMoveConsNoexceptMoveAssignClass,
+                                   NonNoexceptMoveConsNoexceptMoveAssignClass,
+                                   NonNoexceptMoveConsNoexceptMoveAssignClass>
+                    tt11n;
 
-                static_assert(noexcept(dpl::declval<tt1&>().swap(dpl::declval<tt1&>())));
-                static_assert(noexcept(dpl::declval<tt2&>().swap(dpl::declval<tt2&>())));
-                static_assert(noexcept(dpl::declval<tt3&>().swap(dpl::declval<tt3&>())));
-                static_assert(noexcept(dpl::declval<tt4&>().swap(dpl::declval<tt4&>())));
-                static_assert(noexcept(dpl::declval<tt5&>().swap(dpl::declval<tt5&>())));
-                static_assert(noexcept(dpl::declval<tt6&>().swap(dpl::declval<tt6&>())));
-                static_assert(noexcept(dpl::declval<tt7&>().swap(dpl::declval<tt7&>())));
-                static_assert(noexcept(dpl::declval<tt8&>().swap(dpl::declval<tt8&>())));
-                static_assert(noexcept(dpl::declval<tt9&>().swap(dpl::declval<tt9&>())));
-                static_assert(noexcept(dpl::declval<tt10&>().swap(dpl::declval<tt10&>())));
-                static_assert(noexcept(dpl::declval<tt11&>().swap(dpl::declval<tt11&>())));
+                static_assert(std::is_nothrow_swappable_v<tt1&>);
+                static_assert(std::is_nothrow_swappable_v<tt2&>);
+                static_assert(std::is_nothrow_swappable_v<tt3&>);
+
+                static_assert(std::is_nothrow_swappable_v<tt4&>);
+                static_assert(std::is_nothrow_swappable_v<tt5&>);
+                static_assert(std::is_nothrow_swappable_v<tt6&>);
+                static_assert(std::is_nothrow_swappable_v<tt7&>);
+                static_assert(std::is_nothrow_swappable_v<tt8&>);
+                static_assert(std::is_nothrow_swappable_v<tt9&>);
+                static_assert(std::is_nothrow_swappable_v<tt10&>);
+                static_assert(std::is_nothrow_swappable_v<tt11&>);
+
+                static_assert(!std::is_nothrow_swappable_v<tt4n&>);
+                static_assert(!std::is_nothrow_swappable_v<tt5n&>);
+                static_assert(!std::is_nothrow_swappable_v<tt6n&>);
+                static_assert(!std::is_nothrow_swappable_v<tt7n&>);
+                static_assert(!std::is_nothrow_swappable_v<tt8n&>);
+                static_assert(!std::is_nothrow_swappable_v<tt9n&>);
+                static_assert(!std::is_nothrow_swappable_v<tt10n&>);
+                static_assert(!std::is_nothrow_swappable_v<tt11n&>);
             });
         });
     }
