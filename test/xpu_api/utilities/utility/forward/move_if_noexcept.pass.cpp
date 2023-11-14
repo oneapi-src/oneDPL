@@ -25,8 +25,6 @@
 // A type T where move ctor is noexcept and copy ctor is default : result should be T&&
 struct MoveNoexceptCopy
 {
-    using t_result = MoveNoexceptCopy&&;
-
     MoveNoexceptCopy() = default;
 
     MoveNoexceptCopy(MoveNoexceptCopy&&) noexcept {};
@@ -36,7 +34,6 @@ struct MoveNoexceptCopy
  // A type T where move ctor is noexcept and copy ctor is deleted : result should be T&&
 struct MoveNoexceptNoCopy
 {
-    using t_result = MoveNoexceptNoCopy&&;
 
     MoveNoexceptNoCopy() = default;
 
@@ -47,8 +44,6 @@ struct MoveNoexceptNoCopy
 // A type T where move ctor is not noexcept and copy ctor is default : result is const T&
 struct MoveNotNoexceptCopy
 {
-    using t_result = const MoveNotNoexceptCopy&;
-
     MoveNotNoexceptCopy() = default;
 
     MoveNotNoexceptCopy(MoveNotNoexceptCopy&&) noexcept(false) {};
@@ -58,8 +53,6 @@ struct MoveNotNoexceptCopy
 // A type T where move ctor is not noexcept and copy ctor is deleted : result is T&&
 struct MoveNotNoexceptNoCopy
 {
-    using t_result = MoveNotNoexceptNoCopy&&;
-
     MoveNotNoexceptNoCopy() = default;
 
     MoveNotNoexceptNoCopy(MoveNotNoexceptNoCopy&&) noexcept(false){};
@@ -69,8 +62,6 @@ struct MoveNotNoexceptNoCopy
 // A type T where move ctor is deleted and copy ctor is deleted : result is T&&
 struct NoMoveNoCopy
 {
-    using t_result = NoMoveNoCopy&&;
-
     NoMoveNoCopy() = default;
 
     NoMoveNoCopy(NoMoveNoCopy&&) = delete;
@@ -92,27 +83,27 @@ kernel_test()
 
     {
         MoveNoexceptCopy data;
-        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), MoveNoexceptCopy::t_result>);
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), MoveNoexceptCopy&&>);
     }
 
     {
         MoveNoexceptNoCopy data;
-        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), MoveNoexceptNoCopy::t_result>);
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), MoveNoexceptNoCopy&&>);
     }
 
     {
         MoveNotNoexceptCopy data;
-        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), MoveNotNoexceptCopy::t_result>);
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), const MoveNotNoexceptCopy&>);
     }
 
     {
         MoveNotNoexceptNoCopy data;
-        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), MoveNotNoexceptNoCopy::t_result>);
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), MoveNotNoexceptNoCopy&&>);
     }
 
     {
         NoMoveNoCopy data;
-        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), NoMoveNoCopy::t_result>);
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), NoMoveNoCopy&&>);
     }
 }
 
