@@ -66,9 +66,9 @@ kernel_test()
                 using CA = CopyOnly[42];
                 using MA = NoexceptMoveOnly[42];
                 using NA = NotMoveConstructible[42];
-                static_assert(std::is_swappable_v<CA&>());
-                static_assert(std::is_swappable_v<MA&>());
-                static_assert(!std::is_swappable_v<NA&>());
+                static_assert(std::is_swappable_v<CA&>);
+                static_assert(std::is_swappable_v<MA&>);
+                static_assert(!std::is_swappable_v<NA&>);
 
                 CA ca;
                 MA ma;

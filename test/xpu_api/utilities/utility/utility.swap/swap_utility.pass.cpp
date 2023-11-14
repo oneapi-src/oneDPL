@@ -72,12 +72,12 @@ kernel_test()
                 }
 
                 {
-                    static_assert(std::is_swappable_v<CopyOnly&>());
-                    static_assert(std::is_swappable_v<MoveOnly&>());
-                    static_assert(std::is_swappable_v<NoexceptMoveOnly&>());
+                    static_assert(std::is_swappable_v<CopyOnly&>);
+                    static_assert(std::is_swappable_v<MoveOnly&>);
+                    static_assert(std::is_swappable_v<NoexceptMoveOnly&>);
 
-                    static_assert(!std::is_swappable_v<NotMoveConstructible&>());
-                    static_assert(!std::is_swappable_v<NotMoveAssignable&>());
+                    static_assert(!std::is_swappable_v<NotMoveConstructible&>);
+                    static_assert(!std::is_swappable_v<NotMoveAssignable&>);
 
                     CopyOnly c;
                     MoveOnly m;

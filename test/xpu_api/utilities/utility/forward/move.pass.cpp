@@ -20,34 +20,21 @@
 
 #include "support/test_macros.h"
 #include "support/utils.h"
+#include "support/move_only.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-struct move_only
-{
-    move_only(const move_only&) = delete;
-    move_only& operator=(const move_only&) = delete;
-
-    move_only() = default;
-    move_only(move_only&&) = default;
-    move_only&
-    operator=(move_only&&)
-    {
-        return *this;
-    }
-};
-
-move_only
+MoveOnly
 source()
 {
-    return move_only();
+    return MoveOnly();
 }
-const move_only
+const MoveOnly
 csource()
 {
-    return move_only();
+    return MoveOnly();
 }
 
-void test(move_only)
+void test(MoveOnly)
 {
 }
 
@@ -110,7 +97,7 @@ kernel_test()
         ret &= (a5.move_ctor == 0);
     }
     { // test on a move only type
-        move_only mo;
+        MoveOnly mo;
         test(dpl::move(mo));
         test(source());
     }
