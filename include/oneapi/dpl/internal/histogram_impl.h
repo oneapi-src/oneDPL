@@ -29,10 +29,11 @@ namespace oneapi
 {
 namespace dpl
 {
+
+//Only supported for dpcpp backend
+#if _ONEDPL_BACKENDSYCL
 namespace __internal
 {
-
-#if _ONEDPL_BACKEND_SYCL
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Size,
           typename _IdxHashFunc, typename... _Range>
@@ -47,17 +48,6 @@ __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _Ra
         oneapi::dpl::__par_backend_hetero::__parallel_histogram(::std::forward<_ExecutionPolicy>(exec), __first, __last,
                                                                 __histogram_first, __num_bins, __func, __opt_range...);
     }
-}
-#endif // _ONEDPL_BACKEND_SYCL
-
-template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Size,
-          typename _IdxHashFunc, typename... _Range>
-inline oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
-__pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
-                    _RandomAccessIterator2 __histogram_first, const _Size& __num_bins, _IdxHashFunc __func,
-                    _Range&&... __opt_range)
-{
-    static_assert(false, "Histogram APIs are not currently supported with host execution policies.");
 }
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Size,
@@ -111,5 +101,7 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccess
 
 } // end namespace dpl
 } // end namespace oneapi
+
+#endif // _ONEDPL_BACKEND_SYCL
 
 #endif // _ONEDPL_HISTOGRAM_IMPL_H
