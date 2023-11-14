@@ -125,7 +125,6 @@ kernel_test()
                 }
 
                 {
-                    // test that the swap
                     static_assert(can_swap<CopyOnly&>());
                     static_assert(can_swap<MoveOnly&>());
                     static_assert(can_swap<NoexceptMoveOnly&>());
