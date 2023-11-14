@@ -31,13 +31,17 @@ kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::range<1> numOfItems{1};
-    sycl::buffer<bool, 1> buffer1(&ret, numOfItems);
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTupleSizeTest>([=]() {
-            static_assert(dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<T>>);
-            static_assert(dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const T>>);
-            static_assert(dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<volatile T>>);
-            static_assert(dpl::is_base_of_v<dpl::integral_constant<dpl::size_t, N>, dpl::tuple_size<const volatile T>>);
+            static_assert(dpl::tuple_size<T>::value == N);
+            static_assert(dpl::tuple_size<const T>::value == N);
+            static_assert(dpl::tuple_size<volatile T>::value == N);
+            static_assert(dpl::tuple_size<const volatile T>::value == N);
+
+            static_assert(std::tuple_size_v<T> == N);
+            static_assert(std::tuple_size_v<const T> == N);
+            static_assert(std::tuple_size_v<volatile T> == N);
+            static_assert(std::tuple_size_v<const volatile T> == N);
         });
     });
 }
