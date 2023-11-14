@@ -343,6 +343,11 @@ struct __get_sycl_range
     //We have to keep sycl buffer(s) instance here by sync reasons;
     ::std::vector<::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base>> m_buffers;
 
+    //SFINAE iterator type checks
+    template<typename _It, typename _T = decltype(std::addressof(*_It{}))>
+    constexpr std::true_type __test_addressof(_It) { return {};}
+    constexpr std::false_type __test_addressof(...) { return {};}
+
     template <typename _F, typename _It, typename _DiffType>
     static auto
     gen_view(_F& __f, _It __it, _DiffType __n) -> decltype(__f(__it, __it + __n))
@@ -516,8 +521,19 @@ struct __get_sycl_range
         auto __get_buf = [&]()
         {
             if constexpr(__is_copy_direct)
-                //buffer will wait and copying on destructor
-                return sycl::buffer<_T, 1>(std::addressof(*__first), __last - __first);
+            {
+                if constexpr(__test_addressof(_Iter{}))
+                {
+                    //buffer will wait and copying on destructor; an exclusive access buffer, good performance
+                    return sycl::buffer<_T, 1>(::std::addressof(*__first), __last - __first);
+                }
+                else
+                {
+                    sycl::buffer<_T, 1> __buf(__first, __last); //a non-exclusive access buffer, poor performance
+                    __buf.set_final_data(__first); //buffer wait and copying on destructor
+                    return __buf;
+                }
+            }
             else
             {
                 sycl::buffer<_T, 1> __buf(__last - __first);
