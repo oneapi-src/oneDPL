@@ -17,6 +17,7 @@
 #endif
 
 #include <cstdint>
+#include "gpu_radix_sort_utils.h"
 
 namespace oneapi::dpl::experimental::kt::gpu::__impl
 {
