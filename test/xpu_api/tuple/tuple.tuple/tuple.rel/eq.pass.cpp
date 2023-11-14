@@ -41,10 +41,9 @@ kernel_test1(sycl::queue& deviceQueue)
                 ret_access[0] &= (!(t1 != t2));
             }
             {
-                typedef dpl::tuple<int> T1;
-                typedef dpl::tuple<float> T2;
-                const T1 t1(1);
-                const T2 t2(1.1f);
+                const dpl::tuple<int> t1(1);
+                const dpl::tuple<float> t2(1.1f);
+
                 ret_access[0] &= (!(t1 == t2));
                 ret_access[0] &= (t1 != t2);
             }
