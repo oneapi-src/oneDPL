@@ -20,6 +20,7 @@
 
 #include "gpu_radix_sort_kernels.h"
 #include "../../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 
 namespace oneapi::dpl::experimental::kt::gpu::__impl
 {
@@ -117,29 +118,6 @@ struct __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_
 
 template <typename _KeyT, typename _KernelName>
 struct __radix_sort_copyback_submitter;
-
-template <typename _KeyT, typename... _Name>
-struct __radix_sort_copyback_submitter<_KeyT,
-                                       oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
-{
-    template <typename _KeysTmpRng, typename _KeysRng>
-    sycl::event
-    operator()(sycl::queue& __q, _KeysTmpRng& __keys_tmp_rng, _KeysRng& __keys_rng, ::std::uint32_t __n,
-               const sycl::event& __e) const
-    {
-        return __q.submit([&](sycl::handler& __cgh) {
-            oneapi::dpl::__ranges::__require_access(__cgh, __keys_tmp_rng, __keys_rng);
-            // TODO: make sure that access is read_only for __keys_tmp_rng  and is write_only for __keys_rng
-            auto __tmp_data = __keys_tmp_rng.data();
-            auto __out_data = __keys_rng.data();
-            __cgh.depends_on(__e);
-            __cgh.parallel_for<_Name...>(sycl::range<1>{__n}, [=](sycl::item<1> __item) {
-                auto __global_id = __item.get_linear_id();
-                __out_data[__global_id] = __tmp_data[__global_id];
-            });
-        });
-    }
-};
 
 template <typename _KeyT, typename... _Name>
 struct __radix_sort_copyback_submitter<_KeyT,
