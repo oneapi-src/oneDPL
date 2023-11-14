@@ -22,48 +22,9 @@
 #include "support/utils.h"
 #include "support/move_only.h"
 
+#include "misc_data_structs.h"
+
 #if TEST_DPCPP_BACKEND_PRESENT
-struct CopyOnly
-{
-    CopyOnly() = default;
-    CopyOnly(CopyOnly const&) noexcept = default;
-    CopyOnly&
-    operator=(CopyOnly const&)
-    {
-        return *this;
-    }
-};
-
-struct NoexceptMoveOnly
-{
-    NoexceptMoveOnly() = default;
-    NoexceptMoveOnly(NoexceptMoveOnly&&) noexcept = default;
-    NoexceptMoveOnly&
-    operator=(NoexceptMoveOnly&&) noexcept
-    {
-        return *this;
-    }
-};
-
-struct NotMoveConstructible
-{
-    NotMoveConstructible&
-    operator=(NotMoveConstructible&&)
-    {
-        return *this;
-    }
-
-    NotMoveConstructible(NotMoveConstructible&&) = delete;
-};
-
-struct NotMoveAssignable
-{
-    NotMoveAssignable(NotMoveAssignable&&) = delete;
-
-    NotMoveAssignable&
-    operator=(NotMoveAssignable&&) = delete;
-};
-
 template <class Tp>
 auto
 can_swap_test(int) -> decltype(dpl::swap(std::declval<Tp>(), dpl::declval<Tp>()));
