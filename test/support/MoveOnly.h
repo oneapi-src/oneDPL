@@ -16,10 +16,7 @@
 #ifndef _MOVEONLY_H
 #define _MOVEONLY_H
 
-//#include "test_macros.h"
-
-//#include <cstddef>
-//#include <functional>
+#include <utility>
 
 struct MoveOnly
 {
