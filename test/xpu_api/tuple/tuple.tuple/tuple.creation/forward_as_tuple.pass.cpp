@@ -65,7 +65,7 @@ kernel_test()
         cgh.single_task<class KernelForwardAsTupleTest>([=]() {
             int i = 2;
             const auto tpl = dpl::forward_as_tuple();
-            static_assert(dpl::tuple_size_v<decltype(tpl)> == 0);
+            static_assert(std::tuple_size_v<decltype(tpl)> == 0);
             ret_access[0] = test1a(dpl::forward_as_tuple(1));
             ret_access[0] &= test1b(dpl::forward_as_tuple(i));
 
@@ -73,7 +73,7 @@ kernel_test()
             ret_access[0] &= test2a(dpl::forward_as_tuple(2.5f, c));
 
             const auto tpl1 = dpl::forward_as_tuple(2.5f, c);
-            static_assert(dpl::tuple_size_v<decltype(tpl1)> == 2);
+            static_assert(std::tuple_size_v<decltype(tpl1)> == 2);
         });
     });
 

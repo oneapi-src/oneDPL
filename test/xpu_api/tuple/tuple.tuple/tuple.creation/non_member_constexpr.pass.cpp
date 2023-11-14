@@ -95,7 +95,7 @@ test_tuple_cat()
     constexpr tuple_type1 t1{55, 77.77f};
     constexpr tuple_type2 t2{55, 99, 77.77f};
     constexpr auto cat1 = dpl::tuple_cat(t1, t2);
-    static_assert(dpl::tuple_size_v<decltype(cat1)> == 5);
+    static_assert(std::tuple_size_v<decltype(cat1)> == 5);
     static_assert(dpl::get<0>(cat1) == 55);
 }
 
