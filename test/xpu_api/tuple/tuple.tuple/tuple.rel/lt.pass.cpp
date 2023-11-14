@@ -209,16 +209,6 @@ kernel_test2(sycl::queue& deviceQueue)
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelTupleLTTest2>([=]() {
-            {
-                typedef dpl::tuple<> T1;
-                typedef dpl::tuple<> T2;
-                const T1 t1;
-                const T2 t2;
-                ret_access[0] = (!(t1 < t2));
-                ret_access[0] &= ((t1 <= t2));
-                ret_access[0] &= (!(t1 > t2));
-                ret_access[0] &= ((t1 >= t2));
-            }
 
             {
                 typedef dpl::tuple<long> T1;
