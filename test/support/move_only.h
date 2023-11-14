@@ -47,27 +47,6 @@ struct MoveOnly
     {
         return data_ == x.data_;
     }
-    bool
-    operator<(const MoveOnly& x) const
-    {
-        return data_ < x.data_;
-    }
-    MoveOnly
-    operator+(const MoveOnly& x) const
-    {
-        return MoveOnly{data_ + x.data_};
-    }
-    MoveOnly
-    operator*(const MoveOnly& x) const
-    {
-        return MoveOnly{data_ * x.data_};
-    }
-
-    void
-    swap(MoveOnly& other)
-    {
-        std::swap(data_, other.data_);
-    }
 };
 
 #endif  // _MOVE_ONLY_H
