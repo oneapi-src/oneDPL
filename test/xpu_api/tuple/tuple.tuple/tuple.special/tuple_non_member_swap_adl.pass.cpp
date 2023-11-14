@@ -24,10 +24,9 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 void
-swap(MoveOnly& m1, MoveOnly& m2)
+swap(MoveOnly&, MoveOnly&)
 {
-    // We do not exchange values to check later that the exchange has not been processed
-    //m1.swap(m2);
+    // Intentionally skip swapping to provide effect different from std::swap
 }
 
 bool
