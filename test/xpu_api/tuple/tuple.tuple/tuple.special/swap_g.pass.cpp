@@ -29,12 +29,6 @@ swap(MoveOnly& m1, MoveOnly& m2)
     m1.swap(m2);
 }
 
-MoveOnly
-make_move_only(int i)
-{
-    return MoveOnly(i);
-}
-
 bool
 kernel_test()
 {
@@ -66,13 +60,13 @@ kernel_test()
                     ret_acc[0] &= (dpl::get<1>(t1) == 2.0f && dpl::get<1>(t2) == 1.0f);
                 }
                 {
-                    dpl::tuple<int, float, MoveOnly> t1(1, 1.0f, make_move_only(1)), t2(2, 2.0f, make_move_only(2));
+                    dpl::tuple<int, float, MoveOnly> t1(1, 1.0f, MoveOnly(1)), t2(2, 2.0f, MoveOnly(2));
 
                     dpl::swap(t1, t2);
 
                     ret_acc[0] &= (dpl::get<0>(t1) == 2 && dpl::get<0>(t2) == 1);
                     ret_acc[0] &= (dpl::get<1>(t1) == 2.0f && dpl::get<1>(t2) == 1.0f);
-                    ret_acc[0] &= (dpl::get<2>(t1) == make_move_only(2) && dpl::get<2>(t2) == make_move_only(1));
+                    ret_acc[0] &= (dpl::get<2>(t1) == MoveOnly(2) && dpl::get<2>(t2) == MoveOnly(1));
                 }
             });
         });
