@@ -31,10 +31,26 @@ struct A
     A(A&&) = default;
 };
 
+struct AMoveNonNoexcept
+{
+    AMoveNonNoexcept(const AMoveNonNoexcept&) = delete;
+    AMoveNonNoexcept&
+    operator=(const AMoveNonNoexcept&) = delete;
+
+    AMoveNonNoexcept() = default;
+    AMoveNonNoexcept(AMoveNonNoexcept&&) noexcept(false) = default;
+};
+
 struct legacy
 {
     legacy() = default;
     legacy(const legacy&) = delete;
+};
+
+struct legacyMoveNonNoexcept
+{
+    legacyMoveNonNoexcept() = default;
+    legacyMoveNonNoexcept(const legacyMoveNonNoexcept&) noexcept(false) = default;
 };
 
 void
@@ -43,15 +59,29 @@ kernel_test()
     int i = 0;
     const int ci = 0;
 
-    legacy l;
-    A a;
-    const A ca;
 
     static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(i)), int&&>);
     static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(ci)), const int&&>);
-    static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(a)), A&&>);
-    static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(ca)), const A&&>);
-    static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(l)), legacy&&>);
+
+    {
+        A a;
+        const A ca;
+        legacy l;
+
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(a)), A&&>);
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(ca)), const A&&>);
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(l)), legacy&&>);
+    }
+
+    {
+        AMoveNonNoexcept a;
+        const AMoveNonNoexcept ca;
+        legacyMoveNonNoexcept l;
+
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(a)), AMoveNonNoexcept&&>);
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(ca)), const AMoveNonNoexcept&&>);
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(l)), const legacyMoveNonNoexcept&>);
+    }
 
     constexpr int i1 = 23;
     constexpr int i2 = dpl::move_if_noexcept(i1);
