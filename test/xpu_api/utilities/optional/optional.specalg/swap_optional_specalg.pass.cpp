@@ -58,7 +58,7 @@ class Y
         return x.i_ == y.i_;
     }
     friend void
-    swap(Y& x, Y& y)
+    swap(Y& x, Y& y) noexcept
     {
         dpl::swap(x.i_, y.i_);
     }
@@ -243,7 +243,7 @@ test()
                 {
                     optional<Z> opt1;
                     optional<Z> opt2;
-                    ASSERT_NOEXCEPT(swap(opt1, opt2));
+                    ASSERT_NOT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
                     swap(opt1, opt2);
