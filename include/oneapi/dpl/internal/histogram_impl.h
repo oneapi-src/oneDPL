@@ -25,13 +25,13 @@
 #    include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_histogram.h"
 #endif
 
+//Only supported for dpcpp backend
+#if _ONEDPL_BACKEND_SYCL
 namespace oneapi
 {
 namespace dpl
 {
 
-//Only supported for dpcpp backend
-#if _ONEDPL_BACKENDSYCL
 namespace __internal
 {
 
