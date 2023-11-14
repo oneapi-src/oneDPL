@@ -26,7 +26,8 @@
 void
 swap(MoveOnly& m1, MoveOnly& m2)
 {
-    m1.swap(m2);
+    // We do not exchange values to check later that the exchange has not been processed
+    //m1.swap(m2);
 }
 
 bool
@@ -50,23 +51,23 @@ kernel_test()
                     dpl::tuple<int> t1(1), t2(2);
                     dpl::swap(t1, t2);
 
-                    ret_acc[0] &= (dpl::get<0>(t1) == 2 && dpl::get<0>(t2) == 1);
+                    ret_acc[0] &= (dpl::get<0>(t1) == 1 && dpl::get<0>(t2) == 2);
                 }
                 {
                     dpl::tuple<int, float> t1(1, 1.0f), t2(2, 2.0f);
                     dpl::swap(t1, t2);
 
-                    ret_acc[0] &= (dpl::get<0>(t1) == 2 && dpl::get<0>(t2) == 1);
-                    ret_acc[0] &= (dpl::get<1>(t1) == 2.0f && dpl::get<1>(t2) == 1.0f);
+                    ret_acc[0] &= (dpl::get<0>(t1) == 1 && dpl::get<0>(t2) == 2);
+                    ret_acc[0] &= (dpl::get<1>(t1) == 1.0f && dpl::get<1>(t2) == 2.0f);
                 }
                 {
                     dpl::tuple<int, float, MoveOnly> t1(1, 1.0f, MoveOnly(1)), t2(2, 2.0f, MoveOnly(2));
 
                     dpl::swap(t1, t2);
 
-                    ret_acc[0] &= (dpl::get<0>(t1) == 2 && dpl::get<0>(t2) == 1);
-                    ret_acc[0] &= (dpl::get<1>(t1) == 2.0f && dpl::get<1>(t2) == 1.0f);
-                    ret_acc[0] &= (dpl::get<2>(t1) == MoveOnly(2) && dpl::get<2>(t2) == MoveOnly(1));
+                    ret_acc[0] &= (dpl::get<0>(t1) == 1 && dpl::get<0>(t2) == 2);
+                    ret_acc[0] &= (dpl::get<1>(t1) == 1.0f && dpl::get<1>(t2) == 2.0f);
+                    ret_acc[0] &= (dpl::get<2>(t1) == MoveOnly(1) && dpl::get<2>(t2) == MoveOnly(2));
                 }
             });
         });
