@@ -289,6 +289,48 @@ class __transform_functor
     }
 };
 
+template <typename _UnaryOper, typename _UnaryPred>
+class __transform_if_unary_functor
+{
+    mutable _UnaryOper _M_oper;
+    mutable _UnaryPred _M_pred;
+
+  public:
+    explicit __transform_if_unary_functor(_UnaryOper&& __op, _UnaryPred&& __pred)
+        : _M_oper(::std::forward<_UnaryOper>(__op)), _M_pred(::std::forward<_UnaryPred>(__pred))
+    {
+    }
+
+    template <typename _Input1Type, typename _OutputType>
+    void
+    operator()(const _Input1Type& x, _OutputType& y) const
+    {
+        if (_M_pred(x))
+            y = _M_oper(x);
+    }
+};
+
+template <typename _BinaryOper, typename _BinaryPred>
+class __transform_if_binary_functor
+{
+    mutable _BinaryOper _M_oper;
+    mutable _BinaryPred _M_pred;
+
+  public:
+    explicit __transform_if_binary_functor(_BinaryOper&& __op, _BinaryPred&& __pred)
+        : _M_oper(::std::forward<_BinaryOper>(__op)), _M_pred(::std::forward<_BinaryPred>(__pred))
+    {
+    }
+
+    template <typename _Input1Type, typename _Input2Type, typename _OutputType>
+    void
+    operator()(const _Input1Type& x, const _Input2Type& y, _OutputType& z) const
+    {
+        if (_M_pred(x, y))
+            z = _M_oper(x, y);
+    }
+};
+
 template <typename _Tp, typename _Pred>
 class __replace_functor
 {

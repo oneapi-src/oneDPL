@@ -137,7 +137,10 @@ __pattern_swap(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
 // walk3
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
+template <__par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
+          __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::read,
+          __par_backend_hetero::access_mode __acc_mode3 = __par_backend_hetero::access_mode::write,
+          typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
           typename _Function>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator3>
 __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
@@ -148,14 +151,11 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     if (__n <= 0)
         return __first3;
 
-    auto __keep1 =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>();
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>();
     auto __buf1 = __keep1(__first1, __last1);
-    auto __keep2 =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator2>();
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
-    auto __keep3 =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator3>();
+    auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode3, _ForwardIterator3>();
     auto __buf3 = __keep3(__first3, __first3 + __n);
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
@@ -241,6 +241,55 @@ __pattern_walk2_brick_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
     return __pattern_walk2(
         __par_backend_hetero::make_wrapped_policy<__walk2_brick_n_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __first1, __first1 + __n, __first2, __brick,
+        /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
+}
+
+//------------------------------------------------------------------------
+// transform_if
+//------------------------------------------------------------------------
+
+template <typename _Name>
+struct __walk2_transform_if_wrapper
+{
+};
+
+template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator2>
+__pattern_walk2_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                             _ForwardIterator2 __first2, _Function __func,
+                             /*vector=*/::std::true_type,
+                             /*parallel=*/::std::true_type)
+{
+    // Require `read_write` access mode for output sequence to force a copy in for host iterators to capture incoming
+    // values of the output sequence for elements where the predicate is false.
+    return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read,
+                           __par_backend_hetero::access_mode::read_write>(
+        __par_backend_hetero::make_wrapped_policy<__walk2_transform_if_wrapper>(
+            ::std::forward<_ExecutionPolicy>(__exec)),
+        __first1, __last1, __first2, __func,
+        /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
+}
+
+template <typename _Name>
+struct __walk3_transform_if_wrapper
+{
+};
+
+template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
+          typename _Function>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator3>
+__pattern_walk3_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                             _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __func,
+                             /*vector=*/::std::true_type,
+                             /*parallel=*/::std::true_type)
+{
+    // Require `read_write` access mode for output sequence to force a copy in for host iterators to capture incoming
+    // values of the output sequence for elements where the predicate is false.
+    return __pattern_walk3<__par_backend_hetero::access_mode::read, __par_backend_hetero::access_mode::read,
+                           __par_backend_hetero::access_mode::read_write>(
+        __par_backend_hetero::make_wrapped_policy<__walk3_transform_if_wrapper>(
+            ::std::forward<_ExecutionPolicy>(__exec)),
+        __first1, __last1, __first2, __first3, __func,
         /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
 }
 
