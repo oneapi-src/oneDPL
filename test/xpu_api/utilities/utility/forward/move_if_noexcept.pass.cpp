@@ -22,35 +22,59 @@
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-struct A
+// A type T where move ctor is noexcept and copy ctor is default : result should be T&&
+struct MoveNoexceptCopy
 {
-    A(const A&) = delete;
-    A& operator=(const A&) = delete;
+    using t_result = MoveNoexceptCopy&&;
 
-    A() = default;
-    A(A&&) = default;
+    MoveNoexceptCopy() = default;
+
+    MoveNoexceptCopy(MoveNoexceptCopy&&) noexcept {};
+    MoveNoexceptCopy(const MoveNoexceptCopy&) = default;
 };
 
-struct AMoveNonNoexcept
+ // A type T where move ctor is noexcept and copy ctor is deleted : result should be T&&
+struct MoveNoexceptNoCopy
 {
-    AMoveNonNoexcept(const AMoveNonNoexcept&) = delete;
-    AMoveNonNoexcept&
-    operator=(const AMoveNonNoexcept&) = delete;
+    using t_result = MoveNoexceptNoCopy&&;
 
-    AMoveNonNoexcept() = default;
-    AMoveNonNoexcept(AMoveNonNoexcept&&) noexcept(false) = default;
+    MoveNoexceptNoCopy() = default;
+
+    MoveNoexceptNoCopy(MoveNoexceptNoCopy&&) noexcept {};
+    MoveNoexceptNoCopy(const MoveNoexceptNoCopy&) = delete;
 };
 
-struct legacy
+// A type T where move ctor is not noexcept and copy ctor is default : result is const T&
+struct MoveNotNoexceptCopy
 {
-    legacy() = default;
-    legacy(const legacy&) = delete;
+    using t_result = const MoveNotNoexceptCopy&;
+
+    MoveNotNoexceptCopy() = default;
+
+    MoveNotNoexceptCopy(MoveNotNoexceptCopy&&) noexcept(false) {};
+    MoveNotNoexceptCopy(const MoveNotNoexceptCopy&) = default;
 };
 
-struct legacyMoveNonNoexcept
+// A type T where move ctor is not noexcept and copy ctor is deleted : result is T&&
+struct MoveNotNoexceptNoCopy
 {
-    legacyMoveNonNoexcept() = default;
-    legacyMoveNonNoexcept(const legacyMoveNonNoexcept&) noexcept(false) = default;
+    using t_result = MoveNotNoexceptNoCopy&&;
+
+    MoveNotNoexceptNoCopy() = default;
+
+    MoveNotNoexceptNoCopy(MoveNotNoexceptNoCopy&&) noexcept(false){};
+    MoveNotNoexceptNoCopy(const MoveNotNoexceptNoCopy&) = delete;
+};
+
+// A type T where move ctor is deleted and copy ctor is deleted : result is T&&
+struct NoMoveNoCopy
+{
+    using t_result = NoMoveNoCopy&&;
+
+    NoMoveNoCopy() = default;
+
+    NoMoveNoCopy(NoMoveNoCopy&&) = delete;
+    NoMoveNoCopy(const NoMoveNoCopy&) = delete;
 };
 
 void
@@ -59,33 +83,37 @@ kernel_test()
     int i = 0;
     const int ci = 0;
 
-
     static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(i)), int&&>);
     static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(ci)), const int&&>);
-
-    {
-        A a;
-        const A ca;
-        legacy l;
-
-        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(a)), A&&>);
-        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(ca)), const A&&>);
-        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(l)), legacy&&>);
-    }
-
-    {
-        AMoveNonNoexcept a;
-        const AMoveNonNoexcept ca;
-        legacyMoveNonNoexcept l;
-
-        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(a)), AMoveNonNoexcept&&>);
-        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(ca)), const AMoveNonNoexcept&&>);
-        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(l)), const legacyMoveNonNoexcept&>);
-    }
 
     constexpr int i1 = 23;
     constexpr int i2 = dpl::move_if_noexcept(i1);
     static_assert(i2 == 23);
+
+    {
+        MoveNoexceptCopy data;
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), MoveNoexceptCopy::t_result>);
+    }
+
+    {
+        MoveNoexceptNoCopy data;
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), MoveNoexceptNoCopy::t_result>);
+    }
+
+    {
+        MoveNotNoexceptCopy data;
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), MoveNotNoexceptCopy::t_result>);
+    }
+
+    {
+        MoveNotNoexceptNoCopy data;
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), MoveNotNoexceptNoCopy::t_result>);
+    }
+
+    {
+        NoMoveNoCopy data;
+        static_assert(dpl::is_same_v<decltype(dpl::move_if_noexcept(data)), NoMoveNoCopy::t_result>);
+    }
 }
 
 class KernelTest;
