@@ -26,7 +26,7 @@ bool
 kernel_test()
 {
     using dpl::array;
-    using dpl::tuple_element;
+    using std::tuple_element;
     // This relies on the fact that <utility> includes <type_traits>:
     using dpl::is_same;
 
@@ -67,7 +67,7 @@ main()
         });
     }
 
-    EXPECT_TRUE(ret, "Wrong result of work with dpl::tuple_element (global)");
+    EXPECT_TRUE(ret, "Wrong result of work with std::tuple_element (global)");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);

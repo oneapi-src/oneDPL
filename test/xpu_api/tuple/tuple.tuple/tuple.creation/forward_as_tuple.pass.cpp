@@ -30,7 +30,7 @@ bool
 test1a(const Tuple& t)
 {
     static_assert(dpl::tuple_size<Tuple>::value == 1);
-    static_assert(dpl::is_same<typename dpl::tuple_element<0, Tuple>::type, int&&>::value);
+    static_assert(dpl::is_same<typename std::tuple_element<0, Tuple>::type, int&&>::value);
     return (dpl::get<0>(t) == 1);
 }
 
@@ -38,7 +38,7 @@ template <class Tuple>
 bool test1b(const Tuple& t)
 {
     static_assert(dpl::tuple_size<Tuple>::value == 1);
-    static_assert(dpl::is_same<typename dpl::tuple_element<0, Tuple>::type, int&>::value);
+    static_assert(dpl::is_same<typename std::tuple_element<0, Tuple>::type, int&>::value);
     return (dpl::get<0>(t) == 2);
 }
 
@@ -46,8 +46,8 @@ template <class Tuple>
 bool test2a(const Tuple& t)
 {
     static_assert(dpl::tuple_size<Tuple>::value == 2);
-    static_assert(dpl::is_same<typename dpl::tuple_element<0, Tuple>::type, float&&>::value);
-    static_assert(dpl::is_same<typename dpl::tuple_element<1, Tuple>::type, char&>::value);
+    static_assert(dpl::is_same<typename std::tuple_element<0, Tuple>::type, float&&>::value);
+    static_assert(dpl::is_same<typename std::tuple_element<1, Tuple>::type, char&>::value);
     return (dpl::get<0>(t) == 2.5f && dpl::get<1>(t) == 'a');
 }
 

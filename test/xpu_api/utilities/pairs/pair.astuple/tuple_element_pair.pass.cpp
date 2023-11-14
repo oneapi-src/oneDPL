@@ -30,47 +30,47 @@ test()
     bool result = false;
     {
         typedef dpl::pair<T1, T2> P;
-        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, T1>::value);
-        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, T2>::value);
+        static_assert(dpl::is_same<typename std::tuple_element<0, P>::type, T1>::value);
+        static_assert(dpl::is_same<typename std::tuple_element<1, P>::type, T2>::value);
 
         static_assert(dpl::is_same<std::tuple_element_t<0, P>, T1>::value);
         static_assert(dpl::is_same<std::tuple_element_t<1, P>, T2>::value);
 
-        result = (dpl::is_same<typename dpl::tuple_element<0, P>::type, T1>::value);
-        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, T2>::value);
+        result = (dpl::is_same<typename std::tuple_element<0, P>::type, T1>::value);
+        result &= (dpl::is_same<typename std::tuple_element<1, P>::type, T2>::value);
     }
     {
         typedef dpl::pair<T1, T2> const P;
-        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, const T1>::value);
-        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, const T2>::value);
+        static_assert(dpl::is_same<typename std::tuple_element<0, P>::type, const T1>::value);
+        static_assert(dpl::is_same<typename std::tuple_element<1, P>::type, const T2>::value);
 
         static_assert(dpl::is_same<std::tuple_element_t<0, P>, const T1>::value);
         static_assert(dpl::is_same<std::tuple_element_t<1, P>, const T2>::value);
 
-        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, const T1>::value);
-        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, const T2>::value);
+        result &= (dpl::is_same<typename std::tuple_element<0, P>::type, const T1>::value);
+        result &= (dpl::is_same<typename std::tuple_element<1, P>::type, const T2>::value);
     }
     {
         typedef dpl::pair<T1, T2> volatile P;
-        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, volatile T1>::value);
-        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, volatile T2>::value);
+        static_assert(dpl::is_same<typename std::tuple_element<0, P>::type, volatile T1>::value);
+        static_assert(dpl::is_same<typename std::tuple_element<1, P>::type, volatile T2>::value);
 
         static_assert(dpl::is_same<std::tuple_element_t<0, P>, volatile T1>::value);
         static_assert(dpl::is_same<std::tuple_element_t<1, P>, volatile T2>::value);
 
-        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, volatile T1>::value);
-        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, volatile T2>::value);
+        result &= (dpl::is_same<typename std::tuple_element<0, P>::type, volatile T1>::value);
+        result &= (dpl::is_same<typename std::tuple_element<1, P>::type, volatile T2>::value);
     }
     {
         typedef dpl::pair<T1, T2> const volatile P;
-        static_assert(dpl::is_same<typename dpl::tuple_element<0, P>::type, const volatile T1>::value);
-        static_assert(dpl::is_same<typename dpl::tuple_element<1, P>::type, const volatile T2>::value);
+        static_assert(dpl::is_same<typename std::tuple_element<0, P>::type, const volatile T1>::value);
+        static_assert(dpl::is_same<typename std::tuple_element<1, P>::type, const volatile T2>::value);
 
         static_assert(dpl::is_same<std::tuple_element_t<0, P>, const volatile T1>::value);
         static_assert(dpl::is_same<std::tuple_element_t<1, P>, const volatile T2>::value);
 
-        result &= (dpl::is_same<typename dpl::tuple_element<0, P>::type, const volatile T1>::value);
-        result &= (dpl::is_same<typename dpl::tuple_element<1, P>::type, const volatile T2>::value);
+        result &= (dpl::is_same<typename std::tuple_element<0, P>::type, const volatile T1>::value);
+        result &= (dpl::is_same<typename std::tuple_element<1, P>::type, const volatile T2>::value);
     }
 
     return result;
@@ -93,7 +93,7 @@ kernel_test()
     });
 
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
-    EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::pair elements check: should be dpl::tuple_element");
+    EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::pair elements check: should be std::tuple_element");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
