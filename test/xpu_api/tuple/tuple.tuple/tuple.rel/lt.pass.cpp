@@ -34,10 +34,9 @@ kernel_test1(sycl::queue& deviceQueue)
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelTupleLTTest1>([=]() {
             {
-                typedef dpl::tuple<> T1;
-                typedef dpl::tuple<> T2;
-                const T1 t1;
-                const T2 t2;
+                const dpl::tuple<>  t1;
+                const dpl::tuple<>  t2;
+
                 ret_access[0] = (!(t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
