@@ -21,6 +21,7 @@
 
 #include "support/utils.h"
 #include "support/move_only.h"
+#include "support/test_macros.h"
 
 #include "misc_data_structs.h"
 
@@ -96,9 +97,9 @@ kernel_test()
                     CopyOnly c;
                     MoveOnly m;
                     NoexceptMoveOnly nm;
-                    static_assert(!noexcept(dpl::swap(c, c)));
-                    static_assert(!noexcept(dpl::swap(m, m)));
-                    static_assert(noexcept(dpl::swap(nm, nm)));
+                    ASSERT_NOT_NOEXCEPT(dpl::swap(c, c));
+                    ASSERT_NOT_NOEXCEPT(dpl::swap(m, m));
+                    ASSERT_NOEXCEPT(dpl::swap(nm, nm));
                 }
 
                 {

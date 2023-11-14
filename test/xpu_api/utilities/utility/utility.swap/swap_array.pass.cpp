@@ -21,6 +21,7 @@
 
 #include "support/utils.h"
 #include "support/move_only.h"
+#include "support/test_macros.h"
 
 #include "misc_data_structs.h"
 
@@ -86,8 +87,8 @@ kernel_test()
 
                 CA ca;
                 MA ma;
-                static_assert(!noexcept(dpl::swap(ca, ca)));
-                static_assert(noexcept(dpl::swap(ma, ma)));
+                ASSERT_NOT_NOEXCEPT(dpl::swap(ca, ca));
+                ASSERT_NOEXCEPT(dpl::swap(ma, ma));
             }
         });
     });

@@ -39,7 +39,7 @@ kernel_test()
             cgh.single_task<class KernelTest>([=]() {
                 {
                     optional<int> opt;
-                    static_assert(noexcept(opt = nullopt) == true);
+                    ASSERT_NOEXCEPT(opt = nullopt);
                     opt = nullopt;
                     ret_access[0] &= (static_cast<bool>(opt) == false);
                 }

@@ -32,7 +32,7 @@ kernel_test()
             {
                 constexpr optional<int> opt;
                 static_assert(!opt.has_value());
-                static_assert(noexcept(opt.has_value()));
+                ASSERT_NOEXCEPT(opt.has_value());
                 static_assert(dpl::is_same<decltype(opt.has_value()), bool>::value);
             }
             {

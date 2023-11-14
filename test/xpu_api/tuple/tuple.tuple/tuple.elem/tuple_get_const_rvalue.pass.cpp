@@ -38,7 +38,7 @@ kernel_test()
             {
                 const dpl::tuple<int> t(3);
                 static_assert(dpl::is_same<const int&&, decltype(dpl::get<0>(dpl::move(t)))>::value);
-                static_assert(noexcept(dpl::get<0>(dpl::move(t))));
+                ASSERT_NOEXCEPT(dpl::get<0>(dpl::move(t)));
                 const int&& i = dpl::get<0>(dpl::move(t));
                 ret_access[0] = (i == 3);
             }

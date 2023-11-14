@@ -99,7 +99,7 @@ test()
                 {
                     optional<int> opt1;
                     optional<int> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == true);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
                     swap(opt1, opt2);
@@ -109,7 +109,7 @@ test()
                 {
                     optional<int> opt1(1);
                     optional<int> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == true);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
@@ -121,7 +121,7 @@ test()
                 {
                     optional<int> opt1;
                     optional<int> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == true);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
                     ret_acc[0] &= (*opt2 == 2);
@@ -133,7 +133,7 @@ test()
                 {
                     optional<int> opt1(1);
                     optional<int> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == true);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
@@ -147,7 +147,7 @@ test()
                 {
                     optional<X> opt1;
                     optional<X> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == true);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
                     swap(opt1, opt2);
@@ -157,7 +157,7 @@ test()
                 {
                     optional<X> opt1(1);
                     optional<X> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == true);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
@@ -169,7 +169,7 @@ test()
                 {
                     optional<X> opt1;
                     optional<X> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == true);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
                     ret_acc[0] &= (*opt2 == 2);
@@ -181,7 +181,7 @@ test()
                 {
                     optional<X> opt1(1);
                     optional<X> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == true);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
@@ -195,7 +195,7 @@ test()
                 {
                     optional<Y> opt1;
                     optional<Y> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == false);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
                     swap(opt1, opt2);
@@ -205,7 +205,7 @@ test()
                 {
                     optional<Y> opt1(1);
                     optional<Y> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == false);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
@@ -217,7 +217,7 @@ test()
                 {
                     optional<Y> opt1;
                     optional<Y> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == false);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
                     ret_acc[0] &= (*opt2 == 2);
@@ -229,7 +229,7 @@ test()
                 {
                     optional<Y> opt1(1);
                     optional<Y> opt2(2);
-                    static_assert(noexcept(swap(opt1, opt2)) == false);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == true);
                     ret_acc[0] &= (*opt1 == 1);
                     ret_acc[0] &= (static_cast<bool>(opt2) == true);
@@ -243,7 +243,7 @@ test()
                 {
                     optional<Z> opt1;
                     optional<Z> opt2;
-                    static_assert(noexcept(swap(opt1, opt2)) == false);
+                    ASSERT_NOEXCEPT(swap(opt1, opt2));
                     ret_acc[0] &= (static_cast<bool>(opt1) == false);
                     ret_acc[0] &= (static_cast<bool>(opt2) == false);
                     swap(opt1, opt2);
