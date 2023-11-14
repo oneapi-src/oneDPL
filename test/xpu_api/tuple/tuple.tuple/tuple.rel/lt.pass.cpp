@@ -85,7 +85,7 @@ kernel_test1(sycl::queue& deviceQueue)
             }
             {
                 const dpl::tuple<long, int> t1(1, 2);
-                const T2 t2(1.1f, 2);
+                const dpl::tuple<float, long> t2(1.1f, 2);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
