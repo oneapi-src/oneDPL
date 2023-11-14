@@ -24,7 +24,7 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
-    A(const A&) = delete
+    A(const A&) = delete;
     A& operator=(const A&) = delete;
 
     A() = default;
