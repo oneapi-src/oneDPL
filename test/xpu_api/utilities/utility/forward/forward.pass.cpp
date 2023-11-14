@@ -50,11 +50,8 @@ test_constexpr_forward()
 void
 kernel_test()
 {
-    A a;
-    const A ca = A();
-
-    ((void)a);  // Prevent unused warning
-    ((void)ca); // Prevent unused warning
+    [[maybe_unused]] A a;
+    [[maybe_unused]] const A ca = A();
 
     static_assert(dpl::is_same_v<decltype(dpl::forward<A&>(a)), A&>);
     static_assert(dpl::is_same_v<decltype(dpl::forward<A>(a)), A&&>);
