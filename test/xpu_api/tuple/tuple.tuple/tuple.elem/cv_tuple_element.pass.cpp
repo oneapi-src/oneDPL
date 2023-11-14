@@ -34,9 +34,9 @@ kernel_test1(sycl::queue& deviceQueue)
                 static_assert(dpl::is_same_v<std::tuple_element<1, volatile tuple_type>::type, volatile short>);
                 static_assert(dpl::is_same_v<std::tuple_element<2, const volatile tuple_type>::type, const volatile int>);
                 
-                static_assert(dpl::is_same_v<dpl::tuple_element_t<0, const tuple_type>, const float>;
-                static_assert(dpl::is_same_v<dpl::tuple_element_t<1, volatile tuple_type>, volatile short>);
-                static_assert(dpl::is_same_v<dpl::tuple_element_t<2, const volatile tuple_type>, const volatile int>);
+                static_assert(dpl::is_same_v<std::tuple_element_t<0, const tuple_type>, const float>;
+                static_assert(dpl::is_same_v<std::tuple_element_t<1, volatile tuple_type>, volatile short>);
+                static_assert(dpl::is_same_v<std::tuple_element_t<2, const volatile tuple_type>, const volatile int>);
             }
         });
     });
@@ -49,7 +49,7 @@ kernel_test2(sycl::queue& deviceQueue)
             {
                 using tuple_type = dpl::tuple<double, void, int>;
                 static_assert(dpl::is_same_v<std::tuple_element<0, const tuple_type>::type, const double>);
-                static_assert(dpl::is_same_v<dpl::tuple_element_t<0, const tuple_type>, const double>);
+                static_assert(dpl::is_same_v<std::tuple_element_t<0, const tuple_type>, const double>);
             }
         });
     });
