@@ -52,49 +52,39 @@ kernel_test1(sycl::queue& deviceQueue)
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long> T1;
-                typedef dpl::tuple<float> T2;
-                const T1 t1(1);
-                const T2 t2(0.9f);
+                const dpl::tuple<long> t1(1);
+                const dpl::tuple<float> t2(0.9f);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long> T1;
-                typedef dpl::tuple<float> T2;
-                const T1 t1(1);
-                const T2 t2(1.1f);
+                const dpl::tuple<long> t1(1);
+                const dpl::tuple<float> t2(1.1f);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= (!(t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int> T1;
-                typedef dpl::tuple<float, long> T2;
-                const T1 t1(1, 2);
-                const T2 t2(1.f, 2);
+                const dpl::tuple<long, int> t1(1, 2);
+                const dpl::tuple<float, long> t2(1.f, 2);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int> T1;
-                typedef dpl::tuple<float, long> T2;
-                const T1 t1(1, 2);
-                const T2 t2(0.9f, 2);
+                const dpl::tuple<long, int> t1(1, 2);
+                const dpl::tuple<float, long> t2(0.9f, 2);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int> T1;
-                typedef dpl::tuple<float, long> T2;
-                const T1 t1(1, 2);
+                const dpl::tuple<long, int> t1(1, 2);
                 const T2 t2(1.1f, 2);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
@@ -102,90 +92,72 @@ kernel_test1(sycl::queue& deviceQueue)
                 ret_access[0] &= (!(t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int> T1;
-                typedef dpl::tuple<float, long> T2;
-                const T1 t1(1, 2);
-                const T2 t2(1.f, 1);
+                const dpl::tuple<long, int> t1(1, 2);
+                const dpl::tuple<float, long> t2(1.f, 1);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int> T1;
-                typedef dpl::tuple<float, long> T2;
-                const T1 t1(1, 2);
-                const T2 t2(1.f, 3);
+                const dpl::tuple<long, int> t1(1, 2);
+                const dpl::tuple<float, long> t2(1.f, 3);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= (!(t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, float> T1;
-                typedef dpl::tuple<float, long, int> T2;
-                const T1 t1(1, 2, 3.f);
-                const T2 t2(1.f, 2, 3);
+                const dpl::tuple<long, int, float> t1(1, 2, 3.f);
+                const dpl::tuple<float, long, int> t2(1.f, 2, 3);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, float> T1;
-                typedef dpl::tuple<float, long, int> T2;
-                const T1 t1(1, 2, 3.f);
-                const T2 t2(0.9f, 2, 3);
+                const dpl::tuple<long, int, float> t1(1, 2, 3.f);
+                const dpl::tuple<float, long, int> t2(0.9f, 2, 3);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, float> T1;
-                typedef dpl::tuple<float, long, int> T2;
-                const T1 t1(1, 2, 3.f);
-                const T2 t2(1.1f, 2, 3);
+                const dpl::tuple<long, int, float> t1(1, 2, 3.f);
+                const dpl::tuple<float, long, int> t2(1.1f, 2, 3);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= (!(t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, float> T1;
-                typedef dpl::tuple<float, long, int> T2;
-                const T1 t1(1, 2, 3.f);
-                const T2 t2(1.f, 1, 3);
+                const dpl::tuple<long, int, float> t1(1, 2, 3.f);
+                const dpl::tuple<float, long, int> t2(1.f, 1, 3);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, float> T1;
-                typedef dpl::tuple<float, long, int> T2;
-                const T1 t1(1, 2, 3.f);
-                const T2 t2(1.f, 3, 3);
+                const dpl::tuple<long, int, float> t1(1, 2, 3.f);
+                const dpl::tuple<float, long, int> t2(1.f, 3, 3);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= (!(t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, float> T1;
-                typedef dpl::tuple<float, long, int> T2;
-                const T1 t1(1, 2, 3.f);
-                const T2 t2(1.f, 2, 2);
+                const dpl::tuple<long, int, float> t1(1, 2, 3.f);
+                const dpl::tuple<float, long, int> t2(1.f, 2, 2);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, float> T1;
-                typedef dpl::tuple<float, long, int> T2;
-                const T1 t1(1, 2, 3.f);
-                const T2 t2(1.f, 2, 4);
+                const dpl::tuple<long, int, float> t1(1, 2, 3.f);
+                const dpl::tuple<float, long, int> t2(1.f, 2, 4);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
@@ -209,150 +181,120 @@ kernel_test2(sycl::queue& deviceQueue)
         cgh.single_task<class KernelTupleLTTest2>([=]() {
 
             {
-                typedef dpl::tuple<long> T1;
-                typedef dpl::tuple<double> T2;
-                const T1 t1(1);
-                const T2 t2(1);
+                const dpl::tuple<long> t1(1);
+                const dpl::tuple<double> t2(1);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long> T1;
-                typedef dpl::tuple<double> T2;
-                const T1 t1(1);
-                const T2 t2(0.9);
+                const dpl::tuple<long> t1(1);
+                const dpl::tuple<double> t2(0.9);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long> T1;
-                typedef dpl::tuple<double> T2;
-                const T1 t1(1);
-                const T2 t2(1.1);
+                const dpl::tuple<long> t1(1);
+                const dpl::tuple<double> t2(1.1);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= (!(t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int> T1;
-                typedef dpl::tuple<double, long> T2;
-                const T1 t1(1, 2);
-                const T2 t2(1, 2);
+                const dpl::tuple<long, int> t1(1, 2);
+                const dpl::tuple<double, long> t2(1, 2);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int> T1;
-                typedef dpl::tuple<double, long> T2;
-                const T1 t1(1, 2);
-                const T2 t2(0.9, 2);
+                const dpl::tuple<long, int> t1(1, 2);
+                const dpl::tuple<double, long> t2(0.9, 2);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int> T1;
-                typedef dpl::tuple<double, long> T2;
-                const T1 t1(1, 2);
-                const T2 t2(1.1, 2);
+                const dpl::tuple<long, int> t1(1, 2);
+                const dpl::tuple<double, long> t2(1.1, 2);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= (!(t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int> T1;
-                typedef dpl::tuple<double, long> T2;
-                const T1 t1(1, 2);
-                const T2 t2(1, 1);
+                const dpl::tuple<long, int> t1(1, 2);
+                const dpl::tuple<double, long> t2(1, 1);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int> T1;
-                typedef dpl::tuple<double, long> T2;
-                const T1 t1(1, 2);
-                const T2 t2(1, 3);
+                const dpl::tuple<long, int> t1(1, 2);
+                const dpl::tuple<double, long> t2(1, 3);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= (!(t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, double> T1;
-                typedef dpl::tuple<double, long, int> T2;
-                const T1 t1(1, 2, 3);
-                const T2 t2(1, 2, 3);
+                const dpl::tuple<long, int, double> t1(1, 2, 3);
+                const dpl::tuple<double, long, int> t2(1, 2, 3);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, double> T1;
-                typedef dpl::tuple<double, long, int> T2;
-                const T1 t1(1, 2, 3);
-                const T2 t2(0.9, 2, 3);
+                const dpl::tuple<long, int, double> t1(1, 2, 3);
+                const dpl::tuple<double, long, int> t2(0.9, 2, 3);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, double> T1;
-                typedef dpl::tuple<double, long, int> T2;
-                const T1 t1(1, 2, 3);
-                const T2 t2(1.1, 2, 3);
+                const dpl::tuple<long, int, double> t1(1, 2, 3);
+                const dpl::tuple<double, long, int> t2(1.1, 2, 3);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= (!(t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, double> T1;
-                typedef dpl::tuple<double, long, int> T2;
-                const T1 t1(1, 2, 3);
-                const T2 t2(1, 1, 3);
+                const dpl::tuple<long, int, double> t1(1, 2, 3);
+                const dpl::tuple<double, long, int> t2(1, 1, 3);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, double> T1;
-                typedef dpl::tuple<double, long, int> T2;
-                const T1 t1(1, 2, 3);
-                const T2 t2(1, 3, 3);
+                const dpl::tuple<long, int, double> t1(1, 2, 3);
+                const dpl::tuple<double, long, int> t2(1, 3, 3);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
                 ret_access[0] &= (!(t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, double> T1;
-                typedef dpl::tuple<double, long, int> T2;
-                const T1 t1(1, 2, 3);
-                const T2 t2(1, 2, 2);
+                const dpl::tuple<long, int, double> t1(1, 2, 3);
+                const dpl::tuple<double, long, int> t2(1, 2, 2);
                 ret_access[0] &= (!(t1 < t2));
                 ret_access[0] &= (!(t1 <= t2));
                 ret_access[0] &= ((t1 > t2));
                 ret_access[0] &= ((t1 >= t2));
             }
             {
-                typedef dpl::tuple<long, int, double> T1;
-                typedef dpl::tuple<double, long, int> T2;
-                const T1 t1(1, 2, 3);
-                const T2 t2(1, 2, 4);
+                const dpl::tuple<long, int, double> t1(1, 2, 3);
+                const dpl::tuple<double, long, int> t2(1, 2, 4);
                 ret_access[0] &= ((t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
                 ret_access[0] &= (!(t1 > t2));
