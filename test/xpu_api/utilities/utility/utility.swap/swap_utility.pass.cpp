@@ -115,8 +115,8 @@ kernel_test()
                 }
 
                 {
-                    std::complex<float> c1(1.5f, 2.5f);
-                    std::complex<float> c2(1.f, 5.5f);
+                    dpl::complex<float> c1(1.5f, 2.5f);
+                    dpl::complex<float> c2(1.f, 5.5f);
                     ret_access[0] &= (c1.real() == 1.5f && c1.imag() == 2.5f);
                     ret_access[0] &= (c2.real() == 1.f && c2.imag() == 5.5f);
                     dpl::swap(c1, c2);
