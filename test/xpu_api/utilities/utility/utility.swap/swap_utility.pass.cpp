@@ -26,21 +26,6 @@
 #include "misc_data_structs.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-template <class Tp>
-auto
-can_swap_test(int) -> decltype(dpl::swap(dpl::declval<Tp>(), dpl::declval<Tp>()));
-
-template <class Tp>
-auto
-can_swap_test(...) -> dpl::false_type;
-
-template <class Tp>
-constexpr bool
-can_swap()
-{
-    return dpl::is_same_v<decltype(can_swap_test<Tp>(0)), void>;
-}
-
 class KernelSwapTest;
 
 void
@@ -87,12 +72,12 @@ kernel_test()
                 }
 
                 {
-                    static_assert(can_swap<CopyOnly&>());
-                    static_assert(can_swap<MoveOnly&>());
-                    static_assert(can_swap<NoexceptMoveOnly&>());
+                    static_assert(std::is_swappable_v<CopyOnly&>());
+                    static_assert(std::is_swappable_v<MoveOnly&>());
+                    static_assert(std::is_swappable_v<NoexceptMoveOnly&>());
 
-                    static_assert(!can_swap<NotMoveConstructible&>());
-                    static_assert(!can_swap<NotMoveAssignable&>());
+                    static_assert(!std::is_swappable_v<NotMoveConstructible&>());
+                    static_assert(!std::is_swappable_v<NotMoveAssignable&>());
 
                     CopyOnly c;
                     MoveOnly m;
