@@ -32,6 +32,8 @@ namespace dpl
 namespace __internal
 {
 
+#if _ONEDPL_BACKEND_SYCL
+
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Size,
           typename _IdxHashFunc, typename... _Range>
 inline void
@@ -68,6 +70,8 @@ __histogram_impl(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _Rando
     __internal::__pattern_histogram(::std::forward<_ExecutionPolicy>(exec), __first, __last, __histogram_first,
                                     boundary_view.size() - 1, __internal::__custom_range_binhash{boundary_view});
 }
+
+#endif // _ONEDPL_BACKEND_SYCL
 
 } // namespace __internal
 
