@@ -16,8 +16,6 @@
 #ifndef _MOVE_ONLY_H
 #define _MOVE_ONLY_H
 
-#include <utility>
-
 struct MoveOnly
 {
     int data_;
