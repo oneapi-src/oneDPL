@@ -25,14 +25,14 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 class KernelTupleSizeTest;
 
-template <class T, dpl::size_t N>
+template <class KernelName, class T, dpl::size_t N>
 void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::range<1> numOfItems{1};
     deviceQueue.submit([&](sycl::handler& cgh) {
-        cgh.single_task<class KernelTupleSizeTest>([=]() {
+        cgh.single_task<KernelName>([=]() {
             static_assert(dpl::tuple_size<T>::value == N);
             static_assert(dpl::tuple_size<const T>::value == N);
             static_assert(dpl::tuple_size<volatile T>::value == N);
@@ -45,13 +45,19 @@ kernel_test()
         });
     });
 }
+
+class KernelName1;
+class KernelName2;
+class KernelName3;
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    kernel_test<std::tuple<>, 0>();
+    kernel_test<KernelName1, std::tuple<>, 0>();
+    kernel_test<KernelName2, std::tuple<int>, 1>();
+    kernel_test<KernelName3, std::tuple<int, int,  int>, 3>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
