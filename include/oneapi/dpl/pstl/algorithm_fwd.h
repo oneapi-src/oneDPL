@@ -841,7 +841,7 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
                       _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp,
                       _IsVector /*vector=*/, /*is_parallel=*/::std::false_type) noexcept;
-                      
+
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _Compare, typename _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
