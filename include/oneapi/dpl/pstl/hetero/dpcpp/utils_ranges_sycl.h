@@ -344,9 +344,9 @@ struct __get_sycl_range
     ::std::vector<::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base>> m_buffers;
 
     //SFINAE iterator type checks
-    template<typename _It, typename _T = decltype(std::addressof(*_It{}))>
-    constexpr std::true_type __test_addressof(_It) { return {};}
-    constexpr std::false_type __test_addressof(...) { return {};}
+    template<typename _It, typename _T = decltype(::std::addressof(*_It{}))>
+    constexpr ::std::true_type __test_addressof(_It) { return {};}
+    constexpr ::std::false_type __test_addressof(...) { return {};}
 
     template <typename _F, typename _It, typename _DiffType>
     static auto
@@ -397,6 +397,19 @@ struct __get_sycl_range
             res.all_view(), __first.functor()};
 
         return __range_holder<decltype(rng)>{rng};
+    }
+
+    //specialization for std::reverse_iterator
+    template <typename _Iter>
+    auto
+    operator()(std::reverse_iterator<_Iter> __first, std::reverse_iterator<_Iter> __last)
+    {
+        assert(__first < __last);
+
+        auto __res = this->operator()(__first.base(), __last.base());
+        auto __rng = oneapi::dpl::__ranges::reverse_view_simple<decltype(__res.all_view())>{__res.all_view()};
+
+        return __range_holder<decltype(__rng)>{__rng};
     }
 
   private:
@@ -530,7 +543,8 @@ struct __get_sycl_range
                 else
                 {
                     sycl::buffer<_T, 1> __buf(__first, __last); //a non-exclusive access buffer, poor performance
-                    __buf.set_final_data(__first); //buffer wait and copying on destructor
+                    if(__is_copy_back)
+                        __buf.set_final_data(__first); //buffer wait and copying on destructor
                     return __buf;
                 }
             }

@@ -809,7 +809,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
         // 'No operation' flag specifies whether to skip re-order phase if the all keys are the same (lie in one bin)
         const ::std::size_t __tmp_buf_size = __segments * __radix_states + __radix_states + 1 /*no_op flag*/;
         // memory for storing count and offset values
-        auto __tmp_buf = sycl::buffer<::std::uint32_t, 1>(sycl::range<1>(__tmp_buf_size));
+        sycl::buffer<::std::uint32_t, 1> __tmp_buf{sycl::range<1>(__tmp_buf_size)};
 
         // memory for storing values sorted for an iteration
         oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueT> __out_buffer_holder{__exec, __n};
