@@ -140,13 +140,14 @@ struct __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_
             [&](sycl::handler& __cgh)
             {
                 oneapi::dpl::__ranges::__require_access(__cgh, __in_keys_rng, __out_keys_rng);
-                auto __in_data = __in_keys_rng.data();
-                auto __out_data = __out_keys_rng.data();
+                auto __in_pack = __make_pack(__in_keys_rng);
+                auto __out_pack = __make_pack(__out_keys_rng);
                 __cgh.depends_on(__e);
-                __radix_sort_onesweep_slm_reorder_kernel<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
-                                                       _KeyT, decltype(__in_data), decltype(__out_data)>
-                    __sweep_kernel(__n, __stage, __in_data, __out_data, __p_global_hist, __p_group_hists);
-                __cgh.parallel_for<_Name...>(__nd_range, __sweep_kernel);
+                __radix_sort_onesweep_kernel<
+                    __is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
+                        decltype(__in_pack), decltype(__out_pack)> __kernel(__n, __stage, __p_global_hist,
+                                                                            __p_group_hists, __in_pack, __out_pack);
+                __cgh.parallel_for<_Name...>(__nd_range, __kernel);
             });
     }
 };
@@ -201,15 +202,14 @@ struct __radix_sort_onesweep_by_key_submitter<__is_ascending, __radix_bits, __da
             [&](sycl::handler& __cgh)
             {
                 oneapi::dpl::__ranges::__require_access(__cgh, __in_keys_rng, __out_keys_rng, __in_vals_rng, __out_vals_rng);
-                auto __in_keys_data = __in_keys_rng.data();
-                auto __out_keys_data = __out_keys_rng.data();
-                auto __in_vals_data = __in_vals_rng.data();
-                auto __out_vals_data = __out_vals_rng.data();
+                auto __in_pack = __make_pack(__in_keys_rng, __in_vals_rng);
+                auto __out_pack = __make_pack(__out_keys_rng, __out_vals_rng);
                 __cgh.depends_on(__e);
-                __radix_sort_onesweep_by_key_slm_reorder_kernel<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
-                                                       _KeyT, _ValT, decltype(__in_keys_data), decltype(__out_keys_data), decltype(__in_vals_data), decltype(__out_vals_data)>
-                    __sweep_kernel(__n, __stage, __in_keys_data, __out_keys_data, __in_vals_data, __out_vals_data, __p_global_hist, __p_group_hists);
-                __cgh.parallel_for<_Name...>(__nd_range, __sweep_kernel);
+                __radix_sort_onesweep_kernel<
+                    __is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
+                        decltype(__in_pack), decltype(__out_pack)> __kernel(__n, __stage, __p_global_hist,
+                                                                            __p_group_hists, __in_pack, __out_pack);
+                __cgh.parallel_for<_Name...>(__nd_range, __kernel);
             });
     }
 };
