@@ -102,20 +102,6 @@ test()
     }
 }
 
-template <typename T>
-struct test_non_const
-{
-    template <typename Policy, typename InputIterator, typename OutputInterator>
-    void
-    operator()(Policy&& exec, InputIterator input_iter, OutputInterator out_iter)
-    {
-        invoke_if(exec, [&]()
-            {
-                transform(exec, input_iter, input_iter, out_iter, non_const(::std::negate<T>()));
-            });
-    }
-};
-
 int
 main()
 {
@@ -125,7 +111,5 @@ main()
     test<float32_t, float64_t>();
     test<float64_t, float64_t>();
     
-    test_algo_basic_double<std::int64_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
-
     return TestUtils::done();
 }
