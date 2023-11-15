@@ -22,22 +22,12 @@
 namespace oneapi::dpl::experimental::kt::gpu::__impl
 {
 
-// TODO: Replacing __global_histogram here
-// template <typename _KeyT, typename _InputT, ::std::uint32_t __radix_bits, ::std::uint32_t __stage_count,
-//           ::std::uint32_t __hist_work_group_count, ::std::uint32_t __hist_work_group_size, bool __is_ascending>
-// void
-// __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, ::std::uint32_t* __p_global_offset);
-
-
-template <uint32_t GROUP_THREAD = 16, uint32_t ITEMS_PER_THREAD = 32, typename keyT = uint32_t,
-    bool IS_DESC = false>
-struct RadixSortHistogram {
-    enum {
-        RADIX_BITS = 8,
-        RADIX_DIGITS = 1 << RADIX_BITS,
-        NUM_DIGITS = sizeof(keyT) * 8 / RADIX_BITS,
-        HISTOGRAM_ELEMENTS = RADIX_DIGITS * NUM_DIGITS,
-    };
+template <uint32_t GROUP_THREAD, uint32_t ITEMS_PER_THREAD, typename keyT,
+          ::std::uint8_t __radix_bits, ::std::uint32_t __stage_count, bool __is_ascending> //TODO: hook up __is_ascending
+struct RadixSortHistogram
+{
+    static constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
+    static constexpr ::std::uint32_t __histogram_elements = __bin_count * __stage_count;
 
     using atomic_local = sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed,
         sycl::memory_scope::device, sycl::access::address_space::local_space>;
@@ -59,9 +49,9 @@ struct RadixSortHistogram {
 #pragma unroll
         for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
 #pragma unroll
-            for (uint32_t d = 0; d < NUM_DIGITS; d++) {
-                uint32_t digit = getDigit(key[i], d, RADIX_BITS);
-                atomic_local(shared_digit_histogram[d * RADIX_DIGITS + digit])++;
+            for (uint32_t d = 0; d < __stage_count; d++) {
+                uint32_t digit = getDigit(key[i], d, __radix_bits);
+                atomic_local(shared_digit_histogram[d * __bin_count + digit])++;
             }
         }
     }
@@ -70,9 +60,9 @@ struct RadixSortHistogram {
         for (uint32_t i = 0; i < eleCnt; i++) {
             keyT key = array[i * GROUP_THREAD];
 #pragma unroll
-            for (uint32_t d = 0; d < NUM_DIGITS; d++) {
-                uint32_t digit = getDigit(key, d, RADIX_BITS);
-                atomic_local(shared_digit_histogram[d * RADIX_DIGITS + digit])++;
+            for (uint32_t d = 0; d < __stage_count; d++) {
+                uint32_t digit = getDigit(key, d, __radix_bits);
+                atomic_local(shared_digit_histogram[d * __bin_count + digit])++;
             }
         }
     }
@@ -88,7 +78,7 @@ struct RadixSortHistogram {
 
     FORCE_INLINE void accumulateGlobalHistogram(uint32_t local_id) {
 #pragma unroll
-        for (uint32_t idx = local_id; idx < HISTOGRAM_ELEMENTS; idx += GROUP_THREAD) {
+        for (uint32_t idx = local_id; idx < __histogram_elements; idx += GROUP_THREAD) {
             auto atomic_global_counter =
                 sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::device,
                     sycl::access::address_space::global_space>(digit_bins_histogram[idx]);
@@ -99,7 +89,7 @@ struct RadixSortHistogram {
     FORCE_INLINE void process(sycl::nd_item<1> &id) {
         uint32_t localId = id.get_local_linear_id();
 #pragma unroll
-        for (uint32_t i = localId; i < RADIX_DIGITS * NUM_DIGITS; i += GROUP_THREAD) {
+        for (uint32_t i = localId; i < __histogram_elements; i += GROUP_THREAD) {
             shared_digit_histogram[i] = 0;
         }
         uint32_t offset = id.get_group_linear_id() * ITEMS_PER_THREAD * GROUP_THREAD + localId;

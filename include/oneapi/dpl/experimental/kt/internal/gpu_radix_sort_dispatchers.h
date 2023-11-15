@@ -196,11 +196,9 @@ __onesweep(sycl::queue __q, _KeysRng&& __keys_rng, ::std::size_t __n)
                                           (__global_hist_item_count + __group_hist_item_count) * sizeof(_GlobalHistT));
 
     // TODO: consider adding a more versatile API, e.g. passing special kernel_config parameters for histogram computation
-    constexpr ::std::uint32_t __hist_work_group_count = 64;
-    constexpr ::std::uint32_t __hist_work_group_size = 64;
     __event_chain =
-        __radix_sort_onesweep_histogram_submitter<_KeyT, __radix_bits, __stage_count, __hist_work_group_count,
-                                                  __hist_work_group_size, __is_ascending, _GpuRadixSortHistogram>()(
+        __radix_sort_onesweep_histogram_submitter<_KeyT, __radix_bits, __stage_count, __data_per_work_item,
+                                                  __work_group_size, __is_ascending, _GpuRadixSortHistogram>()(
             __q, __keys_rng, __mem_holder.__global_hist_ptr(), __n, __event_chain);
 
     __event_chain = __radix_sort_onesweep_scan_submitter<__stage_count, __bin_count, _GpuRadixSortScan>()(

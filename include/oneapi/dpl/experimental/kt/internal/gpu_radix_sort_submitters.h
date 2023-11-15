@@ -30,15 +30,15 @@ namespace oneapi::dpl::experimental::kt::gpu::__impl
 //------------------------------------------------------------------------
 
 template <typename _KeyT, ::std::uint8_t __radix_bits, ::std::uint32_t __stage_count,
-          ::std::uint32_t __hist_work_group_count, ::std::uint32_t __hist_work_group_size, bool __is_ascending,
+          ::std::uint16_t __data_per_work_item, ::std::uint16_t __work_group_size, bool __is_ascending,
           typename _KernelName>
 struct __radix_sort_onesweep_histogram_submitter;
 
 template <typename _KeyT, ::std::uint32_t __radix_bits, ::std::uint32_t __stage_count,
-          ::std::uint32_t __hist_work_group_count, ::std::uint32_t __hist_work_group_size, bool __is_ascending,
+          ::std::uint16_t __data_per_work_item, ::std::uint16_t __work_group_size, bool __is_ascending,
           typename... _Name>
 struct __radix_sort_onesweep_histogram_submitter<
-    _KeyT, __radix_bits, __stage_count, __hist_work_group_count, __hist_work_group_size, __is_ascending,
+    _KeyT, __radix_bits, __stage_count, __data_per_work_item, __work_group_size, __is_ascending,
     oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _KeysRng, typename _GlobalOffsetData>
@@ -46,18 +46,19 @@ struct __radix_sort_onesweep_histogram_submitter<
     operator()(sycl::queue& __q, _KeysRng&& __keys_rng, const _GlobalOffsetData& __global_offset_data,
                ::std::size_t __n, const sycl::event& __e) const
     {
-        sycl::nd_range<1> __nd_range(__hist_work_group_count * __hist_work_group_size, __hist_work_group_size);
+        const ::std::uint32_t __hist_work_group_count =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__n, __data_per_work_item * __work_group_size);
+        sycl::nd_range<1> __nd_range(__hist_work_group_count * __work_group_size, __work_group_size);
         return __q.submit([&](sycl::handler& __cgh) {
             oneapi::dpl::__ranges::__require_access(__cgh, __keys_rng);
             __cgh.depends_on(__e);
             auto __data = __keys_rng.data();
+            __dpl_sycl::__local_accessor<_GlobalOffsetData> __lacc(__stage_count * __radix_bits, __cgh);
             __cgh.parallel_for<_Name...>(__nd_range, [=](sycl::nd_item<1> __nd_item) {
-                // __global_histogram<_KeyT, decltype(__data), __radix_bits, __stage_count, __hist_work_group_count,
-                //                    __hist_work_group_size, __is_ascending>(__nd_item, __n, __data,
-                //                                                            __global_offset_data);
-                RadixSortHistogram<HISTOGRAM_GROUP_THREADS, HISTOGRAM_ITEMS_PER_THREADS> kernel(
-                    digits_histograms, shared_histogram.get_pointer(), array, size);
-                kernel.process(id);
+                RadixSortHistogram<__work_group_size, __data_per_work_item, _KeyT, __radix_bits, __stage_count,
+                                   __is_ascending>
+                    kernel(__global_offset_data, *__dpl_sycl::__get_accessor_ptr(__lacc), __data, __n);
+                kernel.process(__nd_item);
             });
         });
     }
