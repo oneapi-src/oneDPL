@@ -38,23 +38,23 @@ struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint = */ true>
     _T1 __maximum;
     _T1 __scale;
 
-    __evenly_divided_binhash_impl(const _T1& min, const _T1& max, const ::std::uint32_t& num_bins)
-        : __minimum(min), __maximum(max), __scale(_T1(num_bins) / (max - min))
+    __evenly_divided_binhash_impl(const _T1& __min, const _T1& __max, ::std::uint32_t __num_bins)
+        : __minimum(__min), __maximum(__max), __scale(_T1(__num_bins) / (__max - __min))
     {
     }
 
     template <typename _T2>
     inline ::std::uint32_t
-    get_bin(_T2&& value) const
+    get_bin(_T2&& __value) const
     {
-        return ::std::uint32_t((::std::forward<_T2>(value) - __minimum) * __scale);
+        return ::std::uint32_t((::std::forward<_T2>(__value) - __minimum) * __scale);
     }
 
     template <typename _T2>
     inline bool
-    is_valid(const _T2& value) const
+    is_valid(const _T2& __value) const
     {
-        return (value >= __minimum) && (value < __maximum);
+        return (__value >= __minimum) && (__value < __maximum);
     }
 };
 
@@ -66,23 +66,23 @@ struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint= */ false>
     _T1 __minimum;
     _T1 __range_size;
     ::std::uint32_t __num_bins;
-    __evenly_divided_binhash_impl(const _T1& min, const _T1& max, const ::std::uint32_t& num_bins)
-        : __minimum(min), __num_bins(num_bins), __range_size(max - min)
+    __evenly_divided_binhash_impl(const _T1& __min, const _T1& __max, ::std::uint32_t __num_bins_)
+        : __minimum(__min), __num_bins(__num_bins_), __range_size(__max - __min)
     {
     }
     template <typename _T2>
     inline ::std::uint32_t
-    get_bin(_T2&& value) const
+    get_bin(_T2&& __value) const
     {
         return ::std::uint32_t(
-            ((::std::uint64_t(::std::forward<_T2>(value)) - __minimum) * ::std::uint64_t(__num_bins)) / __range_size);
+            ((::std::uint64_t(::std::forward<_T2>(__value)) - __minimum) * ::std::uint64_t(__num_bins)) / __range_size);
     }
 
     template <typename _T2>
     inline bool
-    is_valid(const _T2& value) const
+    is_valid(const _T2& __value) const
     {
-        return (value >= __minimum) && (value < (__minimum + __range_size));
+        return (__value >= __minimum) && (__value < (__minimum + __range_size));
     }
 };
 
@@ -97,22 +97,22 @@ struct __custom_range_binhash
     using __boundary_type = oneapi::dpl::__internal::__value_t<_Range>;
     _Range __boundaries;
 
-    __custom_range_binhash(_Range boundaries) : __boundaries(boundaries) {}
+    __custom_range_binhash(_Range __boundaries_) : __boundaries(__boundaries_) {}
 
     template <typename _T2>
     inline ::std::uint32_t
-    get_bin(_T2&& value) const
+    get_bin(_T2&& __value) const
     {
-        return (::std::upper_bound(__boundaries.begin(), __boundaries.end(), ::std::forward<_T2>(value)) -
+        return (::std::upper_bound(__boundaries.begin(), __boundaries.end(), ::std::forward<_T2>(__value)) -
                 __boundaries.begin()) -
                1;
     }
 
     template <typename _T2>
     inline bool
-    is_valid(const _T2& value) const
+    is_valid(const _T2& __value) const
     {
-        return value >= __boundaries[0] && value < __boundaries[__boundaries.size() - 1];
+        return __value >= __boundaries[0] && __value < __boundaries[__boundaries.size() - 1];
     }
 
     _Range
