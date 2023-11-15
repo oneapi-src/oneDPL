@@ -34,7 +34,7 @@ namespace __ranges
 namespace __internal
 {
 template<typename _AccessorType, typename _BufferType, typename _DiffType>
-static _AccessorType 
+static _AccessorType
 __create_accessor(_BufferType& __buf, _DiffType __offset, _DiffType __n)
 {
     auto __n_buf = __dpl_sycl::__get_buffer_size(__buf);
@@ -97,7 +97,7 @@ class all_view
         __cgh.require(__m_acc);
     }
 
-    // Unified funciton to get pointer or accessor to use inside ESIMD kernels
+    // Unified function to get pointer or accessor to use inside ESIMD kernels
     __accessor_t data()
     {
         return __m_acc;

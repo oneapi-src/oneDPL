@@ -507,7 +507,7 @@ struct __radix_sort_onesweep_kernel
         constexpr ::std::uint32_t __global_offset_mask = 0x3fffffff;
 
         _GlobOffsetT* __p_this_group_hist = __p_group_hists + __bin_count * __wg_id;
-        // First group contains global hist to propagate it to other groups during synchronization
+        // First group contains global histogram to propagate it to other groups during synchronization
         _GlobOffsetT* __p_prev_group_hist = (0 == __wg_id)? __p_global_hist : __p_this_group_hist - __bin_count;
 
         {
