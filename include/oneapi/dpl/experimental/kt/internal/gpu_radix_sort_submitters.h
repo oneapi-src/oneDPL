@@ -112,11 +112,18 @@ struct __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_
             auto __in_data = __in_keys_rng.data();
             auto __out_data = __out_keys_rng.data();
             __cgh.depends_on(__e);
-            __radix_sort_onesweep_slm_reorder_kernel<__is_ascending, __radix_bits, __data_per_work_item,
-                                                     __work_group_size, _KeyT, decltype(__in_data),
-                                                     decltype(__out_data)>
-                __sweep_kernel(__n, __stage, __in_data, __out_data, __p_global_hist, __p_group_hists);
-            __cgh.parallel_for<_Name...>(__nd_range, __sweep_kernel);
+            // __radix_sort_onesweep_slm_reorder_kernel<__is_ascending, __radix_bits, __data_per_work_item,
+            //                                          __work_group_size, _KeyT, decltype(__in_data),
+            //                                          decltype(__out_data)>
+            //     __sweep_kernel(__n, __stage, __in_data, __out_data, __p_global_hist, __p_group_hists);
+            __cgh.parallel_for<_Name...>(__nd_range,
+                                         [=](sycl::nd_item<1> __nd_item) [[intel::reqd_sub_group_size(WARP_THREADS)]] {
+                        OneSweepKernel kernel(pass, array_in, array_out,
+                            &digits_offsets[RADIX_DIGITS * pass],
+                            &global_offsets[groups * RADIX_DIGITS * pass], dynamic_id + pass, size,
+                            s[0]);
+                        kernel.process(__nd_item);
+            });
         });
     }
 };
