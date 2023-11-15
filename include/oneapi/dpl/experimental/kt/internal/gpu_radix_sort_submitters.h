@@ -55,7 +55,8 @@ struct __radix_sort_onesweep_histogram_submitter<
             auto __data = __keys_rng.data();
             __dpl_sycl::__local_accessor<_GlobalOffsetData> __lacc(__stage_count * __radix_bits, __cgh);
             __cgh.parallel_for<_Name...>(__nd_range, [=](sycl::nd_item<1> __nd_item) {
-                RadixSortHistogram<__work_group_size, __data_per_work_item, _KeyT, __radix_bits, __stage_count,
+                RadixSortHistogram<__work_group_size, __data_per_work_item, _KeyT,
+                                   std::remove_pointer_t<_GlobalOffsetData>, __radix_bits, __stage_count,
                                    __is_ascending>
                     kernel(__global_offset_data, *__dpl_sycl::__get_accessor_ptr(__lacc), __data, __n);
                 kernel.process(__nd_item);

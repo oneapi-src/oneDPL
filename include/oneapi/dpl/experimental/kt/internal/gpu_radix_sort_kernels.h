@@ -22,17 +22,18 @@
 namespace oneapi::dpl::experimental::kt::gpu::__impl
 {
 
-template <uint32_t GROUP_THREAD, uint32_t ITEMS_PER_THREAD, typename keyT,
-          ::std::uint8_t __radix_bits, ::std::uint32_t __stage_count, bool __is_ascending> //TODO: hook up __is_ascending
+template <uint16_t GROUP_THREAD, uint16_t ITEMS_PER_THREAD, typename keyT, typename _GlobalOffsetData,
+          ::std::uint8_t __radix_bits, ::std::uint32_t __stage_count,
+          bool __is_ascending> //TODO: hook up __is_ascending
 struct RadixSortHistogram
 {
     static constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
     static constexpr ::std::uint32_t __histogram_elements = __bin_count * __stage_count;
 
-    using atomic_local = sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed,
+    using atomic_local = sycl::atomic_ref<_GlobalOffsetData, sycl::memory_order::relaxed,
         sycl::memory_scope::device, sycl::access::address_space::local_space>;
 
-    FORCE_INLINE RadixSortHistogram(uint32_t *digit_bins_histogram, uint32_t *shared_digit_histogram,
+    FORCE_INLINE RadixSortHistogram(_GlobalOffsetData *digit_bins_histogram, _GlobalOffsetData *shared_digit_histogram,
         keyT *array, uint32_t num_keys)
         : digit_bins_histogram(digit_bins_histogram),
           array(array),
@@ -80,7 +81,7 @@ struct RadixSortHistogram
 #pragma unroll
         for (uint32_t idx = local_id; idx < __histogram_elements; idx += GROUP_THREAD) {
             auto atomic_global_counter =
-                sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::device,
+                sycl::atomic_ref<_GlobalOffsetData, sycl::memory_order::relaxed, sycl::memory_scope::device,
                     sycl::access::address_space::global_space>(digit_bins_histogram[idx]);
             atomic_global_counter += shared_digit_histogram[idx];
         }
@@ -99,11 +100,11 @@ struct RadixSortHistogram
         accumulateGlobalHistogram(localId);
     }
 
-    uint32_t *digit_bins_histogram;
+    _GlobalOffsetData *digit_bins_histogram;
 
     uint32_t num_keys_global;
 
-    uint32_t *shared_digit_histogram;
+    _GlobalOffsetData *shared_digit_histogram;
 
     keyT *array;
 };
