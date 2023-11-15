@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include "gpu_radix_sort_utils.h"
+#include "../../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 
 namespace oneapi::dpl::experimental::kt::gpu::__impl
 {
@@ -51,7 +52,7 @@ struct RadixSortHistogram
         for (uint32_t i = 0; i < __data_per_work_item; i++) {
 #pragma unroll
             for (uint32_t d = 0; d < __stage_count; d++) {
-                uint32_t digit = getDigit(key[i], d, __radix_bits);
+                uint32_t digit = getDigit(oneapi::dpl::__par_backend_hetero::__order_preserving_cast<__is_ascending>(key[i]), d, __radix_bits);
                 atomic_local(shared_digit_histogram[d * __bin_count + digit])++;
             }
         }
@@ -62,7 +63,7 @@ struct RadixSortHistogram
             keyT key = array[i * __work_group_size];
 #pragma unroll
             for (uint32_t d = 0; d < __stage_count; d++) {
-                uint32_t digit = getDigit(key, d, __radix_bits);
+                uint32_t digit = getDigit(oneapi::dpl::__par_backend_hetero::__order_preserving_cast<__is_ascending>(key), d, __radix_bits);
                 atomic_local(shared_digit_histogram[d * __bin_count + digit])++;
             }
         }
