@@ -22,7 +22,7 @@
 namespace oneapi::dpl::experimental::kt::gpu::__impl
 {
 
-template <uint16_t GROUP_THREAD, uint16_t ITEMS_PER_THREAD, typename keyT, typename _GlobalOffsetData,
+template <uint16_t __work_group_size, uint16_t __data_per_work_item, typename keyT, typename _GlobalOffsetData,
           ::std::uint8_t __radix_bits, ::std::uint32_t __stage_count,
           bool __is_ascending> //TODO: hook up __is_ascending
 struct RadixSortHistogram
@@ -41,14 +41,14 @@ struct RadixSortHistogram
           shared_digit_histogram(shared_digit_histogram) {}
 
     FORCE_INLINE void accumulateFullTile(keyT *array) {
-        keyT key[ITEMS_PER_THREAD];
+        keyT key[__data_per_work_item];
 #pragma unroll
-        for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
-            key[i] = array[GROUP_THREAD * i];
+        for (uint32_t i = 0; i < __data_per_work_item; i++) {
+            key[i] = array[__work_group_size * i];
         }
 
 #pragma unroll
-        for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
+        for (uint32_t i = 0; i < __data_per_work_item; i++) {
 #pragma unroll
             for (uint32_t d = 0; d < __stage_count; d++) {
                 uint32_t digit = getDigit(key[i], d, __radix_bits);
@@ -59,7 +59,7 @@ struct RadixSortHistogram
 
     FORCE_INLINE void accumulatePartialTile(keyT *array, uint32_t eleCnt) {
         for (uint32_t i = 0; i < eleCnt; i++) {
-            keyT key = array[i * GROUP_THREAD];
+            keyT key = array[i * __work_group_size];
 #pragma unroll
             for (uint32_t d = 0; d < __stage_count; d++) {
                 uint32_t digit = getDigit(key, d, __radix_bits);
@@ -69,17 +69,17 @@ struct RadixSortHistogram
     }
 
     FORCE_INLINE void accumulateSharedHistogram(keyT *array, uint32_t offset) {
-        if (offset + ITEMS_PER_THREAD * GROUP_THREAD <= num_keys_global)
+        if (offset + __data_per_work_item * __work_group_size <= num_keys_global)
             accumulateFullTile(&array[offset]);
         else {
-            uint32_t eleCnt = (num_keys_global - offset + GROUP_THREAD - 1) / GROUP_THREAD;
+            uint32_t eleCnt = (num_keys_global - offset + __work_group_size - 1) / __work_group_size;
             accumulatePartialTile(&array[offset], eleCnt);
         }
     }
 
     FORCE_INLINE void accumulateGlobalHistogram(uint32_t local_id) {
 #pragma unroll
-        for (uint32_t idx = local_id; idx < __histogram_elements; idx += GROUP_THREAD) {
+        for (uint32_t idx = local_id; idx < __histogram_elements; idx += __work_group_size) {
             auto atomic_global_counter =
                 sycl::atomic_ref<_GlobalOffsetData, sycl::memory_order::relaxed, sycl::memory_scope::device,
                     sycl::access::address_space::global_space>(digit_bins_histogram[idx]);
@@ -90,10 +90,10 @@ struct RadixSortHistogram
     FORCE_INLINE void process(sycl::nd_item<1> &id) {
         uint32_t localId = id.get_local_linear_id();
 #pragma unroll
-        for (uint32_t i = localId; i < __histogram_elements; i += GROUP_THREAD) {
+        for (uint32_t i = localId; i < __histogram_elements; i += __work_group_size) {
             shared_digit_histogram[i] = 0;
         }
-        uint32_t offset = id.get_group_linear_id() * ITEMS_PER_THREAD * GROUP_THREAD + localId;
+        uint32_t offset = id.get_group_linear_id() * __data_per_work_item * __work_group_size + localId;
         slmBarrier(id);
         accumulateSharedHistogram(array, offset);
         slmBarrier(id);
