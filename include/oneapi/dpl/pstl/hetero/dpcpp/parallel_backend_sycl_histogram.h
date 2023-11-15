@@ -504,8 +504,8 @@ __parallel_histogram_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __la
 {
     //wrap binhash in a wrapper to allow shared memory boost where available
     return __parallel_histogram_sycl_impl<__iters_per_work_item>(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __histogram_first, __num_bins,
-        __SLM_boost(__func), ::std::forward<_Range...>(__opt_range)...);
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __histogram_first, __num_bins, __SLM_boost(__func),
+        ::std::forward<_Range...>(__opt_range)...);
 }
 
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2,

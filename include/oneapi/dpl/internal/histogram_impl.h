@@ -33,7 +33,6 @@ namespace dpl
 namespace __internal
 {
 
-
 //Only supported for dpcpp backend
 #if _ONEDPL_BACKEND_SYCL
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Size,
