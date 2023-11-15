@@ -35,7 +35,7 @@ kernel_test()
                     constexpr optional<int> opt;
                     
                     static_assert(!opt);
-                    static_assert(noexcept(bool(opt)));
+                    ASSERT_NOEXCEPT(bool(opt));
                     static_assert(!dpl::is_convertible<optional<int>, bool>::value);
                 }
                 {

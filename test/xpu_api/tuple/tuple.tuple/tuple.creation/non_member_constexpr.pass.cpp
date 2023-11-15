@@ -42,8 +42,8 @@ void
 test_forward_as_tuple()
 {
     {
-        constexpr int i = 22;
-        constexpr float f = 22.222f;
+        static const int i = 22;
+        static const float f = 22.222f;
         
         typedef dpl::tuple<const int&, const float&&> tuple_type;
         constexpr tuple_type p1 = dpl::forward_as_tuple(i, dpl::move(f));
@@ -51,9 +51,9 @@ test_forward_as_tuple()
     }
 
     {
-        constexpr int i = 22;
-        constexpr float f = 22.222f;
-        constexpr int ii = 77799;
+        static const int i = 22;
+        static const float f = 22.222f;
+        static const int ii = 77799;
         
         typedef dpl::tuple<const int&, const float&, const int&&> tuple_type;
         constexpr tuple_type p1 = dpl::forward_as_tuple(i, f, dpl::move(ii));
@@ -66,8 +66,8 @@ void
 test_tie()
 {
     {
-        constexpr int i = 22;
-        constexpr float f = 22.222f;
+        static const int i = 22;
+        static const float f = 22.222f;
         
         typedef dpl::tuple<const int&, const float&> tuple_type;
         constexpr tuple_type p1 = dpl::tie(i, f);
@@ -75,9 +75,9 @@ test_tie()
     }
 
     {
-        constexpr int i = 22;
-        constexpr float f = 22.222f;
-        constexpr int ii = 77799;
+        static const int i = 22;
+        static const float f = 22.222f;
+        static const int ii = 77799;
 
         typedef dpl::tuple<const int&, const float&, const int&> tuple_type;
         constexpr tuple_type p1 = dpl::tie(i, f, ii);
@@ -95,7 +95,7 @@ test_tuple_cat()
     constexpr tuple_type1 t1{55, 77.77f};
     constexpr tuple_type2 t2{55, 99, 77.77f};
     constexpr auto cat1 = dpl::tuple_cat(t1, t2);
-    static_assert(dpl::tuple_size_v<decltype(cat1)> == 5);
+    static_assert(std::tuple_size_v<decltype(cat1)> == 5);
     static_assert(dpl::get<0>(cat1) == 55);
 }
 

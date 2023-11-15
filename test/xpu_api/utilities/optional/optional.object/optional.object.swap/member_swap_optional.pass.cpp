@@ -82,7 +82,7 @@ kernel_test()
                 {
                     optional<int> opt1;
                     optional<int> opt2;
-                    static_assert(noexcept(opt1.swap(opt2)) == true);
+                    ASSERT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == false);
                     ret_access[0] &= (static_cast<bool>(opt2) == false);
                     opt1.swap(opt2);
@@ -92,7 +92,7 @@ kernel_test()
                 {
                     optional<int> opt1(1);
                     optional<int> opt2;
-                    static_assert(noexcept(opt1.swap(opt2)) == true);
+                    ASSERT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == true);
                     ret_access[0] &= (*opt1 == 1);
                     ret_access[0] &= (static_cast<bool>(opt2) == false);
@@ -104,7 +104,7 @@ kernel_test()
                 {
                     optional<int> opt1;
                     optional<int> opt2(2);
-                    static_assert(noexcept(opt1.swap(opt2)) == true);
+                    ASSERT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == false);
                     ret_access[0] &= (static_cast<bool>(opt2) == true);
                     ret_access[0] &= (*opt2 == 2);
@@ -116,7 +116,7 @@ kernel_test()
                 {
                     optional<int> opt1(1);
                     optional<int> opt2(2);
-                    static_assert(noexcept(opt1.swap(opt2)) == true);
+                    ASSERT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == true);
                     ret_access[0] &= (*opt1 == 1);
                     ret_access[0] &= (static_cast<bool>(opt2) == true);
@@ -130,7 +130,7 @@ kernel_test()
                 {
                     optional<X> opt1;
                     optional<X> opt2;
-                    static_assert(noexcept(opt1.swap(opt2)) == true);
+                    ASSERT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == false);
                     ret_access[0] &= (static_cast<bool>(opt2) == false);
                     opt1.swap(opt2);
@@ -140,7 +140,7 @@ kernel_test()
                 {
                     optional<X> opt1(1);
                     optional<X> opt2;
-                    static_assert(noexcept(opt1.swap(opt2)) == true);
+                    ASSERT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == true);
                     ret_access[0] &= (*opt1 == 1);
                     ret_access[0] &= (static_cast<bool>(opt2) == false);
@@ -152,7 +152,7 @@ kernel_test()
                 {
                     optional<X> opt1;
                     optional<X> opt2(2);
-                    static_assert(noexcept(opt1.swap(opt2)) == true);
+                    ASSERT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == false);
                     ret_access[0] &= (static_cast<bool>(opt2) == true);
                     ret_access[0] &= (*opt2 == 2);
@@ -164,7 +164,7 @@ kernel_test()
                 {
                     optional<X> opt1(1);
                     optional<X> opt2(2);
-                    static_assert(noexcept(opt1.swap(opt2)) == true);
+                    ASSERT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == true);
                     ret_access[0] &= (*opt1 == 1);
                     ret_access[0] &= (static_cast<bool>(opt2) == true);
@@ -178,7 +178,7 @@ kernel_test()
                 {
                     optional<Y> opt1;
                     optional<Y> opt2;
-                    static_assert(noexcept(opt1.swap(opt2)) == false);
+                    ASSERT_NOT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == false);
                     ret_access[0] &= (static_cast<bool>(opt2) == false);
                     opt1.swap(opt2);
@@ -188,7 +188,7 @@ kernel_test()
                 {
                     optional<Y> opt1(1);
                     optional<Y> opt2;
-                    static_assert(noexcept(opt1.swap(opt2)) == false);
+                    ASSERT_NOT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == true);
                     ret_access[0] &= (*opt1 == 1);
                     ret_access[0] &= (static_cast<bool>(opt2) == false);
@@ -200,7 +200,7 @@ kernel_test()
                 {
                     optional<Y> opt1;
                     optional<Y> opt2(2);
-                    static_assert(noexcept(opt1.swap(opt2)) == false);
+                    ASSERT_NOT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == false);
                     ret_access[0] &= (static_cast<bool>(opt2) == true);
                     ret_access[0] &= (*opt2 == 2);
@@ -216,7 +216,7 @@ kernel_test()
                     (*opt1).nsf = 100;
                     (*opt2).nsf = 200;
 
-                    static_assert(noexcept(opt1.swap(opt2)) == false);
+                    ASSERT_NOT_NOEXCEPT(opt1.swap(opt2));
                     ret_access[0] &= (static_cast<bool>(opt1) == true);
                     ret_access[0] &= (*opt1 == 1);
                     ret_access[0] &= (static_cast<bool>(opt2) == true);

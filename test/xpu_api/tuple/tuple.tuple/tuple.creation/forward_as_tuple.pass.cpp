@@ -30,7 +30,7 @@ bool
 test1a(const Tuple& t)
 {
     static_assert(dpl::tuple_size<Tuple>::value == 1);
-    static_assert(dpl::is_same<typename dpl::tuple_element<0, Tuple>::type, int&&>::value);
+    static_assert(dpl::is_same<typename std::tuple_element<0, Tuple>::type, int&&>::value);
     return (dpl::get<0>(t) == 1);
 }
 
@@ -38,7 +38,7 @@ template <class Tuple>
 bool test1b(const Tuple& t)
 {
     static_assert(dpl::tuple_size<Tuple>::value == 1);
-    static_assert(dpl::is_same<typename dpl::tuple_element<0, Tuple>::type, int&>::value);
+    static_assert(dpl::is_same<typename std::tuple_element<0, Tuple>::type, int&>::value);
     return (dpl::get<0>(t) == 2);
 }
 
@@ -46,8 +46,8 @@ template <class Tuple>
 bool test2a(const Tuple& t)
 {
     static_assert(dpl::tuple_size<Tuple>::value == 2);
-    static_assert(dpl::is_same<typename dpl::tuple_element<0, Tuple>::type, float&&>::value);
-    static_assert(dpl::is_same<typename dpl::tuple_element<1, Tuple>::type, char&>::value);
+    static_assert(dpl::is_same<typename std::tuple_element<0, Tuple>::type, float&&>::value);
+    static_assert(dpl::is_same<typename std::tuple_element<1, Tuple>::type, char&>::value);
     return (dpl::get<0>(t) == 2.5f && dpl::get<1>(t) == 'a');
 }
 
@@ -65,7 +65,7 @@ kernel_test()
         cgh.single_task<class KernelForwardAsTupleTest>([=]() {
             int i = 2;
             const auto tpl = dpl::forward_as_tuple();
-            static_assert(dpl::tuple_size_v<decltype(tpl)> == 0);
+            static_assert(std::tuple_size_v<decltype(tpl)> == 0);
             ret_access[0] = test1a(dpl::forward_as_tuple(1));
             ret_access[0] &= test1b(dpl::forward_as_tuple(i));
 
@@ -73,7 +73,7 @@ kernel_test()
             ret_access[0] &= test2a(dpl::forward_as_tuple(2.5f, c));
 
             const auto tpl1 = dpl::forward_as_tuple(2.5f, c);
-            static_assert(dpl::tuple_size_v<decltype(tpl1)> == 2);
+            static_assert(std::tuple_size_v<decltype(tpl1)> == 2);
         });
     });
 
