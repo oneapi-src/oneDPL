@@ -36,7 +36,7 @@ template <uint32_t N, typename T, uint32_t L = 4>
 struct Vector
 {
     std::enable_if_t<N%L==0, sycl::vec<T, L> > data[N / L];
-    FORCE_INLINE void load(sycl::ext::oneapi::sub_group &&sb, T *src) {
+    FORCE_INLINE void load(sycl::sub_group &&sb, T *src) {
 #pragma unroll
         for (uint32_t i = 0; i < N / L; i++) {
             data[i] = sb.load<L>(sycl::global_ptr<T>(&src[i * sb.get_max_local_range()[0] * L]));
