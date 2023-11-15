@@ -46,7 +46,8 @@ __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _Ra
     if (__num_bins > 0)
     {
         oneapi::dpl::__par_backend_hetero::__parallel_histogram(::std::forward<_ExecutionPolicy>(exec), __first, __last,
-                                                                __histogram_first, __num_bins, __func, __opt_range...);
+                                                                __histogram_first, __num_bins, __func,
+                                                                ::std::forward<_Range>(__opt_range)...);
     }
 }
 
