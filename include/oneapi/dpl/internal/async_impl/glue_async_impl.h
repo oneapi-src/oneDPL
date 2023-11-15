@@ -62,7 +62,7 @@ transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = oneapi::dpl::__internal::__pattern_walk3_async(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
-        oneapi::dpl::__internal::__transform_functor<_BinaryOperation>>(std::move(__op)));
+        oneapi::dpl::__internal::__transform_functor<_BinaryOperation>>(::std::move(__op)));
     return ret_val;
 }
 
