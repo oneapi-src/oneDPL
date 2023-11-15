@@ -37,10 +37,10 @@ namespace __par_backend_hetero
 
 //no boost baseline
 template <typename _BinHash>
-struct __SLM_boost_impl
+struct __SLM_boost
 {
     _BinHash __bin_hash;
-    __SLM_boost_impl(_BinHash __bin_hash) : __bin_hash(__bin_hash) {}
+    __SLM_boost(_BinHash __bin_hash) : __bin_hash(__bin_hash) {}
 
     template <typename _T2>
     inline ::std::uint32_t
@@ -83,14 +83,14 @@ struct __SLM_boost_impl
 };
 
 template <typename _Range>
-struct __SLM_boost_impl<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
+struct __SLM_boost<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
 {
     using _BinHashType = typename oneapi::dpl::__internal::__custom_range_binhash<_Range>;
     _BinHashType __bin_hash;
 
     using __boundary_type = typename _BinHashType::__boundary_type;
 
-    __SLM_boost_impl(_BinHashType __bin_hash) : __bin_hash(__bin_hash) {}
+    __SLM_boost(_BinHashType __bin_hash) : __bin_hash(__bin_hash) {}
 
     template <typename _T2>
     inline ::std::uint32_t
@@ -505,7 +505,7 @@ __parallel_histogram_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __la
     //wrap binhash in a wrapper to allow shared memory boost where available
     return __parallel_histogram_sycl_impl<__iters_per_work_item>(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __histogram_first, __num_bins,
-        __SLM_boost_impl(__func), ::std::forward<_Range...>(__opt_range)...);
+        __SLM_boost(__func), ::std::forward<_Range...>(__opt_range)...);
 }
 
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2,
