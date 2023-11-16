@@ -201,7 +201,7 @@ __accum_local_atomics_iter(const _Iter1& __in_acc, const ::std::size_t& __index,
     }
 }
 
-template <typename _BinType, typename _HistAccessorIn, typename _OffsetT, typename _HistAccessorOut, typename _Size>
+template <typename _BinType, typename _FactorType, typename _HistAccessorIn, typename _OffsetT, typename _HistAccessorOut, typename _Size>
 inline void
 __reduce_out_histograms(const _HistAccessorIn& __in_histogram, const _OffsetT& __offset,
                         const _HistAccessorOut& __out_histogram, const _Size& __num_bins,
@@ -209,8 +209,8 @@ __reduce_out_histograms(const _HistAccessorIn& __in_histogram, const _OffsetT& _
 {
     ::std::uint32_t __gSize = __self_item.get_local_range()[0];
     ::std::uint32_t __self_lidx = __self_item.get_local_id(0);
-    ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, __gSize);
-    ::std::uint8_t __k = 0;
+    _FactorType __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, __gSize);
+    _FactorType __k = 0;
 
     for (; __k < __factor - 1; __k++)
     {
@@ -295,7 +295,7 @@ __histogram_general_registers_local_reduction(_ExecutionPolicy&& __exec, const s
 
                 __dpl_sycl::__group_barrier(__self_item);
 
-                __reduce_out_histograms<_bin_type>(__local_histogram, 0, __bins, __num_bins, __self_item);
+                __reduce_out_histograms<_bin_type, ::std::uint8_t>(__local_histogram, 0, __bins, __num_bins, __self_item);
             });
     });
 }
@@ -357,7 +357,7 @@ __histogram_general_local_atomics(_ExecutionPolicy&& __exec, const sycl::event& 
                              }
                              __dpl_sycl::__group_barrier(__self_item);
 
-                             __reduce_out_histograms<_bin_type>(__local_histogram, 0, __bins, __num_bins, __self_item);
+                             __reduce_out_histograms<_bin_type, ::std::uint16_t>(__local_histogram, 0, __bins, __num_bins, __self_item);
                          });
     });
 }
@@ -423,7 +423,7 @@ __histogram_general_private_global_atomics(_ExecutionPolicy&& __exec, const sycl
 
                 __dpl_sycl::__group_barrier(__self_item);
 
-                __reduce_out_histograms<_bin_type>(__hacc_private, __wgroup_idx * __num_bins, __bins, __num_bins,
+                __reduce_out_histograms<_bin_type, ::std::uint32_t>(__hacc_private, __wgroup_idx * __num_bins, __bins, __num_bins,
                                                    __self_item);
             });
     });
