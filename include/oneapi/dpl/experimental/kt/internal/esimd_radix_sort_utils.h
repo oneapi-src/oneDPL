@@ -10,6 +10,8 @@
 #ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
 
+#include "oneapi/dpl/pstl/onedpl_config.h"
+
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
 #else
@@ -752,12 +754,105 @@ __create_simd(_T initial, _T step)
     __dpl_esimd_ns::simd<_T, _N> ret;
     ret.template select<16, 1>(0) = __dpl_esimd_ns::simd<_T, 16>(0, 1) * step + initial;
     __dpl_esimd_ns::fence<__dpl_esimd_ns::fence_mask::sw_barrier>();
-#pragma unroll
+    _ONEDPL_PRAGMA_UNROLL
     for (int pos = 16; pos < _N; pos += 16)
     {
         ret.template select<16, 1>(pos) = ret.template select<16, 1>(0) + pos * step;
     }
     return ret;
+}
+
+template <typename _T>
+struct _slm_lookup_t
+{
+    ::std::uint32_t __slm;
+    inline _slm_lookup_t(::std::uint32_t __slm) : __slm(__slm) {}
+
+    template <int __table_size>
+    inline void
+    __setup(__dpl_esimd_ns::simd<_T, __table_size> __source) SYCL_ESIMD_FUNCTION
+    {
+        __utils::__block_store_slm<_T, __table_size>(__slm, __source);
+    }
+
+    template <int _N, typename _Idx>
+    inline auto
+    __lookup(_Idx __idx) SYCL_ESIMD_FUNCTION
+    {
+        return __utils::__vector_load<_T, 1, _N>(__slm + __dpl_esimd_ns::simd<::std::uint32_t, _N>(__idx) * sizeof(_T));
+    }
+
+    template <int _N, int __table_size, typename _Idx>
+    inline auto
+    __lookup(__dpl_esimd_ns::simd<_T, __table_size> __source, _Idx __idx) SYCL_ESIMD_FUNCTION
+    {
+        __setup(__source);
+        return __lookup<_N>(__idx);
+    }
+};
+
+template<typename _T, typename _Acc>
+struct _keys_pack
+{
+    using _KeyT = _T;
+    using _ValT = void;
+    _Acc __keys;
+    _keys_pack(const _Acc& __keys): __keys(__keys) {}
+};
+
+template<typename _T1, typename _T2, typename _Acc1, typename _Acc2>
+struct _pairs_pack
+{
+    using _KeyT = _T1;
+    using _ValT = _T2;
+    _Acc1 __keys;
+    _Acc2 __vals;
+    _pairs_pack(const _Acc1& __keys, const _Acc2& __vals): __keys(__keys), __vals(__vals) {}
+};
+
+template<typename _KeysRng, typename _ValsRng>
+auto __make_pack(_KeysRng& __keys_rng, _ValsRng& __vals_rng)
+{
+    using _KeyT = oneapi::dpl::__internal::__value_t<_KeysRng>;
+    using _ValT = oneapi::dpl::__internal::__value_t<_ValsRng>;
+    using _KeysData = decltype(__keys_rng.data());
+    using _ValsData = decltype(__vals_rng.data());
+    return _pairs_pack<_KeyT, _ValT, _KeysData, _ValsData> {__keys_rng.data(), __vals_rng.data()};
+}
+
+template<typename _KeysRng>
+auto __make_pack(_KeysRng& __keys_rng)
+{
+    using _KeyT = oneapi::dpl::__internal::__value_t<_KeysRng>;
+    using _KeysData = decltype(__keys_rng.data());
+    return _keys_pack<_KeyT, _KeysData>{__keys_rng.data()};
+}
+
+template<::std::uint16_t _N, typename _KeyT>
+struct _keys_simd_pack
+{
+    __dpl_esimd_ns::simd<_KeyT, _N> __keys;
+};
+
+template< ::std::uint16_t _N, typename _KeyT, typename _ValT>
+struct _pairs_simd_pack
+{
+    __dpl_esimd_ns::simd<_KeyT, _N> __keys;
+    __dpl_esimd_ns::simd<_ValT, _N> __vals;
+};
+
+template<::std::uint16_t _N, typename _T1, typename _T2 = void>
+auto
+__make_simd_pack()
+{
+    if constexpr (::std::is_void_v<_T2>)
+    {
+        return __utils::_keys_simd_pack<_N, _T1>{};
+    }
+    else
+    {
+        return __utils::_pairs_simd_pack<_N, _T1, _T2>{};
+    }
 }
 
 } // namespace __utils

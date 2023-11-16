@@ -245,7 +245,7 @@ class guard_view
         return size() == 0;
     }
 
-    // Unified funciton to get pointer or accessor to use inside ESIMD kernels
+    // Unified function to get pointer or accessor to use inside ESIMD kernels
     _Iterator data()
     {
         return m_p;
