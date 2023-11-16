@@ -534,25 +534,25 @@ struct __get_sycl_range
 
         auto __get_buf = [&]()
         {
-            if constexpr(__is_copy_direct)
+            if constexpr (__is_copy_direct)
             {
-                if constexpr(__test_addressof<_Iter>(0))
+                if constexpr (__test_addressof<_Iter>(0))
                 {
-                    //buffer will wait and copying on destructor; an exclusive access buffer, good performance
+                    //wait and copy on a buffer destructor; an exclusive access buffer, good performance
                     return sycl::buffer<_T, 1>(::std::addressof(*__first), __last - __first);
                 }
                 else
                 {
                     sycl::buffer<_T, 1> __buf(__first, __last); //a non-exclusive access buffer, poor performance
-                    if(__is_copy_back)
-                        __buf.set_final_data(__first); //buffer wait and copying on destructor
+                    if (__is_copy_back)
+                        __buf.set_final_data(__first); //wait and copy on a buffer destructor
                     return __buf;
                 }
             }
             else
             {
                 sycl::buffer<_T, 1> __buf(__last - __first);
-                __buf.set_final_data(__first); //buffer wait and copying on destructor
+                __buf.set_final_data(__first); //wait and copy on a buffer destructor
                 return __buf;
             }
         };
