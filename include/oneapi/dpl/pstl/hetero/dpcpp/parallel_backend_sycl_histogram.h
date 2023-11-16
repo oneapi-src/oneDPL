@@ -64,20 +64,20 @@ struct __binhash_SLM_wrapper
     }
 
     inline void
-    init_SLM_memory(void* __SLM_mem, const sycl::nd_item<1>& __self_item) const
+    init_SLM_memory(void* /*__SLM_mem*/, const sycl::nd_item<1>& /*__self_item*/) const
     {
     }
 
     template <typename _T2>
     inline ::std::uint32_t
-    get_bin(_T2&& __value, void* __SLM_mem) const
+    get_bin(_T2&& __value, void* /*__SLM_mem*/) const
     {
         return get_bin(::std::forward<_T2>(__value));
     }
 
     template <typename _T2>
     inline bool
-    is_valid(_T2&& __value, void* __SLM_mem) const
+    is_valid(_T2&& __value, void* /*__SLM_mem*/) const
     {
         return is_valid(::std::forward<_T2>(__value));
     }
