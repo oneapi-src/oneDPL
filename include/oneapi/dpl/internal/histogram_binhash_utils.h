@@ -116,7 +116,7 @@ struct __custom_range_binhash
     }
 
     _Range
-    get_range()
+    get_range() const
     {
         return __boundaries;
     }
