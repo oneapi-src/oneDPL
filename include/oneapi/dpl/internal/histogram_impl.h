@@ -86,12 +86,11 @@ __histogram_impl(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _Rando
 
 } // namespace __internal
 
-template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size,
-          typename _RandomAccessIterator2, typename _ValueType>
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
+          typename _ValueType>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
-histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last,
-          _Size num_bins, _ValueType first_bin_min_val, _ValueType last_bin_max_val,
-          _RandomAccessIterator2 histogram_first)
+histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last, _Size num_bins,
+          _ValueType first_bin_min_val, _ValueType last_bin_max_val, _RandomAccessIterator2 histogram_first)
 {
     __internal::__histogram_impl(::std::forward<_ExecutionPolicy>(exec), first, last, histogram_first, num_bins,
                                  first_bin_min_val, last_bin_max_val);
@@ -106,8 +105,8 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
           _RandomAccessIterator3 histogram_first)
 {
     ::std::ptrdiff_t num_bins = boundary_last - boundary_first - 1;
-    __internal::__histogram_impl(::std::forward<_ExecutionPolicy>(exec), first, last, histogram_first,
-                                 boundary_first, boundary_last);
+    __internal::__histogram_impl(::std::forward<_ExecutionPolicy>(exec), first, last, histogram_first, boundary_first,
+                                 boundary_last);
     return histogram_first + num_bins;
 }
 
