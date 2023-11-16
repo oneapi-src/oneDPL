@@ -20,6 +20,7 @@
 #endif
 
 #include <cstdint>
+#include <type_traits>
 
 #include "esimd_radix_sort_utils.h"
 #include "../../../pstl/utils.h"
