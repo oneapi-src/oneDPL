@@ -24,10 +24,6 @@
 
 using namespace TestUtils;
 
-template <typename... Types>
-using typle_t = oneapi::dpl::__internal::tuple<Types...>;
-//using typle_t = ::std::tuple<Types...>;
-
 template <typename InputIterator, typename OutputIterator>
 void
 check_and_reset(InputIterator first, InputIterator last, OutputIterator out_first)
@@ -59,7 +55,7 @@ struct test_one_policy
     }
 };
 
-template <typename U>
+template <typename TInput, typename TOutput>
 class ZipComplement
 {
     std::int32_t val;
@@ -68,10 +64,9 @@ public:
 
     ZipComplement(std::size_t v) : val(v) {}
 
-    template <typename T1, typename T2>
-    U operator()(const typle_t<T1, T2>& x) const
+    TOutput operator()(const ::std::tuple<const TInput&, const TInput&>& x) const
     {
-        return U(val - std::get<0>(x) - std::get<1>(x));
+        return TOutput(val - std::get<0>(x) - std::get<1>(x));
     }
 };
 
@@ -88,7 +83,7 @@ test()
         auto in_zip_end = dpl::make_zip_iterator(in_a.end(), in_b.end());
 
         Sequence<Tout> out(n);
-        const ZipComplement<Tout> flip(1);
+        const ZipComplement<Tin, Tout> flip(1);
 
         invoke_on_all_policies<0>()(test_one_policy<Tin, Tout>(), in_zip_begin, in_zip_end, out.begin(), out.end(), flip);
 #if !ONEDPL_FPGA_DEVICE
