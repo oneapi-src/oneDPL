@@ -177,6 +177,7 @@ jobs:
         run: |
           set -x
           source $CONDA/bin/activate
+          source /usr/share/miniconda/env/setvars.sh
           export PATH=$CONDA/lib:$PATH
           export CPATH=$CONDA/include:$CPATH
           export OCL_ICD_FILENAMES=$CONDA/lib/libintelocl.so
@@ -222,6 +223,7 @@ jobs:
         run: |
           set -x
           source $CONDA/bin/activate
+          source /usr/share/miniconda/env/setvars.sh
           export PATH=$CONDA/lib:$PATH
           export CPATH=$CONDA/include:$CPATH
           export OCL_ICD_FILENAMES=$CONDA/lib/libintelocl.so
