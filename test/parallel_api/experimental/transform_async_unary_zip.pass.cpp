@@ -50,7 +50,7 @@ template <typename T1, typename T2>
 struct test_one_policy
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename UnaryOp>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy>
+    void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, UnaryOp op)
     {
@@ -58,14 +58,6 @@ struct test_one_policy
         result.wait();
 
         check_and_reset(first, last, out_first);
-    }
-
-    template <typename Policy, typename InputIterator, typename OutputIterator, typename UnaryOp>
-    ::std::enable_if_t<!oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>>, void>
-    operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
-               OutputIterator out_last, UnaryOp op)
-    {
-        // transform_async implemented now only for hetero policy
     }
 };
 
@@ -100,13 +92,17 @@ test()
         Sequence<Tout> out(n);
         const ZipComplement<Tin, Tout> flip(1);
 
-        invoke_on_all_policies<0>()(test_one_policy<Tin, Tout>(), in_zip_begin, in_zip_end, out.begin(), out.end(), flip);
+        // transform_async implemented now only for hetero policy
+        invoke_on_all_hetero_policies<0>()(test_one_policy<Tin, Tout>(), in_zip_begin, in_zip_end, out.begin(),
+                                           out.end(), flip);
 #if !ONEDPL_FPGA_DEVICE
         {
             auto in_zip_cbegin = dpl::make_zip_iterator(in_a.cbegin(), in_b.cbegin());
             auto in_zip_cend = dpl::make_zip_iterator(in_a.cend(), in_b.cend());
 
-            invoke_on_all_policies<1>()(test_one_policy<Tin, Tout>(), in_zip_cbegin, in_zip_cend, out.begin(), out.end(), flip);
+            // transform_async implemented now only for hetero policy
+            invoke_on_all_hetero_policies<1>()(test_one_policy<Tin, Tout>(), in_zip_cbegin, in_zip_cend, out.begin(),
+                                               out.end(), flip);
         }
 #endif // ONEDPL_FPGA_DEVICE
     }
