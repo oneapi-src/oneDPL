@@ -120,7 +120,7 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
         ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__bin_hash.__boundaries.size(), __gSize);
         ::std::uint8_t __k = 0;
         __boundary_type* __d_boundaries = static_cast<__boundary_type*>(__boost_mem);
-        for (__k; __k < __factor - 1; __k++)
+        for (; __k < __factor - 1; __k++)
         {
             __d_boundaries[__gSize * __k + __self_lidx] = __bin_hash.__boundaries[__gSize * __k + __self_lidx];
         }
@@ -159,7 +159,7 @@ __clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _Offset
     ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, __gSize);
     ::std::uint8_t __k = 0;
 
-    for (__k; __k < __factor - 1; __k++)
+    for (; __k < __factor - 1; __k++)
     {
         __local_histogram[__offset + __gSize * __k + __self_lidx] = 0;
     }
@@ -212,7 +212,7 @@ __reduce_out_histograms(const _HistAccessorIn& __in_histogram, const _OffsetT& _
     ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, __gSize);
     ::std::uint8_t __k = 0;
 
-    for (__k; __k < __factor - 1; __k++)
+    for (; __k < __factor - 1; __k++)
     {
         __dpl_sycl::__atomic_ref<_BinType, sycl::access::address_space::global_space> __global_bin(
             __out_histogram[__gSize * __k + __self_lidx]);
