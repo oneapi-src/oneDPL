@@ -103,8 +103,8 @@ struct __custom_range_binhash
     inline ::std::uint32_t
     get_bin(_T2&& __value) const
     {
-        return (::std::upper_bound(__boundaries.begin(), __boundaries.end(), ::std::forward<_T2>(__value)) -
-                __boundaries.begin()) -
+        return std::distance(__boundaries.begin(), ::std::upper_bound(__boundaries.begin(), __boundaries.end(),
+                                                                      ::std::forward<_T2>(__value))) -
                1;
     }
 
