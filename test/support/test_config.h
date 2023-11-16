@@ -137,7 +137,7 @@
 // oneAPI DPC++ compiler in 2023.2 release build crashes during optimization of reduce_by_segment.pass.cpp
 // with TBB backend.
 #if !PSTL_USE_DEBUG && TEST_TBB_BACKEND_PRESENT && defined(__INTEL_LLVM_COMPILER)
-#   define _PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH (__INTEL_LLVM_COMPILER == 20230200)
+#   define _PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH ((__INTEL_LLVM_COMPILER == 20230200) || (__INTEL_LLVM_COMPILER == 20240000))
 #else
 #   define _PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH 0
 #endif
