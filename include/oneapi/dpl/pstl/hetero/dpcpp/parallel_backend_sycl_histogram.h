@@ -432,17 +432,17 @@ __histogram_general_private_global_atomics(_ExecutionPolicy&& __exec, const sycl
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2,
           typename _Size, typename _IdxHashFunc, typename... _Range>
 inline auto
-__parallel_histogram_sycl_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
+__parallel_histogram_sycl_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
                                const _Size& __num_bins, _IdxHashFunc __func, _Range&&... __opt_range)
 {
     using __local_histogram_type = ::std::uint32_t;
     using __global_histogram_type = typename ::std::iterator_traits<_Iter2>::value_type;
 
-    ::std::size_t __max_wgroup_size = oneapi::dpl::__internal::__max_work_group_size(exec);
+    ::std::size_t __max_wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
     ::std::uint16_t __work_group_size = ::std::min(::std::size_t(1024), __max_wgroup_size);
 
-    auto __local_mem_size = exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
+    auto __local_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
     constexpr ::std::uint8_t __max_work_item_private_bins = 16;
 
     auto keep_bins =
@@ -452,7 +452,7 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 _
     auto __f = oneapi::dpl::__internal::fill_functor<__global_histogram_type>{__global_histogram_type{0}};
     //fill histogram bins with zeros
     auto init_e = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(exec), unseq_backend::walk_n<_ExecutionPolicy, decltype(__f)>{__f}, __num_bins,
+        __exec, unseq_backend::walk_n<_ExecutionPolicy, decltype(__f)>{__f}, __num_bins,
         bins_buf.all_view());
     auto n = __last - __first;
 
@@ -471,20 +471,20 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& exec, _Iter1 __first, _Iter1 _
         if (__num_bins < __max_work_item_private_bins)
         {
             e = __histogram_general_registers_local_reduction<__iters_per_work_item, __max_work_item_private_bins>(
-                ::std::forward<_ExecutionPolicy>(exec), init_e, __work_group_size, input_buf.all_view(),
+                ::std::forward<_ExecutionPolicy>(__exec), init_e, __work_group_size, input_buf.all_view(),
                 bins_buf.all_view(), __num_bins, __func, ::std::forward<_Range...>(__opt_range)...);
         }
         // if bins fit into SLM, use local atomics
         else if ((__num_bins + extra_SLM_elements) * sizeof(__local_histogram_type) < __local_mem_size)
         {
             e = __histogram_general_local_atomics<__iters_per_work_item>(
-                ::std::forward<_ExecutionPolicy>(exec), init_e, __work_group_size, input_buf.all_view(),
+                ::std::forward<_ExecutionPolicy>(__exec), init_e, __work_group_size, input_buf.all_view(),
                 bins_buf.all_view(), __num_bins, __func, ::std::forward<_Range...>(__opt_range)...);
         }
         else // otherwise, use global atomics (private copies per workgroup)
         {
             e = __histogram_general_private_global_atomics<__iters_per_work_item>(
-                ::std::forward<_ExecutionPolicy>(exec), init_e, __work_group_size, input_buf.all_view(),
+                ::std::forward<_ExecutionPolicy>(__exec), init_e, __work_group_size, input_buf.all_view(),
                 bins_buf.all_view(), __num_bins, __func, ::std::forward<_Range...>(__opt_range)...);
         }
         return __future(e);
