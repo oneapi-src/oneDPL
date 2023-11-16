@@ -59,7 +59,7 @@ __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _Ra
                     _RandomAccessIterator2 __histogram_first, const _Size& __num_bins, _IdxHashFunc __func,
                     _Range&&... __opt_range)
 {
-    assert(false && "Histogram API is not currently supported for host parallel policies");
+    static_assert(sizeof(_Size) == 0 /*false*/, "Histogram API is not currently supported for host parallel policies");
 }
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Size,
