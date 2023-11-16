@@ -36,6 +36,10 @@ New in This Release
   ``libstdc++`` version 8 or ``libc++``, ``oneapi::dpl::execution::par_unseq`` offloads
   standard parallel algorithms to the SYCL device similarly to ``std::execution::par_unseq``
   in accordance with the ``-fsycl-pstl-offload`` option value.
+- When using the dpl modulefile to initialize the user's environment and compiling with ``-fsycl-pstl-offload``
+  option of Intel® oneAPI DPC++/C++ compiler, a linking issue or program crash may be encountered due to the directory
+  containing libpstloffload.so not being included in the search path. Use the env/vars.sh to configure the working
+  environment to avoid the issue.
 - Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
 - Incorrect results may be produced by ``set_intersection`` with a DPC++ execution policy,
   where elements are copied from the second input range rather than the first input range. 

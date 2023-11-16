@@ -41,7 +41,7 @@ main()
     {
         sycl::queue q = TestUtils::get_test_queue();
         q.submit([&](sycl::handler& cgh) {
-            cgh.single_task<class KernelTest1>([=]() { static_assert(noexcept(offsetof(A, x))); });
+            cgh.single_task<class KernelTest1>([=]() { ASSERT_NOEXCEPT(offsetof(A, x)); });
         });
     }
 #endif // TEST_DPCPP_BACKEND_PRESENT

@@ -26,7 +26,7 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
-//Need to revert the chang when GPU runtime fix their issue
+//Need to revert the change when GPU runtime fix their issue
 template <class Iter, class T>
 bool
 test(Iter first, Iter last, const T& value)

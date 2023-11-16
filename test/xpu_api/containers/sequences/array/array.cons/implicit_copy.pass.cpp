@@ -42,8 +42,7 @@ main()
         q.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest1>([=]() {
                 {
-                    typedef float T;
-                    typedef dpl::array<T, 3> C;
+                    typedef dpl::array<float, 3> C;
                     C c = {1.1f, 2.2f, 3.3f};
                     C c2 = c;
                     c2 = c;
@@ -51,8 +50,7 @@ main()
                     static_assert(dpl::is_copy_assignable<C>::value);
                 }
                 {
-                    typedef float T;
-                    typedef dpl::array<const T, 3> C;
+                    typedef dpl::array<const float, 3> C;
                     C c = {1.1f, 2.2f, 3.3f};
                     C c2 = c;
                     ((void)c2);
@@ -60,8 +58,7 @@ main()
                     TEST_NOT_COPY_ASSIGNABLE(C);
                 }
                 {
-                    typedef float T;
-                    typedef dpl::array<T, 0> C;
+                    typedef dpl::array<float, 0> C;
                     C c = {};
                     C c2 = c;
                     c2 = c;
@@ -71,16 +68,14 @@ main()
                 {
                     // const arrays of size 0 should disable the implicit copy assignment
                     // operator.
-                    typedef float T;
-                    typedef dpl::array<const T, 0> C;
+                    typedef dpl::array<const float, 0> C;
                     const C c = {{}};
                     C c2 = c;
                     ((void)c2);
                     static_assert(dpl::is_copy_constructible<C>::value);
                 }
                 {
-                    typedef NoDefault T;
-                    typedef dpl::array<T, 0> C;
+                    typedef dpl::array<NoDefault, 0> C;
                     C c = {};
                     C c2 = c;
                     c2 = c;
@@ -88,8 +83,7 @@ main()
                     static_assert(dpl::is_copy_assignable<C>::value);
                 }
                 {
-                    typedef NoDefault T;
-                    typedef dpl::array<const T, 0> C;
+                    typedef dpl::array<const NoDefault, 0> C;
                     C c = {{}};
                     C c2 = c;
                     ((void)c2);
