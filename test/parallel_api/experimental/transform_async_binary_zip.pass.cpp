@@ -74,7 +74,7 @@ struct test_one_policy
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
               typename BinaryOp>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy>
+    void
     operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 /* last2 */,
                OutputIterator out_first, OutputIterator /* out_last */, BinaryOp op)
     {
@@ -82,15 +82,6 @@ struct test_one_policy
         result.wait();
 
         check_and_reset(first1, last1, first2, out_first);
-    }
-
-    template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
-              typename BinaryOp>
-    ::std::enable_if_t<!oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>>, void>
-    operator()(Policy&& exec, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-               InputIterator2 /* last2 */, OutputIterator out_first, OutputIterator /* out_last */, BinaryOp op)
-    {
-        // transform_async implemented now only for hetero policy
     }
 };
 
@@ -113,11 +104,12 @@ test(Predicate pred)
 
         Sequence<TOutput> out(n, [](size_t) { return -1; });
 
-        invoke_on_all_policies<0>()(test_one_policy<TInput1, TInput2, TOutput>(),
-                                    in1_zip_begin, in1_zip_end,
-                                    in2_zip_begin, in2_zip_end,
-                                    out.begin(), out.end(),
-                                    pred);
+        // transform_async implemented now only for hetero policy
+        invoke_on_all_hetero_policies<0>()(test_one_policy<TInput1, TInput2, TOutput>(),
+                                           in1_zip_begin, in1_zip_end,
+                                           in2_zip_begin, in2_zip_end,
+                                           out.begin(), out.end(),
+                                           pred);
 
 #if !ONEDPL_FPGA_DEVICE
         {
@@ -127,11 +119,12 @@ test(Predicate pred)
             auto in2_zip_cbegin = dpl::make_zip_iterator(in2_a.cbegin(), in1_b.cbegin());
             auto in2_zip_cend   = dpl::make_zip_iterator(in2_a.cend(),   in2_b.cend());
 
-            invoke_on_all_policies<1>()(test_one_policy<TInput1, TInput2, TOutput>(),
-                                        in1_zip_cbegin, in1_zip_cend,
-                                        in2_zip_cbegin, in2_zip_cend,
-                                        out.begin(), out.end(),
-                                        pred);
+            // transform_async implemented now only for hetero policy
+            invoke_on_all_hetero_policies<1>()(test_one_policy<TInput1, TInput2, TOutput>(),
+                                               in1_zip_cbegin, in1_zip_cend,
+                                               in2_zip_cbegin, in2_zip_cend,
+                                               out.begin(), out.end(),
+                                               pred);
         }
 #endif // ONEDPL_FPGA_DEVICE
     }
