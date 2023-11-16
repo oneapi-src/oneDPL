@@ -26,12 +26,11 @@ namespace dpl
 // Only supported for dpcpp backend
 #ifdef _ONEDPL_BACKEND_SYCL
 
-template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size,
-          typename _RandomAccessIterator2, typename _ValueType= typename ::std::iterator_traits<_RandomAccessIterator1>::value_type>
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2,
+          typename _ValueType = typename ::std::iterator_traits<_RandomAccessIterator1>::value_type>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
-histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last,
-          _Size num_bins, _ValueType first_bin_min_val, _ValueType last_bin_max_val,
-          _RandomAccessIterator2 histogram_first);
+histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last, _Size num_bins,
+          _ValueType first_bin_min_val, _ValueType last_bin_max_val, _RandomAccessIterator2 histogram_first);
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _RandomAccessIterator3>
