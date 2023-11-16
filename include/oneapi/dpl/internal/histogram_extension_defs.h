@@ -26,19 +26,19 @@ namespace dpl
 // Only supported for dpcpp backend
 #ifdef _ONEDPL_BACKEND_SYCL
 
-template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _T,
-          typename _RandomAccessIterator2>
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size,
+          typename _RandomAccessIterator2, typename _ValueType= typename ::std::iterator_traits<_RandomAccessIterator1>::value_type>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
-histogram(_ExecutionPolicy&& policy, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
-          const _Size& __num_bins, const _T& __first_bin_min_val, const _T& __last_bin_max_val,
-          _RandomAccessIterator2 __histogram_first);
+histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last,
+          _Size num_bins, _ValueType first_bin_min_val, _ValueType last_bin_max_val,
+          _RandomAccessIterator2 histogram_first);
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _RandomAccessIterator3>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator3>
-histogram(_ExecutionPolicy&& policy, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
-          _RandomAccessIterator2 __boundary_first, _RandomAccessIterator2 __boundary_last,
-          _RandomAccessIterator3 __histogram_first);
+histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last,
+          _RandomAccessIterator2 boundary_first, _RandomAccessIterator2 boundary_last,
+          _RandomAccessIterator3 histogram_first);
 
 #endif // _ONEDPL_BACKEND_SYCL
 
