@@ -35,7 +35,8 @@ namespace dpl
 namespace __par_backend_hetero
 {
 
-//no boost baseline
+// Baseline wrapper which provides no acceleration via SLM memory, but still
+// allows generic calls to a wrapped binhash structure from within the kernels
 template <typename _BinHash>
 struct __binhash_SLM_wrapper
 {
@@ -82,6 +83,8 @@ struct __binhash_SLM_wrapper
     }
 };
 
+// Specialization for custom range binhash function which stores boundary data
+// into SLM for quick repeated usage
 template <typename _Range>
 struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
 {
