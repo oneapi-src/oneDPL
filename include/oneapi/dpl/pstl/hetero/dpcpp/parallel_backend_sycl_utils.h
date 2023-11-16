@@ -499,7 +499,7 @@ struct __usm_host_or_buffer_accessor
 #else
     __usm_host_or_buffer_accessor(sycl::handler& __cgh, bool, ::std::shared_ptr<sycl::buffer<_T, 1>> __sycl_buf,
                                   ::std::shared_ptr<_T> __usm_buf)
-        : __usm(false), __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})), __usm(false)
     {
     }
 #endif
