@@ -791,23 +791,23 @@ struct _slm_lookup_t
     }
 };
 
-template<typename _KeyT, typename _KeysData>
+template<typename _T, typename _Acc>
 struct _keys_pack
 {
-    using __key_t = _KeyT;
-    using __val_t = void;
-    _KeysData __keys;
-    _keys_pack(const _KeysData& __keys): __keys(__keys) {}
+    using _KeyT = _T;
+    using _ValT = void;
+    _Acc __keys;
+    _keys_pack(const _Acc& __keys): __keys(__keys) {}
 };
 
-template<typename _KeyT, typename _ValT, typename _KeysData, typename _ValsData>
+template<typename _T1, typename _T2, typename _Acc1, typename _Acc2>
 struct _pairs_pack
 {
-    using __key_t = _KeyT;
-    using __val_t = _ValT;
-    _KeysData __keys;
-    _ValsData __vals;
-    _pairs_pack(const _KeysData& __keys, const _ValsData& __vals): __keys(__keys), __vals(__vals) {}
+    using _KeyT = _T1;
+    using _ValT = _T2;
+    _Acc1 __keys;
+    _Acc2 __vals;
+    _pairs_pack(const _Acc1& __keys, const _Acc2& __vals): __keys(__keys), __vals(__vals) {}
 };
 
 template<typename _KeysRng, typename _ValsRng>

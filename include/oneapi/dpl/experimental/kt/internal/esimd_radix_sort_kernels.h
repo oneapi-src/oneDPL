@@ -324,8 +324,8 @@ struct __radix_sort_onesweep_kernel
     using _LocOffsetT = ::std::uint16_t;
     using _GlobOffsetT = ::std::uint32_t;
 
-    using _KeyT = typename _InValuesPack::__key_t;
-    using _ValT = typename _InValuesPack::__val_t;
+    using _KeyT = typename _InValuesPack::_KeyT;
+    using _ValT = typename _InValuesPack::_ValT;
     static constexpr bool __has_values = !::std::is_void_v<_ValT>;
 
     static constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
