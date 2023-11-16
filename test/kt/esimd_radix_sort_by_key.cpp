@@ -119,5 +119,5 @@ int main()
         }
     }
 
-    return TestUtils::done();
+    return TestUtils::done(run_test);
 }

@@ -112,7 +112,7 @@ class __onesweep_memory_holder
 
     void __appoint_aligned_memory_regions()
     {
-        // It assumes that the raw pointer is already alligned for _HistT
+        // It assumes that the raw pointer is already aligned for _HistT
         __m_global_hist_ptr = reinterpret_cast<_HistT*>(__m_raw_mem_ptr);
         __m_group_hist_ptr = reinterpret_cast<_HistT*>(__m_raw_mem_ptr + __m_global_hist_bytes);
 
