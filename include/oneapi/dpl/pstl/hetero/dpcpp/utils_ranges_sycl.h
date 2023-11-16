@@ -344,9 +344,10 @@ struct __get_sycl_range
     ::std::vector<::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base>> m_buffers;
 
     //SFINAE iterator type checks
-    template<typename _It, typename _T = decltype(::std::addressof(*_It{}))>
-    constexpr ::std::true_type __test_addressof(_It) { return {};}
-    constexpr ::std::false_type __test_addressof(...) { return {};}
+    template<typename It, typename T = decltype(std::addressof(*It{}))>
+    static constexpr std::true_type __test_addressof(int) { return {};}
+    template<typename It>
+    static constexpr std::false_type __test_addressof(...) { return {};}
 
     template <typename _F, typename _It, typename _DiffType>
     static auto
@@ -535,7 +536,7 @@ struct __get_sycl_range
         {
             if constexpr(__is_copy_direct)
             {
-                if constexpr(__test_addressof(_Iter{}))
+                if constexpr(__test_addressof<_Iter>(0))
                 {
                     //buffer will wait and copying on destructor; an exclusive access buffer, good performance
                     return sycl::buffer<_T, 1>(::std::addressof(*__first), __last - __first);
