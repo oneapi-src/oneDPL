@@ -21,8 +21,8 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#    if TEST_STD_VER == 17
+// dpl::is_literal_type is removed since C++20
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER == 17
 template <class KernelTest, class T>
 void
 test_is_literal_type(sycl::queue& deviceQueue)
