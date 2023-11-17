@@ -358,8 +358,6 @@ if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
         message(FATAL_ERROR "Unknown value of _ONEDPL_PSTL_OFFLOAD = ${_ONEDPL_PSTL_OFFLOAD}")
     endif()
 
-    message(STATUS "OPTION NAME ${FSYCL_PSTL_OFFLOAD_OPTION}")
-
     check_cxx_compiler_flag("${FSYCL_PSTL_OFFLOAD_OPTION}" _fsycl_pstl_offload_option)
     if (_fsycl_pstl_offload_option)
         message(STATUS "Adding ${FSYCL_PSTL_OFFLOAD_OPTION} compiler option")
