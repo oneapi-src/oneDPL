@@ -21,8 +21,8 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#    if TEST_STD_VER == 17
+// dpl::not2 is removed since C++20
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER == 17
 class KernelNot2Test;
 
 void
