@@ -444,15 +444,15 @@ class __event
     }
 };
 
-template <typename _Body, typename _DependencyInternal, typename _DependencyExternal>
+template <typename _Body, typename _Dependency>
 auto
-__submit_impl(sycl::queue __queue, _Body __body, bool __is_implicit_synch, const _DependencyInternal* __dep_int, const _DependencyExternal* __dep_ext)
+__submit_impl(sycl::queue __queue, _Body __body, bool __is_implicit_synch, const _Dependency* __dependency)
 {
     if(__queue.is_in_order() || __is_implicit_synch)
     {
         __queue.submit([&](sycl::handler& __hdl) {
-            if(__dep_ext)
-                __hdl.depends_on(*__dep_ext);
+            if(__dependency)
+                __hdl.depends_on(*__dependency);
                 __body(__hdl);
             });
         return __event(__queue);
@@ -460,10 +460,8 @@ __submit_impl(sycl::queue __queue, _Body __body, bool __is_implicit_synch, const
 
     return __event(__queue.submit([&](sycl::handler& __hdl) {
         assert(!__is_implicit_synch);
-        if(__dep_ext)
-           __hdl.depends_on(*__dep_ext);
-       if(__dep_int)
-           __hdl.depends_on(*__dep_int);
+        if(__dependency)
+           __hdl.depends_on(*__dependency);
        __body(__hdl);
        }));
 }
@@ -472,14 +470,14 @@ template <typename _Body>
 auto
 __submit(sycl::queue __queue, _Body __body)
 {
-    return __submit_impl(__queue, __body, true, NULL, NULL);
+    return __submit_impl(__queue, __body, true, NULL);
 }
 
 template <typename _Body, typename _Dependency>
 auto
 __submit(sycl::queue __queue, _Body __body, const _Dependency& __dependency)
 {
-    return __submit_impl(__queue, __body, false, &__dependency, NULL);
+    return __submit_impl(__queue, __body, false, &__dependency);
 }
 
 } // namespace __dpl_sycl
