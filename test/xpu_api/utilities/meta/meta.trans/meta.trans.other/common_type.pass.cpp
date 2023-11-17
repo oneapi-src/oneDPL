@@ -170,9 +170,6 @@ typedef void (S::*PMF)(long) const;
 typedef char S::*PMD;
 
 using dpl::is_same;
-#    if TEST_STD_VER == 17
-using dpl::result_of;
-#    endif // TEST_STD_VER
 } // namespace note_b_example
 
 void
