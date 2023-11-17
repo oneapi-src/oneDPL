@@ -208,11 +208,27 @@ auto
 __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                                  _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
-    assert(__first < __last);
+    const auto __n = __last - __first;
 
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _UnaryOperation>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
+
+    using __keep_t   = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>());
+    using __buf_t    = decltype(__keep_t{}(__first, __last));
+    using __future_t = decltype(
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, ::std::true_type>(
+            ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
+            unseq_backend::__init_value<_RepackedTp>{__init},
+            ::std::declval<__buf_t>().all_view()));
+
+    if (__n <= 0)
+    {
+        // TODO do we have some other way here?
+        auto param_tuple = __future_t::create_tuple(__init);
+        auto [param1] = param_tuple;
+        return __future_t::create_empty(std::move(param1));
+    }
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
