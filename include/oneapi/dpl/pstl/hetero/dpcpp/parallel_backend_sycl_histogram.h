@@ -436,8 +436,9 @@ inline auto
 __parallel_histogram_sycl_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
                                const _Size& __num_bins, _IdxHashFunc __func, _Range&&... __opt_range)
 {
-    using __local_histogram_type = ::std::uint32_t;
-    using __global_histogram_type = typename ::std::iterator_traits<_Iter2>::value_type;
+    using _local_histogram_type = ::std::uint32_t;
+    using _global_histogram_type = typename ::std::iterator_traits<_Iter2>::value_type;
+    using _extra_memory_type = typename _IdxHashFunc::extra_memory_type;
 
     ::std::size_t __max_wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
@@ -450,7 +451,7 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::write, _Iter2>();
     auto bins_buf = keep_bins(__histogram_first, __histogram_first + __num_bins);
 
-    auto __f = oneapi::dpl::__internal::fill_functor<__global_histogram_type>{__global_histogram_type{0}};
+    auto __f = oneapi::dpl::__internal::fill_functor<_global_histogram_type>{_global_histogram_type{0}};
     //fill histogram bins with zeros
     auto init_e = oneapi::dpl::__par_backend_hetero::__parallel_for(
         __exec, unseq_backend::walk_n<_ExecutionPolicy, decltype(__f)>{__f}, __num_bins, bins_buf.all_view());
@@ -462,11 +463,7 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1
             oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read, _Iter1>();
         auto input_buf = keep_input(__first, __last);
 
-        ::std::size_t req_SLM_bytes = __func.get_required_SLM_elements();
-        ::std::size_t extra_SLM_elements =
-            oneapi::dpl::__internal::__dpl_ceiling_div(req_SLM_bytes, sizeof(__local_histogram_type));
         // if bins fit into registers, use register private accumulation
-
         sycl::event e;
         if (__num_bins < __max_work_item_private_bins)
         {
@@ -475,7 +472,9 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1
                 bins_buf.all_view(), __num_bins, __func, ::std::forward<_Range...>(__opt_range)...);
         }
         // if bins fit into SLM, use local atomics
-        else if ((__num_bins + extra_SLM_elements) * sizeof(__local_histogram_type) < __local_mem_size)
+        else if (__num_bins * sizeof(_local_histogram_type) +
+                     __func.get_required_SLM_elements() * sizeof(_extra_memory_type) <
+                 __local_mem_size)
         {
             e = __histogram_general_local_atomics<__iters_per_work_item>(
                 ::std::forward<_ExecutionPolicy>(__exec), init_e, __work_group_size, input_buf.all_view(),
