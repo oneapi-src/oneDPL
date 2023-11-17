@@ -172,7 +172,6 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             auto in_begin = __in_rng.begin() + current_offset;
             auto in_end = __in_rng.begin() + next_offset;
             auto out_begin = __out_rng.begin() + current_offset;
-            *__out_rng.begin() = 7;
 
 
 #if SCAN_KT_DEBUG
@@ -274,6 +273,10 @@ void
 single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin, _BinaryOp __binary_op)
 {
     auto __n = __in_end - __in_begin;
+
+    // TODO: check semantics
+    if (__n == 0)
+        return;
 
 #if 0
     using _Type = std::remove_pointer_t<_InIterator>;
