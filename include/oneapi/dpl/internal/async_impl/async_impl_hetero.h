@@ -264,9 +264,20 @@ __pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __firs
                                     _Iterator2 __result, _UnaryOperation __unary_op, _InitType __init,
                                     _BinaryOperation __binary_op, _Inclusive)
 {
-    assert(__first < __last);
-
     const auto __n = __last - __first;
+
+    using __keep1_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>());
+    using __keep2_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>());
+    using __buf1_t   = decltype(__keep1_t{}(__first, __last));
+    using __buf2_t   = decltype(__keep2_t{}(__result, __result + __n));
+    using __future_t = decltype(
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::declval<__buf1_t>().all_view(), ::std::declval<__buf2_t>().all_view(), __n, __unary_op, __init,
+        __binary_op, _Inclusive{}));
+
+    if (__n <= 0)
+        return __future_t::create_empty().__make_future(__result);
+
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
