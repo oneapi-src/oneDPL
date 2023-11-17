@@ -68,7 +68,18 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
                       _ForwardIterator2 __first2, _Function __f)
 {
     const auto __n = __last1 - __first1;
-    assert(__n > 0);
+
+    using __keep1_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>());
+    using __keep2_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>());
+    using __buf1_t   = decltype(__keep1_t{}(__first1, __last1));
+    using __buf2_t   = decltype(__keep2_t{}(__first2, __first2 + __n));
+    using __future_t = decltype(
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
+            ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+            ::std::declval<__buf1_t>().all_view(), ::std::declval<__buf2_t>().all_view()));
+
+    if (__n <= 0)
+        return __future_t::create_empty().__make_future(__first2);
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>();
     auto __buf1 = __keep1(__first1, __last1);
