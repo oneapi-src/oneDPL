@@ -602,7 +602,6 @@ class __future : private std::tuple<_Args...>
     }
 
   public:
-
     using __future_t = __future<_Event, _Args...>;
     using __tuple_t = std::tuple<_Args...>;
 

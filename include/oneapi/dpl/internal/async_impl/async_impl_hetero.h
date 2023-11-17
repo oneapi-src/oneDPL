@@ -38,12 +38,12 @@ __pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forw
 {
     const auto __n = ::std::distance(__first, __last);
 
-    using __keep_t   = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>());
-    using __buf_t    = decltype(__keep_t{}(__first, __last));
-    using __future_t = decltype(
-        oneapi::dpl::__par_backend_hetero::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-            ::std::declval<__buf_t>().all_view()));
+    using __keep_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write,
+                                                                      _ForwardIterator>());
+    using __buf_t = decltype(__keep_t{}(__first, __last));
+    using __future_t = decltype(oneapi::dpl::__par_backend_hetero::__parallel_for(
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+        ::std::declval<__buf_t>().all_view()));
 
     if (__n <= 0)
         return __future_t::create_empty();
@@ -69,14 +69,13 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
 {
     const auto __n = ::std::distance(__first1, __last1);
 
-    using __keep1_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>());
-    using __keep2_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>());
-    using __buf1_t   = decltype(__keep1_t{}(__first1, __last1));
-    using __buf2_t   = decltype(__keep2_t{}(__first2, __first2 + __n));
-    using __future_t = decltype(
-        oneapi::dpl::__par_backend_hetero::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-            ::std::declval<__buf1_t>().all_view(), ::std::declval<__buf2_t>().all_view()));
+    using __keep1_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>());
+    using __keep2_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>());
+    using __buf1_t = decltype(__keep1_t{}(__first1, __last1));
+    using __buf2_t = decltype(__keep2_t{}(__first2, __first2 + __n));
+    using __future_t = decltype(oneapi::dpl::__par_backend_hetero::__parallel_for(
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+        ::std::declval<__buf1_t>().all_view(), ::std::declval<__buf2_t>().all_view()));
 
     if (__n <= 0)
         return __future_t::create_empty().__make_future(__first2);
@@ -105,16 +104,19 @@ __pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
 {
     const auto __n = ::std::distance(__first1, __last1);
 
-    using __keep1_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>());
-    using __keep2_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator2>());
-    using __keep3_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator3>());
-    using __buf1_t   = decltype(__keep1_t{}(__first1, __last1));
-    using __buf2_t   = decltype(__keep2_t{}(__first2, __first2 + __n));
-    using __buf3_t   = decltype(__keep3_t{}(__first3, __first3 + __n));
-    using __future_t = decltype(
-        oneapi::dpl::__par_backend_hetero::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-            ::std::declval<__buf1_t>().all_view(), ::std::declval<__buf2_t>().all_view(), ::std::declval<__buf3_t>().all_view()));
+    using __keep1_t =
+        decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>());
+    using __keep2_t =
+        decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator2>());
+    using __keep3_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write,
+                                                                       _ForwardIterator3>());
+    using __buf1_t = decltype(__keep1_t{}(__first1, __last1));
+    using __buf2_t = decltype(__keep2_t{}(__first2, __first2 + __n));
+    using __buf3_t = decltype(__keep3_t{}(__first3, __first3 + __n));
+    using __future_t = decltype(oneapi::dpl::__par_backend_hetero::__parallel_for(
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+        ::std::declval<__buf1_t>().all_view(), ::std::declval<__buf2_t>().all_view(),
+        ::std::declval<__buf3_t>().all_view()));
 
     if (__n <= 0)
         return __future_t::create_empty().__make_future(__first3);
@@ -165,15 +167,17 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
     using _Functor = unseq_backend::walk_n<_Policy, _BinaryOperation2>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
 
-    using __keep1_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator1>());
-    using __keep2_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator2>());
-    using __buf1_t   = decltype(__keep1_t{}(__first1, __last1));
-    using __buf2_t   = decltype(__keep2_t{}(__first2, __first2 + __n));
-    using __future_t = decltype(
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, ::std::true_type>(
+    using __keep1_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read,
+                                                                       _RandomAccessIterator1>());
+    using __keep2_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read,
+                                                                       _RandomAccessIterator2>());
+    using __buf1_t = decltype(__keep1_t{}(__first1, __last1));
+    using __buf2_t = decltype(__keep2_t{}(__first2, __first2 + __n));
+    using __future_t =
+        decltype(oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, ::std::true_type>(
             ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
-            unseq_backend::__init_value<_RepackedTp>{__init},
-            ::std::declval<__buf1_t>().all_view(), ::std::declval<__buf2_t>().all_view()));
+            unseq_backend::__init_value<_RepackedTp>{__init}, ::std::declval<__buf1_t>().all_view(),
+            ::std::declval<__buf2_t>().all_view()));
 
     if (__n <= 0)
     {
@@ -214,13 +218,13 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
     using _Functor = unseq_backend::walk_n<_Policy, _UnaryOperation>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
 
-    using __keep_t   = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>());
-    using __buf_t    = decltype(__keep_t{}(__first, __last));
-    using __future_t = decltype(
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, ::std::true_type>(
+    using __keep_t =
+        decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>());
+    using __buf_t = decltype(__keep_t{}(__first, __last));
+    using __future_t =
+        decltype(oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, ::std::true_type>(
             ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
-            unseq_backend::__init_value<_RepackedTp>{__init},
-            ::std::declval<__buf_t>().all_view()));
+            unseq_backend::__init_value<_RepackedTp>{__init}, ::std::declval<__buf_t>().all_view()));
 
     if (__n <= 0)
     {
@@ -266,14 +270,15 @@ __pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __firs
 {
     const auto __n = ::std::distance(__first, __last);
 
-    using __keep1_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>());
-    using __keep2_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>());
-    using __buf1_t   = decltype(__keep1_t{}(__first, __last));
-    using __buf2_t   = decltype(__keep2_t{}(__result, __result + __n));
-    using __future_t = decltype(
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::declval<__buf1_t>().all_view(), ::std::declval<__buf2_t>().all_view(), __n, __unary_op, __init,
-        __binary_op, _Inclusive{}));
+    using __keep1_t =
+        decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>());
+    using __keep2_t =
+        decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>());
+    using __buf1_t = decltype(__keep1_t{}(__first, __last));
+    using __buf2_t = decltype(__keep2_t{}(__result, __result + __n));
+    using __future_t = decltype(oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::declval<__buf1_t>().all_view(),
+        ::std::declval<__buf2_t>().all_view(), __n, __unary_op, __init, __binary_op, _Inclusive{}));
 
     if (__n <= 0)
         return __future_t::create_empty().__make_future(__result);

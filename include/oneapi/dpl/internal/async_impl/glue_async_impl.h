@@ -94,12 +94,12 @@ sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Comp
 
     const auto __n = ::std::distance(__first, __last);
 
-    using __keep_t   = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>());
-    using __buf_t    = decltype(__keep_t{}(__first, __last));
-    using __future_t = decltype(
-        __par_backend_hetero::__parallel_stable_sort(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::declval<__buf_t>().all_view(),
-            __comp, oneapi::dpl::identity{}));
+    using __keep_t =
+        decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>());
+    using __buf_t = decltype(__keep_t{}(__first, __last));
+    using __future_t = decltype(__par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec),
+                                                                             ::std::declval<__buf_t>().all_view(),
+                                                                             __comp, oneapi::dpl::identity{}));
 
     if (__n <= 0)
     {
