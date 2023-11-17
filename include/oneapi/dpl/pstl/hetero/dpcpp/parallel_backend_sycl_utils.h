@@ -525,6 +525,14 @@ struct __usm_host_or_buffer_storage
     }
 
   public:
+    __usm_host_or_buffer_storage(_T&& __value) : __usm(false)
+    {
+        __sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(1));
+
+        sycl::host_accessor host_vals(*__sycl_buf, sycl::write_only);
+        host_vals[0] = std::forward<_T>(__value);
+    }
+
     __usm_host_or_buffer_storage(_ExecutionPolicy& __exec, ::std::size_t __n)
     {
         __usm = __use_USM_host_allocations(__exec.queue());
