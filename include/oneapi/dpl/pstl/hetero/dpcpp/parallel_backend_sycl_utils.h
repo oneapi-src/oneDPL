@@ -602,8 +602,25 @@ class __future : private std::tuple<_Args...>
     }
 
   public:
+
+    using __future_t = __future<_Event, _Args...>;
+    using __tuple_t = std::tuple<_Args...>;
+
     __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
     __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
+
+    static __future_t
+    create_empty(_Args&&... __args)
+    {
+        return __future_t(_Event(), std::forward<_Args>(__args)...);
+    }
+
+    template <typename... _InitArgs>
+    static __tuple_t
+    create_tuple(_InitArgs&&... __args)
+    {
+        return ::std::make_tuple(std::forward<_InitArgs>(__args)...);
+    }
 
     auto
     event() const
