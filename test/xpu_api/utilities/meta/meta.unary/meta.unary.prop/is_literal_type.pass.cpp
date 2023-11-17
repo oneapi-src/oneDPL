@@ -22,6 +22,7 @@
 #include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
+#    if TEST_STD_VER == 17
 template <class KernelTest, class T>
 void
 test_is_literal_type(sycl::queue& deviceQueue)
@@ -118,14 +119,17 @@ kernel_test()
         test_is_literal_type<KernelTest16, double>(deviceQueue);
     }
 }
+#endif // TEST_STD_VER
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+#    if TEST_STD_VER == 17
     kernel_test();
+#    endif // TEST_STD_VER
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER == 17);
 }
