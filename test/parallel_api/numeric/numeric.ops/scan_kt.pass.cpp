@@ -23,24 +23,25 @@ main()
 {
     bool all_passed = true;
 
-    for (int logn : {4, 8, 11, 16, 19, 21})
+    //for (size_t n = 0; n <= 100000; n = n < 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 1024; n <= 100000; n = n < 16 ? n + 1 : size_t(3.1415 * n))
     {
-        std::cout << "Testing 2^" << logn << '\n';
-        int n = 1 << logn;
+        std::cout << "Testing " << n << '\n';
         std::vector<int> v(n, 1);
         sycl::queue q;
         int* in_ptr = sycl::malloc_device<int>(n, q);
         int* out_ptr = sycl::malloc_device<int>(n, q);
 
 
-        q.copy(v.data(), in_ptr, n);
-        using KernelParams = oneapi::dpl::experimental::kt::kernel_param<128, 2, class ScanKernel>;
+        q.copy(v.data(), in_ptr, n).wait();
+        std::inclusive_scan(v.begin(), v.end(), v.begin());
+
+        using KernelParams = oneapi::dpl::experimental::kt::kernel_param<8, 256, class ScanKernel>;
         oneapi::dpl::experimental::kt::single_pass_inclusive_scan<KernelParams>(q, in_ptr, in_ptr+n, out_ptr, ::std::plus<int>());
 
         std::vector<int> tmp(n, 0);
-        q.copy(out_ptr, tmp.data(), n);
 
-        std::inclusive_scan(v.begin(), v.end(), v.begin());
+        q.copy(out_ptr, tmp.data(), n).wait();
 
         bool passed = true;
         for (size_t i  = 0; i < n; ++i)
@@ -56,6 +57,9 @@ main()
             std::cout << "passed" << std::endl;
         else
             std::cout << "failed" << std::endl;
+
+        if (!passed)
+            return 1;
 
         all_passed &= passed;
     }
