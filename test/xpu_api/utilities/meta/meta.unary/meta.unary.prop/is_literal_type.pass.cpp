@@ -119,8 +119,7 @@ kernel_test()
         test_is_literal_type<KernelTest16, double>(deviceQueue);
     }
 }
-#endif // TEST_STD_VER
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER
 
 int
 main()
