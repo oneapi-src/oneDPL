@@ -19,6 +19,8 @@
 #include "../async_extension_defs.h"
 #include "async_impl_hetero.h"
 
+#include <utility>
+
 namespace oneapi
 {
 namespace dpl
@@ -89,7 +91,23 @@ auto
 sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp, _Events&&... __dependencies)
 {
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-    assert(__last - __first >= 2);
+
+    const auto __n = __last - __first;
+
+    using __keep_t   = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>());
+    using __buf_t    = decltype(__keep_t{}(__first, __last));
+    using __future_t = decltype(
+        __par_backend_hetero::__parallel_stable_sort(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::declval<__buf_t>().all_view(),
+            __comp, oneapi::dpl::identity{}));
+
+    if (__n <= 0)
+    {
+        // TODO do we have some other way here?
+        auto param_tuple = __future_t::create_tuple(sycl::range<1>(0), sycl::range<1>(0));
+        auto [param1, param2] = param_tuple;
+        return __future_t::create_empty(std::move(param1), std::move(param2));
+    }
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
