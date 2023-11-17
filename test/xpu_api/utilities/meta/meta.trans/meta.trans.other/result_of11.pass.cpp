@@ -57,8 +57,10 @@ template <class T, class U>
 void
 test_result_of_imp()
 {
+#    if TEST_STD_VER == 17
     ASSERT_SAME_TYPE(U, typename dpl::result_of<T>::type);
     ASSERT_SAME_TYPE(U, dpl::result_of_t<T>);
+#    endif // TEST_STD_VER
     test_invoke_result<T, U>::call();
 }
 
