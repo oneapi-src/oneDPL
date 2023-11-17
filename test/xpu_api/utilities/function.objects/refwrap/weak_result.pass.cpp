@@ -18,9 +18,11 @@
 #include <oneapi/dpl/functional>
 #include <oneapi/dpl/type_traits>
 
+#include "support/test_macros.h"
 #include "support/utils.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
+#    if TEST_STD_VER == 17
 class KernelWeakResultTest;
 
 template <class Arg, class Result>
@@ -125,14 +127,17 @@ kernel_test()
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Error in work with weak results");
 }
+#    endif // TEST_STD_VER
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+#    if TEST_STD_VER == 17
     kernel_test();
+#    endif // TEST_STD_VER
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER == 17);
 }
