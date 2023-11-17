@@ -124,11 +124,9 @@ kernel_test()
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
-#    if TEST_STD_VER == 17
+#if TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER == 17
     kernel_test();
-#    endif // TEST_STD_VER
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER == 17);
 }
