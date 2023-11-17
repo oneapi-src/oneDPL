@@ -159,13 +159,30 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
                                  _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init,
                                  _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
-    assert(__first1 < __last1);
+    const auto __n = __last1 - __first1;
 
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _BinaryOperation2>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
 
-    const auto __n = __last1 - __first1;
+    using __keep1_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator1>());
+    using __keep2_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator2>());
+    using __buf1_t   = decltype(__keep1_t{}(__first1, __last1));
+    using __buf2_t   = decltype(__keep2_t{}(__first2, __first2 + __n));
+    using __future_t = decltype(
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, ::std::true_type>(
+            ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
+            unseq_backend::__init_value<_RepackedTp>{__init},
+            ::std::declval<__buf1_t>().all_view(), ::std::declval<__buf2_t>().all_view()));
+
+    if (__n <= 0)
+    {
+        // TODO do we have some other way here?
+        auto param_tuple = __future_t::create_tuple(__init);
+        auto [param1] = param_tuple;
+        return __future_t::create_empty(std::move(param1));
+    }
+
     auto __keep1 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator1>();
     auto __buf1 = __keep1(__first1, __last1);
