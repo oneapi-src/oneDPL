@@ -22,6 +22,7 @@
 #include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"
 
 #include <cassert>
+#include <utility>
 
 namespace oneapi
 {
@@ -36,7 +37,16 @@ auto
 __pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f)
 {
     const auto __n = __last - __first;
-    assert(__n > 0);
+
+    using __keep_t   = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>());
+    using __buf_t    = decltype(__keep_t{}(__first, __last));
+    using __future_t = decltype(
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
+            ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+            ::std::declval<__buf_t>().all_view()));
+
+    if (__n <= 0)
+        return __future_t::create_empty();
 
     auto __keep =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
