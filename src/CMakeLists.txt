@@ -52,7 +52,7 @@ else()
     message(STATUS "Generate vars for binaries in ${_ONEDPL_PSTL_OFFLOAD_BINARY_PATH}")
 
     # Setting parameters for generate_vars.cmake script
-    set(DPLROOT ${CMAKE_SOURCE_DIR})
+    set(DPL_ROOT ${CMAKE_SOURCE_DIR})
     set(PSTL_OFFLOAD_BINARY_PATH ${_ONEDPL_PSTL_OFFLOAD_BINARY_PATH})
 
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_vars.cmake)
