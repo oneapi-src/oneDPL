@@ -25,7 +25,6 @@
 #include "has_type_member.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-#    if TEST_STD_VER == 17
 struct S
 {
     typedef short (*FreeFunc)(long);
@@ -163,17 +162,15 @@ kernel_test()
         test_no_result<KernelTest21, PMD(NotDerived&)>(deviceQueue);
     }
 }
-#    endif // TEST_STD_VER
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-#    if TEST_STD_VER == 17
     kernel_test();
-#    endif // TEST_STD_VER
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER == 17);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
 }
