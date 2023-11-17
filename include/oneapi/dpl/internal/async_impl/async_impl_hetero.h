@@ -36,7 +36,7 @@ template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Functi
 auto
 __pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f)
 {
-    const auto __n = __last - __first;
+    const auto __n = ::std::distance(__first, __last);
 
     using __keep_t   = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>());
     using __buf_t    = decltype(__keep_t{}(__first, __last));
@@ -67,7 +67,7 @@ auto
 __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                       _ForwardIterator2 __first2, _Function __f)
 {
-    const auto __n = __last1 - __first1;
+    const auto __n = ::std::distance(__first1, __last1);
 
     using __keep1_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>());
     using __keep2_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>());
@@ -103,7 +103,7 @@ auto
 __pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                       _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f)
 {
-    const auto __n = __last1 - __first1;
+    const auto __n = ::std::distance(__first1, __last1);
 
     using __keep1_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>());
     using __keep2_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator2>());
@@ -159,7 +159,7 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
                                  _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init,
                                  _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
-    const auto __n = __last1 - __first1;
+    const auto __n = ::std::distance(__first1, __last1);
 
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _BinaryOperation2>;
@@ -208,7 +208,7 @@ auto
 __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                                  _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
-    const auto __n = __last - __first;
+    const auto __n = ::std::distance(__first, __last);
 
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _UnaryOperation>;
@@ -264,7 +264,7 @@ __pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __firs
                                     _Iterator2 __result, _UnaryOperation __unary_op, _InitType __init,
                                     _BinaryOperation __binary_op, _Inclusive)
 {
-    const auto __n = __last - __first;
+    const auto __n = ::std::distance(__first, __last);
 
     using __keep1_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>());
     using __keep2_t  = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>());

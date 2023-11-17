@@ -92,7 +92,7 @@ sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Comp
 {
     wait_for_all(::std::forward<_Events>(__dependencies)...);
 
-    const auto __n = __last - __first;
+    const auto __n = ::std::distance(__first, __last);
 
     using __keep_t   = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>());
     using __buf_t    = decltype(__keep_t{}(__first, __last));
