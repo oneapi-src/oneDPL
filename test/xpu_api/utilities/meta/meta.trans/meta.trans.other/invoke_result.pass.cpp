@@ -72,7 +72,10 @@ test_result_of(sycl::queue& deviceQueue)
 {
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
+// dpl::result_of is removed since C++20
+#    if TEST_STD_VER == 17
             ASSERT_SAME_TYPE(U, typename dpl::result_of<T>::type);
+#    endif // TEST_STD_VER
             test_invoke_result<T, U>::call();
         });
     });
@@ -98,7 +101,10 @@ test_no_result(sycl::queue& deviceQueue)
 {
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<KernelTest>([=]() {
+// dpl::result_of is removed since C++20
+#    if TEST_STD_VER == 17
             static_assert(!HasType<dpl::result_of<T>>::value);
+#endif // TEST_STD_VER
             test_invoke_no_result<T>::call();
         });
     });

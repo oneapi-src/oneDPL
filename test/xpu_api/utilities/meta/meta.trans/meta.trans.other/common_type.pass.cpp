@@ -170,7 +170,6 @@ typedef void (S::*PMF)(long) const;
 typedef char S::*PMD;
 
 using dpl::is_same;
-using dpl::result_of;
 } // namespace note_b_example
 
 void
