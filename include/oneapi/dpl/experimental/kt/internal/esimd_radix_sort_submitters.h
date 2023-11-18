@@ -140,8 +140,8 @@ struct __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_
             [&](sycl::handler& __cgh)
             {
                 oneapi::dpl::__ranges::__require_access(__cgh, __in_keys_rng, __out_keys_rng);
-                auto __in_pack = __utils::__make_pack(__in_keys_rng);
-                auto __out_pack = __utils::__make_pack(__out_keys_rng);
+                auto __in_pack = __utils::__rng_pack{__in_keys_rng};
+                auto __out_pack = __utils::__rng_pack{__out_keys_rng};
                 __cgh.depends_on(__e);
                 __radix_sort_onesweep_kernel<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
                                             decltype(__in_pack), decltype(__out_pack)>
@@ -201,8 +201,8 @@ struct __radix_sort_onesweep_by_key_submitter<__is_ascending, __radix_bits, __da
             [&](sycl::handler& __cgh)
             {
                 oneapi::dpl::__ranges::__require_access(__cgh, __in_keys_rng, __out_keys_rng, __in_vals_rng, __out_vals_rng);
-                auto __in_pack = __utils::__make_pack(__in_keys_rng, __in_vals_rng);
-                auto __out_pack = __utils::__make_pack(__out_keys_rng, __out_vals_rng);
+                auto __in_pack = __utils::__rng_pack{__in_keys_rng, __in_vals_rng};
+                auto __out_pack = __utils::__rng_pack{__out_keys_rng, __out_vals_rng};
                 __cgh.depends_on(__e);
                 __radix_sort_onesweep_kernel<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
                                              decltype(__in_pack), decltype(__out_pack)>

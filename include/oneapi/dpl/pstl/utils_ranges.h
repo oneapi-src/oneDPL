@@ -246,7 +246,7 @@ class guard_view
     }
 
     // Unified function to get pointer or accessor to use inside ESIMD kernels
-    _Iterator data()
+    _Iterator data() const
     {
         return m_p;
     }

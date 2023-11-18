@@ -763,10 +763,10 @@ __create_simd(_T initial, _T step)
 }
 
 template <typename _T>
-struct _slm_lookup_t
+struct __slm_lookup
 {
     ::std::uint32_t __slm;
-    inline _slm_lookup_t(::std::uint32_t __slm) : __slm(__slm) {}
+    inline __slm_lookup(::std::uint32_t __slm) : __slm(__slm) {}
 
     template <int __table_size>
     inline void
@@ -791,51 +791,58 @@ struct _slm_lookup_t
     }
 };
 
-template<typename _T, typename _Acc>
-struct _keys_pack
+
+struct __rng_dummy {};
+
+template<typename _Rng>
+struct __rng_value_type_deducer
 {
-    using _KeyT = _T;
-    using _ValT = void;
-    _Acc __keys;
-    _keys_pack(const _Acc& __keys): __keys(__keys) {}
+    using __value_t = oneapi::dpl::__internal::__value_t<_Rng>;
 };
 
-template<typename _T1, typename _T2, typename _Acc1, typename _Acc2>
-struct _pairs_pack
+template<>
+struct __rng_value_type_deducer<__rng_dummy>
 {
-    using _KeyT = _T1;
-    using _ValT = _T2;
-    _Acc1 __keys;
-    _Acc2 __vals;
-    _pairs_pack(const _Acc1& __keys, const _Acc2& __vals): __keys(__keys), __vals(__vals) {}
+    using __value_t = void;
 };
 
-template<typename _KeysRng, typename _ValsRng>
-auto __make_pack(_KeysRng& __keys_rng, _ValsRng& __vals_rng)
+template<typename _Rng1, typename _Rng2 = __rng_dummy>
+struct __rng_pack
 {
-    using _KeyT = oneapi::dpl::__internal::__value_t<_KeysRng>;
-    using _ValT = oneapi::dpl::__internal::__value_t<_ValsRng>;
-    using _KeysData = decltype(__keys_rng.data());
-    using _ValsData = decltype(__vals_rng.data());
-    return _pairs_pack<_KeyT, _ValT, _KeysData, _ValsData> {__keys_rng.data(), __vals_rng.data()};
-}
+    using _KeyT = typename __rng_value_type_deducer<_Rng1>::__value_t;
+    using _ValT = typename __rng_value_type_deducer<_Rng2>::__value_t;
 
-template<typename _KeysRng>
-auto __make_pack(_KeysRng& __keys_rng)
-{
-    using _KeyT = oneapi::dpl::__internal::__value_t<_KeysRng>;
-    using _KeysData = decltype(__keys_rng.data());
-    return _keys_pack<_KeyT, _KeysData>{__keys_rng.data()};
-}
+    auto& __keys_rng() { return __m_keys_rng; }
+    auto __keys_acc() const { return __m_keys_rng.data(); }
+    auto& __vals_rng()
+    {
+        static_assert(__has_values);
+        return __m_vals_rng;
+    }
+    auto __vals_acc() const
+    {
+        static_assert(__has_values);
+        return __m_vals_rng.data();
+    }
+
+    __rng_pack(const _Rng1& __rng1, const _Rng2& __rng2 = __rng_dummy{}):
+        __m_keys_rng(__rng1), __m_vals_rng(__rng2) {}
+    __rng_pack(_Rng1&& __rng1, _Rng2&& __rng2 = __rng_dummy{}):
+        __m_keys_rng(::std::move(__rng1)), __m_vals_rng(::std::move(__rng2)) {}
+private:
+    static constexpr bool __has_values = !std::is_void_v<_ValT>;
+    _Rng1 __m_keys_rng;
+    _Rng2 __m_vals_rng;
+};
 
 template<::std::uint16_t _N, typename _KeyT>
-struct _keys_simd_pack
+struct __keys_simd_pack
 {
     __dpl_esimd_ns::simd<_KeyT, _N> __keys;
 };
 
 template< ::std::uint16_t _N, typename _KeyT, typename _ValT>
-struct _pairs_simd_pack
+struct __pairs_simd_pack
 {
     __dpl_esimd_ns::simd<_KeyT, _N> __keys;
     __dpl_esimd_ns::simd<_ValT, _N> __vals;
@@ -847,11 +854,11 @@ __make_simd_pack()
 {
     if constexpr (::std::is_void_v<_T2>)
     {
-        return __utils::_keys_simd_pack<_N, _T1>{};
+        return __utils::__keys_simd_pack<_N, _T1>{};
     }
     else
     {
-        return __utils::_pairs_simd_pack<_N, _T1, _T2>{};
+        return __utils::__pairs_simd_pack<_N, _T1, _T2>{};
     }
 }
 

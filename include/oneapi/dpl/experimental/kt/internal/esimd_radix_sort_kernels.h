@@ -319,14 +319,14 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, :
 
 template <bool __is_ascending, ::std::uint8_t __radix_bits,
           ::std::uint16_t __data_per_work_item, ::std::uint16_t __work_group_size,
-          typename _InValuesPack, typename _OutValuesPack>
+          typename _InRngPack, typename _OutRngPack>
 struct __radix_sort_onesweep_kernel
 {
     using _LocOffsetT = ::std::uint16_t;
     using _GlobOffsetT = ::std::uint32_t;
 
-    using _KeyT = typename _InValuesPack::_KeyT;
-    using _ValT = typename _InValuesPack::_ValT;
+    using _KeyT = typename _InRngPack::_KeyT;
+    using _ValT = typename _InRngPack::_ValT;
     static constexpr bool __has_values = !::std::is_void_v<_ValT>;
 
     static constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
@@ -380,25 +380,25 @@ struct __radix_sort_onesweep_kernel
     const ::std::uint32_t __stage;
     _GlobOffsetT* __p_global_hist;
     _GlobOffsetT* __p_group_hists;
-    _InValuesPack __in_values_pack;
-    _OutValuesPack __out_values_pack;
+    _InRngPack __in_rng_pack;
+    _OutRngPack __out_rng_pack;
 
     __radix_sort_onesweep_kernel(::std::uint32_t __n, ::std::uint32_t __stage,
                                  _GlobOffsetT* __p_global_hist, _GlobOffsetT* __p_group_hists,
-                                 _InValuesPack __in_values_pack, _OutValuesPack __out_values_pack):
+                                 _InRngPack __in_rng_pack, _OutRngPack __out_rng_pack):
         __n(__n), __stage(__stage),
         __p_global_hist(__p_global_hist), __p_group_hists(__p_group_hists),
-          __in_values_pack(__in_values_pack), __out_values_pack(__out_values_pack) {}
+        __in_rng_pack(__in_rng_pack), __out_rng_pack(__out_rng_pack) {}
 
     template<typename _SimdPack>
     inline auto
     __load_simd_pack(_SimdPack& __pack, ::std::uint32_t __wg_id, ::std::uint32_t __wg_size, ::std::uint32_t __lid) const
     {
         const _GlobOffsetT __offset = __data_per_work_item * (__wg_id * __wg_size + __lid);
-        __load_simd</*__sort_identity_residual=*/true>(__pack.__keys, __in_values_pack.__keys, __offset);
+        __load_simd</*__sort_identity_residual=*/true>(__pack.__keys, __in_rng_pack.__keys_acc(), __offset);
         if constexpr (__has_values)
         {
-            __load_simd</*__sort_identity_residual=*/false>(__pack.__vals, __in_values_pack.__vals, __offset);
+            __load_simd</*__sort_identity_residual=*/false>(__pack.__vals, __in_rng_pack.__vals_acc(), __offset);
         }
     }
 
@@ -598,7 +598,7 @@ struct __radix_sort_onesweep_kernel
                          const _LocOffsetSimdT& __bins, const _LocHistT& __subgroup_offset,
                          ::std::uint32_t __wg_size, ::std::uint32_t __thread_slm_offset) const
     {
-        __utils::_slm_lookup_t<_LocOffsetT> __subgroup_lookup(__thread_slm_offset);
+        __utils::__slm_lookup<_LocOffsetT> __subgroup_lookup(__thread_slm_offset);
         _LocOffsetSimdT __wg_offset =
             __ranks + __subgroup_lookup.template __lookup<__data_per_work_item>(__subgroup_offset, __bins);
         __dpl_esimd_ns::barrier();
@@ -619,7 +619,7 @@ struct __radix_sort_onesweep_kernel
     {
         auto __pack = __utils::__make_simd_pack<__data_per_work_item, _KeyT, _ValT>();
 
-        __utils::_slm_lookup_t<_GlobOffsetT> __global_fix_lookup(__calc_reorder_slm_size());
+        __utils::__slm_lookup<_GlobOffsetT> __global_fix_lookup(__calc_reorder_slm_size());
         if (__local_tid == 0)
             __global_fix_lookup.__setup(__global_fix);
         __dpl_esimd_ns::barrier();
@@ -642,11 +642,11 @@ struct __radix_sort_onesweep_kernel
             __group_offset + __global_fix_lookup.template __lookup<__data_per_work_item>(__bins);
 
         __utils::__vector_store<_KeyT, 1, __data_per_work_item>(
-            __out_values_pack.__keys, __global_offset * sizeof(_KeyT), __pack.__keys, __global_offset < __n);
+            __out_rng_pack.__keys_acc(), __global_offset * sizeof(_KeyT), __pack.__keys, __global_offset < __n);
         if constexpr (__has_values)
         {
             __utils::__vector_store<_ValT, 1, __data_per_work_item>(
-                __out_values_pack.__vals, __global_offset * sizeof(_ValT), __pack.__vals, __global_offset < __n);
+                __out_rng_pack.__vals_acc(), __global_offset * sizeof(_ValT), __pack.__vals, __global_offset < __n);
         }
     }
 

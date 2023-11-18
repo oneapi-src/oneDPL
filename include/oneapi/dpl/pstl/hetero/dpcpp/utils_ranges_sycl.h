@@ -98,7 +98,7 @@ class all_view
     }
 
     // Unified function to get pointer or accessor to use inside ESIMD kernels
-    __accessor_t data()
+    __accessor_t data() const
     {
         return __m_acc;
     }
