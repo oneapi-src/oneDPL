@@ -810,6 +810,7 @@ struct __rng_pack
 {
     using _KeyT = typename __rng_value_type_deducer<_Rng1>::__value_t;
     using _ValT = typename __rng_value_type_deducer<_Rng2>::__value_t;
+    static constexpr bool __has_values = !std::is_void_v<_ValT>;
 
     auto& __keys_rng() { return __m_keys_rng; }
     auto __keys_acc() const { return __m_keys_rng.data(); }
@@ -829,7 +830,6 @@ struct __rng_pack
     __rng_pack(_Rng1&& __rng1, _Rng2&& __rng2 = __rng_dummy{}):
         __m_keys_rng(::std::move(__rng1)), __m_vals_rng(::std::move(__rng2)) {}
 private:
-    static constexpr bool __has_values = !std::is_void_v<_ValT>;
     _Rng1 __m_keys_rng;
     _Rng2 __m_vals_rng;
 };

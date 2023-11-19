@@ -164,8 +164,8 @@ public:
 
     sycl::event __async_deallocate(sycl::event __dep_event)
     {
-        auto __dealloc_task = [__q = __m_q, __event = __dep_event, __mem = __m_raw_mem_ptr](sycl::handler& __cgh) {
-            __cgh.depends_on(__event);
+        auto __dealloc_task = [__q = __m_q, __e = __dep_event, __mem = __m_raw_mem_ptr](sycl::handler& __cgh) {
+            __cgh.depends_on(__e);
             __cgh.host_task([=]() { sycl::free(__mem, __q); });
         };
         return __m_q.submit(__dealloc_task);
@@ -360,43 +360,29 @@ __radix_sort(sycl::queue __q, _RngPack&& __pack, _KernelParam __param)
     constexpr auto __workgroup_size = _KernelParam::workgroup_size;
     using _KernelName = typename _KernelParam::kernel_name;
 
-    constexpr ::std::uint32_t __one_wg_cap = __data_per_workitem * __workgroup_size;
-    if (__n <= __one_wg_cap)
+    // TODO: enable sort_by_key for one-work-group implementation
+    if constexpr (_RngPack::__has_values)
     {
-        // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize
-        return __one_wg<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
+        return __onesweep_by_key<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
             __q, ::std::forward<_RngPack>(__pack), __n);
     }
     else
     {
-        // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
-        // TODO: support different RadixBits, WorkGroupSize
-        return __onesweep<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
-            __q, ::std::forward<_RngPack>(__pack), __n);
+        constexpr ::std::uint32_t __one_wg_cap = __data_per_workitem * __workgroup_size;
+        if (__n <= __one_wg_cap)
+        {
+            // TODO: support different RadixBits values (only 7 or 8 are currently supported), WorkGroupSize
+            return __one_wg<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
+                __q, ::std::forward<_RngPack>(__pack), __n);
+        }
+        else
+        {
+            // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
+            // TODO: support different RadixBits, WorkGroupSize
+            return __onesweep<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
+                __q, ::std::forward<_RngPack>(__pack), __n);
+        }
     }
-}
-
-// TODO: allow calling it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
-template <bool __is_ascending, ::std::uint8_t __radix_bits, typename _RngPack, typename _KernelParam>
-sycl::event
-__radix_sort_by_key(sycl::queue __q, _RngPack&& __pack, _KernelParam __param)
-{
-    static_assert(__radix_bits == 8);
-
-    static_assert(32 <= __param.data_per_workitem && __param.data_per_workitem <= 512 &&
-                  __param.data_per_workitem % 32 == 0);
-
-    const ::std::size_t __n = __pack.__keys_rng().size();
-    assert(__n > 1);
-
-    // _PRINT_INFO_IN_DEBUG_MODE(__exec); TODO: extend the utility to work with queues
-    constexpr auto __data_per_workitem = _KernelParam::data_per_workitem;
-    constexpr auto __workgroup_size = _KernelParam::workgroup_size;
-    using _KernelName = typename _KernelParam::kernel_name;
-
-    // TODO: enable sort_by_key for one-work-group implementation
-    return __onesweep_by_key<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
-        __q, ::std::forward<_RngPack>(__pack), __n);
 }
 
 } // namespace experimental::kt::esimd::__impl
