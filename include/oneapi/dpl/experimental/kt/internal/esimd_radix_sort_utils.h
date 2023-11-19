@@ -791,7 +791,6 @@ struct __slm_lookup
     }
 };
 
-
 struct __rng_dummy {};
 
 template<typename _Rng>
@@ -854,11 +853,11 @@ __make_simd_pack()
 {
     if constexpr (::std::is_void_v<_T2>)
     {
-        return __utils::__keys_simd_pack<_N, _T1>{};
+        return __keys_simd_pack<_N, _T1>{};
     }
     else
     {
-        return __utils::__pairs_simd_pack<_N, _T1, _T2>{};
+        return __pairs_simd_pack<_N, _T1, _T2>{};
     }
 }
 

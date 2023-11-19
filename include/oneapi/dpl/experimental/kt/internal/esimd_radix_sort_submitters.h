@@ -18,6 +18,7 @@
 #endif
 
 #include <cstdint>
+#include <utility>
 
 #include "esimd_radix_sort_kernels.h"
 #include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
@@ -39,20 +40,18 @@ template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __da
 struct __radix_sort_one_wg_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size, _KeyT,
                                      oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _Range>
+    template <typename _RngPack>
     sycl::event
-    operator()(sycl::queue __q, _Range&& __rng, ::std::size_t __n) const
+    operator()(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n) const
     {
         sycl::nd_range<1> __nd_range{__work_group_size, __work_group_size};
         return __q.submit(
             [&](sycl::handler& __cgh)
             {
-                oneapi::dpl::__ranges::__require_access(__cgh, __rng);
-                auto __data = __rng.data();
+                oneapi::dpl::__ranges::__require_access(__cgh, __pack.__keys_rng());
                 __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
-                        __one_wg_kernel<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size, _KeyT>(__nd_item, __n,
-                                                                                                         __data);
+                        __one_wg_kernel<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size, _KeyT>(__nd_item, __n, __pack);
                     });
             });
     }
@@ -129,9 +128,9 @@ template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __da
 struct __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size, _KeyT,
                                        oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _InKeysRng, typename _OutKeysRng, typename _GlobalHistT>
+    template <typename _InRngPack, typename _OutRngPack, typename _GlobalHistT>
     sycl::event
-    operator()(sycl::queue& __q, _InKeysRng& __in_keys_rng, _OutKeysRng& __out_keys_rng, _GlobalHistT* __p_global_hist, _GlobalHistT* __p_group_hists,
+    operator()(sycl::queue& __q, _InRngPack&& __in_pack, _OutRngPack&& __out_pack, _GlobalHistT* __p_global_hist, _GlobalHistT* __p_group_hists,
                ::std::uint32_t __sweep_work_group_count, ::std::size_t __n, ::std::uint32_t __stage,
                const sycl::event& __e) const
     {
@@ -139,13 +138,12 @@ struct __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_
         return __q.submit(
             [&](sycl::handler& __cgh)
             {
-                oneapi::dpl::__ranges::__require_access(__cgh, __in_keys_rng, __out_keys_rng);
-                auto __in_pack = __utils::__rng_pack{__in_keys_rng};
-                auto __out_pack = __utils::__rng_pack{__out_keys_rng};
+                oneapi::dpl::__ranges::__require_access(__cgh, __in_pack.__keys_rng(), __out_pack.__keys_rng());
                 __cgh.depends_on(__e);
                 __radix_sort_onesweep_kernel<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
-                                            decltype(__in_pack), decltype(__out_pack)>
-                    __kernel(__n, __stage, __p_global_hist, __p_group_hists, __in_pack, __out_pack);
+                                            ::std::decay_t<_InRngPack>, ::std::decay_t<_OutRngPack>>
+                    __kernel(__n, __stage, __p_global_hist, __p_group_hists, ::std::forward<_InRngPack>(__in_pack), ::std::forward<_OutRngPack>(__out_pack));
+                    // __kernel(__n, __stage, __p_global_hist, __p_group_hists, __in_pack, __out_pack);
                 __cgh.parallel_for<_Name...>(__nd_range, __kernel);
             });
     }
@@ -158,24 +156,22 @@ template <typename _KeyT, typename... _Name>
 struct __radix_sort_copyback_submitter<_KeyT,
                                        oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _KeysTmpRng, typename _KeysRng>
+    template <typename _InRngPack, typename _OutRngPack>
     sycl::event
-    operator()(sycl::queue& __q, _KeysTmpRng& __keys_tmp_rng, _KeysRng& __keys_rng, ::std::uint32_t __n,
+    operator()(sycl::queue& __q, _InRngPack&& __in_pack, _OutRngPack&& __out_pack, ::std::uint32_t __n,
                const sycl::event& __e) const
     {
         return __q.submit(
             [&](sycl::handler& __cgh)
             {
-                oneapi::dpl::__ranges::__require_access(__cgh, __keys_tmp_rng, __keys_rng);
-                // TODO: make sure that access is read_only for __keys_tmp_rng  and is write_only for __keys_rng
-                auto __tmp_data = __keys_tmp_rng.data();
-                auto __out_data = __keys_rng.data();
+                oneapi::dpl::__ranges::__require_access(__cgh, __in_pack.__keys_rng(), __out_pack.__keys_rng());
                 __cgh.depends_on(__e);
+                // TODO: make sure that access is read_only for __keys_tmp_rng  and is write_only for __keys_rng
                 __cgh.parallel_for<_Name...>(sycl::range<1>{__n},
                                              [=](sycl::item<1> __item)
                                              {
                                                  auto __global_id = __item.get_linear_id();
-                                                 __out_data[__global_id] = __tmp_data[__global_id];
+                                                 __out_pack.__keys_acc()[__global_id] = __in_pack.__keys_acc()[__global_id];
                                              });
             });
     }
@@ -190,9 +186,9 @@ template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __da
 struct __radix_sort_onesweep_by_key_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size, _KeyT, _ValT,
                                        oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _InKeysRng, typename _OutKeysRng, typename _InValsRng, typename _OutValsRng, typename _GlobalHistT>
+    template <typename _InRngPack, typename _OutRngPack, typename _GlobalHistT>
     sycl::event
-    operator()(sycl::queue& __q, _InKeysRng& __in_keys_rng, _OutKeysRng& __out_keys_rng, _InValsRng& __in_vals_rng, _OutValsRng& __out_vals_rng, _GlobalHistT* __p_global_hist, _GlobalHistT* __p_group_hists,
+    operator()(sycl::queue& __q, _InRngPack&& __in_pack, _OutRngPack&& __out_pack, _GlobalHistT* __p_global_hist, _GlobalHistT* __p_group_hists,
                ::std::uint32_t __sweep_work_group_count, ::std::size_t __n, ::std::uint32_t __stage,
                const sycl::event& __e) const
     {
@@ -200,13 +196,12 @@ struct __radix_sort_onesweep_by_key_submitter<__is_ascending, __radix_bits, __da
         return __q.submit(
             [&](sycl::handler& __cgh)
             {
-                oneapi::dpl::__ranges::__require_access(__cgh, __in_keys_rng, __out_keys_rng, __in_vals_rng, __out_vals_rng);
-                auto __in_pack = __utils::__rng_pack{__in_keys_rng, __in_vals_rng};
-                auto __out_pack = __utils::__rng_pack{__out_keys_rng, __out_vals_rng};
+                oneapi::dpl::__ranges::__require_access(__cgh, __in_pack.__keys_rng(), __in_pack.__vals_rng(), __out_pack.__keys_rng(), __out_pack.__vals_rng());
                 __cgh.depends_on(__e);
                 __radix_sort_onesweep_kernel<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
-                                             decltype(__in_pack), decltype(__out_pack)>
-                    __kernel(__n, __stage, __p_global_hist, __p_group_hists, __in_pack, __out_pack);
+                                             ::std::decay_t<_InRngPack>, ::std::decay_t<_OutRngPack>>
+                    __kernel(__n, __stage, __p_global_hist, __p_group_hists, ::std::forward<_InRngPack>(__in_pack), ::std::forward<_OutRngPack>(__out_pack));
+                    // __kernel(__n, __stage, __p_global_hist, __p_group_hists, __in_pack, __out_pack);
                 __cgh.parallel_for<_Name...>(__nd_range, __kernel);
             });
     }
@@ -219,27 +214,23 @@ template <typename _KeyT, typename _ValT, typename... _Name>
 struct __radix_sort_by_key_copyback_submitter<_KeyT, _ValT,
                                        oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _KeysTmpRng, typename _KeysRng, typename _ValsTmpRng, typename _ValsRng>
+    template <typename _InRngPack, typename _OutRngPack>
     sycl::event
-    operator()(sycl::queue& __q, _KeysTmpRng& __keys_tmp_rng, _KeysRng& __keys_rng, _ValsTmpRng& __vals_tmp_rng, _ValsRng& __vals_rng, ::std::uint32_t __n,
+    operator()(sycl::queue& __q, _InRngPack&& __in_pack, _OutRngPack&& __out_pack, ::std::uint32_t __n,
                const sycl::event& __e) const
     {
         return __q.submit(
             [&](sycl::handler& __cgh)
             {
-                oneapi::dpl::__ranges::__require_access(__cgh, __keys_tmp_rng, __keys_rng, __vals_tmp_rng, __vals_rng);
+                oneapi::dpl::__ranges::__require_access(__cgh, __in_pack.__keys_rng(), __in_pack.__vals_rng(), __out_pack.__keys_rng(), __out_pack.__vals_rng());
                 // TODO: make sure that access is read_only for __keys_tmp_rng/__vals_tmp_rng  and is write_only for __keys_rng/__vals_rng
-                auto __keys_tmp_data = __keys_tmp_rng.data();
-                auto __keys_data = __keys_rng.data();
-                auto __vals_tmp_data = __vals_tmp_rng.data();
-                auto __vals_data = __vals_rng.data();
                 __cgh.depends_on(__e);
                 __cgh.parallel_for<_Name...>(sycl::range<1>{__n},
                                              [=](sycl::item<1> __item)
                                              {
                                                  auto __global_id = __item.get_linear_id();
-                                                 __keys_data[__global_id] = __keys_tmp_data[__global_id];
-                                                 __vals_data[__global_id] = __vals_tmp_data[__global_id];
+                                                 __out_pack.__keys_acc()[__global_id] =  __in_pack.__keys_acc()[__global_id];
+                                                 __out_pack.__vals_acc()[__global_id] = __in_pack.__vals_acc()[__global_id];
                                              });
             });
     }
