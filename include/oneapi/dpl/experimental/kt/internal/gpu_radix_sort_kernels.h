@@ -155,10 +155,10 @@ struct OneSweepRadixSort
     using Vector = __utils::Vector<ITEMS_PER_THREAD, keyT>;
 
     OneSweepRadixSort(uint32_t pass, _InKeysRng array_in, _OutKeysRng array_out, uint32_t *digit_offsets,
-        uint32_t *global_offsets, uint32_t *dynamic_id_ptr, uint32_t size, Data &s)
+        uint32_t *global_offsets, uint32_t *dynamic_id_ptr, uint32_t size, Data &__lmem)
         : array_in(array_in),
           array_out(array_out),
-          s(s),                            // in SLM
+          __lmem(__lmem),                            // in SLM
           digit_offsets(digit_offsets),    // the counts for fronter digits
           global_offsets(global_offsets),  // in ugm
           pass(pass),
@@ -171,20 +171,20 @@ struct OneSweepRadixSort
 #pragma unroll
         for (uint32_t i = 0; i < GROUP_WARPS * RADIX_DIGITS; i += GROUP_THREADS) {
             id.get_sub_group().store(
-                sycl::local_ptr<uint16_t>(&s.warp_counters[i + warp_offset]), j);
+                sycl::local_ptr<uint16_t>(&__lmem.warp_counters[i + warp_offset]), j);
         }
         if (id.get_group().leader()) {
-            s.warp_offsets[GROUP_WARPS * RADIX_DIGITS] = ITEMS_PER_THREAD * GROUP_THREADS;
+            __lmem.warp_offsets[GROUP_WARPS * RADIX_DIGITS] = ITEMS_PER_THREAD * GROUP_THREADS;
         }
     }
 
     FORCE_INLINE void generateDynamicGroupId(sycl::nd_item<1> &id) {
         if (USE_DYNAMIC_ID) {
             if (id.get_group().leader()) {
-                s.group_id = atomic_global(dynamic_id_ptr[0])++;
+                __lmem.group_id = atomic_global(dynamic_id_ptr[0])++;
             }
             __utils::slmBarrier(id);
-            group_id = s.group_id;
+            group_id = __lmem.group_id;
         } else {
             group_id = id.get_group_linear_id();
             __utils::slmBarrier(id);
@@ -192,7 +192,7 @@ struct OneSweepRadixSort
     }
 
     FORCE_INLINE void rankSharedKeysMatchAny(Vector &keys, uint16_t *ranks, sycl::nd_item<1> &id) {
-        uint16_t *warp_counters = &s.warp_counters[warp];
+        uint16_t *warp_counters = &__lmem.warp_counters[warp];
 #pragma unroll
         for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
             uint32_t digit = __utils::getDigit(keys[i], pass, RADIX_BITS);
@@ -216,36 +216,36 @@ struct OneSweepRadixSort
                  counters_offset = i * RADIX_DIGITS / WARP_THREADS;
 #pragma unroll
         for (uint16_t j = 0; j < RADIX_DIGITS / WARP_THREADS; j++)
-            sum += s.warp_counters[j + counters_offset];
+            sum += __lmem.warp_counters[j + counters_offset];
         uint16_t offset = sycl::reduce_over_group(id.get_sub_group(), sum, sycl::plus<uint16_t>());
         if(lane==0)
-            s.offset_buffer[warp] = offset;
+            __lmem.offset_buffer[warp] = offset;
 
         __utils::slmBarrier(id);
 
         if (warp == 0) {
-            s.offset_buffer[GROUP_WARPS] = 0;
+            __lmem.offset_buffer[GROUP_WARPS] = 0;
 #pragma unroll
             for (uint32_t i = 0; i < GROUP_WARPS; i += WARP_THREADS) {
                 uint16_t inclusive_sum =
-                    id.get_sub_group().load(sycl::local_ptr<uint16_t>(&s.offset_buffer[i]));
-                inclusive_sum = s.offset_buffer[GROUP_WARPS + i] +
+                    id.get_sub_group().load(sycl::local_ptr<uint16_t>(&__lmem.offset_buffer[i]));
+                inclusive_sum = __lmem.offset_buffer[GROUP_WARPS + i] +
                     sycl::inclusive_scan_over_group(
                         id.get_sub_group(), inclusive_sum, sycl::plus<uint16_t>());
 
                 id.get_sub_group().store(
-                    sycl::local_ptr<uint16_t>(&s.offset_buffer[GROUP_WARPS + i + 1]),
+                    sycl::local_ptr<uint16_t>(&__lmem.offset_buffer[GROUP_WARPS + i + 1]),
                     inclusive_sum);
             }
         }
         __utils::slmBarrier(id);
 
         sum = sycl::exclusive_scan_over_group(id.get_sub_group(), sum, sycl::plus<uint16_t>());
-        sum += s.offset_buffer[GROUP_WARPS + warp];
+        sum += __lmem.offset_buffer[GROUP_WARPS + warp];
 #pragma unroll
         for (uint16_t j = 0; j < RADIX_DIGITS / WARP_THREADS; j++) {
-            uint16_t tmp = s.warp_counters[j + counters_offset];
-            s.warp_offsets[j + counters_offset] = sum;
+            uint16_t tmp = __lmem.warp_counters[j + counters_offset];
+            __lmem.warp_offsets[j + counters_offset] = sum;
             sum += tmp;
         }
         __utils::slmBarrier(id);
@@ -260,7 +260,7 @@ struct OneSweepRadixSort
         for (int i = 0; i < ITEMS_PER_THREAD; i++) {
             uint32_t digit = __utils::getDigit(keys[i], pass, RADIX_BITS);
             uint32_t bin = digit * GROUP_WARPS + warp;
-            ranks[i] += s.warp_offsets[bin];
+            ranks[i] += __lmem.warp_offsets[bin];
         }
     }
 
@@ -278,9 +278,9 @@ struct OneSweepRadixSort
             uint32_t bin = getLocalBin(id, i), bin_global = getGlobalBin(id, i, 0);
             if (bin < RADIX_DIGITS) {
                 uint32_t offset_digit =
-                    s.warp_offsets[(bin + 1) * GROUP_WARPS] - s.warp_offsets[bin * GROUP_WARPS];
+                    __lmem.warp_offsets[(bin + 1) * GROUP_WARPS] - __lmem.warp_offsets[bin * GROUP_WARPS];
 
-                s.group_offsets[bin] = offset_digit;
+                __lmem.group_offsets[bin] = offset_digit;
 
                 auto offset_atomic = atomic_global(global_offsets[bin_global]);
                 offset_atomic = (offset_digit | 0x40000000);
@@ -304,10 +304,10 @@ struct OneSweepRadixSort
 
                     if ((offset_before & 0x80000000) != 0) break;
                 }
-                global_offsets[global_bin] = (global_offset + s.group_offsets[bin]) | 0xC0000000;
+                global_offsets[global_bin] = (global_offset + __lmem.group_offsets[bin]) | 0xC0000000;
 
-                s.group_offsets[bin] = global_offset + digit_offsets[bin] -
-                    (uint32_t)s.warp_offsets[bin * GROUP_WARPS];
+                __lmem.group_offsets[bin] = global_offset + digit_offsets[bin] -
+                    (uint32_t)__lmem.warp_offsets[bin * GROUP_WARPS];
             }
         }
     }
@@ -316,7 +316,7 @@ struct OneSweepRadixSort
         uint32_t lane_offset = warp * WARP_ITEMS + lane;
 #pragma unroll
         for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
-            s.shared_keys[rank[i]] = keys[i];
+            __lmem.shared_keys[rank[i]] = keys[i];
         }
     }
 
@@ -325,20 +325,20 @@ struct OneSweepRadixSort
 #pragma unroll
             for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
                 uint32_t idx = id.get_local_linear_id() + i * GROUP_THREADS;
-                keyT key = s.shared_keys[idx];
+                keyT key = __lmem.shared_keys[idx];
                 uint32_t digit = __utils::getDigit(key, pass, RADIX_BITS);
 
-                array_out[s.group_offsets[digit] + idx] = key;
+                array_out[__lmem.group_offsets[digit] + idx] = key;
             }
         } else {
 #pragma unroll
             for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
                 uint32_t idx = id.get_local_linear_id() + i * GROUP_THREADS;
-                keyT key = s.shared_keys[idx];
+                keyT key = __lmem.shared_keys[idx];
                 if (key != 0xFFFFFFFF) { //TODO: replace magic no. with range check
                     uint32_t digit = __utils::getDigit(key, pass, RADIX_BITS);
 
-                    array_out[s.group_offsets[digit] + idx] = key;
+                    array_out[__lmem.group_offsets[digit] + idx] = key;
                 } else {
                     break;
                 }
@@ -394,7 +394,7 @@ struct OneSweepRadixSort
     _OutKeysRng array_out;
     uint32_t *digit_offsets, *global_offsets, pass, array_size, group_limit, *dynamic_id_ptr,
         group_id, warp, lane;
-    Data &s;
+    Data& __lmem;
 };
 
 } // namespace oneapi::dpl::experimental::kt::gpu::__impl
