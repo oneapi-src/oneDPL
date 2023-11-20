@@ -54,10 +54,11 @@
 #define _PSTL_STD_UNINITIALIZED_FILL_BROKEN (_MSC_VER == 1900)
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
-// Array swap broken on Windows
-#define TEST_ARRAY_SWAP_BROKEN _MSC_VER
+// Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
+// call some function which is not declared as SYCL external and we have compile error
+#define TEST_XPU_ARRAY_SWAP_BROKEN (_MSC_VER <= 1937)
 
-// The usage of class Final final {}; as Kernel name is broken on Intel� C++ Compiler before 2024.0
+// The usage of class Final final {}; as Kernel name is broken on Intel(С) C++ Compiler before 2024.0
 #define TEST_CLASS_FINAL_BROKEN (__INTEL_LLVM_COMPILER && __INTEL_LLVM_COMPILER < 20240000)
 
 #define _PSTL_SYCL_TEST_USM 1
