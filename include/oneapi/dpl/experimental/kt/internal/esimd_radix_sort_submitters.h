@@ -57,19 +57,19 @@ struct __radix_sort_one_wg_submitter<__is_ascending, __radix_bits, __data_per_wo
     }
 };
 
-template <typename _KeyT, ::std::uint8_t __radix_bits, ::std::uint32_t __stage_count, ::std::uint32_t __hist_work_group_count,
-          ::std::uint32_t __hist_work_group_size, bool __is_ascending, typename _KernelName>
-struct __radix_sort_onesweep_histogram_submitter;
+template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint32_t __hist_work_group_count,
+          ::std::uint16_t __hist_work_group_size, typename _KernelName>
+struct __radix_sort_histogram_submitter;
 
-template <typename _KeyT, ::std::uint8_t __radix_bits, ::std::uint32_t __stage_count, ::std::uint32_t __hist_work_group_count,
-          ::std::uint32_t __hist_work_group_size, bool __is_ascending, typename... _Name>
-struct __radix_sort_onesweep_histogram_submitter<
-    _KeyT, __radix_bits, __stage_count, __hist_work_group_count, __hist_work_group_size, __is_ascending,
+template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint32_t __hist_work_group_count,
+          ::std::uint16_t __hist_work_group_size, typename... _Name>
+struct __radix_sort_histogram_submitter<
+    __is_ascending, __radix_bits, __hist_work_group_count, __hist_work_group_size,
     oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _KeysRng, typename _GlobalOffsetData>
     sycl::event
-    operator()(sycl::queue& __q, _KeysRng&& __keys_rng, const _GlobalOffsetData& __global_offset_data, ::std::size_t __n,
+    operator()(sycl::queue& __q, const _KeysRng& __keys_rng, const _GlobalOffsetData& __global_offset_data, ::std::size_t __n,
                const sycl::event& __e) const
     {
         sycl::nd_range<1> __nd_range(__hist_work_group_count * __hist_work_group_size, __hist_work_group_size);
@@ -78,11 +78,10 @@ struct __radix_sort_onesweep_histogram_submitter<
             {
                 oneapi::dpl::__ranges::__require_access(__cgh, __keys_rng);
                 __cgh.depends_on(__e);
-                auto __data = __keys_rng.data();
                 __cgh.parallel_for<_Name...>(
                     __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::sycl_explicit_simd]] {
-                        __global_histogram<_KeyT, decltype(__data), __radix_bits, __stage_count, __hist_work_group_count, __hist_work_group_size,
-                                         __is_ascending>(__nd_item, __n, __data, __global_offset_data);
+                        __global_histogram<__is_ascending, __radix_bits, __hist_work_group_count,
+                                           __hist_work_group_size>(__nd_item, __n, __keys_rng, __global_offset_data);
                     });
             });
     }

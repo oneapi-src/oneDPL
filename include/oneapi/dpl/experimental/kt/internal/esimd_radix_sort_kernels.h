@@ -209,11 +209,12 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
     }
 }
 
-template <typename _KeyT, typename _InputT, ::std::uint32_t __radix_bits, ::std::uint32_t __stage_count, ::std::uint32_t __hist_work_group_count,
-          ::std::uint32_t __hist_work_group_size, bool __is_ascending>
+template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint32_t __hist_work_group_count,
+          ::std::uint16_t __hist_work_group_size, typename _KeysRng>
 _ONEDPL_ESIMD_INLINE void
-__global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, ::std::uint32_t* __p_global_offset)
+__global_histogram(sycl::nd_item<1> __idx, size_t __n, const _KeysRng& __keys_rng, ::std::uint32_t* __p_global_offset)
 {
+    using _KeyT = oneapi::dpl::__internal::__value_t<_KeysRng>;
     using _BinT = ::std::uint16_t;
     using _HistT = ::std::uint32_t;
     using _GlobalHistT = ::std::uint32_t;
@@ -221,10 +222,12 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, :
     __dpl_esimd_ns::slm_init<16384>();
 
     constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
+    constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
+    constexpr ::std::uint32_t __stage_count = oneapi::dpl::__internal::__dpl_ceiling_div(__bit_count, __radix_bits);
     constexpr ::std::uint32_t __hist_data_per_work_item = 128;
     constexpr ::std::uint32_t __device_wide_step = __hist_work_group_count * __hist_work_group_size * __hist_data_per_work_item;
 
-    // Cap the number of histograms to reduce in SLM per __input range read pass
+    // Cap the number of histograms to reduce in SLM per __keys_rng range read pass
     // due to excessive GRF usage for thread-local histograms
     constexpr ::std::uint32_t __stages_per_block = sizeof(_KeyT) < 4 ? sizeof(_KeyT) : 4;
     constexpr ::std::uint32_t __stage_block_count = oneapi::dpl::__internal::__dpl_ceiling_div(__stage_count, __stages_per_block);
@@ -264,7 +267,7 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, :
             // TODO: avoid reading global memory twice when __stage_block_count > 1 increasing __hist_data_per_work_item
             if (__wi_offset + __hist_data_per_work_item < __n)
             {
-                __utils::__copy_from(__input, __wi_offset, __keys);
+                __utils::__copy_from(__keys_rng.data(), __wi_offset, __keys);
             }
             else
             {
@@ -274,7 +277,7 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, :
                 {
                     __dpl_esimd_ns::simd<::std::uint32_t, __data_per_step> __offsets = __lane_offsets + __step_offset + __wi_offset;
                     __dpl_esimd_ns::simd_mask<__data_per_step> __is_in_range = __offsets < __n;
-                    __dpl_esimd_ns::simd<_KeyT, __data_per_step> data = __utils::__gather<_KeyT, __data_per_step>(__input, __offsets, 0, __is_in_range);
+                    __dpl_esimd_ns::simd<_KeyT, __data_per_step> data = __utils::__gather<_KeyT, __data_per_step>(__keys_rng.data(), __offsets, 0, __is_in_range);
                     __dpl_esimd_ns::simd<_KeyT, __data_per_step> sort_identities = __utils::__sort_identity<_KeyT, __is_ascending>();
                     __keys.template select<__data_per_step, 1>(__step_offset) = __dpl_esimd_ns::merge(data, sort_identities, __is_in_range);
                 }

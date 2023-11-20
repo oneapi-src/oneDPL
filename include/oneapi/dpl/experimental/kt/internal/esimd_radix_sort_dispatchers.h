@@ -179,19 +179,20 @@ __onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
 {
     using _KeyT = typename _RngPack::_KeyT;
     using _ValT = typename _RngPack::_ValT;
+    constexpr bool __has_values = _RngPack::__has_values;
 
     using _EsimdRadixSortHistogram = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __esimd_radix_sort_onesweep_histogram<_KernelName>>;
     using _EsimdRadixSortScan = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __esimd_radix_sort_onesweep_scan<_KernelName>>;
     using _EsimdRadixSortSweepEven = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        ::std::conditional_t<_RngPack::__has_values, __esimd_radix_sort_onesweep_even_by_key<_KernelName>,
+        ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_even_by_key<_KernelName>,
                                                      __esimd_radix_sort_onesweep_even<_KernelName>>>;
     using _EsimdRadixSortSweepOdd = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        ::std::conditional_t<_RngPack::__has_values, __esimd_radix_sort_onesweep_odd_by_key<_KernelName>,
+        ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_odd_by_key<_KernelName>,
                                                      __esimd_radix_sort_onesweep_odd<_KernelName>>>;
     using _EsimdRadixSortCopyback = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        ::std::conditional_t<_RngPack::__has_values, __esimd_radix_sort_onesweep_copyback_by_key<_KernelName>,
+        ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_copyback_by_key<_KernelName>,
                                                       __esimd_radix_sort_onesweep_copyback<_KernelName>>>;
 
     using _GlobalHistT = ::std::uint32_t;
@@ -204,9 +205,11 @@ __onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
     constexpr ::std::uint32_t __global_hist_item_count = __bin_count * __stage_count;
     const ::std::uint32_t __group_hist_item_count = __bin_count * __stage_count * __sweep_work_group_count;
 
+    // Memory is not going to be allocated for void value type
+    // TODO: make this more explicit to reduce coupling between __onesweep_memory_holder and __rng_pack
     __onesweep_memory_holder<_GlobalHistT, _KeyT, _ValT> __mem_holder(__q);
     __mem_holder.__keys_alloc_count(__n);
-    if constexpr (_RngPack::__has_values)
+    if constexpr (__has_values)
     {
         __mem_holder.__vals_alloc_count(__n);
     }
@@ -218,7 +221,7 @@ __onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
         auto __keys_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
                                                         _KeyT*>();
         auto __keys_tmp_rng = __keys_tmp_keep(__mem_holder.__keys_ptr(), __mem_holder.__keys_ptr() + __n).all_view();
-        if constexpr (_RngPack::__has_values)
+        if constexpr (__has_values)
         {
             auto __vals_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
                                                                 _ValT*>();
@@ -241,9 +244,10 @@ __onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
     constexpr ::std::uint32_t __hist_work_group_count = 64;
     constexpr ::std::uint32_t __hist_work_group_size = 64;
     __event_chain =
-        __radix_sort_onesweep_histogram_submitter<_KeyT, __radix_bits, __stage_count, __hist_work_group_count, __hist_work_group_size,
-                                                  __is_ascending, _EsimdRadixSortHistogram>()(__q, __pack.__keys_rng(), __mem_holder.__global_hist_ptr(),
-                                                                                            __n, __event_chain);
+        __radix_sort_histogram_submitter<__is_ascending, __radix_bits, __hist_work_group_count, __hist_work_group_size,
+                                         _EsimdRadixSortHistogram>()(__q, __pack.__keys_rng(),
+                                                                     __mem_holder.__global_hist_ptr(),
+                                                                     __n, __event_chain);
 
     __event_chain = __radix_sort_onesweep_scan_submitter<__stage_count, __bin_count, _EsimdRadixSortScan>()(__q, __mem_holder.__global_hist_ptr(),
                                                                                                 __n, __event_chain);
