@@ -22,12 +22,12 @@
 #include "support/utils_invoke.h"
 
 #if TEST_DPCPP_BACKEND_PRESENT
-template <class T>
+template <class KernelName, class T>
 void
 test_is_not_polymorphic(sycl::queue& deviceQueue)
 {
     deviceQueue.submit([&](sycl::handler& cgh) {
-        cgh.single_task<T>([=]() {
+        cgh.single_task<KernelName>([=]() {
             static_assert(!dpl::is_polymorphic<T>::value);
             static_assert(!dpl::is_polymorphic<const T>::value);
             static_assert(!dpl::is_polymorphic<volatile T>::value);
@@ -40,12 +40,12 @@ test_is_not_polymorphic(sycl::queue& deviceQueue)
     });
 }
 
-template <class T>
+template <class KernelName, class T>
 void
 test_is_polymorphic(sycl::queue& deviceQueue)
 {
     deviceQueue.submit([&](sycl::handler& cgh) {
-        cgh.single_task<T>([=]() {
+        cgh.single_task<KernelName>([=]() {
             static_assert(dpl::is_polymorphic<T>::value);
             static_assert(dpl::is_polymorphic<const T>::value);
             static_assert(dpl::is_polymorphic<volatile T>::value);
@@ -86,31 +86,44 @@ struct Derived : Base
 {
 };
 
+class KernelName1;
+class KernelName2;
+class KernelName3;
+class KernelName4;
+class KernelName5;
+class KernelName6;
+class KernelName7;
+class KernelName8;
+class KernelName9;
+class KernelName10;
+class KernelName11;
+class KernelName12;
+class KernelName13;
+class KernelName14;
+
 void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    test_is_not_polymorphic<void>(deviceQueue);
-    test_is_not_polymorphic<int&>(deviceQueue);
-    test_is_not_polymorphic<int>(deviceQueue);
-    test_is_not_polymorphic<int*>(deviceQueue);
-    test_is_not_polymorphic<const int*>(deviceQueue);
-    test_is_not_polymorphic<char[3]>(deviceQueue);
-    test_is_not_polymorphic<char[]>(deviceQueue);
-    test_is_not_polymorphic<Union>(deviceQueue);
-    test_is_not_polymorphic<Empty>(deviceQueue);
-    test_is_not_polymorphic<bit_zero>(deviceQueue);
-#if !TEST_CLASS_FINAL_BROKEN
-    test_is_not_polymorphic<Final>(deviceQueue);
-#endif // !TEST_CLASS_FINAL_BROKEN
+    test_is_not_polymorphic<KernelName1, void>(deviceQueue);
+    test_is_not_polymorphic<KernelName2, int&>(deviceQueue);
+    test_is_not_polymorphic<KernelName3, int>(deviceQueue);
+    test_is_not_polymorphic<KernelName4, int*>(deviceQueue);
+    test_is_not_polymorphic<KernelName5, const int*>(deviceQueue);
+    test_is_not_polymorphic<KernelName6, char[3]>(deviceQueue);
+    test_is_not_polymorphic<KernelName7, char[]>(deviceQueue);
+    test_is_not_polymorphic<KernelName8, Union>(deviceQueue);
+    test_is_not_polymorphic<KernelName9, Empty>(deviceQueue);
+    test_is_not_polymorphic<KernelName10, bit_zero>(deviceQueue);
+    test_is_not_polymorphic<KernelName11, Final>(deviceQueue);
 
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
-        test_is_not_polymorphic<double>(deviceQueue);
+        test_is_not_polymorphic<KernelName12, double>(deviceQueue);
     }
 
-    test_is_polymorphic<Base>(deviceQueue);
-    test_is_polymorphic<Derived>(deviceQueue);
+    test_is_polymorphic<KernelName13, Base>(deviceQueue);
+    test_is_polymorphic<KernelName14, Derived>(deviceQueue);
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
