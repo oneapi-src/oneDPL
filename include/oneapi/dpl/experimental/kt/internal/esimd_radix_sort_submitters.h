@@ -118,34 +118,6 @@ struct __radix_sort_onesweep_scan_submitter<
     }
 };
 
-template <typename _KeyT, typename _KernelName>
-struct __radix_sort_copyback_submitter;
-
-template <typename _KeyT, typename... _Name>
-struct __radix_sort_copyback_submitter<_KeyT,
-                                       oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
-{
-    template <typename _InRngPack, typename _OutRngPack>
-    sycl::event
-    operator()(sycl::queue& __q, _InRngPack&& __in_pack, _OutRngPack&& __out_pack, ::std::uint32_t __n,
-               const sycl::event& __e) const
-    {
-        return __q.submit(
-            [&](sycl::handler& __cgh)
-            {
-                oneapi::dpl::__ranges::__require_access(__cgh, __in_pack.__keys_rng(), __out_pack.__keys_rng());
-                __cgh.depends_on(__e);
-                // TODO: make sure that access is read_only for __keys_tmp_rng  and is write_only for __keys_rng
-                __cgh.parallel_for<_Name...>(sycl::range<1>{__n},
-                                             [=](sycl::item<1> __item)
-                                             {
-                                                 auto __global_id = __item.get_linear_id();
-                                                 __out_pack.__keys_acc()[__global_id] = __in_pack.__keys_acc()[__global_id];
-                                             });
-            });
-    }
-};
-
 template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
           ::std::uint16_t __work_group_size, typename _KernelName>
 struct __radix_sort_onesweep_submitter;
@@ -179,12 +151,12 @@ struct __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_
     }
 };
 
-template <typename _KeyT, typename _ValT, typename _KernelName>
-struct __radix_sort_by_key_copyback_submitter;
+template <typename _KernelName>
+struct __radix_sort_copyback_submitter;
 
-template <typename _KeyT, typename _ValT, typename... _Name>
-struct __radix_sort_by_key_copyback_submitter<_KeyT, _ValT,
-                                       oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+template <typename... _Name>
+struct __radix_sort_copyback_submitter<
+    oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _InRngPack, typename _OutRngPack>
     sycl::event
@@ -194,16 +166,21 @@ struct __radix_sort_by_key_copyback_submitter<_KeyT, _ValT,
         return __q.submit(
             [&](sycl::handler& __cgh)
             {
-                oneapi::dpl::__ranges::__require_access(__cgh, __in_pack.__keys_rng(), __in_pack.__vals_rng(), __out_pack.__keys_rng(), __out_pack.__vals_rng());
+                oneapi::dpl::__ranges::__require_access(__cgh, __in_pack.__keys_rng(), __out_pack.__keys_rng());
+                if constexpr(::std::decay_t<_InRngPack>::__has_values)
+                {
+                    oneapi::dpl::__ranges::__require_access(__cgh, __in_pack.__vals_rng(), __out_pack.__vals_rng());
+                }
                 // TODO: make sure that access is read_only for __keys_tmp_rng/__vals_tmp_rng  and is write_only for __keys_rng/__vals_rng
                 __cgh.depends_on(__e);
-                __cgh.parallel_for<_Name...>(sycl::range<1>{__n},
-                                             [=](sycl::item<1> __item)
-                                             {
-                                                 auto __global_id = __item.get_linear_id();
-                                                 __out_pack.__keys_acc()[__global_id] =  __in_pack.__keys_acc()[__global_id];
-                                                 __out_pack.__vals_acc()[__global_id] = __in_pack.__vals_acc()[__global_id];
-                                             });
+                __cgh.parallel_for<_Name...>(sycl::range<1>{__n}, [=](sycl::item<1> __item) {
+                    auto __global_id = __item.get_linear_id();
+                    __out_pack.__keys_acc()[__global_id] = __in_pack.__keys_acc()[__global_id];
+                    if constexpr(::std::decay_t<_InRngPack>::__has_values)
+                    {
+                        __out_pack.__vals_acc()[__global_id] = __in_pack.__vals_acc()[__global_id];
+                    }
+                });
             });
     }
 };

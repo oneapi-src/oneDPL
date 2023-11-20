@@ -272,16 +272,8 @@ __onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
 
     if constexpr (__stage_count % 2 != 0)
     {
-        if constexpr (_RngPack::__has_values)
-        {
-            __event_chain =
-                __radix_sort_by_key_copyback_submitter<_KeyT, _ValT, _EsimdRadixSortCopyback>()(__q, __tmp_pack, __pack, __n, __event_chain);
-        }
-        else
-        {
-            __event_chain =
-                __radix_sort_copyback_submitter<_KeyT, _EsimdRadixSortCopyback>()(__q, __tmp_pack, __pack, __n, __event_chain);
-        }
+        __event_chain =
+            __radix_sort_copyback_submitter<_EsimdRadixSortCopyback>()(__q, __tmp_pack, __pack, __n, __event_chain);
     }
 
     return __mem_holder.__async_deallocate(__event_chain);
