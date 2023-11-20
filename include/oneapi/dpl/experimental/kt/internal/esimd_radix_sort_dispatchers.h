@@ -289,7 +289,7 @@ __radix_sort(sycl::queue __q, _RngPack&& __pack, _KernelParam __param)
     static_assert(32 <= __param.data_per_workitem && __param.data_per_workitem <= 512 &&
                   __param.data_per_workitem % 32 == 0);
 
-    const ::std::size_t __n = __pack.__keys_rng().size();
+    const auto __n = __pack.__keys_rng().size();
     assert(__n > 1);
 
     // _PRINT_INFO_IN_DEBUG_MODE(__exec); TODO: extend the utility to work with queues
