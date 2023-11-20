@@ -55,11 +55,19 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 // Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
-// call some function which is not declared as SYCL external and we have compile error
-#define TEST_XPU_ARRAY_SWAP_BROKEN (_MSC_VER <= 1937)
+// call some internal function which is not declared as SYCL external and we have compile error
+#if defined(_MSC_VER)
+#   define TEST_XPU_ARRAY_SWAP_BROKEN (_MSC_VER <= 1937)
+#else
+#   define TEST_XPU_ARRAY_SWAP_BROKEN 0
+#endif
 
 // The usage of class Final final {}; as Kernel name is broken on Intel(С) C++ Compiler before 2024.0
-#define TEST_CLASS_FINAL_BROKEN (__INTEL_LLVM_COMPILER && __INTEL_LLVM_COMPILER < 20240000)
+#if (defined(__INTEL_LLVM_COMPILER))
+#   define TEST_CLASS_FINAL_BROKEN (__INTEL_LLVM_COMPILER < 20240000)
+#else
+#   define TEST_CLASS_FINAL_BROKEN 0
+#endif
 
 #define _PSTL_SYCL_TEST_USM 1
 
