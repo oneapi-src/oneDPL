@@ -188,7 +188,7 @@ jobs:
             # Workaround for absent FPGA emulator runtime config files in https://anaconda.org/intel/intel-opencl-rt 2024.0.0 package (part of dpcpp_linux-64)
             FPGA_RUNTIME_PATH=$(find $CONDA -name "libintelocl_emu.so*") 
             echo $FPGA_RUNTIME_PATH > $CONDA/etc/OpenCL/vendors/intel-fpga_emu.icd
-            export OCL_ICD_FILENAMES=OCL_ICD_FILENAMES:$FPGA_RUNTIME_PATH
+            export OCL_ICD_FILENAMES=$OCL_ICD_FILENAMES:$FPGA_RUNTIME_PATH
             cp $CONDA/lib/cl.cfg $CONDA/lib/cl.fpga_emu.cfg
             sed -i "s/cpu/fpga-emu/g" $CONDA/lib/cl.fpga_emu.cfg
             # TODO: remove, CI debugging
