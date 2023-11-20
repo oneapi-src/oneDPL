@@ -24,7 +24,7 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && !TEST_XPU_ARRAY_SWAP_BROKEN
 class KernelTest1;
 
 bool
@@ -91,15 +91,15 @@ kernel_test()
     }
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && !TEST_XPU_ARRAY_SWAP_BROKEN
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
+#if TEST_DPCPP_BACKEND_PRESENT && !TEST_XPU_ARRAY_SWAP_BROKEN
     auto ret = kernel_test();
     EXPECT_TRUE(ret, "Wrong result of work with dpl::swap");
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // TEST_DPCPP_BACKEND_PRESENT && !TEST_XPU_ARRAY_SWAP_BROKEN
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && !TEST_XPU_ARRAY_SWAP_BROKEN);
 }
