@@ -23,7 +23,13 @@
 #include "support/utils.h"
 #include "support/test_macros.h"
 
+#include <type_traits>
+
 #if TEST_DPCPP_BACKEND_PRESENT
+
+template <typename It>
+constexpr bool __is_forward_iterator =
+    std::is_base_of_v<std::forward_iterator_tag, typename std::iterator_traits<It>::iterator_category>;
 
 template <class It>
 bool
@@ -34,7 +40,7 @@ test(It i, It x)
     // dpl::move_iterator post increment operation does not return value if It
     // is not forward iterator
     dpl::move_iterator<It> rr;
-    if constexpr (std::forward_iterator<It>) {
+    if constexpr (__is_forward_iterator<It>) {
         rr = r++;
     } else {
         r++;
@@ -44,7 +50,7 @@ test(It i, It x)
 #endif
     auto ret = (r.base() == x);
 #if TEST_STD_VER >= 20
-    if constexpr (std::forward_iterator<It>)
+    if constexpr (__is_forward_iterator<It>)
 #endif
         ret &= (rr.base() == i);
     return ret;
