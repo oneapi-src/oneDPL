@@ -552,7 +552,10 @@ struct __get_sycl_range
             else
             {
                 sycl::buffer<_T, 1> __buf(__last - __first);
-                __buf.set_final_data(__first); //wait and copy on a buffer destructor
+                if constexpr (__test_addressof<_Iter>(0))
+                    __buf.set_final_data(::std::addressof(*__first)); //wait and fast copy on a buffer destructor
+                else
+                    __buf.set_final_data(__first); //wait and copy on a buffer destructor
                 return __buf;
             }
         };
