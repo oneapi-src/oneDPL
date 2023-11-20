@@ -180,6 +180,11 @@ jobs:
           export PATH=$CONDA/lib:$PATH
           export CPATH=$CONDA/include:$CPATH
           export OCL_ICD_FILENAMES=$CONDA/lib/libintelocl.so
+          
+          # Workaround for partially absent FPGA emulator runtime in https://anaconda.org/intel/intel-opencl-rt 2024.0.0 package (part of dpcpp_linux-64)
+          find ${CONDA_PREFIX} -name "libintelocl_emu.so*" > ${CONDA_PREFIX}/etc/OpenCL/vendors/intel-fpga_emu.icd
+          cp ${CONDA_PREFIX}/lib/cl.cfg ${CONDA_PREFIX}/lib/cl.fpga_emu.cfg
+
           echo "::warning::Compiler: $(cmake --version)"
           if [[ "${{ matrix.cxx_compiler }}" == "icpx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx-cl" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp-cl" ]]; then
             echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
