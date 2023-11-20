@@ -43,8 +43,8 @@ radix_sort(sycl::queue __q, _KeysIterator __keys_first, _KeysIterator __keys_las
 
     auto __keys_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
                                                           _KeysIterator>();
-    auto __keys_rng = __keys_keep(__keys_first, __keys_last);
-    auto __pack = __impl::__utils::__rng_pack{::std::move(__keys_rng.all_view())};
+    auto __keys_rng = __keys_keep(__keys_first, __keys_last).all_view();
+    auto __pack = __impl::__utils::__rng_pack{::std::move(__keys_rng)};
     return __impl::__radix_sort<__is_ascending, __radix_bits>(__q, ::std::move(__pack), __param);
 }
 
@@ -56,7 +56,7 @@ radix_sort_by_key(sycl::queue __q, _KeysRng&& __keys_rng, _ValsRng&& __vals_rng,
         return {};
 
     auto __pack = __impl::__utils::__rng_pack{oneapi::dpl::__ranges::views::all(::std::forward<_KeysRng>(__keys_rng)),
-                                      oneapi::dpl::__ranges::views::all(::std::forward<_KeysRng>(__vals_rng))};
+                                              oneapi::dpl::__ranges::views::all(::std::forward<_ValsRng>(__vals_rng))};
     return __impl::__radix_sort<__is_ascending, __radix_bits>(__q, ::std::move(__pack), __param);
 }
 
@@ -69,12 +69,12 @@ radix_sort_by_key(sycl::queue __q, _KeysIterator __keys_first, _KeysIterator __k
 
     auto __keys_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
                                                           _KeysIterator>();
-    auto __keys_rng = __keys_keep(__keys_first, __keys_last);
+    auto __keys_rng = __keys_keep(__keys_first, __keys_last).all_view();
 
     auto __vals_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
                                                           _ValsIterator>();
-    auto __vals_rng = __vals_keep(__vals_first, __vals_first + (__keys_last - __keys_first));
-    auto __pack = __impl::__utils::__rng_pack{::std::move(__keys_rng.all_view()), ::std::move(__vals_rng.all_view())};
+    auto __vals_rng = __vals_keep(__vals_first, __vals_first + (__keys_last - __keys_first)).all_view();
+    auto __pack = __impl::__utils::__rng_pack{::std::move(__keys_rng), ::std::move(__vals_rng)};
     return __impl::__radix_sort<__is_ascending, __radix_bits>(__q, ::std::move(__pack), __param);
 }
 
