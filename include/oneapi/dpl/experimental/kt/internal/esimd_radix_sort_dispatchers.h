@@ -187,13 +187,13 @@ __onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
         __esimd_radix_sort_onesweep_scan<_KernelName>>;
     using _EsimdRadixSortSweepEven = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_even_by_key<_KernelName>,
-                                                     __esimd_radix_sort_onesweep_even<_KernelName>>>;
+                                           __esimd_radix_sort_onesweep_even<_KernelName>>>;
     using _EsimdRadixSortSweepOdd = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_odd_by_key<_KernelName>,
-                                                     __esimd_radix_sort_onesweep_odd<_KernelName>>>;
+                                           __esimd_radix_sort_onesweep_odd<_KernelName>>>;
     using _EsimdRadixSortCopyback = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_copyback_by_key<_KernelName>,
-                                                      __esimd_radix_sort_onesweep_copyback<_KernelName>>>;
+                                           __esimd_radix_sort_onesweep_copyback<_KernelName>>>;
 
     using _GlobalHistT = ::std::uint32_t;
     constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
@@ -258,33 +258,15 @@ __onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
         _GlobalHistT* __p_group_hists = __mem_holder.__group_hist_ptr() + __sweep_work_group_count * __bin_count * __stage;
         if ((__stage % 2) == 0)
         {
-            if constexpr (_RngPack::__has_values)
-            {
-                __event_chain = __radix_sort_onesweep_by_key_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
-                                                            _KeyT, _ValT, _EsimdRadixSortSweepEven>()(
-                    __q, __pack, __tmp_pack, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n, __stage, __event_chain);
-            }
-            else
-            {
-                __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
-                                                            _KeyT, _EsimdRadixSortSweepEven>()(
-                    __q, __pack, __tmp_pack, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n, __stage, __event_chain);
-            }
+            __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
+                                                            _EsimdRadixSortSweepEven>()(
+                __q, __pack, __tmp_pack, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n, __stage, __event_chain);
         }
         else
         {
-            if constexpr (_RngPack::__has_values)
-            {
-                __event_chain = __radix_sort_onesweep_by_key_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
-                                                            _KeyT, _ValT, _EsimdRadixSortSweepOdd>()(
-                    __q, __tmp_pack, __pack, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n, __stage, __event_chain);
-            }
-            else
-            {
-                __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
-                                                            _KeyT, _EsimdRadixSortSweepOdd>()(
-                    __q, __tmp_pack, __pack, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n, __stage, __event_chain);
-            }
+            __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
+                                                            _EsimdRadixSortSweepOdd>()(
+                __q, __tmp_pack, __pack, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n, __stage, __event_chain);
         }
     }
 
