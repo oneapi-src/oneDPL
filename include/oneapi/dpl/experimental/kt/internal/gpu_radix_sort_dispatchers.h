@@ -47,7 +47,7 @@ template <typename _KernelName, bool __is_ascending, ::std::uint8_t __radix_bits
 sycl::event
 __one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n);
 
-template<typename _HistT, typename _KeyT, typename _ValT = void>
+template<typename _HistT, typename _KeyT, typename _WgCounterT = std::uint32_t, typename _ValT = void>
 class __onesweep_memory_holder
 {
     static constexpr bool __has_values = !::std::is_void_v<_ValT>;
@@ -57,6 +57,8 @@ class __onesweep_memory_holder
     _HistT* __m_global_hist_ptr = nullptr;
     // Memory to store group historgrams, which contain offsets relative to "previous" groups
     _HistT* __m_group_hist_ptr = nullptr;
+    // Memory to store dynamic wg ID
+    _WgCounterT* __m_dynamic_id_ptr = nullptr;
     // Memory to store intermediate results of sorting
     _KeyT* __m_keys_ptr = nullptr;
     _ValT* __m_vals_ptr = nullptr;
@@ -66,13 +68,15 @@ class __onesweep_memory_holder
     ::std::size_t __m_vals_bytes = 0;
     ::std::size_t __m_global_hist_bytes = 0;
     ::std::size_t __m_group_hist_bytes = 0;
+    ::std::size_t __m_dynamic_id_bytes = 0;
 
     sycl::queue __m_q;
 
     void __calculate_raw_memory_amount() noexcept
     {
         // Extra bytes are added for potentiall padding
-        __m_raw_mem_bytes = __m_keys_bytes + __m_global_hist_bytes + __m_group_hist_bytes + sizeof(_KeyT);
+        __m_raw_mem_bytes = __m_keys_bytes + __m_global_hist_bytes + __m_group_hist_bytes + sizeof(_KeyT) +
+                            __m_dynamic_id_bytes + sizeof(_WgCounterT);
         if constexpr (__has_values)
         {
             __m_raw_mem_bytes += (__m_vals_bytes + sizeof(_ValT));
@@ -98,10 +102,15 @@ class __onesweep_memory_holder
         void* __aligned_ptr = ::std::align(::std::alignment_of_v<_KeyT>, __m_keys_bytes, __base_ptr, __remainder);
         __m_keys_ptr = reinterpret_cast<_KeyT*>(__aligned_ptr);
 
+        __base_ptr = reinterpret_cast<void*>(__m_keys_ptr + __m_keys_bytes / sizeof(_KeyT));
+        __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes + __m_keys_bytes);
+        __aligned_ptr = ::std::align(::std::alignment_of_v<_WgCounterT>, __m_dynamic_id_bytes, __base_ptr, __remainder);
+        __m_dynamic_id_ptr = reinterpret_cast<_WgCounterT*>(__aligned_ptr);
+
         if constexpr (__has_values)
         {
-            __base_ptr = reinterpret_cast<void*>(__m_keys_ptr + __m_keys_bytes / sizeof(_KeyT));
-            __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes + __m_keys_bytes);
+            __base_ptr = reinterpret_cast<void*>(__m_dynamic_id_ptr + __m_dynamic_id_bytes / sizeof(_WgCounterT));
+            __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes + __m_keys_bytes + __m_dynamic_id_bytes);
             __aligned_ptr = ::std::align(::std::alignment_of_v<_ValT>, __m_vals_bytes, __base_ptr, __remainder);
             __m_vals_ptr = reinterpret_cast<_ValT*>(__aligned_ptr);
         }
@@ -126,11 +135,16 @@ public:
     {
         __m_group_hist_bytes = __group_hist_item_count * sizeof(_HistT);
     }
+    void __dynamic_id_alloc_count(::std::size_t __dynamic_id_count) noexcept
+    {
+        __m_dynamic_id_bytes = __dynamic_id_count * sizeof(_WgCounterT);
+    }
 
     _KeyT* __keys_ptr() noexcept { return __m_keys_ptr; }
     _ValT* __vals_ptr() noexcept { return __m_vals_ptr; }
     _HistT* __global_hist_ptr() noexcept { return __m_global_hist_ptr; }
     _HistT* __group_hist_ptr() noexcept{ return __m_group_hist_ptr; }
+    _WgCounterT* __dynamic_id_ptr() noexcept { return __m_dynamic_id_ptr;}
 
     void __allocate()
     {
@@ -170,6 +184,7 @@ __onesweep(sycl::queue __q, _KeysRng&& __keys_rng, ::std::size_t __n)
         __gpu_radix_sort_onesweep_copyback<_KernelName>>;
 
     using _GlobalHistT = ::std::uint32_t;
+    using _WgCounterT = ::std::uint32_t;
     constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
 
     const ::std::uint32_t __sweep_work_group_count =
@@ -184,6 +199,7 @@ __onesweep(sycl::queue __q, _KeysRng&& __keys_rng, ::std::size_t __n)
     __mem_holder.__keys_alloc_count(__n);
     __mem_holder.__global_hist_item_alloc_count(__global_hist_item_count);
     __mem_holder.__group_hist_item_alloc_count(__group_hist_item_count);
+    __mem_holder.__dynamic_id_alloc_count(__stage_count);
     __mem_holder.__allocate();
 
     auto __keep =
@@ -207,19 +223,21 @@ __onesweep(sycl::queue __q, _KeysRng&& __keys_rng, ::std::size_t __n)
     for (::std::uint32_t __stage = 0; __stage < __stage_count; __stage++)
     {
         _GlobalHistT* __p_global_hist = __mem_holder.__global_hist_ptr() + __bin_count * __stage;
-        _GlobalHistT* __p_group_hists = __mem_holder.__group_hist_ptr() + __sweep_work_group_count * __bin_count * __stage;
+        _GlobalHistT* __p_group_hists =
+            __mem_holder.__group_hist_ptr() + __sweep_work_group_count * __bin_count * __stage;
+        _WgCounterT* __p_dynamic_id = __mem_holder.__dynamic_id_ptr();
         if ((__stage % 2) == 0)
         {
             __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item,
                                                             __work_group_size, _KeyT, _GpuRadixSortSweepEven>()(
-                __q, __keys_rng, __keys_tmp_rng, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n,
+                __q, __keys_rng, __keys_tmp_rng, __p_global_hist, __p_group_hists, __p_dynamic_id, __sweep_work_group_count, __n,
                 __stage, __event_chain);
         }
         else
         {
             __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item,
                                                             __work_group_size, _KeyT, _GpuRadixSortSweepOdd>()(
-                __q, __keys_tmp_rng, __keys_rng, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n,
+                __q, __keys_tmp_rng, __keys_rng, __p_global_hist, __p_group_hists, __p_dynamic_id, __sweep_work_group_count, __n,
                 __stage, __event_chain);
         }
     }

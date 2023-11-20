@@ -100,10 +100,10 @@ template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __da
 struct __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size, _KeyT,
                                        oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _InKeysRng, typename _OutKeysRng, typename _GlobalHistT>
+    template <typename _InKeysRng, typename _OutKeysRng, typename _GlobalHistT, typename _WgCounterT>
     sycl::event
     operator()(sycl::queue& __q, _InKeysRng& __in_keys_rng, _OutKeysRng& __out_keys_rng, _GlobalHistT* __p_global_hist,
-               _GlobalHistT* __p_group_hists, ::std::uint32_t __sweep_work_group_count, ::std::size_t __n,
+               _GlobalHistT* __p_group_hists, _WgCounterT* __p_dynamic_id, ::std::uint32_t __sweep_work_group_count, ::std::size_t __n,
                ::std::uint32_t __stage, const sycl::event& __e) const
     {
         sycl::nd_range<1> __nd_range(__sweep_work_group_count * __work_group_size, __work_group_size);
