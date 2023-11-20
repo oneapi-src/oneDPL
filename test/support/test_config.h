@@ -60,7 +60,7 @@
 #else
 #   define TEST_ARRAY_SWAP_BROKEN 0
 #endif
-// The usage of class Final final {}; as Kernel name is broken on ICPX before 2024.0
+// The usage of class Final final {}; as Kernel name is broken on Intel® C++ Compiler before 2024.0
 #if defined(__INTEL_LLVM_COMPILER)
 #   define TEST_CLASS_FINAL_BROKEN (__INTEL_LLVM_COMPILER < 20240000)
 #else
