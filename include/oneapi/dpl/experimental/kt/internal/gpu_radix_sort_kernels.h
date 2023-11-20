@@ -133,11 +133,12 @@ struct OneSweepSharedData {
     uint32_t group_id;
 };
 
-template <uint32_t RADIX_BITS = 8, uint32_t GROUP_THREADS = 256, uint32_t ITEMS_PER_THREAD = 32,
-    bool USE_DYNAMIC_ID = false, uint32_t WARP_THREADS = 16, typename keyT = uint32_t,
-    bool IS_DESC = false>
-struct OneSweepRadixSort {
-    enum {
+template <uint32_t RADIX_BITS, uint32_t GROUP_THREADS, uint32_t ITEMS_PER_THREAD, bool USE_DYNAMIC_ID,
+          uint32_t WARP_THREADS, typename keyT, typename _InKeysRng, typename _OutKeysRng, bool __is_ascending>
+struct OneSweepRadixSort
+{
+    enum
+    {
         RADIX_DIGITS = 1 << RADIX_BITS,
         NUM_DIGITS = sizeof(keyT) * 8 / RADIX_BITS,
         // seperate the threads into parts, each parts share a single counter.
@@ -153,7 +154,7 @@ struct OneSweepRadixSort {
         sycl::memory_scope::device, sycl::access::address_space::global_space>;
     using Vector = __utils::Vector<ITEMS_PER_THREAD, keyT>;
 
-    OneSweepRadixSort(uint32_t pass, keyT *array_in, keyT *array_out, uint32_t *digit_offsets,
+    OneSweepRadixSort(uint32_t pass, _InKeysRng array_in, _OutKeysRng array_out, uint32_t *digit_offsets,
         uint32_t *global_offsets, uint32_t *dynamic_id_ptr, uint32_t size, Data &s)
         : array_in(array_in),
           array_out(array_out),
@@ -389,7 +390,8 @@ struct OneSweepRadixSort {
         scatterGlobalKeys(id);
     }
 
-    keyT *array_in, *array_out;
+    _InKeysRng array_in;
+    _OutKeysRng array_out;
     uint32_t *digit_offsets, *global_offsets, pass, array_size, group_limit, *dynamic_id_ptr,
         group_id, warp, lane;
     Data &s;
