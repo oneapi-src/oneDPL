@@ -52,7 +52,7 @@ struct RadixSortHistogram
         for (uint32_t i = 0; i < __data_per_work_item; i++) {
 #pragma unroll
             for (uint32_t d = 0; d < __stage_count; d++) {
-                uint32_t digit = getDigit(oneapi::dpl::__par_backend_hetero::__order_preserving_cast<__is_ascending>(key[i]), d, __radix_bits);
+                uint32_t digit = __utils::getDigit(oneapi::dpl::__par_backend_hetero::__order_preserving_cast<__is_ascending>(key[i]), d, __radix_bits);
                 atomic_local(shared_digit_histogram[d * __bin_count + digit])++;
             }
         }
@@ -63,7 +63,7 @@ struct RadixSortHistogram
             keyT key = array[i * __work_group_size];
 #pragma unroll
             for (uint32_t d = 0; d < __stage_count; d++) {
-                uint32_t digit = getDigit(oneapi::dpl::__par_backend_hetero::__order_preserving_cast<__is_ascending>(key), d, __radix_bits);
+                uint32_t digit = __utils::getDigit(oneapi::dpl::__par_backend_hetero::__order_preserving_cast<__is_ascending>(key), d, __radix_bits);
                 atomic_local(shared_digit_histogram[d * __bin_count + digit])++;
             }
         }
@@ -95,9 +95,9 @@ struct RadixSortHistogram
             shared_digit_histogram[i] = 0;
         }
         uint32_t offset = id.get_group_linear_id() * __data_per_work_item * __work_group_size + localId;
-        slmBarrier(id);
+        __utils::slmBarrier(id);
         accumulateSharedHistogram(array, offset);
-        slmBarrier(id);
+        __utils::slmBarrier(id);
         accumulateGlobalHistogram(localId);
     }
 
@@ -157,7 +157,7 @@ struct OneSweepRadixSort {
     using Data = OneSweepSharedData<RADIX_DIGITS, GROUP_WARPS, ITEMS_PER_THREAD, GROUP_THREADS, keyT>;
     using atomic_global = sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed,
         sycl::memory_scope::device, sycl::access::address_space::global_space>;
-    using Vector = Vector<ITEMS_PER_THREAD, keyT>;
+    using Vector = __utils::Vector<ITEMS_PER_THREAD, keyT>;
 
     OneSweepRadixSort(uint32_t pass, keyT *array_in, keyT *array_out, uint32_t *digit_offsets,
         uint32_t *global_offsets, uint32_t *dynamic_id_ptr, uint32_t size, Data &s)
@@ -188,11 +188,11 @@ struct OneSweepRadixSort {
             if (id.get_group().leader()) {
                 s.group_id = atomic_global(dynamic_id_ptr[0])++;
             }
-            slmBarrier(id);
+            __utils::slmBarrier(id);
             group_id = s.group_id;
         } else {
             group_id = id.get_group_linear_id();
-            slmBarrier(id);
+            __utils::slmBarrier(id);
         }
     }
 
@@ -200,9 +200,9 @@ struct OneSweepRadixSort {
         uint16_t *warp_counters = &s.warp_counters[warp];
 #pragma unroll
         for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
-            uint32_t digit = getDigit(keys[i], pass, RADIX_BITS);
+            uint32_t digit = __utils::getDigit(keys[i], pass, RADIX_BITS);
             uint32_t bin = digit * GROUP_WARPS;
-            uint32_t bin_mask = matchAny<RADIX_BITS>(id, digit);
+            uint32_t bin_mask = __utils::matchAny<RADIX_BITS>(id, digit);
             bool last = (bin_mask >> (lane + 1)) == 0;
 
             bin_mask <<= (31 - lane);
@@ -213,7 +213,7 @@ struct OneSweepRadixSort {
                 warp_counters[bin] += popc;
             }
         }
-        slmBarrier(id);
+        __utils::slmBarrier(id);
     }
 
     FORCE_INLINE void scanCounters(sycl::nd_item<1> &id) {
@@ -226,7 +226,7 @@ struct OneSweepRadixSort {
         if(lane==0)
             s.offset_buffer[warp] = offset;
 
-        slmBarrier(id);
+        __utils::slmBarrier(id);
 
         if (warp == 0) {
             s.offset_buffer[GROUP_WARPS] = 0;
@@ -243,7 +243,7 @@ struct OneSweepRadixSort {
                     inclusive_sum);
             }
         }
-        slmBarrier(id);
+        __utils::slmBarrier(id);
 
         sum = sycl::exclusive_scan_over_group(id.get_sub_group(), sum, sycl::plus<uint16_t>());
         sum += s.offset_buffer[GROUP_WARPS + warp];
@@ -253,7 +253,7 @@ struct OneSweepRadixSort {
             s.warp_offsets[j + counters_offset] = sum;
             sum += tmp;
         }
-        slmBarrier(id);
+        __utils::slmBarrier(id);
     }
 
     FORCE_INLINE void computeSharedKeysOffset(Vector &keys, uint16_t *ranks, sycl::nd_item<1> &id) {
@@ -263,7 +263,7 @@ struct OneSweepRadixSort {
 
 #pragma unroll
         for (int i = 0; i < ITEMS_PER_THREAD; i++) {
-            uint32_t digit = getDigit(keys[i], pass, RADIX_BITS);
+            uint32_t digit = __utils::getDigit(keys[i], pass, RADIX_BITS);
             uint32_t bin = digit * GROUP_WARPS + warp;
             ranks[i] += s.warp_offsets[bin];
         }
@@ -331,7 +331,7 @@ struct OneSweepRadixSort {
             for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
                 uint32_t idx = id.get_local_linear_id() + i * GROUP_THREADS;
                 keyT key = s.shared_keys[idx];
-                uint32_t digit = getDigit(key, pass, RADIX_BITS);
+                uint32_t digit = __utils::getDigit(key, pass, RADIX_BITS);
 
                 array_out[s.group_offsets[digit] + idx] = key;
             }
@@ -340,8 +340,8 @@ struct OneSweepRadixSort {
             for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
                 uint32_t idx = id.get_local_linear_id() + i * GROUP_THREADS;
                 keyT key = s.shared_keys[idx];
-                if (key != 0xFFFFFFFF) { //TODO replace magic no. with range check?
-                    uint32_t digit = getDigit(key, pass, RADIX_BITS);
+                if (key != 0xFFFFFFFF) { //TODO: replace magic no. with range check
+                    uint32_t digit = __utils::getDigit(key, pass, RADIX_BITS);
 
                     array_out[s.group_offsets[digit] + idx] = key;
                 } else {
@@ -390,7 +390,7 @@ struct OneSweepRadixSort {
 
         scatterSharedKeys(ranks, keys, id);
 
-        slmBarrier(id);
+        __utils::slmBarrier(id);
 
         scatterGlobalKeys(id);
     }
