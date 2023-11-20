@@ -112,18 +112,19 @@ struct __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_
             auto __in_data = __in_keys_rng.data();
             auto __out_data = __out_keys_rng.data();
             __cgh.depends_on(__e);
-            // __radix_sort_onesweep_slm_reorder_kernel<__is_ascending, __radix_bits, __data_per_work_item,
-            //                                          __work_group_size, _KeyT, decltype(__in_data),
-            //                                          decltype(__out_data)>
-            //     __sweep_kernel(__n, __stage, __in_data, __out_data, __p_global_hist, __p_group_hists);
-            __cgh.parallel_for<_Name...>(__nd_range,
-                                         [=](sycl::nd_item<1> __nd_item) [[intel::reqd_sub_group_size(WARP_THREADS)]] {
-                        OneSweepKernel kernel(pass, array_in, array_out,
-                            &digits_offsets[RADIX_DIGITS * pass],
-                            &global_offsets[groups * RADIX_DIGITS * pass], dynamic_id + pass, size,
-                            s[0]);
-                        kernel.process(__nd_item);
-            });
+
+            static constexpr std::uint32_t __bin_count = 1 << __radix_bits;
+            __dpl_sycl::__local_accessor<OneSweepSharedData<__bin_count, __work_group_size/32 /* TODO: */, __data_per_work_item, __work_group_size, _KeyT>>
+                __lacc(1, __cgh);
+            //TODO: incorporate decltype(__in_data), decltype(__out_data) [i.e. Ranges]
+            __cgh.parallel_for<_Name...>(
+                __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::reqd_sub_group_size(32)]] {
+                    OneSweepRadixSort<__radix_bits, __work_group_size, __data_per_work_item, true,
+                                      32 /* TODO:unhardcode this */, _KeyT, !__is_ascending>
+                        kernel(__stage, __in_data, __out_data, __p_global_hist, __p_group_hists,
+                               __p_dynamic_id + __stage, __n, *__dpl_sycl::__get_accessor_ptr(__lacc));
+                    kernel.process(__nd_item);
+                });
         });
     }
 };
