@@ -186,7 +186,11 @@ jobs:
             echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
             # Workaround for absent FPGA emulator runtime config files in https://anaconda.org/intel/intel-opencl-rt 2024.0.0 package (part of dpcpp_linux-64)
             find $CONDA -name "libintelocl_emu.so*" > $CONDA/etc/OpenCL/vendors/intel-fpga_emu.icd
+
             cp $CONDA/lib/cl.cfg $CONDA/lib/cl.fpga_emu.cfg
+            # TODO: remove, CI debugging
+            cat $CONDA/etc/OpenCL/vendors/intel-fpga_emu.icd
+            sycl-ls
           fi
           if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
             make_targets="build-onedpl-sycl_iterator-tests"
