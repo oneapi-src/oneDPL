@@ -23,6 +23,7 @@
 namespace oneapi::dpl::experimental::kt::esimd
 {
 
+// TODO: make sure to provide sufficient diagnostic if input does not allow either reading or writing
 template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename _KernelParam, typename _KeysRng>
 sycl::event
 radix_sort(sycl::queue __q, _KeysRng&& __keys_rng, _KernelParam __param = {})
