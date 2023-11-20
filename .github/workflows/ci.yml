@@ -184,12 +184,16 @@ jobs:
           echo "::warning::Compiler: $(cmake --version)"
           if [[ "${{ matrix.cxx_compiler }}" == "icpx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx-cl" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp-cl" ]]; then
             echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
-            # Workaround for absent FPGA emulator runtime config files in https://anaconda.org/intel/intel-opencl-rt 2024.0.0 package (part of dpcpp_linux-64)
-            find $CONDA -name "libintelocl_emu.so*" > $CONDA/etc/OpenCL/vendors/intel-fpga_emu.icd
 
+            # Workaround for absent FPGA emulator runtime config files in https://anaconda.org/intel/intel-opencl-rt 2024.0.0 package (part of dpcpp_linux-64)
+            FPGA_RUNTIME_PATH=$(find $CONDA -name "libintelocl_emu.so*") 
+            echo $FPGA_RUNTIME_PATH > $CONDA/etc/OpenCL/vendors/intel-fpga_emu.icd
+            export OCL_ICD_FILENAMES=OCL_ICD_FILENAMES:$FPGA_RUNTIME_PATH
             cp $CONDA/lib/cl.cfg $CONDA/lib/cl.fpga_emu.cfg
+            sed -i "s/cpu/fpga-emu/g" $CONDA/lib/cl.fpga_emu.cfg
             # TODO: remove, CI debugging
             cat $CONDA/etc/OpenCL/vendors/intel-fpga_emu.icd
+            cat $CONDA/lib/cl.fpga_emu.cfg
             sycl-ls
           fi
           if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
