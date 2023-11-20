@@ -55,17 +55,10 @@
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
 // Array swap broken on Windows
-#ifdef _MSC_VER
-#   define TEST_ARRAY_SWAP_BROKEN 1
-#else
-#   define TEST_ARRAY_SWAP_BROKEN 0
-#endif
-// The usage of class Final final {}; as Kernel name is broken on Intel® C++ Compiler before 2024.0
-#if defined(__INTEL_LLVM_COMPILER)
-#   define TEST_CLASS_FINAL_BROKEN (__INTEL_LLVM_COMPILER < 20240000)
-#else
-#   define TEST_CLASS_FINAL_BROKEN 0
-#endif
+#define TEST_ARRAY_SWAP_BROKEN _MSC_VER
+
+// The usage of class Final final {}; as Kernel name is broken on Intelï¿½ C++ Compiler before 2024.0
+#define TEST_CLASS_FINAL_BROKEN (__INTEL_LLVM_COMPILER && __INTEL_LLVM_COMPILER < 20240000)
 
 #define _PSTL_SYCL_TEST_USM 1
 
