@@ -71,9 +71,11 @@ struct bit_zero
     int : 0;
 };
 
+#if !TEST_CLASS_FINAL_BROKEN
 class Final final
 {
 };
+#endif // !TEST_CLASS_FINAL_BROKEN
 
 struct Base
 {
@@ -98,7 +100,9 @@ kernel_test()
     test_is_not_polymorphic<Union>(deviceQueue);
     test_is_not_polymorphic<Empty>(deviceQueue);
     test_is_not_polymorphic<bit_zero>(deviceQueue);
+#if !TEST_CLASS_FINAL_BROKEN
     test_is_not_polymorphic<Final>(deviceQueue);
+#endif // !TEST_CLASS_FINAL_BROKEN
 
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
