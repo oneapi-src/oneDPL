@@ -23,8 +23,6 @@
 #include "support/utils.h"
 #include "support/test_macros.h"
 
-#include <type_traits>
-
 #if TEST_DPCPP_BACKEND_PRESENT
 
 template <typename It>
