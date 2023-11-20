@@ -118,12 +118,6 @@ FORCE_INLINE void globalExclusiveScan(uint32_t *histogram, uint32_t *scan, sycl:
         scan + offset, sycl::plus<uint32_t>());
 }
 
-//TODO: currently replacing this
-// template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
-//           ::std::uint16_t __work_group_size, typename _KeyT, typename _InputT, typename _OutputT>
-// struct __radix_sort_onesweep_slm_reorder_kernel;
-
-
 template <uint32_t RADIX_DIGITS, uint32_t GROUP_WARPS, uint32_t ITEMS_PER_THREAD,
     uint32_t GROUP_THREADS, typename keyT = uint32_t>
 struct OneSweepSharedData {
