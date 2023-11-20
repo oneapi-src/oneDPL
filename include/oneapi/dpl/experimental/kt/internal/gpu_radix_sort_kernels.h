@@ -126,7 +126,7 @@ FORCE_INLINE void globalExclusiveScan(uint32_t *histogram, uint32_t *scan, sycl:
 
 template <uint32_t RADIX_DIGITS, uint32_t GROUP_WARPS, uint32_t ITEMS_PER_THREAD,
     uint32_t GROUP_THREADS, typename keyT = uint32_t>
-struct SharedData {
+struct OneSweepSharedData {
     union {
         uint16_t warp_offsets[GROUP_WARPS * RADIX_DIGITS + 1];
         uint16_t warp_counters[GROUP_WARPS * RADIX_DIGITS];
@@ -154,7 +154,7 @@ struct OneSweepRadixSort {
         GROUP_ITEMS = ITEMS_PER_THREAD * GROUP_THREADS,
     };
 
-    using Data = SharedData<RADIX_DIGITS, GROUP_WARPS, ITEMS_PER_THREAD, GROUP_THREADS, keyT>;
+    using Data = OneSweepSharedData<RADIX_DIGITS, GROUP_WARPS, ITEMS_PER_THREAD, GROUP_THREADS, keyT>;
     using atomic_global = sycl::atomic_ref<uint32_t, sycl::memory_order::relaxed,
         sycl::memory_scope::device, sycl::access::address_space::global_space>;
     using Vector = Vector<ITEMS_PER_THREAD, keyT>;
@@ -170,7 +170,7 @@ struct OneSweepRadixSort {
           array_size(size),
           dynamic_id_ptr(dynamic_id_ptr) {}
 
-    FORCE_INLINE void initialilzeSLM(sycl::nd_item<1> &id) {
+    FORCE_INLINE void initializeSLM(sycl::nd_item<1> &id) {
         uint16_t j = 0;
         uint32_t warp_offset = warp * WARP_THREADS;
 #pragma unroll
@@ -372,7 +372,7 @@ struct OneSweepRadixSort {
         lane = id.get_sub_group().get_local_linear_id();
         warp = id.get_sub_group().get_group_linear_id();
 
-        initialilzeSLM(id);
+        initializeSLM(id);
         generateDynamicGroupId(id);
 
         array_in = array_in + GROUP_ITEMS * group_id;
