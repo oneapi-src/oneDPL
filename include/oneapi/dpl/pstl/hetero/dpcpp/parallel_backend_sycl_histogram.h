@@ -148,7 +148,7 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     template <typename _T2, typename _ExtraMemAccessor>
     bool inline is_valid(const _T2& __value, _ExtraMemAccessor __d_boundaries) const
     {
-        return (__value >= __d_boundaries[0]) && (__value < __d_boundaries[__bin_hash.__boundaries.size()]);
+        return (__value >= __d_boundaries[0]) && (__value < __d_boundaries[__bin_hash.__boundaries.size() - 1 ]);
     }
 };
 
@@ -180,7 +180,7 @@ __accum_local_register_iter(const _Iter1& __in_acc, const ::std::size_t& __index
                             _BinFunc __func, _ExtraMemAccessor __SLM_mem)
 {
     const auto& __x = __in_acc[__index];
-    if (__func.is_valid(__x))
+    if (__func.is_valid(__x, __SLM_mem))
     {
         _BinIdxType c = __func.get_bin(__x, __SLM_mem);
         __histogram[c]++;
@@ -196,7 +196,7 @@ __accum_local_atomics_iter(const _Iter1& __in_acc, const ::std::size_t& __index,
 {
     using _histo_value_type = typename _HistAccessor::value_type;
     const auto& __x = __in_acc[__index];
-    if (__func.is_valid(__x))
+    if (__func.is_valid(__x, __SLM_mem...))
     {
         _BinIdxType __c = __func.get_bin(__x, __SLM_mem...);
         __dpl_sycl::__atomic_ref<_histo_value_type, _AddressSpace> __local_bin(__wg_local_histogram[__offset + __c]);
