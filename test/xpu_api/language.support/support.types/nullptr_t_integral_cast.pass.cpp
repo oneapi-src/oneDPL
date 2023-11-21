@@ -29,7 +29,6 @@
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     const dpl::size_t N = 1;
     bool ret = true;
     {
@@ -45,7 +44,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result of work with null_ptr integral cast in Kernel");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }
