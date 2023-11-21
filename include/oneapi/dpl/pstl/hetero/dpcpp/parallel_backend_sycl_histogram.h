@@ -148,7 +148,7 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     template <typename _T2, typename _ExtraMemAccessor>
     bool inline is_valid(const _T2& __value, _ExtraMemAccessor __d_boundaries) const
     {
-        return (__value >= __d_boundaries[0]) && (__value < __d_boundaries[__bin_hash.__boundaries.size() - 1 ]);
+        return (__value >= __d_boundaries[0]) && (__value < __d_boundaries[__bin_hash.__boundaries.size() - 1]);
     }
 };
 
@@ -537,14 +537,16 @@ __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _
     using _DoSyclConversion = typename _IdxHashFunc::req_sycl_range_conversion;
     if (__last - __first < 1048576)
     {
-        __parallel_histogram_impl</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                                               __histogram_first, __num_bins, __func, _DoSyclConversion{})
+        __parallel_histogram_impl</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(__exec), __first,
+                                                               __last, __histogram_first, __num_bins, __func,
+                                                               _DoSyclConversion{})
             .wait();
     }
     else
     {
-        __parallel_histogram_impl</*iters_per_workitem = */ 32>(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                                               __histogram_first, __num_bins, __func, _DoSyclConversion{})
+        __parallel_histogram_impl</*iters_per_workitem = */ 32>(::std::forward<_ExecutionPolicy>(__exec), __first,
+                                                                __last, __histogram_first, __num_bins, __func,
+                                                                _DoSyclConversion{})
             .wait();
     }
 }
