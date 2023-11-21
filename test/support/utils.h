@@ -163,18 +163,6 @@ expect_equal(Iterator1 expected_first, Iterator2 actual_first, Size n, const cha
     }
 }
 
-template <typename T1, typename T2>
-bool
-check_data(const T1* device_iter, const T2* host_iter, int N)
-{
-    for (int i = 0; i < N; ++i)
-    {
-        if (*(host_iter + i) != *(device_iter + i))
-            return false;
-    }
-    return true;
-}
-
 struct MemoryChecker
 {
     // static counters and state tags

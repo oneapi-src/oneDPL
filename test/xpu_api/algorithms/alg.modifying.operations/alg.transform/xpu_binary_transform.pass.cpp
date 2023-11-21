@@ -19,6 +19,7 @@
 #include "support/test_iterators.h"
 
 #include <cassert>
+#include <CL/sycl.hpp>
 
 template <class InIter1, class InIter2, class OutIter>
 class KernelTest;
@@ -36,7 +37,7 @@ test(sycl::queue& deviceQueue)
     {
         sycl::buffer<int, 1> buffer1(ia, itemN);
         sycl::buffer<int, 1> buffer2(ib, itemN);
-        sycl::buffer<bool, 1> buffer3(&ret, item1);
+        cl::sycl::buffer<bool, 1> buffer3(&ret, item1);
         deviceQueue.submit([&](sycl::handler& cgh) {
             auto acc_arr1 = buffer1.get_access<sycl::access::mode::read>(cgh);
             auto acc_arr2 = buffer2.get_access<sycl::access::mode::write>(cgh);

@@ -24,6 +24,9 @@
 
 #if TEST_DPCPP_BACKEND_PRESENT
 
+constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
+constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
+
 template <typename KernelClass, typename Function, typename ValueType>
 void
 test(Function fnc, const std::vector<ValueType>& args, const char* message)
@@ -53,8 +56,8 @@ test(Function fnc, const std::vector<ValueType>& args, const char* message)
         deviceQueue.submit(
             [&](sycl::handler& cgh)
             {
-                auto in = buffer1.template get_access<sycl::access::mode::read>(cgh);
-                auto out = buffer2.template get_access<sycl::access::mode::write>(cgh);
+                auto in = buffer1.template get_access<sycl_read>(cgh);
+                auto out = buffer2.template get_access<sycl_write>(cgh);
                 cgh.single_task<KernelClass>(
                     [=]()
                     {
