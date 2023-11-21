@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Parallel API &#8212; oneDPL Documentation 2022.3.0 documentation</title>
+    <title>Dynamic Selection API &#8212; oneDPL Documentation 2022.3.0 documentation</title>
     
     <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -38,8 +38,8 @@
     <link rel="shortcut icon" href="_static/favicons.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Execution Policies" href="parallel_api/execution_policies.html" />
-    <link rel="prev" title="oneAPI DPC++ Library Introduction" href="introduction.html" />
+    <link rel="next" title="Functions" href="dynamic_selection_api/functions.html" />
+    <link rel="prev" title="Utility Function Object Classes" href="api_for_sycl_kernels/utility_function_object_classes.html" />
 
     <script defer type="text/javascript" src="https://www.intel.com/content/dam/www/global/wap/performance-config.js" ></script>
     <script type="text/javascript">
@@ -132,11 +132,11 @@
    oneAPI DPC++ Library Introduction
   </a>
  </li>
- <li class="toctree-l1 current active has-children">
-  <a class="current reference internal" href="#">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="parallel_api_main.html">
    Parallel API
   </a>
-  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
    <i class="fas fa-chevron-down">
    </i>
@@ -201,11 +201,11 @@
    </li>
   </ul>
  </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="dynamic_selection_api_main.html">
+ <li class="toctree-l1 current active has-children">
+  <a class="current reference internal" href="#">
    Dynamic Selection API
   </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
   <label for="toctree-checkbox-3">
    <i class="fas fa-chevron-down">
    </i>
@@ -350,7 +350,7 @@ title="Fullscreen mode"
   <div class="menu-dropdown__content">
     <ul>
       <li>
-        <a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fparallel_api_main.html&body=Your%20issue%20content%20here."
+        <a href="https://github.com/oneapi-src/oneDPL/issues/new?title=Issue%20on%20page%20%2Fdynamic_selection_api_main.html&body=Your%20issue%20content%20here."
    class="headerbtn"
    data-toggle="tooltip"
 data-placement="left"
@@ -367,7 +367,7 @@ title="Open an issue"
       </li>
       
       <li>
-        <a href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/parallel_api_main.rst"
+        <a href="https://github.com/oneapi-src/oneDPL/edit/main/documentation/library_guide/dynamic_selection_api_main.rst"
    class="headerbtn"
    data-toggle="tooltip"
 data-placement="left"
@@ -395,7 +395,7 @@ title="Edit this page"
   <div class="menu-dropdown__content">
     <ul>
       <li>
-        <a href="_sources/parallel_api_main.rst.txt"
+        <a href="_sources/dynamic_selection_api_main.rst.txt"
    class="headerbtn"
    data-toggle="tooltip"
 data-placement="left"
@@ -444,7 +444,7 @@ title="Print to PDF"
         <div class="col pl-md-3 pl-lg-5 content-container">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
-                <h1>Parallel API</h1>
+                <h1>Dynamic Selection API</h1>
                 <!-- Table of contents -->
                 <div id="print-main-content">
                     <div id="jb-print-toc">
@@ -456,29 +456,92 @@ title="Print to PDF"
                 
               <div>
                 
-  <section id="parallel-api">
-<h1>Parallel API<a class="headerlink" href="#parallel-api" title="Permalink to this headline">¶</a></h1>
-<p>Parallel API is an implementation of the C++ standard libraries algorithms and execution
-policies, as specified in the ISO/IEC 14882:2017 standard (commonly called C++17). The implementation
-supports the unsequenced execution policy and the <code class="docutils literal notranslate"><span class="pre">shift_left</span></code>/<code class="docutils literal notranslate"><span class="pre">shift_right</span></code> algorithms, which are specified
-in the final draft of the C++ 20 standard (N4860). For more details see the <a class="reference external" href="https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t">C++ Standard Execution
-Policies</a>. oneAPI DPC++ Library (oneDPL)
-provides specific versions of the algorithms, including:</p>
-<ul class="simple">
-<li><p>Segmented reduce</p></li>
-<li><p>Segmented scan</p></li>
-<li><p>Vectorized search algorithms</p></li>
-</ul>
-<p>Parallel API offers support for the parallel and vectorized execution of algorithms on Intel®
-processors and heterogeneity support with a DPC++ based implementation for device execution policies.
-For sequential execution, oneDPL relies on an available implementation of the C++ standard library.</p>
-<p>The utility API includes iterators and function object classes. The iterators implement
-zip, transform, complete permutation operations on other iterators, and include a counting and discard iterator.
-The function object classes provide minimum, maximum, and identity operations
-that may be passed to algorithms such as reduce or transform.</p>
-<p>oneDPL also includes an experimental implementation of range-based algorithms with their
-required ranges and Async API.</p>
+  <section id="dynamic-selection-api">
+<h1>Dynamic Selection API<a class="headerlink" href="#dynamic-selection-api" title="Permalink to this headline">¶</a></h1>
+<p>The dynamic selection API is an experimental feature in the oneAPI DPC++ Library (oneDPL).
+Dynamic selection provides functions for choosing a <em>resource</em> using a
+<em>selection policy</em>.  By default, the resources selected via these APIs
+in oneDPL are SYCL queues. There are several functions and selection
+policies provided as part of the API.</p>
+<p>The selection policies include: <code class="docutils literal notranslate"><span class="pre">fixed_resource_policy</span></code> that always selects a
+specified resource, <code class="docutils literal notranslate"><span class="pre">round_robin_policy</span></code> that rotates between resources,
+<code class="docutils literal notranslate"><span class="pre">dynamic_load_policy</span></code> that chooses the resource that has the fewest outstanding
+submissions, and <code class="docutils literal notranslate"><span class="pre">auto_tune_policy</span></code> that chooses the best resources based on runtime
+profiling information.</p>
+<p>Policy objects are used as arguments to the dynamic selection functions. The
+<code class="docutils literal notranslate"><span class="pre">select</span></code> function picks and returns a resource based on a policy. The <code class="docutils literal notranslate"><span class="pre">submit</span></code>
+and <code class="docutils literal notranslate"><span class="pre">submit_and_wait</span></code> functions select a resource and then pass the chosen resource
+to a developer-provided function.</p>
+<p>The following code example shows some of the key aspects of the API. The use
+of any empty <code class="docutils literal notranslate"><span class="pre">single_task</span></code> is for syntactic demonstration purposes only;
+any valid command group or series of command groups can be submitted to the
+selected queue.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;oneapi/dpl/dynamic_selection&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sycl/sycl.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">ex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nn">oneapi</span><span class="o">::</span><span class="nn">dpl</span><span class="o">::</span><span class="nn">experimental</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">  </span><span class="c1">// (1) create a policy object</span>
+<span class="w">  </span><span class="n">ex</span><span class="o">::</span><span class="n">round_robin_policy</span><span class="w"> </span><span class="n">p</span><span class="p">{</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="p">{</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">cpu_selector_v</span><span class="w"> </span><span class="p">},</span>
+<span class="w">                              </span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="p">{</span><span class="w"> </span><span class="n">sycl</span><span class="o">::</span><span class="n">gpu_selector_v</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="c1">// (2) call one of the dynamic selection functions</span>
+<span class="w">    </span><span class="c1">//     -- pass the policy to the API function</span>
+<span class="w">    </span><span class="c1">//     -- provide a function to be called with a selected queue</span>
+<span class="w">    </span><span class="c1">//        -- the user function must receive a sycl queue</span>
+<span class="w">    </span><span class="c1">//        -- the user function must return a sycl event</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">done</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ex</span><span class="o">::</span><span class="n">submit</span><span class="p">(</span><span class="n">p</span><span class="p">,</span>
+<span class="w">                           </span><span class="c1">// (3) use the selected queue in user function</span>
+<span class="w">                           </span><span class="p">[</span><span class="o">=</span><span class="p">](</span><span class="n">sycl</span><span class="o">::</span><span class="n">queue</span><span class="w"> </span><span class="n">q</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;submit task to &quot;</span>
+<span class="w">                                      </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">((</span><span class="n">q</span><span class="p">.</span><span class="n">get_device</span><span class="p">().</span><span class="n">is_gpu</span><span class="p">())</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;gpu</span><span class="se">\n</span><span class="s">&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;cpu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">                            </span><span class="k">return</span><span class="w"> </span><span class="n">q</span><span class="p">.</span><span class="n">single_task</span><span class="p">([]()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* work here */</span><span class="w"> </span><span class="p">});</span>
+<span class="w">                          </span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// (4) each submission can be waited on using the returned object</span>
+<span class="w">    </span><span class="n">ex</span><span class="o">::</span><span class="n">wait</span><span class="p">(</span><span class="n">done</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// (5) and/or all submissions can be waited on as a group</span>
+<span class="w">  </span><span class="n">ex</span><span class="o">::</span><span class="n">wait</span><span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="n">get_submission_group</span><span class="p">());</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In the preceding example, the key points in the code include:</p>
+<ol class="arabic simple">
+<li><p>A policy object is created. In this example, the policy is a <code class="docutils literal notranslate"><span class="pre">round_robin_policy</span></code> that will rotate between a CPU and GPU SYCL queue.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">submit</span></code> function is called in a loop. The arguments to the call include the policy object and user-provided function.</p></li>
+<li><p>The user-provided function receives a SYCL queue (selected by the policy) and returns a SYCL event that represents the end of the chain of work that was submitted to the queue.</p></li>
+<li><p>The submit function returns an object that can be waited on. Calling <code class="docutils literal notranslate"><span class="pre">wait</span></code> on the <code class="docutils literal notranslate"><span class="pre">done</span></code> object blocks the main thread until the work submitted to the queue by your function is complete.</p></li>
+<li><p>The whole group of submissions made during the loop can be waited on. In this example, the call is redundant, since each submission was already waited for inside of the loop body.</p></li>
+</ol>
+<p>The output from this example is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">submit</span> <span class="n">task</span> <span class="n">to</span> <span class="n">cpu</span>
+<span class="n">submit</span> <span class="n">task</span> <span class="n">to</span> <span class="n">gpu</span>
+<span class="n">submit</span> <span class="n">task</span> <span class="n">to</span> <span class="n">cpu</span>
+<span class="n">submit</span> <span class="n">task</span> <span class="n">to</span> <span class="n">gpu</span>
+<span class="n">submit</span> <span class="n">task</span> <span class="n">to</span> <span class="n">cpu</span>
+<span class="n">submit</span> <span class="n">task</span> <span class="n">to</span> <span class="n">gpu</span>
+</pre></div>
+</div>
+<p>And shows that the user function is passed alternating queues.</p>
+<p>More detailed information about the API is provided in the following sections:</p>
 <div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_selection_api/functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_selection_api/policies.html">Policies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dynamic_selection_api/fixed_resource_policy.html">Fixed-Resource Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamic_selection_api/round_robin_policy.html">Round-Robin Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamic_selection_api/dynamic_load_policy.html">Dynamic Load Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamic_selection_api/auto_tune_policy.html">Auto-Tune Policy</a></li>
+</ul>
+</li>
+</ul>
 </div>
 </section>
 
@@ -490,17 +553,17 @@ required ranges and Async API.</p>
                 
     <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="introduction.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="api_for_sycl_kernels/utility_function_object_classes.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">oneAPI DPC++ Library Introduction</p>
+            <p class="prev-next-title">Utility Function Object Classes</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="parallel_api/execution_policies.html" title="next page">
+    <a class='right-next' id="next-link" href="dynamic_selection_api/functions.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Execution Policies</p>
+        <p class="prev-next-title">Functions</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

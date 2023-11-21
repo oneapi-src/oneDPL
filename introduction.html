@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>oneAPI DPC++ Library Introduction &#8212; oneDPL Documentation 2022.2.0 documentation</title>
+    <title>oneAPI DPC++ Library Introduction &#8212; oneDPL Documentation 2022.3.0 documentation</title>
     
     <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -96,7 +96,7 @@
       <img src="_static/oneAPI-rgb-rev-100.png" class="logo" alt="logo">
       
       
-      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.2.0 documentation</h1>
+      <h1 class="site-logo" id="site-title">oneDPL Documentation 2022.3.0 documentation</h1>
       
     </a>
 </div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
@@ -198,6 +198,55 @@
     <a class="reference internal" href="api_for_sycl_kernels/utility_function_object_classes.html">
      Utility Function Object Classes
     </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="dynamic_selection_api_main.html">
+   Dynamic Selection API
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <label for="toctree-checkbox-3">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="dynamic_selection_api/functions.html">
+     Functions
+    </a>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="dynamic_selection_api/policies.html">
+     Policies
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+    <label for="toctree-checkbox-4">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="dynamic_selection_api/fixed_resource_policy.html">
+       Fixed-Resource Policy
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="dynamic_selection_api/round_robin_policy.html">
+       Round-Robin Policy
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="dynamic_selection_api/dynamic_load_policy.html">
+       Dynamic Load Policy
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="dynamic_selection_api/auto_tune_policy.html">
+       Auto-Tune Policy
+      </a>
+     </li>
+    </ul>
    </li>
   </ul>
  </li>
@@ -566,6 +615,9 @@ While some APIs of the library may accidentally work with earlier versions of th
 <ul class="simple">
 <li><p>oneDPL execution policies only result in parallel execution if random access iterators are provided,
 the execution will remain serial for other iterator types.</p></li>
+<li><p>Function objects passed in to algorithms executed with device policies must provide <code class="docutils literal notranslate"><span class="pre">const</span></code>-qualified <code class="docutils literal notranslate"><span class="pre">operator()</span></code>.
+<a class="reference external" href="https://registry.khronos.org/SYCL/">The SYCL specification</a> states that writing to such an object during a SYCL
+kernel is undefined behavior.</p></li>
 <li><p>For the following algorithms, par_unseq and unseq policies do not result in vectorized execution:
 <code class="docutils literal notranslate"><span class="pre">includes</span></code>, <code class="docutils literal notranslate"><span class="pre">inplace_merge</span></code>, <code class="docutils literal notranslate"><span class="pre">merge</span></code>, <code class="docutils literal notranslate"><span class="pre">set_difference</span></code>, <code class="docutils literal notranslate"><span class="pre">set_intersection</span></code>,
 <code class="docutils literal notranslate"><span class="pre">set_symmetric_difference</span></code>, <code class="docutils literal notranslate"><span class="pre">set_union</span></code>, <code class="docutils literal notranslate"><span class="pre">stable_partition</span></code>, <code class="docutils literal notranslate"><span class="pre">unique</span></code>.</p></li>
@@ -592,6 +644,15 @@ whose type meets SYCL requirements for use in kernels and for data transfer, res
 <section id="known-limitations">
 <h3>Known Limitations<a class="headerlink" href="#known-limitations" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
+<li><p>When compiled with <code class="docutils literal notranslate"><span class="pre">-fsycl-pstl-offload</span></code> option of Intel oneAPI DPC++/C++ compiler and with
+<code class="docutils literal notranslate"><span class="pre">libstdc++</span></code> version 8 or <code class="docutils literal notranslate"><span class="pre">libc++</span></code>, <code class="docutils literal notranslate"><span class="pre">oneapi::dpl::execution::par_unseq</span></code> offloads
+standard parallel algorithms to the SYCL device similarly to <code class="docutils literal notranslate"><span class="pre">std::execution::par_unseq</span></code>
+in accordance with the <code class="docutils literal notranslate"><span class="pre">-fsycl-pstl-offload</span></code> option value.</p></li>
+<li><p>For <code class="docutils literal notranslate"><span class="pre">transform_exclusive_scan</span></code> and <code class="docutils literal notranslate"><span class="pre">exclusive_scan</span></code> to run in-place (that is, with the same data
+used for both input and destination) and with an execution policy of <code class="docutils literal notranslate"><span class="pre">unseq</span></code> or <code class="docutils literal notranslate"><span class="pre">par_unseq</span></code>,
+it is required that the provided input and destination iterators are equality comparable.
+Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
+If these conditions are not met, the result of these algorithm calls is undefined.</p></li>
 <li><p>For <code class="docutils literal notranslate"><span class="pre">transform_exclusive_scan</span></code>, <code class="docutils literal notranslate"><span class="pre">transform_inclusive_scan</span></code> algorithms the result of the unary operation should be
 convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
 in the processed data sequence: <code class="docutils literal notranslate"><span class="pre">std::iterator_traits&lt;IteratorType&gt;::value_type</span></code>.</p></li>
@@ -599,6 +660,8 @@ in the processed data sequence: <code class="docutils literal notranslate"><span
 vector execution policies when building a program with GCC 10 and using <code class="docutils literal notranslate"><span class="pre">-O0</span></code> option.</p></li>
 <li><p>Compiling <code class="docutils literal notranslate"><span class="pre">reduce</span></code> and <code class="docutils literal notranslate"><span class="pre">transform_reduce</span></code> algorithms with the Intel DPC++ Compiler, versions 2021 and older,
 may result in a runtime error. To fix this issue, use an Intel DPC++ Compiler version 2022 or newer.</p></li>
+<li><p>When compiling on Windows, add the option <code class="docutils literal notranslate"><span class="pre">/EHsc</span></code> to the compilation command to avoid errors with oneDPL’s experimental
+ranges API that uses exceptions.</p></li>
 <li><p>The use of oneDPL together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
 compilation errors (caused by oneTBB API changes).
 Using libstdc++ version 9 requires TBB version 2020 for the header file. This may result in compilation errors when
