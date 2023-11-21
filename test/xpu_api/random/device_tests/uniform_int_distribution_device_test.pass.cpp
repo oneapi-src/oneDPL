@@ -20,9 +20,9 @@
 #include "support/utils.h"
 #include <iostream>
 
-#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#if TEST_UNNAMED_LAMBDAS
 #include "common_for_device_tests.h"
-#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#endif // TEST_UNNAMED_LAMBDAS
 
 constexpr auto a = 40014u;
 constexpr auto c = 200u;
@@ -32,7 +32,7 @@ int
 main()
 {
 
-#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#if TEST_UNNAMED_LAMBDAS
 
     sycl::queue queue = TestUtils::get_test_queue();
     // Skip tests if DP is not supported
@@ -130,7 +130,7 @@ main()
         EXPECT_TRUE(!err, "Test FAILED");
     }
 
-#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#endif // TEST_UNNAMED_LAMBDAS
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS);
+    return TestUtils::done(TEST_UNNAMED_LAMBDAS);
 }
