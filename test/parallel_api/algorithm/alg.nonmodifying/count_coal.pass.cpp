@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- count.pass.cpp ----------------------------------------------------===//
+//===-- count_coal.pass.cpp -----------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -13,7 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_DETECT_SPIRV_COMPILATION 1
+#define _ONEDPL_DETECT_SPIRV_COMPILATION 0
 #include "count.pass.h"
 
 int
