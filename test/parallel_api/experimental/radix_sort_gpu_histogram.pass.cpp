@@ -123,7 +123,7 @@ test(uint32_t n)
     using global_hist_t = uint32_t;
 
     constexpr uint32_t BINCOUNT = 1 << RADIX_BITS;
-    constexpr uint32_t HW_TG_COUNT = 64;
+    constexpr uint32_t data_per_work_item = 64;
     constexpr uint32_t THREAD_PER_TG = 64;
     constexpr uint32_t NBITS = sizeof(T) * 8;
     constexpr uint32_t STAGES = (NBITS + RADIX_BITS - 1) / RADIX_BITS; // ceiling division
@@ -140,17 +140,19 @@ test(uint32_t n)
 
     // get histogram on device
     sycl::event event_chain = q.memset(hist, 0, GLOBAL_OFFSET_SIZE * sizeof(global_hist_t));
-    sycl::nd_range<1> range{HW_TG_COUNT * THREAD_PER_TG, THREAD_PER_TG};
-    event_chain = q.submit(
-        [&](sycl::handler& cgh)
-        {
-            cgh.parallel_for(
-                range, [=](sycl::nd_item<1> nd_item) [[intel::sycl_explicit_simd]] {
-                    oneapi::dpl::experimental::gpu::impl::global_histogram<T, decltype(input), RADIX_BITS, STAGES,
-                                                                             HW_TG_COUNT, THREAD_PER_TG, isAscending>(
-                        nd_item, n, input, hist);
-                });
+    const uint32_t __hist_work_group_count =
+            oneapi::dpl::__internal::__dpl_ceiling_div(n, data_per_work_item * THREAD_PER_TG);
+    sycl::nd_range<1> range{__hist_work_group_count * THREAD_PER_TG, THREAD_PER_TG};
+    event_chain = q.submit([&](sycl::handler& cgh) {
+        cgh.depends_on(event_chain);
+        __dpl_sycl::__local_accessor<global_hist_t> __lacc(STAGES * BINCOUNT, cgh);
+        cgh.parallel_for(range, [=](sycl::nd_item<1> nd_item) {
+            oneapi::dpl::experimental::kt::gpu::__impl::RadixSortHistogram<
+                THREAD_PER_TG, data_per_work_item, T, global_hist_t, RADIX_BITS, STAGES, isAscending>
+                kernel(hist, __dpl_sycl::__get_accessor_ptr(__lacc), input, n);
+            kernel.process(nd_item);
         });
+    });
     event_chain.wait();
 
     // get histogram on host
