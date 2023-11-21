@@ -43,7 +43,7 @@ struct __radix_sort_onesweep_histogram_submitter<
 {
     template <typename _KeysRng, typename _GlobalOffsetData>
     sycl::event
-    operator()(sycl::queue& __q, _KeysRng&& __keys_rng, const _GlobalOffsetData& __global_offset_data,
+    operator()(sycl::queue& __q, _KeysRng&& __keys_rng, _GlobalOffsetData * const __global_offset_data,
                ::std::size_t __n, const sycl::event& __e) const
     {
         const ::std::uint32_t __hist_work_group_count =
@@ -56,9 +56,9 @@ struct __radix_sort_onesweep_histogram_submitter<
             __dpl_sycl::__local_accessor<_GlobalOffsetData> __lacc(__stage_count * __radix_bits, __cgh);
             __cgh.parallel_for<_Name...>(__nd_range, [=](sycl::nd_item<1> __nd_item) {
                 RadixSortHistogram<__work_group_size, __data_per_work_item, _KeyT,
-                                   std::remove_pointer_t<_GlobalOffsetData>, __radix_bits, __stage_count,
+                                   _GlobalOffsetData, __radix_bits, __stage_count,
                                    __is_ascending>
-                    kernel(__global_offset_data, *__dpl_sycl::__get_accessor_ptr(__lacc), __data, __n);
+                    kernel(__global_offset_data, __dpl_sycl::__get_accessor_ptr(__lacc), __data, __n);
                 kernel.process(__nd_item);
             });
         });

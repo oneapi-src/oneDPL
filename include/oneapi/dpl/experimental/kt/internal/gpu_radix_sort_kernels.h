@@ -34,8 +34,8 @@ struct RadixSortHistogram
     using atomic_local = sycl::atomic_ref<_GlobalOffsetData, sycl::memory_order::relaxed,
         sycl::memory_scope::device, sycl::access::address_space::local_space>;
 
-    FORCE_INLINE RadixSortHistogram(_GlobalOffsetData *digit_bins_histogram, _GlobalOffsetData *shared_digit_histogram,
-        keyT *array, uint32_t num_keys)
+    FORCE_INLINE RadixSortHistogram(_GlobalOffsetData * const digit_bins_histogram, _GlobalOffsetData * const shared_digit_histogram,
+        keyT * const array, uint32_t num_keys)
         : digit_bins_histogram(digit_bins_histogram),
           array(array),
           num_keys_global(num_keys),
@@ -101,13 +101,13 @@ struct RadixSortHistogram
         accumulateGlobalHistogram(localId);
     }
 
-    _GlobalOffsetData *digit_bins_histogram;
+    _GlobalOffsetData * const digit_bins_histogram;
 
     uint32_t num_keys_global;
 
-    _GlobalOffsetData *shared_digit_histogram;
+    _GlobalOffsetData * const shared_digit_histogram;
 
-    keyT *array;
+    keyT * const array;
 };
 
 //TODO: Currently unused. Do we want to use this scan or the version from esimd_radix_sort?
