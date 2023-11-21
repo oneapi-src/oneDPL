@@ -23,7 +23,6 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class KernelTest1;
 
 template <class T>
@@ -75,12 +74,10 @@ test()
         static_assert(dpl::is_same<std::tuple_element_t<2, C>, Exp>::value);
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = false;
     {
         sycl::buffer<bool, 1> buf(&ret, sycl::range<1>{1});
@@ -96,7 +93,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result of work with std::tuple_element");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

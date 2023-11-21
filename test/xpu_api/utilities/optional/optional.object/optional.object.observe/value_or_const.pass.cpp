@@ -21,7 +21,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
 
 struct Y
@@ -98,15 +97,12 @@ kernel_test()
     }
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
     EXPECT_TRUE(ret, "Wrong result of const dpl::optional::value_or in kernel_test");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

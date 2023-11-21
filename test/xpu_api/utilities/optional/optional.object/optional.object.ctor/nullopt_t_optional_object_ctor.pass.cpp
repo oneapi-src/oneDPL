@@ -21,7 +21,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 using dpl::nullopt;
 using dpl::nullopt_t;
 using dpl::optional;
@@ -50,15 +49,12 @@ test_constexpr()
         });
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     test_constexpr<optional<int>>();
     test_constexpr<optional<int*>>();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

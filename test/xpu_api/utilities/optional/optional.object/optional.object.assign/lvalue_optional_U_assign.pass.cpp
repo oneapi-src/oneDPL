@@ -24,7 +24,6 @@
 
 #include "assignable_from.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
 
 struct Y1
@@ -158,16 +157,13 @@ kernel_test()
     }
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = test_ambigious_assign();
     ret &= kernel_test();
     EXPECT_TRUE(ret, "Wrong result of constexpr dpl::optional copy check");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

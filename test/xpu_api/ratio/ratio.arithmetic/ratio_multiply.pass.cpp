@@ -20,7 +20,7 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
+
 void
 test()
 {
@@ -75,14 +75,13 @@ test()
         });
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
+
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+
+    return TestUtils::done();
 }

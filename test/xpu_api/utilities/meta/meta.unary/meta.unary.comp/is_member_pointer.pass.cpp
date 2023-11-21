@@ -16,13 +16,12 @@
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>
-#include <oneapi/dpl/cstddef>           // for dpl::nullptr_t
+#include <oneapi/dpl/cstddef> // for dpl::nullptr_t
 
 #include "support/test_macros.h"
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
 void
 test_is_member_pointer(sycl::queue& deviceQueue)
@@ -72,7 +71,8 @@ class NotEmpty
     virtual ~NotEmpty();
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -114,7 +114,7 @@ void
 kernel_test()
 {
 
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_not_member_pointer<KernelTest1, dpl::nullptr_t>(deviceQueue);
     test_is_not_member_pointer<KernelTest2, void>(deviceQueue);
     test_is_not_member_pointer<KernelTest3, void*>(deviceQueue);
@@ -140,14 +140,11 @@ kernel_test()
     test_is_member_pointer<KernelTest20, int Empty::*>(deviceQueue);
     test_is_member_pointer<KernelTest21, void (Empty::*)(int)>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

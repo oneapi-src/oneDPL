@@ -22,7 +22,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
 
 template <class Tp>
@@ -71,7 +70,6 @@ assign_value()
                 optional<Tp> rhs(101);
                 lhs_access[0] = dpl::move(rhs);
                 ret_access[0] &= lhs_access[0].has_value() && rhs.has_value() && *lhs_access[0] == Tp{101};
-                ;
             });
         });
     }
@@ -128,17 +126,14 @@ kernel_test()
     }
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = assign_empty<int>();
     ret &= assign_value<int>();
     ret &= kernel_test();
     EXPECT_TRUE(ret, "Wrong result of dpl::move check");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

@@ -22,7 +22,6 @@
 #include "support/utils.h"
 #include "support/move_only.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 void
 kernel_test()
 {
@@ -47,14 +46,11 @@ kernel_test()
         });
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

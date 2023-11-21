@@ -24,11 +24,11 @@
 
 #include "has_type_member.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct S
 {
 };
-union U {
+union U
+{
     int i;
     float f;
 };
@@ -93,7 +93,7 @@ kernel_test1(sycl::queue& deviceQueue)
             check<J, int>();
             check<K, short>();
 
-//  SFINAE-able underlying_type
+            //  SFINAE-able underlying_type
             static_assert(has_underlying_type_member<E>::value);
             static_assert(has_underlying_type_member<G>::value);
 
@@ -118,18 +118,13 @@ void
 kernel_test2(sycl::queue& deviceQueue)
 {
     deviceQueue.submit([&](sycl::handler& cgh) {
-        cgh.single_task<class KernelTest2>([=]() {
-            static_assert(!has_underlying_type_member<double>::value);
-        });
+        cgh.single_task<class KernelTest2>([=]() { static_assert(!has_underlying_type_member<double>::value); });
     });
 }
-
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
 
@@ -138,7 +133,6 @@ main()
     {
         kernel_test2(deviceQueue);
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

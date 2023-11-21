@@ -16,13 +16,12 @@
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>
-#include <oneapi/dpl/cstddef>           // for dpl::nullptr_t
+#include <oneapi/dpl/cstddef> // for dpl::nullptr_t
 
 #include "support/test_macros.h"
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
 void
 test_is_compound(sycl::queue& deviceQueue)
@@ -67,7 +66,8 @@ class Empty
 {
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -104,7 +104,7 @@ class KernelTest17;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_compound<KernelTest1, char[3]>(deviceQueue);
     test_is_compound<KernelTest2, char[]>(deviceQueue);
     test_is_compound<KernelTest3, void*>(deviceQueue);
@@ -127,14 +127,11 @@ kernel_test()
         test_is_not_compound<KernelTest17, double>(deviceQueue);
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

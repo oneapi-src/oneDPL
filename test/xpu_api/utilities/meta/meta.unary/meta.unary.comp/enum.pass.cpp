@@ -20,7 +20,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class T>
 void
 test_enum_imp()
@@ -56,13 +55,12 @@ kernel_test()
     test_enum<Enum>();
     return true;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+
     bool ret = false;
     sycl::range<1> numOfItems{1};
     {
@@ -74,7 +72,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result of enum check");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

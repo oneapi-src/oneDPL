@@ -21,7 +21,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
 
 class X
@@ -117,18 +116,15 @@ kernel_test()
     }
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     using T = int;
     auto ret = test_one_arg<T>();
     ret &= test_one_arg<const T>();
     ret &= kernel_test();
     EXPECT_TRUE(ret, "Wrong result of dpl::optional::emplace check");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

@@ -25,7 +25,6 @@
 
 #include "misc_data_structs.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class KernelSwapTest;
 
 void
@@ -98,14 +97,11 @@ kernel_test()
 
     EXPECT_TRUE(ret && acc[0] == 2 && acc[1] == 1, "Wrong result of dpl::swap check");
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

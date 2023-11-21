@@ -34,7 +34,6 @@
 #include "support/test_iterators.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class It1, class It2>
 bool
 test(It1 l, It2 r, std::ptrdiff_t x)
@@ -76,15 +75,12 @@ kernel_test()
     }
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
     EXPECT_TRUE(ret, "Wrong result of work reverse iterator and diff in kernel_test()");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

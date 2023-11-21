@@ -24,7 +24,6 @@
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::range<1> numOfItems{1};
     {
@@ -36,7 +35,6 @@ main()
             });
         });
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

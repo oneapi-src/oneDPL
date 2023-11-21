@@ -21,7 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
 };
@@ -113,14 +112,11 @@ kernel_test()
     //  pointer to incomplete template type
     test_is_assignable<KernelTest13, X<D>*&, X<D>*>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

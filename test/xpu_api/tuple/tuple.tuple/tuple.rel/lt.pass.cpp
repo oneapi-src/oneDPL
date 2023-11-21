@@ -20,7 +20,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class KernelTupleLTTest1;
 class KernelTupleLTTest2;
 
@@ -34,8 +33,8 @@ kernel_test1(sycl::queue& deviceQueue)
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelTupleLTTest1>([=]() {
             {
-                const dpl::tuple<>  t1;
-                const dpl::tuple<>  t2;
+                const dpl::tuple<> t1;
+                const dpl::tuple<> t2;
 
                 ret_access[0] = (!(t1 < t2));
                 ret_access[0] &= ((t1 <= t2));
@@ -179,7 +178,6 @@ kernel_test2(sycl::queue& deviceQueue)
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelTupleLTTest2>([=]() {
-
             {
                 const dpl::tuple<long> t1(1);
                 const dpl::tuple<double> t2(1);
@@ -306,19 +304,16 @@ kernel_test2(sycl::queue& deviceQueue)
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::tuple comparison check");
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         kernel_test2(deviceQueue);
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

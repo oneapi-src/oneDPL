@@ -20,7 +20,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class T>
 void
 test_is_nothrow_constructible()
@@ -65,7 +64,8 @@ class Empty
 {
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -129,12 +129,10 @@ kernel_test()
 
     return true;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     bool ret = false;
     sycl::range<1> numOfItems{1};
@@ -147,7 +145,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result of dpl::is_nothrow_constructible check");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

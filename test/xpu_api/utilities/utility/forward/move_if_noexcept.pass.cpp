@@ -21,7 +21,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 // A type T where move ctor is noexcept and copy ctor is default : result should be T&&
 struct MoveNoexceptCopy
 {
@@ -31,7 +30,7 @@ struct MoveNoexceptCopy
     MoveNoexceptCopy(const MoveNoexceptCopy&) = default;
 };
 
- // A type T where move ctor is noexcept and copy ctor is deleted : result should be T&&
+// A type T where move ctor is noexcept and copy ctor is deleted : result should be T&&
 struct MoveNoexceptNoCopy
 {
 
@@ -108,20 +107,15 @@ kernel_test()
 }
 
 class KernelTest;
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     sycl::range<1> numOfItems{1};
     {
-        deviceQueue.submit([&](sycl::handler& cgh) {
-            cgh.single_task<class KernelTest>([=]() { kernel_test(); });
-        });
+        deviceQueue.submit([&](sycl::handler& cgh) { cgh.single_task<class KernelTest>([=]() { kernel_test(); }); });
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

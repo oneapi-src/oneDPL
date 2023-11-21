@@ -20,7 +20,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class Rat1, class Rat2, bool result, class KernelName>
 bool
 test()
@@ -97,15 +96,12 @@ kernel_test()
 
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
     EXPECT_TRUE(ret, "Wrong result of dpl::ratio_greater_equal check");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

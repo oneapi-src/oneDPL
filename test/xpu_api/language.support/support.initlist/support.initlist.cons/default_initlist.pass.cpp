@@ -26,16 +26,13 @@
 
 #include <initializer_list>
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
 };
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     const dpl::size_t N = 1;
     bool rs[N] = {false};
 
@@ -55,7 +52,6 @@ main()
     {
         EXPECT_TRUE(rs[i], "Wrong result of work with default initializer list in Kernel");
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

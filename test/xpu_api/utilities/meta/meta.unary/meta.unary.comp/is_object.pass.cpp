@@ -15,13 +15,12 @@
 
 #include "support/test_config.h"
 
-#include <oneapi/dpl/cstddef>           // for dpl::nullptr_t
+#include <oneapi/dpl/cstddef> // for dpl::nullptr_t
 #include <oneapi/dpl/type_traits>
 
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class T>
 void
 test_is_object()
@@ -63,7 +62,8 @@ class NotEmpty
     virtual ~NotEmpty();
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -113,13 +113,12 @@ kernel_test()
     test_is_not_object<int(int)>();
     return true;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+
     bool ret = false;
     sycl::range<1> numOfItems{1};
     {
@@ -131,7 +130,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result of `is_object` check");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

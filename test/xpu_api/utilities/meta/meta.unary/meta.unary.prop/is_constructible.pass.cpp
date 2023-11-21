@@ -21,7 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
     explicit A(int);
@@ -222,19 +221,16 @@ kernel_test2(sycl::queue& deviceQueue)
         });
     });
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         kernel_test2(deviceQueue);
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

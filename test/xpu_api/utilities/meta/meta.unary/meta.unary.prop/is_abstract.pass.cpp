@@ -21,7 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class T>
 void
 test_is_not_abstract(sycl::queue& deviceQueue)
@@ -60,12 +59,12 @@ test_is_abstract(sycl::queue& deviceQueue)
     });
 }
 
-
 class Empty
 {
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -75,7 +74,8 @@ struct bit_zero
 
 struct Base
 {
-    virtual void fnc() = 0;
+    virtual void
+    fnc() = 0;
 };
 
 struct Derived : Base
@@ -104,14 +104,11 @@ kernel_test()
     test_is_abstract<Base>(deviceQueue);
     test_is_abstract<Derived>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

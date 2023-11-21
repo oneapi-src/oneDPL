@@ -21,7 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T, unsigned A>
 void
 test_extent(sycl::queue& deviceQueue)
@@ -85,7 +84,7 @@ class KernelTest16;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_extent<KernelTest1, void, 0>(deviceQueue);
     test_extent<KernelTest2, int&, 0>(deviceQueue);
     test_extent<KernelTest3, Class, 0>(deviceQueue);
@@ -108,14 +107,11 @@ kernel_test()
     test_extent1<KernelTest15, int[2][4], 4>(deviceQueue);
     test_extent1<KernelTest16, int[][4], 4>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

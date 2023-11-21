@@ -21,7 +21,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
 
 struct X
@@ -62,7 +61,7 @@ kernel_test()
             cgh.single_task<class KernelTest>([=]() {
                 optional<X> opt(X{});
                 const optional<X>& const_opt = opt;
-                
+
                 ret_access[0] &= ((*opt).test() == 4);
                 ret_access[0] &= ((*const_opt).test() == 3);
                 ret_access[0] &= ((*std::move(opt)).test() == 6);
@@ -76,15 +75,12 @@ kernel_test()
     }
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test();
     EXPECT_TRUE(ret, "Wrong result of dpl::optional dereference in kernel_test");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }
