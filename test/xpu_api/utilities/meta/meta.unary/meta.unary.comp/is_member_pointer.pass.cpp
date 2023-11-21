@@ -115,7 +115,6 @@ kernel_test()
 {
 
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    ;
     test_is_not_member_pointer<KernelTest1, dpl::nullptr_t>(deviceQueue);
     test_is_not_member_pointer<KernelTest2, void>(deviceQueue);
     test_is_not_member_pointer<KernelTest3, void*>(deviceQueue);
