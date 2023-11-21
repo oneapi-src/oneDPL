@@ -20,18 +20,15 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class Rat1, class Rat2, bool result, class KernelName>
 void
 test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-        sycl::range<1> item1{1};
+    sycl::range<1> item1{1};
     {
-            deviceQueue.submit([&](sycl::handler& cgh) {
-                cgh.single_task<KernelName>([=]() {
-                static_assert(result == dpl::ratio_greater<Rat1, Rat2>::value);
-            });
+        deviceQueue.submit([&](sycl::handler& cgh) {
+            cgh.single_task<KernelName>([=]() { static_assert(result == dpl::ratio_greater<Rat1, Rat2>::value); });
         });
     }
 }
@@ -89,14 +86,11 @@ kernel_test()
         test<R1, R2, true, T8>();
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }
