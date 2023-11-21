@@ -52,7 +52,6 @@ void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    ;
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_function<int(double)>(deviceQueue);

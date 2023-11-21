@@ -70,7 +70,6 @@ assign_value()
                 optional<Tp> rhs(101);
                 lhs_access[0] = dpl::move(rhs);
                 ret_access[0] &= lhs_access[0].has_value() && rhs.has_value() && *lhs_access[0] == Tp{101};
-                ;
             });
         });
     }
