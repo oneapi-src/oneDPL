@@ -85,7 +85,6 @@ void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    ;
     test_extent<KernelTest1, void, 0>(deviceQueue);
     test_extent<KernelTest2, int&, 0>(deviceQueue);
     test_extent<KernelTest3, Class, 0>(deviceQueue);
