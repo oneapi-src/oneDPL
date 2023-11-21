@@ -21,7 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class T, unsigned A>
 void
 test_rank(sycl::queue& deviceQueue)
@@ -49,7 +48,8 @@ struct Class
 void
 kernel_test()
 {
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    ;
     test_rank<void, 0>(deviceQueue);
     test_rank<int&, 0>(deviceQueue);
     test_rank<Class, 0>(deviceQueue);
@@ -66,14 +66,11 @@ kernel_test()
         test_rank<double, 0>(deviceQueue);
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

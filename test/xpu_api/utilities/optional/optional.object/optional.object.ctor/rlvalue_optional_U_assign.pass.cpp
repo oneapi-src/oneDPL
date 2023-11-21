@@ -22,7 +22,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
 
 template <class KernelTest, class T, class U>
@@ -70,12 +69,9 @@ class KernelTest2;
 class KernelTest3;
 class KernelTest4;
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = true;
     {
         optional<short> opt;
@@ -94,7 +90,6 @@ main()
         ret &= test<KernelTest4, X>(opt);
     }
     EXPECT_TRUE(ret, "Wrong result of dpl::optional construct and move assignment check");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

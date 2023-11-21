@@ -21,7 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelName, class T>
 void
 test_is_not_polymorphic(sycl::queue& deviceQueue)
@@ -58,12 +57,12 @@ test_is_polymorphic(sycl::queue& deviceQueue)
     });
 }
 
-
 class Empty
 {
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -125,14 +124,11 @@ kernel_test()
     test_is_polymorphic<KernelName13, Base>(deviceQueue);
     test_is_polymorphic<KernelName14, Derived>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

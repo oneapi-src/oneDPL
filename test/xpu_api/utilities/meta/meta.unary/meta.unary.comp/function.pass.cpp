@@ -21,7 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class T>
 void
 test_function_imp(sycl::queue& deviceQueue)
@@ -52,7 +51,8 @@ test_function(sycl::queue& deviceQueue)
 void
 kernel_test()
 {
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    ;
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_function<int(double)>(deviceQueue);
@@ -61,14 +61,11 @@ kernel_test()
     test_function<void()>(deviceQueue);
     test_function<void(int)>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

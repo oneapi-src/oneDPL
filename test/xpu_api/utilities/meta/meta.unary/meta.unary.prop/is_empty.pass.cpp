@@ -21,8 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-
 // T is a non-union class type with:
 //  no non-static data members,
 //  no unnamed bit-fields of non-zero length,
@@ -74,7 +72,8 @@ struct NotEmpty
     int foo;
 };
 
-union Union {
+union Union
+{
 };
 
 struct EmptyBase : public Empty
@@ -124,14 +123,11 @@ kernel_test()
     test_is_empty<EmptyBase>(deviceQueue);
     test_is_empty<bit_zero>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

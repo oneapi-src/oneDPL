@@ -22,7 +22,6 @@
 #include "support/utils.h"
 #include "support/move_only.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 MoveOnly
 source()
 {
@@ -34,9 +33,7 @@ csource()
     return MoveOnly();
 }
 
-void test(MoveOnly)
-{
-}
+void test(MoveOnly) {}
 
 struct A
 {
@@ -112,12 +109,10 @@ kernel_test()
 }
 
 class KernelTest;
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     bool ret = false;
     sycl::range<1> numOfItems{1};
@@ -130,7 +125,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result of dpl::move check");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

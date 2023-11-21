@@ -16,13 +16,12 @@
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>
-#include <oneapi/dpl/cstddef>           // for dpl::nullptr_t
+#include <oneapi/dpl/cstddef> // for dpl::nullptr_t
 
 #include "support/test_macros.h"
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
 void
 test_is_reference(sycl::queue& deviceQueue)
@@ -67,7 +66,8 @@ class Empty
 {
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -107,7 +107,8 @@ class KernelTest20;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    ;
     test_is_reference<KernelTest1, int&>(deviceQueue);
     test_is_reference<KernelTest2, int&&>(deviceQueue);
 
@@ -133,14 +134,11 @@ kernel_test()
         test_is_not_reference<KernelTest20, double>(deviceQueue);
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

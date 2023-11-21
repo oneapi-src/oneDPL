@@ -21,7 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class T>
 void
 test_is_default_constructible(sycl::queue& deviceQueue)
@@ -67,7 +66,8 @@ class NoDefaultConstructor
     NoDefaultConstructor() = delete;
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -112,14 +112,11 @@ kernel_test()
     test_is_not_default_constructible<B>(deviceQueue);
     test_is_not_default_constructible<int&&>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

@@ -22,7 +22,7 @@
 #include "support/utils.h"
 
 // dpl::reference_wrapper::result_type is removed since C++20
-#if TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER == 17
+#if TEST_STD_VER == 17
 class KernelWeakResultTest;
 
 template <class Arg, class Result>
@@ -127,14 +127,14 @@ kernel_test()
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Error in work with weak results");
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER
+#endif // TEST_STD_VER
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER == 17
+#if TEST_STD_VER == 17
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER
+#endif // TEST_STD_VER
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_STD_VER == 17);
+    return TestUtils::done(TEST_STD_VER == 17);
 }

@@ -16,13 +16,12 @@
 #include "support/test_config.h"
 
 #include <oneapi/dpl/type_traits>
-#include <oneapi/dpl/cstddef>           // for dpl::nullptr_t
+#include <oneapi/dpl/cstddef> // for dpl::nullptr_t
 
 #include "support/test_macros.h"
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
 void
 test_is_scalar(sycl::queue& deviceQueue)
@@ -67,7 +66,8 @@ class Empty
 {
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -116,7 +116,8 @@ class KernelTest29;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    ;
     test_is_scalar<KernelTest1, dpl::nullptr_t>(deviceQueue);
     test_is_scalar<KernelTest2, short>(deviceQueue);
     test_is_scalar<KernelTest3, unsigned short>(deviceQueue);
@@ -151,14 +152,11 @@ kernel_test()
     test_is_not_scalar<KernelTest28, bit_zero>(deviceQueue);
     test_is_not_scalar<KernelTest29, int(int)>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

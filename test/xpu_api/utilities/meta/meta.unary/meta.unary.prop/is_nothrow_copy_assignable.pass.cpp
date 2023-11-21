@@ -21,7 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class T>
 void
 test_has_nothrow_assign(sycl::queue& deviceQueue)
@@ -50,7 +49,8 @@ class Empty
 {
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -69,7 +69,6 @@ struct ANT
     ANT&
     operator=(const ANT&) noexcept;
 };
-
 
 void
 kernel_test()
@@ -92,14 +91,11 @@ kernel_test()
     test_has_not_nothrow_assign<void>(deviceQueue);
     test_has_not_nothrow_assign<A>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

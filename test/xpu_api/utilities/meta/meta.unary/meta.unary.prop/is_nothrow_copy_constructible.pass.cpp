@@ -21,7 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
 void
 test_is_nothrow_copy_constructible(sycl::queue& deviceQueue)
@@ -58,7 +57,8 @@ class Empty
 {
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -75,7 +75,6 @@ struct ANT
 {
     ANT(const ANT&) noexcept;
 };
-
 
 class KernelTest1;
 class KernelTest2;
@@ -109,14 +108,11 @@ kernel_test()
     }
     test_is_nothrow_copy_constructible<KernelTest11, ANT>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

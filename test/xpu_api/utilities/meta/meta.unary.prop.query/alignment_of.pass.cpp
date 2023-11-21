@@ -23,7 +23,6 @@
 
 #include <cstdint>
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class T, unsigned A>
 void
 test_alignment_of(sycl::queue& deviceQueue)
@@ -54,7 +53,8 @@ struct Class
 void
 kernel_test()
 {
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
+    ;
     test_alignment_of<int&, 4>(deviceQueue);
     test_alignment_of<Class, 1>(deviceQueue);
     test_alignment_of<int*, sizeof(intptr_t)>(deviceQueue);
@@ -67,14 +67,11 @@ kernel_test()
         test_alignment_of<double, alignof(double)>(deviceQueue);
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }
