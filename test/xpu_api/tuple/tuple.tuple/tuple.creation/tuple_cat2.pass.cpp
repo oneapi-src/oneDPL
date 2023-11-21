@@ -22,7 +22,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <typename T>
 typename dpl::decay<T>::type
 copy(T&& x)
@@ -82,12 +81,10 @@ kernel_test()
     ret &= check_tuple_cat(t3, t3);
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     bool ret = false;
     sycl::range<1> numOfItems{1};
@@ -99,7 +96,6 @@ main()
         });
     }
     EXPECT_TRUE(ret, "Wrong result of dpl::tuple_cat check in kernel_test");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

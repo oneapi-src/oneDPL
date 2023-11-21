@@ -22,7 +22,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class KernelTupleSizeTest;
 
 template <class KernelName, class T, dpl::size_t N>
@@ -49,16 +48,13 @@ kernel_test()
 class KernelName1;
 class KernelName2;
 class KernelName3;
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test<KernelName1, std::tuple<>, 0>();
     kernel_test<KernelName2, std::tuple<int>, 1>();
-    kernel_test<KernelName3, std::tuple<int, int,  int>, 3>();
-#endif // TEST_DPCPP_BACKEND_PRESENT
+    kernel_test<KernelName3, std::tuple<int, int, int>, 3>();
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

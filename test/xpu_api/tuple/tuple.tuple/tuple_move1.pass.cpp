@@ -22,7 +22,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 bool
 kernel_test(sycl::queue deviceQueue)
 {
@@ -46,14 +45,12 @@ kernel_test(sycl::queue deviceQueue)
     }
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
     bool processed = false;
 
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
@@ -61,7 +58,6 @@ main()
         EXPECT_TRUE(ret, "Wrong result of dpl::tuple move check");
         processed = true;
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(processed);
 }

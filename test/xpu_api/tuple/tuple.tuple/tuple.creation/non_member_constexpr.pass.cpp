@@ -21,7 +21,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 // make_tuple
 void
 test_make_tuple()
@@ -44,7 +43,7 @@ test_forward_as_tuple()
     {
         static const int i = 22;
         static const float f = 22.222f;
-        
+
         typedef dpl::tuple<const int&, const float&&> tuple_type;
         constexpr tuple_type p1 = dpl::forward_as_tuple(i, dpl::move(f));
         static_assert(dpl::get<0>(p1) == i);
@@ -54,7 +53,7 @@ test_forward_as_tuple()
         static const int i = 22;
         static const float f = 22.222f;
         static const int ii = 77799;
-        
+
         typedef dpl::tuple<const int&, const float&, const int&&> tuple_type;
         constexpr tuple_type p1 = dpl::forward_as_tuple(i, f, dpl::move(ii));
         static_assert(dpl::get<0>(p1) == i);
@@ -68,7 +67,7 @@ test_tie()
     {
         static const int i = 22;
         static const float f = 22.222f;
-        
+
         typedef dpl::tuple<const int&, const float&> tuple_type;
         constexpr tuple_type p1 = dpl::tie(i, f);
         static_assert(dpl::get<0>(p1) == i);
@@ -125,14 +124,11 @@ kernel_test()
         });
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

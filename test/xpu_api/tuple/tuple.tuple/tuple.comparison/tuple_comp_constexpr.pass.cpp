@@ -23,12 +23,10 @@
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     {
         deviceQueue.submit([&](sycl::handler& cgh) {
             cgh.single_task<class KernelTest>([=]() {
-
                 constexpr dpl::tuple<int, int> tp;
 
                 static_assert(!(tp < tp));
@@ -40,7 +38,6 @@ main()
             });
         });
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

@@ -22,9 +22,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-
-
 template <class Tuple>
 bool
 test1a(const Tuple& t)
@@ -35,7 +32,8 @@ test1a(const Tuple& t)
 }
 
 template <class Tuple>
-bool test1b(const Tuple& t)
+bool
+test1b(const Tuple& t)
 {
     static_assert(dpl::tuple_size<Tuple>::value == 1);
     static_assert(dpl::is_same<typename std::tuple_element<0, Tuple>::type, int&>::value);
@@ -43,7 +41,8 @@ bool test1b(const Tuple& t)
 }
 
 template <class Tuple>
-bool test2a(const Tuple& t)
+bool
+test2a(const Tuple& t)
 {
     static_assert(dpl::tuple_size<Tuple>::value == 2);
     static_assert(dpl::is_same<typename std::tuple_element<0, Tuple>::type, float&&>::value);
@@ -80,14 +79,11 @@ kernel_test()
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::forward_as_tuple check");
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

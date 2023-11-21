@@ -21,7 +21,6 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct NoexceptMoveAssignClass
 {
 };
@@ -80,8 +79,7 @@ kernel_test()
                                    char>
                     tt10;
                 typedef dpl::tuple<NonNoexceptMoveConsNoexceptMoveAssignClass,
-                                   NonNoexceptMoveConsNoexceptMoveAssignClass,
-                                   char>
+                                   NonNoexceptMoveConsNoexceptMoveAssignClass, char>
                     tt10n;
                 typedef dpl::tuple<NoexceptMoveConsNoexceptMoveAssignClass, NoexceptMoveConsNoexceptMoveAssignClass,
                                    NoexceptMoveConsNoexceptMoveAssignClass>
@@ -116,14 +114,11 @@ kernel_test()
         });
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }
