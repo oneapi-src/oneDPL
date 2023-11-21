@@ -436,6 +436,7 @@ inline auto
 __parallel_histogram_sycl_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
                                const _Size& __num_bins, _IdxHashFunc __func, _Range&&... __opt_range)
 {
+    using _private_histogram_type = ::std::uint16_t;
     using _local_histogram_type = ::std::uint32_t;
     using _global_histogram_type = typename ::std::iterator_traits<_Iter2>::value_type;
     using _extra_memory_type = typename _IdxHashFunc::extra_memory_type;
@@ -445,7 +446,7 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1
     ::std::uint16_t __work_group_size = ::std::min(::std::size_t(1024), __max_wgroup_size);
 
     auto __local_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
-    constexpr ::std::uint8_t __max_work_item_private_bins = 64 / sizeof(_local_histogram_type);
+    constexpr ::std::uint8_t __max_work_item_private_bins = 16 / sizeof(_private_histogram_type);
 
     auto keep_bins =
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::write, _Iter2>();
@@ -534,9 +535,18 @@ __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _
                      const _Size& __num_bins, _IdxHashFunc __func)
 {
     using _DoSyclConversion = typename _IdxHashFunc::req_sycl_range_conversion;
-    __parallel_histogram_impl</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                                           __histogram_first, __num_bins, __func, _DoSyclConversion{})
-        .wait();
+    if (__last - __first < 1048576)
+    {
+        __parallel_histogram_impl</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                                               __histogram_first, __num_bins, __func, _DoSyclConversion{})
+            .wait();
+    }
+    else
+    {
+        __parallel_histogram_impl</*iters_per_workitem = */ 32>(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                                               __histogram_first, __num_bins, __func, _DoSyclConversion{})
+            .wait();
+    }
 }
 
 } // namespace __par_backend_hetero
