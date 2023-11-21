@@ -343,6 +343,11 @@ struct __get_sycl_range
     //We have to keep sycl buffer(s) instance here by sync reasons;
     ::std::vector<::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base>> m_buffers;
 
+    static constexpr bool __is_copy_direct =
+            AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::read;
+    static constexpr bool __is_copy_back =
+            AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::write;
+            
     //SFINAE iterator type checks
     template<typename It, typename T = decltype(std::addressof(*It{}))>
     static constexpr std::true_type __test_addressof(int) { return {};}
@@ -448,24 +453,47 @@ struct __get_sycl_range
         return __range_holder<decltype(rng)>{rng};
     }
 
-    // TODO Add specialization for general case, e.g., permutation_iterator using host
-    // or another fancy iterator.
-    //specialization for permutation_iterator using USM pointer as source
-    template <typename _It, typename _Map, ::std::enable_if_t<!is_hetero_it_v<_It>, int> = 0>
+    //specialization for permutation_iterator using USM pointer or direct pass object as source
+    template <typename _Iter, typename _Map, ::std::enable_if_t<!is_hetero_it_v<_Iter>
+              && is_passed_directly_it_v<_Iter>, int> = 0>
     auto
-    operator()(oneapi::dpl::permutation_iterator<_It, _Map> __first,
-               oneapi::dpl::permutation_iterator<_It, _Map> __last)
+    operator()(oneapi::dpl::permutation_iterator<_Iter, _Map> __first,
+               oneapi::dpl::permutation_iterator<_Iter, _Map> __last)
     {
         auto __n = __last - __first;
         assert(__n > 0);
 
-        // The size of the source range is unknown. Use non-zero size to create the view.
-        // permutation_view_simple access is controlled by the map range view.
-        auto res_src = this->operator()(__first.base(), __first.base() + 1 /*source size*/);
-
-        auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
+        // The size of the source range is unknown. So, just base iterator is passing to permutation_view
+        auto rng = __get_permutation_view(__first.base(), __first.map(), __n);
 
         return __range_holder<decltype(rng)>{rng};
+    }
+
+    //specialization for permutation_iterator based on the host iterator
+    template <typename _Iter, typename _Map, ::std::enable_if_t<!is_hetero_it_v<_Iter>
+              && !is_passed_directly_it_v<_Iter>, int> = 0>
+    auto
+    operator()(oneapi::dpl::permutation_iterator<_Iter, _Map> __first,
+               oneapi::dpl::permutation_iterator<_Iter, _Map> __last)
+    {
+        using _T = val_t<_Iter>;
+
+        return __process_host_iter_impl(__first, __last, [&]()
+            {
+                if constexpr (__is_copy_direct)
+                {
+                    sycl::buffer<_T, 1> __buf(__first, __last);//SYCL API for non-contiguous iterators
+                    if (__is_copy_back)
+                        __buf.set_final_data(__first); //SYCL API for non-contiguous iterators
+                    return __buf;
+                }
+                else
+                {
+                    sycl::buffer<_T, 1> __buf(__last - __first);
+                    __buf.set_final_data(__first); //SYCL API for non-contiguous iterators
+                    return __buf;
+                }
+            });
     }
 
     //specialization for permutation discard iterator
@@ -520,45 +548,46 @@ struct __get_sycl_range
         -> ::std::enable_if_t<is_temp_buff<_Iter>::value && !is_zip<_Iter>::value && !is_permutation<_Iter>::value,
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
+        using _T = val_t<_Iter>;
+
+        return __process_host_iter_impl(__first, __last, [&]()
+            {
+                if constexpr (__is_copy_direct)
+                {
+                    if constexpr (__test_addressof<_Iter>(0))
+                    {
+                        //wait and copy on a buffer destructor; an exclusive access buffer, good performance
+                        return sycl::buffer<_T, 1>{::std::addressof(*__first), __last - __first};
+                    }
+                    else
+                    {
+                        sycl::buffer<_T, 1> __buf(__first, __last); //a non-exclusive access buffer, poor performance
+                        if (__is_copy_back)
+                            __buf.set_final_data(__first); //wait and copy on a buffer destructor
+                        return __buf;
+                    }
+                }
+                else
+                {
+                    sycl::buffer<_T, 1> __buf(__last - __first);
+                    if constexpr (__test_addressof<_Iter>(0))
+                        __buf.set_final_data(::std::addressof(*__first)); //wait and fast copy on a buffer destructor
+                    else
+                        __buf.set_final_data(__first); //wait and copy on a buffer destructor
+                    return __buf;
+                }
+            });
+    }
+private:
+    template <typename _Iter, typename _GetBuffferFunc>
+    auto
+    __process_host_iter_impl(_Iter __first, _Iter __last, _GetBuffferFunc __get_buf)
+    {
         static_assert(!oneapi::dpl::__internal::is_const_iterator<_Iter>::value || AccMode == sycl::access::mode::read,
                       "Should be non-const iterator for a modifying algorithm.");
 
         assert(__first < __last);
 
-        using _T = val_t<_Iter>;
-
-        constexpr bool __is_copy_direct =
-            AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::read;
-        constexpr bool __is_copy_back =
-            AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::write;
-
-        auto __get_buf = [&]()
-        {
-            if constexpr (__is_copy_direct)
-            {
-                if constexpr (__test_addressof<_Iter>(0))
-                {
-                    //wait and copy on a buffer destructor; an exclusive access buffer, good performance
-                    return sycl::buffer<_T, 1>(::std::addressof(*__first), __last - __first);
-                }
-                else
-                {
-                    sycl::buffer<_T, 1> __buf(__first, __last); //a non-exclusive access buffer, poor performance
-                    if (__is_copy_back)
-                        __buf.set_final_data(__first); //wait and copy on a buffer destructor
-                    return __buf;
-                }
-            }
-            else
-            {
-                sycl::buffer<_T, 1> __buf(__last - __first);
-                if constexpr (__test_addressof<_Iter>(0))
-                    __buf.set_final_data(::std::addressof(*__first)); //wait and fast copy on a buffer destructor
-                else
-                    __buf.set_final_data(__first); //wait and copy on a buffer destructor
-                return __buf;
-            }
-        };
         auto __buf = __get_buf();
         __buf.set_write_back(__is_copy_back);
 
@@ -567,6 +596,7 @@ struct __get_sycl_range
         using BufferType = oneapi::dpl::__internal::__lifetime_keeper<decltype(__buf)>;
         m_buffers.push_back(::std::make_unique<BufferType>(__buf));
 
+        using _T = val_t<_Iter>;
         return __range_holder<oneapi::dpl::__ranges::all_view<_T, AccMode>>{
             oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf)};
     }
