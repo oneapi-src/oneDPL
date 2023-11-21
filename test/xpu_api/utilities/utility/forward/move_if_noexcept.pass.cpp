@@ -45,7 +45,7 @@ struct MoveNotNoexceptCopy
 {
     MoveNotNoexceptCopy() = default;
 
-    MoveNotNoexceptCopy(MoveNotNoexceptCopy&&) noexcept(false){};
+    MoveNotNoexceptCopy(MoveNotNoexceptCopy&&) noexcept(false) {};
     MoveNotNoexceptCopy(const MoveNotNoexceptCopy&) = default;
 };
 
