@@ -445,7 +445,7 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1
     ::std::uint16_t __work_group_size = ::std::min(::std::size_t(1024), __max_wgroup_size);
 
     auto __local_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::local_mem_size>();
-    constexpr ::std::uint8_t __max_work_item_private_bins = 16;
+    constexpr ::std::uint8_t __max_work_item_private_bins = 64 / sizeof(_local_histogram_type);
 
     auto keep_bins =
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::write, _Iter2>();
@@ -465,7 +465,7 @@ __parallel_histogram_sycl_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1
 
         // if bins fit into registers, use register private accumulation
         sycl::event e;
-        if (__num_bins < __max_work_item_private_bins)
+        if (__num_bins <= __max_work_item_private_bins)
         {
             e = __histogram_general_registers_local_reduction<__iters_per_work_item, __max_work_item_private_bins>(
                 ::std::forward<_ExecutionPolicy>(__exec), init_e, __work_group_size, input_buf.all_view(),
