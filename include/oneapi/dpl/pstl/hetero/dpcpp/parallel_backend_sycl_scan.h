@@ -719,6 +719,129 @@ single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InItera
     }
 }
 
+// Load function to try and get some PVC perf w/ coalesced
+template <typename Tp, typename _InRange>
+inline Tp load(sycl::sub_group sg, _InRange src, size_t i, size_t wg_stride, size_t wg_group_id) {
+    // if constexpr (std::is_arithmetic_v<Tp>) {
+    //   return sg.load(src.begin() + i / SUBGROUP_SIZE + wg_stride * wg_group_id);
+    // } 
+    return src[i + wg_stride * wg_group_id];
+}
+
+// Load with checking for the subgroup case
+template <typename Tp, typename _InRange>
+inline Tp load(sycl::sub_group sg, _InRange src, size_t i, size_t wg_stride, size_t wg_group_id, size_t input_size) {
+    // if constexpr (std::is_arithmetic_v<Tp>) {
+      // if (i / SUBGROUP_SIZE + SUBGROUP_SIZE + wg_stride * wg_group_id <= input_size) 
+        // return sg.load(src.begin() + i / SUBGROUP_SIZE + wg_stride * wg_group_id);
+      // return src[i + wg_stride * wg_group_id];
+    // } 
+    return src[i + wg_stride * wg_group_id];
+}
+
+template <typename _KernelParam, typename _InRange, typename _OutRange, typename _UnaryPredicate>
+void
+single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _UnaryPredicate pred)
+{
+    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+
+    const ::std::size_t n = __in_rng.size();
+
+    constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+
+    // Avoid non_uniform n by padding up to a multiple of wgsize
+    std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
+    ::std::size_t num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(n, elems_in_tile);
+    ::std::size_t num_workitems = num_wgs * wgsize;
+
+    auto event = __queue.submit([&](sycl::handler& hdl) {
+        auto wg_copy_if_values = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_per_workitem*wgsize}, hdl);
+        auto l_wg_count = sycl::local_accessor<size_t, 1>(sycl::range<1>{1}, hdl);
+
+        oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng);
+        hdl.parallel_for<class scan_kt_main>(sycl::nd_range<1>(num_workitems, wgsize), [=](const sycl::nd_item<1>& item)  [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
+            auto group = item.get_group();
+            auto wg_group_id = item.get_group(0);
+            auto wg_local_id = item.get_local_id(0);
+            auto sg = item.get_sub_group();
+
+            // Must be a better way to init atomics
+            l_wg_count[0] = 0;
+            sycl::group_barrier(group);
+            sycl::atomic_ref<size_t, sycl::memory_order::acq_rel, sycl::memory_scope::work_group, sycl::access::address_space::local_space> wg_count(l_wg_count[0]);
+
+            constexpr size_t elems_per_workgroup = elems_per_workitem*wgsize;
+
+            // Phase 1: Create wg_count and construct in-order wg_copy_if_values
+            if ((wg_group_id + 1) * elems_per_workgroup  <= n) {
+              #pragma unroll
+              for (size_t i = wg_local_id; i < elems_per_workgroup; i += wgsize) {
+                _Type val = load<_Type>(sg, __in_rng, i, elems_per_workgroup, wg_group_id);
+
+                size_t satisfies_pred = pred(val);
+                //size_t satisfies_pred = 0;
+                size_t count = sycl::exclusive_scan_over_group(group, satisfies_pred, sycl::plus<size_t>());
+
+                if (satisfies_pred)
+                  wg_copy_if_values[count + wg_count.load()] = val;
+
+                if (wg_local_id == (wgsize - 1))
+                  wg_count += (count + satisfies_pred);
+                sycl::group_barrier(group);
+              }
+            } 
+            else {
+              // Edge of input, have to handle memory bounds
+              // Might have unneccessary group_barrier calls
+              #pragma unroll
+              for (size_t i = wg_local_id; i < elems_per_workgroup; i += wgsize) {
+                size_t satisfies_pred = 0;
+                _Type val; // TODO: alloca
+                if (i + elems_per_workgroup * wg_group_id < n) {
+                  val = load<_Type>(sg, __in_rng, i, elems_per_workgroup, wg_group_id, n);
+
+                  satisfies_pred = pred(val);
+                }
+                size_t count = sycl::exclusive_scan_over_group(group, satisfies_pred, sycl::plus<size_t>());
+
+                if (satisfies_pred)
+                  wg_copy_if_values[count + wg_count.load()] = val;
+
+                if (wg_local_id == (wgsize - 1))
+                  wg_count += (count + satisfies_pred);
+                sycl::group_barrier(group);
+              }
+            }
+            // Check behaviour
+            if (group.leader()) {
+              __out_rng[wg_group_id] = wg_count.load();
+            }
+
+            // Phase 2: Global scan across wg_count
+
+            // Phase 3: copy values to global memory
+        });
+    });
+    event.wait();
+}
+
+template <typename _KernelParam, typename _InIterator, typename _OutIterator, typename _UnaryPredicate>
+void
+single_pass_copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin, _UnaryPredicate pred)
+{
+    auto __n = __in_end - __in_begin;
+
+    auto __keep1 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _InIterator>();
+    auto __buf1 = __keep1(__in_begin, __in_end);
+    auto __keep2 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
+    auto __buf2 = __keep2(__out_begin, __out_begin + __n);
+
+    single_pass_copy_if_impl<_KernelParam>(__queue, __buf1.all_view(), __buf2.all_view(), pred);
+}
+
 } // inline namespace igpu
 
 } // namespace oneapi::dpl::experimental::kt
