@@ -194,8 +194,10 @@ struct OneSweepRadixSort
     FORCE_INLINE void rankSharedKeysMatchAny(Vector &keys, uint16_t *ranks, sycl::nd_item<1> &id) {
         uint16_t *warp_counters = &__lmem.warp_counters[warp];
 #pragma unroll
-        for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
-            uint32_t digit = __utils::getDigit(keys[i], pass, RADIX_BITS);
+        for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++)
+        {
+            uint32_t digit = __utils::getDigit(
+                oneapi::dpl::__par_backend_hetero::__order_preserving_cast<__is_ascending>(keys[i]), pass, RADIX_BITS);
             uint32_t bin = digit * GROUP_WARPS;
             uint32_t bin_mask = __utils::matchAny<RADIX_BITS>(id, digit);
             bool last = (bin_mask >> (lane + 1)) == 0;
@@ -257,8 +259,10 @@ struct OneSweepRadixSort
         scanCounters(id);
 
 #pragma unroll
-        for (int i = 0; i < ITEMS_PER_THREAD; i++) {
-            uint32_t digit = __utils::getDigit(keys[i], pass, RADIX_BITS);
+        for (int i = 0; i < ITEMS_PER_THREAD; i++)
+        {
+            uint32_t digit = __utils::getDigit(
+                oneapi::dpl::__par_backend_hetero::__order_preserving_cast<__is_ascending>(keys[i]), pass, RADIX_BITS);
             uint32_t bin = digit * GROUP_WARPS + warp;
             ranks[i] += __lmem.warp_offsets[bin];
         }
@@ -326,7 +330,8 @@ struct OneSweepRadixSort
             for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
                 uint32_t idx = id.get_local_linear_id() + i * GROUP_THREADS;
                 keyT key = __lmem.shared_keys[idx];
-                uint32_t digit = __utils::getDigit(key, pass, RADIX_BITS);
+                uint32_t digit = __utils::getDigit(
+                    oneapi::dpl::__par_backend_hetero::__order_preserving_cast<__is_ascending>(key), pass, RADIX_BITS);
 
                 array_out[__lmem.group_offsets[digit] + idx] = key;
             }
@@ -335,8 +340,11 @@ struct OneSweepRadixSort
             for (uint32_t i = 0; i < ITEMS_PER_THREAD; i++) {
                 uint32_t idx = id.get_local_linear_id() + i * GROUP_THREADS;
                 keyT key = __lmem.shared_keys[idx];
-                if (key != 0xFFFFFFFF) { //TODO: replace magic no. with range check
-                    uint32_t digit = __utils::getDigit(key, pass, RADIX_BITS);
+                if (idx < group_limit)
+                {
+                    uint32_t digit = __utils::getDigit(
+                        oneapi::dpl::__par_backend_hetero::__order_preserving_cast<__is_ascending>(key), pass,
+                        RADIX_BITS);
 
                     array_out[__lmem.group_offsets[digit] + idx] = key;
                 } else {
@@ -358,7 +366,7 @@ struct OneSweepRadixSort
                 if (idx < group_limit)
                     keys[i] = array_in[idx];
                 else
-                    keys[i] = 0xFFFFFFFF;
+                    keys[i] = __utils::__sort_identity<keyT, __is_ascending>();
             }
         }
     }
