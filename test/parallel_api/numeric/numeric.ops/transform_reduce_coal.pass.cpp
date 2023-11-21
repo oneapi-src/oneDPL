@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- count.pass.cpp ----------------------------------------------------===//
+//===-- transform_reduce_coal.pass.cpp ------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_DETECT_SPIRV_COMPILATION 1
-#include "count.pass.h"
+#define _ONEDPL_DETECT_SPIRV_COMPILATION 0
+#include "transform_reduce.pass.h"
 
 int
 main()
