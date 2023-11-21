@@ -117,7 +117,6 @@ void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    ;
     test_is_fundamental<KernelTest1, dpl::nullptr_t>(deviceQueue);
     test_is_fundamental<KernelTest2, void>(deviceQueue);
     test_is_fundamental<KernelTest3, short>(deviceQueue);
