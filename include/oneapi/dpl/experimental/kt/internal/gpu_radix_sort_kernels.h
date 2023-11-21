@@ -119,7 +119,7 @@ FORCE_INLINE void globalExclusiveScan(uint32_t *histogram, uint32_t *scan, sycl:
 }
 
 template <uint32_t RADIX_DIGITS, uint32_t GROUP_WARPS, uint32_t ITEMS_PER_THREAD,
-    uint32_t GROUP_THREADS, typename keyT = uint32_t>
+    uint32_t GROUP_THREADS, typename keyT>
 struct OneSweepSharedData {
     union {
         uint16_t warp_offsets[GROUP_WARPS * RADIX_DIGITS + 1];
