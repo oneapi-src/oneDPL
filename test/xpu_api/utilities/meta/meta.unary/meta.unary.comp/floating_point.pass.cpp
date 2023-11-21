@@ -52,7 +52,6 @@ void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    ;
     test_floating_point<float>(deviceQueue);
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
