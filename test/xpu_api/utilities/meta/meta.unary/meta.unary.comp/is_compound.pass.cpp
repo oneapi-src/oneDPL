@@ -105,7 +105,6 @@ void
 kernel_test()
 {
     sycl::queue deviceQueue = TestUtils::get_test_queue();
-    ;
     test_is_compound<KernelTest1, char[3]>(deviceQueue);
     test_is_compound<KernelTest2, char[]>(deviceQueue);
     test_is_compound<KernelTest3, void*>(deviceQueue);
