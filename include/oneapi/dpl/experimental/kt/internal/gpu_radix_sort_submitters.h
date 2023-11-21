@@ -53,7 +53,8 @@ struct __radix_sort_onesweep_histogram_submitter<
             oneapi::dpl::__ranges::__require_access(__cgh, __keys_rng);
             __cgh.depends_on(__e);
             auto __data = __keys_rng.data();
-            __dpl_sycl::__local_accessor<_GlobalOffsetData> __lacc(__stage_count * __radix_bits, __cgh);
+            static constexpr std::uint32_t __bin_count = 1 << __radix_bits;
+            __dpl_sycl::__local_accessor<_GlobalOffsetData> __lacc(__stage_count * __bin_count, __cgh);
             __cgh.parallel_for<_Name...>(__nd_range, [=](sycl::nd_item<1> __nd_item) {
                 RadixSortHistogram<__work_group_size, __data_per_work_item, _KeyT,
                                    _GlobalOffsetData, __radix_bits, __stage_count,
