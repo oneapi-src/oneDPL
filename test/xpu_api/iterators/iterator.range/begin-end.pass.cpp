@@ -47,8 +47,6 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-
 template <typename C>
 class ConstContainerTest1;
 template <typename C>
@@ -187,12 +185,10 @@ kernel_test()
         });
     });
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     std::array<int, 1> a;
     a[0] = 3;
 
@@ -202,8 +198,8 @@ main()
 
     kernel_test();
 
-    EXPECT_TRUE(ret, "Wrong result of dpl::begin / dpl::end in test_container, test_const_container or test_initializer_list");
-#endif // TEST_DPCPP_BACKEND_PRESENT
+    EXPECT_TRUE(
+        ret, "Wrong result of dpl::begin / dpl::end in test_container, test_const_container or test_initializer_list");
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

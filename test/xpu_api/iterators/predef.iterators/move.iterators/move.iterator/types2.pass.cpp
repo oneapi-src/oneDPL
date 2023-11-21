@@ -39,8 +39,6 @@
 #include "support/test_iterators.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-
 template <class ValueType, class Reference>
 struct DummyIt
 {
@@ -53,7 +51,8 @@ struct DummyIt
     // Definition of operator* is not required, only the return type is needed
     // This operator would only be used by std::iter_rvalue_reference to determine
     // move_iterator::reference type starting from C++20
-    reference operator*();
+    reference
+    operator*();
 };
 
 template <class It>
@@ -114,14 +113,11 @@ kernel_test()
         });
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }
