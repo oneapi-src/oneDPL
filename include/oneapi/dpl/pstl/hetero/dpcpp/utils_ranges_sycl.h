@@ -97,8 +97,7 @@ class all_view
         __cgh.require(__m_acc);
     }
 
-    // Unified function to get pointer or accessor to use inside ESIMD kernels
-    __accessor_t data() const
+    __accessor_t accessor() const
     {
         return __m_acc;
     }
