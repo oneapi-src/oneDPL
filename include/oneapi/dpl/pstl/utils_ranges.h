@@ -245,12 +245,6 @@ class guard_view
         return size() == 0;
     }
 
-    // Unified function to get pointer or accessor to use inside ESIMD kernels
-    _Iterator data() const
-    {
-        return m_p;
-    }
-
   private:
     _Iterator m_p;     // a iterator (pointer)  to data in memory
     diff_type m_count; // size of the data

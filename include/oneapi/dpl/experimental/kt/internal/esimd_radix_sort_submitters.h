@@ -175,10 +175,10 @@ struct __radix_sort_copyback_submitter<
                 __cgh.depends_on(__e);
                 __cgh.parallel_for<_Name...>(sycl::range<1>{__n}, [=](sycl::item<1> __item) {
                     auto __global_id = __item.get_linear_id();
-                    __out_pack.__keys_acc()[__global_id] = __in_pack.__keys_acc()[__global_id];
+                    __utils::__rng_data(__out_pack.__keys_rng())[__global_id] = __utils::__rng_data(__in_pack.__keys_rng())[__global_id];
                     if constexpr(::std::decay_t<_InRngPack>::__has_values)
                     {
-                        __out_pack.__vals_acc()[__global_id] = __in_pack.__vals_acc()[__global_id];
+                        __utils::__rng_data(__out_pack.__vals_rng())[__global_id] = __utils::__rng_data(__in_pack.__vals_rng())[__global_id];
                     }
                 });
             });
