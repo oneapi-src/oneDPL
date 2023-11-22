@@ -25,7 +25,7 @@ namespace oneapi::dpl::experimental::kt::gpu::__impl
 
 template <uint16_t __work_group_size, uint16_t __data_per_work_item, typename keyT, typename _GlobalOffsetData,
           ::std::uint8_t __radix_bits, ::std::uint32_t __stage_count,
-          bool __is_ascending> //TODO: hook up __is_ascending
+          bool __is_ascending>
 struct RadixSortHistogram
 {
     static constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
@@ -133,6 +133,7 @@ struct OneSweepSharedData {
     uint32_t group_id;
 };
 
+// TODO: 256 threads, 32 items per thread by default
 template <uint32_t RADIX_BITS, uint32_t GROUP_THREADS, uint32_t ITEMS_PER_THREAD, bool USE_DYNAMIC_ID,
           uint32_t WARP_THREADS, typename keyT, typename _InKeysRng, typename _OutKeysRng, bool __is_ascending>
 struct OneSweepRadixSort
