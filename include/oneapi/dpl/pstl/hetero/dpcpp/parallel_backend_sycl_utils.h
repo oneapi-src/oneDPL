@@ -595,12 +595,15 @@ class __future : private std::tuple<_Args...>
         return __my_event;
     }
     operator _Event() const { return event(); }
+    operator sycl::event() const { return event(); } //TODO: a temporary solution for experimental async API support
+
     void
     wait()
     {
-#if !ONEDPL_ALLOW_DEFERRED_WAITING
-        __my_event.wait_and_throw();
-#endif
+//#if !ONEDPL_ALLOW_DEFERRED_WAITING
+        //__my_event.wait_and_throw();
+//#endif
+        __my_event.wait();
     }
 
     auto

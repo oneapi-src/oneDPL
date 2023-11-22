@@ -416,6 +416,70 @@ __get_accessor_ptr(const _Acc& __acc)
 #endif
 }
 
+class __event
+{
+    sycl::event __m_event;
+    sycl::queue __m_queue;
+    bool __m_queue_synch;
+
+  public:
+    __event(sycl::event __e = {}): __m_event(__e), __m_queue_synch(false) {}
+    __event(sycl::queue __q): __m_queue(__q), __m_queue_synch(true) 
+    {
+        assert(__q.is_in_order());
+    }
+
+    void wait()
+    {
+        if(__m_queue_synch)
+            __m_queue.wait_and_throw();
+        else
+            __m_event.wait_and_throw();
+    }
+
+    operator sycl::event() const
+    { 
+        assert(!__m_queue_synch);
+        return __m_event;
+    }
+};
+
+template <typename _Body, typename _Dependency>
+auto
+__submit_impl(sycl::queue __queue, _Body __body, bool __is_implicit_synch, const _Dependency* __dependency)
+{
+    if(__queue.is_in_order() || __is_implicit_synch)
+    {
+        __queue.submit([&](sycl::handler& __hdl) {
+            if(__dependency)
+                __hdl.depends_on(*__dependency);
+                __body(__hdl);
+            });
+        return __event(__queue);
+    }
+
+    return __event(__queue.submit([&](sycl::handler& __hdl) {
+        assert(!__is_implicit_synch);
+        if(__dependency)
+           __hdl.depends_on(*__dependency);
+       __body(__hdl);
+       }));
+}
+
+template <typename _Body>
+auto
+__submit(sycl::queue __queue, _Body __body)
+{
+    return __submit_impl(__queue, __body, true, NULL);
+}
+
+template <typename _Body, typename _Dependency>
+auto
+__submit(sycl::queue __queue, _Body __body, const _Dependency& __dependency)
+{
+    return __submit_impl(__queue, __body, false, &__dependency);
+}
+
 } // namespace __dpl_sycl
 
 #endif // _ONEDPL_SYCL_DEFS_H
