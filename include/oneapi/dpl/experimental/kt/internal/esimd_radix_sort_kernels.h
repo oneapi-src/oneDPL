@@ -267,7 +267,7 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _KeysRng& __keys_rn
             // TODO: avoid reading global memory twice when __stage_block_count > 1 increasing __hist_data_per_work_item
             if (__wi_offset + __hist_data_per_work_item < __n)
             {
-                __utils::__copy_from(__keys_rng.data(), __wi_offset, __keys);
+                __utils::__copy_from(__utils::__rng_data(__keys_rng), __wi_offset, __keys);
             }
             else
             {
@@ -277,7 +277,7 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _KeysRng& __keys_rn
                 {
                     __dpl_esimd_ns::simd<::std::uint32_t, __data_per_step> __offsets = __lane_offsets + __step_offset + __wi_offset;
                     __dpl_esimd_ns::simd_mask<__data_per_step> __is_in_range = __offsets < __n;
-                    __dpl_esimd_ns::simd<_KeyT, __data_per_step> data = __utils::__gather<_KeyT, __data_per_step>(__keys_rng.data(), __offsets, 0, __is_in_range);
+                    __dpl_esimd_ns::simd<_KeyT, __data_per_step> data = __utils::__gather<_KeyT, __data_per_step>(__utils::__rng_data(__keys_rng), __offsets, 0, __is_in_range);
                     __dpl_esimd_ns::simd<_KeyT, __data_per_step> sort_identities = __utils::__sort_identity<_KeyT, __is_ascending>();
                     __keys.template select<__data_per_step, 1>(__step_offset) = __dpl_esimd_ns::merge(data, sort_identities, __is_in_range);
                 }

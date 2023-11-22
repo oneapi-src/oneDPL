@@ -23,6 +23,8 @@
 #include <type_traits>
 #include <limits>
 
+#include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h" // __ranges::all_view, __internal::__value_t
+
 // The macro is created to guarantee inlining of functions which contain slm_init. See ESIMD spec for more details:
 // https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/supported/sycl_ext_intel_esimd/sycl_ext_intel_esimd.md#static-allocation-of-slm-using-slm_init-function
 #define _ONEDPL_ESIMD_INLINE inline __attribute__((always_inline))
@@ -791,6 +793,24 @@ struct __slm_lookup
     }
 };
 
+template<typename _Rng>
+auto
+__rng_data(const _Rng& __rng)
+{
+    return __rng.begin();
+}
+
+// ESIMD functionality requires using an accessor directly due to the restriction:
+//      sycl::accessor::operator[] are supported only with -fsycl-esimd-force-stateless-mem.
+//      Otherwise, all memory accesses through an accessor are done via explicit APIs
+// TODO: rely on begin() once -fsycl-esimd-force-stateless-mem has been enabled by default
+template <typename _T, sycl::access::mode _M>
+auto
+__rng_data(const oneapi::dpl::__ranges::all_view<_T, _M>& __view)
+{
+    return __view.accessor();
+}
+
 struct __rng_dummy {};
 
 template<typename _Rng>
@@ -813,7 +833,7 @@ struct __rng_pack
     static constexpr bool __has_values = !std::is_void_v<_ValT>;
 
     auto& __keys_rng() { return __m_keys_rng; }
-    auto __keys_acc() const { return __m_keys_rng.data(); }
+    auto __keys_acc() const { return __rng_data(__m_keys_rng); }
     auto& __vals_rng()
     {
         static_assert(__has_values);
@@ -822,7 +842,7 @@ struct __rng_pack
     auto __vals_acc() const
     {
         static_assert(__has_values);
-        return __m_vals_rng.data();
+        return __rng_data(__m_vals_rng);
     }
 
     __rng_pack(const _Rng1& __rng1, const _Rng2& __rng2 = __rng_dummy{}):
