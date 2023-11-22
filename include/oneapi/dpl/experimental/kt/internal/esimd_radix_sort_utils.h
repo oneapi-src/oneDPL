@@ -832,17 +832,11 @@ struct __rng_pack
     using _ValT = typename __rng_value_type_deducer<_Rng2>::__value_t;
     static constexpr bool __has_values = !std::is_void_v<_ValT>;
 
-    auto& __keys_rng() { return __m_keys_rng; }
-    auto __keys_acc() const { return __rng_data(__m_keys_rng); }
-    auto& __vals_rng()
+    const auto& __keys_rng() const { return __m_keys_rng; }
+    const auto& __vals_rng() const
     {
         static_assert(__has_values);
         return __m_vals_rng;
-    }
-    auto __vals_acc() const
-    {
-        static_assert(__has_values);
-        return __rng_data(__m_vals_rng);
     }
 
     __rng_pack(const _Rng1& __rng1, const _Rng2& __rng2 = __rng_dummy{}):
