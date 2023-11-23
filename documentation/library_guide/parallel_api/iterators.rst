@@ -92,7 +92,8 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
   a functor whose index operator defines the mapping from the ``permutation_iterator`` index to the index of the
   source iterator. The ``permutation_iterator`` is useful in implementing applications where noncontiguous
   elements of data represented by an iterator need to be processed by an algorithm as though they were contiguous.
-  An example is copying every other element to an output iterator.
+  An example is copying every other element to an output iterator. The source iterator cannot be a host-side iterator
+  in cases of algorithms executed with device policies.
 
   The ``make_permutation_iterator`` is provided to simplify construction of iterator instances. The function
   receives the source iterator and the iterator or function object representing the index map::
