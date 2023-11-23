@@ -29,7 +29,7 @@
 #include "../support/sycl_alloc_utils.h"
 
 template<typename KeyT, typename ValueT, bool isAscending, std::uint32_t RadixBits, typename KernelParam>
-void test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
+void test_buffer(sycl::queue q, std::size_t size, KernelParam param)
 {
     std::vector<KeyT> expected_keys(size);
     std::vector<ValueT> expected_values(size);
@@ -41,8 +41,7 @@ void test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
     {
         sycl::buffer<KeyT> keys(actual_keys.data(), actual_keys.size());
         sycl::buffer<ValueT> values(actual_values.data(), actual_values.size());
-        oneapi::dpl::experimental::kt::esimd::radix_sort_by_key<isAscending, RadixBits>(
-            q, oneapi::dpl::begin(keys), oneapi::dpl::end(keys), oneapi::dpl::begin(values), param).wait();
+        oneapi::dpl::experimental::kt::esimd::radix_sort_by_key<isAscending, RadixBits>(q, keys, values, param).wait();
     }
 
     auto expected_first  = oneapi::dpl::make_zip_iterator(std::begin(expected_keys), std::begin(expected_values));
@@ -53,9 +52,9 @@ void test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
                                  ", sizeof(value): " + std::to_string(sizeof(ValueT)) +
                                  ", isAscending: " +  std::to_string(isAscending) +
                                  ", RadixBits: " + std::to_string(RadixBits);
-    std::string msg = "wrong results with oneapi::dpl::begin/end (keys)" + parameters_msg;
+    std::string msg = "wrong results with sycl::buffer (keys)" + parameters_msg;
     EXPECT_EQ_N(expected_keys.begin(), actual_keys.begin(), size, msg.c_str());
-    msg = "wrong results with oneapi::dpl::begin/end (values)" + parameters_msg;
+    msg = "wrong results with sycl::buffer (values)" + parameters_msg;
     EXPECT_EQ_N(expected_values.begin(), actual_values.begin(), size, msg.c_str());
 }
 
@@ -108,8 +107,8 @@ int main()
                     q, size, params);
                 test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits, sycl::usm::alloc::shared>(
                     q, size, params);
-                test_sycl_iterators<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits>(q, size, params);
-                test_sycl_iterators<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits>(q, size, params);
+                test_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits>(q, size, params);
+                test_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits>(q, size, params);
             }
         }
         catch (const ::std::exception& exc)
