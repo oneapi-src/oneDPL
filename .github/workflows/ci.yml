@@ -14,12 +14,16 @@ permissions: read-all
 env:
   BUILD_CONCURRENCY: 2
   MACOS_BUILD_CONCURRENCY: 3
+<<<<<<< HEAD
   TEST_TIMEOUT: 360
   WINDOWS_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/64957c0f-37bf-4408-909c-37ff52fe5119/w_tbb_oneapi_p_2021.11.0.49526.exe
   WINDOWS_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/94e15cb5-4bcc-4fdd-91cf-0f819a54e42e/w_dpcpp-cpp-compiler_p_2024.0.2.28_offline.exe
   WINDOWS_ONEAPI_PATH: C:\Program Files (x86)\Intel\oneAPI
   LINUX_ONEAPI_PATH: /opt/intel/oneapi
   # TODO: get rid of a deprecated configuration: Intel® C++ Compiler Classic
+=======
+  TEST_TIMEOUT: 1000
+>>>>>>> e802bff3 (Increase timeout)
   MACOS_ONEAPI_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/irc_nas/18358/m_cpp-compiler-classic_p_2022.0.0.62_offline.dmg
 
 concurrency:
