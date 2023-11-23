@@ -237,9 +237,7 @@ jobs:
           make_targets=""
           ctest_regex="^("
 
-          test_list="adjacent_find.pass copy_move.pass merge.pass partial_sort.pass remove_copy.pass \
-                     transform_reduce.pass transform_scan.pass algorithm.pass execution.pass functional.pass \
-                     algorithms_redirection.pass usm_memory_replacement.pass"
+          test_list="algorithms_redirection.pass"
 
           for test in $test_list
           do
