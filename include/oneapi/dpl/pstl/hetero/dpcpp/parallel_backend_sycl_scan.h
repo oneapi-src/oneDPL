@@ -537,6 +537,7 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
                              }
 
                              _Type carry = sycl::group_broadcast(group, prev_sum, 0);
+                             // TODO: Find a fix for _ONEDPL_PRAGMA_UNROLL
                              #pragma unroll
                              for (::std::uint32_t step = 0; step < elems_per_workitem; ++step)
                              {
