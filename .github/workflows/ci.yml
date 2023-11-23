@@ -216,7 +216,7 @@ jobs:
             cxx_compiler: icpx
             std: 17
             build_type: release
-            device_type: cpu
+            device_type: default
     steps:
       - uses: actions/checkout@v3
       - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
