@@ -470,11 +470,10 @@ struct __get_sycl_range
     }
 
     //specialization for permutation_iterator based on the host iterator
-    template <typename _Iter, typename _Map, ::std::enable_if_t<!is_hetero_it_v<_Iter>
-              && !is_passed_directly_it_v<_Iter>, int> = 0>
+    template <typename _Iter, typename _Map, ::std::enable_if_t<is_temp_buff<_Iter>::value &&
+              !__test_addressof<_Iter>(0), int> = 0>
     auto
-    operator()(oneapi::dpl::permutation_iterator<_Iter, _Map> __first,
-               oneapi::dpl::permutation_iterator<_Iter, _Map> __last)
+    operator()(_Iter __first, _Iter __last)
     {
         using _T = val_t<_Iter>;
 
@@ -545,40 +544,30 @@ struct __get_sycl_range
     template <typename _Iter>
     auto
     operator()(_Iter __first, _Iter __last)
-        -> ::std::enable_if_t<is_temp_buff<_Iter>::value && !is_zip<_Iter>::value && !is_permutation<_Iter>::value,
-                              __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
+        -> ::std::enable_if_t<is_temp_buff<_Iter>::value && __test_addressof<_Iter>(0) && !is_zip<_Iter>::value &&
+        !is_permutation<_Iter>::value, __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
+        static_assert(__test_addressof<_Iter>(0));
+
         using _T = val_t<_Iter>;
 
         return __process_host_iter_impl(__first, __last, [&]()
             {
                 if constexpr (__is_copy_direct)
                 {
-                    if constexpr (__test_addressof<_Iter>(0))
-                    {
-                        //wait and copy on a buffer destructor; an exclusive access buffer, good performance
-                        return sycl::buffer<_T, 1>{::std::addressof(*__first), __last - __first};
-                    }
-                    else
-                    {
-                        sycl::buffer<_T, 1> __buf(__first, __last); //a non-exclusive access buffer, poor performance
-                        if (__is_copy_back)
-                            __buf.set_final_data(__first); //wait and copy on a buffer destructor
-                        return __buf;
-                    }
+                   //wait and copy on a buffer destructor; an exclusive access buffer, good performance
+                   return sycl::buffer<_T, 1>{::std::addressof(*__first), __last - __first};
                 }
                 else
                 {
                     sycl::buffer<_T, 1> __buf(__last - __first);
-                    if constexpr (__test_addressof<_Iter>(0))
-                        __buf.set_final_data(::std::addressof(*__first)); //wait and fast copy on a buffer destructor
-                    else
-                        __buf.set_final_data(__first); //wait and copy on a buffer destructor
+                    __buf.set_final_data(::std::addressof(*__first)); //wait and fast copy on a buffer destructor
                     return __buf;
                 }
             });
     }
 private:
+    //implememnation of operator()(_Iter __first, _Iter __last) for the host iterator types
     template <typename _Iter, typename _GetBuffferFunc>
     auto
     __process_host_iter_impl(_Iter __first, _Iter __last, _GetBuffferFunc __get_buf)
