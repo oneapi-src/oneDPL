@@ -386,8 +386,7 @@ struct cooperative_lookback
                                   : _T{0};
 
             // Sum all of the partial results from the tiles found, as well as the full contribution from the closest tile (if any)
-            sum += sycl::reduce_over_group(subgroup, contribution, bin_op);
-
+            sum = bin_op(sum, contribution);
             // If we found a full value, we can stop looking at previous tiles. Otherwise,
             // keep going through tiles until we either find a full tile or we've completely
             // recomputed the prefix using partial values
@@ -395,6 +394,7 @@ struct cooperative_lookback
                 break;
 
         }
+        sum = sycl::reduce_over_group(subgroup, sum, bin_op);
 
         return sum;
     }
