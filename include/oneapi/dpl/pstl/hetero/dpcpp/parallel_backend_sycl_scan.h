@@ -536,8 +536,23 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
                                      scan_mem.set_full(tile_id, prev_sum + local_sum);
                              }
 
-                             prev_sum = sycl::group_broadcast(group, prev_sum, 0);
-                             sycl::joint_inclusive_scan(group, in_begin, in_end, out_begin, __binary_op, prev_sum);
+                             _Type carry = sycl::group_broadcast(group, prev_sum, 0);
+                             #pragma unroll
+                             for (::std::uint32_t step = 0; step < elems_per_workitem; ++step)
+                             {
+                                 ::std::uint32_t i = stride * step;
+                                 _Type x;
+                                 if (i + local_id < wg_local_memory_size)
+                                 {
+                                     x = in_begin[i + local_id];
+                                 }
+                                 _Type out = sycl::inclusive_scan_over_group(group, x, __binary_op, carry);
+                                 if (i + local_id < wg_local_memory_size)
+                                 {
+                                     out_begin[i + local_id] = out;
+                                 }
+                                 carry = group_broadcast(group, out, stride - 1);
+                             }
                          });
     });
 
