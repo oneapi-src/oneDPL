@@ -489,6 +489,7 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
 
                              if (wg_next_offset > n)
                                  wg_local_memory_size = n - wg_current_offset;
+                             //TODO: assumes default ctor produces identity w.r.t. __binary_op
                              _Type my_reducer{};
                              if (wg_next_offset <= n)
                              {
