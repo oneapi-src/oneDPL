@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cerrno>
 #include <optional>
+#include <iostream>
 
 #include <sycl/sycl.hpp>
 
@@ -40,6 +41,7 @@ __set_active_device(sycl::device* __new_active_device)
 static auto
 __get_offload_device_selector()
 {
+    std::cout << "Get offload device selector called" << std::endl;
 #if __SYCL_PSTL_OFFLOAD__ == 1
     return sycl::default_selector_v;
 #elif __SYCL_PSTL_OFFLOAD__ == 2
@@ -81,12 +83,14 @@ class __offload_policy_holder_type
             if (e.code() != sycl::errc::runtime)
                 throw;
         }
+        std::cout << "Offload policy holder created" << std::endl;
     }
 
     ~__offload_policy_holder_type()
     {
         if (_M_offload_device.has_value())
             _M_set_active_device(nullptr);
+        std::cout << "Offload policy holder dtor finished" << std::endl;
     }
 
     auto
