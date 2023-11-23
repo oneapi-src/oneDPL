@@ -237,7 +237,7 @@ jobs:
           make_targets=""
           ctest_regex="^("
 
-          test_list="algorithms_redirection.pass"
+          test_list="algorithm.pass"
 
           for test in $test_list
           do
