@@ -400,8 +400,8 @@ struct cooperative_lookback
     }
 };
 
-template <typename _KernelParam, typename _Inclusive, typename _UseAtomic64, typename _InRange, typename _OutRange,
-          typename _BinaryOp>
+template <typename _KernelParam, typename _Inclusive, typename _UseAtomic64, typename _UseDynamicTileID,
+          typename _InRange, typename _OutRange, typename _BinaryOp>
 void
 single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op)
 {
@@ -464,14 +464,23 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
                              constexpr ::std::uint32_t stride = wgsize;
                              auto subgroup = item.get_sub_group();
 
-                             // Obtain unique ID for this work-group that will be used in decoupled lookback
-                             TileId dynamic_tile_id(tile_id_begin);
-                             if (group.leader())
-                             {
-                                 tile_id_lacc[0] = dynamic_tile_id.fetch_inc();
-                             }
-                             sycl::group_barrier(group);
-                             std::uint32_t tile_id = tile_id_lacc[0];
+                              std::uint32_t tile_id;
+                              if constexpr (std::is_same_v<_UseDynamicTileID, ::std::true_type>)
+                              {
+                                  // Obtain unique ID for this work-group that will be used in decoupled lookback
+                                  TileId dynamic_tile_id(tile_id_begin);
+                                  if (group.leader())
+                                  {
+                                      tile_id_lacc[0] = dynamic_tile_id.fetch_inc();
+                                  }
+                                  sycl::group_barrier(group);
+                                  tile_id = tile_id_lacc[0];
+                              }
+                              else
+                              {
+                                  tile_id = group.get_group_linear_id();
+                              }
+
 
                              // Global load into local
                              auto wg_current_offset = (tile_id * elems_in_tile);
@@ -557,18 +566,18 @@ single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InItera
     {
         if (__queue.get_device().has(sycl::aspect::atomic64))
         {
-            single_pass_scan_impl<_KernelParam, /* Inclusive */ std::true_type, /* UseAtomic64 */ std::true_type>(
+            single_pass_scan_impl<_KernelParam, /* Inclusive */ std::true_type, /* UseAtomic64 */ std::true_type, /* UseDynamicTileID */ std::false_type>(
                 __queue, __buf1.all_view(), __buf2.all_view(), __binary_op);
         }
         else
         {
-            single_pass_scan_impl<_KernelParam, /* Inclusive */ std::true_type, /* UseAtomic64 */ std::false_type>(
+            single_pass_scan_impl<_KernelParam, /* Inclusive */ std::true_type, /* UseAtomic64 */ std::false_type, /* UseDynamicTileID */ std::false_type>(
                 __queue, __buf1.all_view(), __buf2.all_view(), __binary_op);
         }
     }
     else
     {
-        single_pass_scan_impl<_KernelParam, /* Inclusive */ std::true_type, /* UseAtomic64 */ std::false_type>(
+        single_pass_scan_impl<_KernelParam, /* Inclusive */ std::true_type, /* UseAtomic64 */ std::false_type, /* UseDynamicTileID */ std::false_type>(
             __queue, __buf1.all_view(), __buf2.all_view(), __binary_op);
     }
 }
