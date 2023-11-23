@@ -274,7 +274,7 @@ struct LookbackScanMemory<_T, /* UseAtomic64=*/::std::true_type>
     _T
     get_value(::std::size_t, _FlagT flag) const
     {
-        return static_cast<::std::uint32_t>(flag & VALUE_MASK);
+        return static_cast<_T>(flag & VALUE_MASK);
     }
 
     static _FlagT*
