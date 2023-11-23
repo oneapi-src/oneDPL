@@ -489,29 +489,36 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
 
                              if (wg_next_offset > n)
                                  wg_local_memory_size = n - wg_current_offset;
-
+                             _Type my_reducer{};
                              if (wg_next_offset <= n)
                              {
-                                 _ONEDPL_PRAGMA_UNROLL
+                                 #pragma unroll
                                  for (std::uint32_t i = 0; i < elems_per_workitem; ++i)
-                                     tile_vals[local_id + stride * i] =
-                                         __in_rng[wg_current_offset + local_id + stride * i];
+                                 {
+                                     _Type in_val = __in_rng[wg_current_offset + local_id + stride * i];
+                                     my_reducer = __binary_op(my_reducer, in_val);
+                                     tile_vals[local_id + stride * i] = in_val;
+                                 }
                              }
                              else
                              {
+                                 #pragma unroll
                                  for (std::uint32_t i = 0; i < elems_per_workitem; ++i)
                                  {
                                      if (wg_current_offset + local_id + stride * i < n)
-                                         tile_vals[local_id + stride * i] =
-                                             __in_rng[wg_current_offset + local_id + stride * i];
+                                     {
+                                         _Type in_val = __in_rng[wg_current_offset + local_id + stride * i];
+                                         my_reducer = __binary_op(my_reducer, in_val);
+                                         tile_vals[local_id + stride * i] = in_val;
+                                     }
                                  }
                              }
-                             sycl::group_barrier(group);
+
+                             auto local_sum = sycl::reduce_over_group(group, my_reducer, __binary_op);
 
                              auto in_begin = tile_vals.template get_multi_ptr<sycl::access::decorated::no>().get();
                              auto out_begin = __out_rng.begin() + wg_current_offset;
 
-                             auto local_sum = sycl::joint_reduce(group, in_begin, in_end, __binary_op);
                              _Type prev_sum = 0;
 
                              // The first sub-group will query the previous tiles to find a prefix
