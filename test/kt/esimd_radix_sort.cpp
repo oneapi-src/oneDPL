@@ -136,10 +136,10 @@ test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
 
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>
 void
-test_buffer(sycl::queue q, std::size_t size, KernelParam param)
+test_sycl_buffer(sycl::queue q, std::size_t size, KernelParam param)
 {
 #if LOG_TEST_INFO
-    std::cout << "\t\ttest_buffer<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
+    std::cout << "\t\ttest_sycl_buffer<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
 #endif
     std::vector<T> input(size);
     generate_data(input.data(), size, 42);
@@ -181,7 +181,7 @@ test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
     test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::shared>(q, size, param);
     test_usm<T, IsAscending, RadixBits, sycl::usm::alloc::device>(q, size, param);
     test_sycl_iterators<T, IsAscending, RadixBits>(q, size, param);
-    test_buffer<T, IsAscending, RadixBits>(q, size, param);
+    test_sycl_buffer<T, IsAscending, RadixBits>(q, size, param);
 #if _ENABLE_RANGES_TESTING
     test_all_view<T, IsAscending, RadixBits>(q, size, param);
     test_subrange_view<T, IsAscending, RadixBits>(q, size, param);

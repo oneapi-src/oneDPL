@@ -29,7 +29,7 @@
 #include "../support/sycl_alloc_utils.h"
 
 template<typename KeyT, typename ValueT, bool isAscending, std::uint32_t RadixBits, typename KernelParam>
-void test_buffer(sycl::queue q, std::size_t size, KernelParam param)
+void test_sycl_buffer(sycl::queue q, std::size_t size, KernelParam param)
 {
     std::vector<KeyT> expected_keys(size);
     std::vector<ValueT> expected_values(size);
@@ -107,8 +107,8 @@ int main()
                     q, size, params);
                 test_usm<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits, sycl::usm::alloc::shared>(
                     q, size, params);
-                test_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits>(q, size, params);
-                test_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits>(q, size, params);
+                test_sycl_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Ascending, TestRadixBits>(q, size, params);
+                test_sycl_buffer<TEST_KEY_TYPE, TEST_VALUE_TYPE, Descending, TestRadixBits>(q, size, params);
             }
         }
         catch (const ::std::exception& exc)
