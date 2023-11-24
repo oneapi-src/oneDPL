@@ -87,24 +87,25 @@ class __onesweep_memory_holder
 
     void __appoint_aligned_memory_regions()
     {
+        std::uint8_t* __end_ptr = __m_raw_mem_ptr + __m_raw_mem_bytes;
         // It assumes that the raw pointer is already alligned for _HistT
         __m_global_hist_ptr = reinterpret_cast<_HistT*>(__m_raw_mem_ptr);
         __m_group_hist_ptr = reinterpret_cast<_HistT*>(__m_raw_mem_ptr + __m_global_hist_bytes);
 
         void* __base_ptr = reinterpret_cast<void*>(__m_raw_mem_ptr + __m_global_hist_bytes + __m_group_hist_bytes);
-        ::std::size_t __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes);
+        ::std::size_t __remainder = __end_ptr - reinterpret_cast<std::uint8_t*>(__base_ptr);
         void* __aligned_ptr = ::std::align(::std::alignment_of_v<_WgCounterT>, __m_dynamic_id_bytes, __base_ptr, __remainder);
         __m_dynamic_id_ptr = reinterpret_cast<_WgCounterT*>(__aligned_ptr);
 
         __base_ptr = reinterpret_cast<void*>(__m_dynamic_id_ptr + __m_dynamic_id_bytes / sizeof(_WgCounterT));
-        __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes + __m_dynamic_id_bytes); // TODO this is wrong - padding bytes!
+        __remainder = __end_ptr - reinterpret_cast<std::uint8_t*>(__base_ptr);
         __aligned_ptr = ::std::align(::std::alignment_of_v<_KeyT>, __m_keys_bytes, __base_ptr, __remainder);
         __m_keys_ptr = reinterpret_cast<_KeyT*>(__aligned_ptr);
 
         if constexpr (__has_values)
         {
             __base_ptr = reinterpret_cast<void*>(__m_keys_ptr + __m_keys_bytes / sizeof(_KeyT));
-            __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes + __m_dynamic_id_bytes + __m_keys_bytes);
+            __remainder = __end_ptr - reinterpret_cast<std::uint8_t*>(__base_ptr);
             __aligned_ptr = ::std::align(::std::alignment_of_v<_ValT>, __m_vals_bytes, __base_ptr, __remainder);
             __m_vals_ptr = reinterpret_cast<_ValT*>(__aligned_ptr);
         }
