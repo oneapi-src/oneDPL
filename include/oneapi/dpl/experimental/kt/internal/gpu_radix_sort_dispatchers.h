@@ -41,12 +41,6 @@ class __gpu_radix_sort_onesweep_odd;
 template <typename... _Name>
 class __gpu_radix_sort_onesweep_copyback;
 
-//TODO: Implement this using __subgroup_radix_sort from parallel-backend_sycl_radix_sort_one_wg.h
-template <typename _KernelName, bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
-          ::std::uint16_t __work_group_size, typename _Range>
-sycl::event
-__one_wg(sycl::queue __q, _Range&& __rng, ::std::size_t __n);
-
 template<typename _HistT, typename _KeyT, typename _WgCounterT = std::uint32_t, typename _ValT = void>
 class __onesweep_memory_holder
 {
@@ -276,19 +270,10 @@ __radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
         __q.get_device().template get_info<sycl::info::device::local_mem_size>();
     assert(__req_slm_size <= __max_slm_size);
 
-    constexpr ::std::uint32_t __one_wg_cap = __data_per_workitem * __workgroup_size;
-    if (__n <= __one_wg_cap)
-    {
-        return __one_wg<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
-            __q, ::std::forward<_Range>(__rng), __n);
-    }
-    else
-    {
-        // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
-        // TODO: support different RadixBits, WorkGroupSize
-        return __onesweep<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
-            __q, ::std::forward<_Range>(__rng), __n);
-    }
+    // TODO: defer to parallel_backend_sycl_radix_sort_one_wg.h for small __n
+    // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
+    return __onesweep<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
+        __q, ::std::forward<_Range>(__rng), __n);
 }
 
 } // namespace oneapi::dpl::experimental::kt::gpu::__impl
