@@ -265,7 +265,7 @@ jobs:
           make_targets=""
           ctest_regex="^("
 
-          test_list="algorithm.pass"
+          test_list="empty_test_pstl_offload.pass"
 
           for test in $test_list
           do
