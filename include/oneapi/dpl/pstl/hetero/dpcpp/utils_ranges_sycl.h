@@ -376,9 +376,6 @@ struct __get_sycl_range
     template <typename... Iters>
     auto
     operator()(oneapi::dpl::zip_iterator<Iters...> __first, oneapi::dpl::zip_iterator<Iters...> __last)
-        -> decltype(__range_holder<decltype(gen_zip_view(__first.base(), __last - __first,
-                                                         ::std::make_index_sequence<sizeof...(Iters)>()))>{
-            gen_zip_view(__first.base(), __last - __first, ::std::make_index_sequence<sizeof...(Iters)>())})
     {
         assert(__first < __last);
 
@@ -469,12 +466,12 @@ struct __get_sycl_range
         return __range_holder<decltype(rng)>{rng};
     }
 
-    //specialization for permutation_iterator based on the host iterator
-    template <typename _Iter, typename _Map, ::std::enable_if_t<is_temp_buff<_Iter>::value &&
-              !__test_addressof<_Iter>(0), int> = 0>
+    //An overload  for another iterator types based on the host iterator
+    template <typename _Iter, ::std::enable_if_t<is_temp_buff<_Iter>::value && !is_zip<_Iter>::value, int> = 0>
     auto
     operator()(_Iter __first, _Iter __last)
     {
+        static_assert(false, "OneDPL doesn't support such iterator type.");
         using _T = val_t<_Iter>;
 
         return __process_host_iter_impl(__first, __last, [&]()
