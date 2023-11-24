@@ -190,7 +190,9 @@ can_run_test(sycl::queue q, KernelParam param)
 {
     const auto max_slm_size = q.get_device().template get_info<sycl::info::device::local_mem_size>();
     // skip tests with error: LLVM ERROR: SLM size exceeds target limits
-    return sizeof(T) * param.data_per_workitem * param.workgroup_size < max_slm_size;
+    auto offset_size = sizeof(std::uint16_t) * (1 + (1 << TestRadixBits) * (param.workgroup_size / 32));
+    auto key_size = sizeof(T) * param.data_per_workitem * param.workgroup_size;
+    return offset_size + key_size <= max_slm_size;
 }
 
 int
