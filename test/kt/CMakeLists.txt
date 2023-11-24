@@ -80,8 +80,8 @@ function(generate_gpu_radix_sort_tests)
     # set(_key_type_all "char" "int8_t" "uint8_t" "int16_t" "uint16_t" "int" "uint32_t" "int64_t" "uint64_t" "float" "double")
     # set(_work_group_size_all "16" "24" "32" "48" "56" "64")
     set(_key_type_all "char" "uint16_t" "int" "uint64_t" "float" "double")
-    set(_data_per_work_item_all "32" "64" "96" "128" "160" "192" "224" "256" "288" "320" "352" "384" "416" "448" "480" "512") #TODO: fewer options here
-    set(_work_group_size_all "32" "64") #TODO: more work-group sizes
+    set(_data_per_work_item_all "12" "16" "24" "32" "64" "96")
+    set(_work_group_size_all "32" "64" "128" "256")
 
     foreach (_key_type ${_key_type_all})
         foreach (_data_per_work_item ${_data_per_work_item_all})
