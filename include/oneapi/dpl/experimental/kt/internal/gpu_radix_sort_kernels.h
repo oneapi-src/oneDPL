@@ -79,7 +79,7 @@ struct RadixSortHistogram
     }
 
     FORCE_INLINE void accumulateGlobalHistogram(uint32_t local_id) {
-#pragma unroll
+        //TODO: enable unrolling of this loop
         for (uint32_t idx = local_id; idx < __histogram_elements; idx += __work_group_size) {
             auto atomic_global_counter =
                 sycl::atomic_ref<_GlobalOffsetData, sycl::memory_order::relaxed, sycl::memory_scope::device,
@@ -90,7 +90,7 @@ struct RadixSortHistogram
 
     FORCE_INLINE void process(sycl::nd_item<1> &id) {
         uint32_t localId = id.get_local_linear_id();
-#pragma unroll
+        //TODO: enable unrolling of this loop
         for (uint32_t i = localId; i < __histogram_elements; i += __work_group_size) {
             shared_digit_histogram[i] = 0;
         }
@@ -133,7 +133,6 @@ struct OneSweepSharedData {
     uint32_t group_id;
 };
 
-// TODO: 256 threads, 32 items per thread by default
 template <uint32_t RADIX_BITS, uint32_t GROUP_THREADS, uint32_t ITEMS_PER_THREAD, bool USE_DYNAMIC_ID,
           uint32_t WARP_THREADS, typename keyT, typename _InKeysRng, typename _OutKeysRng, bool __is_ascending>
 struct OneSweepRadixSort
