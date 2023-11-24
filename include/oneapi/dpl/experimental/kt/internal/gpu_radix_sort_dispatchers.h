@@ -147,7 +147,15 @@ public:
         __appoint_aligned_memory_regions();
     }
 
-    sycl::event __async_deallocate(sycl::event __dep_event)
+    void
+    __deallocate(sycl::event __dep_event)
+    {
+        __dep_event.wait();
+        sycl::free(__m_raw_mem_ptr, __m_q);
+    }
+
+    sycl::event
+    __async_deallocate(sycl::event __dep_event)
     {
         auto __dealloc_task = [__q = __m_q, __event = __dep_event, __mem = __m_raw_mem_ptr](sycl::handler& __cgh) {
             __cgh.depends_on(__event);
@@ -242,7 +250,16 @@ __onesweep(sycl::queue __q, _KeysRng&& __keys_rng, ::std::size_t __n)
                                                                                         __n, __event_chain);
     }
 
-    return __mem_holder.__async_deallocate(__event_chain);
+    if (0)
+    {
+        return __mem_holder.__async_deallocate(__event_chain);
+    }
+    else
+    {
+        //Cost of host thread creation can outweight perf benefits here
+        __mem_holder.__deallocate(__event_chain);
+        return __event_chain;
+    }
 }
 
 // TODO: allow calling it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
