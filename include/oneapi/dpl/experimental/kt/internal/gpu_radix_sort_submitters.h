@@ -25,6 +25,8 @@
 namespace oneapi::dpl::experimental::kt::gpu::__impl
 {
 
+static constexpr ::std::uint32_t SUBGROUP_SIZE = 32;
+
 //------------------------------------------------------------------------
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
 //------------------------------------------------------------------------
@@ -115,13 +117,13 @@ struct __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_
             __cgh.depends_on(__e);
 
             static constexpr std::uint32_t __bin_count = 1 << __radix_bits;
-            __dpl_sycl::__local_accessor<OneSweepSharedData<__bin_count, __work_group_size/32 /* TODO: */, __data_per_work_item, __work_group_size, _KeyT>>
+            __dpl_sycl::__local_accessor<OneSweepSharedData<__bin_count, __work_group_size/SUBGROUP_SIZE, __data_per_work_item, __work_group_size, _KeyT>>
                 __lacc(1, __cgh);
 
             __cgh.parallel_for<_Name...>(
-                __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::reqd_sub_group_size(32)]] {
-                    OneSweepRadixSort<__radix_bits, __work_group_size, __data_per_work_item, true,
-                                      32 /* TODO:unhardcode this */, _KeyT, decltype(__in_data), decltype(__out_data),
+                __nd_range, [=](sycl::nd_item<1> __nd_item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
+                    OneSweepRadixSort<__radix_bits, __work_group_size, __data_per_work_item, true /* USE_DYNAMIC_ID */,
+                                      SUBGROUP_SIZE, _KeyT, decltype(__in_data), decltype(__out_data),
                                       __is_ascending>
                         kernel(__stage, __in_data, __out_data, __p_global_hist, __p_group_hists,
                                __p_dynamic_id + __stage, __n, *__dpl_sycl::__get_accessor_ptr(__lacc));
