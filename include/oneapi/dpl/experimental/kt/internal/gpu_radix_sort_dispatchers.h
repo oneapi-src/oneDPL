@@ -256,19 +256,25 @@ template <bool __is_ascending, ::std::uint8_t __radix_bits, typename _KernelPara
 sycl::event
 __radix_sort(sycl::queue __q, _Range&& __rng, _KernelParam __param)
 {
-    // TODO: Redefine these static_asserts based on the requirements of the GPU onesweep algorithm
-    // static_assert(__radix_bits == 8);
-
-    // static_assert(32 <= __param.data_per_workitem && __param.data_per_workitem <= 512 &&
-    //               __param.data_per_workitem % 32 == 0);
-
     const ::std::size_t __n = __rng.size();
     assert(__n > 1);
 
-    // _PRINT_INFO_IN_DEBUG_MODE(__exec); TODO: extend the utility to work with queues
     constexpr auto __data_per_workitem = _KernelParam::data_per_workitem;
     constexpr auto __workgroup_size = _KernelParam::workgroup_size;
     using _KernelName = typename _KernelParam::kernel_name;
+
+    static_assert(__workgroup_size % SUBGROUP_SIZE == 0 && "This kernel requires a multiple of 32 work-group size.");
+    static_assert(__workgroup_size <= 256 && "This kernel requires too many registers per thread for the specified work-group size.");
+    static_assert(__data_per_workitem % 4 == 0 && "__data_per_workitem must be a multiple of 4 for load vectorization");
+    static_assert(__workgroup_size * __data_per_workitem <= std::numeric_limits<std::uint16_t>::max());
+
+    // Check local memory size against device max
+    constexpr auto __req_slm_size =
+        sizeof(OneSweepSharedData<(1 << __radix_bits), __workgroup_size / SUBGROUP_SIZE, __data_per_workitem,
+                                  __workgroup_size, oneapi::dpl::__internal::__value_t<_Range>>);
+    const ::std::size_t __max_slm_size =
+        __q.get_device().template get_info<sycl::info::device::local_mem_size>();
+    assert(__req_slm_size <= __max_slm_size);
 
     constexpr ::std::uint32_t __one_wg_cap = __data_per_workitem * __workgroup_size;
     if (__n <= __one_wg_cap)
