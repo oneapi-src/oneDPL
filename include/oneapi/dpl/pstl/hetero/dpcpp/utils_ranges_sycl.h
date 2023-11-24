@@ -364,7 +364,6 @@ struct __get_sycl_range
     template <typename _TupleType, typename _DiffType, ::std::size_t... _Ip>
     auto
     gen_zip_view(_TupleType __t, _DiffType __n, ::std::index_sequence<_Ip...>)
-        -> decltype(oneapi::dpl::__ranges::make_zip_view(gen_view(*this, ::std::get<_Ip>(__t), __n).all_view()...))
     {
         auto tmp = oneapi::dpl::__internal::make_tuple(gen_view(*this, ::std::get<_Ip>(__t), __n)...);
         return oneapi::dpl::__ranges::make_zip_view(::std::get<_Ip>(tmp).all_view()...);
@@ -389,9 +388,6 @@ struct __get_sycl_range
     auto
     operator()(oneapi::dpl::transform_iterator<_Iter, _UnaryFunction> __first,
                oneapi::dpl::transform_iterator<_Iter, _UnaryFunction> __last)
-        -> __range_holder<oneapi::dpl::__ranges::transform_view_simple<
-            decltype(::std::declval<__get_sycl_range<AccMode, _Iterator>>()(__first.base(), __last.base()).all_view()),
-            _UnaryFunction>>
     {
         assert(__first < __last);
 
@@ -466,38 +462,11 @@ struct __get_sycl_range
         return __range_holder<decltype(rng)>{rng};
     }
 
-    //An overload  for another iterator types based on the host iterator
-    template <typename _Iter, ::std::enable_if_t<is_temp_buff<_Iter>::value && !is_zip<_Iter>::value, int> = 0>
-    auto
-    operator()(_Iter __first, _Iter __last)
-    {
-        static_assert(false, "OneDPL doesn't support such iterator type.");
-        using _T = val_t<_Iter>;
-
-        return __process_host_iter_impl(__first, __last, [&]()
-            {
-                if constexpr (__is_copy_direct)
-                {
-                    sycl::buffer<_T, 1> __buf(__first, __last);//SYCL API for non-contiguous iterators
-                    if (__is_copy_back)
-                        __buf.set_final_data(__first); //SYCL API for non-contiguous iterators
-                    return __buf;
-                }
-                else
-                {
-                    sycl::buffer<_T, 1> __buf(__last - __first);
-                    __buf.set_final_data(__first); //SYCL API for non-contiguous iterators
-                    return __buf;
-                }
-            });
-    }
-
     //specialization for permutation discard iterator
     template <typename _Map>
     auto
     operator()(oneapi::dpl::permutation_iterator<oneapi::dpl::discard_iterator, _Map> __first,
                oneapi::dpl::permutation_iterator<oneapi::dpl::discard_iterator, _Map> __last)
-        -> __range_holder<oneapi::dpl::__ranges::permutation_discard_view>
     {
         auto __n = __last - __first;
         assert(__n > 0);
