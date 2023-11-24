@@ -93,18 +93,18 @@ class __onesweep_memory_holder
 
         void* __base_ptr = reinterpret_cast<void*>(__m_raw_mem_ptr + __m_global_hist_bytes + __m_group_hist_bytes);
         ::std::size_t __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes);
-        void* __aligned_ptr = ::std::align(::std::alignment_of_v<_KeyT>, __m_keys_bytes, __base_ptr, __remainder);
-        __m_keys_ptr = reinterpret_cast<_KeyT*>(__aligned_ptr);
-
-        __base_ptr = reinterpret_cast<void*>(__m_keys_ptr + __m_keys_bytes / sizeof(_KeyT));
-        __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes + __m_keys_bytes);
-        __aligned_ptr = ::std::align(::std::alignment_of_v<_WgCounterT>, __m_dynamic_id_bytes, __base_ptr, __remainder);
+        void* __aligned_ptr = ::std::align(::std::alignment_of_v<_WgCounterT>, __m_dynamic_id_bytes, __base_ptr, __remainder);
         __m_dynamic_id_ptr = reinterpret_cast<_WgCounterT*>(__aligned_ptr);
+
+        __base_ptr = reinterpret_cast<void*>(__m_dynamic_id_ptr + __m_dynamic_id_bytes / sizeof(_WgCounterT));
+        __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes + __m_dynamic_id_bytes); // TODO this is wrong - padding bytes!
+        __aligned_ptr = ::std::align(::std::alignment_of_v<_KeyT>, __m_keys_bytes, __base_ptr, __remainder);
+        __m_keys_ptr = reinterpret_cast<_KeyT*>(__aligned_ptr);
 
         if constexpr (__has_values)
         {
-            __base_ptr = reinterpret_cast<void*>(__m_dynamic_id_ptr + __m_dynamic_id_bytes / sizeof(_WgCounterT));
-            __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes + __m_keys_bytes + __m_dynamic_id_bytes);
+            __base_ptr = reinterpret_cast<void*>(__m_keys_ptr + __m_keys_bytes / sizeof(_KeyT));
+            __remainder = __m_raw_mem_bytes - (__m_global_hist_bytes + __m_group_hist_bytes + __m_dynamic_id_bytes + __m_keys_bytes);
             __aligned_ptr = ::std::align(::std::alignment_of_v<_ValT>, __m_vals_bytes, __base_ptr, __remainder);
             __m_vals_ptr = reinterpret_cast<_ValT*>(__aligned_ptr);
         }
@@ -211,8 +211,8 @@ __onesweep(sycl::queue __q, _KeysRng&& __keys_rng, ::std::size_t __n)
     // TODO: check if it is more performant to fill it inside the histogram kernel
     // This line assumes that global and group histograms are stored sequentially
     sycl::event __event_chain = __q.memset(__mem_holder.__global_hist_ptr(), 0,
-                                          (__global_hist_item_count + __group_hist_item_count) * sizeof(_GlobalHistT));
-
+                                           (__global_hist_item_count + __group_hist_item_count) * sizeof(_GlobalHistT) +
+                                               __stage_count * sizeof(std::uint32_t));
     // TODO: consider adding a more versatile API, e.g. passing special kernel_config parameters for histogram computation
     __event_chain =
         __radix_sort_onesweep_histogram_submitter<_KeyT, __radix_bits, __stage_count, __data_per_work_item,
