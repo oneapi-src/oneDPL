@@ -30,9 +30,9 @@ main()
         int n = 1 << logn;
         std::cout << "n:" << n << std::endl;
         std::vector<int> v(n, 0);
-        for (size_t i = 0; i < v.size(); ++i)
-          std::cout << v[i] << ",";
-        std::cout << std::endl;
+        //for (size_t i = 0; i < v.size(); ++i)
+        //  std::cout << v[i] << ",";
+        //std::cout << std::endl;
 
         int* in_ptr = sycl::malloc_device<int>(n, q);
         int* out_ptr = sycl::malloc_device<int>(n, q);
