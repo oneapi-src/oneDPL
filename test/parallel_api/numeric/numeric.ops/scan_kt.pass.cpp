@@ -23,33 +23,44 @@ main()
 {
     bool all_passed = true;
 
-    //for (size_t n = 0; n <= 100000; n = n < 16 ? n + 1 : size_t(3.1415 * n))
-    for (size_t n = 1024; n <= 100000; n = n < 16 ? n + 1 : size_t(3.1415 * n))
+    for (size_t n = 0; n <= 1000000000; n = n < 16 ? n + 1 : size_t(3.1415 * n))
     {
+        using Type = float;
         std::cout << "Testing " << n << '\n';
-        std::vector<int> v(n, 1);
+        std::vector<Type> v(n, 1);
         sycl::queue q;
-        int* in_ptr = sycl::malloc_device<int>(n, q);
-        int* out_ptr = sycl::malloc_device<int>(n, q);
+        Type* in_ptr = sycl::malloc_device<Type>(n, q);
+        Type* out_ptr = sycl::malloc_device<Type>(n, q);
 
 
         q.copy(v.data(), in_ptr, n).wait();
         std::inclusive_scan(v.begin(), v.end(), v.begin());
 
         using KernelParams = oneapi::dpl::experimental::kt::kernel_param<8, 256, class ScanKernel>;
-        oneapi::dpl::experimental::kt::single_pass_inclusive_scan<KernelParams>(q, in_ptr, in_ptr+n, out_ptr, ::std::plus<int>());
+        oneapi::dpl::experimental::kt::single_pass_inclusive_scan<KernelParams>(q, in_ptr, in_ptr+n, out_ptr, ::std::plus<Type>());
 
-        std::vector<int> tmp(n, 0);
+        std::vector<Type> tmp(n, 0);
 
         q.copy(out_ptr, tmp.data(), n).wait();
 
         bool passed = true;
         for (size_t i  = 0; i < n; ++i)
         {
-            if (tmp[i] != v[i])
+            if constexpr (std::is_floating_point<Type>::value)
             {
-                passed = false;
-                std::cout << "expected " << i << ' ' << v[i] << ' ' << tmp[i] << '\n';
+                if (std::fabs(tmp[i] - v[i]) > 0.001)
+                {
+                    passed = false;
+                    std::cout << "expected " << i << ' ' << v[i] << ' ' << tmp[i] << '\n';
+                }
+            }
+            else
+            {
+                if (tmp[i] != v[i])
+                {
+                    passed = false;
+                    std::cout << "expected " << i << ' ' << v[i] << ' ' << tmp[i] << '\n';
+                }
             }
         }
 
