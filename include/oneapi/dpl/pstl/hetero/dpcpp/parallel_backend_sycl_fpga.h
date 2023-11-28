@@ -79,8 +79,6 @@ struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...
 template <typename _ExecutionPolicy>
 auto
 __device_policy(_ExecutionPolicy&& __exec)
-    -> decltype(oneapi::dpl::execution::make_device_policy<
-                oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>>(__exec.queue()))
 {
     using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     return oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
@@ -238,11 +236,6 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
 auto
 __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
-    -> oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
-        _ExecutionPolicy,
-        decltype(oneapi::dpl::__par_backend_hetero::__parallel_merge(
-            __device_policy(::std::forward<_ExecutionPolicy>(__exec)), ::std::forward<_Range1>(__rng1),
-            ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3), __comp))>
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_merge(
