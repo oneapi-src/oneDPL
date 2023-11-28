@@ -180,16 +180,15 @@ template <typename _ExecPolicy>
 inline constexpr bool __is_host_execution_policy_v = __is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value;
 
 template <class _ExecPolicy, class _T = void>
-using __enable_if_execution_policy =
-    ::std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<_ExecPolicy>, _T>;
+using __enable_if_execution_policy = ::std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<_ExecPolicy>, _T>;
 
 template <class _ExecPolicy, class _T = void>
 using __enable_if_host_execution_policy =
     ::std::enable_if_t<oneapi::dpl::__internal::__is_host_execution_policy_v<_ExecPolicy>, _T>;
 
 template <class _ExecPolicy, const bool __condition, class _T = void>
-using __enable_if_host_execution_policy_conditional = ::std::enable_if_t<
-    oneapi::dpl::__internal::__is_host_execution_policy_v<_ExecPolicy> && __condition, _T>;
+using __enable_if_host_execution_policy_conditional =
+    ::std::enable_if_t<oneapi::dpl::__internal::__is_host_execution_policy_v<_ExecPolicy> && __condition, _T>;
 
 template <typename _ExecPolicy, typename _T>
 struct __ref_or_copy_impl
