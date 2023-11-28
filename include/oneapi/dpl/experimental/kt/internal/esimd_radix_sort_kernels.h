@@ -249,7 +249,7 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, :
         __local_id * __group_hist_size * sizeof(_GlobalHistT), 0);
     __dpl_esimd_ns::barrier();
 
-//#pragma unroll
+#pragma unroll
     for (::std::uint32_t __stage_block = 0; __stage_block < __stage_block_count; ++__stage_block)
     {
         __dpl_esimd_ns::simd<_GlobalHistT, __bin_count * __stages_per_block> __state_hist_grf(0);
@@ -266,7 +266,7 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, :
             else
             {
                 __dpl_esimd_ns::simd<::std::uint32_t, __data_per_step> __lane_offsets(0, 1);
-//#pragma unroll
+#pragma unroll
                 for (::std::uint32_t __step_offset = 0; __step_offset < __hist_data_per_work_item; __step_offset += __data_per_step)
                 {
                     __dpl_esimd_ns::simd<::std::uint32_t, __data_per_step> __offsets = __lane_offsets + __step_offset + __wi_offset;
@@ -277,14 +277,14 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, :
                 }
             }
             // 2. Calculate thread-local histogram in GRF
-//#pragma unroll
+#pragma unroll
             for (::std::uint32_t __stage_local = 0; __stage_local < __stages_per_block; ++__stage_local)
             {
                 constexpr _BinT __mask = __bin_count - 1;
                 ::std::uint32_t __stage_global = __stage_block_start + __stage_local;
                 __bins = __utils::__get_bucket<__mask>(__utils::__order_preserving_cast<__is_ascending>(__keys),
                                                  __stage_global * __radix_bits);
-//#pragma unroll
+#pragma unroll
                 for (::std::uint32_t __i = 0; __i < __hist_data_per_work_item; ++__i)
                 {
                     ++__state_hist_grf[__stage_local * __bin_count + __bins[__i]];
@@ -293,7 +293,7 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _InputT& __input, :
         }
 
         // 3. Reduce thread-local histograms from GRF into group-local histograms in SLM
-//#pragma unroll
+#pragma unroll
         for (::std::uint32_t __grf_offset = 0; __grf_offset < __bin_count * __stages_per_block; __grf_offset += __data_per_step)
         {
             ::std::uint32_t slm_offset = __stage_block_start * __bin_count + __grf_offset;
