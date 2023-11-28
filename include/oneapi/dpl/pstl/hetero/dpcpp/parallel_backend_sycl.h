@@ -249,7 +249,7 @@ template <typename _ExecutionPolicy, typename _Fp, typename _Index,
 auto
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
-    using _CustomName = oneapi::dpl::execution::__dpl::policy_kernel_name<_ExecutionPolicy>;
+    using _CustomName = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
     return __parallel_for_submitter<_ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,

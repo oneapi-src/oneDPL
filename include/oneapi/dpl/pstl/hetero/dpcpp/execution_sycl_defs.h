@@ -209,13 +209,13 @@ inline namespace v1
 
 // 2.3, Execution policy type trait
 template <typename... PolicyParams>
-struct is_execution_policy<__dpl::device_policy<PolicyParams...>> : ::std::true_type
+struct is_execution_policy<device_policy<PolicyParams...>> : ::std::true_type
 {
 };
 
 #if _ONEDPL_FPGA_DEVICE
 template <unsigned int unroll_factor, typename... PolicyParams>
-struct is_execution_policy<__dpl::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
+struct is_execution_policy<fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
 {
 };
 #endif
