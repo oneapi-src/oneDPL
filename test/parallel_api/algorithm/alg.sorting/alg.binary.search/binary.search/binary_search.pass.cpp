@@ -55,7 +55,7 @@ DEFINE_TEST(test_binary_search)
 #if TEST_DPCPP_BACKEND_PRESENT
     // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
+    ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy_v<Policy> &&
                            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3>>
     operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator2 value_first, Iterator2 value_last,
                Iterator3 result_first, Iterator3 result_last, Size n)
@@ -93,7 +93,7 @@ DEFINE_TEST(test_binary_search)
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     ::std::enable_if_t<
 #if TEST_DPCPP_BACKEND_PRESENT
-        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
+        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<Policy> &&
 #endif
             is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3>>
     operator()(Policy&& exec, Iterator1 first, Iterator1 last, Iterator2 value_first, Iterator2 value_last,

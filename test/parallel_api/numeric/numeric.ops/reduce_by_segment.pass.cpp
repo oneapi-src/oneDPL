@@ -127,7 +127,7 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
     // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
               typename Size>
-    ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
+    ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy_v<Policy> &&
                        is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3> &&
                        is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator4>>
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
@@ -192,7 +192,7 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
               typename Size>
     ::std::enable_if_t<
 #if TEST_DPCPP_BACKEND_PRESENT
-        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
+        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<Policy> &&
 #endif
             is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3> &&
             is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator4>>
