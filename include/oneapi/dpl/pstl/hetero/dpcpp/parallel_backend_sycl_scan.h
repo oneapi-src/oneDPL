@@ -369,19 +369,20 @@ struct cooperative_lookback
 
         for (int tile = static_cast<int>(tile_id) + offset; tile >= 0; tile -= SUBGROUP_SIZE)
         {
-            auto atomic_flag = memory.get_flag(tile - local_id);
+            auto atomic_flag = memory.get_flag(tile - local_id); //
             FlagT flag;
             do
             {
                 flag = atomic_flag.load();
-            } while (!sycl::all_of_group(subgroup, _LookbackScanMemory::is_ready(flag))); // Loop till all ready
+            } while (!sycl::all_of_group(subgroup, _LookbackScanMemory::is_ready(flag) ||
+                                                       (tile - local_id < 0))); // Loop till all ready
 
             bool is_full = _LookbackScanMemory::is_full(flag);
             auto is_full_ballot = sycl::ext::oneapi::group_ballot(subgroup, is_full);
             auto lowest_item_with_full = is_full_ballot.find_low();
 
             // TODO: Use identity_fn for out of bounds values
-            _T contribution = local_id <= lowest_item_with_full && !_LookbackScanMemory::is_out_of_bounds(flag)
+            _T contribution = local_id <= lowest_item_with_full && (tile - local_id >= 0)
                                   ? memory.get_value(tile - local_id, flag)
                                   : _T{0};
 
@@ -434,21 +435,23 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     // fill_num_wgs num_elements + 1 to also initialize tile_id_counter
     ::std::size_t fill_num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(num_elements + 1, wgsize);
 
-    auto fill_event = __queue.submit(
-        [&](sycl::handler& hdl)
-        {
-            hdl.parallel_for(sycl::nd_range<1>{fill_num_wgs * wgsize, wgsize},
-                             [=](const sycl::nd_item<1>& item)
-                             {
-                                 int id = item.get_global_linear_id();
-                                 if (id < num_elements)
-                                     status_flags_begin[id] = id < _LookbackScanMemory::padding
-                                                                  ? _LookbackScanMemory::OUT_OF_BOUNDS
-                                                                  : _LookbackScanMemory::NOT_READY;
-                                 if (id == num_elements)
-                                     tile_id_begin[0] = 0;
-                             });
-        });
+    auto fill_event = __queue.memset(status_flags_begin, 0, num_elements * sizeof(_FlagT) + 1 * sizeof(_TileIdT));
+
+    // auto fill_event = __queue.submit(
+    //     [&](sycl::handler& hdl)
+    //     {
+    //         hdl.parallel_for(sycl::nd_range<1>{fill_num_wgs * wgsize, wgsize},
+    //                          [=](const sycl::nd_item<1>& item)
+    //                          {
+    //                              int id = item.get_global_linear_id();
+    //                              if (id < num_elements)
+    //                                  status_flags_begin[id] = id < _LookbackScanMemory::padding
+    //                                                               ? _LookbackScanMemory::OUT_OF_BOUNDS
+    //                                                               : _LookbackScanMemory::NOT_READY;
+    //                              if (id == num_elements)
+    //                                  tile_id_begin[0] = 0;
+    //                          });
+    //     });
 
     auto event = __queue.submit([&](sycl::handler& hdl) {
         auto tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, hdl);
