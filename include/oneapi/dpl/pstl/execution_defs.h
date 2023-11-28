@@ -145,7 +145,7 @@ struct is_execution_policy<oneapi::dpl::execution::unsequenced_policy> : ::std::
 };
 
 template <class T>
-inline constexpr bool is_execution_policy_v = oneapi::dpl::execution::is_execution_policy<T>::value;
+inline constexpr bool is_execution_policy_v = oneapi::dpl::execution::is_execution_policy<::std::decay_t<T>>::value;
 
 } // namespace v1
 } // namespace execution
