@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- esimd_radix_sort.cpp -----------------------------------------===//
+//===-- gpu_radix_sort.cpp -----------------------------------------===//
 //
 // Copyright (C) 2023 Intel Corporation
 //
@@ -70,7 +70,7 @@ test_all_view(sycl::queue q, std::size_t size, KernelParam param)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view, param).wait();
+        oneapi::dpl::experimental::kt::gpu::radix_sort<IsAscending>(q, view, param).wait();
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
@@ -93,7 +93,7 @@ test_subrange_view(sycl::queue q, std::size_t size, KernelParam param)
     std::stable_sort(expected.begin(), expected.end(), Compare<T, IsAscending>{});
 
     oneapi::dpl::experimental::ranges::views::subrange view(dt_input.get_data(), dt_input.get_data() + size);
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, view, param).wait();
+    oneapi::dpl::experimental::kt::gpu::radix_sort<IsAscending>(q, view, param).wait();
 
     std::vector<T> actual(size);
     dt_input.retrieve_data(actual.begin());
@@ -119,7 +119,7 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
 
     std::stable_sort(expected.begin(), expected.end(), Compare<T, IsAscending>{});
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, dt_input.get_data(), dt_input.get_data() + size,
+    oneapi::dpl::experimental::kt::gpu::radix_sort<IsAscending>(q, dt_input.get_data(), dt_input.get_data() + size,
                                                                   param)
         .wait();
 
@@ -143,7 +143,7 @@ test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
     std::stable_sort(std::begin(ref), std::end(ref), Compare<T, IsAscending>{});
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending>(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
+        oneapi::dpl::experimental::kt::gpu::radix_sort<IsAscending>(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
                                                                       param)
             .wait();
     }
@@ -159,12 +159,12 @@ test_small_sizes(sycl::queue q, KernelParam param)
     std::vector<uint32_t> input = {5, 11, 0, 17, 0};
     std::vector<uint32_t> ref(input);
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<Ascending, RadixBits>(q, oneapi::dpl::begin(input),
+    oneapi::dpl::experimental::kt::gpu::radix_sort<Ascending, RadixBits>(q, oneapi::dpl::begin(input),
                                                                            oneapi::dpl::begin(input), param)
         .wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
 
-    oneapi::dpl::experimental::kt::esimd::radix_sort<Ascending, RadixBits>(q, oneapi::dpl::begin(input),
+    oneapi::dpl::experimental::kt::gpu::radix_sort<Ascending, RadixBits>(q, oneapi::dpl::begin(input),
                                                                            oneapi::dpl::begin(input) + 1, param)
         .wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
@@ -190,7 +190,9 @@ can_run_test(sycl::queue q, KernelParam param)
 {
     const auto max_slm_size = q.get_device().template get_info<sycl::info::device::local_mem_size>();
     // skip tests with error: LLVM ERROR: SLM size exceeds target limits
-    return sizeof(T) * param.data_per_workitem * param.workgroup_size < max_slm_size;
+    auto offset_size = sizeof(std::uint16_t) * (1 + (1 << TestRadixBits) * (param.workgroup_size / 32));
+    auto key_size = sizeof(T) * param.data_per_workitem * param.workgroup_size;
+    return offset_size + key_size <= max_slm_size;
 }
 
 int

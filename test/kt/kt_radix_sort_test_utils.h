@@ -1,6 +1,6 @@
 
 // -*- C++ -*-
-//===-- esimd_radix_sort_test_utils.h -----------------------------------------===//
+//===-- kt_radix_sort_test_utils.h -----------------------------------------===//
 //
 // Copyright (C) 2023 Intel Corporation
 //
@@ -8,8 +8,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ESIMD_RADIX_SORT_TEST_UTILS_H
-#define _ESIMD_RADIX_SORT_TEST_UTILS_H
+#ifndef _KT_RADIX_SORT_TEST_UTILS_H
+#define _KT_RADIX_SORT_TEST_UTILS_H
 
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
@@ -265,4 +265,4 @@ print_data(const Container1& expected, const Container2& actual, std::size_t fir
         std::cout << std::dec << std::endl;
 }
 
-#endif // _ESIMD_RADIX_SORT_TEST_UTILS_H
+#endif // _KT_RADIX_SORT_TEST_UTILS_H
