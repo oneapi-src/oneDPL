@@ -1786,22 +1786,22 @@ struct __is_radix_sort_usable_for_type
 #if _USE_RADIX_SORT
 template <
     typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
-    oneapi::dpl::__internal::__enable_if_device_execution_policy_conditional<
-        _ExecutionPolicy,
-        __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
+    __enable_if_t<oneapi::dpl::__internal::__is_device_execution_policy<::std::decay_t<_ExecutionPolicy>>::value &&
+                      __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value,
+                  int> = 0>
 auto
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Proj __proj)
 {
-    return __parallel_radix_sort<__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
+    return __parallel_radix_sort<__internal::__is_comp_ascending<__decay_t<_Compare>>::value>(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
 }
 #endif
 
-template <
-    typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
-    oneapi::dpl::__internal::__enable_if_device_execution_policy_conditional<
-        _ExecutionPolicy,
-        !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
+template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
+          ::std::enable_if_t<
+              oneapi::dpl::__internal::__is_device_execution_policy<::std::decay_t<_ExecutionPolicy>>::value &&
+                  !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value,
+              int> = 0>
 auto
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
