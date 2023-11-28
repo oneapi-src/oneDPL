@@ -93,6 +93,13 @@ template <typename Iter> // for heterogeneous iterators
 struct is_hetero_iterator<Iter, ::std::enable_if_t<Iter::is_hetero::value>> : ::std::true_type
 {
 };
+
+template <typename Iter> // recursive check for hetero iterator
+struct is_hetero_iterator<Iter, ::std::enable_if_t<is_hetero_iterator<
+                          decltype(::std::declval<Iter&>().base())>::value>> : ::std::true_type
+{
+};
+
 // struct for checking if iterator should be passed directly to device or not
 template <typename Iter, typename Void = void> // for iterators that should not be passed directly
 struct is_passed_directly : ::std::false_type
@@ -101,6 +108,12 @@ struct is_passed_directly : ::std::false_type
 
 template <typename Iter> // for iterators defined as direct pass
 struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::value>> : ::std::true_type
+{
+};
+
+template <typename Iter> // recursive check for directly passed iterator
+struct is_passed_directly<Iter, ::std::enable_if_t<is_passed_directly<
+                          decltype(::std::declval<Iter&>().base())>::value>> : ::std::true_type
 {
 };
 
