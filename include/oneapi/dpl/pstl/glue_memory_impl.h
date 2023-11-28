@@ -231,7 +231,7 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
     using _is_vector_type =
 #if (_PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN)
         ::std::conditional_t<
-            oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value,
+            oneapi::dpl::__internal::__is_host_execution_policy_v<_ExecutionPolicy>,
             ::std::false_type,
             decltype(oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(
                 __exec))>;
@@ -260,7 +260,7 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
     using _is_vector_type =
 #if (_PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN)
         ::std::conditional_t<
-            oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value,
+            oneapi::dpl::__internal::__is_host_execution_policy_v<_ExecutionPolicy>,
             ::std::false_type,
             decltype(oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(
                 __exec))>;
