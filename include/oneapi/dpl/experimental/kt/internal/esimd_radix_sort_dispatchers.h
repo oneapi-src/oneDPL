@@ -10,11 +10,11 @@
 #ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_DISPATCHERS_H
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_DISPATCHERS_H
 
-#include <memory> // std::align
+#include <memory>
 #include <cstdint>
 #include <cassert>
-#include <utility> // std::forward
-#include <type_traits> // std::alignment_of_v, std::is_void_v
+#include <utility>
+#include <type_traits>
 
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>

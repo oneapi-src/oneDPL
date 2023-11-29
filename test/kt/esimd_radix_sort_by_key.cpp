@@ -10,8 +10,6 @@
 #include "../support/test_config.h"
 
 #include <oneapi/dpl/experimental/kernel_templates>
-#include <oneapi/dpl/execution>
-#include <oneapi/dpl/algorithm>
 #include <oneapi/dpl/iterator>
 
 #include <vector>
@@ -25,8 +23,9 @@
 #endif
 
 #include "../support/utils.h"
-#include "esimd_radix_sort_utils.h"
 #include "../support/sycl_alloc_utils.h"
+
+#include "esimd_radix_sort_utils.h"
 
 template<typename KeyT, typename ValueT, bool isAscending, std::uint32_t RadixBits, typename KernelParam>
 void test_sycl_buffer(sycl::queue q, std::size_t size, KernelParam param)

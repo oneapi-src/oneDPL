@@ -10,11 +10,9 @@
 #ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_UTILS_H
 
-#include "oneapi/dpl/pstl/onedpl_config.h"
-
-#include <limits> // std::numeric_limits
+#include <limits>
 #include <cstdint>
-#include <type_traits> // std::is_unsigned_v
+#include <type_traits>
 
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
@@ -23,6 +21,7 @@
 #endif
 #include <sycl/ext/intel/esimd.hpp>
 
+#include "oneapi/dpl/pstl/onedpl_config.h"
 #include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h" // __ranges::all_view, __internal::__value_t
 
 // The macro is created to guarantee inlining of functions which contain slm_init. See ESIMD spec for more details:

@@ -10,10 +10,8 @@
 #ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_KERNELS_H
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_KERNELS_H
 
-#include "oneapi/dpl/pstl/onedpl_config.h" // _ONEDPL_PRAGMA_UNROLL
-
 #include <cstdint>
-#include <type_traits> // std::is_void_v
+#include <type_traits>
 
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
@@ -22,7 +20,9 @@
 #endif
 #include <sycl/ext/intel/esimd.hpp>
 
-#include "../../../pstl/utils.h" // __dpl_ceiling_div
+#include "oneapi/dpl/pstl/onedpl_config.h"
+
+#include "../../../pstl/utils.h"
 
 #include "esimd_radix_sort_utils.h"
 

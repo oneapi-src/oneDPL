@@ -10,17 +10,15 @@
 #include "../support/test_config.h"
 
 #include <oneapi/dpl/experimental/kernel_templates>
-#include <oneapi/dpl/execution>
-#include <oneapi/dpl/algorithm>
 #if _ENABLE_RANGES_TESTING
 #    include <oneapi/dpl/ranges>
 #endif
 
 #include <vector>
-#include <algorithm>
 #include <string>
 #include <cstdint>
 #include <cstdlib>
+#include <algorithm>
 
 #if LOG_TEST_INFO
 #include <iostream>
@@ -34,6 +32,7 @@
 
 #include "../support/utils.h"
 #include "../support/sycl_alloc_utils.h"
+
 #include "esimd_radix_sort_utils.h"
 
 #if _ENABLE_RANGES_TESTING

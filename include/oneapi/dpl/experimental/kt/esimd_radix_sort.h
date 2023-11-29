@@ -12,9 +12,9 @@
 
 #include <cstdint>
 
-#include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h" // __ranges::views, __ranges::__get_sycl_range
+#include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 
-#include "internal/esimd_radix_sort_utils.h" // __impl::__utils::__rng_pack
+#include "internal/esimd_radix_sort_utils.h"
 #include "internal/esimd_radix_sort_dispatchers.h"
 
 namespace oneapi::dpl::experimental::kt::esimd
