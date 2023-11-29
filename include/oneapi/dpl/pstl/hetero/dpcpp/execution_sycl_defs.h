@@ -230,8 +230,8 @@ struct __is_device_execution_policy<execution::device_policy<PolicyParams...>> :
 {
 };
 
-template <typename... PolicyParams>
-inline constexpr bool __is_device_execution_policy_v = __is_device_execution_policy<PolicyParams...>::value;
+template <typename _T>
+inline constexpr bool __is_device_execution_policy_v = __is_device_execution_policy<_T>::value;
 
 template <typename _T>
 struct __is_fpga_execution_policy : ::std::false_type
