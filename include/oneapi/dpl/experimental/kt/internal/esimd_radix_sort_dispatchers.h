@@ -10,23 +10,23 @@
 #ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_DISPATCHERS_H
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_DISPATCHERS_H
 
+#include <memory> // std::align
+#include <cstdint>
+#include <cassert>
+#include <utility> // std::forward
+#include <type_traits> // std::alignment_of_v, std::is_void_v
+
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
 #else
 #    include <CL/sycl.hpp>
 #endif
 
-#include <cstdint>
-#include <cassert>
-#include <type_traits> // std::alignment_of_v, std::is_void_v
-#include <memory> // std::align
-
-#include "../kernel_param.h"
-#include "esimd_radix_sort_utils.h"
-#include "esimd_radix_sort_submitters.h"
-#include "esimd_radix_sort_kernels.h"
-#include "../../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 #include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
+
+#include "esimd_radix_sort_utils.h"
+#include "esimd_radix_sort_kernels.h"
+#include "esimd_radix_sort_submitters.h"
 
 namespace oneapi::dpl::experimental::kt::esimd::__impl
 {
@@ -218,13 +218,11 @@ __onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
     __mem_holder.__allocate();
 
     auto __get_tmp_pack = [&]() {
-        auto __keys_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
-                                                        _KeyT*>();
+        auto __keys_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _KeyT*>();
         auto __keys_tmp_rng = __keys_tmp_keep(__mem_holder.__keys_ptr(), __mem_holder.__keys_ptr() + __n).all_view();
         if constexpr (__has_values)
         {
-            auto __vals_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
-                                                                _ValT*>();
+            auto __vals_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _ValT*>();
             auto __vals_tmp_rng = __vals_tmp_keep(__mem_holder.__vals_ptr(), __mem_holder.__vals_ptr() + __n).all_view();
              return __utils::__rng_pack(::std::move(__keys_tmp_rng), ::std::move(__vals_tmp_rng));
         }

@@ -12,16 +12,16 @@
 
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
+#include <limits> // std::numeric_limits
+#include <cstdint>
+#include <type_traits> // std::is_unsigned_v
+
 #if __has_include(<sycl/sycl.hpp>)
 #    include <sycl/sycl.hpp>
 #else
 #    include <CL/sycl.hpp>
 #endif
-
-#include <ext/intel/esimd.hpp>
-#include <cstdint>
-#include <type_traits>
-#include <limits>
+#include <sycl/ext/intel/esimd.hpp>
 
 #include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h" // __ranges::all_view, __internal::__value_t
 

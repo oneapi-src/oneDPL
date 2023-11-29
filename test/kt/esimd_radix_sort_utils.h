@@ -11,16 +11,6 @@
 #ifndef _ESIMD_RADIX_SORT_TEST_UTILS_H
 #define _ESIMD_RADIX_SORT_TEST_UTILS_H
 
-#if __has_include(<sycl/sycl.hpp>)
-#    include <sycl/sycl.hpp>
-#else
-#    include <CL/sycl.hpp>
-#endif
-
-#ifndef LOG_TEST_INFO
-#    define LOG_TEST_INFO 0
-#endif
-
 #include <string>
 #include <tuple>
 #include <random>
@@ -30,6 +20,16 @@
 #include <cstdint>
 #include <vector>
 #include <type_traits>
+
+#if __has_include(<sycl/sycl.hpp>)
+#    include <sycl/sycl.hpp>
+#else
+#    include <CL/sycl.hpp>
+#endif
+
+#ifndef LOG_TEST_INFO
+#    define LOG_TEST_INFO 0
+#endif
 
 template <typename KernelParam, typename KeyT, typename ValueT = void>
 bool can_run_test(sycl::queue q, KernelParam param)

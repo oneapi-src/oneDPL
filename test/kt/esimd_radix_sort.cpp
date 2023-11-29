@@ -8,7 +8,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "../support/test_config.h"
-#include "esimd_radix_sort_utils.h"
 
 #include <oneapi/dpl/experimental/kernel_templates>
 #include <oneapi/dpl/execution>
@@ -16,16 +15,6 @@
 #if _ENABLE_RANGES_TESTING
 #    include <oneapi/dpl/ranges>
 #endif
-
-#include "../support/utils.h"
-
-#if __has_include(<sycl/sycl.hpp>)
-#    include <sycl/sycl.hpp>
-#else
-#    include <CL/sycl.hpp>
-#endif
-
-#include "../support/sycl_alloc_utils.h"
 
 #include <vector>
 #include <algorithm>
@@ -36,6 +25,16 @@
 #if LOG_TEST_INFO
 #include <iostream>
 #endif
+
+#if __has_include(<sycl/sycl.hpp>)
+#    include <sycl/sycl.hpp>
+#else
+#    include <CL/sycl.hpp>
+#endif
+
+#include "../support/utils.h"
+#include "../support/sycl_alloc_utils.h"
+#include "esimd_radix_sort_utils.h"
 
 #if _ENABLE_RANGES_TESTING
 template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelParam>

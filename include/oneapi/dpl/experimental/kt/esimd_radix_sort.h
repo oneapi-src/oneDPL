@@ -10,14 +10,11 @@
 #ifndef _ONEDPL_KT_ESIMD_RADIX_SORT_H
 #define _ONEDPL_KT_ESIMD_RADIX_SORT_H
 
-#include "kernel_param.h"
-#include "../../pstl/utils_ranges.h"
-#include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
-#include "../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
-
 #include <cstdint>
 
-#include "internal/esimd_radix_sort_utils.h"
+#include "../../pstl/hetero/dpcpp/utils_ranges_sycl.h" // __ranges::views, __ranges::__get_sycl_range
+
+#include "internal/esimd_radix_sort_utils.h" // __impl::__utils::__rng_pack
 #include "internal/esimd_radix_sort_dispatchers.h"
 
 namespace oneapi::dpl::experimental::kt::esimd
@@ -42,8 +39,7 @@ radix_sort(sycl::queue __q, _KeysIterator __keys_first, _KeysIterator __keys_las
     if (__keys_last - __keys_first < 2)
         return {};
 
-    auto __keys_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
-                                                          _KeysIterator>();
+    auto __keys_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _KeysIterator>();
     auto __keys_rng = __keys_keep(__keys_first, __keys_last).all_view();
     auto __pack = __impl::__utils::__rng_pack{::std::move(__keys_rng)};
     return __impl::__radix_sort<__is_ascending, __radix_bits>(__q, ::std::move(__pack), __param);
@@ -68,12 +64,10 @@ radix_sort_by_key(sycl::queue __q, _KeysIterator __keys_first, _KeysIterator __k
     if (__keys_last - __keys_first < 2)
         return {};
 
-    auto __keys_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
-                                                          _KeysIterator>();
+    auto __keys_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _KeysIterator>();
     auto __keys_rng = __keys_keep(__keys_first, __keys_last).all_view();
 
-    auto __vals_keep = oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write,
-                                                          _ValsIterator>();
+    auto __vals_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _ValsIterator>();
     auto __vals_rng = __vals_keep(__vals_first, __vals_first + (__keys_last - __keys_first)).all_view();
     auto __pack = __impl::__utils::__rng_pack{::std::move(__keys_rng), ::std::move(__vals_rng)};
     return __impl::__radix_sort<__is_ascending, __radix_bits>(__q, ::std::move(__pack), __param);
