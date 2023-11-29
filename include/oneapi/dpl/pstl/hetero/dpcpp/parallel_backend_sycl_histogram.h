@@ -607,10 +607,10 @@ __parallel_histogram_impl(_ExecutionPolicy&& __exec, const sycl::event& __init_e
         /*req_sycl_conversion = */ ::std::false_type{}, __boundary_view);
 }
 
-template <typename _ExecutionPolicy, typename _Iter1, typename _Iter2, typename _Size, typename _IdxHashFunc>
+template <typename _ExecutionPolicy, typename _Iter1, typename _Size, typename _IdxHashFunc, typename _Iter2>
 inline void
-__parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
-                     _Size __num_bins, _IdxHashFunc __func)
+__parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Size __num_bins, _IdxHashFunc __func,
+                     _Iter2 __histogram_first)
 {
 
     using _global_histogram_type = typename ::std::iterator_traits<_Iter2>::value_type;
