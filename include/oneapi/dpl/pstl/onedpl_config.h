@@ -123,7 +123,7 @@
 // Enable loop unrolling pragmas where supported
 #if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER ||                                                                      \
      (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) &&                                                 \
-      ((_ONEDPL_GCC_VERSION >= 80000) || (_ONEDPL_CLANG_VERSION >= 30700))))
+      ((_ONEDPL_GCC_VERSION >= 80000) || (_ONEDPL_CLANG_VERSION >= 40000))))
 #    define _ONEDPL_PRAGMA_UNROLL _ONEDPL_PRAGMA(unroll)
 #else //no pragma unroll
 #    define _ONEDPL_PRAGMA_UNROLL
