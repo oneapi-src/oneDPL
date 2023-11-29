@@ -183,12 +183,12 @@ __clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _Offset
     __dpl_sycl::__group_barrier(__self_item);
 }
 
-template <typename _BinIdxType, typename _Iter1, typename _HistReg, typename _BinFunc, typename _ExtraMemAccessor>
+template <typename _BinIdxType, typename _Range, typename _HistReg, typename _BinFunc, typename _ExtraMemAccessor>
 inline void
-__accum_local_register_iter(const _Iter1& __in_acc, const ::std::size_t& __index, _HistReg* __histogram,
-                            _BinFunc __func, _ExtraMemAccessor __SLM_mem)
+__accum_local_register_iter(_Range&& __input, const ::std::size_t& __index, _HistReg* __histogram, _BinFunc __func,
+                            _ExtraMemAccessor __SLM_mem)
 {
-    const auto& __x = __in_acc[__index];
+    const auto& __x = __input[__index];
     if (__func.is_valid(__x, __SLM_mem))
     {
         _BinIdxType c = __func.get_bin(__x, __SLM_mem);
@@ -196,15 +196,14 @@ __accum_local_register_iter(const _Iter1& __in_acc, const ::std::size_t& __index
     }
 }
 
-template <typename _BinIdxType, sycl::access::address_space _AddressSpace, typename _Iter1, typename _HistAccessor,
+template <typename _BinIdxType, sycl::access::address_space _AddressSpace, typename _Range, typename _HistAccessor,
           typename _OffsetT, typename _BinFunc, typename... _ExtraMemType>
 inline void
-__accum_local_atomics_iter(const _Iter1& __in_acc, const ::std::size_t& __index,
-                           const _HistAccessor& __wg_local_histogram, const _OffsetT& __offset, _BinFunc __func,
-                           _ExtraMemType... __SLM_mem)
+__accum_local_atomics_iter(_Range&& __input, const ::std::size_t& __index, const _HistAccessor& __wg_local_histogram,
+                           const _OffsetT& __offset, _BinFunc __func, _ExtraMemType... __SLM_mem)
 {
     using _histo_value_type = typename _HistAccessor::value_type;
-    const auto& __x = __in_acc[__index];
+    const auto& __x = __input[__index];
     if (__func.is_valid(__x, __SLM_mem...))
     {
         _BinIdxType __c = __func.get_bin(__x, __SLM_mem...);
