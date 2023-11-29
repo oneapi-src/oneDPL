@@ -401,6 +401,89 @@ struct cooperative_lookback
     }
 };
 
+template <typename _KernelParam, typename _Inclusive, typename _InRange, typename _OutRange, typename _BinaryOp>
+void
+single_pass_scan_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op)
+{
+    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+
+    static_assert(std::is_same_v<_Inclusive, ::std::true_type>, "Single-pass scan only available for inclusive scan");
+
+    const ::std::size_t n = __in_rng.size();
+
+    constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+    // Avoid non_uniform n by padding up to a multiple of wgsize
+    constexpr ::std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
+    constexpr ::std::size_t num_workitems = wgsize;
+
+    auto event = __queue.submit([&](sycl::handler& hdl) {
+        auto tile_vals = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_in_tile}, hdl);
+
+        oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng);
+        hdl.parallel_for(
+            sycl::nd_range<1>(num_workitems, wgsize), [=
+        ](const sycl::nd_item<1>& item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
+                auto group = item.get_group();
+                ::std::uint32_t local_id = item.get_local_id(0);
+                constexpr ::std::uint32_t stride = wgsize;
+                auto subgroup = item.get_sub_group();
+
+                constexpr std::uint32_t tile_id = 0;
+                constexpr std::uint32_t wg_begin = 0;
+                constexpr std::uint32_t wg_end = elems_in_tile;
+
+                std::uint32_t wg_local_memory_size = elems_in_tile;
+
+                auto out_begin = __out_rng.begin();
+                _Type carry = 0;
+
+                // Global load into local
+                if (wg_end > n)
+                    wg_local_memory_size = n;
+
+                //TODO: assumes default ctor produces identity w.r.t. __binary_op
+                // _Type my_reducer{};
+                if (wg_end <= n)
+                {
+#pragma unroll
+                    for (std::uint32_t step = 0; step < elems_per_workitem; ++step)
+                    {
+                        ::std::uint32_t i = stride * step;
+                        _Type in_val = __in_rng[i + local_id];
+                        // my_reducer = __binary_op(my_reducer, in_val);
+                        _Type out = sycl::inclusive_scan_over_group(group, in_val, __binary_op, carry);
+                        out_begin[i + local_id] = out;
+                        carry = group_broadcast(group, out, stride - 1);
+                    }
+                }
+                else
+                {
+#pragma unroll
+                    for (std::uint32_t step = 0; step < elems_per_workitem; ++step)
+                    {
+                        ::std::uint32_t i = stride * step;
+                        _Type in_val;
+
+                        if (i + local_id < n)
+                        {
+                            in_val = __in_rng[i + local_id];
+                            // my_reducer = __binary_op(my_reducer, in_val);
+                        }
+                        _Type out = sycl::inclusive_scan_over_group(group, in_val, __binary_op, carry);
+                        if (i + local_id < n)
+                        {
+                            out_begin[i + local_id] = out;
+                        }
+                        carry = group_broadcast(group, out, stride - 1);
+                    }
+                }
+            });
+    });
+
+    event.wait();
+}
+
 template <typename _KernelParam, typename _Inclusive, typename _UseAtomic64, typename _UseDynamicTileID,
           typename _InRange, typename _OutRange, typename _BinaryOp>
 void
@@ -437,128 +520,111 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
 
     auto fill_event = __queue.memset(status_flags_begin, 0, num_elements * sizeof(_FlagT) + 1 * sizeof(_TileIdT));
 
-    // auto fill_event = __queue.submit(
-    //     [&](sycl::handler& hdl)
-    //     {
-    //         hdl.parallel_for(sycl::nd_range<1>{fill_num_wgs * wgsize, wgsize},
-    //                          [=](const sycl::nd_item<1>& item)
-    //                          {
-    //                              int id = item.get_global_linear_id();
-    //                              if (id < num_elements)
-    //                                  status_flags_begin[id] = id < _LookbackScanMemory::padding
-    //                                                               ? _LookbackScanMemory::OUT_OF_BOUNDS
-    //                                                               : _LookbackScanMemory::NOT_READY;
-    //                              if (id == num_elements)
-    //                                  tile_id_begin[0] = 0;
-    //                          });
-    //     });
-
     auto event = __queue.submit([&](sycl::handler& hdl) {
         auto tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, hdl);
         auto tile_vals = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_in_tile}, hdl);
         hdl.depends_on(fill_event);
 
         oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng);
-        hdl.parallel_for(sycl::nd_range<1>(num_workitems, wgsize),
-                         [=](const sycl::nd_item<1>& item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]]
-                         {
-                             auto group = item.get_group();
-                             ::std::uint32_t local_id = item.get_local_id(0);
-                             constexpr ::std::uint32_t stride = wgsize;
-                             auto subgroup = item.get_sub_group();
+        hdl.parallel_for(
+            sycl::nd_range<1>(num_workitems, wgsize), [=
+        ](const sycl::nd_item<1>& item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
+                auto group = item.get_group();
+                ::std::uint32_t local_id = item.get_local_id(0);
+                constexpr ::std::uint32_t stride = wgsize;
+                auto subgroup = item.get_sub_group();
 
-                              std::uint32_t tile_id;
-                              if constexpr (std::is_same_v<_UseDynamicTileID, ::std::true_type>)
-                              {
-                                  // Obtain unique ID for this work-group that will be used in decoupled lookback
-                                  TileId dynamic_tile_id(tile_id_begin);
-                                  if (group.leader())
-                                  {
-                                      tile_id_lacc[0] = dynamic_tile_id.fetch_inc();
-                                  }
-                                  sycl::group_barrier(group);
-                                  tile_id = tile_id_lacc[0];
-                              }
-                              else
-                              {
-                                  tile_id = group.get_group_linear_id();
-                              }
+                std::uint32_t tile_id;
+                if constexpr (std::is_same_v<_UseDynamicTileID, ::std::true_type>)
+                {
+                    // Obtain unique ID for this work-group that will be used in decoupled lookback
+                    TileId dynamic_tile_id(tile_id_begin);
+                    if (group.leader())
+                    {
+                        tile_id_lacc[0] = dynamic_tile_id.fetch_inc();
+                    }
+                    sycl::group_barrier(group);
+                    tile_id = tile_id_lacc[0];
+                }
+                else
+                {
+                    tile_id = group.get_group_linear_id();
+                }
 
+                // Global load into local
+                auto wg_current_offset = (tile_id * elems_in_tile);
+                auto wg_next_offset = ((tile_id + 1) * elems_in_tile);
+                auto wg_local_memory_size = elems_in_tile;
 
-                             // Global load into local
-                             auto wg_current_offset = (tile_id * elems_in_tile);
-                             auto wg_next_offset = ((tile_id + 1) * elems_in_tile);
-                             auto wg_local_memory_size = elems_in_tile;
+                if (wg_next_offset > n)
+                    wg_local_memory_size = n - wg_current_offset;
+                //TODO: assumes default ctor produces identity w.r.t. __binary_op
+                _Type my_reducer{};
+                if (wg_next_offset <= n)
+                {
+#pragma unroll
+                    for (std::uint32_t i = 0; i < elems_per_workitem; ++i)
+                    {
+                        _Type in_val = __in_rng[wg_current_offset + local_id + stride * i];
+                        my_reducer = __binary_op(my_reducer, in_val);
+                        tile_vals[local_id + stride * i] = in_val;
+                    }
+                }
+                else
+                {
+#pragma unroll
+                    for (std::uint32_t i = 0; i < elems_per_workitem; ++i)
+                    {
+                        if (wg_current_offset + local_id + stride * i < n)
+                        {
+                            _Type in_val = __in_rng[wg_current_offset + local_id + stride * i];
+                            my_reducer = __binary_op(my_reducer, in_val);
+                            tile_vals[local_id + stride * i] = in_val;
+                        }
+                    }
+                }
 
-                             if (wg_next_offset > n)
-                                 wg_local_memory_size = n - wg_current_offset;
-                             //TODO: assumes default ctor produces identity w.r.t. __binary_op
-                             _Type my_reducer{};
-                             if (wg_next_offset <= n)
-                             {
-                                 #pragma unroll
-                                 for (std::uint32_t i = 0; i < elems_per_workitem; ++i)
-                                 {
-                                     _Type in_val = __in_rng[wg_current_offset + local_id + stride * i];
-                                     my_reducer = __binary_op(my_reducer, in_val);
-                                     tile_vals[local_id + stride * i] = in_val;
-                                 }
-                             }
-                             else
-                             {
-                                 #pragma unroll
-                                 for (std::uint32_t i = 0; i < elems_per_workitem; ++i)
-                                 {
-                                     if (wg_current_offset + local_id + stride * i < n)
-                                     {
-                                         _Type in_val = __in_rng[wg_current_offset + local_id + stride * i];
-                                         my_reducer = __binary_op(my_reducer, in_val);
-                                         tile_vals[local_id + stride * i] = in_val;
-                                     }
-                                 }
-                             }
+                auto local_sum = sycl::reduce_over_group(group, my_reducer, __binary_op);
 
-                             auto local_sum = sycl::reduce_over_group(group, my_reducer, __binary_op);
+                auto in_begin = tile_vals.template get_multi_ptr<sycl::access::decorated::no>().get();
+                auto out_begin = __out_rng.begin() + wg_current_offset;
 
-                             auto in_begin = tile_vals.template get_multi_ptr<sycl::access::decorated::no>().get();
-                             auto out_begin = __out_rng.begin() + wg_current_offset;
+                _Type prev_sum = 0;
 
-                             _Type prev_sum = 0;
+                // The first sub-group will query the previous tiles to find a prefix
+                if (subgroup.get_group_id() == 0)
+                {
+                    _LookbackScanMemory scan_mem(scan_memory_begin, num_wgs);
 
-                             // The first sub-group will query the previous tiles to find a prefix
-                             if (subgroup.get_group_id() == 0)
-                             {
-                                 _LookbackScanMemory scan_mem(scan_memory_begin, num_wgs);
+                    if (group.leader())
+                        scan_mem.set_partial(tile_id, local_sum);
 
-                                 if (group.leader())
-                                     scan_mem.set_partial(tile_id, local_sum);
+                    // Find lowest work-item that has a full result (if any) and sum up subsequent partial results to obtain this tile's exclusive sum
+                    prev_sum = cooperative_lookback()(tile_id, subgroup, __binary_op, scan_mem);
 
-                                 // Find lowest work-item that has a full result (if any) and sum up subsequent partial results to obtain this tile's exclusive sum
-                                 prev_sum = cooperative_lookback()(tile_id, subgroup, __binary_op, scan_mem);
+                    if (group.leader())
+                        scan_mem.set_full(tile_id, prev_sum + local_sum);
+                }
 
-                                 if (group.leader())
-                                     scan_mem.set_full(tile_id, prev_sum + local_sum);
-                             }
-
-                             _Type carry = sycl::group_broadcast(group, prev_sum, 0);
-                             // TODO: Find a fix for _ONEDPL_PRAGMA_UNROLL
-                             #pragma unroll
-                             for (::std::uint32_t step = 0; step < elems_per_workitem; ++step)
-                             {
-                                 ::std::uint32_t i = stride * step;
-                                 _Type x;
-                                 if (i + local_id < wg_local_memory_size)
-                                 {
-                                     x = in_begin[i + local_id];
-                                 }
-                                 _Type out = sycl::inclusive_scan_over_group(group, x, __binary_op, carry);
-                                 if (i + local_id < wg_local_memory_size)
-                                 {
-                                     out_begin[i + local_id] = out;
-                                 }
-                                 carry = group_broadcast(group, out, stride - 1);
-                             }
-                         });
+                _Type carry = sycl::group_broadcast(group, prev_sum, 0);
+// TODO: Find a fix for _ONEDPL_PRAGMA_UNROLL
+#pragma unroll
+                for (::std::uint32_t step = 0; step < elems_per_workitem; ++step)
+                {
+                    ::std::uint32_t i = stride * step;
+                    _Type x;
+                    if (i + local_id < wg_local_memory_size)
+                    {
+                        x = in_begin[i + local_id];
+                    }
+                    _Type out = sycl::inclusive_scan_over_group(group, x, __binary_op, carry);
+                    if (i + local_id < wg_local_memory_size)
+                    {
+                        out_begin[i + local_id] = out;
+                    }
+                    carry = group_broadcast(group, out, stride - 1);
+                }
+            });
     });
 
     scratch.async_free(event);
@@ -575,9 +641,10 @@ struct kernel_param
     using kernel_name = KernelName;
 };
 
-template <typename _KernelParam, typename _InIterator, typename _OutIterator, typename _BinaryOp>
+template <typename _KernelParam, typename _Inclusive, typename _InIterator, typename _OutIterator, typename _BinaryOp>
 void
-single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin, _BinaryOp __binary_op)
+single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
+                           _BinaryOp __binary_op)
 {
     auto __n = __in_end - __in_begin;
 
@@ -593,19 +660,62 @@ single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InItera
     {
         if (__queue.get_device().has(sycl::aspect::atomic64))
         {
-            single_pass_scan_impl<_KernelParam, /* Inclusive */ std::true_type, /* UseAtomic64 */ std::true_type, /* UseDynamicTileID */ std::false_type>(
-                __queue, __buf1.all_view(), __buf2.all_view(), __binary_op);
+            single_pass_scan_impl<_KernelParam, _Inclusive, /* UseAtomic64 */ std::true_type,
+                                  /* UseDynamicTileID */ std::false_type>(__queue, __buf1.all_view(), __buf2.all_view(),
+                                                                          __binary_op);
         }
         else
         {
-            single_pass_scan_impl<_KernelParam, /* Inclusive */ std::true_type, /* UseAtomic64 */ std::false_type, /* UseDynamicTileID */ std::false_type>(
-                __queue, __buf1.all_view(), __buf2.all_view(), __binary_op);
+            single_pass_scan_impl<_KernelParam, _Inclusive, /* UseAtomic64 */ std::false_type,
+                                  /* UseDynamicTileID */ std::false_type>(__queue, __buf1.all_view(), __buf2.all_view(),
+                                                                          __binary_op);
         }
     }
     else
     {
-        single_pass_scan_impl<_KernelParam, /* Inclusive */ std::true_type, /* UseAtomic64 */ std::false_type, /* UseDynamicTileID */ std::false_type>(
-            __queue, __buf1.all_view(), __buf2.all_view(), __binary_op);
+        single_pass_scan_impl<_KernelParam, _Inclusive, /* UseAtomic64 */ std::false_type,
+                              /* UseDynamicTileID */ std::false_type>(__queue, __buf1.all_view(), __buf2.all_view(),
+                                                                      __binary_op);
+    }
+}
+
+template <typename _KernelParam, typename _Inclusive, typename _InIterator, typename _OutIterator, typename _BinaryOp>
+void
+single_pass_single_wg_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end,
+                                     _OutIterator __out_begin, _BinaryOp __binary_op)
+{
+    auto __n = __in_end - __in_begin;
+
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _InIterator>();
+    auto __buf1 = __keep1(__in_begin, __in_end);
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
+    auto __buf2 = __keep2(__out_begin, __out_begin + __n);
+
+    // Avoid aspect query overhead for sizeof(Types) > 32 bits
+    single_pass_scan_impl_single_wg<_KernelParam, /* Inclusive */ std::true_type>(__queue, __buf1.all_view(),
+                                                                                  __buf2.all_view(), __binary_op);
+}
+
+template <typename _KernelParam, typename _InIterator, typename _OutIterator, typename _BinaryOp>
+void
+single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
+                           _BinaryOp __binary_op)
+{
+    constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+    // Avoid non_uniform n by padding up to a multiple of wgsize
+    constexpr ::std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
+    auto __n = __in_end - __in_begin;
+
+    if (__n <= elems_in_tile)
+    {
+        single_pass_single_wg_inclusive_scan<_KernelParam, /* Inclusive */ std::true_type>(
+            __queue, __in_begin, __in_end, __out_begin, __binary_op);
+    }
+    else
+    {
+        single_pass_inclusive_scan<_KernelParam, /* Inclusive */ std::true_type>(__queue, __in_begin, __in_end,
+                                                                                 __out_begin, __binary_op);
     }
 }
 
