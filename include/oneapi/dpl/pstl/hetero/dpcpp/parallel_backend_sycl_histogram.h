@@ -125,7 +125,7 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
         ::std::uint32_t __self_lidx = __self_item.get_local_id(0);
         ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__bin_hash.__boundaries.size(), __gSize);
         ::std::uint8_t __k = 0;
-        for (; __k < __factor - 1; __k++)
+        for (; __k < __factor - 1; ++__k)
         {
             __d_boundaries[__gSize * __k + __self_lidx] = __bin_hash.__boundaries[__gSize * __k + __self_lidx];
         }
@@ -171,7 +171,7 @@ __clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _Offset
     ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, __gSize);
     ::std::uint8_t __k = 0;
 
-    for (; __k < __factor - 1; __k++)
+    for (; __k < __factor - 1; ++__k)
     {
         __local_histogram[__offset + __gSize * __k + __self_lidx] = 0;
     }
@@ -192,7 +192,7 @@ __accum_local_register_iter(const _Iter1& __in_acc, const ::std::size_t& __index
     if (__func.is_valid(__x, __SLM_mem))
     {
         _BinIdxType c = __func.get_bin(__x, __SLM_mem);
-        __histogram[c]++;
+        ++__histogram[c];
     }
 }
 
@@ -209,7 +209,7 @@ __accum_local_atomics_iter(const _Iter1& __in_acc, const ::std::size_t& __index,
     {
         _BinIdxType __c = __func.get_bin(__x, __SLM_mem...);
         __dpl_sycl::__atomic_ref<_histo_value_type, _AddressSpace> __local_bin(__wg_local_histogram[__offset + __c]);
-        __local_bin++;
+        ++__local_bin;
     }
 }
 
@@ -224,7 +224,7 @@ __reduce_out_histograms(const _HistAccessorIn& __in_histogram, const _OffsetT& _
     _FactorType __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, __gSize);
     _FactorType __k = 0;
 
-    for (; __k < __factor - 1; __k++)
+    for (; __k < __factor - 1; ++__k)
     {
         __dpl_sycl::__atomic_ref<_BinType, sycl::access::address_space::global_space> __global_bin(
             __out_histogram[__gSize * __k + __self_lidx]);
@@ -280,7 +280,7 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
                     if (__seg_start + __work_group_size * __iters_per_work_item < __n)
                     {
                         _ONEDPL_PRAGMA_UNROLL
-                        for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; __idx++)
+                        for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; ++__idx)
                         {
                             __accum_local_register_iter<_histogram_index_type>(
                                 __input, __seg_start + __idx * __work_group_size + __self_lidx, __histogram, __func,
@@ -290,7 +290,7 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
                     else
                     {
                         _ONEDPL_PRAGMA_UNROLL
-                        for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; __idx++)
+                        for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; ++__idx)
                         {
                             ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
                             if (__val_idx < __n)
@@ -301,7 +301,7 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
                         }
                     }
 
-                    for (_histogram_index_type __k = 0; __k < __num_bins; __k++)
+                    for (_histogram_index_type __k = 0; __k < __num_bins; ++__k)
                     {
                         __dpl_sycl::__atomic_ref<_local_histogram_type, sycl::access::address_space::local_space>
                             __local_bin(__local_histogram[__k]);
@@ -385,7 +385,7 @@ struct __histogram_general_local_atomics_submitter<__iters_per_work_item,
                     if (__seg_start + __work_group_size * __iters_per_work_item < __n)
                     {
                         _ONEDPL_PRAGMA_UNROLL
-                        for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; __idx++)
+                        for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; ++__idx)
                         {
                             ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
                             __accum_local_atomics_iter<_histogram_index_type, _atomic_address_space>(
@@ -395,7 +395,7 @@ struct __histogram_general_local_atomics_submitter<__iters_per_work_item,
                     else
                     {
                         _ONEDPL_PRAGMA_UNROLL
-                        for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; __idx++)
+                        for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; ++__idx)
                         {
                             ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
                             if (__val_idx < __n)
@@ -483,7 +483,7 @@ struct __histogram_general_private_global_atomics_submitter<__min_iters_per_work
 
                     if (__seg_start + __work_group_size * __iters_per_work_item < __n)
                     {
-                        for (::std::size_t __idx = 0; __idx < __iters_per_work_item; __idx++)
+                        for (::std::size_t __idx = 0; __idx < __iters_per_work_item; ++__idx)
                         {
                             ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
                             __accum_local_atomics_iter<_histogram_index_type, _atomic_address_space>(
@@ -492,7 +492,7 @@ struct __histogram_general_private_global_atomics_submitter<__min_iters_per_work
                     }
                     else
                     {
-                        for (::std::size_t __idx = 0; __idx < __iters_per_work_item; __idx++)
+                        for (::std::size_t __idx = 0; __idx < __iters_per_work_item; ++__idx)
                         {
                             ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
                             if (__val_idx < __n)
