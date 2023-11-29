@@ -258,12 +258,12 @@ struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
 };
 
 // Extension: hetero execution policy type trait
-template <typename... PolicyParams>
-using __is_hetero_execution_policy = ::std::disjunction<typename __is_device_execution_policy<PolicyParams...>::type,
-                                                        typename __is_fpga_execution_policy<PolicyParams...>::type>;
+template <typename _T>
+using __is_hetero_execution_policy = ::std::disjunction<typename __is_device_execution_policy<_T>::type,
+                                                        typename __is_fpga_execution_policy<_T>::type>;
 
-template <typename... PolicyParams>
-inline constexpr bool __is_hetero_execution_policy_v = __is_hetero_execution_policy<PolicyParams...>::value;
+template <typename _T>
+inline constexpr bool __is_hetero_execution_policy_v = __is_hetero_execution_policy<_T>::value;
 
 // Extension: check if parameter pack is convertible to events
 template <class... _Ts>
