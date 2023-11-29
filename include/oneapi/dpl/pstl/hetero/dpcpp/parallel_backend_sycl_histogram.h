@@ -535,7 +535,7 @@ struct __hist_fill_zeros_wrapper
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Iter1, typename _Iter2,
           typename _Size, typename _IdxHashFunc, typename... _Range>
 inline auto
-__parallel_histogram_sycl_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
+__parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
                                _Size __num_bins, _IdxHashFunc __func, _Range&&... __opt_range)
 {
     using _private_histogram_type = ::std::uint16_t;
@@ -606,7 +606,7 @@ __parallel_histogram_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __la
                           _Range&&... __opt_range)
 {
     //wrap binhash in a wrapper to allow shared memory boost where available
-    return __parallel_histogram_sycl_impl<__iters_per_work_item>(
+    return __parallel_histogram_select_kernel<__iters_per_work_item>(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __histogram_first, __num_bins,
         __binhash_SLM_wrapper(__func), ::std::forward<_Range...>(__opt_range)...);
 }
