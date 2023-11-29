@@ -154,7 +154,7 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
 
 template <typename _HistAccessor, typename _OffsetT, typename _Size>
 inline void
-__clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _OffsetT& __offset, const _Size& __num_bins,
+__clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _OffsetT& __offset, _Size __num_bins,
                            const sycl::nd_item<1>& __self_item)
 {
     ::std::uint32_t __gSize = __self_item.get_local_range()[0];
@@ -208,7 +208,7 @@ template <typename _BinType, typename _FactorType, typename _HistAccessorIn, typ
           typename _HistAccessorOut, typename _Size>
 inline void
 __reduce_out_histograms(const _HistAccessorIn& __in_histogram, const _OffsetT& __offset,
-                        const _HistAccessorOut& __out_histogram, const _Size& __num_bins,
+                        const _HistAccessorOut& __out_histogram, _Size __num_bins,
                         const sycl::nd_item<1>& __self_item)
 {
     ::std::uint32_t __gSize = __self_item.get_local_range()[0];
@@ -305,7 +305,7 @@ template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, type
 inline auto
 __histogram_general_local_atomics(_ExecutionPolicy&& __exec, const sycl::event& __init_e,
                                   ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
-                                  const _Size& __num_bins, _IdxHashFunc __func, _Range3&&... __opt_range)
+                                  _Size __num_bins, _IdxHashFunc __func, _Range3&&... __opt_range)
 {
     using _local_histogram_type = ::std::uint32_t;
     using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
@@ -368,7 +368,7 @@ template <::std::uint16_t __min_iters_per_work_item, typename _ExecutionPolicy, 
 inline auto
 __histogram_general_private_global_atomics(_ExecutionPolicy&& __exec, const sycl::event& __init_e,
                                            ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
-                                           const _Size& __num_bins, _IdxHashFunc __func, _Range3&&... __opt_range)
+                                           _Size __num_bins, _IdxHashFunc __func, _Range3&&... __opt_range)
 {
     const ::std::size_t __n = __input.size();
     using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
@@ -434,7 +434,7 @@ template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, type
           typename _Size, typename _IdxHashFunc, typename... _Range>
 inline auto
 __parallel_histogram_sycl_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
-                               const _Size& __num_bins, _IdxHashFunc __func, _Range&&... __opt_range)
+                               _Size __num_bins, _IdxHashFunc __func, _Range&&... __opt_range)
 {
     using _private_histogram_type = ::std::uint16_t;
     using _local_histogram_type = ::std::uint32_t;
@@ -499,7 +499,7 @@ template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, type
           typename _Size, typename _IdxHashFunc, typename... _Range>
 inline auto
 __parallel_histogram_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
-                          const _Size& __num_bins, _IdxHashFunc __func, /*req_sycl_conversion = */ ::std::false_type,
+                          _Size __num_bins, _IdxHashFunc __func, /*req_sycl_conversion = */ ::std::false_type,
                           _Range&&... __opt_range)
 {
     //wrap binhash in a wrapper to allow shared memory boost where available
@@ -512,7 +512,7 @@ template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, type
           typename _Size, typename _InternalRange>
 inline auto
 __parallel_histogram_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
-                          const _Size& __num_bins,
+                          _Size __num_bins,
                           oneapi::dpl::__internal::__custom_range_binhash<_InternalRange> __func,
                           /*req_sycl_conversion = */ ::std::true_type)
 {
@@ -532,7 +532,7 @@ __parallel_histogram_impl(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __la
 template <typename _ExecutionPolicy, typename _Iter1, typename _Iter2, typename _Size, typename _IdxHashFunc>
 inline void
 __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Iter2 __histogram_first,
-                     const _Size& __num_bins, _IdxHashFunc __func)
+                     _Size __num_bins, _IdxHashFunc __func)
 {
     using _DoSyclConversion = typename _IdxHashFunc::req_sycl_range_conversion;
     if (__last - __first < 1048576)

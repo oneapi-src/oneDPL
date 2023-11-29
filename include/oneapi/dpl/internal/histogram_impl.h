@@ -39,7 +39,7 @@ template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _
           typename _IdxHashFunc, typename... _Range>
 inline oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
 __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
-                    _RandomAccessIterator2 __histogram_first, const _Size& __num_bins, _IdxHashFunc __func,
+                    _RandomAccessIterator2 __histogram_first, _Size __num_bins, _IdxHashFunc __func,
                     _Range&&... __opt_range)
 {
     //If there are no histogram bins there is nothing to do
@@ -56,7 +56,7 @@ template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _
           typename _IdxHashFunc, typename... _Range>
 inline oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
 __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
-                    _RandomAccessIterator2 __histogram_first, const _Size& __num_bins, _IdxHashFunc __func,
+                    _RandomAccessIterator2 __histogram_first, _Size __num_bins, _IdxHashFunc __func,
                     _Range&&... __opt_range)
 {
     static_assert(sizeof(_Size) == 0 /*false*/, "Histogram API is not currently supported for host parallel policies");
@@ -66,7 +66,7 @@ template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _
           typename _T>
 inline void
 __histogram_impl(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
-                 _RandomAccessIterator2 __histogram_first, const _Size& __num_bins, const _T& __first_bin_min_val,
+                 _RandomAccessIterator2 __histogram_first, _Size __num_bins, const _T& __first_bin_min_val,
                  const _T& __last_bin_max_val)
 {
     __internal::__pattern_histogram(
