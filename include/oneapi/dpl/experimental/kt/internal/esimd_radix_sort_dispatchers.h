@@ -224,11 +224,11 @@ __onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
         {
             auto __vals_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _ValT*>();
             auto __vals_tmp_rng = __vals_tmp_keep(__mem_holder.__vals_ptr(), __mem_holder.__vals_ptr() + __n).all_view();
-             return __utils::__rng_pack(::std::move(__keys_tmp_rng), ::std::move(__vals_tmp_rng));
+             return __rng_pack(::std::move(__keys_tmp_rng), ::std::move(__vals_tmp_rng));
         }
         else
         {
-            return __utils::__rng_pack(::std::move(__keys_tmp_rng));
+            return __rng_pack(::std::move(__keys_tmp_rng));
         }
     };
     auto __tmp_pack = __get_tmp_pack();
