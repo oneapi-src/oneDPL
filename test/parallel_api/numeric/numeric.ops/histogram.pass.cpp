@@ -106,7 +106,6 @@ test_histogram(T min_boundary, T max_boundary, T overflow, Size jitter, Size tra
         {
             test_range_and_even_histogram(n, min_boundary, max_boundary, overflow, jitter, bin_size, trash);
         }
-
     }
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
