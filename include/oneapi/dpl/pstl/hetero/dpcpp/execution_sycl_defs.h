@@ -81,9 +81,6 @@ class device_policy
     sycl::queue q;
 };
 
-template <typename Policy>
-using policy_kernel_name = typename ::std::decay_t<Policy>::kernel_name;
-
 #if _ONEDPL_FPGA_DEVICE
 struct DefaultKernelNameFPGA;
 template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
@@ -225,6 +222,8 @@ struct __is_execution_policy_impl<fpga_policy<unroll_factor, PolicyParams...>> :
 
 namespace __internal
 {
+template <typename Policy>
+using __policy_kernel_name = typename ::std::decay_t<Policy>::kernel_name;
 
 template <typename _T>
 struct __is_device_execution_policy_impl : ::std::false_type

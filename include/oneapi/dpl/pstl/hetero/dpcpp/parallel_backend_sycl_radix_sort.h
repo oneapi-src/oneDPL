@@ -630,7 +630,7 @@ struct __parallel_radix_sort_iteration
     submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter, _InRange&& __in_rng,
            _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event, _Proj __proj)
     {
-        using _CustomName = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
+        using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _RadixCountKernel =
             __internal::__kernel_name_generator<__count_phase, _CustomName, _ExecutionPolicy, ::std::decay_t<_InRange>,
                                                 ::std::decay_t<_TmpBuf>>;
@@ -766,7 +766,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     constexpr auto __wg_size = 64;
 
     //TODO: with _RadixSortKernel also the following a couple of compile time constants is used for unique kernel name
-    using _RadixSortKernel = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
+    using _RadixSortKernel = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     if (__n <= 64 && __wg_size <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size, 1, __radix_bits, __is_ascending>{}(

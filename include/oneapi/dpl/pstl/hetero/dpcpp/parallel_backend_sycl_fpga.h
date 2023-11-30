@@ -80,7 +80,7 @@ template <typename _ExecutionPolicy>
 auto
 __device_policy(_ExecutionPolicy&& __exec)
 {
-    using __kernel_name = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
+    using __kernel_name = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     return oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
 }
 
@@ -89,7 +89,7 @@ template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... 
 auto
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
-    using _CustomName = oneapi::dpl::execution::policy_kernel_name<_ExecutionPolicy>;
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using __parallel_for_name = __internal::__kernel_name_provider<_CustomName>;
 
     return __parallel_for_fpga_submitter<__parallel_for_name>()(std::forward<_ExecutionPolicy>(__exec), __brick,
