@@ -220,20 +220,6 @@ struct is_execution_policy<__dpl::fpga_policy<unroll_factor, PolicyParams...>> :
 namespace __internal
 {
 
-// Extension: hetero execution policy type trait
-template <typename _T>
-struct __is_hetero_execution_policy : ::std::false_type
-{
-};
-
-template <typename... PolicyParams>
-struct __is_hetero_execution_policy<execution::device_policy<PolicyParams...>> : ::std::true_type
-{
-};
-
-template <typename... PolicyParams>
-inline constexpr bool __is_hetero_execution_policy_v = __is_hetero_execution_policy<PolicyParams...>::value;
-
 template <typename _T>
 struct __is_device_execution_policy : ::std::false_type
 {
@@ -244,8 +230,8 @@ struct __is_device_execution_policy<execution::device_policy<PolicyParams...>> :
 {
 };
 
-template <typename... PolicyParams>
-inline constexpr bool __is_device_execution_policy_v = __is_device_execution_policy<PolicyParams...>::value;
+template <typename _T>
+inline constexpr bool __is_device_execution_policy_v = __is_device_execution_policy<_T>::value;
 
 template <typename _T>
 struct __is_fpga_execution_policy : ::std::false_type
@@ -253,11 +239,6 @@ struct __is_fpga_execution_policy : ::std::false_type
 };
 
 #if _ONEDPL_FPGA_DEVICE
-template <unsigned int unroll_factor, typename... PolicyParams>
-struct __is_hetero_execution_policy<execution::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
-{
-};
-
 template <unsigned int unroll_factor, typename... PolicyParams>
 struct __is_fpga_execution_policy<execution::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
 {
@@ -275,6 +256,14 @@ struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
 {
     using type = _T;
 };
+
+// Extension: hetero execution policy type trait
+template <typename _T>
+using __is_hetero_execution_policy =
+    ::std::disjunction<typename __is_device_execution_policy<_T>::type, typename __is_fpga_execution_policy<_T>::type>;
+
+template <typename _T>
+inline constexpr bool __is_hetero_execution_policy_v = __is_hetero_execution_policy<_T>::value;
 
 // Extension: check if parameter pack is convertible to events
 template <class... _Ts>
