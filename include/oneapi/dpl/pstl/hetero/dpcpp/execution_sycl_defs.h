@@ -274,7 +274,7 @@ struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
 // Extension: hetero execution policy type trait
 template <typename _T>
 using __is_hetero_execution_policy =
-    ::std::disjunction<typename __is_device_execution_policy<_T>::type, typename __is_fpga_execution_policy<_T>::type>;
+    ::std::disjunction<__is_device_execution_policy<_T>, __is_fpga_execution_policy<_T>>;
 
 template <typename _T>
 inline constexpr bool __is_hetero_execution_policy_v = __is_hetero_execution_policy<_T>::value;
