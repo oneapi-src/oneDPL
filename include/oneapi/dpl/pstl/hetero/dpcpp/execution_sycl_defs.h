@@ -16,7 +16,6 @@
 #ifndef _ONEDPL_EXECUTION_SYCL_DEFS_H
 #define _ONEDPL_EXECUTION_SYCL_DEFS_H
 
-#include "../../../internal/common_config.h"
 #include "../../onedpl_config.h"
 #include "../../execution_defs.h"
 
