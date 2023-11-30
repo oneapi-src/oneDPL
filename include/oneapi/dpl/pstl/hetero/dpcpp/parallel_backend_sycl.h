@@ -518,7 +518,6 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     }
                     else
                     {
-                        _ONEDPL_PRAGMA_UNROLL
                         for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                         {
                             __lacc[__idx] = __unary_op(__in_rng[__idx]);
@@ -540,7 +539,6 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     }
                     else
                     {
-                        _ONEDPL_PRAGMA_UNROLL
                         for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                         {
                             __out_rng[__idx] = __lacc[__idx];
@@ -623,7 +621,6 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     }
                     else
                     {
-                        _ONEDPL_PRAGMA_UNROLL
                         for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                         {
                             __lacc[__idx] = __unary_op(__in_rng[__idx]);
@@ -634,7 +631,6 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                         __group, __lacc_ptr, __lacc_ptr + __elems_per_wg, __lacc_ptr + __elems_per_wg, __bin_op,
                          __init);
 
-                    _ONEDPL_PRAGMA_UNROLL
                     for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
                         if (__lacc[__idx])
@@ -1407,7 +1403,6 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
     {
         //copying a residual of the second seq
         const auto __n = ::std::min<_Index2>(__n2 - __start2, __chunk);
-        _ONEDPL_PRAGMA_UNROLL
         for (::std::uint8_t __i = 0; __i < __n; ++__i)
             __rng3[__start3 + __i] = __rng2[__start2 + __i];
     }
@@ -1415,14 +1410,12 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
     {
         //copying a residual of the first seq
         const auto __n = ::std::min<_Index1>(__n1 - __start1, __chunk);
-        _ONEDPL_PRAGMA_UNROLL
         for (::std::uint8_t __i = 0; __i < __n; ++__i)
             __rng3[__start3 + __i] = __rng1[__start1 + __i];
     }
     else
     {
         ::std::uint8_t __n = __chunk;
-        _ONEDPL_PRAGMA_UNROLL
         for (::std::uint8_t __i = 0; __i < __n && __start1 < __n1 && __start2 < __n2; ++__i)
         {
             const auto& __val1 = __rng1[__start1];
@@ -1433,7 +1426,6 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
                   if (++__start2 == __n2)
                   {
                       //copying a residual of the first seq
-                      _ONEDPL_PRAGMA_UNROLL
                       for (++__i; __i < __n && __start1 < __n1; ++__i, ++__start1)
                           __rng3[__start3 + __i] = __rng1[__start1];
                   }
@@ -1444,7 +1436,6 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
                 if (++__start1 == __n1)
                 {
                     //copying a residual of the second seq
-                    _ONEDPL_PRAGMA_UNROLL
                     for (++__i; __i < __n && __start2 < __n2; ++__i, ++__start2)
                         __rng3[__start3 + __i] = __rng2[__start2];
                 }
