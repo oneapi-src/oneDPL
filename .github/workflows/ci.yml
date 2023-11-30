@@ -169,9 +169,13 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
         run: $CONDA/bin/conda install -c intel tbb-devel
-      - name: Install Intel® oneAPI DPC++/C++ Compiler
-        if: matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl'
+      - name: Install Intel® oneAPI DPC++/C++ Compiler (latest)
+        if: (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl') && matrix.device_type != 'FPGA_EMU'
         run: $CONDA/bin/conda install -c intel dpcpp_linux-64
+        # FPGA emulator runtime configuration is broken in the 2024.0.0 dpcpp_linux-64 conda package
+      - name: Install Intel® oneAPI DPC++/C++ Compiler (2023.2)
+        if: (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl') && matrix.device_type == 'FPGA_EMU'
+        run: $CONDA/bin/conda install -c intel dpcpp_linux-64=2023.2.0
       - name: Run testing
         shell: bash
         run: |
