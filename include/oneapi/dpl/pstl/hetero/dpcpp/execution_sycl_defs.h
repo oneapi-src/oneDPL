@@ -243,13 +243,13 @@ template <typename _T>
 inline constexpr bool __is_device_execution_policy_v = __is_device_execution_policy<_T>::value;
 
 template <typename _T>
-struct __is_fpga_execution_policy : ::std::false_type
+struct __is_fpga_execution_policy_impl : ::std::false_type
 {
 };
 
 #if _ONEDPL_FPGA_DEVICE
 template <unsigned int unroll_factor, typename... PolicyParams>
-struct __is_fpga_execution_policy<execution::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
+struct __is_fpga_execution_policy__impl<execution::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
 {
 };
 
@@ -259,6 +259,12 @@ struct __ref_or_copy_impl<execution::fpga_policy<unroll_factor, PolicyParams...>
     using type = _T;
 };
 #endif
+
+template <typename _T>
+using __is_fpga_execution_policy = __is_fpga_execution_policy_impl<::std::decay_t<_T>>;
+
+template <typename _T>
+inline constexpr bool __is_fpga_execution_policy_v = __is_fpga_execution_policy<_T>::value;
 
 template <typename _T, typename... PolicyParams>
 struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
@@ -294,7 +300,7 @@ using __enable_if_hetero_execution_policy =
 
 template <typename _ExecPolicy, typename _T = void>
 using __enable_if_fpga_execution_policy =
-    ::std::enable_if_t<oneapi::dpl::__internal::__is_fpga_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
+    ::std::enable_if_t<oneapi::dpl::__internal::__is_fpga_execution_policy_v<_ExecPolicy>, _T>;
 
 template <typename _ExecPolicy, typename _T, typename _Op1, typename... _Events>
 using __enable_if_device_execution_policy_single_no_default =
