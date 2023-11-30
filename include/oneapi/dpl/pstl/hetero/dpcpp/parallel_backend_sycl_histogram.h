@@ -330,9 +330,8 @@ __histogram_general_registers_local_reduction(_ExecutionPolicy&& __exec, const s
     // Required to include _iters_per_work_item_t in kernel name because we compile multiple kernels and decide between
     // them at runtime.  Other compile time arguments aren't required as it is the user's reponsibility to provide a
     // unique kernel name to the policy for each call when using no-unamed-lambdas
-    using _RegistersLocalReducName =
-        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__histo_kernel_register_local_red<
-            _iters_per_work_item_t, _KernelBaseName>>;
+    using _RegistersLocalReducName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __histo_kernel_register_local_red<_iters_per_work_item_t, _KernelBaseName>>;
 
     return __histogram_general_registers_local_reduction_submitter<__iters_per_work_item, __bins_per_work_item,
                                                                    _RegistersLocalReducName>()(
@@ -434,17 +433,17 @@ __histogram_general_local_atomics(_ExecutionPolicy&& __exec, const sycl::event& 
         ::std::forward<_Range2>(__bins), __func, ::std::forward<_Range3...>(__opt_range)...);
 }
 
-template <::std::uint16_t __min_iters_per_work_item, typename _KernelName>
+template <typename _KernelName>
 struct __histogram_general_private_global_atomics_submitter;
 
-template <::std::uint16_t __min_iters_per_work_item, typename... _KernelName>
-struct __histogram_general_private_global_atomics_submitter<__min_iters_per_work_item,
-                                                            __internal::__optional_kernel_name<_KernelName...>>
+template <typename... _KernelName>
+struct __histogram_general_private_global_atomics_submitter<__internal::__optional_kernel_name<_KernelName...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _IdxHashFunc, typename... _Range3>
     inline auto
-    operator()(_ExecutionPolicy&& __exec, const sycl::event& __init_e, ::std::uint16_t __work_group_size,
-               _Range1&& __input, _Range2&& __bins, _IdxHashFunc __func, _Range3&&... __opt_range)
+    operator()(_ExecutionPolicy&& __exec, const sycl::event& __init_e, ::std::uint16_t __min_iters_per_work_item,
+               ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins, _IdxHashFunc __func,
+               _Range3&&... __opt_range)
     {
         const ::std::size_t __n = __input.size();
         const ::std::size_t __num_bins = __bins.size();
@@ -508,24 +507,22 @@ struct __histogram_general_private_global_atomics_submitter<__min_iters_per_work
         });
     }
 };
-template <::std::uint16_t __min_iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
-          typename _IdxHashFunc, typename... _Range3>
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _IdxHashFunc, typename... _Range3>
 inline auto
 __histogram_general_private_global_atomics(_ExecutionPolicy&& __exec, const sycl::event& __init_e,
-                                           ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
-                                           _IdxHashFunc __func, _Range3&&... __opt_range)
+                                           ::std::uint16_t __min_iters_per_work_item, ::std::uint16_t __work_group_size,
+                                           _Range1&& __input, _Range2&& __bins, _IdxHashFunc __func,
+                                           _Range3&&... __opt_range)
 {
     using _KernelBaseName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
-    using _input_type = oneapi::dpl::__internal::__value_t<_Range1>;
-    using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
-
     using _GlobalAtomicsName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __histo_kernel_private_glocal_atomics<_input_type, _bin_type, _IdxHashFunc, _KernelBaseName>>;
+        __histo_kernel_private_glocal_atomics<_KernelBaseName>>;
 
-    return __histogram_general_private_global_atomics_submitter<__min_iters_per_work_item, _GlobalAtomicsName>()(
-        ::std::forward<_ExecutionPolicy>(__exec), __init_e, __work_group_size, ::std::forward<_Range1>(__input),
-        ::std::forward<_Range2>(__bins), __func, ::std::forward<_Range3...>(__opt_range)...);
+    return __histogram_general_private_global_atomics_submitter<_GlobalAtomicsName>()(
+        ::std::forward<_ExecutionPolicy>(__exec), __init_e, __min_iters_per_work_item, __work_group_size,
+        ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __func,
+        ::std::forward<_Range3...>(__opt_range)...);
 }
 
 template <typename _Name>
@@ -569,9 +566,15 @@ __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event&
     }
     else // otherwise, use global atomics (private copies per workgroup)
     {
-        return __future(__histogram_general_private_global_atomics<__iters_per_work_item>(
-            ::std::forward<_ExecutionPolicy>(__exec), __init_e, __work_group_size, ::std::forward<_Range1>(__input),
-            ::std::forward<_Range2>(__bins), __func, ::std::forward<_Range3...>(__opt_range)...));
+        //Use __iters_per_work_item here as a runtime parameter, because only one kernel is created for
+        // private_global_atomics with a variable number of iterations per workitem. __iters_per_work_item is just a
+        // suggestion which but global memory limitations may increase this value to be able to fit the workgroup
+        // private copies of the histogram bins in global memory.  No unrolling is taken advantage of here because it
+        // is a runtime argument.
+        return __future(__histogram_general_private_global_atomics(
+            ::std::forward<_ExecutionPolicy>(__exec), __init_e, __iters_per_work_item, __work_group_size,
+            ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __func,
+            ::std::forward<_Range3...>(__opt_range)...));
     }
 }
 
