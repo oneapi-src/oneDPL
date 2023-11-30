@@ -66,8 +66,8 @@ kernel_test()
                     ret_access[0] &= (c1.real() == 1.5f && c1.imag() == 2.5f);
                     ret_access[0] &= (c2.real() == 1.f && c2.imag() == 5.5f);
                     dpl::swap(c1, c2);
-                    ret_access[0] &= (c2.real() == 1.5 && c2.imag() == 2.5);
-                    ret_access[0] &= (c1.real() == 1 && c1.imag() == 5.5);
+                    ret_access[0] &= (c2.real() == 1.5f && c2.imag() == 2.5f);
+                    ret_access[0] &= (c1.real() == 1.f && c1.imag() == 5.5f);
                 }
 
                 {
