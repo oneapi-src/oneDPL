@@ -21,6 +21,8 @@
 
 #include "sycl_defs.h"
 
+#include <mutex>
+#include <optional>
 #include <type_traits>
 
 namespace oneapi
@@ -42,21 +44,66 @@ struct DefaultKernelName;
 template <typename KernelName = DefaultKernelName>
 class device_policy
 {
+    // Needed for the copy constructor that rebinds the kernel name
+    template <typename>
+    friend class device_policy;
+
+    template <typename T>
+    static auto
+    lock_and_forward(T&& t, std::mutex& mtx)
+    {
+        ::std::scoped_lock lock{mtx};
+        return std::forward<T>(t);
+    }
+
   public:
     using kernel_name = KernelName;
 
     device_policy() = default;
+    explicit device_policy(sycl::queue q_) : q(q_) {}
+    explicit device_policy(sycl::device d_) { q.emplace(d_); }
+
     template <typename OtherName>
-    device_policy(const device_policy<OtherName>& other) : q(other.queue())
+    device_policy(const device_policy<OtherName>& other) : q(device_policy::lock_and_forward(other.q, other.mtx))
     {
     }
-    explicit device_policy(sycl::queue q_) : q(q_) {}
-    explicit device_policy(sycl::device d_) : q(d_) {}
-    operator sycl::queue() const { return q; }
+
+    device_policy(const device_policy& other) : q(device_policy::lock_and_forward(other.q, other.mtx)) {}
+
+    device_policy(device_policy&& other) : q(device_policy::lock_and_forward(::std::move(other.q), other.mtx)) {}
+
+    device_policy&
+    operator=(const device_policy& other)
+    {
+        if (this != &other)
+        {
+            ::std::scoped_lock lock{mtx, other.mtx};
+            q = other.q;
+        }
+        return *this;
+    }
+
+    device_policy&
+    operator=(device_policy&& other)
+    {
+        if (this != &other)
+        {
+            ::std::scoped_lock lock{mtx, other.mtx};
+            q = ::std::move(other.q);
+        }
+        return *this;
+    }
+
+    operator sycl::queue() const { return queue(); }
     sycl::queue
     queue() const
     {
-        return q;
+        ::std::scoped_lock lock{mtx};
+        if (!q)
+        {
+            q.emplace();
+        }
+        return *q;
     }
 
     // For internal use only
@@ -77,8 +124,9 @@ class device_policy
         return ::std::true_type{};
     }
 
-  private:
-    sycl::queue q;
+  protected:
+    mutable ::std::mutex mtx;
+    mutable ::std::optional<sycl::queue> q;
 };
 
 #if _ONEDPL_FPGA_DEVICE
@@ -91,21 +139,31 @@ class fpga_policy : public device_policy<KernelName>
   public:
     static constexpr unsigned int unroll_factor = factor;
 
-    fpga_policy()
-        : base(sycl::queue(
-#    if _ONEDPL_FPGA_EMU
-              __dpl_sycl::__fpga_emulator_selector()
-#    else
-              __dpl_sycl::__fpga_selector()
-#    endif // _ONEDPL_FPGA_EMU
-              ))
+    fpga_policy() = default;
+    template <unsigned int other_factor, typename OtherName>
+    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue())
     {
     }
-
-    template <unsigned int other_factor, typename OtherName>
-    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
+
+    operator sycl::queue() const { return queue(); }
+    sycl::queue
+    queue() const
+    {
+        ::std::scoped_lock lock{this->mtx};
+        if (!this->q)
+        {
+            this->q.emplace(
+#    if _ONEDPL_FPGA_EMU
+                __dpl_sycl::__fpga_emulator_selector()
+#    else
+                __dpl_sycl::__fpga_selector()
+#    endif // _ONEDPL_FPGA_EMU
+            );
+        }
+        return *this->q;
+    }
 };
 
 #endif // _ONEDPL_FPGA_DEVICE
