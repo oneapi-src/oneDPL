@@ -212,7 +212,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: fedora38
+          - os: ubuntu-latest
             cxx_compiler: icpx
             std: 17
             build_type: release
