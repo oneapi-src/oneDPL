@@ -108,9 +108,6 @@ class fpga_policy : public device_policy<KernelName>
     explicit fpga_policy(sycl::device d) : base(d) {}
 };
 
-template <typename Policy>
-inline constexpr unsigned int policy_unroll_factor = ::std::decay_t<Policy>::unroll_factor;
-
 #endif // _ONEDPL_FPGA_DEVICE
 
 // 2.8, Execution policy objects
@@ -224,6 +221,9 @@ namespace __internal
 {
 template <typename Policy>
 using __policy_kernel_name = typename ::std::decay_t<Policy>::kernel_name;
+
+template <typename Policy>
+inline constexpr unsigned int __policy_unroll_factor = ::std::decay_t<Policy>::unroll_factor;
 
 template <typename _T>
 struct __is_device_execution_policy_impl : ::std::false_type
