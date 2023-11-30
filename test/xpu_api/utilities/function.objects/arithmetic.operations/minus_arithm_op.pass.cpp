@@ -35,7 +35,7 @@ kernel_test()
             ret_access[0] = (f1(3, 7) == -4);
 
             const dpl::minus<float> f2;
-            ret_access[0] &= (f2(3, 2.5) == 0.5);
+            ret_access[0] &= (f2(3.f, 2.5f) == 0.5f);
         });
     });
 
