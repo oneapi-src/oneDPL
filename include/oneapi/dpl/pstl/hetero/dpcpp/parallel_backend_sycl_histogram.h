@@ -326,13 +326,13 @@ __histogram_general_registers_local_reduction(_ExecutionPolicy&& __exec, const s
     using _KernelBaseName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
     using _iters_per_work_item_t = ::std::integral_constant<::std::uint16_t, __iters_per_work_item>;
-    using _bins_per_work_item_t = ::std::integral_constant<::std::uint8_t, __bins_per_work_item>;
-    using _input_type = oneapi::dpl::__internal::__value_t<_Range1>;
-    using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
 
+    // Required to include _iters_per_work_item_t in kernel name because we compile multiple kernels and decide between
+    // them at runtime.  Other compile time arguments aren't required as it is the user's reponsibility to provide a
+    // unique kernel name to the policy for each call when using no-unamed-lambdas
     using _RegistersLocalReducName =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__histo_kernel_register_local_red<
-            _iters_per_work_item_t, _bins_per_work_item_t, _input_type, _bin_type, _IdxHashFunc, _KernelBaseName>>;
+            _iters_per_work_item_t, _KernelBaseName>>;
 
     return __histogram_general_registers_local_reduction_submitter<__iters_per_work_item, __bins_per_work_item,
                                                                    _RegistersLocalReducName>()(
@@ -422,11 +422,12 @@ __histogram_general_local_atomics(_ExecutionPolicy&& __exec, const sycl::event& 
     using _KernelBaseName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
     using _iters_per_work_item_t = ::std::integral_constant<::std::uint16_t, __iters_per_work_item>;
-    using _input_type = oneapi::dpl::__internal::__value_t<_Range1>;
-    using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
 
+    // Required to include _iters_per_work_item_t in kernel name because we compile multiple kernels and decide between
+    // them at runtime.  Other compile time arguments aren't required as it is the user's reponsibility to provide a
+    // unique kernel name to the policy for each call when using no-unamed-lambdas
     using _LocalAtomicsName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __histo_kernel_local_atomics<_iters_per_work_item_t, _input_type, _bin_type, _IdxHashFunc, _KernelBaseName>>;
+        __histo_kernel_local_atomics<_iters_per_work_item_t, _KernelBaseName>>;
 
     return __histogram_general_local_atomics_submitter<__iters_per_work_item, _LocalAtomicsName>()(
         ::std::forward<_ExecutionPolicy>(__exec), __init_e, __work_group_size, ::std::forward<_Range1>(__input),
