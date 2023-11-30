@@ -50,7 +50,7 @@ struct not_iterator {
 
 template <typename ExecutionPolicy, typename T = void>
 using test_enable_if_execution_policy =
-    std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<ExecutionPolicy>, T>;
+    std::enable_if_t<oneapi::dpl::execution::is_execution_policy<std::decay_t<ExecutionPolicy>>::value, T>;
 
 enum class algorithm_id {
     EMPTY_ID,

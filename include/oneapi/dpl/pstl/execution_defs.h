@@ -123,29 +123,26 @@ inline constexpr unsequenced_policy unseq{};
 
 // 2.3, Execution policy type trait
 template <class T>
-struct __is_execution_policy_impl : ::std::false_type
+struct is_execution_policy : ::std::false_type
 {
 };
 
 template <>
-struct __is_execution_policy_impl<oneapi::dpl::execution::sequenced_policy> : ::std::true_type
+struct is_execution_policy<oneapi::dpl::execution::sequenced_policy> : ::std::true_type
 {
 };
 template <>
-struct __is_execution_policy_impl<oneapi::dpl::execution::parallel_policy> : ::std::true_type
+struct is_execution_policy<oneapi::dpl::execution::parallel_policy> : ::std::true_type
 {
 };
 template <>
-struct __is_execution_policy_impl<oneapi::dpl::execution::parallel_unsequenced_policy> : ::std::true_type
+struct is_execution_policy<oneapi::dpl::execution::parallel_unsequenced_policy> : ::std::true_type
 {
 };
 template <>
-struct __is_execution_policy_impl<oneapi::dpl::execution::unsequenced_policy> : ::std::true_type
+struct is_execution_policy<oneapi::dpl::execution::unsequenced_policy> : ::std::true_type
 {
 };
-
-template <typename T>
-using is_execution_policy = __is_execution_policy_impl<::std::decay_t<T>>;
 
 template <class T>
 inline constexpr bool is_execution_policy_v = oneapi::dpl::execution::is_execution_policy<T>::value;
@@ -186,7 +183,8 @@ template <typename _ExecPolicy>
 inline constexpr bool __is_host_execution_policy_v = __is_host_execution_policy<_ExecPolicy>::value;
 
 template <class _ExecPolicy, class _T = void>
-using __enable_if_execution_policy = ::std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<_ExecPolicy>, _T>;
+using __enable_if_execution_policy =
+    ::std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<::std::decay_t<_ExecPolicy>>, _T>;
 
 template <class _ExecPolicy, class _T = void>
 using __enable_if_host_execution_policy =
