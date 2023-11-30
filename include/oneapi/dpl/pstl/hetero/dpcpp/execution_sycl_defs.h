@@ -227,17 +227,20 @@ namespace __internal
 {
 
 template <typename _T>
-struct __is_device_execution_policy : ::std::false_type
+struct __is_device_execution_policy_impl : ::std::false_type
 {
 };
 
 template <typename... PolicyParams>
-struct __is_device_execution_policy<execution::device_policy<PolicyParams...>> : ::std::true_type
+struct __is_device_execution_policy_impl<execution::device_policy<PolicyParams...>> : ::std::true_type
 {
 };
 
 template <typename _T>
-inline constexpr bool __is_device_execution_policy_v = __is_device_execution_policy<::std::decay_t<_T>>::value;
+using __is_device_execution_policy = __is_device_execution_policy_impl<::std::decay_t<_T>>;
+
+template <typename _T>
+inline constexpr bool __is_device_execution_policy_v = __is_device_execution_policy<_T>::value;
 
 template <typename _T>
 struct __is_fpga_execution_policy : ::std::false_type
