@@ -296,6 +296,10 @@
 #define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
     (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1921 || _GLIBCXX_RELEASE >= 10))
 
+#define _ONEDPL_CPP20_ITERATOR_CONCEPTS_PRESENT
+    (_ONEDPL___cplusplus >= 202202L && (_LIBCPP_VERSION >= 13000 || MSC_VER >= 1930)) || \
+    (_ONEDPL___cplusplus >= 201709L && _GLIBCXX_RELEASE >= 10)
+
 #define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 
 #if defined(_MSC_VER) && __INTEL_LLVM_COMPILER < 20240100

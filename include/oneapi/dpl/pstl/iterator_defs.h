@@ -27,7 +27,31 @@ namespace dpl
 namespace __internal
 {
 
-#if _ONEDPL___cplusplus < 202002L
+#if _ONEDPL_CPP20_ITERATOR_CONCEPTS_PRESENT
+
+// Until C++23, std::move_iterator::iterator_concept is std::input_iterator_tag and
+// std::random_access_iterator<std::move_iterator<...>> returns false even if the
+// base iterator is random access. Making the dispatch based on the base iterator type
+// considers std::move_iterator<random-access> a random access iterator
+template <typename _IteratorType>
+struct __move_iter_base_helper
+{
+    using type = _IteratorType;
+};
+
+template <typename _BaseIteratorType>
+struct __move_iter_base_helper<::std::move_iterator<_BaseIteratorType>>
+{
+    using type = _BaseIteratorType;
+};
+
+template <typename _IteratorType>
+struct __is_random_access_iterator_impl
+    : ::std::bool_constant<std::random_access_iterator<typename __move_iter_base_helper<_IteratorType>::type>>
+{
+};
+
+#else
 
 // Make is_random_access_iterator not to fail with a 'hard' error when it's used in SFINAE with
 // a non-iterator type by providing a default value.
@@ -39,14 +63,7 @@ struct __is_random_access_iterator_impl : ::std::false_type
 template <typename _IteratorType>
 struct __is_random_access_iterator_impl<_IteratorType,
                                         ::std::void_t<typename ::std::iterator_traits<_IteratorType>::iterator_category>>
-    : ::std::is_same<typename ::std::iterator_traits<_IteratorType>::iterator_category, ::std::random_access_iterator_tag>
-{
-};
-
-#else
-
-template <typename _IteratorType>
-struct __is_random_access_iterator_impl : std::bool_constant<std::random_access_iterator<_IteratorType>>
+    : ::std::is_base_of<typename ::std::iterator_traits<_IteratorType>::iterator_category, ::std::random_access_iterator_tag>
 {
 };
 
@@ -55,18 +72,10 @@ struct __is_random_access_iterator_impl : std::bool_constant<std::random_access_
 /* iterator */
 template <typename _IteratorType, typename... _OtherIteratorTypes>
 struct __is_random_access_iterator
-    : ::std::conditional_t<__is_random_access_iterator_impl<_IteratorType>::value,
-                           __is_random_access_iterator<_OtherIteratorTypes...>, ::std::false_type>
+    : ::std::conjunction<__is_random_access_iterator_impl<_IteratorType>,
+                         __is_random_access_iterator_impl<OtherIteratorTypes>...>
 {
 };
-
-template <typename _IteratorType>
-struct __is_random_access_iterator<_IteratorType> : __is_random_access_iterator_impl<_IteratorType>
-{
-};
-
-template <typename... _IteratorTypes>
-using __is_random_access_iterator_t = typename __is_random_access_iterator<_IteratorTypes...>::type;
 
 template <typename... _IteratorTypes>
 inline constexpr bool __is_random_access_iterator_v = __is_random_access_iterator<_IteratorTypes...>::value;
