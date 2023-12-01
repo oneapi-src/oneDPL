@@ -243,6 +243,27 @@ struct is_hetero<oneapi::dpl::__internal::sycl_iterator<Mode, Types...>> : ::std
 {
 };
 
+template <typename Iter>
+struct is_hetero<::std::reverse_iterator<Iter>> : is_hetero<Iter>
+{
+};
+
+template <typename Iter, typename Unary>
+struct is_hetero<oneapi::dpl::transform_iterator<Iter, Unary>> : is_hetero<Iter>
+{
+};
+
+template <typename SourceIterator, typename IndexIterator>
+struct is_hetero<oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>> 
+    : ::std::conjunction<is_hetero<SourceIterator>, is_hetero<IndexIterator>>
+{
+};
+
+template <typename... Iters>
+struct is_hetero<zip_iterator<Iters...>>: ::std::conjunction<is_hetero<Iters>...>
+{
+};
+
 //A trait for checking if it needs to create a temporary SYCL buffer or not
 
 template <typename _Iter, typename Void = void>
@@ -544,7 +565,7 @@ struct __get_sycl_range
                                                                  __offset /* offset*/, __n /* size*/)};
     }
 
-    //specialization for a host iterator
+    //SFINAE-overload for a contiguous host iterator
     template <typename _Iter>
     auto
     operator()(_Iter __first, _Iter __last)
@@ -566,6 +587,33 @@ struct __get_sycl_range
                 {
                     sycl::buffer<_T, 1> __buf(__last - __first);
                     __buf.set_final_data(::std::addressof(*__first)); //wait and fast copy on a buffer destructor
+                    return __buf;
+                }
+            });
+    }
+
+    //SFINAE-overload for non-contiguous host iterator
+    template <typename _Iter>
+    auto
+    operator()(_Iter __first, _Iter __last)
+        -> ::std::enable_if_t<is_temp_buff<_Iter>::value && !__test_addressof<_Iter>(0) && !is_zip<_Iter>::value &&
+        !is_permutation<_Iter>::value, __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
+    {
+        using _T = val_t<_Iter>;
+
+        return __process_host_iter_impl(__first, __last, [&]()
+            {
+                if constexpr (__is_copy_direct)
+                {
+                    sycl::buffer<_T, 1> __buf(__first, __last);//SYCL API for non-contiguous iterators
+                    if constexpr (__is_copy_back)
+                        __buf.set_final_data(__first); //SYCL API for non-contiguous iterators
+                    return __buf;
+                }
+                else
+                {
+                    sycl::buffer<_T, 1> __buf(__last - __first);
+                    __buf.set_final_data(__first); //SYCL API for non-contiguous iterators
                     return __buf;
                 }
             });
