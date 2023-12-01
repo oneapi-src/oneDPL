@@ -76,6 +76,25 @@ function(_generate_esimd_sort_test _data_per_work_item _work_group_size _key_typ
     endif()
 endfunction()
 
+# Tests for ESIMD-based Kernel Templates are randomly generated.
+# Purpose:
+# - Cover as much as possible cases with limited resources by runnig different sets during each session.
+# - Get more fine-grained results and thus better debuggability.
+# - Allow parallel compilation and thus speed up testing process.
+# - Provide compilation and execution time of an individual test convenient during development.
+#
+# Strategy: generate a test randomly basing on a subset of its parameters.
+# All possible parameters:
+# 1. Kernel Template configuration:
+#     - data_per_workitem
+#     - workgroup_size
+# 2. Algorithm-specific parameters:
+#     - sorting order
+#     - radix_bits
+# 3. Input sequence type (e.g. sycl::buffer, USM and etc.).
+# 4. Input data type: key type or a combination of key-value types.
+# 5. Number of elements.
+# Parameters #1 and #4 were selected for generation to allow compilation and execution of a test within ~5 minutes
 function(_generate_esimd_sort_tests _key_value_pairs)
     set(_data_per_work_item_all "32" "64" "96" "128" "160" "192" "224" "256" "288" "320" "352" "384" "416" "448" "480" "512")
     set(_work_group_size_all "32" "64")
@@ -96,12 +115,6 @@ function(_generate_esimd_sort_tests _key_value_pairs)
     endforeach()
 endfunction()
 
-# Tests for ESIMD-based Kernel Templates are randomly generated.
-# This is done for:
-# - Covering as much as possible tests with limited resources runnig different sets during each session.
-#       Although, the most important configurations can be "pinned" to run each time.
-# - Getting more fine-grained results and thus better debuggability.
-# - Allowing parallel compilation and thus speed up testing process.
 if (ONEDPL_TEST_ENABLE_KT_ESIMD)
     _generate_esimd_sort_tests(FALSE) # esimd_radix_sort, random
     _generate_esimd_sort_tests(TRUE) # esimd_radix_sort_by_key, random
