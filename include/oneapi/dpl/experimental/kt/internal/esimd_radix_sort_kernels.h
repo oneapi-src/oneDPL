@@ -500,11 +500,6 @@ struct __radix_sort_onesweep_kernel
     __rank_global(_LocHistT& __subgroup_offset, _GlobHistT& __global_fix,
                   ::std::uint32_t __local_tid, ::std::uint32_t __wg_id) const
     {
-        /*
-        first do column scan by group, each thread do 32c,
-        then last row do exclusive scan as group incoming __offset
-        then every thread add local sum with sum of previous group and incoming __offset
-        */
         const ::std::uint32_t __slm_bin_hist_this_thread = __local_tid * __hist_stride;
         const ::std::uint32_t __slm_bin_hist_group_incoming = __work_group_size * __hist_stride;
         const ::std::uint32_t __slm_bin_hist_global_incoming = __slm_bin_hist_group_incoming + __hist_stride;
@@ -523,9 +518,11 @@ struct __radix_sort_onesweep_kernel
 
             static_assert(__bin_count % __bin_width == 0);
 
+            // 1. Vector scan of histograms previously accumulated by each work-item
             __dpl_esimd::__ns::simd<_LocOffsetT, __bin_width> __thread_grf_hist_summary(0);
             if (__local_tid < __bin_summary_group_size)
             {
+                // 1.1. Vector scan of the same bins across different histograms.
                 ::std::uint32_t __slm_bin_hist_summary_offset = __local_tid * __bin_width * sizeof(_LocOffsetT);
                 for (::std::uint32_t __s = 0; __s < __work_group_size; __s++, __slm_bin_hist_summary_offset += __hist_stride)
                 {
@@ -533,16 +530,25 @@ struct __radix_sort_onesweep_kernel
                     __dpl_esimd::__block_store_slm(__slm_bin_hist_summary_offset, __thread_grf_hist_summary);
                 }
 
+                // 1.2. Vector scan of differnt bins inside one histogram, the final one for the whole work-group.
+                // Only "__bin_width" pieces of the histogram are scanned at this stage.
+                // This histogram will be further used for calculation of offsets of keys already reordered in SLM,
+                // it does not participate in sycnhronization between work-groups.
                 __dpl_esimd::__block_store_slm(__slm_bin_hist_group_incoming + __local_tid * __bin_width * sizeof(_LocOffsetT),
                                                __scan<_LocOffsetT, _LocOffsetT>(__thread_grf_hist_summary));
+
+                // 1.3 Copy the histogram at the region designited for synchronization between work-groups.
+                // Set the status as "updated".
                 if (__wg_id != 0)
                     __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(__p_this_group_hist + __local_tid * __bin_width,
                                                            __thread_grf_hist_summary | __hist_updated);
             }
             __dpl_esimd::__ns::barrier();
+
+            // 1.4 One work-item finilizes scan performed at stage 1.2
+            // by propagating prefixes accumulated after scanning individual "__bin_width" pieces.
             if (__local_tid == __bin_summary_group_size + 1)
             {
-                // this thread to group scan
                 __dpl_esimd::__ns::simd<_LocOffsetT, __bin_count> __grf_hist_summary;
                 __dpl_esimd::__ns::simd<_LocOffsetT, __bin_count + 1> __grf_hist_summary_scan;
                 __grf_hist_summary = __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_count>(__slm_bin_hist_group_incoming);
@@ -558,9 +564,10 @@ struct __radix_sort_onesweep_kernel
                 __dpl_esimd::__block_store_slm<_LocOffsetT, __bin_count>(__slm_bin_hist_group_incoming,
                                                         __grf_hist_summary_scan.template select<__bin_count, 1>());
             }
+
+            // 2. Chained scan.Synchronization between work-groups.
             else if (__local_tid < __bin_summary_group_size)
             {
-                // these threads to global sync and update
                 __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> __prev_group_hist_sum(0), __prev_group_hist;
                 __dpl_esimd::__ns::simd_mask<__bin_width> __is_not_accumulated(1);
                 do
@@ -586,14 +593,20 @@ struct __radix_sort_onesweep_kernel
             }
             __dpl_esimd::__ns::barrier();
         }
+        // 3. Get total offsets for each work-item
         auto __group_incoming = __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_count>(__slm_bin_hist_group_incoming);
+        // 3.1. Get histogram accumullated from previous groups (together with the global one) and apply correction for keys already reordered in SLM
+        // TODO: rename the variable to represent its purpose better.
         __global_fix = __dpl_esimd::__block_load_slm<_GlobOffsetT, __bin_count>(__slm_bin_hist_global_incoming) - __group_incoming;
+        // 3.2 Get historam with offsets for each work-item within its work-group.
         if (__local_tid > 0)
         {
             __subgroup_offset = __group_incoming + __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_count>((__local_tid - 1) * __hist_stride);
         }
         else
+        {
             __subgroup_offset = __group_incoming;
+        }
         __dpl_esimd::__ns::barrier();
     }
 
@@ -640,9 +653,20 @@ struct __radix_sort_onesweep_kernel
         const auto __ordered = __order_preserving_cast<__is_ascending>(__pack.__keys);
         _LocOffsetSimdT __bins = __get_bucket<__mask>(__ordered, __stage * __radix_bits);
 
+        // This vector contains IDs of the elements in a work-group:
+        //  {__local_tid * __data_per_work_item, __local_tid * __data_per_work_item + 1, ..., __wg_size * __data_per_work_item - 1}
         _LocOffsetSimdT __group_offset =
             __create_simd<_LocOffsetT, __data_per_work_item>(__local_tid * __data_per_work_item, 1);
 
+        // The trick with IDs and the "fix" component in __global_fix is used to get relative indexes
+        // of each digit in a work-group after reordering in SLM. Example when work-item id is 0:
+        // key digit:              0  0  0  0  1  1  1  1  2  3
+        // ----------------------------------------------------
+        // key ID in a work-group: 0  1  2  3  4  5  6  7  8  9
+        // "fix" component:        0  0  0  0 -4 -4 -4 -4 -8 -9
+        // ----------------------------------------------------
+        // digit offset:           0  1  2  3  0  1  2  3  0  0
+        // Note: offset component from global histogram and the previous groups is also added as a part of "__global_fix" vector.
         _GlobOffsetSimdT __global_offset =
             __group_offset + __global_fix_lookup.template __lookup<__data_per_work_item>(__bins);
 
