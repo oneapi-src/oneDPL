@@ -106,6 +106,14 @@ class fpga_policy : public device_policy<KernelName>
     fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
+
+    // For internal use only
+
+    const base&
+    __device_policy() const
+    {
+        return static_cast<const base&>(*this);
+    };
 };
 
 #endif // _ONEDPL_FPGA_DEVICE
