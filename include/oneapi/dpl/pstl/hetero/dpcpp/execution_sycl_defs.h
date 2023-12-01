@@ -287,10 +287,8 @@ using __enable_if_convertible_to_events = ::std::enable_if_t<__is_convertible_to
 
 // Extension: execution policies type traits
 template <typename _ExecPolicy, typename _T, typename... _Events>
-using __enable_if_device_execution_policy =
-    ::std::enable_if_t<__is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> &&
-                           __is_convertible_to_event<_Events...>,
-                       _T>;
+using __enable_if_device_execution_policy = ::std::enable_if_t<
+    __is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> && __is_convertible_to_event<_Events...>, _T>;
 
 template <typename _ExecPolicy, typename _T = void>
 using __enable_if_hetero_execution_policy =
@@ -303,8 +301,7 @@ using __enable_if_fpga_execution_policy =
 template <typename _ExecPolicy, typename _T, typename _Op1, typename... _Events>
 using __enable_if_device_execution_policy_single_no_default =
     ::std::enable_if_t<__is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> &&
-                           !::std::is_convertible_v<_Op1, sycl::event> &&
-                           __is_convertible_to_event<_Events...>,
+                           !::std::is_convertible_v<_Op1, sycl::event> && __is_convertible_to_event<_Events...>,
                        _T>;
 
 template <typename _ExecPolicy, typename _T, typename _Op1, typename _Op2, typename... _Events>

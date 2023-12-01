@@ -101,8 +101,7 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_Tp, _Commutative>(
-        __exec.__device_policy(), __reduce_op, __transform_op, __init,
-        ::std::forward<_Ranges>(__rngs)...);
+        __exec.__device_policy(), __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
@@ -118,8 +117,8 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-        __exec.__device_policy(), ::std::forward<_Range1>(__in_rng),
-        ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
+        __exec.__device_policy(), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng), __n,
+        __unary_op, __init, __binary_op, _Inclusive{});
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
@@ -132,8 +131,8 @@ __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Ran
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_base(
-        __exec.__device_policy(), ::std::forward<_Range1>(__rng1),
-        ::std::forward<_Range2>(__rng2), __binary_op, __init, __local_scan, __group_scan, __global_scan);
+        __exec.__device_policy(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2), __binary_op, __init,
+        __local_scan, __group_scan, __global_scan);
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred,
@@ -143,8 +142,7 @@ __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_copy_if(
-        __exec.__device_policy(), ::std::forward<_InRng>(__in_rng),
-        ::std::forward<_OutRng>(__out_rng), __n, __pred);
+        __exec.__device_policy(), ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, __pred);
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
@@ -156,8 +154,8 @@ __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __o
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_scan_copy(
-        __exec.__device_policy(), ::std::forward<_InRng>(__in_rng),
-        ::std::forward<_OutRng>(__out_rng), __n, __create_mask_op, __copy_by_mask_op);
+        __exec.__device_policy(), ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
+        __create_mask_op, __copy_by_mask_op);
 }
 
 //------------------------------------------------------------------------
@@ -171,9 +169,8 @@ oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
                              typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>>
 __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
-    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
-        __exec.__device_policy(), __f, __brick_tag,
-        ::std::forward<_Ranges>(__rngs)...);
+    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(__exec.__device_policy(), __f, __brick_tag,
+                                                                 ::std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
@@ -185,8 +182,8 @@ __parallel_or(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, 
               _Iterator2 __s_last, _Brick __f)
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_or(__exec.__device_policy(),
-                                                            __first, __last, __s_first, __s_last, __f);
+    return oneapi::dpl::__par_backend_hetero::__parallel_or(__exec.__device_policy(), __first, __last, __s_first,
+                                                            __s_last, __f);
 }
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Brick>
@@ -194,8 +191,7 @@ oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, boo
 __parallel_or(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f)
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_or(__exec.__device_policy(),
-                                                            __first, __last, __f);
+    return oneapi::dpl::__par_backend_hetero::__parallel_or(__exec.__device_policy(), __first, __last, __f);
 }
 
 //------------------------------------------------------------------------
@@ -208,8 +204,8 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last
                 _Iterator2 __s_last, _Brick __f, _IsFirst __is_first)
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_find(__exec.__device_policy(),
-                                                              __first, __last, __s_first, __s_last, __f, __is_first);
+    return oneapi::dpl::__par_backend_hetero::__parallel_find(__exec.__device_policy(), __first, __last, __s_first,
+                                                              __s_last, __f, __is_first);
 }
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Brick, typename _IsFirst>
@@ -217,8 +213,8 @@ oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, _It
 __parallel_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f, _IsFirst __is_first)
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_find(__exec.__device_policy(),
-                                                              __first, __last, __f, __is_first);
+    return oneapi::dpl::__par_backend_hetero::__parallel_find(__exec.__device_policy(), __first, __last, __f,
+                                                              __is_first);
 }
 
 //------------------------------------------------------------------------
@@ -229,15 +225,14 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 auto
 __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
     -> oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
-        _ExecutionPolicy,
-        decltype(oneapi::dpl::__par_backend_hetero::__parallel_merge(
-            __exec.__device_policy(), ::std::forward<_Range1>(__rng1),
-            ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3), __comp))>
+        _ExecutionPolicy, decltype(oneapi::dpl::__par_backend_hetero::__parallel_merge(
+                              __exec.__device_policy(), ::std::forward<_Range1>(__rng1),
+                              ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3), __comp))>
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_merge(
-        __exec.__device_policy(), ::std::forward<_Range1>(__rng1),
-        ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3), __comp);
+        __exec.__device_policy(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+        ::std::forward<_Range3>(__rng3), __comp);
 }
 
 //------------------------------------------------------------------------
@@ -250,8 +245,8 @@ auto
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(
-        __exec.__device_policy(), ::std::forward<_Range>(__rng), __comp, __proj);
+    return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__exec.__device_policy(),
+                                                                     ::std::forward<_Range>(__rng), __comp, __proj);
 }
 
 //------------------------------------------------------------------------
@@ -266,8 +261,8 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
                         _Compare __comp)
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_partial_sort(
-        __exec.__device_policy(), __first, __mid, __last, __comp);
+    return oneapi::dpl::__par_backend_hetero::__parallel_partial_sort(__exec.__device_policy(), __first, __mid, __last,
+                                                                      __comp);
 }
 
 } // namespace __par_backend_hetero
