@@ -108,8 +108,8 @@ struct __radix_sort_onesweep_scan_submitter<
                                                  ::std::uint32_t __offset = __nd_item.get_global_id(0);
                                                  const auto __g = __nd_item.get_group();
                                                  ::std::uint32_t __count = __global_offset_data[__offset];
-                                                 ::std::uint32_t __presum = sycl::exclusive_scan_over_group(
-                                                     __g, __count, sycl::plus<::std::uint32_t>());
+                                                 ::std::uint32_t __presum = __dpl_sycl::__exclusive_scan_over_group(
+                                                     __g, __count, __dpl_sycl::__plus<::std::uint32_t>());
                                                  __global_offset_data[__offset] = __presum;
                                              });
             });
