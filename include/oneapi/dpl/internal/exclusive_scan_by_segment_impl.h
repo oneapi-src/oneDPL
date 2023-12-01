@@ -137,22 +137,19 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         temp[0] = init;
     }
 
-    auto policy1 = policy.__make_wrapped_policy<ExclusiveScan1>();
-
     // TODO : add stencil form of replace_copy_if to oneDPL if the
     // transform call here is difficult to understand and maintain.
 #    if 1
-    transform(::std::move(policy1), first2, last2 - 1, _flags.get() + 1, _temp.get() + 1,
+    transform(policy.__make_wrapped_policy<ExclusiveScan1>(), first2, last2 - 1, _flags.get() + 1, _temp.get() + 1,
               internal::replace_if_fun<T, ::std::negate<FlagType>>(::std::negate<FlagType>(), init));
 #    else
-    replace_copy_if(::std::move(policy1), first2, last2 - 1, _flags.get() + 1, _temp.get() + 1,
-                    ::std::negate<FlagType>(), init);
+    replace_copy_if(policy.__make_wrapped_policy<ExclusiveScan1>(), first2, last2 - 1, _flags.get() + 1,
+                    _temp.get() + 1, ::std::negate<FlagType>(), init);
 #    endif
 
-    auto policy2 = policy.__make_wrapped_policy<ExclusiveScan2>();
-
     // scan key-flag tuples
-    transform_inclusive_scan(::std::move(policy2), make_zip_iterator(_temp.get(), _flags.get()),
+    transform_inclusive_scan(policy.__make_wrapped_policy<ExclusiveScan2>(),
+                             make_zip_iterator(_temp.get(), _flags.get()),
                              make_zip_iterator(_temp.get(), _flags.get()) + n, make_zip_iterator(result, _flags.get()),
                              internal::segmented_scan_fun<ValueType, FlagType, Operator>(binary_op),
                              oneapi::dpl::__internal::__no_op(), ::std::make_tuple(init, FlagType(1)));
