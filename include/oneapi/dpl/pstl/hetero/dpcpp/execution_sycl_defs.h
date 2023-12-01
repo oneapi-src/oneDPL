@@ -120,7 +120,14 @@ class fpga_policy : public device_policy<KernelName>
     __device_policy() const
     {
         return static_cast<const base&>(*this);
-    };
+    }
+    
+    template <typename KernelName>
+    auto
+    __make_wrapped_policy() const
+    {
+        return fpga_policy<factor, KernelName>(q);
+    }
 };
 
 #endif // _ONEDPL_FPGA_DEVICE
