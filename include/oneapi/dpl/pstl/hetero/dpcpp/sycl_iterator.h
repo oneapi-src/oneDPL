@@ -46,7 +46,6 @@ struct sycl_iterator
     using pointer = T*;
     using reference = T&;
     using iterator_category = ::std::random_access_iterator_tag;
-    using is_hetero = ::std::true_type;
     static constexpr access_mode mode = Mode;
 
     // required for make_sycl_iterator
