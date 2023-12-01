@@ -14,12 +14,7 @@
 #include <cstdint>
 #include <type_traits>
 
-#if __has_include(<sycl/sycl.hpp>)
-#    include <sycl/sycl.hpp>
-#else
-#    include <CL/sycl.hpp>
-#endif
-#include <sycl/ext/intel/esimd.hpp>
+#include "../../../pstl/hetero/dpcpp/sycl_defs.h"
 
 #include "oneapi/dpl/pstl/onedpl_config.h"
 #include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h"

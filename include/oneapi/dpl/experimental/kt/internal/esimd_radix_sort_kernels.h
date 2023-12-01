@@ -13,15 +13,8 @@
 #include <cstdint>
 #include <type_traits>
 
-#if __has_include(<sycl/sycl.hpp>)
-#    include <sycl/sycl.hpp>
-#else
-#    include <CL/sycl.hpp>
-#endif
-#include <sycl/ext/intel/esimd.hpp>
-
 #include "oneapi/dpl/pstl/onedpl_config.h"
-
+#include "../../../pstl/hetero/dpcpp/sycl_defs.h"
 #include "../../../pstl/utils.h"
 
 #include "esimd_defs.h"
@@ -530,7 +523,7 @@ struct __radix_sort_onesweep_kernel
                     __dpl_esimd::__block_store_slm(__slm_bin_hist_summary_offset, __thread_grf_hist_summary);
                 }
 
-                // 1.2. Vector scan of differnt bins inside one histogram, the final one for the whole work-group.
+                // 1.2. Vector scan of different bins inside one histogram, the final one for the whole work-group.
                 // Only "__bin_width" pieces of the histogram are scanned at this stage.
                 // This histogram will be further used for calculation of offsets of keys already reordered in SLM,
                 // it does not participate in sycnhronization between work-groups.
@@ -545,7 +538,7 @@ struct __radix_sort_onesweep_kernel
             }
             __dpl_esimd::__ns::barrier();
 
-            // 1.4 One work-item finilizes scan performed at stage 1.2
+            // 1.4 One work-item finalizes scan performed at stage 1.2
             // by propagating prefixes accumulated after scanning individual "__bin_width" pieces.
             if (__local_tid == __bin_summary_group_size + 1)
             {

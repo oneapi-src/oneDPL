@@ -14,17 +14,13 @@
 #include <utility>
 #include <type_traits>
 
-#if __has_include(<sycl/sycl.hpp>)
-#    include <sycl/sycl.hpp>
-#else
-#    include <CL/sycl.hpp>
-#endif
-#include <sycl/ext/intel/esimd.hpp>
+#include "../../../pstl/hetero/dpcpp/sycl_defs.h"
 
 #include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include "../../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 
 #include "esimd_radix_sort_kernels.h"
+#include "esimd_defs.h"
 
 namespace oneapi::dpl::experimental::kt::esimd::__impl
 {

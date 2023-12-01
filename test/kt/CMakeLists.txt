@@ -78,10 +78,10 @@ endfunction()
 
 # Tests for ESIMD-based Kernel Templates are randomly generated.
 # Purpose:
-# - Cover as much as possible cases with limited resources by runnig different sets during each session.
+# - Cover as much as possible cases with limited resources by running different sets during each session.
 # - Get more fine-grained results and thus better debuggability.
 # - Allow parallel compilation and thus speed up testing process.
-# - Provide compilation and execution time of an individual test convenient during development.
+# - Provide convenient compilation and execution times of an individual test during development.
 #
 # Strategy: generate a test randomly basing on a subset of its parameters.
 # All possible parameters:

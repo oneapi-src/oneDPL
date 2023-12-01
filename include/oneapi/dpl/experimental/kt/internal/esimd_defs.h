@@ -14,11 +14,7 @@
 #include <cstdint>
 #include <type_traits>
 
-#if __has_include(<sycl/sycl.hpp>)
-#    include <sycl/sycl.hpp>
-#else
-#    include <CL/sycl.hpp>
-#endif
+#include "../../../pstl/hetero/dpcpp/sycl_defs.h"
 #include <sycl/ext/intel/esimd.hpp>
 
 // The macro is created to guarantee inlining of functions which contain slm_init. See ESIMD spec for more details:

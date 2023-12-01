@@ -16,11 +16,7 @@
 #include <utility>
 #include <type_traits>
 
-#if __has_include(<sycl/sycl.hpp>)
-#    include <sycl/sycl.hpp>
-#else
-#    include <CL/sycl.hpp>
-#endif
+#include "../../../pstl/hetero/dpcpp/sycl_defs.h"
 
 #include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 
