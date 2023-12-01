@@ -39,6 +39,14 @@ namespace dpl
 {
 namespace __par_backend_hetero
 {
+template <typename _ExecutionPolicy>
+auto
+__device_policy(_ExecutionPolicy&& __exec)
+{
+    using __kernel_name = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
+    return oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
+}
+
 //------------------------------------------------------------------------
 // parallel_for
 //------------------------------------------------------------------------
@@ -75,14 +83,6 @@ struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...
         return __future(__event);
     }
 };
-
-template <typename _ExecutionPolicy>
-auto
-__device_policy(_ExecutionPolicy&& __exec)
-{
-    using __kernel_name = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
-    return oneapi::dpl::execution::make_device_policy<__kernel_name>(__exec.queue());
-}
 
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
