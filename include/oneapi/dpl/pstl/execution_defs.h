@@ -155,43 +155,38 @@ namespace __internal
 
 // Extension: host execution policy type trait
 template <class _T>
-struct __is_host_execution_policy_impl : ::std::false_type
+struct __is_host_execution_policy : ::std::false_type
 {
 };
 
 template <>
-struct __is_host_execution_policy_impl<oneapi::dpl::execution::sequenced_policy> : ::std::true_type
+struct __is_host_execution_policy<oneapi::dpl::execution::sequenced_policy> : ::std::true_type
 {
 };
 template <>
-struct __is_host_execution_policy_impl<oneapi::dpl::execution::parallel_policy> : ::std::true_type
+struct __is_host_execution_policy<oneapi::dpl::execution::parallel_policy> : ::std::true_type
 {
 };
 template <>
-struct __is_host_execution_policy_impl<oneapi::dpl::execution::parallel_unsequenced_policy> : ::std::true_type
+struct __is_host_execution_policy<oneapi::dpl::execution::parallel_unsequenced_policy> : ::std::true_type
 {
 };
 template <>
-struct __is_host_execution_policy_impl<oneapi::dpl::execution::unsequenced_policy> : ::std::true_type
+struct __is_host_execution_policy<oneapi::dpl::execution::unsequenced_policy> : ::std::true_type
 {
 };
-
-template <typename T>
-using __is_host_execution_policy = __is_host_execution_policy_impl<::std::decay_t<T>>;
-
-template <typename _ExecPolicy>
-inline constexpr bool __is_host_execution_policy_v = __is_host_execution_policy<_ExecPolicy>::value;
 
 template <class _ExecPolicy, class _T = void>
 using __enable_if_execution_policy =
     ::std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<::std::decay_t<_ExecPolicy>>, _T>;
 
 template <class _ExecPolicy, class _T = void>
-using __enable_if_host_execution_policy = ::std::enable_if_t<__is_host_execution_policy_v<_ExecPolicy>, _T>;
+using __enable_if_host_execution_policy =
+    ::std::enable_if_t<__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
 template <class _ExecPolicy, const bool __condition, class _T = void>
-using __enable_if_host_execution_policy_conditional =
-    ::std::enable_if_t<__is_host_execution_policy_v<_ExecPolicy> && __condition, _T>;
+using __enable_if_host_execution_policy_conditional = ::std::enable_if_t<
+    __is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value && __condition, _T>;
 
 template <typename _ExecPolicy, typename _T>
 struct __ref_or_copy_impl

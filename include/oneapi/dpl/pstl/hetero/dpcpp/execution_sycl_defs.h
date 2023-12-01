@@ -98,7 +98,7 @@ class fpga_policy : public device_policy<KernelName>
 #    else
               __dpl_sycl::__fpga_selector()
 #    endif // _ONEDPL_FPGA_EMU
-              ))
+                  ))
     {
     }
 
@@ -226,29 +226,26 @@ template <typename Policy>
 inline constexpr unsigned int __policy_unroll_factor = ::std::decay_t<Policy>::unroll_factor;
 
 template <typename _T>
-struct __is_device_execution_policy_impl : ::std::false_type
+struct __is_device_execution_policy : ::std::false_type
 {
 };
 
 template <typename... PolicyParams>
-struct __is_device_execution_policy_impl<execution::device_policy<PolicyParams...>> : ::std::true_type
+struct __is_device_execution_policy<execution::device_policy<PolicyParams...>> : ::std::true_type
 {
 };
-
-template <typename _T>
-using __is_device_execution_policy = __is_device_execution_policy_impl<::std::decay_t<_T>>;
 
 template <typename _T>
 inline constexpr bool __is_device_execution_policy_v = __is_device_execution_policy<_T>::value;
 
 template <typename _T>
-struct __is_fpga_execution_policy_impl : ::std::false_type
+struct __is_fpga_execution_policy : ::std::false_type
 {
 };
 
 #if _ONEDPL_FPGA_DEVICE
 template <unsigned int unroll_factor, typename... PolicyParams>
-struct __is_fpga_execution_policy__impl<execution::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
+struct __is_fpga_execution_policy<execution::fpga_policy<unroll_factor, PolicyParams...>> : ::std::true_type
 {
 };
 
@@ -258,12 +255,6 @@ struct __ref_or_copy_impl<execution::fpga_policy<unroll_factor, PolicyParams...>
     using type = _T;
 };
 #endif
-
-template <typename _T>
-using __is_fpga_execution_policy = __is_fpga_execution_policy_impl<::std::decay_t<_T>>;
-
-template <typename _T>
-inline constexpr bool __is_fpga_execution_policy_v = __is_fpga_execution_policy<_T>::value;
 
 template <typename _T, typename... PolicyParams>
 struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
@@ -289,24 +280,30 @@ using __enable_if_convertible_to_events = ::std::enable_if_t<__is_convertible_to
 // Extension: execution policies type traits
 template <typename _ExecPolicy, typename _T, typename... _Events>
 using __enable_if_device_execution_policy =
-    ::std::enable_if_t<__is_device_execution_policy_v<_ExecPolicy> && __is_convertible_to_event<_Events...>, _T>;
+    ::std::enable_if_t<__is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> &&
+                           __is_convertible_to_event<_Events...>,
+                       _T>;
 
 template <typename _ExecPolicy, typename _T = void>
-using __enable_if_hetero_execution_policy = ::std::enable_if_t<__is_hetero_execution_policy_v<_ExecPolicy>, _T>;
+using __enable_if_hetero_execution_policy =
+    ::std::enable_if_t<__is_hetero_execution_policy_v<::std::decay_t<_ExecPolicy>>, _T>;
 
 template <typename _ExecPolicy, typename _T = void>
-using __enable_if_fpga_execution_policy = ::std::enable_if_t<__is_fpga_execution_policy_v<_ExecPolicy>, _T>;
+using __enable_if_fpga_execution_policy =
+    ::std::enable_if_t<__is_fpga_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
 template <typename _ExecPolicy, typename _T, typename _Op1, typename... _Events>
 using __enable_if_device_execution_policy_single_no_default =
-    ::std::enable_if_t<__is_device_execution_policy_v<_ExecPolicy> && !::std::is_convertible_v<_Op1, sycl::event> &&
+    ::std::enable_if_t<__is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> &&
+                           !::std::is_convertible_v<_Op1, sycl::event> &&
                            __is_convertible_to_event<_Events...>,
                        _T>;
 
 template <typename _ExecPolicy, typename _T, typename _Op1, typename _Op2, typename... _Events>
 using __enable_if_device_execution_policy_double_no_default =
-    ::std::enable_if_t<__is_device_execution_policy_v<_ExecPolicy> && !::std::is_convertible_v<_Op1, sycl::event> &&
-                           !::std::is_convertible_v<_Op2, sycl::event> && __is_convertible_to_event<_Events...>,
+    ::std::enable_if_t<__is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> &&
+                           !::std::is_convertible_v<_Op1, sycl::event> && !::std::is_convertible_v<_Op2, sycl::event> &&
+                           __is_convertible_to_event<_Events...>,
                        _T>;
 
 } // namespace __internal
