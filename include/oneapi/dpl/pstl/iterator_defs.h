@@ -71,7 +71,7 @@ struct __is_random_access_iterator_impl<_IteratorType,
 #else
 
 template <typename _IteratorType>
-struct __is_random_access_iterator_impl : std::bool_constant<std::random_access_iterator<_IteratorType>>
+struct __is_random_access_iterator_impl : __is_random_access_iterator_impl<_IteratorType>
 {
 };
 
