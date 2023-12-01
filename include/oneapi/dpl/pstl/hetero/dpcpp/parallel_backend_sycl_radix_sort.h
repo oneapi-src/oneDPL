@@ -62,7 +62,7 @@ __order_preserving_cast(_Int __val)
 {
     using _UInt = ::std::make_unsigned_t<_Int>;
     // mask: 100..0 for ascending, 011..1 for descending
-    constexpr _UInt __mask = (__is_ascending) ? 1 << ::std::numeric_limits<_Int>::digits : ~_UInt(0) >> 1;
+    constexpr _UInt __mask = (__is_ascending) ? _UInt(1) << ::std::numeric_limits<_Int>::digits : ~_UInt(0) >> 1;
     return __val ^ __mask;
 }
 
