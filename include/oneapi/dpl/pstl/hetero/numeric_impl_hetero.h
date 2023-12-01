@@ -156,8 +156,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
 
         using _Type = typename _InitType::__value_type;
 
-        auto __policy =
-            __par_backend_hetero::make_wrapped_policy<ExecutionPolicyWrapper>(::std::forward<_ExecutionPolicy>(__exec));
+        auto __policy = __exec.__make_wrapped_policy<ExecutionPolicyWrapper>();
         using _NewExecutionPolicy = decltype(__policy);
 
         // Create temporary buffer
@@ -243,8 +242,7 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
     if (__n == 1)
     {
         return __internal::__except_handler([&__exec, __first, __last, __d_first, __d_last, &__op]() {
-            auto __wrapped_policy = __par_backend_hetero::make_wrapped_policy<adjacent_difference_wrapper>(
-                ::std::forward<_ExecutionPolicy>(__exec));
+            auto __wrapped_policy = __exec.__make_wrapped_policy<adjacent_difference_wrapper>();
 
             __internal::__pattern_walk2_brick(__wrapped_policy, __first, __last, __d_first,
                                               __internal::__brick_copy<decltype(__wrapped_policy)>{},

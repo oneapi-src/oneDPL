@@ -137,7 +137,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
         temp[0] = init;
     }
 
-    auto policy1 = oneapi::dpl::__par_backend_hetero::make_wrapped_policy<ExclusiveScan1>(policy);
+    auto policy1 = policy.__make_wrapped_policy<ExclusiveScan1>();
 
     // TODO : add stencil form of replace_copy_if to oneDPL if the
     // transform call here is difficult to understand and maintain.
@@ -149,8 +149,7 @@ exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
                     ::std::negate<FlagType>(), init);
 #    endif
 
-    auto policy2 =
-        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<ExclusiveScan2>(::std::forward<Policy>(policy));
+    auto policy2 = policy.__make_wrapped_policy<ExclusiveScan2>();
 
     // scan key-flag tuples
     transform_inclusive_scan(::std::move(policy2), make_zip_iterator(_temp.get(), _flags.get()),
