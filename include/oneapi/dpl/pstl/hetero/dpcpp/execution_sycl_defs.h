@@ -77,6 +77,13 @@ class device_policy
         return ::std::true_type{};
     }
 
+    template <typename KernelName>
+    auto
+    __make_wrapped_policy() const
+    {
+        return device_policy<KernelName>(q);
+    }
+
   private:
     sycl::queue q;
 };
