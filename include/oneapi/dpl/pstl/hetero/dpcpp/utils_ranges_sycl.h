@@ -243,27 +243,6 @@ struct is_hetero<oneapi::dpl::__internal::sycl_iterator<Mode, Types...>> : ::std
 {
 };
 
-template <typename Iter>
-struct is_hetero<::std::reverse_iterator<Iter>> : is_hetero<Iter>
-{
-};
-
-template <typename Iter, typename Unary>
-struct is_hetero<oneapi::dpl::transform_iterator<Iter, Unary>> : is_hetero<Iter>
-{
-};
-
-template <typename SourceIterator, typename IndexIterator>
-struct is_hetero<oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>> 
-    : ::std::conjunction<is_hetero<SourceIterator>, is_hetero<IndexIterator>>
-{
-};
-
-template <typename... Iters>
-struct is_hetero<zip_iterator<Iters...>>: ::std::conjunction<is_hetero<Iters>...>
-{
-};
-
 //A trait for checking if it needs to create a temporary SYCL buffer or not
 
 template <typename _Iter, typename Void = void>
@@ -408,7 +387,7 @@ struct __get_sycl_range
             AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::write;
             
     //SFINAE iterator type checks
-    template<typename It, typename T = decltype(std::addressof(*It{}))>
+    template<typename It, typename T = decltype(std::addressof(*::std::declval<It&>()))>
     static constexpr std::true_type __test_addressof(int) { return {};}
     template<typename It>
     static constexpr std::false_type __test_addressof(...) { return {};}
@@ -519,6 +498,15 @@ struct __get_sycl_range
         auto rng = __get_permutation_view(__first.base(), __first.map(), __n);
 
         return __range_holder<decltype(rng)>{rng};
+    }
+
+    template <typename _Iter, typename _Map, ::std::enable_if_t<!is_hetero<_Iter>::value
+              && !is_passed_directly<_Iter>::value, int> = 0>
+    void
+    operator()(oneapi::dpl::permutation_iterator<_Iter, _Map>, oneapi::dpl::permutation_iterator<_Iter, _Map>)
+    {
+        static_assert(std::is_same_v<oneapi::dpl::permutation_iterator<_Iter, _Map>, void>,
+        "error: the iterator type is not suported with a hetero policy");
     }
 
     //specialization for permutation discard iterator
