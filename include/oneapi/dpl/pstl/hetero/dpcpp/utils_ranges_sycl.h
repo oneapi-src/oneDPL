@@ -409,6 +409,7 @@ struct __get_sycl_range
     auto
     gen_zip_view(_TupleType __t, _DiffType __n, ::std::index_sequence<_Ip...>)
     {
+        // Send each zipped iterator to `gen_view` which recursively calls __get_sycl_range() to process them.
         auto tmp = oneapi::dpl::__internal::make_tuple(gen_view(*this, ::std::get<_Ip>(__t), __n)...);
         return oneapi::dpl::__ranges::make_zip_view(::std::get<_Ip>(tmp).all_view()...);
     }
@@ -485,6 +486,7 @@ struct __get_sycl_range
 
         auto res_src = this->operator()(__first.base(), oneapi::dpl::end(__first.base().get_buffer()));
 
+        //_Map is handled by recursively calling __get_sycl_range() in __get_permutation_view.
         auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
 
         return __range_holder<decltype(rng)>{rng};
@@ -501,6 +503,7 @@ struct __get_sycl_range
         assert(__n > 0);
 
         // The size of the source range is unknown. So, just base iterator is passing to permutation_view
+        //_Map is handled by recursively calling __get_sycl_range() in __get_permutation_view.
         auto rng = __get_permutation_view(__first.base(), __first.map(), __n);
 
         return __range_holder<decltype(rng)>{rng};
@@ -512,7 +515,7 @@ struct __get_sycl_range
     operator()(oneapi::dpl::permutation_iterator<_Iter, _Map>, oneapi::dpl::permutation_iterator<_Iter, _Map>)
     {
         static_assert(std::is_same_v<oneapi::dpl::permutation_iterator<_Iter, _Map>, void>,
-        "error: the iterator type is not supported with a hetero policy");
+        "error: the iterator type is not supported with a device policy");
     }
 
     //specialization for permutation discard iterator
@@ -613,10 +616,10 @@ struct __get_sycl_range
             });
     }
 private:
-    //implememnation of operator()(_Iter __first, _Iter __last) for the host iterator types
-    template <typename _Iter, typename _GetBuffferFunc>
+    //implementation of operator()(_Iter __first, _Iter __last) for the host iterator types
+    template <typename _Iter, typename _GetBufferFunc>
     auto
-    __process_host_iter_impl(_Iter __first, _Iter __last, _GetBuffferFunc __get_buf)
+    __process_host_iter_impl(_Iter __first, _Iter __last, _GetBufferFunc __get_buf)
     {
         static_assert(!oneapi::dpl::__internal::is_const_iterator<_Iter>::value || AccMode == sycl::access::mode::read,
                       "Should be non-const iterator for a modifying algorithm.");

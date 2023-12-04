@@ -503,14 +503,14 @@ struct permutation_view_simple<_Source, _M, ::std::enable_if_t<oneapi::dpl::__in
 };
 
 //permutation view: specialization for a map view (a viewable range concept)
-//size of such view  is specified by size of the map view (permiutation range)
+//size of such view  is specified by size of the map view (permutation range)
 template <typename _Source, typename _M>
 struct permutation_view_simple<_Source, _M, ::std::enable_if_t<is_map_view<_M>::value>>
 {
     using value_type = oneapi::dpl::__internal::__value_t<_Source>;
 
     _Source __src; //Iterator (pointer) or unreachable range
-    _M __map;      //permiutation range
+    _M __map;      //permutation range
 
     permutation_view_simple(_Source __data, _M __m) : __src(__data), __map(__m) {}
 
