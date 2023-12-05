@@ -59,9 +59,12 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
 
     const _DeviceAddrT __io_offset = __data_per_work_item * __local_tid;
 
+    // Check the validity of the iterations spaces of the loops below
     static_assert(__data_per_work_item % __data_per_step == 0);
     static_assert(__bin_count % 128 == 0);
     static_assert(__bin_count % 32 == 0);
+
+    // 1. Load data from the global memory to registers.
     _ONEDPL_PRAGMA_UNROLL
     for (::std::uint32_t __s = 0; __s < __data_per_work_item; __s += __data_per_step)
     {
@@ -71,10 +74,14 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
                   __dpl_esimd::__ns::simd<_KeyT, __data_per_step>(__sort_identity<_KeyT, __is_ascending>()), __m);
     }
 
+    // 2. Sort each __radix_bits
     for (::std::uint32_t __stage = 0; __stage < __stage_count; __stage++)
     {
+        // TODO: consider storing the result of __order_preserving_cast outside of the loop.
         __bins = __get_bucket<__mask>(__order_preserving_cast<__is_ascending>(__keys), __stage * __radix_bits);
 
+        // 2.1 Calculate histogram for a work-item in __write_addr
+        // (each work-item processes a domain of __data_per_work_item elements)
         __bin_offset = 0;
         _ONEDPL_PRAGMA_UNROLL
         for (::std::uint32_t __s = 0; __s < __data_per_work_item; __s += 1)
@@ -83,14 +90,10 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
             __bin_offset[__bins[__s]] += 1;
         }
 
-        /*
-        first write to slm,
-        then do column scan by group, each thread to 32c*8r,
-        then last row do exclusive scan as incoming offset
-        then every thread add local sum with sum of previous group and incoming offset
-        */
         {
             __dpl_esimd::__ns::barrier();
+
+            // 2.2. Load work-item histograms into SLM.
             _ONEDPL_PRAGMA_UNROLL
             for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
             {
@@ -99,6 +102,8 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
                     __bin_offset.template select<128, 1>(__s).template bit_cast_view<::std::uint32_t>());
             }
             __dpl_esimd::__ns::barrier();
+
+            // 2.3. Vector scan of histograms previously accumulated by each work-item.
             constexpr ::std::uint32_t __bin_summary_group_size = 8;
             if (__local_tid < __bin_summary_group_size)
             {
@@ -108,6 +113,7 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
                 __dpl_esimd::__ns::simd<_HistT, __bin_width> ___thread_grf_hist_summary;
                 __dpl_esimd::__ns::simd<::std::uint32_t, __bin_width_ud> __tmp;
 
+                // 2.3.1 Vector scan of the same bins across different histograms.
                 ___thread_grf_hist_summary.template bit_cast_view<::std::uint32_t>() =
                     __dpl_esimd::__block_load_slm<::std::uint32_t, __bin_width_ud>(__slm_bin_hist_summary_offset);
                 __slm_bin_hist_summary_offset += __hist_stride;
@@ -119,6 +125,9 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
                         __slm_bin_hist_summary_offset, ___thread_grf_hist_summary.template bit_cast_view<::std::uint32_t>());
                     __slm_bin_hist_summary_offset += __hist_stride;
                 }
+
+                // 2.3.2 Vector scan of different bins inside one histogram, the final one for the whole work-group.
+                // Each work-item scans only "__bin_width" pieces of the histogram.
                 __tmp = __dpl_esimd::__block_load_slm<::std::uint32_t, __bin_width_ud>(__slm_bin_hist_summary_offset);
                 ___thread_grf_hist_summary += __tmp.template bit_cast_view<_HistT>();
                 ___thread_grf_hist_summary = __scan<_HistT, _HistT>(___thread_grf_hist_summary);
@@ -126,6 +135,9 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
                     __slm_bin_hist_summary_offset, ___thread_grf_hist_summary.template bit_cast_view<::std::uint32_t>());
             }
             __dpl_esimd::__ns::barrier();
+
+            // 2.3.3 One work-item finalizes scan performed at stage 2.3.2
+            // by propagating prefixes accumulated after scanning individual "__bin_width" pieces.
             if (__local_tid == 0)
             {
                 __dpl_esimd::__ns::simd<_HistT, __bin_count> __grf_hist_summary;
@@ -153,6 +165,9 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
                 }
             }
             __dpl_esimd::__ns::barrier();
+
+            // 2.4 Load a sum of global histogram and
+            // a histogram with accumulated ranks from the  previous work-items into __bin_offset
             {
                 _ONEDPL_PRAGMA_UNROLL
                 for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
@@ -175,6 +190,9 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
             __dpl_esimd::__ns::barrier();
         }
 
+        // 2.5. Load total offsets into __write_addr
+        // it will have all the offset components needed to determine an absolute position of each key:
+        // global offsets, previous work-item offsets and this work-item offsets.
         _ONEDPL_PRAGMA_UNROLL
         for (::std::uint32_t __s = 0; __s < __data_per_work_item; __s += __data_per_step)
         {
@@ -182,6 +200,7 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
             __write_addr.template select<__data_per_step, 1>(__s) += __bin_offset.template iselect(__bins_uw);
         }
 
+        // 2.6. Reorder keys in SLM.
         if (__stage != __stage_count - 1)
         {
             _ONEDPL_PRAGMA_UNROLL
@@ -195,6 +214,8 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
             __keys = __dpl_esimd::__block_load_slm<_KeyT, __data_per_work_item>(__slm_reorder_this_thread);
         }
     }
+
+    // 3. Load keys into the global memory.
     _ONEDPL_PRAGMA_UNROLL
     for (::std::uint32_t __s = 0; __s < __data_per_work_item; __s += __data_per_step)
     {
@@ -558,7 +579,7 @@ struct __radix_sort_onesweep_kernel
                                                         __grf_hist_summary_scan.template select<__bin_count, 1>());
             }
 
-            // 2. Chained scan.Synchronization between work-groups.
+            // 2. Chained scan. Synchronization between work-groups.
             else if (__local_tid < __bin_summary_group_size)
             {
                 __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> __prev_group_hist_sum(0), __prev_group_hist;
