@@ -365,7 +365,7 @@ if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
         # target_link_libraries(oneDPL INTERFACE ${FSYCL_PSTL_OFFLOAD_OPTION})
 
         target_include_directories(oneDPL INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/pstl_offload)
-        target_compile_options(oneDPL INTERFACE "-D__SYCL_PSTL_OFFLOAD__=cpu")
+        target_compile_options(oneDPL INTERFACE "-D__SYCL_PSTL_OFFLOAD__=2")
 
         message(STATUS "tmp enable manually")
     else()
