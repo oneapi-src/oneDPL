@@ -89,106 +89,101 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
             __write_addr[__s] = __bin_offset[__bins[__s]];
             __bin_offset[__bins[__s]] += 1;
         }
+        __dpl_esimd::__ns::barrier();
 
+        // 2.2. Load work-item histograms into SLM.
+        _ONEDPL_PRAGMA_UNROLL
+        for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
         {
-            __dpl_esimd::__ns::barrier();
+            __dpl_esimd::__block_store_slm<::std::uint32_t, 64>(
+                __slm_bin_hist_this_thread + __s * sizeof(_HistT),
+                __bin_offset.template select<128, 1>(__s).template bit_cast_view<::std::uint32_t>());
+        }
+        __dpl_esimd::__ns::barrier();
 
-            // 2.2. Load work-item histograms into SLM.
+        // 2.3. Vector scan of histograms previously accumulated by each work-item.
+        constexpr ::std::uint32_t __bin_summary_group_size = 8;
+        if (__local_tid < __bin_summary_group_size)
+        {
+            constexpr ::std::uint32_t __bin_width = __bin_count / __bin_summary_group_size;
+            constexpr ::std::uint32_t __bin_width_ud = __bin_width * sizeof(_HistT) / sizeof(::std::uint32_t);
+            ::std::uint32_t __slm_bin_hist_summary_offset = __local_tid * __bin_width * sizeof(_HistT);
+            __dpl_esimd::__ns::simd<_HistT, __bin_width> ___thread_grf_hist_summary;
+            __dpl_esimd::__ns::simd<::std::uint32_t, __bin_width_ud> __tmp;
+
+            // 2.3.1 Vector scan of the same bins across different histograms.
+            ___thread_grf_hist_summary.template bit_cast_view<::std::uint32_t>() =
+                __dpl_esimd::__block_load_slm<::std::uint32_t, __bin_width_ud>(__slm_bin_hist_summary_offset);
+            __slm_bin_hist_summary_offset += __hist_stride;
+            for (::std::uint32_t __s = 1; __s < __work_group_size - 1; __s++)
+            {
+                __tmp = __dpl_esimd::__block_load_slm<::std::uint32_t, __bin_width_ud>(__slm_bin_hist_summary_offset);
+                ___thread_grf_hist_summary += __tmp.template bit_cast_view<_HistT>();
+                __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width_ud>(
+                    __slm_bin_hist_summary_offset, ___thread_grf_hist_summary.template bit_cast_view<::std::uint32_t>());
+                __slm_bin_hist_summary_offset += __hist_stride;
+            }
+
+            // 2.3.2 Vector scan of different bins inside one histogram, the final one for the whole work-group.
+            // Each work-item scans only "__bin_width" pieces of the histogram.
+            __tmp = __dpl_esimd::__block_load_slm<::std::uint32_t, __bin_width_ud>(__slm_bin_hist_summary_offset);
+            ___thread_grf_hist_summary += __tmp.template bit_cast_view<_HistT>();
+            ___thread_grf_hist_summary = __scan<_HistT, _HistT>(___thread_grf_hist_summary);
+            __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width_ud>(
+                __slm_bin_hist_summary_offset, ___thread_grf_hist_summary.template bit_cast_view<::std::uint32_t>());
+        }
+        __dpl_esimd::__ns::barrier();
+
+        // 2.3.3 One work-item finalizes scan performed at stage 2.3.2
+        // by propagating prefixes accumulated after scanning individual "__bin_width" pieces.
+        if (__local_tid == 0)
+        {
+            __dpl_esimd::__ns::simd<_HistT, __bin_count> __grf_hist_summary;
+            __dpl_esimd::__ns::simd<_HistT, __bin_count + 1> __grf_hist_summary_scan;
+            _ONEDPL_PRAGMA_UNROLL
+            for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
+            {
+                __grf_hist_summary.template select<128, 1>(__s).template bit_cast_view<::std::uint32_t>() =
+                    __dpl_esimd::__block_load_slm<::std::uint32_t, 64>((__work_group_size - 1) * __hist_stride + __s * sizeof(_HistT));
+            }
+            __grf_hist_summary_scan[0] = 0;
+            __grf_hist_summary_scan.template select<32, 1>(1) = __grf_hist_summary.template select<32, 1>(0);
+            _ONEDPL_PRAGMA_UNROLL
+            for (::std::uint32_t __i = 32; __i < __bin_count; __i += 32)
+            {
+                __grf_hist_summary_scan.template select<32, 1>(__i + 1) =
+                    __grf_hist_summary.template select<32, 1>(__i) + __grf_hist_summary_scan[__i];
+            }
             _ONEDPL_PRAGMA_UNROLL
             for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
             {
                 __dpl_esimd::__block_store_slm<::std::uint32_t, 64>(
-                    __slm_bin_hist_this_thread + __s * sizeof(_HistT),
-                    __bin_offset.template select<128, 1>(__s).template bit_cast_view<::std::uint32_t>());
+                    __bin_hist_slm_size + __s * sizeof(_HistT),
+                    __grf_hist_summary_scan.template select<128, 1>(__s).template bit_cast_view<::std::uint32_t>());
             }
-            __dpl_esimd::__ns::barrier();
-
-            // 2.3. Vector scan of histograms previously accumulated by each work-item.
-            constexpr ::std::uint32_t __bin_summary_group_size = 8;
-            if (__local_tid < __bin_summary_group_size)
-            {
-                constexpr ::std::uint32_t __bin_width = __bin_count / __bin_summary_group_size;
-                constexpr ::std::uint32_t __bin_width_ud = __bin_width * sizeof(_HistT) / sizeof(::std::uint32_t);
-                ::std::uint32_t __slm_bin_hist_summary_offset = __local_tid * __bin_width * sizeof(_HistT);
-                __dpl_esimd::__ns::simd<_HistT, __bin_width> ___thread_grf_hist_summary;
-                __dpl_esimd::__ns::simd<::std::uint32_t, __bin_width_ud> __tmp;
-
-                // 2.3.1 Vector scan of the same bins across different histograms.
-                ___thread_grf_hist_summary.template bit_cast_view<::std::uint32_t>() =
-                    __dpl_esimd::__block_load_slm<::std::uint32_t, __bin_width_ud>(__slm_bin_hist_summary_offset);
-                __slm_bin_hist_summary_offset += __hist_stride;
-                for (::std::uint32_t __s = 1; __s < __work_group_size - 1; __s++)
-                {
-                    __tmp = __dpl_esimd::__block_load_slm<::std::uint32_t, __bin_width_ud>(__slm_bin_hist_summary_offset);
-                    ___thread_grf_hist_summary += __tmp.template bit_cast_view<_HistT>();
-                    __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width_ud>(
-                        __slm_bin_hist_summary_offset, ___thread_grf_hist_summary.template bit_cast_view<::std::uint32_t>());
-                    __slm_bin_hist_summary_offset += __hist_stride;
-                }
-
-                // 2.3.2 Vector scan of different bins inside one histogram, the final one for the whole work-group.
-                // Each work-item scans only "__bin_width" pieces of the histogram.
-                __tmp = __dpl_esimd::__block_load_slm<::std::uint32_t, __bin_width_ud>(__slm_bin_hist_summary_offset);
-                ___thread_grf_hist_summary += __tmp.template bit_cast_view<_HistT>();
-                ___thread_grf_hist_summary = __scan<_HistT, _HistT>(___thread_grf_hist_summary);
-                __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width_ud>(
-                    __slm_bin_hist_summary_offset, ___thread_grf_hist_summary.template bit_cast_view<::std::uint32_t>());
-            }
-            __dpl_esimd::__ns::barrier();
-
-            // 2.3.3 One work-item finalizes scan performed at stage 2.3.2
-            // by propagating prefixes accumulated after scanning individual "__bin_width" pieces.
-            if (__local_tid == 0)
-            {
-                __dpl_esimd::__ns::simd<_HistT, __bin_count> __grf_hist_summary;
-                __dpl_esimd::__ns::simd<_HistT, __bin_count + 1> __grf_hist_summary_scan;
-                _ONEDPL_PRAGMA_UNROLL
-                for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
-                {
-                    __grf_hist_summary.template select<128, 1>(__s).template bit_cast_view<::std::uint32_t>() =
-                        __dpl_esimd::__block_load_slm<::std::uint32_t, 64>((__work_group_size - 1) * __hist_stride + __s * sizeof(_HistT));
-                }
-                __grf_hist_summary_scan[0] = 0;
-                __grf_hist_summary_scan.template select<32, 1>(1) = __grf_hist_summary.template select<32, 1>(0);
-                _ONEDPL_PRAGMA_UNROLL
-                for (::std::uint32_t __i = 32; __i < __bin_count; __i += 32)
-                {
-                    __grf_hist_summary_scan.template select<32, 1>(__i + 1) =
-                        __grf_hist_summary.template select<32, 1>(__i) + __grf_hist_summary_scan[__i];
-                }
-                _ONEDPL_PRAGMA_UNROLL
-                for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
-                {
-                    __dpl_esimd::__block_store_slm<::std::uint32_t, 64>(
-                        __bin_hist_slm_size + __s * sizeof(_HistT),
-                        __grf_hist_summary_scan.template select<128, 1>(__s).template bit_cast_view<::std::uint32_t>());
-                }
-            }
-            __dpl_esimd::__ns::barrier();
-
-            // 2.4 Load a sum of global histogram and
-            // a histogram with accumulated ranks from the  previous work-items into __bin_offset
-            {
-                _ONEDPL_PRAGMA_UNROLL
-                for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
-                {
-                    __bin_offset.template select<128, 1>(__s).template bit_cast_view<::std::uint32_t>() =
-                        __dpl_esimd::__block_load_slm<::std::uint32_t, 64>(__bin_hist_slm_size + __s * sizeof(_HistT));
-                }
-                if (__local_tid > 0)
-                {
-                    _ONEDPL_PRAGMA_UNROLL
-                    for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
-                    {
-                        __dpl_esimd::__ns::simd<_HistT, 128> __group_local_sum;
-                        __group_local_sum.template bit_cast_view<::std::uint32_t>() =
-                            __dpl_esimd::__block_load_slm<::std::uint32_t, 64>((__local_tid - 1) * __hist_stride + __s * sizeof(_HistT));
-                        __bin_offset.template select<128, 1>(__s) += __group_local_sum;
-                    }
-                }
-            }
-            __dpl_esimd::__ns::barrier();
         }
+        __dpl_esimd::__ns::barrier();
+
+        // 2.4 Load a sum of global histogram and
+        // a histogram with accumulated ranks from the  previous work-items into __bin_offset
+        _ONEDPL_PRAGMA_UNROLL
+        for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
+        {
+            __bin_offset.template select<128, 1>(__s).template bit_cast_view<::std::uint32_t>() =
+                __dpl_esimd::__block_load_slm<::std::uint32_t, 64>(__bin_hist_slm_size + __s * sizeof(_HistT));
+        }
+        if (__local_tid > 0)
+        {
+            _ONEDPL_PRAGMA_UNROLL
+            for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
+            {
+                __dpl_esimd::__ns::simd<_HistT, 128> __group_local_sum;
+                __group_local_sum.template bit_cast_view<::std::uint32_t>() =
+                    __dpl_esimd::__block_load_slm<::std::uint32_t, 64>((__local_tid - 1) * __hist_stride + __s * sizeof(_HistT));
+                __bin_offset.template select<128, 1>(__s) += __group_local_sum;
+            }
+        }
+        __dpl_esimd::__ns::barrier();
 
         // 2.5. Load total offsets into __write_addr
         // it will have all the offset components needed to determine an absolute position of each key:
