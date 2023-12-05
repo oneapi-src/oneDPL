@@ -719,26 +719,6 @@ single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InItera
     }
 }
 
-// Load function to try and get some PVC perf w/ coalesced
-template <typename Tp, typename _InRange>
-inline Tp load(sycl::sub_group sg, _InRange src, size_t i, size_t wg_stride, size_t tile_id) {
-    // if constexpr (std::is_arithmetic_v<Tp>) {
-    //   return sg.load(src.begin() + i / SUBGROUP_SIZE + wg_stride * tile_id);
-    // } 
-    return src[i + wg_stride * tile_id];
-}
-
-// Load with checking for the subgroup case
-template <typename Tp, typename _InRange>
-inline Tp load(sycl::sub_group sg, _InRange src, size_t i, size_t wg_stride, size_t tile_id, size_t input_size) {
-    // if constexpr (std::is_arithmetic_v<Tp>) {
-      // if (i / SUBGROUP_SIZE + SUBGROUP_SIZE + wg_stride * tile_id <= input_size) 
-        // return sg.load(src.begin() + i / SUBGROUP_SIZE + wg_stride * tile_id);
-      // return src[i + wg_stride * tile_id];
-    // } 
-    return src[i + wg_stride * tile_id];
-}
-
 template <typename _KernelParam, typename _UseAtomic64, typename _UseDynamicTileID, typename _InRange, typename _OutRange, typename _NumSelectedRange, typename _UnaryPredicate>
 void
 single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _NumSelectedRange __num_rng, _UnaryPredicate pred)
@@ -829,7 +809,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
             if ((tile_id + 1) * elems_in_tile <= n) {
               #pragma unroll
               for (size_t i = wg_local_id; i < elems_in_tile; i += wgsize) {
-                _Type val = load<_Type>(sg, __in_rng, i, elems_in_tile, tile_id);
+                _Type val = __in_rng[i + elems_in_tile * tile_id];
 
                 _SizeT satisfies_pred = pred(val);
                 _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count, sycl::plus<_SizeT>());
@@ -847,7 +827,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
                 _SizeT satisfies_pred = 0;
                 _Type val; // TODO: alloca
                 if (i + elems_in_tile * tile_id < n) {
-                  val = load<_Type>(sg, __in_rng, i, elems_in_tile, tile_id, n);
+                  val = __in_rng[i + elems_in_tile * tile_id];
 
                   satisfies_pred = pred(val);
                 }
@@ -882,7 +862,6 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
  
             // Phase 3: copy values to global memory
             for (int i = wg_local_id; i < wg_count; i += wgsize) {
-                // Probably adjust method to try and get some perf on PVC for arithmetic types using sg.store
                 __out_rng[start_idx + i] = wg_copy_if_values[i];
             }
             if (tile_id == (num_wgs - 1) && group.leader())
