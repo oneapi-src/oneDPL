@@ -79,22 +79,9 @@ struct SyclTypeWrapper
     T __value;
 
     explicit SyclTypeWrapper(const T& value = T{4}) : __value(value) {}
+    ~SyclTypeWrapper() { __value = -2; }
     bool
     operator==(const SyclTypeWrapper& other) const
-    {
-        return __value == other.__value;
-    }
-};
-
-template <typename T>
-struct SyclTypeWrapperD
-{
-    T __value;
-
-    explicit SyclTypeWrapperD(const T& value = T{4}) : __value(value) {}
-    ~SyclTypeWrapperD() { __value = -2; }
-    bool
-    operator==(const SyclTypeWrapperD& other) const
     {
         return __value == other.__value;
     }
@@ -256,25 +243,9 @@ DEFINE_TEST(test_uninitialized_value_construct_n)
     }
 };
 
-template <typename Iterator>
-using __it_test_type = decltype(dpl::begin(::std::declval<sycl::buffer<typename std::iterator_traits<Iterator>::value_type>>()));
-
 DEFINE_TEST(test_destroy)
 {
     DEFINE_TEST_CONSTRUCTOR(test_destroy)
-
-    template <typename Policy, typename Iterator1, typename Size>
-    void
-    operator()(Policy&& exec, __it_test_type<Iterator1> first1, __it_test_type<Iterator1> last1, Size n)
-    {
-	if constexpr (std::is_trivially_copyable_v<TestValueType>)
-            this->operator()(exec, first1, last1, n);
-        else
-        {
-        //no op for hetero iterator due to sycl::buffer with non-trivially copyable type is not device copyable;
-        //see SYCL spec for more details.
-        }
-    }
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -302,20 +273,6 @@ DEFINE_TEST(test_destroy)
 DEFINE_TEST(test_destroy_n)
 {
     DEFINE_TEST_CONSTRUCTOR(test_destroy_n)
-
-
-    template <typename Policy, typename Iterator1, typename Size>
-    void
-    operator()(Policy&&, __it_test_type<Iterator1>, __it_test_type<Iterator1>, Size)
-    {
-        if constexpr (std::is_trivially_copyable_v<TestValueType>)
-            this->operator()(exec, first1, last1, n);
-        else
-        {
-        //no op for hetero iterator due to sycl::buffer with non-trivially copyable type is not device copyable;
-        //see SYCL spec for more details.
-        }
-    }
 
     template <typename Policy, typename Iterator1, typename Size>
     void
@@ -1073,12 +1030,16 @@ DEFINE_TEST(test_adjacent_difference)
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
+
+using ValueType = ::std::int32_t;
+
+template<>
+struct sycl::is_device_copyable<SyclTypeWrapper<ValueType>> : std::true_type {};
+
 template <sycl::usm::alloc alloc_type>
 void
 test_usm_and_buffer()
 {
-    using ValueType = ::std::int32_t;
-
     // test1buffer
     PRINT_DEBUG("test_for_each");
     test1buffer<alloc_type, test_for_each<ValueType>>();
@@ -1113,9 +1074,9 @@ test_usm_and_buffer()
     PRINT_DEBUG("test_uninitialized_value_construct_n");
     test1buffer<alloc_type, test_uninitialized_value_construct_n<ValueType>>();
     PRINT_DEBUG("test_destroy");
-    test1buffer<alloc_type, test_destroy<SyclTypeWrapperD<ValueType>>>();
+    test1buffer<alloc_type, test_destroy<SyclTypeWrapper<ValueType>>>();
     PRINT_DEBUG("test_destroy_n");
-    test1buffer<alloc_type, test_destroy_n<SyclTypeWrapperD<ValueType>>>();
+    test1buffer<alloc_type, test_destroy_n<SyclTypeWrapper<ValueType>>>();
     test1buffer<alloc_type, test_destroy_n<ValueType>>();
 
     //test2buffers
