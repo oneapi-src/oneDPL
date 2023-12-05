@@ -285,7 +285,7 @@ jobs:
             -D_ONEDPL_PSTL_OFFLOAD=$device_type ..
 
           make pstloffload
-          source vars.sh
+          № source vars.sh
           export SYCL_PI_TRACE=1
 
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
