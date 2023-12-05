@@ -789,11 +789,9 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
         });
 
     auto event = __queue.submit([&](sycl::handler& hdl) {
-        auto wg_copy_if_values = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_per_workitem*wgsize}, hdl);
-        auto l_wg_count = sycl::local_accessor<size_t, 1>(sycl::range<1>{1}, hdl);
+        auto wg_copy_if_values = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_in_tile}, hdl);
 
         auto tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, hdl);
-        auto tile_vals = sycl::local_accessor<_SizeT, 1>(sycl::range<1>{elems_in_tile}, hdl);
         hdl.depends_on(fill_event);
 
         oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng, __num_rng);
@@ -825,11 +823,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
             auto wg_current_offset = (tile_id * elems_in_tile);
             auto wg_local_memory_size = elems_in_tile;
 
-            // Must be a better way to init atomics
-            l_wg_count[0] = 0;
-            sycl::group_barrier(group);
-            sycl::atomic_ref<_SizeT, sycl::memory_order::acq_rel, sycl::memory_scope::work_group, sycl::access::address_space::local_space> wg_count(l_wg_count[0]);
-            sycl::group_barrier(group);
+            _SizeT wg_count = 0;
 
             // Phase 1: Create wg_count and construct in-order wg_copy_if_values
             if ((tile_id + 1) * elems_in_tile <= n) {
@@ -838,14 +832,12 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
                 _Type val = load<_Type>(sg, __in_rng, i, elems_in_tile, tile_id);
 
                 _SizeT satisfies_pred = pred(val);
-                _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, sycl::plus<_SizeT>());
+                _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count, sycl::plus<_SizeT>());
 
                 if (satisfies_pred)
-                  wg_copy_if_values[count + wg_count.load()] = val;
+                  wg_copy_if_values[count] = val;
 
-                if (wg_local_id == (wgsize - 1))
-                  wg_count += (count + satisfies_pred);
-                sycl::group_barrier(group);
+                wg_count = sycl::group_broadcast(group, count + satisfies_pred, wgsize - 1);
               }
             } else {
               // Edge of input, have to handle memory bounds
@@ -859,20 +851,16 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
 
                   satisfies_pred = pred(val);
                 }
-                _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, sycl::plus<_SizeT>());
+                _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count, sycl::plus<_SizeT>());
 
                 if (satisfies_pred)
-                  wg_copy_if_values[count + wg_count.load()] = val;
+                  wg_copy_if_values[count] = val;
 
-                if (wg_local_id == (wgsize - 1))
-                  wg_count += (count + satisfies_pred);
-                sycl::group_barrier(group);
+                wg_count = sycl::group_broadcast(group, count + satisfies_pred, wgsize - 1);
               }
             }
 
             // Phase 2: Global scan across wg_count
-            _SizeT local_sum = wg_count.load();
-            _SizeT* in_begin = tile_vals.get_pointer();
             _SizeT prev_sum = 0;
 
             // The first sub-group will query the previous tiles to find a prefix
@@ -881,24 +869,24 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
                 _LookbackScanMemory scan_mem(scan_memory_begin, num_wgs);
 
                 if (group.leader())
-                    scan_mem.set_partial(tile_id, local_sum);
+                    scan_mem.set_partial(tile_id, wg_count);
 
                 // Find lowest work-item that has a full result (if any) and sum up subsequent partial results to obtain this tile's exclusive sum
                 prev_sum = cooperative_lookback()(tile_id, sg, sycl::plus<_SizeT>(), scan_mem);
 
                 if (group.leader())
-                    scan_mem.set_full(tile_id, prev_sum + local_sum);
+                    scan_mem.set_full(tile_id, prev_sum + wg_count);
             }
 
             _SizeT start_idx = sycl::group_broadcast(group, prev_sum, 0);
  
             // Phase 3: copy values to global memory
-            for (int i = wg_local_id; i < local_sum; i += wgsize) {
+            for (int i = wg_local_id; i < wg_count; i += wgsize) {
                 // Probably adjust method to try and get some perf on PVC for arithmetic types using sg.store
                 __out_rng[start_idx + i] = wg_copy_if_values[i];
             }
             if (tile_id == (num_wgs - 1) && group.leader())
-                __num_rng[0] = start_idx + local_sum;
+                __num_rng[0] = start_idx + wg_count;
         });
     });
     event.wait();
