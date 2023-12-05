@@ -293,10 +293,10 @@
 
 //'present' macros
 // shift_left, shift_right; GCC 10; VS 2019 16.1
-#define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                         \
+#define _ONEDPL_CPP20_SHIFT_LEFT_RIGHT_PRESENT                                                                     \
     (_ONEDPL___cplusplus >= 202002L && (_MSC_VER >= 1921 || _GLIBCXX_RELEASE >= 10))
 
-#define _ONEDPL_CPP20_ITERATOR_CONCEPTS_PRESENT
+#define _ONEDPL_CPP20_ITERATOR_CONCEPTS_PRESENT \
     (_ONEDPL___cplusplus >= 202202L && (_LIBCPP_VERSION >= 13000 || MSC_VER >= 1930)) || \
     (_ONEDPL___cplusplus >= 201709L && _GLIBCXX_RELEASE >= 10)
 

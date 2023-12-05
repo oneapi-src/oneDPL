@@ -19,6 +19,7 @@
 #include <iterator>
 #include <type_traits>
 #include "utils.h"
+#include "onedpl_config.h"
 
 namespace oneapi
 {
@@ -73,7 +74,7 @@ struct __is_random_access_iterator_impl<_IteratorType,
 template <typename _IteratorType, typename... _OtherIteratorTypes>
 struct __is_random_access_iterator
     : ::std::conjunction<__is_random_access_iterator_impl<_IteratorType>,
-                         __is_random_access_iterator_impl<OtherIteratorTypes>...>
+                         __is_random_access_iterator_impl<_OtherIteratorTypes>...>
 {
 };
 

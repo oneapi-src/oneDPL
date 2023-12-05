@@ -289,6 +289,36 @@ struct __copy_assignable_holder<_Tp, false> : oneapi::dpl::__internal::__value_h
     operator=(__copy_assignable_holder&& other) = default;
 };
 
+template <typename _TupleFrom, typename _TupleTo, ::std::size_t... _Idx>
+auto __elems_move_convertible(::std::index_sequence<_Idx...>)
+{
+    return ::std::conjunction<::std::is_constructible<::std::tuple_element_t<_Idx, _TupleTo>,
+                                                      decltype(::std::declval<_TupleFrom&&>().template get<_Idx>())>...>{};
+}
+
+template <typename _TupleFrom, typename _TupleTo>
+constexpr auto __converting_move_constraint_func()
+{
+    constexpr ::std::size_t __tuple_size = ::std::tuple_size_v<_TupleFrom>;
+    if constexpr (__tuple_size != ::std::tuple_size_v<_TupleTo>)
+    {
+        return std::false_type{};
+    }
+    else if constexpr (__tuple_size == 0)
+    {
+        return std::true_type{};
+    }
+    else
+    {
+        return __elems_move_convertible<_TupleFrom, _TupleTo>(::std::make_index_sequence<__tuple_size>());
+    }
+}
+
+template <typename _TupleFrom, typename _TupleTo>
+struct __converting_move_constraint : decltype(__converting_move_constraint_func<_TupleFrom, _TupleTo>())
+{
+};
+
 template <typename T1, typename... T>
 struct tuple<T1, T...>
 {
@@ -328,12 +358,16 @@ struct tuple<T1, T...>
     tuple() = default;
     tuple(const tuple& other) = default;
     tuple(tuple&& other) = default;
-    template <typename _U1, typename... _U, typename = ::std::enable_if_t<(sizeof...(_U) == sizeof...(T))>>
+    template <typename _U1, typename... _U,
+              typename = ::std::enable_if_t<(sizeof...(_U) == sizeof...(T)) &&
+                                            std::is_constructible_v<T1, _U1> &&
+                                            (std::is_constructible_v<T, _U> && ...)>>
     tuple(const tuple<_U1, _U...>& other) : holder(other.template get<0>()), next(other.next)
     {
     }
 
-    template <typename _U1, typename... _U, typename = ::std::enable_if_t<(sizeof...(_U) == sizeof...(T))>>
+    template <typename _U1, typename... _U,
+              typename = ::std::enable_if_t<__converting_move_constraint<tuple<_U1, _U...>, tuple>::value>>
     tuple(tuple<_U1, _U...>&& other) : holder(std::move(other).template get<0>()), next(std::move(other.next))
     {
     }
