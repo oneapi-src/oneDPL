@@ -290,8 +290,11 @@ jobs:
 
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
 
+          icpx_path=`which icpx`
+          ls ${icpx_path}/../lib
+
           # ctest --timeout ${TEST_TIMEOUT} --output-on-failure -R ${ctest_regex}
-          strace -f ./test/empty_test_pstl_offload.pass
+          # strace -f ./test/empty_test_pstl_offload.pass
 
   windows-testing:
     name: ${{ matrix.device_type }},bknd=${{ matrix.backend }},cmplr=${{ matrix.cxx_compiler }},${{ matrix.os }},std=c++${{ matrix.std }},cfg=${{ matrix.build_type }}
