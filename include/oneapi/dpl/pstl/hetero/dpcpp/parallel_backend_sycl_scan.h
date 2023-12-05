@@ -744,8 +744,9 @@ void
 single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _NumSelectedRange __num_rng, _UnaryPredicate pred)
 {
     using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _SizeT = uint64_t;
     using _TileIdT = TileId::_TileIdT;
-    using _LookbackScanMemory = LookbackScanMemory<_Type, _UseAtomic64>;
+    using _LookbackScanMemory = LookbackScanMemory<_SizeT, _UseAtomic64>;
     using _FlagT = typename _LookbackScanMemory::_FlagT;
 
     const ::std::size_t n = __in_rng.size();
@@ -758,7 +759,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     ::std::size_t num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(n, elems_in_tile);
     ::std::size_t num_workitems = num_wgs * wgsize;
 
-    ScanMemoryManager<_Type, _UseAtomic64, LookbackScanMemory, TileId> scratch(__queue);
+    ScanMemoryManager<_SizeT, _UseAtomic64, LookbackScanMemory, TileId> scratch(__queue);
     scratch.allocate(num_wgs);
 
     // Memory Structure:
@@ -792,7 +793,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
         auto l_wg_count = sycl::local_accessor<size_t, 1>(sycl::range<1>{1}, hdl);
 
         auto tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, hdl);
-        auto tile_vals = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_in_tile}, hdl);
+        auto tile_vals = sycl::local_accessor<_SizeT, 1>(sycl::range<1>{elems_in_tile}, hdl);
         hdl.depends_on(fill_event);
 
         oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng, __num_rng);
@@ -827,7 +828,8 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
             // Must be a better way to init atomics
             l_wg_count[0] = 0;
             sycl::group_barrier(group);
-            sycl::atomic_ref<size_t, sycl::memory_order::acq_rel, sycl::memory_scope::work_group, sycl::access::address_space::local_space> wg_count(l_wg_count[0]);
+            sycl::atomic_ref<_SizeT, sycl::memory_order::acq_rel, sycl::memory_scope::work_group, sycl::access::address_space::local_space> wg_count(l_wg_count[0]);
+            sycl::group_barrier(group);
 
             // Phase 1: Create wg_count and construct in-order wg_copy_if_values
             if ((tile_id + 1) * elems_in_tile <= n) {
@@ -835,9 +837,8 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
               for (size_t i = wg_local_id; i < elems_in_tile; i += wgsize) {
                 _Type val = load<_Type>(sg, __in_rng, i, elems_in_tile, tile_id);
 
-                size_t satisfies_pred = pred(val);
-                //size_t satisfies_pred = 0;
-                size_t count = sycl::exclusive_scan_over_group(group, satisfies_pred, sycl::plus<size_t>());
+                _SizeT satisfies_pred = pred(val);
+                _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, sycl::plus<_SizeT>());
 
                 if (satisfies_pred)
                   wg_copy_if_values[count + wg_count.load()] = val;
@@ -851,14 +852,14 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
               // Might have unneccessary group_barrier calls
               #pragma unroll
               for (size_t i = wg_local_id; i < elems_in_tile; i += wgsize) {
-                size_t satisfies_pred = 0;
+                _SizeT satisfies_pred = 0;
                 _Type val; // TODO: alloca
                 if (i + elems_in_tile * tile_id < n) {
                   val = load<_Type>(sg, __in_rng, i, elems_in_tile, tile_id, n);
 
                   satisfies_pred = pred(val);
                 }
-                size_t count = sycl::exclusive_scan_over_group(group, satisfies_pred, sycl::plus<size_t>());
+                _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, sycl::plus<_SizeT>());
 
                 if (satisfies_pred)
                   wg_copy_if_values[count + wg_count.load()] = val;
@@ -870,9 +871,9 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
             }
 
             // Phase 2: Global scan across wg_count
-            auto local_sum = wg_count.load();
-            auto in_begin = tile_vals.get_pointer();
-            size_t prev_sum = 0;
+            _SizeT local_sum = wg_count.load();
+            _SizeT* in_begin = tile_vals.get_pointer();
+            _SizeT prev_sum = 0;
 
             // The first sub-group will query the previous tiles to find a prefix
             if (sg.get_group_id() == 0)
@@ -883,13 +884,13 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
                     scan_mem.set_partial(tile_id, local_sum);
 
                 // Find lowest work-item that has a full result (if any) and sum up subsequent partial results to obtain this tile's exclusive sum
-                prev_sum = cooperative_lookback()(tile_id, sg, sycl::plus<_Type>(), scan_mem);
+                prev_sum = cooperative_lookback()(tile_id, sg, sycl::plus<_SizeT>(), scan_mem);
 
                 if (group.leader())
                     scan_mem.set_full(tile_id, prev_sum + local_sum);
             }
 
-            size_t start_idx = sycl::group_broadcast(group, prev_sum, 0);
+            _SizeT start_idx = sycl::group_broadcast(group, prev_sum, 0);
  
             // Phase 3: copy values to global memory
             for (int i = wg_local_id; i < local_sum; i += wgsize) {
