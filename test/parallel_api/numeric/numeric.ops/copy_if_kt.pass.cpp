@@ -84,11 +84,11 @@ bool test(Predicate pred, Generator gen)
         sycl::free(out_num, q);
     }
 
-    return !all_passed;
+    return all_passed;
 }
 
 int main() {
-    bool all_passed;
+    bool all_passed = true;
     all_passed &= test<float64_t>([](const float64_t& x) { return x * x <= 1024; }, [](size_t j) { return ((j + 1) % 7 & 2) != 0 ? float64_t(j % 32) : float64_t(j % 33 + 34); });
     all_passed &= test<int>([](const int&) { return true; }, [](size_t j) { return j; });
     all_passed &= test<std::int32_t>([](const std::int32_t& x) { return x != 42; }, [](size_t j) { return ((j + 1) % 5 & 2) != 0 ? std::int32_t(j + 1) : 42; });
