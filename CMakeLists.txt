@@ -363,7 +363,11 @@ if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
         message(STATUS "Adding ${FSYCL_PSTL_OFFLOAD_OPTION} compiler option")
         # target_compile_options(oneDPL INTERFACE ${FSYCL_PSTL_OFFLOAD_OPTION})
         # target_link_libraries(oneDPL INTERFACE ${FSYCL_PSTL_OFFLOAD_OPTION})
-        message(STATUS "tmp disable")
+
+        target_include_directories(oneDPL INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/pstl_offload)
+        target_compile_options(oneDPL INTERFACE "-D__SYCL_PSTL_OFFLOAD__=cpu")
+
+        message(STATUS "tmp enable manually")
     else()
         # TODO: remove this "manual" -fsycl-pstl-offload suboption substitution and replace with FATAL_ERROR
         # message(FATAL_ERROR "${CMAKE_CXX_COMPILER} doesn't support ${FSYCL_PSTL_OFFLOAD_OPTION}")
