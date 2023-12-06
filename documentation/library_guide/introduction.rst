@@ -138,6 +138,10 @@ Known Limitations
   the dereferenced value type of the provided iterators should satisfy the ``DefaultConstructible`` requirements.
 * For ``remove``, ``remove_if``, ``unique`` the dereferenced value type of the provided
   iterators should be ``MoveConstructible``.
+* The algorithms which process an uninitialized storage: ``uninitialized_copy``, ``uninitialized_copy_n``, ``uninitialized_fill``, ``uninitialized_fill_n``, ``uninitialized_fill_n``, ``uninitialized_move``, ``uninitialized_move_n``, ``uninitialized_default_construct``, ``uninitialized_default_construct_n``, ``uninitialized_value_construct``, ``uninitialized_value_construct_n``, ``destroy``, ``destroy_n``
+  should be called for device data with a device policy and  should be called for the host  data with a host policy. Once the host data initialized with 
+  a host policy, the data should be destroy aslo with a host policy. Once the device data initialized with a device policy, the data should be destroy 
+  aslo with a devcice  policy. Otherwise, the result is undefined.
         
 
 Build Your Code with |onedpl_short|
