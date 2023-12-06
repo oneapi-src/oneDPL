@@ -868,6 +868,9 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
                 __num_rng[0] = start_idx + wg_count;
         });
     });
+
+    scratch.async_free(event);
+
     event.wait();
 }
 
