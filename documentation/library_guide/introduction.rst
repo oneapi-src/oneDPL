@@ -138,10 +138,9 @@ Known Limitations
   the dereferenced value type of the provided iterators should satisfy the ``DefaultConstructible`` requirements.
 * For ``remove``, ``remove_if``, ``unique`` the dereferenced value type of the provided
   iterators should be ``MoveConstructible``.
-* The algorithms which process an uninitialized storage: ``uninitialized_copy``, ``uninitialized_copy_n``, ``uninitialized_fill``, ``uninitialized_fill_n``, ``uninitialized_fill_n``, ``uninitialized_move``, ``uninitialized_move_n``, ``uninitialized_default_construct``, ``uninitialized_default_construct_n``, ``uninitialized_value_construct``, ``uninitialized_value_construct_n``, ``destroy``, ``destroy_n``
-  should be called for device data with a device policy and should be called for the host data with a host policy. Once the host data initialized with 
-  a host policy, the data should be destroy also with a host policy. Once the device data initialized with a device policy, the data should be destroy 
-  also with a devcice  policy. Otherwise, the result is undefined.
+* The algorithms which process uninitialized storage: ``uninitialized_copy``, ``uninitialized_copy_n``, ``uninitialized_fill``, ``uninitialized_fill_n``, ``uninitialized_fill_n``, ``uninitialized_move``, ``uninitialized_move_n``, ``uninitialized_default_construct``, ``uninitialized_default_construct_n``, ``uninitialized_value_construct``, ``uninitialized_value_construct_n``
+  should be called with a device policy when using device data and should be called with a host policy when using host data.  Otherwise, the result is undefined.
+  * The algorithms which destroy data: ``destroy``, ``destroy_n``, should be called with a host policy when using host data which was initialized on the host, and should be called with a device policy when using device data which was initialized on the device. Otherwise, the result is undefined.
         
 
 Build Your Code with |onedpl_short|
