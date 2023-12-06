@@ -232,7 +232,7 @@ struct is_passed_directly<zip_iterator<Iters...>>: ::std::conjunction<is_passed_
 };
 
 template<typename Iter>
-inline constexpr bool is_passed_directly_v = is_passed_directly<Iter>::value;
+inline constexpr bool is_passed_directly_v = is_passed_directly<::std::remove_const_t<Iter>>::value;
 
 // A trait for checking if iterator is heterogeneous or not
 
@@ -247,7 +247,7 @@ struct is_hetero<oneapi::dpl::__internal::sycl_iterator<Mode, Types...>> : ::std
 };
 
 template<typename Iter>
-inline constexpr bool is_hetero_v = is_hetero<Iter>::value;
+inline constexpr bool is_hetero_v = is_hetero<::std::remove_const_t<Iter>>::value;
 
 //A trait for checking if it needs to create a temporary SYCL buffer or not
 
