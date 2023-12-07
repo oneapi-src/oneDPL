@@ -24,6 +24,14 @@
 namespace oneapi::dpl::experimental::kt::esimd::__impl
 {
 
+template<::std::uint8_t __radix_bits, ::std::uint16_t __data_per_workitem, ::std::uint16_t __workgroup_size>
+constexpr void __check_esimd_sort_params()
+{
+    static_assert(__radix_bits == 8);
+    static_assert(__data_per_workitem % 32 == 0);
+    static_assert(__workgroup_size == 32 || __workgroup_size == 64);
+}
+
 template <typename _RT, typename _T>
 inline __dpl_esimd::__ns::simd<_RT, 32>
 __scan(__dpl_esimd::__ns::simd<_T, 32> __src, const _T __init = 0)

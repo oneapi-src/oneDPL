@@ -278,10 +278,6 @@ template <bool __is_ascending, ::std::uint8_t __radix_bits, typename _RngPack, t
 sycl::event
 __radix_sort(sycl::queue __q, _RngPack&& __pack, _KernelParam __param)
 {
-    static_assert(__radix_bits == 8);
-    static_assert(__param.data_per_workitem % 32 == 0);
-    static_assert(__param.workgroup_size == 32 || __param.workgroup_size == 64);
-
     const auto __n = __pack.__keys_rng().size();
     assert(__n > 1);
 

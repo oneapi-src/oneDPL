@@ -25,6 +25,8 @@ template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename 
 sycl::event
 radix_sort(sycl::queue __q, _KeysRng&& __keys_rng, _KernelParam __param = {})
 {
+    __impl::__check_esimd_sort_params<__radix_bits, _KernelParam::data_per_workitem, _KernelParam::workgroup_size>();
+
     if (__keys_rng.size() < 2)
         return {};
 
@@ -36,6 +38,8 @@ template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename 
 sycl::event
 radix_sort(sycl::queue __q, _KeysIterator __keys_first, _KeysIterator __keys_last, _KernelParam __param = {})
 {
+    __impl::__check_esimd_sort_params<__radix_bits, _KernelParam::data_per_workitem, _KernelParam::workgroup_size>();
+
     if (__keys_last - __keys_first < 2)
         return {};
 
@@ -49,6 +53,8 @@ template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename 
 sycl::event
 radix_sort_by_key(sycl::queue __q, _KeysRng&& __keys_rng, _ValsRng&& __vals_rng, _KernelParam __param = {})
 {
+    __impl::__check_esimd_sort_params<__radix_bits, _KernelParam::data_per_workitem, _KernelParam::workgroup_size>();
+
     if (__keys_rng.size() < 2)
         return {};
 
@@ -61,6 +67,8 @@ template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename 
 sycl::event
 radix_sort_by_key(sycl::queue __q, _KeysIterator __keys_first, _KeysIterator __keys_last, _ValsIterator __vals_first, _KernelParam __param = {})
 {
+    __impl::__check_esimd_sort_params<__radix_bits, _KernelParam::data_per_workitem, _KernelParam::workgroup_size>();
+
     if (__keys_last - __keys_first < 2)
         return {};
 
