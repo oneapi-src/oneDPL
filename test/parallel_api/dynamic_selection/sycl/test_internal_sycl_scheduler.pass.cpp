@@ -218,7 +218,7 @@ test_properties()
         sycl::queue cpu_queue{sycl::cpu_selector_v};
         v.push_back(cpu_queue);
     }
-    catch (sycl::exception)
+    catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to use cpu selector\n";
     }
@@ -227,7 +227,7 @@ test_properties()
         sycl::queue gpu_queue{sycl::gpu_selector_v};
         v.push_back(gpu_queue);
     }
-    catch (sycl::exception)
+    catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to use gpu selector\n";
     }
@@ -262,7 +262,7 @@ main()
     {
         sycl::queue q;
     }
-    catch (sycl::exception)
+    catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to use sycl at all\n";
         return 0;

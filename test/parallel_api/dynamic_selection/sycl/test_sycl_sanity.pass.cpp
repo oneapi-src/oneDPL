@@ -68,7 +68,7 @@ run_test(sycl::queue q)
 }
 
 int
-test_runner()
+test_runner_default()
 {
     int r = 0;
     try
@@ -77,29 +77,43 @@ test_runner()
         default_queue = sycl::queue{sycl::default_selector_v};
         r += run_test(default_queue);
     }
-    catch (sycl::exception)
+    catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to run with default_selector\n";
     }
 
+    return r;
+}
+
+int
+test_runner_gpu()
+{
+    int r = 0;
     try
     {
         sycl::queue gpu_queue;
         gpu_queue = sycl::queue{sycl::gpu_selector_v};
         r += run_test(gpu_queue);
     }
-    catch (sycl::exception)
+    catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to run with gpu_selector\n";
     }
 
+    return r;
+}
+
+int
+test_runner_cpu()
+{
+    int r = 0;
     try
     {
         sycl::queue cpu_queue;
         cpu_queue = sycl::queue{sycl::cpu_selector_v};
         r += run_test(cpu_queue);
     }
-    catch (sycl::exception)
+    catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to run with cpu_selector\n";
     }
@@ -112,7 +126,7 @@ int
 main()
 {
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
-    return test_runner();
+    return test_runner_default() ||  test_runner_gpu() || test_runner_cpu();
 #else
     std::cout << "SKIPPED\n";
     return 0;
