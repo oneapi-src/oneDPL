@@ -79,6 +79,11 @@ struct ScanMemoryManager
             });
     }
 
+    void free()
+    {
+        sycl::free(scratch, q);
+    }
+
   private:
     ::std::uint8_t* scratch = nullptr;
     ::std::uint8_t* scan_memory_begin = nullptr;
@@ -719,6 +724,86 @@ single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InItera
     }
 }
 
+template <typename _KernelParam, typename _InRange, typename _OutRange, typename _NumSelectedRange, typename _UnaryPredicate>
+void
+single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _NumSelectedRange __num_rng, _UnaryPredicate pred)
+{
+    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _SizeT = uint64_t;
+    using _TileIdT = TileId::_TileIdT;
+
+    const ::std::size_t n = __in_rng.size();
+
+    constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+
+    // Avoid non_uniform n by padding up to a multiple of wgsize
+    constexpr std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
+    ::std::size_t num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(n, elems_in_tile);
+    ::std::size_t num_workitems = num_wgs * wgsize;
+
+    auto event = __queue.submit([&](sycl::handler& hdl) {
+        auto wg_copy_if_values = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_in_tile}, hdl);
+
+        oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng, __num_rng);
+        hdl.parallel_for(sycl::nd_range<1>(num_workitems, wgsize), [=](const sycl::nd_item<1>& item)  [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
+            auto group = item.get_group();
+            auto wg_local_id = item.get_local_id(0);
+            constexpr ::std::uint32_t stride = wgsize;                 
+                                                            
+            // Global load into local
+            auto wg_current_offset = 0;
+            auto wg_local_memory_size = elems_in_tile;
+
+            _SizeT wg_count = 0;
+
+            // Phase 1: Create wg_count and construct in-order wg_copy_if_values
+            if (elems_in_tile <= n) {
+              #pragma unroll
+              for (size_t i = wg_local_id; i < elems_in_tile; i += wgsize) {
+                _Type val = __in_rng[i];
+
+                _SizeT satisfies_pred = pred(val);
+                _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count, sycl::plus<_SizeT>());
+
+                if (satisfies_pred)
+                  wg_copy_if_values[count] = val;
+
+                wg_count = sycl::group_broadcast(group, count + satisfies_pred, wgsize - 1);
+              }
+            } else {
+              // Edge of input, have to handle memory bounds
+              // Might have unneccessary group_barrier calls
+              #pragma unroll
+              for (size_t i = wg_local_id; i < elems_in_tile; i += wgsize) {
+                _SizeT satisfies_pred = 0;
+                _Type val; // TODO: alloca
+                if (i < n) {
+                  val = __in_rng[i];
+
+                  satisfies_pred = pred(val);
+                }
+                _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count, sycl::plus<_SizeT>());
+
+                if (satisfies_pred)
+                  wg_copy_if_values[count] = val;
+
+                wg_count = sycl::group_broadcast(group, count + satisfies_pred, wgsize - 1);
+              }
+            }
+
+            // Phase 3: copy values to global memory
+            for (int i = wg_local_id; i < wg_count; i += wgsize) {
+                __out_rng[i] = wg_copy_if_values[i];
+            }
+            if (group.leader())
+                __num_rng[0] = wg_count;
+        });
+    });
+
+    event.wait();
+}
+
 template <typename _KernelParam, typename _UseAtomic64, typename _UseDynamicTileID, typename _InRange, typename _OutRange, typename _NumSelectedRange, typename _UnaryPredicate>
 void
 single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _NumSelectedRange __num_rng, _UnaryPredicate pred)
@@ -869,9 +954,28 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
         });
     });
 
-    scratch.async_free(event);
-
     event.wait();
+    scratch.free();
+}
+
+template <typename _KernelParam, typename _InIterator, typename _OutIterator, typename _NumSelectedRange, typename _UnaryPredicate>
+void
+single_pass_single_wg_copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin, _NumSelectedRange __num_begin, _UnaryPredicate pred)
+{
+    auto __n = __in_end - __in_begin;
+
+    auto __keep1 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _InIterator>();
+    auto __buf1 = __keep1(__in_begin, __in_end);
+    auto __keep2 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
+    auto __buf2 = __keep2(__out_begin, __out_begin + __n);
+
+    auto __keep_num =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _NumSelectedRange>();
+    auto __buf_num = __keep2(__num_begin, __num_begin + 1);
+
+    single_pass_copy_if_impl_single_wg<_KernelParam>(__queue, __buf1.all_view(), __buf2.all_view(), __buf_num.all_view(), pred);
 }
 
 template <typename _KernelParam, typename _InIterator, typename _OutIterator, typename _NumSelectedRange, typename _UnaryPredicate>
