@@ -753,13 +753,12 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
                                                             
             // Global load into local
             auto wg_current_offset = 0;
-            auto wg_local_memory_size = elems_in_tile;
 
             _SizeT wg_count = 0;
 
             // Phase 1: Create wg_count and construct in-order wg_copy_if_values
             if (elems_in_tile <= n) {
-              #pragma unroll
+#pragma unroll
               for (size_t i = wg_local_id; i < elems_in_tile; i += wgsize) {
                 _Type val = __in_rng[i];
 
@@ -774,7 +773,7 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
             } else {
               // Edge of input, have to handle memory bounds
               // Might have unneccessary group_barrier calls
-              #pragma unroll
+#pragma unroll
               for (size_t i = wg_local_id; i < elems_in_tile; i += wgsize) {
                 _SizeT satisfies_pred = 0;
                 _Type val; // TODO: alloca
@@ -837,21 +836,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
     // fill_num_wgs num_elements + 1 to also initialize tile_id_counter
     ::std::size_t fill_num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(num_elements + 1, wgsize);
 
-    auto fill_event = __queue.submit(
-        [&](sycl::handler& hdl)
-        {
-            hdl.parallel_for(sycl::nd_range<1>{fill_num_wgs * wgsize, wgsize},
-                             [=](const sycl::nd_item<1>& item)
-                             {
-                                 int id = item.get_global_linear_id();
-                                 if (id < num_elements)
-                                     status_flags_begin[id] = id < _LookbackScanMemory::padding
-                                                                  ? _LookbackScanMemory::OUT_OF_BOUNDS
-                                                                  : _LookbackScanMemory::NOT_READY;
-                                 if (id == num_elements)
-                                     tile_id_begin[0] = 0;
-                             });
-        });
+    auto fill_event = __queue.memset(status_flags_begin, 0, num_elements * sizeof(_FlagT) + 1 * sizeof(_TileIdT));
 
     auto event = __queue.submit([&](sycl::handler& hdl) {
         auto wg_copy_if_values = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_in_tile}, hdl);
@@ -886,15 +871,14 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
 
             // Global load into local
             auto wg_current_offset = (tile_id * elems_in_tile);
-            auto wg_local_memory_size = elems_in_tile;
 
             _SizeT wg_count = 0;
 
             // Phase 1: Create wg_count and construct in-order wg_copy_if_values
             if ((tile_id + 1) * elems_in_tile <= n) {
-              #pragma unroll
-              for (size_t i = wg_local_id; i < elems_in_tile; i += wgsize) {
-                _Type val = __in_rng[i + elems_in_tile * tile_id];
+#pragma unroll
+              for (size_t i = 0; i < elems_in_tile; i += wgsize) {
+                _Type val = __in_rng[i + wg_local_id + elems_in_tile * tile_id];
 
                 _SizeT satisfies_pred = pred(val);
                 _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count, sycl::plus<_SizeT>());
@@ -907,12 +891,12 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
             } else {
               // Edge of input, have to handle memory bounds
               // Might have unneccessary group_barrier calls
-              #pragma unroll
-              for (size_t i = wg_local_id; i < elems_in_tile; i += wgsize) {
+#pragma unroll
+              for (size_t i = 0; i < elems_in_tile; i += wgsize) {
                 _SizeT satisfies_pred = 0;
                 _Type val; // TODO: alloca
-                if (i + elems_in_tile * tile_id < n) {
-                  val = __in_rng[i + elems_in_tile * tile_id];
+                if (i + wg_local_id + elems_in_tile * tile_id < n) {
+                  val = __in_rng[i + wg_local_id + elems_in_tile * tile_id];
 
                   satisfies_pred = pred(val);
                 }
