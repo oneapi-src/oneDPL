@@ -79,6 +79,12 @@ struct ScanMemoryManager
             });
     }
 
+    void
+    free()
+    {
+        sycl::free(scratch, q);
+    }
+
   private:
     ::std::uint8_t* scratch = nullptr;
     ::std::uint8_t* scan_memory_begin = nullptr;
@@ -717,6 +723,286 @@ single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InItera
         single_pass_inclusive_scan<_KernelParam, /* Inclusive */ std::true_type>(__queue, __in_begin, __in_end,
                                                                                  __out_begin, __binary_op);
     }
+}
+
+template <typename _KernelParam, typename _InRange, typename _OutRange, typename _NumSelectedRange,
+          typename _UnaryPredicate>
+void
+single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng,
+                                   _NumSelectedRange __num_rng, _UnaryPredicate pred)
+{
+    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _SizeT = uint64_t;
+    using _TileIdT = TileId::_TileIdT;
+
+    const ::std::size_t n = __in_rng.size();
+
+    constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+
+    // Avoid non_uniform n by padding up to a multiple of wgsize
+    constexpr std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
+    ::std::size_t num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(n, elems_in_tile);
+    ::std::size_t num_workitems = num_wgs * wgsize;
+    assert(num_wgs == 1);
+
+    auto event = __queue.submit([&](sycl::handler& hdl) {
+        auto wg_copy_if_values = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_in_tile}, hdl);
+
+        oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng, __num_rng);
+        hdl.parallel_for(sycl::nd_range<1>(num_workitems, wgsize),
+                         [=](const sycl::nd_item<1>& item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
+                             auto group = item.get_group();
+                             auto wg_local_id = item.get_local_id(0);
+                             constexpr ::std::uint32_t stride = wgsize;
+
+                             // Global load into local
+                             _SizeT wg_count = 0;
+
+                             // Phase 1: Create wg_count and construct in-order wg_copy_if_values
+                             if (elems_in_tile <= n)
+                             {
+#pragma unroll
+                                 for (size_t i = 0; i < elems_in_tile; i += wgsize)
+                                 {
+                                     _Type val = __in_rng[i + wg_local_id];
+
+                                     _SizeT satisfies_pred = pred(val);
+                                     _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count,
+                                                                                    sycl::plus<_SizeT>());
+
+                                     if (satisfies_pred)
+                                         wg_copy_if_values[count] = val;
+
+                                     wg_count = sycl::group_broadcast(group, count + satisfies_pred, wgsize - 1);
+                                 }
+                             }
+                             else
+                             {
+                // Edge of input, have to handle memory bounds
+                // Might have unneccessary group_barrier calls
+#pragma unroll
+                                 for (size_t i = 0; i < elems_in_tile; i += wgsize)
+                                 {
+                                     _SizeT satisfies_pred = 0;
+                                     _Type val = *std::launder(reinterpret_cast<_Type*>(alloca(sizeof(_Type))));
+                                     if (i + wg_local_id < n)
+                                     {
+                                         val = __in_rng[i + wg_local_id];
+
+                                         satisfies_pred = pred(val);
+                                     }
+                                     _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count,
+                                                                                    sycl::plus<_SizeT>());
+
+                                     if (satisfies_pred)
+                                         wg_copy_if_values[count] = val;
+
+                                     wg_count = sycl::group_broadcast(group, count + satisfies_pred, wgsize - 1);
+                                 }
+                             }
+
+                             // Phase 3: copy values to global memory
+                             for (int i = wg_local_id; i < wg_count; i += wgsize)
+                             {
+                                 __out_rng[i] = wg_copy_if_values[i];
+                             }
+                             if (group.leader())
+                                 __num_rng[0] = wg_count;
+                         });
+    });
+
+    event.wait();
+}
+
+template <typename _KernelParam, typename _UseAtomic64, typename _UseDynamicTileID, typename _InRange,
+          typename _OutRange, typename _NumSelectedRange, typename _UnaryPredicate>
+void
+single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _NumSelectedRange __num_rng,
+                         _UnaryPredicate pred)
+{
+    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _SizeT = uint64_t;
+    using _TileIdT = TileId::_TileIdT;
+    using _LookbackScanMemory = LookbackScanMemory<_SizeT, _UseAtomic64>;
+    using _FlagT = typename _LookbackScanMemory::_FlagT;
+
+    const ::std::size_t n = __in_rng.size();
+
+    constexpr ::std::size_t wgsize = _KernelParam::workgroup_size;
+    constexpr ::std::size_t elems_per_workitem = _KernelParam::elems_per_workitem;
+
+    // Avoid non_uniform n by padding up to a multiple of wgsize
+    constexpr std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
+    ::std::size_t num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(n, elems_in_tile);
+    ::std::size_t num_workitems = num_wgs * wgsize;
+
+    ScanMemoryManager<_SizeT, _UseAtomic64, LookbackScanMemory, TileId> scratch(__queue);
+    scratch.allocate(num_wgs);
+
+    // Memory Structure:
+    // [Lookback Scan Memory, Tile Id Counter]
+    auto scan_memory_begin = scratch.scan_memory_ptr();
+    auto status_flags_begin = _LookbackScanMemory::get_flags_begin(scan_memory_begin, num_wgs);
+    auto tile_id_begin = scratch.tile_id_ptr();
+
+    ::std::size_t num_elements = _LookbackScanMemory::get_num_elements(num_wgs);
+    // fill_num_wgs num_elements + 1 to also initialize tile_id_counter
+    ::std::size_t fill_num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(num_elements + 1, wgsize);
+
+    auto fill_event = __queue.memset(status_flags_begin, 0, num_elements * sizeof(_FlagT) + 1 * sizeof(_TileIdT));
+
+    auto event = __queue.submit([&](sycl::handler& hdl) {
+        auto wg_copy_if_values = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_in_tile}, hdl);
+
+        auto tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, hdl);
+        hdl.depends_on(fill_event);
+
+        oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng, __num_rng);
+        hdl.parallel_for(sycl::nd_range<1>(num_workitems, wgsize),
+                         [=](const sycl::nd_item<1>& item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
+                             auto group = item.get_group();
+                             auto wg_local_id = item.get_local_id(0);
+                             auto sg = item.get_sub_group();
+                             constexpr ::std::uint32_t stride = wgsize;
+
+                             // Init tile_id
+                             std::uint32_t tile_id;
+                             if constexpr (std::is_same_v<_UseDynamicTileID, ::std::true_type>)
+                             {
+                                 // Obtain unique ID for this work-group that will be used in decoupled lookback
+                                 TileId dynamic_tile_id(tile_id_begin);
+                                 if (group.leader())
+                                 {
+                                     tile_id_lacc[0] = dynamic_tile_id.fetch_inc();
+                                 }
+                                 sycl::group_barrier(group);
+                                 tile_id = tile_id_lacc[0];
+                             }
+                             else
+                             {
+                                 tile_id = group.get_group_linear_id();
+                             }
+
+                             _SizeT wg_count = 0;
+
+                             // Phase 1: Create wg_count and construct in-order wg_copy_if_values
+                             if ((tile_id + 1) * elems_in_tile <= n)
+                             {
+#pragma unroll
+                                 for (size_t i = 0; i < elems_in_tile; i += wgsize)
+                                 {
+                                     _Type val = __in_rng[i + wg_local_id + elems_in_tile * tile_id];
+
+                                     _SizeT satisfies_pred = pred(val);
+                                     _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count,
+                                                                                    sycl::plus<_SizeT>());
+
+                                     if (satisfies_pred)
+                                         wg_copy_if_values[count] = val;
+
+                                     wg_count = sycl::group_broadcast(group, count + satisfies_pred, wgsize - 1);
+                                 }
+                             }
+                             else
+                             {
+                // Edge of input, have to handle memory bounds
+                // Might have unneccessary group_barrier calls
+#pragma unroll
+                                 for (size_t i = 0; i < elems_in_tile; i += wgsize)
+                                 {
+                                     _SizeT satisfies_pred = 0;
+                                     _Type val = *std::launder(reinterpret_cast<_Type*>(alloca(sizeof(_Type))));
+                                     if (i + wg_local_id + elems_in_tile * tile_id < n)
+                                     {
+                                         val = __in_rng[i + wg_local_id + elems_in_tile * tile_id];
+
+                                         satisfies_pred = pred(val);
+                                     }
+                                     _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count,
+                                                                                    sycl::plus<_SizeT>());
+
+                                     if (satisfies_pred)
+                                         wg_copy_if_values[count] = val;
+
+                                     wg_count = sycl::group_broadcast(group, count + satisfies_pred, wgsize - 1);
+                                 }
+                             }
+
+                             // Phase 2: Global scan across wg_count
+                             _SizeT prev_sum = 0;
+
+                             // The first sub-group will query the previous tiles to find a prefix
+                             if (sg.get_group_id() == 0)
+                             {
+                                 _LookbackScanMemory scan_mem(scan_memory_begin, num_wgs);
+
+                                 if (group.leader())
+                                     scan_mem.set_partial(tile_id, wg_count);
+
+                                 // Find lowest work-item that has a full result (if any) and sum up subsequent partial results to obtain this tile's exclusive sum
+                                 prev_sum = cooperative_lookback()(tile_id, sg, sycl::plus<_SizeT>(), scan_mem);
+
+                                 if (group.leader())
+                                     scan_mem.set_full(tile_id, prev_sum + wg_count);
+                             }
+
+                             _SizeT start_idx = sycl::group_broadcast(group, prev_sum, 0);
+
+                             // Phase 3: copy values to global memory
+                             for (int i = wg_local_id; i < wg_count; i += wgsize)
+                             {
+                                 __out_rng[start_idx + i] = wg_copy_if_values[i];
+                             }
+                             if (tile_id == (num_wgs - 1) && group.leader())
+                                 __num_rng[0] = start_idx + wg_count;
+                         });
+    });
+
+    event.wait();
+    scratch.free();
+}
+
+template <typename _KernelParam, typename _InIterator, typename _OutIterator, typename _NumSelectedRange,
+          typename _UnaryPredicate>
+void
+single_pass_single_wg_copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end,
+                              _OutIterator __out_begin, _NumSelectedRange __num_begin, _UnaryPredicate pred)
+{
+    auto __n = __in_end - __in_begin;
+
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _InIterator>();
+    auto __buf1 = __keep1(__in_begin, __in_end);
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
+    auto __buf2 = __keep2(__out_begin, __out_begin + __n);
+
+    auto __keep_num =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _NumSelectedRange>();
+    auto __buf_num = __keep2(__num_begin, __num_begin + 1);
+
+    single_pass_copy_if_impl_single_wg<_KernelParam>(__queue, __buf1.all_view(), __buf2.all_view(),
+                                                     __buf_num.all_view(), pred);
+}
+
+template <typename _KernelParam, typename _InIterator, typename _OutIterator, typename _NumSelectedRange,
+          typename _UnaryPredicate>
+void
+single_pass_copy_if(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
+                    _NumSelectedRange __num_begin, _UnaryPredicate pred)
+{
+    auto __n = __in_end - __in_begin;
+
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _InIterator>();
+    auto __buf1 = __keep1(__in_begin, __in_end);
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
+    auto __buf2 = __keep2(__out_begin, __out_begin + __n);
+
+    auto __keep_num =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _NumSelectedRange>();
+    auto __buf_num = __keep2(__num_begin, __num_begin + 1);
+
+    single_pass_copy_if_impl<_KernelParam, /* UseAtomic64 */ std::true_type, /* UseDynamicTileID */ std::true_type>(
+        __queue, __buf1.all_view(), __buf2.all_view(), __buf_num.all_view(), pred);
 }
 
 } // inline namespace igpu
