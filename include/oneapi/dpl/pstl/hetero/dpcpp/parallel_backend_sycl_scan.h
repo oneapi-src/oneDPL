@@ -741,6 +741,7 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
     constexpr std::uint32_t elems_in_tile = wgsize * elems_per_workitem;
     ::std::size_t num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(n, elems_in_tile);
     ::std::size_t num_workitems = num_wgs * wgsize;
+    assert(num_wgs == 1);
 
     auto event = __queue.submit([&](sycl::handler& hdl) {
         auto wg_copy_if_values = sycl::local_accessor<_Type, 1>(sycl::range<1>{elems_in_tile}, hdl);
@@ -752,8 +753,6 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
             constexpr ::std::uint32_t stride = wgsize;                 
                                                             
             // Global load into local
-            auto wg_current_offset = 0;
-
             _SizeT wg_count = 0;
 
             // Phase 1: Create wg_count and construct in-order wg_copy_if_values
@@ -868,9 +867,6 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
             {
                 tile_id = group.get_group_linear_id();
             }
-
-            // Global load into local
-            auto wg_current_offset = (tile_id * elems_in_tile);
 
             _SizeT wg_count = 0;
 
