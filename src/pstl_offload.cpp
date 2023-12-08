@@ -29,12 +29,27 @@
 namespace __pstl_offload
 {
 
-static auto
-__get_original_free()
-{
-    using __free_func_type = void (*)(void*);
+using __free_func_type = void (*)(void*);
 
-    static __free_func_type __orig_free = __free_func_type(dlsym(RTLD_NEXT, "free"));
+struct __delayed_free_header {
+    __delayed_free_header* _M_next;
+};
+
+// are we inside dlsym call?
+static thread_local bool __dlsym_called = false;
+// objects released inside of dlsym call
+static thread_local __delayed_free_header* __delayed_free = nullptr;
+
+static __free_func_type
+__get_next_free_protected()
+{
+    __dlsym_called = true;
+    __free_func_type __orig_free = __free_func_type(dlsym(RTLD_NEXT, "free"));
+    __dlsym_called = false;
+    if (!__orig_free)
+    {
+        throw std::system_error(std::error_code(), dlerror());
+    }
     return __orig_free;
 }
 
@@ -61,7 +76,32 @@ __internal_free(void* __user_ptr)
         }
         else
         {
-            __get_original_free()(__user_ptr);
+            if (__dlsym_called)
+            {
+                // delay releasing till exit of dlsym
+                __delayed_free_header* __header = static_cast<__delayed_free_header*>(__user_ptr);
+                __header->_M_next = __delayed_free? __delayed_free : nullptr;
+                __delayed_free = __header;
+            }
+            else
+            {
+                static __free_func_type __orig_free = __get_next_free_protected();
+
+                // release objects from delayed release list
+                while (__delayed_free)
+                {
+                    __delayed_free_header* __next = __delayed_free->_M_next;
+                    // it's possible that an object to be released during 1st call of __internal_free
+                    // would be released 2nd time from inside dlsym call. To prevent "double free"
+                    // situation, check for it explicitly.
+                    if (__user_ptr != __delayed_free)
+                    {
+                        __orig_free(__delayed_free);
+                    }
+                    __delayed_free = __next;
+                }
+                __orig_free(__user_ptr);
+            }
         }
     }
 }
