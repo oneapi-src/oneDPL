@@ -759,8 +759,8 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
             // Phase 1: Create wg_count and construct in-order wg_copy_if_values
             if (elems_in_tile <= n) {
 #pragma unroll
-              for (size_t i = wg_local_id; i < elems_in_tile; i += wgsize) {
-                _Type val = __in_rng[i];
+              for (size_t i = 0; i < elems_in_tile; i += wgsize) {
+                _Type val = __in_rng[i + wg_local_id];
 
                 _SizeT satisfies_pred = pred(val);
                 _SizeT count = sycl::exclusive_scan_over_group(group, satisfies_pred, wg_count, sycl::plus<_SizeT>());
@@ -774,11 +774,11 @@ single_pass_copy_if_impl_single_wg(sycl::queue __queue, _InRange&& __in_rng, _Ou
               // Edge of input, have to handle memory bounds
               // Might have unneccessary group_barrier calls
 #pragma unroll
-              for (size_t i = wg_local_id; i < elems_in_tile; i += wgsize) {
+              for (size_t i = 0; i < elems_in_tile; i += wgsize) {
                 _SizeT satisfies_pred = 0;
-                _Type val; // TODO: alloca
-                if (i < n) {
-                  val = __in_rng[i];
+                _Type val = *std::launder(reinterpret_cast<_Type*>(alloca(sizeof(_Type))));
+                if (i + wg_local_id < n) {
+                  val = __in_rng[i + wg_local_id];
 
                   satisfies_pred = pred(val);
                 }
@@ -894,7 +894,7 @@ single_pass_copy_if_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& _
 #pragma unroll
               for (size_t i = 0; i < elems_in_tile; i += wgsize) {
                 _SizeT satisfies_pred = 0;
-                _Type val; // TODO: alloca
+                _Type val = *std::launder(reinterpret_cast<_Type*>(alloca(sizeof(_Type))));
                 if (i + wg_local_id + elems_in_tile * tile_id < n) {
                   val = __in_rng[i + wg_local_id + elems_in_tile * tile_id];
 
