@@ -323,6 +323,15 @@ __require_access_range(sycl::handler& __cgh, zip_view<_Ranges...>& zip_rng)
     __require_access_zip(__cgh, zip_rng);
 }
 
+template <typename... _Ranges>
+void
+__require_access_range(sycl::handler& __cgh, oneapi::dpl::__internal::tuple<_Ranges...>& __tuple)
+{
+    const ::std::size_t __num_ranges = sizeof...(_Ranges);
+    oneapi::dpl::__ranges::invoke(__tuple, _require_access_args<decltype(__cgh)>{__cgh},
+                                  ::std::make_index_sequence<__num_ranges>());
+}
+
 template <typename _BaseRange>
 void
 __require_access_range(sycl::handler&, _BaseRange&)
@@ -333,8 +342,6 @@ template <typename _Range, typename... _Ranges>
 void
 __require_access(sycl::handler& __cgh, _Range&& __rng, _Ranges&&... __rest)
 {
-    assert(!__rng.empty());
-
     //getting an access for the all_view based range
     auto base_rng = oneapi::dpl::__ranges::pipeline_base_range<_Range>(::std::forward<_Range>(__rng)).base_range();
 

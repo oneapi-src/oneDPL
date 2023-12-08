@@ -537,7 +537,7 @@ struct permutation_view_simple<_Source, _M, ::std::enable_if_t<is_map_view<_M>::
     auto
     base() const
     {
-        return __src;
+        return oneapi::dpl::__internal::make_tuple(__src, __map);
     }
 };
 
