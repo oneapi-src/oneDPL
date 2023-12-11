@@ -41,7 +41,7 @@ static thread_local bool __dlsym_called = false;
 static thread_local __delayed_free_header* __delayed_free = nullptr;
 
 static __free_func_type
-__get_next_free_protected()
+__get_original_free()
 {
     __dlsym_called = true;
     __free_func_type __orig_free = __free_func_type(dlsym(RTLD_NEXT, "free"));
@@ -85,7 +85,7 @@ __internal_free(void* __user_ptr)
             }
             else
             {
-                static __free_func_type __orig_free = __get_next_free_protected();
+                static __free_func_type __orig_free = __get_original_free();
 
                 // release objects from delayed release list
                 while (__delayed_free)
