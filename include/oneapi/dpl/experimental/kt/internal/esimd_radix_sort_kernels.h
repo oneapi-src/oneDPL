@@ -321,7 +321,7 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _KeysRng& __keys_rn
         __dpl_esimd::__ns::barrier();
     }
 
-    // 4. Reduce group-local historgrams from SLM into global histograms in global memory
+    // 4. Reduce group-local histograms from SLM into global histograms in global memory
     __dpl_esimd::__ns::simd<_GlobalHistT, __group_hist_size> __group_hist =
         __dpl_esimd::__block_load_slm<_GlobalHistT, __group_hist_size>(__local_id * __group_hist_size *
                                                                     sizeof(_GlobalHistT));
