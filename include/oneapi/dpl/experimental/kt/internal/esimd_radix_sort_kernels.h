@@ -459,6 +459,9 @@ struct __radix_sort_onesweep_kernel
     static inline __dpl_esimd::__ns::simd<::std::uint32_t, 32>
     __match_bins(const __dpl_esimd::__ns::simd<::std::uint32_t, 32>& __bins, ::std::uint32_t __local_tid)
     {
+        // Software barriers (here and below) are used in order to trick the compiler,
+        // thus it generates memory operations with better performance
+        // TODO: check if it is still necessary.
         __dpl_esimd::__ns::fence<__dpl_esimd::__ns::fence_mask::sw_barrier>();
         __dpl_esimd::__ns::simd<::std::uint32_t, 32> __matched_bins(0xffffffff);
         _ONEDPL_PRAGMA_UNROLL
@@ -520,88 +523,89 @@ struct __radix_sort_onesweep_kernel
         // First group contains global histogram to propagate it to other groups during synchronization
         _GlobOffsetT* __p_prev_group_hist = (0 == __wg_id)? __p_global_hist : __p_this_group_hist - __bin_count;
 
+        constexpr ::std::uint32_t __bin_summary_group_size = 8;
+        constexpr ::std::uint32_t __bin_width = __bin_count / __bin_summary_group_size;
+        static_assert(__bin_count % __bin_width == 0);
+
+        // 1. Vector scan of histograms previously accumulated by each work-item
+        __dpl_esimd::__ns::simd<_LocOffsetT, __bin_width> __thread_grf_hist_summary(0);
+        if (__local_tid < __bin_summary_group_size)
         {
-            __dpl_esimd::__ns::barrier();
-            constexpr ::std::uint32_t __bin_summary_group_size = 8;
-            constexpr ::std::uint32_t __bin_width = __bin_count / __bin_summary_group_size;
-
-            static_assert(__bin_count % __bin_width == 0);
-
-            // 1. Vector scan of histograms previously accumulated by each work-item
-            __dpl_esimd::__ns::simd<_LocOffsetT, __bin_width> __thread_grf_hist_summary(0);
-            if (__local_tid < __bin_summary_group_size)
+            // 1.1. Vector scan of the same bins across different histograms.
+            ::std::uint32_t __slm_bin_hist_summary_offset = __local_tid * __bin_width * sizeof(_LocOffsetT);
+            for (::std::uint32_t __s = 0; __s < __work_group_size; __s++, __slm_bin_hist_summary_offset += __hist_stride)
             {
-                // 1.1. Vector scan of the same bins across different histograms.
-                ::std::uint32_t __slm_bin_hist_summary_offset = __local_tid * __bin_width * sizeof(_LocOffsetT);
-                for (::std::uint32_t __s = 0; __s < __work_group_size; __s++, __slm_bin_hist_summary_offset += __hist_stride)
-                {
-                    __thread_grf_hist_summary += __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_width>(__slm_bin_hist_summary_offset);
-                    __dpl_esimd::__block_store_slm(__slm_bin_hist_summary_offset, __thread_grf_hist_summary);
-                }
-
-                // 1.2. Vector scan of different bins inside one histogram, the final one for the whole work-group.
-                // Only "__bin_width" pieces of the histogram are scanned at this stage.
-                // This histogram will be further used for calculation of offsets of keys already reordered in SLM,
-                // it does not participate in sycnhronization between work-groups.
-                __dpl_esimd::__block_store_slm(__slm_bin_hist_group_incoming + __local_tid * __bin_width * sizeof(_LocOffsetT),
-                                               __scan<_LocOffsetT, _LocOffsetT>(__thread_grf_hist_summary));
-
-                // 1.3 Copy the histogram at the region designited for synchronization between work-groups.
-                // Set the status as "updated".
-                if (__wg_id != 0)
-                    __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(__p_this_group_hist + __local_tid * __bin_width,
-                                                           __thread_grf_hist_summary | __hist_updated);
-            }
-            __dpl_esimd::__ns::barrier();
-
-            // 1.4 One work-item finalizes scan performed at stage 1.2
-            // by propagating prefixes accumulated after scanning individual "__bin_width" pieces.
-            if (__local_tid == __bin_summary_group_size + 1)
-            {
-                __dpl_esimd::__ns::simd<_LocOffsetT, __bin_count> __grf_hist_summary;
-                __dpl_esimd::__ns::simd<_LocOffsetT, __bin_count + 1> __grf_hist_summary_scan;
-                __grf_hist_summary = __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_count>(__slm_bin_hist_group_incoming);
-                __grf_hist_summary_scan[0] = 0;
-                __grf_hist_summary_scan.template select<__bin_width, 1>(1) =
-                    __grf_hist_summary.template select<__bin_width, 1>(0);
-                _ONEDPL_PRAGMA_UNROLL
-                for (::std::uint32_t __i = __bin_width; __i < __bin_count; __i += __bin_width)
-                {
-                    __grf_hist_summary_scan.template select<__bin_width, 1>(__i + 1) =
-                        __grf_hist_summary.template select<__bin_width, 1>(__i) + __grf_hist_summary_scan[__i];
-                }
-                __dpl_esimd::__block_store_slm<_LocOffsetT, __bin_count>(__slm_bin_hist_group_incoming,
-                                                        __grf_hist_summary_scan.template select<__bin_count, 1>());
+                __thread_grf_hist_summary += __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_width>(__slm_bin_hist_summary_offset);
+                __dpl_esimd::__block_store_slm(__slm_bin_hist_summary_offset, __thread_grf_hist_summary);
             }
 
-            // 2. Chained scan. Synchronization between work-groups.
-            else if (__local_tid < __bin_summary_group_size)
+            // 1.2. Vector scan of different bins inside one histogram, the final one for the whole work-group.
+            // Only "__bin_width" pieces of the histogram are scanned at this stage.
+            // This histogram will be further used for calculation of offsets of keys already reordered in SLM,
+            // it does not participate in sycnhronization between work-groups.
+            __dpl_esimd::__block_store_slm(__slm_bin_hist_group_incoming + __local_tid * __bin_width * sizeof(_LocOffsetT),
+                                            __scan<_LocOffsetT, _LocOffsetT>(__thread_grf_hist_summary));
+
+            // 1.3 Copy the histogram at the region designited for synchronization between work-groups.
+            // Set the status as "updated".
+            if (__wg_id != 0)
+                __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(__p_this_group_hist + __local_tid * __bin_width,
+                                                        __thread_grf_hist_summary | __hist_updated);
+        }
+        __dpl_esimd::__ns::barrier();
+
+        // 1.4 One work-item finalizes scan performed at stage 1.2
+        // by propagating prefixes accumulated after scanning individual "__bin_width" pieces.
+        if (__local_tid == __bin_summary_group_size + 1)
+        {
+            __dpl_esimd::__ns::simd<_LocOffsetT, __bin_count> __grf_hist_summary;
+            __dpl_esimd::__ns::simd<_LocOffsetT, __bin_count + 1> __grf_hist_summary_scan;
+            __grf_hist_summary = __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_count>(__slm_bin_hist_group_incoming);
+            __grf_hist_summary_scan[0] = 0;
+            __grf_hist_summary_scan.template select<__bin_width, 1>(1) =
+                __grf_hist_summary.template select<__bin_width, 1>(0);
+            _ONEDPL_PRAGMA_UNROLL
+            for (::std::uint32_t __i = __bin_width; __i < __bin_count; __i += __bin_width)
             {
-                __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> __prev_group_hist_sum(0), __prev_group_hist;
-                __dpl_esimd::__ns::simd_mask<__bin_width> __is_not_accumulated(1);
+                __grf_hist_summary_scan.template select<__bin_width, 1>(__i + 1) =
+                    __grf_hist_summary.template select<__bin_width, 1>(__i) + __grf_hist_summary_scan[__i];
+            }
+            __dpl_esimd::__block_store_slm<_LocOffsetT, __bin_count>(__slm_bin_hist_group_incoming,
+                                                    __grf_hist_summary_scan.template select<__bin_count, 1>());
+        }
+
+        // 2. Chained scan. Synchronization between work-groups.
+        else if (__local_tid < __bin_summary_group_size)
+        {
+            __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> __prev_group_hist_sum(0), __prev_group_hist;
+            __dpl_esimd::__ns::simd_mask<__bin_width> __is_not_accumulated(1);
+            do
+            {
                 do
                 {
-                    do
-                    {
-                        __prev_group_hist =
-                            __dpl_esimd::__ens::lsc_block_load<_GlobOffsetT, __bin_width, __dpl_esimd::__ens::lsc_data_size::default_size, __dpl_esimd::__ens::cache_hint::uncached,
-                                           __dpl_esimd::__ens::cache_hint::cached>(__p_prev_group_hist + __local_tid * __bin_width);
-                        __dpl_esimd::__ns::fence<__dpl_esimd::__ns::fence_mask::sw_barrier>();
-                    } while (((__prev_group_hist & __hist_updated) == 0).any() && __wg_id != 0);
-                    __prev_group_hist_sum.merge(__prev_group_hist_sum + __prev_group_hist, __is_not_accumulated);
-                    __is_not_accumulated = (__prev_group_hist_sum & __global_accumulated) == 0;
-                    __p_prev_group_hist -= __bin_count;
-                } while (__is_not_accumulated.any() && __wg_id != 0);
-                __prev_group_hist_sum &= __global_offset_mask;
-                __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> after_group_hist_sum = __prev_group_hist_sum + __thread_grf_hist_summary;
-                __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(__p_this_group_hist + __local_tid * __bin_width,
-                                                       after_group_hist_sum | __hist_updated | __global_accumulated);
+                    __prev_group_hist = __dpl_esimd::__ens::lsc_block_load<
+                        _GlobOffsetT, __bin_width, __dpl_esimd::__ens::lsc_data_size::default_size,
+                        __dpl_esimd::__ens::cache_hint::uncached, __dpl_esimd::__ens::cache_hint::cached>(
+                            __p_prev_group_hist + __local_tid * __bin_width);
+                    // Software barrier is used in order to trick the compiler,
+                    // thus it generates memory operations with better performance
+                    // TODO: check if it is still necessary.
+                    __dpl_esimd::__ns::fence<__dpl_esimd::__ns::fence_mask::sw_barrier>();
+                } while (((__prev_group_hist & __hist_updated) == 0).any() && __wg_id != 0);
+                __prev_group_hist_sum.merge(__prev_group_hist_sum + __prev_group_hist, __is_not_accumulated);
+                __is_not_accumulated = (__prev_group_hist_sum & __global_accumulated) == 0;
+                __p_prev_group_hist -= __bin_count;
+            } while (__is_not_accumulated.any() && __wg_id != 0);
+            __prev_group_hist_sum &= __global_offset_mask;
+            __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> after_group_hist_sum = __prev_group_hist_sum + __thread_grf_hist_summary;
+            __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(__p_this_group_hist + __local_tid * __bin_width,
+                                                    after_group_hist_sum | __hist_updated | __global_accumulated);
 
-                __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width>(
-                    __slm_bin_hist_global_incoming + __local_tid * __bin_width * sizeof(_GlobOffsetT), __prev_group_hist_sum);
-            }
-            __dpl_esimd::__ns::barrier();
+            __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width>(
+                __slm_bin_hist_global_incoming + __local_tid * __bin_width * sizeof(_GlobOffsetT), __prev_group_hist_sum);
         }
+        __dpl_esimd::__ns::barrier();
+
         // 3. Get total offsets for each work-item
         auto __group_incoming = __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_count>(__slm_bin_hist_group_incoming);
         // 3.1. Get histogram accumullated from previous groups (together with the global one) and apply correction for keys already reordered in SLM
