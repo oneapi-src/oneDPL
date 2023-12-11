@@ -398,12 +398,14 @@ struct __get_sycl_range
             AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::read;
     static constexpr bool __is_copy_back =
             AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::write;
-            
+
     //SFINAE iterator type checks
     template<typename It, typename T = decltype(std::addressof(*::std::declval<It&>()))>
-    static constexpr std::true_type __test_addressof(int) { return {};}
+    static constexpr std::true_type __is_addressable (int);
     template<typename It>
-    static constexpr std::false_type __test_addressof(...) { return {};}
+    static constexpr std::false_type __is_addressable (...);
+    template<typename It>
+    static constexpr bool __is_addressable_v = decltype(__is_addressable <It>(0))::value;
 
     template <typename _F, typename _It, typename _DiffType>
     static auto
@@ -573,10 +575,10 @@ struct __get_sycl_range
     template <typename _Iter>
     auto
     operator()(_Iter __first, _Iter __last)
-        -> ::std::enable_if_t<is_temp_buff<_Iter>::value && __test_addressof<_Iter>(0) && !is_zip<_Iter>::value &&
+        -> ::std::enable_if_t<is_temp_buff<_Iter>::value && __is_addressable_v<_Iter> && !is_zip<_Iter>::value &&
         !is_permutation<_Iter>::value, __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
-        static_assert(__test_addressof<_Iter>(0));
+        static_assert(__is_addressable_v<_Iter>);
 
         using _T = val_t<_Iter>;
 
@@ -600,7 +602,7 @@ struct __get_sycl_range
     template <typename _Iter>
     auto
     operator()(_Iter __first, _Iter __last)
-        -> ::std::enable_if_t<is_temp_buff<_Iter>::value && !__test_addressof<_Iter>(0) && !is_zip<_Iter>::value &&
+        -> ::std::enable_if_t<is_temp_buff<_Iter>::value && !__is_addressable_v<_Iter> && !is_zip<_Iter>::value &&
         !is_permutation<_Iter>::value, __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
         using _T = val_t<_Iter>;
