@@ -645,8 +645,9 @@ struct __radix_sort_onesweep_kernel
         __dpl_esimd::__ns::barrier();
     }
 
+    template<typename _SimdPack>
     void inline
-    __reorder_slm_to_glob(const _SimdPack& __pack, const _GlobHistT& __global_fix,
+    __reorder_slm_to_glob(_SimdPack& __pack, const _GlobHistT& __global_fix,
                           ::std::uint32_t __local_tid, ::std::uint32_t __wg_size) const
     {
         __slm_lookup<_GlobOffsetT> __global_fix_lookup(__calc_reorder_slm_size());
