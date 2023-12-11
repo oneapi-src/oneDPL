@@ -646,10 +646,9 @@ struct __radix_sort_onesweep_kernel
     }
 
     void inline
-    __reorder_slm_to_glob(const _GlobHistT& __global_fix, ::std::uint32_t __local_tid, ::std::uint32_t __wg_size) const
+    __reorder_slm_to_glob(const _SimdPack& __pack, const _GlobHistT& __global_fix,
+                          ::std::uint32_t __local_tid, ::std::uint32_t __wg_size) const
     {
-        auto __pack = __make_simd_pack<__data_per_work_item, _KeyT, _ValT>();
-
         __slm_lookup<_GlobOffsetT> __global_fix_lookup(__calc_reorder_slm_size());
         if (__local_tid == 0)
             __global_fix_lookup.__setup(__global_fix);
@@ -717,7 +716,7 @@ struct __radix_sort_onesweep_kernel
         __rank_global(__subgroup_offset, __global_fix, __local_tid, __wg_id);
 
         __reorder_reg_to_slm(__values_simd_pack, __ranks, __bins, __subgroup_offset, __wg_size, __thread_slm_offset);
-        __reorder_slm_to_glob(__global_fix, __local_tid, __wg_size);
+        __reorder_slm_to_glob(__values_simd_pack, __global_fix, __local_tid, __wg_size);
     }
 };
 
