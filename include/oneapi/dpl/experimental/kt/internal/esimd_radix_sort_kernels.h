@@ -69,9 +69,10 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
     for (::std::uint32_t __s = 0; __s < __data_per_work_item; __s += __data_per_step)
     {
         __dpl_esimd::__ns::simd_mask<__data_per_step> __m = (__io_offset + __lane_id + __s) < __n;
-        __keys.template select<__data_per_step, 1>(__s) =
-            __dpl_esimd::__ns::merge(__dpl_esimd::__gather<_KeyT, __data_per_step>(__rng_data(__rng_pack.__keys_rng()), __lane_id, __io_offset + __s, __m),
-                  __dpl_esimd::__ns::simd<_KeyT, __data_per_step>(__sort_identity<_KeyT, __is_ascending>()), __m);
+        __keys.template select<__data_per_step, 1>(__s) = __dpl_esimd::__ns::merge(
+            __dpl_esimd::__gather<_KeyT, __data_per_step>(__rng_data(__rng_pack.__keys_rng()), __lane_id,
+                                                          __io_offset + __s, __m),
+            __dpl_esimd::__ns::simd<_KeyT, __data_per_step>(__sort_identity<_KeyT, __is_ascending>()), __m);
     }
 
     // 2. Sort each __radix_bits
@@ -120,7 +121,8 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
                 __tmp = __dpl_esimd::__block_load_slm<::std::uint32_t, __bin_width_ud>(__slm_bin_hist_summary_offset);
                 ___thread_grf_hist_summary += __tmp.template bit_cast_view<_HistT>();
                 __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width_ud>(
-                    __slm_bin_hist_summary_offset, ___thread_grf_hist_summary.template bit_cast_view<::std::uint32_t>());
+                    __slm_bin_hist_summary_offset,
+                    ___thread_grf_hist_summary.template bit_cast_view<::std::uint32_t>());
                 __slm_bin_hist_summary_offset += __hist_stride;
             }
 
@@ -144,7 +146,8 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
             for (::std::uint32_t __s = 0; __s < __bin_count; __s += 128)
             {
                 __grf_hist_summary.template select<128, 1>(__s).template bit_cast_view<::std::uint32_t>() =
-                    __dpl_esimd::__block_load_slm<::std::uint32_t, 64>((__work_group_size - 1) * __hist_stride + __s * sizeof(_HistT));
+                    __dpl_esimd::__block_load_slm<::std::uint32_t, 64>((__work_group_size - 1) * __hist_stride +
+                                                                       __s * sizeof(_HistT));
             }
             __grf_hist_summary_scan[0] = 0;
             __grf_hist_summary_scan.template select<32, 1>(1) = __grf_hist_summary.template select<32, 1>(0);
@@ -179,7 +182,8 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
             {
                 __dpl_esimd::__ns::simd<_HistT, 128> __group_local_sum;
                 __group_local_sum.template bit_cast_view<::std::uint32_t>() =
-                    __dpl_esimd::__block_load_slm<::std::uint32_t, 64>((__local_tid - 1) * __hist_stride + __s * sizeof(_HistT));
+                    __dpl_esimd::__block_load_slm<::std::uint32_t, 64>((__local_tid - 1) * __hist_stride +
+                                                                       __s * sizeof(_HistT));
                 __bin_offset.template select<128, 1>(__s) += __group_local_sum;
             }
         }
@@ -191,7 +195,8 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
         _ONEDPL_PRAGMA_UNROLL
         for (::std::uint32_t __s = 0; __s < __data_per_work_item; __s += __data_per_step)
         {
-            __dpl_esimd::__ns::simd<::std::uint16_t, __data_per_step> __bins_uw = __bins.template select<__data_per_step, 1>(__s);
+            __dpl_esimd::__ns::simd<::std::uint16_t, __data_per_step> __bins_uw =
+                __bins.template select<__data_per_step, 1>(__s);
             __write_addr.template select<__data_per_step, 1>(__s) += __bin_offset.template iselect(__bins_uw);
         }
 
@@ -214,9 +219,10 @@ __one_wg_kernel(sycl::nd_item<1> __idx, ::std::uint32_t __n, _RngPack&& __rng_pa
     _ONEDPL_PRAGMA_UNROLL
     for (::std::uint32_t __s = 0; __s < __data_per_work_item; __s += __data_per_step)
     {
-        __dpl_esimd::__scatter<_KeyT, __data_per_step>(__rng_data(__rng_pack.__keys_rng()), __write_addr.template select<__data_per_step, 1>(__s),
-                                             __keys.template select<__data_per_step, 1>(__s),
-                                             __write_addr.template select<__data_per_step, 1>(__s) < __n);
+        __dpl_esimd::__scatter<_KeyT, __data_per_step>(__rng_data(__rng_pack.__keys_rng()),
+                                                       __write_addr.template select<__data_per_step, 1>(__s),
+                                                       __keys.template select<__data_per_step, 1>(__s),
+                                                       __write_addr.template select<__data_per_step, 1>(__s) < __n);
     }
 }
 
@@ -236,12 +242,14 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _KeysRng& __keys_rn
     constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
     constexpr ::std::uint32_t __stage_count = oneapi::dpl::__internal::__dpl_ceiling_div(__bit_count, __radix_bits);
     constexpr ::std::uint32_t __hist_data_per_work_item = 128;
-    constexpr ::std::uint32_t __device_wide_step = __hist_work_group_count * __hist_work_group_size * __hist_data_per_work_item;
+    constexpr ::std::uint32_t __device_wide_step =
+        __hist_work_group_count * __hist_work_group_size * __hist_data_per_work_item;
 
     // Cap the number of histograms to reduce in SLM per __keys_rng range read pass
     // due to excessive GRF usage for thread-local histograms
     constexpr ::std::uint32_t __stages_per_block = sizeof(_KeyT) < 4 ? sizeof(_KeyT) : 4;
-    constexpr ::std::uint32_t __stage_block_count = oneapi::dpl::__internal::__dpl_ceiling_div(__stage_count, __stages_per_block);
+    constexpr ::std::uint32_t __stage_block_count =
+        oneapi::dpl::__internal::__dpl_ceiling_div(__stage_count, __stages_per_block);
 
     constexpr ::std::uint32_t __hist_buffer_size = __stage_count * __bin_count;
     constexpr ::std::uint32_t __group_hist_size = __hist_buffer_size / __hist_work_group_size;
@@ -272,7 +280,8 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _KeysRng& __keys_rn
         __dpl_esimd::__ns::simd<_GlobalHistT, __bin_count * __stages_per_block> __state_hist_grf(0);
         ::std::uint32_t __stage_block_start = __stage_block * __stages_per_block;
 
-        for (::std::uint32_t __wi_offset = __global_id * __hist_data_per_work_item; __wi_offset < __n; __wi_offset += __device_wide_step)
+        for (::std::uint32_t __wi_offset = __global_id * __hist_data_per_work_item; __wi_offset < __n;
+             __wi_offset += __device_wide_step)
         {
             // 1. Read __keys
             // TODO: avoid reading global memory twice when __stage_block_count > 1 increasing __hist_data_per_work_item
@@ -284,13 +293,19 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _KeysRng& __keys_rn
             {
                 __dpl_esimd::__ns::simd<::std::uint32_t, __data_per_step> __lane_offsets(0, 1);
                 _ONEDPL_PRAGMA_UNROLL
-                for (::std::uint32_t __step_offset = 0; __step_offset < __hist_data_per_work_item; __step_offset += __data_per_step)
+                for (::std::uint32_t __step_offset = 0; __step_offset < __hist_data_per_work_item;
+                     __step_offset += __data_per_step)
                 {
-                    __dpl_esimd::__ns::simd<::std::uint32_t, __data_per_step> __offsets = __lane_offsets + __step_offset + __wi_offset;
+                    __dpl_esimd::__ns::simd<::std::uint32_t, __data_per_step> __offsets =
+                        __lane_offsets + __step_offset + __wi_offset;
                     __dpl_esimd::__ns::simd_mask<__data_per_step> __is_in_range = __offsets < __n;
-                    __dpl_esimd::__ns::simd<_KeyT, __data_per_step> data = __dpl_esimd::__gather<_KeyT, __data_per_step>(__rng_data(__keys_rng), __offsets, 0, __is_in_range);
-                    __dpl_esimd::__ns::simd<_KeyT, __data_per_step> sort_identities = __sort_identity<_KeyT, __is_ascending>();
-                    __keys.template select<__data_per_step, 1>(__step_offset) = __dpl_esimd::__ns::merge(data, sort_identities, __is_in_range);
+                    __dpl_esimd::__ns::simd<_KeyT, __data_per_step> data =
+                        __dpl_esimd::__gather<_KeyT, __data_per_step>(__rng_data(__keys_rng), __offsets, 0,
+                                                                      __is_in_range);
+                    __dpl_esimd::__ns::simd<_KeyT, __data_per_step> sort_identities =
+                        __sort_identity<_KeyT, __is_ascending>();
+                    __keys.template select<__data_per_step, 1>(__step_offset) =
+                        __dpl_esimd::__ns::merge(data, sort_identities, __is_in_range);
                 }
             }
             // 2. Calculate thread-local histogram in GRF
@@ -300,7 +315,7 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _KeysRng& __keys_rn
                 constexpr _BinT __mask = __bin_count - 1;
                 ::std::uint32_t __stage_global = __stage_block_start + __stage_local;
                 __bins = __get_bucket<__mask>(__order_preserving_cast<__is_ascending>(__keys),
-                                                 __stage_global * __radix_bits);
+                                              __stage_global * __radix_bits);
                 _ONEDPL_PRAGMA_UNROLL
                 for (::std::uint32_t __i = 0; __i < __hist_data_per_work_item; ++__i)
                 {
@@ -311,10 +326,12 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _KeysRng& __keys_rn
 
         // 3. Reduce thread-local histograms from GRF into group-local histograms in SLM
         _ONEDPL_PRAGMA_UNROLL
-        for (::std::uint32_t __grf_offset = 0; __grf_offset < __bin_count * __stages_per_block; __grf_offset += __data_per_step)
+        for (::std::uint32_t __grf_offset = 0; __grf_offset < __bin_count * __stages_per_block;
+             __grf_offset += __data_per_step)
         {
             ::std::uint32_t slm_offset = __stage_block_start * __bin_count + __grf_offset;
-            __dpl_esimd::__ns::simd<::std::uint32_t, __data_per_step> __slm_byte_offsets(slm_offset * sizeof(_GlobalHistT), sizeof(_GlobalHistT));
+            __dpl_esimd::__ns::simd<::std::uint32_t, __data_per_step> __slm_byte_offsets(
+                slm_offset * sizeof(_GlobalHistT), sizeof(_GlobalHistT));
             __dpl_esimd::__ens::lsc_slm_atomic_update<__dpl_esimd::__ns::atomic_op::add, _GlobalHistT, __data_per_step>(
                 __slm_byte_offsets, __state_hist_grf.template select<__data_per_step, 1>(__grf_offset), 1);
         }
@@ -324,16 +341,15 @@ __global_histogram(sycl::nd_item<1> __idx, size_t __n, const _KeysRng& __keys_rn
     // 4. Reduce group-local histograms from SLM into global histograms in global memory
     __dpl_esimd::__ns::simd<_GlobalHistT, __group_hist_size> __group_hist =
         __dpl_esimd::__block_load_slm<_GlobalHistT, __group_hist_size>(__local_id * __group_hist_size *
-                                                                    sizeof(_GlobalHistT));
+                                                                       sizeof(_GlobalHistT));
     __dpl_esimd::__ns::simd<::std::uint32_t, __group_hist_size> __byte_offsets(0, sizeof(_GlobalHistT));
-    __dpl_esimd::__ens::lsc_atomic_update<__dpl_esimd::__ns::atomic_op::add>(__p_global_offset + __local_id * __group_hist_size,
-                                                      __byte_offsets, __group_hist,
-                                                      __dpl_esimd::__ns::simd_mask<__group_hist_size>(1));
+    __dpl_esimd::__ens::lsc_atomic_update<__dpl_esimd::__ns::atomic_op::add>(
+        __p_global_offset + __local_id * __group_hist_size, __byte_offsets, __group_hist,
+        __dpl_esimd::__ns::simd_mask<__group_hist_size>(1));
 }
 
-template <bool __is_ascending, ::std::uint8_t __radix_bits,
-          ::std::uint16_t __data_per_work_item, ::std::uint16_t __work_group_size,
-          typename _InRngPack, typename _OutRngPack>
+template <bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
+          ::std::uint16_t __work_group_size, typename _InRngPack, typename _OutRngPack>
 struct __radix_sort_onesweep_kernel
 {
     using _LocOffsetT = ::std::uint16_t;
@@ -345,8 +361,8 @@ struct __radix_sort_onesweep_kernel
 
     static constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
 
-    template<typename _T, ::std::uint16_t _N>
-    using _SimdT =  __dpl_esimd::__ns::simd<_T, _N>;
+    template <typename _T, ::std::uint16_t _N>
+    using _SimdT = __dpl_esimd::__ns::simd<_T, _N>;
 
     using _LocOffsetSimdT = _SimdT<_LocOffsetT, __data_per_work_item>;
     using _GlobOffsetSimdT = _SimdT<_GlobOffsetT, __data_per_work_item>;
@@ -360,7 +376,8 @@ struct __radix_sort_onesweep_kernel
     static constexpr ::std::uint32_t __group_hist_size = __hist_stride;
     static constexpr ::std::uint32_t __global_hist_size = __bin_count * sizeof(_GlobOffsetT);
 
-    static constexpr ::std::uint32_t __calc_reorder_slm_size()
+    static constexpr ::std::uint32_t
+    __calc_reorder_slm_size()
     {
         if constexpr (__has_values)
             return __work_group_size * __data_per_work_item * (sizeof(_KeyT) + sizeof(_ValT));
@@ -368,7 +385,8 @@ struct __radix_sort_onesweep_kernel
             return __work_group_size * __data_per_work_item * sizeof(_KeyT);
     }
 
-    static constexpr ::std::uint32_t __calc_slm_alloc()
+    static constexpr ::std::uint32_t
+    __calc_slm_alloc()
     {
         // SLM usage:
         // 1. Getting offsets:
@@ -397,14 +415,15 @@ struct __radix_sort_onesweep_kernel
     _InRngPack __in_pack;
     _OutRngPack __out_pack;
 
-    __radix_sort_onesweep_kernel(::std::uint32_t __n, ::std::uint32_t __stage,
-                                 _GlobOffsetT* __p_global_hist, _GlobOffsetT* __p_group_hists,
-                                 const _InRngPack& __in_pack, const _OutRngPack& __out_pack):
-        __n(__n), __stage(__stage),
-        __p_global_hist(__p_global_hist), __p_group_hists(__p_group_hists),
-        __in_pack(__in_pack), __out_pack(__out_pack) {}
+    __radix_sort_onesweep_kernel(::std::uint32_t __n, ::std::uint32_t __stage, _GlobOffsetT* __p_global_hist,
+                                 _GlobOffsetT* __p_group_hists, const _InRngPack& __in_pack,
+                                 const _OutRngPack& __out_pack)
+        : __n(__n), __stage(__stage), __p_global_hist(__p_global_hist), __p_group_hists(__p_group_hists),
+          __in_pack(__in_pack), __out_pack(__out_pack)
+    {
+    }
 
-    template<typename _SimdPack>
+    template <typename _SimdPack>
     inline auto
     __load_simd_pack(_SimdPack& __pack, ::std::uint32_t __wg_id, ::std::uint32_t __wg_size, ::std::uint32_t __lid) const
     {
@@ -412,11 +431,12 @@ struct __radix_sort_onesweep_kernel
         __load_simd</*__sort_identity_residual=*/true>(__pack.__keys, __rng_data(__in_pack.__keys_rng()), __offset);
         if constexpr (__has_values)
         {
-            __load_simd</*__sort_identity_residual=*/false>(__pack.__vals, __rng_data(__in_pack.__vals_rng()), __offset);
+            __load_simd</*__sort_identity_residual=*/false>(__pack.__vals, __rng_data(__in_pack.__vals_rng()),
+                                                            __offset);
         }
     }
 
-    template<bool __sort_identity_residual, typename _T, typename _InSeq>
+    template <bool __sort_identity_residual, typename _T, typename _InSeq>
     inline void
     __load_simd(_SimdT<_T, __data_per_work_item>& __simd, const _InSeq& __in_seq, _GlobOffsetT __glob_offset) const
     {
@@ -446,7 +466,8 @@ struct __radix_sort_onesweep_kernel
                 {
                     constexpr _T __default_item = __sort_identity<_T, __is_ascending>();
                     auto __default = __dpl_esimd::__ns::simd<_T, __data_per_step>(__default_item);
-                    __simd.template select<__data_per_step, 1>(__s) =__dpl_esimd::__ns::merge(__gathered, __default, __m);
+                    __simd.template select<__data_per_step, 1>(__s) =
+                        __dpl_esimd::__ns::merge(__gathered, __default, __m);
                 }
                 else
                 {
@@ -478,8 +499,8 @@ struct __radix_sort_onesweep_kernel
     }
 
     inline auto
-    __rank_local(_LocOffsetSimdT& __ranks, _LocOffsetSimdT& __bins,
-                 ::std::uint32_t __slm_counter_offset, ::std::uint32_t __local_tid) const
+    __rank_local(_LocOffsetSimdT& __ranks, _LocOffsetSimdT& __bins, ::std::uint32_t __slm_counter_offset,
+                 ::std::uint32_t __local_tid) const
     {
         constexpr int __bins_per_step = 32;
         using _ScanSimdT = __dpl_esimd::__ns::simd<::std::uint32_t, __bins_per_step>;
@@ -509,8 +530,8 @@ struct __radix_sort_onesweep_kernel
     }
 
     inline void
-    __rank_global(_LocHistT& __subgroup_offset, _GlobHistT& __global_fix,
-                  ::std::uint32_t __local_tid, ::std::uint32_t __wg_id) const
+    __rank_global(_LocHistT& __subgroup_offset, _GlobHistT& __global_fix, ::std::uint32_t __local_tid,
+                  ::std::uint32_t __wg_id) const
     {
         const ::std::uint32_t __slm_bin_hist_this_thread = __local_tid * __hist_stride;
         const ::std::uint32_t __slm_bin_hist_group_incoming = __work_group_size * __hist_stride;
@@ -521,7 +542,7 @@ struct __radix_sort_onesweep_kernel
 
         _GlobOffsetT* __p_this_group_hist = __p_group_hists + __bin_count * __wg_id;
         // First group contains global histogram to propagate it to other groups during synchronization
-        _GlobOffsetT* __p_prev_group_hist = (0 == __wg_id)? __p_global_hist : __p_this_group_hist - __bin_count;
+        _GlobOffsetT* __p_prev_group_hist = (0 == __wg_id) ? __p_global_hist : __p_this_group_hist - __bin_count;
 
         constexpr ::std::uint32_t __bin_summary_group_size = 8;
         constexpr ::std::uint32_t __bin_width = __bin_count / __bin_summary_group_size;
@@ -533,9 +554,11 @@ struct __radix_sort_onesweep_kernel
         {
             // 1.1. Vector scan of the same bins across different histograms.
             ::std::uint32_t __slm_bin_hist_summary_offset = __local_tid * __bin_width * sizeof(_LocOffsetT);
-            for (::std::uint32_t __s = 0; __s < __work_group_size; __s++, __slm_bin_hist_summary_offset += __hist_stride)
+            for (::std::uint32_t __s = 0; __s < __work_group_size;
+                 __s++, __slm_bin_hist_summary_offset += __hist_stride)
             {
-                __thread_grf_hist_summary += __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_width>(__slm_bin_hist_summary_offset);
+                __thread_grf_hist_summary +=
+                    __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_width>(__slm_bin_hist_summary_offset);
                 __dpl_esimd::__block_store_slm(__slm_bin_hist_summary_offset, __thread_grf_hist_summary);
             }
 
@@ -543,14 +566,15 @@ struct __radix_sort_onesweep_kernel
             // Only "__bin_width" pieces of the histogram are scanned at this stage.
             // This histogram will be further used for calculation of offsets of keys already reordered in SLM,
             // it does not participate in sycnhronization between work-groups.
-            __dpl_esimd::__block_store_slm(__slm_bin_hist_group_incoming + __local_tid * __bin_width * sizeof(_LocOffsetT),
-                                            __scan<_LocOffsetT, _LocOffsetT>(__thread_grf_hist_summary));
+            __dpl_esimd::__block_store_slm(__slm_bin_hist_group_incoming +
+                                               __local_tid * __bin_width * sizeof(_LocOffsetT),
+                                           __scan<_LocOffsetT, _LocOffsetT>(__thread_grf_hist_summary));
 
             // 1.3 Copy the histogram at the region designited for synchronization between work-groups.
             // Set the status as "updated".
             if (__wg_id != 0)
-                __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(__p_this_group_hist + __local_tid * __bin_width,
-                                                        __thread_grf_hist_summary | __hist_updated);
+                __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(
+                    __p_this_group_hist + __local_tid * __bin_width, __thread_grf_hist_summary | __hist_updated);
         }
         __dpl_esimd::__ns::barrier();
 
@@ -570,8 +594,8 @@ struct __radix_sort_onesweep_kernel
                 __grf_hist_summary_scan.template select<__bin_width, 1>(__i + 1) =
                     __grf_hist_summary.template select<__bin_width, 1>(__i) + __grf_hist_summary_scan[__i];
             }
-            __dpl_esimd::__block_store_slm<_LocOffsetT, __bin_count>(__slm_bin_hist_group_incoming,
-                                                    __grf_hist_summary_scan.template select<__bin_count, 1>());
+            __dpl_esimd::__block_store_slm<_LocOffsetT, __bin_count>(
+                __slm_bin_hist_group_incoming, __grf_hist_summary_scan.template select<__bin_count, 1>());
         }
 
         // 2. Chained scan. Synchronization between work-groups.
@@ -586,7 +610,7 @@ struct __radix_sort_onesweep_kernel
                     __prev_group_hist = __dpl_esimd::__ens::lsc_block_load<
                         _GlobOffsetT, __bin_width, __dpl_esimd::__ens::lsc_data_size::default_size,
                         __dpl_esimd::__ens::cache_hint::uncached, __dpl_esimd::__ens::cache_hint::cached>(
-                            __p_prev_group_hist + __local_tid * __bin_width);
+                        __p_prev_group_hist + __local_tid * __bin_width);
                     // Software barrier is used in order to trick the compiler,
                     // thus it generates memory operations with better performance
                     // TODO: check if it is still necessary.
@@ -597,12 +621,15 @@ struct __radix_sort_onesweep_kernel
                 __p_prev_group_hist -= __bin_count;
             } while (__is_not_accumulated.any() && __wg_id != 0);
             __prev_group_hist_sum &= __global_offset_mask;
-            __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> after_group_hist_sum = __prev_group_hist_sum + __thread_grf_hist_summary;
+            __dpl_esimd::__ns::simd<_GlobOffsetT, __bin_width> after_group_hist_sum =
+                __prev_group_hist_sum + __thread_grf_hist_summary;
             __dpl_esimd::__block_store<::std::uint32_t, __bin_width>(__p_this_group_hist + __local_tid * __bin_width,
-                                                    after_group_hist_sum | __hist_updated | __global_accumulated);
+                                                                     after_group_hist_sum | __hist_updated |
+                                                                         __global_accumulated);
 
             __dpl_esimd::__block_store_slm<::std::uint32_t, __bin_width>(
-                __slm_bin_hist_global_incoming + __local_tid * __bin_width * sizeof(_GlobOffsetT), __prev_group_hist_sum);
+                __slm_bin_hist_global_incoming + __local_tid * __bin_width * sizeof(_GlobOffsetT),
+                __prev_group_hist_sum);
         }
         __dpl_esimd::__ns::barrier();
 
@@ -610,11 +637,13 @@ struct __radix_sort_onesweep_kernel
         auto __group_incoming = __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_count>(__slm_bin_hist_group_incoming);
         // 3.1. Get histogram accumullated from previous groups (together with the global one) and apply correction for keys already reordered in SLM
         // TODO: rename the variable to represent its purpose better.
-        __global_fix = __dpl_esimd::__block_load_slm<_GlobOffsetT, __bin_count>(__slm_bin_hist_global_incoming) - __group_incoming;
+        __global_fix =
+            __dpl_esimd::__block_load_slm<_GlobOffsetT, __bin_count>(__slm_bin_hist_global_incoming) - __group_incoming;
         // 3.2 Get historam with offsets for each work-item within its work-group.
         if (__local_tid > 0)
         {
-            __subgroup_offset = __group_incoming + __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_count>((__local_tid - 1) * __hist_stride);
+            __subgroup_offset = __group_incoming + __dpl_esimd::__block_load_slm<_LocOffsetT, __bin_count>(
+                                                       (__local_tid - 1) * __hist_stride);
         }
         else
         {
@@ -623,11 +652,10 @@ struct __radix_sort_onesweep_kernel
         __dpl_esimd::__ns::barrier();
     }
 
-    template<typename _SimdPack>
-    void inline
-    __reorder_reg_to_slm(const _SimdPack& __pack, const _LocOffsetSimdT& __ranks,
-                         const _LocOffsetSimdT& __bins, const _LocHistT& __subgroup_offset,
-                         ::std::uint32_t __wg_size, ::std::uint32_t __thread_slm_offset) const
+    template <typename _SimdPack>
+    void inline __reorder_reg_to_slm(const _SimdPack& __pack, const _LocOffsetSimdT& __ranks,
+                                     const _LocOffsetSimdT& __bins, const _LocHistT& __subgroup_offset,
+                                     ::std::uint32_t __wg_size, ::std::uint32_t __thread_slm_offset) const
     {
         __slm_lookup<_LocOffsetT> __subgroup_lookup(__thread_slm_offset);
         _LocOffsetSimdT __wg_offset =
@@ -638,17 +666,16 @@ struct __radix_sort_onesweep_kernel
         __dpl_esimd::__vector_store<_KeyT, 1, __data_per_work_item>(__wg_offset_keys, __pack.__keys);
         if constexpr (__has_values)
         {
-            _GlobOffsetSimdT __wg_offset_vals = __wg_size * __data_per_work_item * sizeof(_KeyT) +
-                                                __wg_offset * sizeof(_ValT);
+            _GlobOffsetSimdT __wg_offset_vals =
+                __wg_size * __data_per_work_item * sizeof(_KeyT) + __wg_offset * sizeof(_ValT);
             __dpl_esimd::__vector_store<_ValT, 1, __data_per_work_item>(__wg_offset_vals, __pack.__vals);
         }
         __dpl_esimd::__ns::barrier();
     }
 
-    template<typename _SimdPack>
-    void inline
-    __reorder_slm_to_glob(_SimdPack& __pack, const _GlobHistT& __global_fix,
-                          ::std::uint32_t __local_tid, ::std::uint32_t __wg_size) const
+    template <typename _SimdPack>
+    void inline __reorder_slm_to_glob(_SimdPack& __pack, const _GlobHistT& __global_fix, ::std::uint32_t __local_tid,
+                                      ::std::uint32_t __wg_size) const
     {
         __slm_lookup<_GlobOffsetT> __global_fix_lookup(__calc_reorder_slm_size());
         if (__local_tid == 0)
@@ -659,8 +686,8 @@ struct __radix_sort_onesweep_kernel
         __pack.__keys = __dpl_esimd::__block_load_slm<_KeyT, __data_per_work_item>(__keys_slm_offset);
         if constexpr (__has_values)
         {
-            ::std::uint32_t __vals_slm_offset = __wg_size * __data_per_work_item * sizeof(_KeyT) +
-                                                __local_tid * __data_per_work_item * sizeof(_ValT);
+            ::std::uint32_t __vals_slm_offset =
+                __wg_size * __data_per_work_item * sizeof(_KeyT) + __local_tid * __data_per_work_item * sizeof(_ValT);
             __pack.__vals = __dpl_esimd::__block_load_slm<_ValT, __data_per_work_item>(__vals_slm_offset);
         }
         const auto __ordered = __order_preserving_cast<__is_ascending>(__pack.__keys);
@@ -687,8 +714,9 @@ struct __radix_sort_onesweep_kernel
             __rng_data(__out_pack.__keys_rng()), __global_offset * sizeof(_KeyT), __pack.__keys, __global_offset < __n);
         if constexpr (__has_values)
         {
-            __dpl_esimd::__vector_store<_ValT, 1, __data_per_work_item>(
-                __rng_data(__out_pack.__vals_rng()), __global_offset * sizeof(_ValT), __pack.__vals, __global_offset < __n);
+            __dpl_esimd::__vector_store<_ValT, 1, __data_per_work_item>(__rng_data(__out_pack.__vals_rng()),
+                                                                        __global_offset * sizeof(_ValT), __pack.__vals,
+                                                                        __global_offset < __n);
         }
     }
 
@@ -721,6 +749,6 @@ struct __radix_sort_onesweep_kernel
     }
 };
 
-} // oneapi::dpl::experimental::kt::esimd::__impl
+} // namespace oneapi::dpl::experimental::kt::esimd::__impl
 
 #endif // _ONEDPL_KT_ESIMD_RADIX_SORT_KERNELS_H

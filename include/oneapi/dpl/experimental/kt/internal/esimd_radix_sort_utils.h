@@ -24,8 +24,9 @@
 namespace oneapi::dpl::experimental::kt::esimd::__impl
 {
 
-template<::std::uint8_t __radix_bits, ::std::uint16_t __data_per_workitem, ::std::uint16_t __workgroup_size>
-constexpr void __check_esimd_sort_params()
+template <::std::uint8_t __radix_bits, ::std::uint16_t __data_per_workitem, ::std::uint16_t __workgroup_size>
+constexpr void
+__check_esimd_sort_params()
 {
     static_assert(__radix_bits == 8);
     static_assert(__data_per_workitem % 32 == 0);
@@ -166,12 +167,13 @@ __order_preserving_cast(__dpl_esimd::__ns::simd<_Float, _N> __src)
     if constexpr (__is_ascending)
     {
         __mask = __dpl_esimd::__ns::merge(__dpl_esimd::__ns::simd<::std::uint32_t, _N>(0x80000000u),
-                                       __dpl_esimd::__ns::simd<::std::uint32_t, _N>(0xFFFFFFFFu), __sign_bit_m);
+                                          __dpl_esimd::__ns::simd<::std::uint32_t, _N>(0xFFFFFFFFu), __sign_bit_m);
     }
     else
     {
-        __mask = __dpl_esimd::__ns::merge(__dpl_esimd::__ns::simd<::std::uint32_t, _N>(0x7FFFFFFFu),
-                                       __dpl_esimd::__ns::simd<::std::uint32_t, _N>(::std::uint32_t(0)), __sign_bit_m);
+        __mask =
+            __dpl_esimd::__ns::merge(__dpl_esimd::__ns::simd<::std::uint32_t, _N>(0x7FFFFFFFu),
+                                     __dpl_esimd::__ns::simd<::std::uint32_t, _N>(::std::uint32_t(0)), __sign_bit_m);
     }
     return __uint32_src ^ __mask;
 }
@@ -186,13 +188,15 @@ __order_preserving_cast(__dpl_esimd::__ns::simd<_Float, _N> __src)
     __dpl_esimd::__ns::simd_mask<_N> __sign_bit_m = (__uint64_src >> 63 == 0);
     if constexpr (__is_ascending)
     {
-        __mask = __dpl_esimd::__ns::merge(__dpl_esimd::__ns::simd<::std::uint64_t, _N>(0x8000000000000000u),
-                                       __dpl_esimd::__ns::simd<::std::uint64_t, _N>(0xFFFFFFFFFFFFFFFFu), __sign_bit_m);
+        __mask =
+            __dpl_esimd::__ns::merge(__dpl_esimd::__ns::simd<::std::uint64_t, _N>(0x8000000000000000u),
+                                     __dpl_esimd::__ns::simd<::std::uint64_t, _N>(0xFFFFFFFFFFFFFFFFu), __sign_bit_m);
     }
     else
     {
-        __mask = __dpl_esimd::__ns::merge(__dpl_esimd::__ns::simd<::std::uint64_t, _N>(0x7FFFFFFFFFFFFFFFu),
-                                       __dpl_esimd::__ns::simd<::std::uint64_t, _N>(::std::uint64_t(0)), __sign_bit_m);
+        __mask =
+            __dpl_esimd::__ns::merge(__dpl_esimd::__ns::simd<::std::uint64_t, _N>(0x7FFFFFFFFFFFFFFFu),
+                                     __dpl_esimd::__ns::simd<::std::uint64_t, _N>(::std::uint64_t(0)), __sign_bit_m);
     }
     return __uint64_src ^ __mask;
 }
@@ -229,7 +233,8 @@ struct __slm_lookup
     inline auto
     __lookup(_Idx __idx) SYCL_ESIMD_FUNCTION
     {
-        return __dpl_esimd::__vector_load<_T, 1, _N>(__slm + __dpl_esimd::__ns::simd<::std::uint32_t, _N>(__idx) * sizeof(_T));
+        return __dpl_esimd::__vector_load<_T, 1, _N>(__slm +
+                                                     __dpl_esimd::__ns::simd<::std::uint32_t, _N>(__idx) * sizeof(_T));
     }
 
     template <int _N, int __table_size, typename _Idx>
@@ -241,7 +246,7 @@ struct __slm_lookup
     }
 };
 
-template<typename _Rng>
+template <typename _Rng>
 auto
 __rng_data(const _Rng& __rng)
 {
@@ -259,57 +264,66 @@ __rng_data(const oneapi::dpl::__ranges::all_view<_T, _M>& __view)
     return __view.accessor();
 }
 
-struct __rng_dummy {};
+struct __rng_dummy
+{
+};
 
-template<typename _Rng>
+template <typename _Rng>
 struct __rng_value_type_deducer
 {
     using __value_t = oneapi::dpl::__internal::__value_t<_Rng>;
 };
 
-template<>
+template <>
 struct __rng_value_type_deducer<__rng_dummy>
 {
     using __value_t = void;
 };
 
-template<typename _Rng1, typename _Rng2 = __rng_dummy>
+template <typename _Rng1, typename _Rng2 = __rng_dummy>
 struct __rng_pack
 {
     using _KeyT = typename __rng_value_type_deducer<_Rng1>::__value_t;
     using _ValT = typename __rng_value_type_deducer<_Rng2>::__value_t;
     static constexpr bool __has_values = !std::is_void_v<_ValT>;
 
-    const auto& __keys_rng() const { return __m_keys_rng; }
-    const auto& __vals_rng() const
+    const auto&
+    __keys_rng() const
+    {
+        return __m_keys_rng;
+    }
+    const auto&
+    __vals_rng() const
     {
         static_assert(__has_values);
         return __m_vals_rng;
     }
 
-    __rng_pack(const _Rng1& __rng1, const _Rng2& __rng2 = __rng_dummy{}):
-        __m_keys_rng(__rng1), __m_vals_rng(__rng2) {}
-    __rng_pack(_Rng1&& __rng1, _Rng2&& __rng2 = __rng_dummy{}):
-        __m_keys_rng(::std::move(__rng1)), __m_vals_rng(::std::move(__rng2)) {}
-private:
+    __rng_pack(const _Rng1& __rng1, const _Rng2& __rng2 = __rng_dummy{}) : __m_keys_rng(__rng1), __m_vals_rng(__rng2) {}
+    __rng_pack(_Rng1&& __rng1, _Rng2&& __rng2 = __rng_dummy{})
+        : __m_keys_rng(::std::move(__rng1)), __m_vals_rng(::std::move(__rng2))
+    {
+    }
+
+  private:
     _Rng1 __m_keys_rng;
     _Rng2 __m_vals_rng;
 };
 
-template<::std::uint16_t _N, typename _KeyT>
+template <::std::uint16_t _N, typename _KeyT>
 struct __keys_simd_pack
 {
     __dpl_esimd::__ns::simd<_KeyT, _N> __keys;
 };
 
-template< ::std::uint16_t _N, typename _KeyT, typename _ValT>
+template <::std::uint16_t _N, typename _KeyT, typename _ValT>
 struct __pairs_simd_pack
 {
     __dpl_esimd::__ns::simd<_KeyT, _N> __keys;
     __dpl_esimd::__ns::simd<_ValT, _N> __vals;
 };
 
-template<::std::uint16_t _N, typename _T1, typename _T2 = void>
+template <::std::uint16_t _N, typename _T1, typename _T2 = void>
 auto
 __make_simd_pack()
 {

@@ -49,7 +49,8 @@ radix_sort(sycl::queue __q, _KeysIterator __keys_first, _KeysIterator __keys_las
     return __impl::__radix_sort<__is_ascending, __radix_bits>(__q, ::std::move(__pack), __param);
 }
 
-template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename _KernelParam, typename _KeysRng, typename _ValsRng>
+template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename _KernelParam, typename _KeysRng,
+          typename _ValsRng>
 sycl::event
 radix_sort_by_key(sycl::queue __q, _KeysRng&& __keys_rng, _ValsRng&& __vals_rng, _KernelParam __param = {})
 {
@@ -59,13 +60,15 @@ radix_sort_by_key(sycl::queue __q, _KeysRng&& __keys_rng, _ValsRng&& __vals_rng,
         return {};
 
     auto __pack = __impl::__rng_pack{oneapi::dpl::__ranges::views::all(::std::forward<_KeysRng>(__keys_rng)),
-                                              oneapi::dpl::__ranges::views::all(::std::forward<_ValsRng>(__vals_rng))};
+                                     oneapi::dpl::__ranges::views::all(::std::forward<_ValsRng>(__vals_rng))};
     return __impl::__radix_sort<__is_ascending, __radix_bits>(__q, ::std::move(__pack), __param);
 }
 
-template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename _KernelParam, typename _KeysIterator, typename _ValsIterator>
+template <bool __is_ascending = true, ::std::uint8_t __radix_bits = 8, typename _KernelParam, typename _KeysIterator,
+          typename _ValsIterator>
 sycl::event
-radix_sort_by_key(sycl::queue __q, _KeysIterator __keys_first, _KeysIterator __keys_last, _ValsIterator __vals_first, _KernelParam __param = {})
+radix_sort_by_key(sycl::queue __q, _KeysIterator __keys_first, _KeysIterator __keys_last, _ValsIterator __vals_first,
+                  _KernelParam __param = {})
 {
     __impl::__check_esimd_sort_params<__radix_bits, _KernelParam::data_per_workitem, _KernelParam::workgroup_size>();
 

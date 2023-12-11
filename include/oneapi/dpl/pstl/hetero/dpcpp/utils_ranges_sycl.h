@@ -33,7 +33,7 @@ namespace __ranges
 
 namespace __internal
 {
-template<typename _AccessorType, typename _BufferType, typename _DiffType>
+template <typename _AccessorType, typename _BufferType, typename _DiffType>
 static _AccessorType
 __create_accessor(_BufferType& __buf, _DiffType __offset, _DiffType __n)
 {
@@ -97,7 +97,8 @@ class all_view
         __cgh.require(__m_acc);
     }
 
-    __accessor_t accessor() const
+    __accessor_t
+    accessor() const
     {
         return __m_acc;
     }
