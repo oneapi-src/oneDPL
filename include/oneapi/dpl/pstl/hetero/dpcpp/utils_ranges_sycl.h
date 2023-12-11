@@ -33,8 +33,8 @@ namespace __ranges
 
 namespace __internal
 {
-template<typename _AccessorType, typename _BufferType, typename _DiffType>
-static _AccessorType 
+template <typename _AccessorType, typename _BufferType, typename _DiffType>
+static _AccessorType
 __create_accessor(_BufferType& __buf, _DiffType __offset, _DiffType __n)
 {
     auto __n_buf = __dpl_sycl::__get_buffer_size(__buf);
@@ -95,6 +95,12 @@ class all_view
     require_access(sycl::handler& __cgh)
     {
         __cgh.require(__m_acc);
+    }
+
+    __accessor_t
+    accessor() const
+    {
+        return __m_acc;
     }
 
   private:
