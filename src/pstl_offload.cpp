@@ -46,7 +46,7 @@ static thread_local bool __dlsym_called = false;
 static thread_local __delayed_free_header* __delayed_free = nullptr;
 
 static __free_func_type
-__get_original_free()
+__get_original_free(void* __ptr_to_free)
 {
     __dlsym_called = true;
     __free_func_type __orig_free = __free_func_type(dlsym(RTLD_NEXT, "free"));
@@ -55,6 +55,23 @@ __get_original_free()
     {
         throw std::system_error(std::error_code(), dlerror());
     }
+
+    // Releasing objects from delayed release list. It's enough to check __delayed_free
+    // only at this point, as __delayed_free filled only inside dlsym(RTLD_NEXT, "free").
+    while (__delayed_free)
+    {
+        __delayed_free_header* __next = __delayed_free->_M_next;
+        // it's possible that an object to be released during 1st call of __internal_free
+        // would be released 2nd time from inside nested dlsym call. To prevent "double free"
+        // situation, check for it explicitly.
+        if (__ptr_to_free != __delayed_free->_M_to_free)
+        {
+            __orig_free(__delayed_free->_M_to_free);
+        }
+        __orig_free(__delayed_free);
+        __delayed_free = __next;
+    }
+
     return __orig_free;
 }
 
@@ -96,22 +113,8 @@ __internal_free(void* __user_ptr)
             }
             else
             {
-                static __free_func_type __orig_free = __get_original_free();
+                static __free_func_type __orig_free = __get_original_free(__user_ptr);
 
-                // releasing objects from delayed release list
-                while (__delayed_free)
-                {
-                    __delayed_free_header* __next = __delayed_free->_M_next;
-                    // it's possible that an object to be released during 1st call of __internal_free
-                    // would be released 2nd time from inside nested dlsym call. To prevent "double free"
-                    // situation, check for it explicitly.
-                    if (__user_ptr != __delayed_free->_M_to_free)
-                    {
-                        __orig_free(__delayed_free->_M_to_free);
-                    }
-                    __orig_free(__delayed_free);
-                    __delayed_free = __next;
-                }
                 __orig_free(__user_ptr);
             }
         }
