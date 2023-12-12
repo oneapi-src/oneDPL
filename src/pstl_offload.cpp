@@ -87,6 +87,10 @@ __internal_free(void* __user_ptr)
                 // so can use it safely. Do not use new to able to use free() during
                 // __delayed_free_header releasing.
                 void* __buf = malloc(sizeof(__delayed_free_header));
+                if (!__buf)
+                {
+                    throw std::bad_alloc();
+                }
                 __delayed_free_header* __h = new(__buf) __delayed_free_header(__delayed_free, __user_ptr);
                 __delayed_free = __h;
             }
