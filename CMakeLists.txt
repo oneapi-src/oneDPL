@@ -85,6 +85,8 @@ if (_fsycl_option)
     if (_sycl_header OR _sycl_header_old)
         set(_sycl_support TRUE)
     endif()
+else()
+    message(STATUS "No _fsycl_option")
 endif()
 
 # Exit with an error when DPCPP backend is explicitly set and SYCL is not supported
