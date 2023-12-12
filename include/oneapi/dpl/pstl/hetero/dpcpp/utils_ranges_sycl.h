@@ -466,8 +466,7 @@ struct __get_sycl_range
         auto __n = __last - __first;
         assert(__n > 0);
 
-        auto res_src = this->operator()(__first.base(),
-                                        __first.base() + __dpl_sycl::__get_buffer_size(__first.base().get_buffer()));
+        auto res_src = this->operator()(__first.base(), oneapi::dpl::end(__first.base().get_buffer()));
 
         auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
 
