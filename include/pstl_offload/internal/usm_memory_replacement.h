@@ -324,9 +324,6 @@ inline void* __attribute__((always_inline)) realloc(void* __ptr, std::size_t __s
 
 #if __linux__
 
-// valloc, pvalloc, __libc_valloc and __libc_pvalloc are not supported
-// due to unsupported alignment on memory page
-
 inline void* __attribute__((always_inline)) memalign(std::size_t __alignment, std::size_t __size) noexcept
 {
     return ::__pstl_offload::__errno_handling_internal_aligned_alloc(__size, __alignment);
@@ -381,6 +378,24 @@ inline void* __attribute__((always_inline)) __libc_realloc(void* __ptr, std::siz
 {
     return realloc(__ptr, __size);
 }
+
+inline void* __attribute__((always_inline)) valloc(std::size_t __size)
+{
+    return memalign(__pstl_offload::__get_memory_page_size(), __size);
+}
+
+inline void* __attribute__((always_inline)) __libc_valloc(std::size_t __size) { return valloc(__size); }
+
+// __THROW to match system declaration of pvalloc
+inline void* __attribute__((always_inline)) pvalloc(std::size_t __size) __THROW
+{
+    size_t __page_size = __pstl_offload::__get_memory_page_size();
+    // align size up to the page size
+    __size = __size ? ((__size - 1) | (__page_size - 1)) + 1 : __page_size;
+    return memalign(__page_size, __size);
+}
+
+inline void* __attribute__((always_inline)) __libc_pvalloc(std::size_t __size) { return pvalloc(__size); }
 
 #elif _WIN64
 
