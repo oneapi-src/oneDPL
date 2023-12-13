@@ -32,18 +32,18 @@ namespace __pstl_offload
 using __free_func_type = void (*)(void*);
 
 // list of objects for delayed releasing
-struct __delayed_free_header {
-    __delayed_free_header* _M_next;
+struct __delayed_free_list {
+    __delayed_free_list* _M_next;
     void*                  _M_to_free;
 
-    __delayed_free_header(__delayed_free_header* __next, void* __to_free)
+    __delayed_free_list(__delayed_free_list* __next, void* __to_free)
         : _M_next(__next), _M_to_free(__to_free) {}
 };
 
 // are we inside dlsym call?
 static thread_local bool __dlsym_called = false;
 // objects released inside of dlsym call
-static thread_local __delayed_free_header* __delayed_free = nullptr;
+static thread_local __delayed_free_list* __delayed_free = nullptr;
 
 static __free_func_type
 __get_original_free(void* __ptr_to_free)
@@ -60,7 +60,7 @@ __get_original_free(void* __ptr_to_free)
     // only at this point, as __delayed_free filled only inside dlsym(RTLD_NEXT, "free").
     while (__delayed_free)
     {
-        __delayed_free_header* __next = __delayed_free->_M_next;
+        __delayed_free_list* __next = __delayed_free->_M_next;
         // it's possible that an object to be released during 1st call of __internal_free
         // would be released 2nd time from inside nested dlsym call. To prevent "double free"
         // situation, check for it explicitly.
@@ -102,13 +102,13 @@ __internal_free(void* __user_ptr)
             {
                 // Delay releasing till exit of dlsym. We do not overload malloc globally,
                 // so can use it safely. Do not use new to able to use free() during
-                // __delayed_free_header releasing.
-                void* __buf = malloc(sizeof(__delayed_free_header));
+                // __delayed_free_list releasing.
+                void* __buf = malloc(sizeof(__delayed_free_list));
                 if (!__buf)
                 {
                     throw std::bad_alloc();
                 }
-                __delayed_free_header* __h = new(__buf) __delayed_free_header(__delayed_free, __user_ptr);
+                __delayed_free_list* __h = new(__buf) __delayed_free_list(__delayed_free, __user_ptr);
                 __delayed_free = __h;
             }
             else
