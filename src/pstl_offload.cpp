@@ -96,6 +96,50 @@ __get_original_msize()
     return __orig_msize;
 }
 
+struct __hash_aligned_ptr
+{
+    uintptr_t operator()(void *p) const
+    {
+        // we know that addresses are at least page-aligned, so drop 11 right bits that are zeros,
+        // and multiply to some prime number for bits hashing
+        // TODO: should well-known hashing function be used?
+        constexpr unsigned shift = 11;
+        return ((uintptr_t)p >> shift) * 1111111111111111111LLU;
+    }
+};
+
+struct __large_aligned_ptr_header
+{
+    __sycl_device_shared_ptr _M_device_ptr;
+    std::size_t   _M_size;
+};
+
+std::mutex __large_aligned_ptrs_mtx;
+// map user pointer to header
+std::unordered_map<void*, __large_aligned_ptr_header, __hash_aligned_ptr> __large_aligned_ptrs;
+
+static void
+__register_large_alignment_ptr(void* __ptr, size_t __size, __sycl_device_shared_ptr __device_ptr)
+{
+    const std::lock_guard<std::mutex> l(__large_aligned_ptrs_mtx);
+    auto __ret = __large_aligned_ptrs.emplace(__ptr, __large_aligned_ptr_header{__device_ptr, __size});
+    assert(__ret.second); // the pointer must be unique
+}
+
+static std::optional<__large_aligned_ptr_header>
+__unregister_large_aligned_ptr(void* __ptr)
+{
+    const std::lock_guard<std::mutex> l(__large_aligned_ptrs_mtx);
+    auto __iter = __large_aligned_ptrs.find(__ptr);
+    if (__iter == __large_aligned_ptrs.end())
+    {
+        return std::nullopt;
+    }
+    __large_aligned_ptr_header __header = __iter->second;
+    __large_aligned_ptrs.erase(__iter);
+    return __header;
+}
+
 static void
 __internal_free(void* __user_ptr)
 {
@@ -103,29 +147,38 @@ __internal_free(void* __user_ptr)
     {
         __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
 
-        if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
+        if (__same_memory_page(__user_ptr, __header))
         {
-            __free_usm_pointer(__header);
+            if (__header->_M_uniq_const == __uniq_type_const)
+            {
+                __free_usm_pointer(__header);
+                return;
+            }
+        }
+        else if (std::optional<__large_aligned_ptr_header> __header = __unregister_large_aligned_ptr(__user_ptr);
+                 __header.has_value())
+        {
+            sycl::context __context = __header->_M_device_ptr.__get_context();
+            sycl::free(__user_ptr, __context);
+            return;
+        }
+
+        if (__dlsym_called)
+        {
+            // Delay releasing till exit of dlsym. We do not overload malloc globally,
+            // so can use it safely. Do not use new to able to use free() during
+            // __delayed_free_list releasing.
+            void* __buf = malloc(sizeof(__delayed_free_list));
+            if (!__buf)
+            {
+                throw std::bad_alloc();
+            }
+            __delayed_free_list* __h = new (__buf) __delayed_free_list{__delayed_free, __user_ptr};
+            __delayed_free = __h;
         }
         else
         {
-            if (__dlsym_called)
-            {
-                // Delay releasing till exit of dlsym. We do not overload malloc globally,
-                // so can use it safely. Do not use new to able to use free() during
-                // __delayed_free_list releasing.
-                void* __buf = malloc(sizeof(__delayed_free_list));
-                if (!__buf)
-                {
-                    throw std::bad_alloc();
-                }
-                __delayed_free_list* __h = new(__buf) __delayed_free_list{__delayed_free, __user_ptr};
-                __delayed_free = __h;
-            }
-            else
-            {
-                __original_free(__user_ptr);
-            }
+            __original_free(__user_ptr);
         }
     }
 }
@@ -133,22 +186,40 @@ __internal_free(void* __user_ptr)
 static std::size_t
 __internal_msize(void* __user_ptr)
 {
-    std::size_t __res = 0;
-    if (__user_ptr != nullptr)
+    if (__user_ptr == nullptr)
     {
+        return 0;
+    }
 
-        __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
+    __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
 
-        if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
+    if (__same_memory_page(__user_ptr, __header))
+    {
+        if (__header->_M_uniq_const == __uniq_type_const)
         {
-            __res = __header->_M_requested_number_of_bytes;
-        }
-        else
-        {
-            __res = __get_original_msize()(__user_ptr);
+            return __header->_M_requested_number_of_bytes;
         }
     }
-    return __res;
+    else if (std::optional<__large_aligned_ptr_header> __header = __unregister_large_aligned_ptr(__user_ptr);
+             __header.has_value())
+    {
+        return __header->_M_size;
+    }
+    return __get_original_msize()(__user_ptr);
+}
+
+_PSTL_OFFLOAD_EXPORT void*
+__allocate_shared_for_device_large_alignment(__sycl_device_shared_ptr __device_ptr, std::size_t __size, std::size_t __alignment)
+{
+    sycl::device __device = __device_ptr.__get_device();
+    sycl::context __context = __device_ptr.__get_context();
+    void* __ptr = sycl::aligned_alloc_shared(__alignment, __size, __device, __context);
+
+    if (__ptr)
+    {
+        __register_large_alignment_ptr(__ptr, __size, __device_ptr);
+    }
+    return __ptr;
 }
 
 } // namespace __pstl_offload

@@ -96,7 +96,7 @@ class __sycl_device_shared_ptr
         return *this;
     }
 
-    __sycl_device_shared_ptr(__sycl_device_shared_ptr& other)
+    __sycl_device_shared_ptr(const __sycl_device_shared_ptr& other)
     {
         _M_shared_device = other._M_shared_device;
         ++_M_shared_device->_M_cnt;
@@ -127,6 +127,9 @@ struct __block_header
 
 static_assert(__is_power_of_two(sizeof(__block_header)));
 
+void* __allocate_shared_for_device_large_alignment(__sycl_device_shared_ptr __device_ptr, std::size_t __size, std::size_t __alignment);
+
+
 #if __linux__
 
 inline std::size_t
@@ -148,11 +151,11 @@ inline void*
 __allocate_shared_for_device(__sycl_device_shared_ptr __device_ptr, std::size_t __size, std::size_t __alignment)
 {
     assert(__device_ptr.__is_device_created());
-    // Unsupported alignment - impossible to guarantee that the returned pointer and memory header
-    // would be on the same memory page if the alignment for more than a memory page is requested
+    // Impossible to guarantee that the returned pointer and memory header would be on the same memory
+    // page if the alignment for more than a memory page is requested, so process this case specifially
     if (__alignment >= __get_memory_page_size())
     {
-        return nullptr;
+        return __allocate_shared_for_device_large_alignment(__device_ptr, __size, __alignment);
     }
 
     std::size_t __base_offset = std::max(__alignment, sizeof(__block_header));

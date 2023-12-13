@@ -188,9 +188,6 @@ __internal_operator_new(std::size_t __size, std::size_t __alignment, const std::
 
 #if __linux__
 
-// valloc, pvalloc, __libc_valloc and __libc_pvalloc are not supported
-// due to unsupported alignment on memory page
-
 extern "C"
 {
 
@@ -279,6 +276,29 @@ inline void* __attribute__((always_inline)) __libc_memalign(std::size_t __alignm
 inline void* __attribute__((always_inline)) __libc_realloc(void *__ptr, std::size_t __size)
 {
     return realloc(__ptr, __size);
+}
+
+inline void* __attribute__((always_inline)) valloc(std::size_t __size)
+{
+    return memalign(__pstl_offload::__get_memory_page_size(), __size);
+}
+
+inline void* __attribute__((always_inline)) __libc_valloc(std::size_t __size)
+{
+    return valloc(__size);
+}
+
+inline void* __attribute__((always_inline)) pvalloc(std::size_t __size) __THROW
+{
+    size_t __page_size = __pstl_offload::__get_memory_page_size();
+    // align size up to the page size
+    __size = __size? ((__size-1) | (__page_size-1)) + 1 : __page_size;
+    return memalign(__page_size, __size);
+}
+
+inline void* __attribute__((always_inline)) __libc_pvalloc(std::size_t __size)
+{
+    return pvalloc(__size);
 }
 
 } // extern "C"
