@@ -13,11 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+
 #include "support/test_config.h"
+#include <fstream>
+#include <iomanip>
 
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(numeric)
-
 int
 main()
 {
@@ -25,16 +27,24 @@ main()
 
     for (size_t n = 0; n <= 1000000000; n = n < 16 ? n + 1 : size_t(3.1415 * n))
     {
-        using Type = float;
+        std::optional<std::ofstream> error_file;
+        using Type = size_t;
         std::cout << "Testing " << n << '\n';
-        std::vector<Type> v(n, 1);
+        std::vector<Type> v(n, 1000);
+        std::vector<Type> ground(n, 1);
         sycl::queue q;
         Type* in_ptr = sycl::malloc_device<Type>(n, q);
         Type* out_ptr = sycl::malloc_device<Type>(n, q);
 
 
         q.copy(v.data(), in_ptr, n).wait();
-        std::inclusive_scan(v.begin(), v.end(), v.begin());
+        //std::inclusive_scan(v.begin(), v.end(), ground.begin());
+        if (n > 0)
+        {
+            ground[0] = v[0];
+            for (size_t i = 1; i < n; ++i)
+                ground[i] = v[i] + ground[i-1];
+        }
 
         using KernelParams = oneapi::dpl::experimental::kt::kernel_param<8, 256, class ScanKernel>;
         oneapi::dpl::experimental::kt::single_pass_inclusive_scan<KernelParams>(q, in_ptr, in_ptr+n, out_ptr, ::std::plus<Type>());
@@ -48,18 +58,32 @@ main()
         {
             if constexpr (std::is_floating_point<Type>::value)
             {
-                if (std::fabs(tmp[i] - v[i]) > 0.001)
+        //        if (std::fabs(tmp[i] - ground[i]) > 0.001)
                 {
+                    if (!error_file)
+                    {
+                        std::stringstream ss;
+                        ss << "scan_kt_errors_" << n << ".dat";
+                        error_file.emplace(ss.str());
+                    }
+                    *error_file << i <<  ' ' << std::setprecision(15)  << ground[i] << ' ' << tmp[i] << '\n';
                     passed = false;
-                    std::cout << "expected " << i << ' ' << v[i] << ' ' << tmp[i] << '\n';
+                    //std::cout << "expected " << i << ' ' << v[i] << ' ' << tmp[i] << "# " <<   (std::fabs(tmp[i] - v[i])) << '\n';
                 }
             }
             else
             {
-                if (tmp[i] != v[i])
+                if (tmp[i] != ground[i])
                 {
+                    if (!error_file)
+                    {
+                        std::stringstream ss;
+                        ss << "scan_kt_errors_" << n << ".dat";
+                        error_file.emplace(ss.str());
+                    }
+                    *error_file << i <<  ' ' << std::setprecision(15)  << ground[i] << ' ' << tmp[i] << '\n';
                     passed = false;
-                    std::cout << "expected " << i << ' ' << v[i] << ' ' << tmp[i] << '\n';
+                    //std::cout << "expected " << i << ' ' << v[i] << ' ' << tmp[i] << '\n';
                 }
             }
         }
@@ -69,8 +93,8 @@ main()
         else
             std::cout << "failed" << std::endl;
 
-        if (!passed)
-            return 1;
+        //if (!passed)
+        //    return 1;
 
         all_passed &= passed;
     }

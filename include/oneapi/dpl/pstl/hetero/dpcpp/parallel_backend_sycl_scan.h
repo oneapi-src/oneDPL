@@ -21,6 +21,8 @@ namespace oneapi::dpl::experimental::kt
 
 inline namespace igpu {
 
+static constexpr int SUBGROUP_SIZE = 32;
+
 template<typename _T>
 struct __scan_status_flag
 {
@@ -29,40 +31,45 @@ struct __scan_status_flag
     // 10xxxx - full
     // 110000 - out of bounds
 
-    using _AtomicRefT = sycl::atomic_ref<::std::uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::device, sycl::access::address_space::global_space>;
-    static constexpr std::uint32_t partial_mask = 1 << (sizeof(std::uint32_t)*8 - 2);
-    static constexpr std::uint32_t full_mask = 1 << (sizeof(std::uint32_t)*8 - 1);
-    static constexpr std::uint32_t value_mask = ~(partial_mask | full_mask);
-    static constexpr std::uint32_t oob_value = partial_mask | full_mask;
+    static constexpr bool is_larger_than_32_bits = sizeof(_T)*8 > 32;
+    using _StorageType = ::std::conditional_t<is_larger_than_32_bits, ::std::uint64_t, ::std::uint32_t>;
+    using _AtomicRefT = sycl::atomic_ref<_StorageType, sycl::memory_order::relaxed, sycl::memory_scope::device, sycl::access::address_space::global_space>;
 
-    static constexpr int padding = 32;
+    static constexpr ::std::size_t flag_length = sizeof(_StorageType);
 
-    __scan_status_flag(std::uint32_t* flags_begin, const std::uint32_t tile_id)
+    static constexpr _StorageType partial_mask = 1ul << (flag_length*8 - 2);
+    static constexpr _StorageType full_mask = 1ul << (flag_length*8 - 1);
+    static constexpr _StorageType value_mask = ~(partial_mask | full_mask);
+    static constexpr _StorageType oob_value = partial_mask | full_mask;
+
+    static constexpr int padding = SUBGROUP_SIZE;
+
+    __scan_status_flag(_StorageType* flags_begin, const std::uint32_t tile_id)
       : atomic_flag(*(flags_begin + tile_id + padding))
     {
 
     }
 
-    void set_partial(std::uint32_t val)
+    void set_partial(const _T val)
     {
         atomic_flag.store(val | partial_mask);
     }
 
-    void set_full(std::uint32_t val)
+    void set_full(const _T val)
     {
         atomic_flag.store(val | full_mask);
     }
 
     template<typename _Subgroup, typename BinOp>
-    _T cooperative_lookback(std::uint32_t tile_id, const _Subgroup& subgroup, BinOp bin_op, std::uint32_t* flags_begin)
+    _T cooperative_lookback(std::uint32_t tile_id, const _Subgroup& subgroup, BinOp bin_op, _StorageType* flags_begin)
     {
         _T sum{0};
         int local_id = subgroup.get_local_id();
 
-        for (int tile = static_cast<int>(tile_id) - 1; tile >= 0; tile -= 32)
+        for (int tile = static_cast<int>(tile_id) - 1; tile >= 0; tile -= SUBGROUP_SIZE)
         {
             _AtomicRefT tile_atomic(*(flags_begin + tile + padding - local_id));
-            std::uint32_t tile_val = 0;
+            _StorageType tile_val = 0;
             do {
                 tile_val = tile_atomic.load();
 
@@ -96,8 +103,15 @@ void
 single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op)
 {
     using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _FlagType = __scan_status_flag<_Type>;
+    using _FlagStorageType = __scan_status_flag<_Type>::_StorageType;
 
     static_assert(_Inclusive, "Single-pass scan only available for inclusive scan");
+    if (sizeof(_Type) > 32 && !__queue.get_device().has(sycl::aspect::atomic64))
+    {
+        std::cerr << "TODO" << std::endl;
+        exit(1);
+    }
 
     const ::std::size_t n = __in_rng.size();
     auto __max_cu = __queue.get_device().template get_info<sycl::info::device::max_compute_units>();
@@ -114,31 +128,34 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     std::uint32_t status_flags_size = num_wgs+1+status_flag_padding;
 
 
-    uint32_t* status_flags = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
+    _FlagStorageType* status_flags = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
 
     auto fill_event = __queue.submit([&](sycl::handler& hdl) {
 
         hdl.parallel_for<class scan_kt_init>(sycl::range<1>{status_flags_size}, [=](const sycl::item<1>& item)  {
                 int id = item.get_linear_id();
-                status_flags[id] = id < status_flag_padding ? __scan_status_flag<_Type>::oob_value : 0;
+                status_flags[id] = id < status_flag_padding ? _FlagType::oob_value : 0;
         });
     });
 
 
-#define SCAN_KT_DEBUG 0
+#define SCAN_KT_DEBUG 1
 #if SCAN_KT_DEBUG
-    printf("launching kernel items=%lu wgs=%lu wgsize=%lu elems_per_iter=%lu max_cu=%u\n", num_items, num_wgs, wgsize, elems_per_workitem, __max_cu);
-    std::vector<uint32_t> debug11v(status_flags_size);
-    __queue.memcpy(debug11v.data(), status_flags, status_flags_size * sizeof(uint32_t));
+    printf("== LAUNCHING KERNEL - n=%lu - items=%lu - wgs=%lu - wgsize=%lu - elems_per_iter=%lu - max_cu=%u\n", n, num_items, num_wgs, wgsize, elems_per_workitem, __max_cu);
+    printf("atomic64 %d\n", __queue.get_device().has(sycl::aspect::atomic64));
+    std::vector<_FlagStorageType> debug11v(status_flags_size);
+    __queue.memcpy(debug11v.data(), status_flags, status_flags_size * sizeof(_FlagStorageType));
 
     for (int i = 0; i < status_flags_size-1; ++i)
         std::cout << "flag_before " << i << " " << debug11v[i] << std::endl;
 
-    uint32_t* debug1 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
-    uint32_t* debug2 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
-    uint32_t* debug3 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
-    uint32_t* debug4 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
-    uint32_t* debug5 = sycl::malloc_device<uint32_t>(status_flags_size, __queue);
+    _FlagStorageType* debug1 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
+    _FlagStorageType* debug2 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
+    _FlagStorageType* debug3 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
+    _FlagStorageType* debug4 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
+    _FlagStorageType* debug5 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
+    _FlagStorageType* debug6 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
+    _FlagStorageType* debug7 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
     printf("out_begin %p\n", (void*)__out_rng.begin());
     printf("status_flags %p\n", (void*)status_flags);
 #endif
@@ -148,7 +165,7 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
         hdl.depends_on(fill_event);
 
         oneapi::dpl::__ranges::__require_access(hdl, __in_rng, __out_rng);
-        hdl.parallel_for<class scan_kt_main>(sycl::nd_range<1>(num_items, wgsize), [=](const sycl::nd_item<1>& item)  [[intel::reqd_sub_group_size(32)]] {
+        hdl.parallel_for<class scan_kt_main>(sycl::nd_range<1>(num_items, wgsize), [=](const sycl::nd_item<1>& item)  [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
             auto group = item.get_group();
             auto subgroup = item.get_sub_group();
 
@@ -156,7 +173,7 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             // Obtain unique ID for this work-group that will be used in decoupled lookback
             if (group.leader())
             {
-                sycl::atomic_ref<::std::uint32_t, sycl::memory_order::relaxed, sycl::memory_scope::device, sycl::access::address_space::global_space> idx_atomic(status_flags[status_flags_size-1]);
+                sycl::atomic_ref<_FlagStorageType, sycl::memory_order::relaxed, sycl::memory_scope::device, sycl::access::address_space::global_space> idx_atomic(status_flags[status_flags_size-1]);
                 tile_id_lacc[0] = idx_atomic.fetch_add(1);
             }
             sycl::group_barrier(group);
@@ -182,7 +199,7 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             if (current_offset >= n)
                 return;
 
-            auto local_sum = sycl::joint_reduce(group, in_begin, in_end, __binary_op);
+            _Type local_sum = sycl::joint_reduce(group, in_begin, in_end, __binary_op);
 #if SCAN_KT_DEBUG
             debug1[tile_id] = local_sum;
 #endif
@@ -192,11 +209,10 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             // The first sub-group will query the previous tiles to find a prefix
             if (subgroup.get_group_id() == 0)
             {
-                __scan_status_flag<_Type> flag(status_flags, tile_id);
+                _FlagType flag(status_flags, tile_id);
 
                 if (group.leader())
                     flag.set_partial(local_sum);
-
 
                 prev_sum = flag.cooperative_lookback(tile_id, subgroup, __binary_op, status_flags);
 #if SCAN_KT_DEBUG
@@ -208,26 +224,40 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             }
 
 
+            //sycl::group_barrier(group);
             prev_sum = sycl::group_broadcast(group, prev_sum, 0);
+            //sycl::group_barrier(group);
             sycl::joint_inclusive_scan(group, in_begin, in_end, out_begin, __binary_op, prev_sum);
+#if SCAN_KT_DEBUG
+            sycl::group_barrier(group);
+            if (group.leader())
+            {
+                debug6[tile_id] = *out_begin;
+                debug7[tile_id] = *(out_begin+next_offset-1);
+            }
+#endif
         });
     });
 
 
 #if SCAN_KT_DEBUG
     event.wait();
-    std::vector<uint32_t> debug1v(status_flags_size);
-    std::vector<uint32_t> debug2v(status_flags_size);
-    std::vector<uint32_t> debug3v(status_flags_size);
-    std::vector<uint32_t> debug4v(status_flags_size);
-    std::vector<uint32_t> debug5v(status_flags_size);
-    std::vector<uint32_t> debug6v(status_flags_size);
-    __queue.memcpy(debug1v.data(), debug1, status_flags_size * sizeof(uint32_t));
-    __queue.memcpy(debug2v.data(), debug2, status_flags_size * sizeof(uint32_t));
-    __queue.memcpy(debug3v.data(), debug3, status_flags_size * sizeof(uint32_t));
-    __queue.memcpy(debug4v.data(), debug4, status_flags_size * sizeof(uint32_t));
-    __queue.memcpy(debug5v.data(), debug5, status_flags_size * sizeof(uint32_t));
-    __queue.memcpy(debug6v.data(), status_flags, status_flags_size * sizeof(uint32_t));
+    std::vector<_FlagStorageType> debug1v(status_flags_size);
+    std::vector<_FlagStorageType> debug2v(status_flags_size);
+    std::vector<_FlagStorageType> debug3v(status_flags_size);
+    std::vector<_FlagStorageType> debug4v(status_flags_size);
+    std::vector<_FlagStorageType> debug5v(status_flags_size);
+    std::vector<_FlagStorageType> debug6v(status_flags_size);
+    std::vector<_FlagStorageType> debug7v(status_flags_size);
+    std::vector<_FlagStorageType> debug_status_v(status_flags_size);
+    __queue.memcpy(debug1v.data(), debug1, status_flags_size * sizeof(_FlagStorageType));
+    __queue.memcpy(debug2v.data(), debug2, status_flags_size * sizeof(_FlagStorageType));
+    __queue.memcpy(debug3v.data(), debug3, status_flags_size * sizeof(_FlagStorageType));
+    __queue.memcpy(debug4v.data(), debug4, status_flags_size * sizeof(_FlagStorageType));
+    __queue.memcpy(debug5v.data(), debug5, status_flags_size * sizeof(_FlagStorageType));
+    __queue.memcpy(debug6v.data(), debug6, status_flags_size * sizeof(_FlagStorageType));
+    __queue.memcpy(debug7v.data(), debug7, status_flags_size * sizeof(_FlagStorageType));
+    __queue.memcpy(debug_status_v.data(), status_flags, status_flags_size * sizeof(_FlagStorageType));
 
     for (int i = 0; i < status_flags_size-1; ++i)
         std::cout << "tile " << i << " " << debug5v[i] << std::endl;
@@ -235,10 +265,10 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
         std::cout << "local_sum " << i << " " << debug1v[i] << std::endl;
     for (int i = 0; i < status_flags_size-1; ++i)
     {
-        auto val = (debug6v[i] & __scan_status_flag<_Type>::value_mask);
+        auto val = (debug_status_v[i] & _FlagType::value_mask);
         int a = val / elems_in_tile;
         int b = val % elems_in_tile;
-        std::cout << "flags " << i << " " << std::bitset<32>(debug6v[i]) << " (" << val<< " = " << a << "/" << elems_in_tile << "+" << b <<")" << std::endl;
+        std::cout << "flags " << i << " " << std::bitset<sizeof(_FlagStorageType)*8>(debug_status_v[i]) << " (" << val<< " = " << a << "/" << elems_in_tile << "+" << b <<")" << std::endl;
     }
     for (int i = 0; i < status_flags_size-1; ++i)
         std::cout << "lookback " << i << " " << debug2v[i] << std::endl;
@@ -246,6 +276,11 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
         std::cout << "offset " << i << " " << debug3v[i] << std::endl;
     for (int i = 0; i < status_flags_size-1; ++i)
         std::cout << "end " << i << " " << debug4v[i] << std::endl;
+
+    for (int i = 0; i < status_flags_size-1; ++i)
+        std::cout << "out_first " << i << " " << debug6v[i] << std::endl;
+    for (int i = 0; i < status_flags_size-1; ++i)
+        std::cout << "out_last " << i << " " << debug7v[i] << std::endl;
 #endif
 
     auto free_event = __queue.submit(
