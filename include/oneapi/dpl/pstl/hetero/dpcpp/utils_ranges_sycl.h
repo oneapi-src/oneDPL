@@ -221,17 +221,17 @@ struct is_passed_directly<oneapi::dpl::transform_iterator<Iter, Unary>> : is_pas
 };
 
 template <typename SourceIterator, typename IndexIterator>
-struct is_passed_directly<oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>> 
+struct is_passed_directly<oneapi::dpl::permutation_iterator<SourceIterator, IndexIterator>>
     : ::std::conjunction<is_passed_directly<SourceIterator>, is_passed_directly<IndexIterator>>
 {
 };
 
 template <typename... Iters>
-struct is_passed_directly<zip_iterator<Iters...>>: ::std::conjunction<is_passed_directly<Iters>...>
+struct is_passed_directly<zip_iterator<Iters...>> : ::std::conjunction<is_passed_directly<Iters>...>
 {
 };
 
-template<typename Iter>
+template <typename Iter>
 inline constexpr bool is_passed_directly_v = is_passed_directly<Iter>::value;
 
 // A trait for checking if iterator is heterogeneous or not
@@ -246,7 +246,7 @@ struct is_sycl_iterator<oneapi::dpl::__internal::sycl_iterator<Mode, Types...>> 
 {
 };
 
-template<typename Iter>
+template <typename Iter>
 inline constexpr bool is_sycl_iterator_v = is_sycl_iterator<Iter>::value;
 
 //A trait for checking if it needs to create a temporary SYCL buffer or not
@@ -257,9 +257,8 @@ struct is_temp_buff : ::std::false_type
 };
 
 template <typename _Iter>
-struct is_temp_buff<
-    _Iter, ::std::enable_if_t<!is_sycl_iterator_v<_Iter> && !::std::is_pointer_v<_Iter> && !is_passed_directly_v<_Iter>>>
-    : ::std::true_type
+struct is_temp_buff<_Iter, ::std::enable_if_t<!is_sycl_iterator_v<_Iter> && !::std::is_pointer_v<_Iter> &&
+                                              !is_passed_directly_v<_Iter>>> : ::std::true_type
 {
 };
 
@@ -395,16 +394,18 @@ struct __get_sycl_range
     ::std::vector<::std::unique_ptr<oneapi::dpl::__internal::__lifetime_keeper_base>> m_buffers;
 
     static constexpr bool __is_copy_direct =
-            AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::read;
+        AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::read;
     static constexpr bool __is_copy_back =
-            AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::write;
+        AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::write;
 
     //SFINAE iterator type checks
-    template<typename It>
-    static constexpr auto __is_addressable(int) -> decltype(std::addressof(*::std::declval<It&>()), std::true_type{});
-    template<typename It>
-    static constexpr std::false_type __is_addressable(...);
-    template<typename It>
+    template <typename It>
+    static constexpr auto
+    __is_addressable(int) -> decltype(std::addressof(*::std::declval<It&>()), std::true_type{});
+    template <typename It>
+    static constexpr std::false_type
+    __is_addressable(...);
+    template <typename It>
     static constexpr bool __is_addressable_v = decltype(__is_addressable<It>(0))::value;
 
     template <typename _F, typename _It, typename _DiffType>
@@ -502,8 +503,8 @@ struct __get_sycl_range
     }
 
     //specialization for permutation_iterator using USM pointer or direct pass object as source
-    template <typename _Iter, typename _Map, ::std::enable_if_t<!is_sycl_iterator_v<_Iter>
-              && is_passed_directly_v<_Iter>, int> = 0>
+    template <typename _Iter, typename _Map,
+              ::std::enable_if_t<!is_sycl_iterator_v<_Iter> && is_passed_directly_v<_Iter>, int> = 0>
     auto
     operator()(oneapi::dpl::permutation_iterator<_Iter, _Map> __first,
                oneapi::dpl::permutation_iterator<_Iter, _Map> __last)
@@ -518,13 +519,13 @@ struct __get_sycl_range
         return __range_holder<decltype(rng)>{rng};
     }
 
-    template <typename _Iter, typename _Map, ::std::enable_if_t<!is_sycl_iterator_v<_Iter>
-              && !is_passed_directly_v<_Iter>, int> = 0>
+    template <typename _Iter, typename _Map,
+              ::std::enable_if_t<!is_sycl_iterator_v<_Iter> && !is_passed_directly_v<_Iter>, int> = 0>
     void
     operator()(oneapi::dpl::permutation_iterator<_Iter, _Map>, oneapi::dpl::permutation_iterator<_Iter, _Map>)
     {
         static_assert(std::is_same_v<oneapi::dpl::permutation_iterator<_Iter, _Map>, void>,
-        "error: the iterator type is not supported with a device policy");
+                      "error: the iterator type is not supported with a device policy");
     }
 
     //specialization for permutation discard iterator
@@ -576,24 +577,24 @@ struct __get_sycl_range
     auto
     operator()(_Iter __first, _Iter __last)
         -> ::std::enable_if_t<is_temp_buff<_Iter>::value && __is_addressable_v<_Iter> && !is_zip<_Iter>::value &&
-        !is_permutation<_Iter>::value, __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
+                                  !is_permutation<_Iter>::value,
+                              __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
         using _T = val_t<_Iter>;
 
-        return __process_host_iter_impl(__first, __last, [&]()
+        return __process_host_iter_impl(__first, __last, [&]() {
+            if constexpr (__is_copy_direct)
             {
-                if constexpr (__is_copy_direct)
-                {
-                   //wait and copy on a buffer destructor; an exclusive access buffer, good performance
-                   return sycl::buffer<_T, 1>{::std::addressof(*__first), __last - __first};
-                }
-                else
-                {
-                    sycl::buffer<_T, 1> __buf(__last - __first);
-                    __buf.set_final_data(::std::addressof(*__first)); //wait and fast copy on a buffer destructor
-                    return __buf;
-                }
-            });
+                //wait and copy on a buffer destructor; an exclusive access buffer, good performance
+                return sycl::buffer<_T, 1>{::std::addressof(*__first), __last - __first};
+            }
+            else
+            {
+                sycl::buffer<_T, 1> __buf(__last - __first);
+                __buf.set_final_data(::std::addressof(*__first)); //wait and fast copy on a buffer destructor
+                return __buf;
+            }
+        });
     }
 
     //SFINAE-overload for non-contiguous host iterator
@@ -601,28 +602,29 @@ struct __get_sycl_range
     auto
     operator()(_Iter __first, _Iter __last)
         -> ::std::enable_if_t<is_temp_buff<_Iter>::value && !__is_addressable_v<_Iter> && !is_zip<_Iter>::value &&
-        !is_permutation<_Iter>::value, __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
+                                  !is_permutation<_Iter>::value,
+                              __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
         using _T = val_t<_Iter>;
 
-        return __process_host_iter_impl(__first, __last, [&]()
+        return __process_host_iter_impl(__first, __last, [&]() {
+            if constexpr (__is_copy_direct)
             {
-                if constexpr (__is_copy_direct)
-                {
-                    sycl::buffer<_T, 1> __buf(__first, __last);//SYCL API for non-contiguous iterators
-                    if constexpr (__is_copy_back)
-                        __buf.set_final_data(__first); //SYCL API for non-contiguous iterators
-                    return __buf;
-                }
-                else
-                {
-                    sycl::buffer<_T, 1> __buf(__last - __first);
+                sycl::buffer<_T, 1> __buf(__first, __last); //SYCL API for non-contiguous iterators
+                if constexpr (__is_copy_back)
                     __buf.set_final_data(__first); //SYCL API for non-contiguous iterators
-                    return __buf;
-                }
-            });
+                return __buf;
+            }
+            else
+            {
+                sycl::buffer<_T, 1> __buf(__last - __first);
+                __buf.set_final_data(__first); //SYCL API for non-contiguous iterators
+                return __buf;
+            }
+        });
     }
-private:
+
+  private:
     //implementation of operator()(_Iter __first, _Iter __last) for the host iterator types
     template <typename _Iter, typename _GetBufferFunc>
     auto

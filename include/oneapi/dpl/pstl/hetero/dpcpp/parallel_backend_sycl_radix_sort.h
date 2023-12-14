@@ -813,8 +813,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
 
         // memory for storing values sorted for an iteration
         oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueT> __out_buffer_holder{__exec, __n};
-        auto __out_rng =
-            oneapi::dpl::__ranges::all_view<_ValueT, __par_backend_hetero::access_mode::read_write>(
+        auto __out_rng = oneapi::dpl::__ranges::all_view<_ValueT, __par_backend_hetero::access_mode::read_write>(
             __out_buffer_holder.get_buffer());
 
         // iterations per each bucket
