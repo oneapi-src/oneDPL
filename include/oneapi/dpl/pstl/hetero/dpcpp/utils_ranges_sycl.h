@@ -400,12 +400,12 @@ struct __get_sycl_range
             AccMode == sycl::access::mode::read_write || AccMode == sycl::access::mode::write;
 
     //SFINAE iterator type checks
-    template<typename It, typename T = decltype(std::addressof(*::std::declval<It&>()))>
-    static constexpr std::true_type __is_addressable (int);
     template<typename It>
-    static constexpr std::false_type __is_addressable (...);
+    static constexpr auto __is_addressable(int) -> decltype(std::addressof(*::std::declval<It&>()), std::true_type{});
     template<typename It>
-    static constexpr bool __is_addressable_v = decltype(__is_addressable <It>(0))::value;
+    static constexpr std::false_type __is_addressable(...);
+    template<typename It>
+    static constexpr bool __is_addressable_v = decltype(__is_addressable<It>(0))::value;
 
     template <typename _F, typename _It, typename _DiffType>
     static auto
@@ -578,8 +578,6 @@ struct __get_sycl_range
         -> ::std::enable_if_t<is_temp_buff<_Iter>::value && __is_addressable_v<_Iter> && !is_zip<_Iter>::value &&
         !is_permutation<_Iter>::value, __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
-        static_assert(__is_addressable_v<_Iter>);
-
         using _T = val_t<_Iter>;
 
         return __process_host_iter_impl(__first, __last, [&]()
