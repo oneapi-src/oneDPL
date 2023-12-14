@@ -159,7 +159,6 @@ class counting_iterator
     // There is no storage behind the iterator, so we return a value instead of reference.
     typedef _Ip reference;
     typedef ::std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = ::std::true_type;
 
     counting_iterator() : __my_counter_() {}
     explicit counting_iterator(_Ip __init) : __my_counter_(__init) {}
@@ -776,7 +775,6 @@ class discard_iterator
     typedef void* pointer;
     typedef value_type reference;
     typedef ::std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = ::std::true_type;
     using is_discard = ::std::true_type;
 
     discard_iterator() : __my_position_() {}

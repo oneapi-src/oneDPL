@@ -204,7 +204,11 @@ __check_size(int) -> decltype(::std::declval<_R&>().size());
 
 template <typename _R>
 auto
-__check_size(...) -> decltype(::std::declval<_R&>().get_count());
+__check_size(long) -> decltype(::std::declval<_R&>().get_count());
+
+template <typename _It>
+auto
+__check_size(...) -> typename ::std::iterator_traits<_It>::difference_type;
 
 template <typename _R>
 using __difference_t = ::std::make_signed_t<decltype(__check_size<_R>(0))>;
