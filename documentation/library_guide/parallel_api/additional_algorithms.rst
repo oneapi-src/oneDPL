@@ -89,7 +89,7 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
 
 * ``transform_if``: performs a transform on the elements of the input sequence(s) and stores the result into
   the corresponding position in the output sequence at each position for which the predicate applied to the
-  element(s) evalutes to ``true``. If the predicate evaluates to ``false``, the transform is not applied for
+  element(s) evaluates to ``true``. If the predicate evaluates to ``false``, the transform is not applied for
   the elements(s) and the corresponding position in the output sequence is left unmodified. There are two
   overloads of this function, one for a single input sequence with a unary transform and a unary predicate,
   and another for two input sequences and a binary transform and a binary predicate.
