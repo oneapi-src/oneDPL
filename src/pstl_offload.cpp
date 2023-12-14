@@ -34,7 +34,7 @@ using __free_func_type = void (*)(void*);
 // list of objects for delayed releasing
 struct __delayed_free_list {
     __delayed_free_list* _M_next;
-    void*                  _M_to_free;
+    void*                _M_to_free;
 };
 
 // are we inside dlsym call?
