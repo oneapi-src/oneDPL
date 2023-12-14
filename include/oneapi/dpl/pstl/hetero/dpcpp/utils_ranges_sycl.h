@@ -232,22 +232,22 @@ struct is_passed_directly<zip_iterator<Iters...>>: ::std::conjunction<is_passed_
 };
 
 template<typename Iter>
-inline constexpr bool is_passed_directly_v = is_passed_directly<::std::remove_const_t<Iter>>::value;
+inline constexpr bool is_passed_directly_v = is_passed_directly<Iter>::value;
 
 // A trait for checking if iterator is heterogeneous or not
 
 template <typename Iter>
-struct is_hetero : ::std::false_type
+struct is_sycl_iterator : ::std::false_type
 {
 };
 
 template <oneapi::dpl::access_mode Mode, typename... Types>
-struct is_hetero<oneapi::dpl::__internal::sycl_iterator<Mode, Types...>> : ::std::true_type
+struct is_sycl_iterator<oneapi::dpl::__internal::sycl_iterator<Mode, Types...>> : ::std::true_type
 {
 };
 
 template<typename Iter>
-inline constexpr bool is_hetero_v = is_hetero<::std::remove_const_t<Iter>>::value;
+inline constexpr bool is_sycl_iterator_v = is_sycl_iterator<Iter>::value;
 
 //A trait for checking if it needs to create a temporary SYCL buffer or not
 
@@ -258,7 +258,7 @@ struct is_temp_buff : ::std::false_type
 
 template <typename _Iter>
 struct is_temp_buff<
-    _Iter, ::std::enable_if_t<!is_hetero_v<_Iter> && !::std::is_pointer_v<_Iter> && !is_passed_directly_v<_Iter>>>
+    _Iter, ::std::enable_if_t<!is_sycl_iterator_v<_Iter> && !::std::is_pointer_v<_Iter> && !is_passed_directly_v<_Iter>>>
     : ::std::true_type
 {
 };
@@ -485,7 +485,7 @@ struct __get_sycl_range
 
   public:
     //specialization for permutation_iterator using sycl_iterator as source
-    template <typename _It, typename _Map, ::std::enable_if_t<is_hetero_v<_It>, int> = 0>
+    template <typename _It, typename _Map, ::std::enable_if_t<is_sycl_iterator_v<_It>, int> = 0>
     auto
     operator()(oneapi::dpl::permutation_iterator<_It, _Map> __first,
                oneapi::dpl::permutation_iterator<_It, _Map> __last)
@@ -502,7 +502,7 @@ struct __get_sycl_range
     }
 
     //specialization for permutation_iterator using USM pointer or direct pass object as source
-    template <typename _Iter, typename _Map, ::std::enable_if_t<!is_hetero_v<_Iter>
+    template <typename _Iter, typename _Map, ::std::enable_if_t<!is_sycl_iterator_v<_Iter>
               && is_passed_directly_v<_Iter>, int> = 0>
     auto
     operator()(oneapi::dpl::permutation_iterator<_Iter, _Map> __first,
@@ -518,7 +518,7 @@ struct __get_sycl_range
         return __range_holder<decltype(rng)>{rng};
     }
 
-    template <typename _Iter, typename _Map, ::std::enable_if_t<!is_hetero_v<_Iter>
+    template <typename _Iter, typename _Map, ::std::enable_if_t<!is_sycl_iterator_v<_Iter>
               && !is_passed_directly_v<_Iter>, int> = 0>
     void
     operator()(oneapi::dpl::permutation_iterator<_Iter, _Map>, oneapi::dpl::permutation_iterator<_Iter, _Map>)
@@ -555,7 +555,7 @@ struct __get_sycl_range
     template <typename _Iter>
     auto
     operator()(_Iter __first, _Iter __last)
-        -> ::std::enable_if_t<is_hetero_v<_Iter>,
+        -> ::std::enable_if_t<is_sycl_iterator_v<_Iter>,
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
         assert(__first < __last);
