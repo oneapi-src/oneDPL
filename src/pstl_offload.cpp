@@ -35,9 +35,6 @@ using __free_func_type = void (*)(void*);
 struct __delayed_free_list {
     __delayed_free_list* _M_next;
     void*                  _M_to_free;
-
-    __delayed_free_list(__delayed_free_list* __next, void* __to_free)
-        : _M_next(__next), _M_to_free(__to_free) {}
 };
 
 // are we inside dlsym call?
@@ -46,7 +43,7 @@ static thread_local bool __dlsym_called = false;
 static thread_local __delayed_free_list* __delayed_free = nullptr;
 
 static __free_func_type
-__get_original_free(void* __ptr_to_free)
+__get_original_free_checked(void* __ptr_to_free)
 {
     __dlsym_called = true;
     __free_func_type __orig_free = __free_func_type(dlsym(RTLD_NEXT, "free"));
@@ -71,6 +68,14 @@ __get_original_free(void* __ptr_to_free)
         __orig_free(__delayed_free);
         __delayed_free = __next;
     }
+
+    return __orig_free;
+}
+
+static __free_func_type
+__get_original_free(void* __ptr_to_free)
+{
+    static __free_func_type __orig_free = __get_original_free_checked(__ptr_to_free);
 
     return __orig_free;
 }
@@ -108,14 +113,12 @@ __internal_free(void* __user_ptr)
                 {
                     throw std::bad_alloc();
                 }
-                __delayed_free_list* __h = new(__buf) __delayed_free_list(__delayed_free, __user_ptr);
+                __delayed_free_list* __h = new(__buf) __delayed_free_list{__delayed_free, __user_ptr};
                 __delayed_free = __h;
             }
             else
             {
-                static __free_func_type __orig_free = __get_original_free(__user_ptr);
-
-                __orig_free(__user_ptr);
+                (__get_original_free(__user_ptr))(__user_ptr);
             }
         }
     }
