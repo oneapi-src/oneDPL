@@ -15,6 +15,12 @@ env:
   BUILD_CONCURRENCY: 2
   MACOS_BUILD_CONCURRENCY: 3
   TEST_TIMEOUT: 360
+  WINDOWS_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/64957c0f-37bf-4408-909c-37ff52fe5119/w_tbb_oneapi_p_2021.11.0.49526.exe
+  WINDOWS_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/dc441d10-698c-417d-be6f-44a172f7ab77/w_dpcpp-cpp-compiler_p_2024.0.1.28_offline.exe
+  WINDOWS_ONEAPI_PATH: C:\Program Files (x86)\Intel\oneAPI
+  LINUX_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/af3ad519-4c87-4534-87cb-5c7bda12754e/l_tbb_oneapi_p_2021.11.0.49527_offline.sh
+  LINUX_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/c68c8f0a-47f5-4f26-8e8e-fa2627271279/l_dpcpp-cpp-compiler_p_2024.0.1.29_offline.sh
+  LINUX_ONEAPI_PATH: /opt/intel/oneapi
   MACOS_ONEAPI_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/irc_nas/18358/m_cpp-compiler-classic_p_2022.0.0.62_offline.dmg
 
 concurrency:
@@ -169,27 +175,30 @@ jobs:
             device_type: HOST
     steps:
       - uses: actions/checkout@v3
-      - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
-        run: $CONDA/bin/conda install -c intel tbb-devel
-      - name: Install Intel® oneAPI DPC++/C++ Compiler (latest)
-        if: (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl') && matrix.device_type != 'FPGA_EMU'
-        run: $CONDA/bin/conda install -c intel dpcpp_linux-64
-        # FPGA emulator runtime configuration is broken in the 2024.0.0 dpcpp_linux-64 conda package
-      - name: Install Intel® oneAPI DPC++/C++ Compiler (2023.2)
-        if: (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl') && matrix.device_type == 'FPGA_EMU'
-        run: $CONDA/bin/conda install -c intel dpcpp_linux-64=2023.2.0
+      - name: Install Intel® oneAPI Threading Building Blocks
+        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
+        run: |
+          curl ${LINUX_TBB_DOWNLOAD_LINK} --output tbb_install.sh
+          sudo sh tbb_install.sh -s -a --silent --eula accept
+          rm -f tbb_install.sh
+      - name: Install Intel® oneAPI DPC++/C++ Compiler
+        if: (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
+        run: |
+          curl ${LINUX_ICPX_DOWNLOAD_LINK} --output icpx_install.sh
+          sudo sh icpx_install.sh -s -a --silent --eula accept
+          rm -f icpx_install.exe
+          sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl
       - name: Run testing
         shell: bash
         run: |
           set -x
-          source $CONDA/bin/activate
-          export PATH=$CONDA/lib:$PATH
-          export CPATH=$CONDA/include:$CPATH
-          export OCL_ICD_FILENAMES=$CONDA/lib/libintelocl.so
-          echo "::warning::Compiler: $(cmake --version)"
-          if [[ "${{ matrix.cxx_compiler }}" == "icpx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx" ]] || [[ "${{ matrix.cxx_compiler }}" == "icx-cl" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp" ]] || [[ "${{ matrix.cxx_compiler }}" == "dpcpp-cl" ]]; then
+          if [[ -f "${LINUX_ONEAPI_PATH}/setvars.sh" ]]; then
+            source ${LINUX_ONEAPI_PATH}/setvars.sh
             echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
+            sycl-ls
           fi
+          echo "::warning::CMake: $(cmake --version)"
+
           if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
             make_targets="build-onedpl-sycl_iterator-tests"
             ctest_flags="-R sycl_iterator_.*\.pass"
@@ -219,20 +228,29 @@ jobs:
             device_type: cpu
     steps:
       - uses: actions/checkout@v3
-      - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
-        run: $CONDA/bin/conda install -c intel tbb-devel
+      - name: Install Intel® oneAPI Threading Building Blocks
+        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
+        run: |
+          curl ${LINUX_TBB_DOWNLOAD_LINK} --output tbb_install.sh
+          sudo sh tbb_install.sh -s -a --silent --eula accept
+          rm -f tbb_install.sh
       - name: Install Intel® oneAPI DPC++/C++ Compiler
-        run: $CONDA/bin/conda install -c intel dpcpp_linux-64
+        if: (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
+        run: |
+          curl ${LINUX_ICPX_DOWNLOAD_LINK} --output icpx_install.sh
+          sudo sh icpx_install.sh -s -a --silent --eula accept
+          rm -f icpx_install.exe
+          sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl
       - name: Run testing
         shell: bash
         run: |
           set -x
-          source $CONDA/bin/activate
-          export PATH=$CONDA/lib:$PATH
-          export CPATH=$CONDA/include:$CPATH
-          export OCL_ICD_FILENAMES=$CONDA/lib/libintelocl.so
-          echo "::warning::Compiler: $(cmake --version)"
-          echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
+          if [[ -f "${LINUX_ONEAPI_PATH}/setvars.sh" ]]; then
+            source ${LINUX_ONEAPI_PATH}/setvars.sh
+            echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
+            sycl-ls
+          fi
+          echo "::warning::CMake: $(cmake --version)"
 
           make_targets=""
           ctest_regex="^("
@@ -294,22 +312,35 @@ jobs:
             device_type: CPU
     steps:
       - uses: actions/checkout@v3
-      - name: Install Intel® oneAPI Threading Building Blocks (oneTBB)
+      - name: Install Intel® oneAPI Threading Building Blocks
+        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
         shell: cmd
         run: |
-          call %CONDA%/condabin/conda.bat activate base
-          conda install -c intel tbb-devel
+          curl %WINDOWS_TBB_DOWNLOAD_LINK% --output tbb_install.exe
+          tbb_install.exe -s -a --silent --eula accept -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
+          del tbb_install.exe
       - name: Install Intel® oneAPI DPC++/C++ Compiler
-        if: matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl'
         shell: cmd
         run: |
-          call %CONDA%/condabin/conda.bat activate base
-          conda install -c intel dpcpp_win-64
+          curl %WINDOWS_ICPX_DOWNLOAD_LINK% --output icpx_install.exe
+          icpx_install.exe -s -a --silent --eula accept -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
+          del icpx_install.exe
+          rd /s /q "%WINDOWS_ONEAPI_PATH%\dpl"
+          call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
+
       - name: Run testing
         shell: cmd
         run: |
-          call %CONDA%/condabin/conda.bat activate base
+          if exist "%WINDOWS_ONEAPI_PATH%\setvars.bat" (
+            call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
+            powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
+            sycl-ls
+          )
+          if "${{ matrix.cxx_compiler }}" == "cl" (
+            call "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          )
           powershell $output = cmake --version; Write-Host ::warning::CMake: $output
+
           if "${{ matrix.backend }}" == "dpcpp" (
             set ninja_targets="build-onedpl-sycl_iterator-tests"
             set ctest_flags=-R sycl_iterator_.*\.pass
@@ -317,23 +348,8 @@ jobs:
           ) else (
             set ninja_targets=build-onedpl-tests
           )
-          if "${{ matrix.cxx_compiler }}" == "icpx" set TMP_INTEL_LLVM_COMPILER=TRUE
-          if "${{ matrix.cxx_compiler }}" == "icx" set TMP_INTEL_LLVM_COMPILER=TRUE
-          if "${{ matrix.cxx_compiler }}" == "icx-cl" set TMP_INTEL_LLVM_COMPILER=TRUE
-          if "${{ matrix.cxx_compiler }}" == "dpcpp" set TMP_INTEL_LLVM_COMPILER=TRUE
-          if "${{ matrix.cxx_compiler }}" == "dpcpp-cl" set TMP_INTEL_LLVM_COMPILER=TRUE
-          if "%TMP_INTEL_LLVM_COMPILER%" == "TRUE" (
-            powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
-            powershell -Command "(Get-Content '%CONDA_PREFIX%\Library\lib\cl.cfg') -replace 'CL_CONFIG_TBB_DLL_PATH = .*', 'CL_CONFIG_TBB_DLL_PATH = %CONDA_PREFIX%\Library\bin' | Out-File -encoding ASCII -FilePath '%CONDA_PREFIX%\Library\lib\cl.cfg'"
-          )
           mkdir build && cd build
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
-          set INCLUDE=%CONDA_PREFIX%\Library\include;%INCLUDE%
-          set LIB=%CONDA_PREFIX%\Library\lib;%LIB%
-          set PATH=%CONDA_PREFIX%\Library\lib;%PATH%
-          set CPATH=%CONDA_PREFIX%\include
-          set TBB_DLL_PATH=%CONDA_PREFIX%\Library\bin
-          reg add HKLM\SOFTWARE\khronos\OpenCL\Vendors /v intelocl64.dll /t REG_DWORD /d 00000000
+
           cmake -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} .. || goto :short_circuit_fail
           ninja -j 2 -v %ninja_targets% || goto :short_circuit_fail
           ctest --timeout %TEST_TIMEOUT% -C ${{ matrix.build_type }} --output-on-failure %ctest_flags% || goto :short_circuit_fail
