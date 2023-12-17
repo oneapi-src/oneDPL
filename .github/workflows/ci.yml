@@ -187,15 +187,16 @@ jobs:
           curl ${LINUX_ICPX_DOWNLOAD_LINK} --output icpx_install.sh
           sudo sh icpx_install.sh -s -a --silent --eula accept
           rm -f icpx_install.exe
-          sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl
+          sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl # avoid unintentional use
+          source ${LINUX_ONEAPI_PATH}/setvars.sh
+          echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
+          sycl-ls
       - name: Run testing
         shell: bash
         run: |
           set -x
           if [[ -f "${LINUX_ONEAPI_PATH}/setvars.sh" ]]; then
             source ${LINUX_ONEAPI_PATH}/setvars.sh
-            echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
-            sycl-ls
           fi
           echo "::warning::CMake: $(cmake --version)"
 
@@ -207,7 +208,6 @@ jobs:
             make_targets="build-onedpl-tests"
           fi
           mkdir build && cd build
-          lscpu
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=${{ matrix.backend }} -DONEDPL_DEVICE_TYPE=${{ matrix.device_type }} ..
           make VERBOSE=1 -j${BUILD_CONCURRENCY} ${make_targets}
@@ -240,16 +240,16 @@ jobs:
           curl ${LINUX_ICPX_DOWNLOAD_LINK} --output icpx_install.sh
           sudo sh icpx_install.sh -s -a --silent --eula accept
           rm -f icpx_install.exe
-          sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl
+          # sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl # keep oneDPL for pstloffload library
+          source ${LINUX_ONEAPI_PATH}/setvars.sh
+          echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
+          sycl-ls
       - name: Run testing
         shell: bash
         run: |
           set -x
-          if [[ -f "${LINUX_ONEAPI_PATH}/setvars.sh" ]]; then
-            source ${LINUX_ONEAPI_PATH}/setvars.sh
-            echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
-            sycl-ls
-          fi
+          source ${LINUX_ONEAPI_PATH}/setvars.sh
+          echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
           echo "::warning::CMake: $(cmake --version)"
 
           make_targets=""
@@ -274,7 +274,6 @@ jobs:
           ctest_regex+=")"
 
           mkdir build && cd build
-          lscpu
 
           device_type=${{ matrix.device_type }}
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
@@ -327,14 +326,13 @@ jobs:
           del icpx_install.exe
           rd /s /q "%WINDOWS_ONEAPI_PATH%\dpl"
           call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
-
+          powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
+          sycl-ls
       - name: Run testing
         shell: cmd
         run: |
           if exist "%WINDOWS_ONEAPI_PATH%\setvars.bat" (
             call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
-            powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
-            sycl-ls
           )
           if "${{ matrix.cxx_compiler }}" == "cl" (
             call "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
@@ -387,7 +385,7 @@ jobs:
         run: |
           set -x
           source /opt/intel/oneapi/setvars.sh
-          echo "::warning::Compiler: $(cmake --version)"
+          echo "::warning::CMake: $(cmake --version)"
           if [[ "${{ matrix.cxx_compiler }}" == "icpc" ]]; then
             echo "::warning::Compiler: $(icpc --version)"
           fi
