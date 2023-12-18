@@ -25,12 +25,14 @@ main()
 {
     bool all_passed = true;
 
-    for (size_t n = 0; n <= 1000000000; n = n < 16 ? n + 1 : size_t(3.1415 * n))
+    size_t max_size = (1ul << 33);
+    for (size_t n = 0; n <= max_size; n = n < 16 ? n + 1 : size_t(3.1415 * n))
     {
         std::optional<std::ofstream> error_file;
-        using Type = size_t;
-        std::cout << "Testing " << n << '\n';
-        std::vector<Type> v(n, 1000);
+        using Type = int;
+        std::cout << "Testing " << n << " (" << sizeof(Type) * n * 2 << " bytes)" << std::endl;
+
+        std::vector<Type> v(n, 1);
         std::vector<Type> ground(n, 1);
         sycl::queue q;
         Type* in_ptr = sycl::malloc_device<Type>(n, q);
@@ -97,6 +99,9 @@ main()
         //    return 1;
 
         all_passed &= passed;
+
+        sycl::free(in_ptr, q);
+        sycl::free(out_ptr, q);
     }
 
     return !all_passed;
