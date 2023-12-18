@@ -620,6 +620,10 @@ __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _
     using _global_histogram_type = typename ::std::iterator_traits<_Iter2>::value_type;
     const auto __n = __last - __first;
 
+    // The access mode we we want here is "read_write" + no_init property to cover the reads required by the main
+    //  kernel, but also to avoid copying the data in unnecessarily.  In practice, this "write" access mode should
+    //  accomplish this as write implies read, and we avoid a copy-in from the host for "write" access mode.
+    // TODO: Add no_init property to get_sycl_range to allow expressivity we need here.
     auto __keep_bins =
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::write, _Iter2>();
     auto __bins_buf = __keep_bins(__histogram_first, __histogram_first + __num_bins);
