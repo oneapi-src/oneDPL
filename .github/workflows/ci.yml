@@ -21,6 +21,7 @@ env:
   LINUX_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/af3ad519-4c87-4534-87cb-5c7bda12754e/l_tbb_oneapi_p_2021.11.0.49527_offline.sh
   LINUX_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/c68c8f0a-47f5-4f26-8e8e-fa2627271279/l_dpcpp-cpp-compiler_p_2024.0.1.29_offline.sh
   LINUX_ONEAPI_PATH: /opt/intel/oneapi
+  # TODO: get rid of a deprecated configuration: Intel® C++ Compiler Classic
   MACOS_ONEAPI_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/irc_nas/18358/m_cpp-compiler-classic_p_2022.0.0.62_offline.dmg
 
 concurrency:
