@@ -139,6 +139,8 @@ test_exclusive_scan(sycl::queue q, std::vector<size_t>& perms, std::vector<TestV
     EXPECT_EQ_RANGES(expectedResults, results, "wrong effect from exclusive_scan_by_segment #2");
 }
 
+#define _ONEDPL_PERM_BASE_ITERATOR_HOST_DEVICE_POL_SUPPORT 0
+
 template <typename... Args>
 void
 test_exclusive_scan(sycl::queue q)
@@ -173,6 +175,17 @@ test_exclusive_scan(sycl::queue q)
     // Res:  0, 1, 2, 3, 4, 0, 1, 2, 3, 4
     test_exclusive_scan<N, TestValueType, Args...>(q, keys1, vals1, res1);
 
+    // Keys: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+    // Vals: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+    // Res:  0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    test_exclusive_scan<N, TestValueType, Args...>(q, keys2, vals2, res2);
+
+    // Keys: 0, 0, 0, 0, 0, 1, 1, 1, 1, 1
+    // Vals: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+    // Res:  0, 1, 2, 3, 4, 0, 1, 2, 3, 4
+    test_exclusive_scan<N, TestValueType, Args...>(q, keys1, vals1, res1);
+
+#if _ONEDPL_PERM_BASE_ITERATOR_HOST_DEVICE_POL_SUPPORT
     // Perm: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     // Keys: 0, 0, 0, 0, 0, 1, 1, 1, 1, 1
     // Vals: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
@@ -184,11 +197,6 @@ test_exclusive_scan(sycl::queue q)
     // Vals: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     // Res:  0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     test_exclusive_scan<N, TestValueType, Args...>(q, permutations2, keys1, vals1, res3);
-
-    // Keys: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-    // Vals: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-    // Res:  0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    test_exclusive_scan<N, TestValueType, Args...>(q, keys2, vals2, res2);
 
     // Perm: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     // Keys: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
@@ -202,11 +210,6 @@ test_exclusive_scan(sycl::queue q)
     // Res:  0, 1, 2, 3, 4, 0, 1, 2, 3, 4
     test_exclusive_scan<N, TestValueType, Args...>(q, permutations2, keys2, vals2, res1);
 
-    // Keys: 0, 0, 0, 0, 0, 1, 1, 1, 1, 1
-    // Vals: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-    // Res:  0, 1, 2, 3, 4, 0, 1, 2, 3, 4
-    test_exclusive_scan<N, TestValueType, Args...>(q, keys1, vals1, res1);
-
     // Perm: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     // Keys: 0, 0, 0, 0, 0, 1, 1, 1, 1, 1
     // Vals: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
@@ -218,6 +221,7 @@ test_exclusive_scan(sycl::queue q)
     // Vals: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     // Res:  0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     test_exclusive_scan<N, TestValueType, Args...>(q, permutations2, keys1, vals1, res3);
+#endif
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
