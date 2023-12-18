@@ -46,40 +46,40 @@ struct __binhash_SLM_wrapper
     __binhash_SLM_wrapper(_BinHash __bin_hash) : __bin_hash(__bin_hash) {}
 
     template <typename _T2>
-    inline ::std::uint32_t
+    ::std::uint32_t
     get_bin(_T2&& __value) const
     {
         return __bin_hash.get_bin(::std::forward<_T2>(__value));
     }
 
     template <typename _T2>
-    inline bool
+    bool
     is_valid(_T2&& __value) const
     {
         return __bin_hash.is_valid(::std::forward<_T2>(__value));
     }
 
-    inline ::std::size_t
+    ::std::size_t
     get_required_SLM_elements() const
     {
         return 0;
     }
 
     template <typename _ExtraMemAccessor>
-    inline void
+    void
     init_SLM_memory(_ExtraMemAccessor /*__SLM_mem*/, const sycl::nd_item<1>& /*__self_item*/) const
     {
     }
 
     template <typename _T2, typename _ExtraMemAccessor>
-    inline ::std::uint32_t
+    ::std::uint32_t
     get_bin(_T2&& __value, _ExtraMemAccessor /*__SLM_mem*/) const
     {
         return get_bin(::std::forward<_T2>(__value));
     }
 
     template <typename _T2, typename _ExtraMemAccessor>
-    inline bool
+    bool
     is_valid(_T2&& __value, _ExtraMemAccessor /*__SLM_mem*/) const
     {
         return is_valid(::std::forward<_T2>(__value));
@@ -98,27 +98,27 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     __binhash_SLM_wrapper(_BinHashType __bin_hash) : __bin_hash(__bin_hash) {}
 
     template <typename _T2>
-    inline ::std::uint32_t
+    ::std::uint32_t
     get_bin(_T2&& __value) const
     {
         return __bin_hash.get_bin(::std::forward<_T2>(__value));
     }
 
     template <typename _T2>
-    inline bool
+    bool
     is_valid(_T2&& __value) const
     {
         return __bin_hash.is_valid(::std::forward<_T2>(__value));
     }
 
-    inline ::std::size_t
+    ::std::size_t
     get_required_SLM_elements()
     {
         return __bin_hash.__boundaries.size();
     }
 
     template <typename _ExtraMemAccessor>
-    inline void
+    void
     init_SLM_memory(_ExtraMemAccessor __d_boundaries, const sycl::nd_item<1>& __self_item) const
     {
         ::std::uint32_t __gSize = __self_item.get_local_range()[0];
@@ -137,7 +137,8 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     }
 
     template <typename _T2, typename _ExtraMemAccessor>
-    ::std::uint32_t inline get_bin(_T2&& __value, _ExtraMemAccessor __d_boundaries) const
+    ::std::uint32_t
+    get_bin(_T2&& __value, _ExtraMemAccessor __d_boundaries) const
     {
         return (::std::upper_bound(__d_boundaries.begin(), __d_boundaries.begin() + __bin_hash.__boundaries.size(),
                                    ::std::forward<_T2>(__value)) -
@@ -146,7 +147,8 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     }
 
     template <typename _T2, typename _ExtraMemAccessor>
-    bool inline is_valid(const _T2& __value, _ExtraMemAccessor __d_boundaries) const
+    bool
+    is_valid(const _T2& __value, _ExtraMemAccessor __d_boundaries) const
     {
         return (__value >= __d_boundaries[0]) && (__value < __d_boundaries[__bin_hash.__boundaries.size() - 1]);
     }
@@ -162,7 +164,7 @@ template <typename... _Name>
 class __histo_kernel_private_glocal_atomics;
 
 template <typename _HistAccessor, typename _OffsetT, typename _Size>
-inline void
+void
 __clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _OffsetT& __offset, _Size __num_bins,
                            const sycl::nd_item<1>& __self_item)
 {
@@ -184,7 +186,7 @@ __clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _Offset
 }
 
 template <typename _BinIdxType, typename _Range, typename _HistReg, typename _BinFunc, typename _ExtraMemAccessor>
-inline void
+void
 __accum_local_register_iter(_Range&& __input, const ::std::size_t& __index, _HistReg* __histogram, _BinFunc __func,
                             _ExtraMemAccessor __SLM_mem)
 {
@@ -198,7 +200,7 @@ __accum_local_register_iter(_Range&& __input, const ::std::size_t& __index, _His
 
 template <typename _BinIdxType, sycl::access::address_space _AddressSpace, typename _Range, typename _HistAccessor,
           typename _OffsetT, typename _BinFunc, typename... _ExtraMemType>
-inline void
+void
 __accum_local_atomics_iter(_Range&& __input, const ::std::size_t& __index, const _HistAccessor& __wg_local_histogram,
                            const _OffsetT& __offset, _BinFunc __func, _ExtraMemType... __SLM_mem)
 {
@@ -214,7 +216,7 @@ __accum_local_atomics_iter(_Range&& __input, const ::std::size_t& __index, const
 
 template <typename _BinType, typename _FactorType, typename _HistAccessorIn, typename _OffsetT,
           typename _HistAccessorOut, typename _Size>
-inline void
+void
 __reduce_out_histograms(const _HistAccessorIn& __in_histogram, const _OffsetT& __offset,
                         const _HistAccessorOut& __out_histogram, _Size __num_bins, const sycl::nd_item<1>& __self_item)
 {
@@ -246,7 +248,7 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
                                                                __internal::__optional_kernel_name<_KernelName...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _IdxHashFunc, typename... _Range3>
-    inline auto
+    auto
     operator()(_ExecutionPolicy&& __exec, const sycl::event& __init_e, ::std::uint16_t __work_group_size,
                _Range1&& __input, _Range2&& __bins, _IdxHashFunc __func, _Range3&&... __opt_range)
     {
@@ -318,7 +320,7 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
 
 template <::std::uint16_t __iters_per_work_item, ::std::uint8_t __bins_per_work_item, typename _ExecutionPolicy,
           typename _Range1, typename _Range2, typename _IdxHashFunc, typename... _Range3>
-inline auto
+auto
 __histogram_general_registers_local_reduction(_ExecutionPolicy&& __exec, const sycl::event& __init_e,
                                               ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
                                               _IdxHashFunc __func, _Range3&&... __opt_range)
@@ -347,7 +349,7 @@ struct __histogram_general_local_atomics_submitter<__iters_per_work_item,
                                                    __internal::__optional_kernel_name<_KernelName...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _IdxHashFunc, typename... _Range3>
-    inline auto
+    auto
     operator()(_ExecutionPolicy&& __exec, const sycl::event& __init_e, ::std::uint16_t __work_group_size,
                _Range1&& __input, _Range2&& __bins, _IdxHashFunc __func, _Range3&&... __opt_range)
     {
@@ -413,7 +415,7 @@ struct __histogram_general_local_atomics_submitter<__iters_per_work_item,
 
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
           typename _IdxHashFunc, typename... _Range3>
-inline auto
+auto
 __histogram_general_local_atomics(_ExecutionPolicy&& __exec, const sycl::event& __init_e,
                                   ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
                                   _IdxHashFunc __func, _Range3&&... __opt_range)
@@ -440,7 +442,7 @@ template <typename... _KernelName>
 struct __histogram_general_private_global_atomics_submitter<__internal::__optional_kernel_name<_KernelName...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _IdxHashFunc, typename... _Range3>
-    inline auto
+    auto
     operator()(_ExecutionPolicy&& __exec, const sycl::event& __init_e, ::std::uint16_t __min_iters_per_work_item,
                ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins, _IdxHashFunc __func,
                _Range3&&... __opt_range)
@@ -508,7 +510,7 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
     }
 };
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _IdxHashFunc, typename... _Range3>
-inline auto
+auto
 __histogram_general_private_global_atomics(_ExecutionPolicy&& __exec, const sycl::event& __init_e,
                                            ::std::uint16_t __min_iters_per_work_item, ::std::uint16_t __work_group_size,
                                            _Range1&& __input, _Range2&& __bins, _IdxHashFunc __func,
@@ -532,7 +534,7 @@ struct __hist_fill_zeros_wrapper
 
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
           typename _IdxHashFunc, typename... _Range3>
-inline auto
+auto
 __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event& __init_e, _Range1&& __input,
                                    _Range2&& __bins, _IdxHashFunc __func, _Range3&&... __opt_range)
 {
@@ -580,7 +582,7 @@ __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event&
 
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
           typename _IdxHashFunc, typename... _Range3>
-inline auto
+auto
 __parallel_histogram_impl(_ExecutionPolicy&& __exec, const sycl::event& __init_e, _Range1&& __input, _Range2&& __bins,
                           _IdxHashFunc __func, /*req_sycl_conversion = */ ::std::false_type, _Range3&&... __opt_range)
 {
@@ -592,7 +594,7 @@ __parallel_histogram_impl(_ExecutionPolicy&& __exec, const sycl::event& __init_e
 
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
           typename _Range3>
-inline auto
+auto
 __parallel_histogram_impl(_ExecutionPolicy&& __exec, const sycl::event& __init_e, _Range1&& __input, _Range2&& __bins,
                           oneapi::dpl::__internal::__custom_range_binhash<_Range3> __func,
                           /*req_sycl_conversion = */ ::std::true_type)
@@ -612,7 +614,7 @@ __parallel_histogram_impl(_ExecutionPolicy&& __exec, const sycl::event& __init_e
 }
 
 template <typename _ExecutionPolicy, typename _Iter1, typename _Size, typename _IdxHashFunc, typename _Iter2>
-inline void
+void
 __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Size __num_bins, _IdxHashFunc __func,
                      _Iter2 __histogram_first)
 {

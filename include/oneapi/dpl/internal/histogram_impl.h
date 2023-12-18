@@ -37,7 +37,7 @@ namespace __internal
 #if _ONEDPL_BACKEND_SYCL
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _IdxHashFunc,
           typename _RandomAccessIterator2>
-inline oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
 __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                     _Size __num_bins, _IdxHashFunc __func, _RandomAccessIterator2 __histogram_first)
 {
@@ -52,7 +52,7 @@ __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _Ra
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _IdxHashFunc,
           typename _RandomAccessIterator2>
-inline oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<_ExecutionPolicy>::type>
 __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                     _Size __num_bins, _IdxHashFunc __func, _RandomAccessIterator2 __histogram_first)
 {
@@ -61,7 +61,7 @@ __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _Ra
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _T,
           typename _RandomAccessIterator2>
-inline void
+void
 __histogram_impl(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                  _Size __num_bins, const _T& __first_bin_min_val, const _T& __last_bin_max_val,
                  _RandomAccessIterator2 __histogram_first)
@@ -74,7 +74,7 @@ __histogram_impl(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _Rando
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _RandomAccessIterator3>
-inline void
+void
 __histogram_impl(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                  _RandomAccessIterator2 __boundary_first, _RandomAccessIterator2 __boundary_last,
                  _RandomAccessIterator3 __histogram_first)

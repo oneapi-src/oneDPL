@@ -44,14 +44,14 @@ struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint = */ true>
     }
 
     template <typename _T2>
-    inline ::std::uint32_t
+    ::std::uint32_t
     get_bin(_T2&& __value) const
     {
         return ::std::uint32_t((::std::forward<_T2>(__value) - __minimum) * __scale);
     }
 
     template <typename _T2>
-    inline bool
+    bool
     is_valid(const _T2& __value) const
     {
         return (__value >= __minimum) && (__value < __maximum);
@@ -71,7 +71,7 @@ struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint= */ false>
     {
     }
     template <typename _T2>
-    inline ::std::uint32_t
+    ::std::uint32_t
     get_bin(_T2&& __value) const
     {
         return ::std::uint32_t(
@@ -79,7 +79,7 @@ struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint= */ false>
     }
 
     template <typename _T2>
-    inline bool
+    bool
     is_valid(const _T2& __value) const
     {
         return (__value >= __minimum) && (__value < (__minimum + __range_size));
@@ -100,7 +100,7 @@ struct __custom_range_binhash
     __custom_range_binhash(_Range __boundaries_) : __boundaries(__boundaries_) {}
 
     template <typename _T2>
-    inline ::std::uint32_t
+    ::std::uint32_t
     get_bin(_T2&& __value) const
     {
         return std::distance(__boundaries.begin(), ::std::upper_bound(__boundaries.begin(), __boundaries.end(),
@@ -109,7 +109,7 @@ struct __custom_range_binhash
     }
 
     template <typename _T2>
-    inline bool
+    bool
     is_valid(const _T2& __value) const
     {
         return __value >= __boundaries[0] && __value < __boundaries[__boundaries.size() - 1];
