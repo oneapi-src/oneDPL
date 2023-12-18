@@ -521,11 +521,18 @@ struct __get_sycl_range
 
     template <typename _Iter, typename _Map,
               ::std::enable_if_t<!is_sycl_iterator_v<_Iter> && !is_passed_directly_v<_Iter>, int> = 0>
-    void
+    auto
     operator()(oneapi::dpl::permutation_iterator<_Iter, _Map>, oneapi::dpl::permutation_iterator<_Iter, _Map>)
     {
         static_assert(std::is_same_v<oneapi::dpl::permutation_iterator<_Iter, _Map>, void>,
                       "error: the iterator type is not supported with a device policy");
+
+        //To make the dummy return data of a proper type for diagnostic reasons:
+        //To avoid "error: variable has incomplete type 'void'" message;
+        //static_assert mentined above should be shown as first compile time error.
+        using _T = val_t<_Iter>;
+        return __range_holder<oneapi::dpl::__ranges::all_view<_T, AccMode>>{
+            oneapi::dpl::__ranges::all_view<_T, AccMode>(sycl::buffer<_T, 1>{})};
     }
 
     //specialization for permutation discard iterator
