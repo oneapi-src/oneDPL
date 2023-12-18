@@ -620,24 +620,18 @@ __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _
     using _global_histogram_type = typename ::std::iterator_traits<_Iter2>::value_type;
     const auto __n = __last - __first;
 
-    sycl::event __init_e{};
-    {
-        auto __keep_bins_w =
-            oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::write, _Iter2>();
-        auto __bins_buf_w = __keep_bins_w(__histogram_first, __histogram_first + __num_bins);
-        auto __bins_w = __bins_buf_w.all_view();
+    auto __keep_bins =
+        oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::write, _Iter2>();
+    auto __bins_buf = __keep_bins(__histogram_first, __histogram_first + __num_bins);
+    auto __bins = __bins_buf.all_view();
 
-        auto __f = oneapi::dpl::__internal::fill_functor<_global_histogram_type>{_global_histogram_type{0}};
-        //fill histogram bins with zeros
+    auto __f = oneapi::dpl::__internal::fill_functor<_global_histogram_type>{_global_histogram_type{0}};
+    //fill histogram bins with zeros
 
-        __init_e = oneapi::dpl::__par_backend_hetero::__parallel_for(
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__hist_fill_zeros_wrapper>(__exec),
-            unseq_backend::walk_n<_ExecutionPolicy, decltype(__f)>{__f}, __num_bins, ::std::move(__bins_w));
-    }
+    auto __init_e = oneapi::dpl::__par_backend_hetero::__parallel_for(
+        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__hist_fill_zeros_wrapper>(__exec),
+        unseq_backend::walk_n<_ExecutionPolicy, decltype(__f)>{__f}, __num_bins, __bins);
 
-    auto __keep_bins_rw =
-        oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read_write, _Iter2>();
-    auto __bins_buf_rw = __keep_bins_rw(__histogram_first, __histogram_first + __num_bins);
     if (__n > 0)
     {
         auto __keep_input =
@@ -648,15 +642,15 @@ __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _
         if (__n < 1048576)
         {
             __parallel_histogram_impl</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(__exec), __init_e,
-                                                                   __input_buf.all_view(), __bins_buf_rw.all_view(),
-                                                                   __func, _DoSyclConversion{})
+                                                                   __input_buf.all_view(), ::std::move(__bins), __func,
+                                                                   _DoSyclConversion{})
                 .wait();
         }
         else
         {
             __parallel_histogram_impl</*iters_per_workitem = */ 32>(::std::forward<_ExecutionPolicy>(__exec), __init_e,
-                                                                    __input_buf.all_view(), __bins_buf_rw.all_view(),
-                                                                    __func, _DoSyclConversion{})
+                                                                    __input_buf.all_view(), ::std::move(__bins), __func,
+                                                                    _DoSyclConversion{})
                 .wait();
         }
     }
