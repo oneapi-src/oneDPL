@@ -394,7 +394,7 @@ __histogram_general_registers_local_reduction(_ExecutionPolicy&& __exec, const s
     using _iters_per_work_item_t = ::std::integral_constant<::std::uint16_t, __iters_per_work_item>;
 
     // Required to include _iters_per_work_item_t in kernel name because we compile multiple kernels and decide between
-    // them at runtime.  Other compile time arguments aren't required as it is the user's reponsibility to provide a
+    // them at runtime.  Other compile time arguments aren't required as it is the user's responsibility to provide a
     // unique kernel name to the policy for each call when using no-unamed-lambdas
     using _RegistersLocalReducName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __histo_kernel_register_local_red<_iters_per_work_item_t, _KernelBaseName>>;
@@ -490,7 +490,7 @@ __histogram_general_local_atomics(_ExecutionPolicy&& __exec, const sycl::event& 
     using _iters_per_work_item_t = ::std::integral_constant<::std::uint16_t, __iters_per_work_item>;
 
     // Required to include _iters_per_work_item_t in kernel name because we compile multiple kernels and decide between
-    // them at runtime.  Other compile time arguments aren't required as it is the user's reponsibility to provide a
+    // them at runtime.  Other compile time arguments aren't required as it is the user's responsibility to provide a
     // unique kernel name to the policy for each call when using no-unamed-lambdas
     using _LocalAtomicsName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __histo_kernel_local_atomics<_iters_per_work_item_t, _KernelBaseName>>;
