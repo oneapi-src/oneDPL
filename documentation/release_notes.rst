@@ -8,6 +8,26 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.4.0
+===============
+
+New Features
+------------
+- Added highly configurable ``radix_sort`` and ``radix_sort_by_key`` algorithms
+  residing in ``oneapi::dpl::experimental::kt::esimd`` namespace, which work with Intel® Data Center GPU Max Series.
+  They can be parameterized by a number of elements processed by a work-item,
+  number of work-items in a work-group to achieve the best performance depending on
+  input characteristics such as a number of elements and their type.
+- Added new ``transform_if`` algorithm for conditionally applying a transform based on
+  a predicate to the input sequence(s). Overloads exist for a single input sequence with
+  a unary transform and unary predicate and for a pair of input sequences with
+  a binary transform and binary predicate.
+- Improved performance of most of algorithms used with DPC++ execution policies,
+  when a program is built with oneAPI DPC++ compiler, by applying optimizations which
+  are already effective with Intel oneAPI DPC++/C++ Compiler.
+- Improved algorithm performance for the host data types (the host iterators) and DPC++ policy.
+- Improved compile time diagnostic for the unsupported data types.
+
 New in 2022.3.0
 ===============
 
