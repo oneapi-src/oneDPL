@@ -141,36 +141,12 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
         });
     });
 
-
-#define SCAN_KT_DEBUG 0
-#if SCAN_KT_DEBUG
-    std::vector<_FlagStorageType> debug11v(status_flags_size);
-    __queue.memcpy(debug11v.data(), status_flags, status_flags_size * sizeof(_FlagStorageType));
-
-    for (int i = 0; i < status_flags_size-1; ++i)
-        std::cout << "flag_before " << i << " " << debug11v[i] << std::endl;
-
-    _FlagStorageType* debug1 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
-    _FlagStorageType* debug2 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
-    _FlagStorageType* debug3 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
-    _FlagStorageType* debug4 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
-    _FlagStorageType* debug5 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
-    _FlagStorageType* debug6 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
-    _FlagStorageType* debug7 = sycl::malloc_device<_FlagStorageType>(status_flags_size, __queue);
-    printf("out_begin %p\n", (void*)__out_rng.begin());
-    printf("status_flags %p\n", (void*)status_flags);
-#endif
-
     sycl::event __prev_event = __fill_event;
     for (int __chunk = 0; __chunk < __num_chunks; ++__chunk)
     {
         ::std::size_t __current_chunk_size = __chunk == __num_chunks - 1 ? __n % __chunk_size : __chunk_size;
         ::std::size_t __current_num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__current_chunk_size, __elems_in_tile);
         ::std::size_t __current_num_items = __current_num_wgs * __wgsize;
-
-#if SCAN_KT_DEBUG
-    printf("== LAUNCHING KERNEL - n=%lu - chunk=%d - items=%lu - wgs=%lu - wgsize=%lu - elems_per_iter=%lu - max_cu=%u\n", n, chunk, current_num_items, num_wgs, wgsize, elems_per_workitem, __max_cu);
-#endif
 
         auto __event = __queue.submit([&](sycl::handler& __hdl) {
             auto __tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, __hdl);
@@ -190,9 +166,6 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
                 }
                 sycl::group_barrier(__group);
                 ::std::uint32_t __tile_id = __tile_id_lacc[0];
-#if SCAN_KT_DEBUG
-                debug5[group.get_group_linear_id()] = tile_id;
-#endif
 
                 // TODO: only need the cast if size is greater than 2>30, maybe specialize?
                 ::std::size_t __current_offset = static_cast<::std::size_t>(__tile_id)*__elems_in_tile;
@@ -203,20 +176,10 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
                 auto __in_end = __in_rng.begin() + __next_offset;
                 auto __out_begin = __out_rng.begin() + __current_offset;
 
-
-#if SCAN_KT_DEBUG
-                debug3[tile_id] = current_offset;
-                debug4[tile_id] = next_offset;
-#endif
-
                 if (__current_offset >= __n)
                     return;
 
                 _Type __local_sum = sycl::joint_reduce(__group, __in_begin, __in_end, __binary_op);
-#if SCAN_KT_DEBUG
-                debug1[tile_id] = local_sum;
-#endif
-
                 _Type __prev_sum = 0;
 
                 // The first sub-group will query the previous tiles to find a prefix
@@ -228,73 +191,18 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
                         __flag.set_partial(__local_sum);
 
                     __prev_sum = __flag.cooperative_lookback(__tile_id, __subgroup, __binary_op, __status_flags);
-#if SCAN_KT_DEBUG
-                    debug2[tile_id] = prev_sum;
-#endif
 
                     if (__group.leader())
                         __flag.set_full(__prev_sum + __local_sum);
                 }
 
-
                 __prev_sum = sycl::group_broadcast(__group, __prev_sum, 0);
 
                 sycl::joint_inclusive_scan(__group, __in_begin, __in_end, __out_begin, __binary_op, __prev_sum);
-#if SCAN_KT_DEBUG
-                sycl::group_barrier(group);
-                if (group.leader())
-                {
-                    debug6[tile_id] = *out_begin;
-                    debug7[tile_id] = *(out_begin+next_offset-1);
-                }
-#endif
             });
         });
 
         __prev_event = __event;
-
-#if SCAN_KT_DEBUG
-        event.wait();
-        std::vector<_FlagStorageType> debug1v(status_flags_size);
-        std::vector<_FlagStorageType> debug2v(status_flags_size);
-        std::vector<_FlagStorageType> debug3v(status_flags_size);
-        std::vector<_FlagStorageType> debug4v(status_flags_size);
-        std::vector<_FlagStorageType> debug5v(status_flags_size);
-        std::vector<_FlagStorageType> debug6v(status_flags_size);
-        std::vector<_FlagStorageType> debug7v(status_flags_size);
-        std::vector<_FlagStorageType> debug_status_v(status_flags_size);
-        __queue.memcpy(debug1v.data(), debug1, status_flags_size * sizeof(_FlagStorageType));
-        __queue.memcpy(debug2v.data(), debug2, status_flags_size * sizeof(_FlagStorageType));
-        __queue.memcpy(debug3v.data(), debug3, status_flags_size * sizeof(_FlagStorageType));
-        __queue.memcpy(debug4v.data(), debug4, status_flags_size * sizeof(_FlagStorageType));
-        __queue.memcpy(debug5v.data(), debug5, status_flags_size * sizeof(_FlagStorageType));
-        __queue.memcpy(debug6v.data(), debug6, status_flags_size * sizeof(_FlagStorageType));
-        __queue.memcpy(debug7v.data(), debug7, status_flags_size * sizeof(_FlagStorageType));
-        __queue.memcpy(debug_status_v.data(), status_flags, status_flags_size * sizeof(_FlagStorageType));
-
-        for (int i = 0; i < status_flags_size-1; ++i)
-            std::cout << "tile " << i << " " << debug5v[i] << std::endl;
-        for (int i = 0; i < status_flags_size-1; ++i)
-            std::cout << "local_sum " << i << " " << debug1v[i] << std::endl;
-        for (int i = 0; i < status_flags_size-1; ++i)
-        {
-            auto val = (debug_status_v[i] & _FlagType::value_mask);
-            int a = val / elems_in_tile;
-            int b = val % elems_in_tile;
-            std::cout << "flags " << i << " " << std::bitset<sizeof(_FlagStorageType)*8>(debug_status_v[i]) << " (" << val<< " = " << a << "/" << elems_in_tile << "+" << b <<")" << std::endl;
-        }
-        for (int i = 0; i < status_flags_size-1; ++i)
-            std::cout << "lookback " << i << " " << debug2v[i] << std::endl;
-        for (int i = 0; i < status_flags_size-1; ++i)
-            std::cout << "offset " << i << " " << debug3v[i] << std::endl;
-        for (int i = 0; i < status_flags_size-1; ++i)
-            std::cout << "end " << i << " " << debug4v[i] << std::endl;
-
-        for (int i = 0; i < status_flags_size-1; ++i)
-            std::cout << "out_first " << i << " " << debug6v[i] << std::endl;
-        for (int i = 0; i < status_flags_size-1; ++i)
-            std::cout << "out_last " << i << " " << debug7v[i] << std::endl;
-#endif
     }
 
     auto __free_event = __queue.submit(
