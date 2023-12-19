@@ -89,12 +89,6 @@ struct __binhash_SLM_wrapper
     require_access(sycl::handler& __cgh)
     {
     }
-
-    auto
-    get_device_copyable_binhash()
-    {
-        return *this;
-    }
 };
 
 // Specialization for custom range binhash function which stores boundary data
@@ -171,17 +165,20 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     }
 };
 
-//This wrapper is required to keep buffer alive until the kernel has been completed (waited on)
-template <typename _BufferType, typename _Range>
-struct __custom_range_binhash_buffer_wrapper
+//This wrapper is required to keep the buffer alive until the kernel has been completed (waited on)
+template <typename _BinHash, typename _BufferType = int>
+struct __binhash_buffer_holder
 {
-    using _BinHashType = __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Range>>;
     _BufferType __buffer;
-    _BinHashType __bin_hash;
+    _BinHash __bin_hash;
 
-    __custom_range_binhash_buffer_wrapper(_BufferType __buffer_) : __buffer(__buffer_), __bin_hash(__buffer_.all_view())
+    //used for binhash with a buffer to keep alive
+    __binhash_buffer_holder(_BinHash __bin_hash_, _BufferType __buffer_) : __bin_hash(__bin_hash_), __buffer(__buffer_)
     {
     }
+
+    //used for binhash without a buffer to keep alive
+    __binhash_buffer_holder(_BinHash __bin_hash_) : __bin_hash(__bin_hash_), __buffer() {}
 
     auto
     get_device_copyable_binhash()
@@ -196,7 +193,7 @@ struct __make_sycl_upgraded_binhash
     auto
     operator()(_BinHash __bin_hash)
     {
-        return __binhash_SLM_wrapper(__bin_hash);
+        return __binhash_buffer_holder(__binhash_SLM_wrapper(__bin_hash));
     }
 };
 
@@ -211,9 +208,8 @@ struct __make_sycl_upgraded_binhash<oneapi::dpl::__internal::__custom_range_binh
             oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
                                                     decltype(__range_to_upg.begin())>();
         auto __buffer = __keep_boundaries(__range_to_upg.begin(), __range_to_upg.end());
-
-        using _RangeType = decltype(__buffer.all_view());
-        return __custom_range_binhash_buffer_wrapper<decltype(__buffer), _RangeType>(__buffer);
+        return __binhash_buffer_holder(
+            __binhash_SLM_wrapper(oneapi::dpl::__internal::__custom_range_binhash(__buffer.all_view())), __buffer);
     }
 };
 
@@ -669,6 +665,7 @@ __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _
 
     if (__n > 0)
     {
+        //need __func_sycl_buffer_wrap to stay in scope until the kernel completes to keep the buffer alive
         auto __func_sycl_buffer_wrap = __make_sycl_upgraded_binhash<decltype(__func)>()(__func);
         auto __func_sycl = __func_sycl_buffer_wrap.get_device_copyable_binhash();
         auto __keep_input =
