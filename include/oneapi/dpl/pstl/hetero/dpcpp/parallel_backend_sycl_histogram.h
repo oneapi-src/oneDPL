@@ -43,7 +43,7 @@ struct __binhash_SLM_wrapper
     //will always be empty, but just to have some type
     using extra_memory_type = typename ::std::uint8_t;
     _BinHash __bin_hash;
-    __binhash_SLM_wrapper(_BinHash __bin_hash) : __bin_hash(__bin_hash) {}
+    __binhash_SLM_wrapper(_BinHash __bin_hash_) : __bin_hash(__bin_hash_) {}
 
     template <typename _T2>
     ::std::uint32_t
@@ -89,6 +89,12 @@ struct __binhash_SLM_wrapper
     require_access(sycl::handler& __cgh)
     {
     }
+
+    auto
+    get_device_copyable_binhash()
+    {
+        return *this;
+    }
 };
 
 // Specialization for custom range binhash function which stores boundary data
@@ -100,7 +106,7 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     using extra_memory_type = typename _BinHashType::__boundary_type;
     _BinHashType __bin_hash;
 
-    __binhash_SLM_wrapper(_BinHashType __bin_hash) : __bin_hash(__bin_hash) {}
+    __binhash_SLM_wrapper(_BinHashType __bin_hash_) : __bin_hash(__bin_hash_) {}
 
     template <typename _T2>
     ::std::uint32_t
@@ -162,6 +168,52 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     require_access(sycl::handler& __cgh)
     {
         oneapi::dpl::__ranges::__require_access(__cgh, __bin_hash.get_range());
+    }
+};
+
+//This wrapper is required to keep buffer alive until the kernel has been completed (waited on)
+template <typename _BufferType, typename _Range>
+struct __custom_range_binhash_buffer_wrapper
+{
+    using _BinHashType = __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Range>>;
+    _BufferType __buffer;
+    _BinHashType __bin_hash;
+
+    __custom_range_binhash_buffer_wrapper(_BufferType __buffer_) : __buffer(__buffer_), __bin_hash(__buffer_.all_view())
+    {
+    }
+
+    auto
+    get_device_copyable_binhash()
+    {
+        return __bin_hash;
+    }
+};
+
+template <typename _BinHash>
+struct __make_sycl_upgraded_binhash
+{
+    auto
+    operator()(_BinHash __bin_hash)
+    {
+        return __binhash_SLM_wrapper(__bin_hash);
+    }
+};
+
+template <typename _Range>
+struct __make_sycl_upgraded_binhash<oneapi::dpl::__internal::__custom_range_binhash<_Range>>
+{
+    auto
+    operator()(oneapi::dpl::__internal::__custom_range_binhash<_Range> __bin_hash)
+    {
+        auto __range_to_upg = __bin_hash.get_range();
+        auto __keep_boundaries =
+            oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
+                                                    decltype(__range_to_upg.begin())>();
+        auto __buffer = __keep_boundaries(__range_to_upg.begin(), __range_to_upg.end());
+
+        using _RangeType = decltype(__buffer.all_view());
+        return __custom_range_binhash_buffer_wrapper<decltype(__buffer), _RangeType>(__buffer);
     }
 };
 
@@ -590,39 +642,6 @@ __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event&
     }
 }
 
-template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
-          typename _IdxHashFunc>
-auto
-__parallel_histogram_impl(_ExecutionPolicy&& __exec, const sycl::event& __init_e, _Range1&& __input, _Range2&& __bins,
-                          _IdxHashFunc __func, /*req_sycl_conversion = */ ::std::false_type)
-{
-    //wrap binhash in a wrapper to allow shared memory boost where available
-    return __parallel_histogram_select_kernel<__iters_per_work_item>(
-        ::std::forward<_ExecutionPolicy>(__exec), __init_e, ::std::forward<_Range1>(__input),
-        ::std::forward<_Range2>(__bins), __binhash_SLM_wrapper(__func));
-}
-
-template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
-          typename _Range3>
-auto
-__parallel_histogram_impl(_ExecutionPolicy&& __exec, const sycl::event& __init_e, _Range1&& __input, _Range2&& __bins,
-                          oneapi::dpl::__internal::__custom_range_binhash<_Range3> __func,
-                          /*req_sycl_conversion = */ ::std::true_type)
-{
-    auto __range_to_upg = __func.get_range();
-    //required to have this in the call stack to keep any created buffers alive
-    auto __keep_boundaries =
-        oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
-                                                decltype(__range_to_upg.begin())>();
-    auto __boundary_buf = __keep_boundaries(__range_to_upg.begin(), __range_to_upg.end());
-    auto __boundary_view = __boundary_buf.all_view();
-    auto __bin_hash = oneapi::dpl::__internal::__custom_range_binhash(__boundary_view);
-    return __parallel_histogram_impl<__iters_per_work_item>(::std::forward<_ExecutionPolicy>(__exec), __init_e,
-                                                            ::std::forward<_Range1>(__input),
-                                                            ::std::forward<_Range2>(__bins), __bin_hash,
-                                                            /*req_sycl_conversion = */ ::std::false_type{});
-}
-
 template <typename _ExecutionPolicy, typename _Iter1, typename _Size, typename _IdxHashFunc, typename _Iter2>
 void
 __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _Size __num_bins, _IdxHashFunc __func,
@@ -650,23 +669,24 @@ __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _
 
     if (__n > 0)
     {
+        auto __func_sycl_buffer_wrap = __make_sycl_upgraded_binhash<decltype(__func)>()(__func);
+        auto __func_sycl = __func_sycl_buffer_wrap.get_device_copyable_binhash();
         auto __keep_input =
             oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read, _Iter1>();
         auto __input_buf = __keep_input(__first, __last);
 
-        using _DoSyclConversion = typename _IdxHashFunc::req_sycl_range_conversion;
         if (__n < 1048576)
         {
-            __parallel_histogram_impl</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(__exec), __init_e,
-                                                                   __input_buf.all_view(), ::std::move(__bins), __func,
-                                                                   _DoSyclConversion{})
+            __parallel_histogram_select_kernel</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(__exec),
+                                                                            __init_e, __input_buf.all_view(),
+                                                                            ::std::move(__bins), __func_sycl)
                 .wait();
         }
         else
         {
-            __parallel_histogram_impl</*iters_per_workitem = */ 32>(::std::forward<_ExecutionPolicy>(__exec), __init_e,
-                                                                    __input_buf.all_view(), ::std::move(__bins), __func,
-                                                                    _DoSyclConversion{})
+            __parallel_histogram_select_kernel</*iters_per_workitem = */ 32>(::std::forward<_ExecutionPolicy>(__exec),
+                                                                             __init_e, __input_buf.all_view(),
+                                                                             ::std::move(__bins), __func_sycl)
                 .wait();
         }
     }
