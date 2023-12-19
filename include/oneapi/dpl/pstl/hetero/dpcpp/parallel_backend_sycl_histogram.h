@@ -586,11 +586,6 @@ __histogram_general_private_global_atomics(_ExecutionPolicy&& __exec, const sycl
         ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __func);
 }
 
-template <typename _Name>
-struct __hist_fill_zeros_wrapper
-{
-};
-
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
           typename _IdxHashFunc>
 auto
@@ -637,6 +632,11 @@ __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event&
             ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __func));
     }
 }
+
+template <typename _Name>
+struct __hist_fill_zeros_wrapper
+{
+};
 
 template <typename _ExecutionPolicy, typename _Iter1, typename _Size, typename _IdxHashFunc, typename _Iter2>
 void
