@@ -381,39 +381,54 @@ struct __range_holder
     }
 };
 
+template <typename _ExecutionPolicy, typename _T, bool>
+struct __sycl_usm_buf_free;
+
 template <typename _ExecutionPolicy, typename _T>
-struct __sycl_usm_buf_free
+struct __sycl_usm_buf_free<_ExecutionPolicy, _T, true/*write back*/>
 {
     using __diff_type = typename std::iterator_traits<_T*>::difference_type;
+
     _ExecutionPolicy __exec;
     _T* __data = NULL;
     __diff_type __size = 0;
-    bool __is_write_back = false;
 
     void
     operator()(_T* __memory) const
     {
-        // don't  call algo wait here because it called above on the stack
-        if(__is_write_back)
-            __exec.queue().copy(__memory, __data, __size).wait();
+        // don't  call algo wait here because it called above on the the stack
+        __exec.queue().copy(__memory, __data, __size).wait();
 
         sycl::free(__memory, __exec.queue().get_context());
     }
 };
 
-template <typename _ExecutionPolicy, typename _T, sycl::usm::alloc __alloc_t = sycl::usm::alloc::device>
+template <typename _ExecutionPolicy, typename _T>
+struct __sycl_usm_buf_free<_ExecutionPolicy, _T, false/*no write back*/>
+{
+    _ExecutionPolicy __exec;
+    template<typename _Data, typename _Size>
+    __sycl_usm_buf_free(_ExecutionPolicy&& __e, _Data, _Size): __exec(__e) {}
+    void
+    operator()(_T* __memory) const
+    {
+        sycl::free(__memory, __exec.queue().get_context());
+    }
+};
+
+template <typename _ExecutionPolicy, typename _T, bool __is_copy_direct>
 struct __sycl_usm_buf_alloc
 {
     using __diff_type = typename std::iterator_traits<_T*>::difference_type;
     _ExecutionPolicy __exec;
 
     _T*
-    operator()(_T* __data, __diff_type __size, bool __direct_copy) const
+    operator()(const _T* __data, __diff_type __size) const
     {
         const auto& __queue = __exec.queue();
-        auto __ptr = (_T*)sycl::malloc(sizeof(_T) * __size, __queue.get_device(), __queue.get_context(), __alloc_t);
+        auto __ptr = (_T*)sycl::malloc(sizeof(_T) * __size, __queue.get_device(), __queue.get_context(), sycl::usm::alloc::device);
 
-        if(__direct_copy)
+        if constexpr (__is_copy_direct)
             __exec.queue().copy(__data, __ptr, __size).wait();
         return __ptr;
     }
@@ -657,8 +672,8 @@ struct __get_sycl_range
         auto __n = __last - __first;
         return __process_host_iter_impl(__first, __last, [&]() {
                 return std::shared_ptr<_T>(
-                    __sycl_usm_buf_alloc<_ExecutionPolicy, _T>{__exec}(__data, __n, __is_copy_direct),
-                    __sycl_usm_buf_free<_ExecutionPolicy, _T>{__exec, __data, __n, __is_copy_back});
+                    __sycl_usm_buf_alloc<_ExecutionPolicy, _T, __is_copy_direct>{__exec}(__data, __n),
+                    __sycl_usm_buf_free<_ExecutionPolicy, _T, __is_copy_back>{__exec, __data, __n});
         },
         [__n](const auto& __buf) { return oneapi::dpl::__ranges::guard_view{__buf.get(), __n};});
     }
