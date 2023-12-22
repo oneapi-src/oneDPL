@@ -25,7 +25,7 @@ New Features
 - Improved performance of most of algorithms used with DPC++ execution policies,
   when a program is built with oneAPI DPC++ compiler, by applying optimizations which
   are already effective with Intel oneAPI DPC++/C++ Compiler.
-- Improved algorithm performance for the host data types (the host iterators) and DPC++ policy.
+- Improved algorithms performance for the host data types (the host iterators) and DPC++ execution policies.
 - Improved compile time diagnostic for the unsupported data types.
 
 New in 2022.3.0
