@@ -42,19 +42,11 @@ static thread_local bool __dlsym_called = false;
 // objects released inside of dlsym call
 static thread_local __delayed_free_list* __delayed_free = nullptr;
 
-static __free_func_type
-__get_original_free_checked(void* __ptr_to_free)
+static void
+__free_delayed_list(void* __ptr_to_free, __free_func_type __orig_free)
 {
-    __dlsym_called = true;
-    __free_func_type __orig_free = __free_func_type(dlsym(RTLD_NEXT, "free"));
-    __dlsym_called = false;
-    if (!__orig_free)
-    {
-        throw std::system_error(std::error_code(), dlerror());
-    }
-
-    // Releasing objects from delayed release list. It's enough to check __delayed_free
-    // only at this point, as __delayed_free filled only inside dlsym(RTLD_NEXT, "free").
+    // It's enough to check __delayed_free only at this point,
+    // as __delayed_free filled only inside dlsym(RTLD_NEXT, "free").
     while (__delayed_free)
     {
         __delayed_free_list* __next = __delayed_free->_M_next;
@@ -68,16 +60,30 @@ __get_original_free_checked(void* __ptr_to_free)
         __orig_free(__delayed_free);
         __delayed_free = __next;
     }
+}
+
+static __free_func_type
+__get_original_free_checked(void* __ptr_to_free)
+{
+    __dlsym_called = true;
+    __free_func_type __orig_free = __free_func_type(dlsym(RTLD_NEXT, "free"));
+    __dlsym_called = false;
+    if (!__orig_free)
+    {
+        throw std::system_error(std::error_code(), dlerror());
+    }
+
+    // Releasing objects from delayed release list.
+    __free_delayed_list(__ptr_to_free, __orig_free);
 
     return __orig_free;
 }
 
-static __free_func_type
-__get_original_free(void* __ptr_to_free)
+static void
+__original_free(void* __ptr_to_free)
 {
     static __free_func_type __orig_free = __get_original_free_checked(__ptr_to_free);
-
-    return __orig_free;
+    __orig_free(__ptr_to_free);
 }
 
 static auto
@@ -118,7 +124,7 @@ __internal_free(void* __user_ptr)
             }
             else
             {
-                (__get_original_free(__user_ptr))(__user_ptr);
+                __original_free(__user_ptr);
             }
         }
     }
