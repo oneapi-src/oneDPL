@@ -18,8 +18,6 @@ env:
   WINDOWS_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/64957c0f-37bf-4408-909c-37ff52fe5119/w_tbb_oneapi_p_2021.11.0.49526.exe
   WINDOWS_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/dc441d10-698c-417d-be6f-44a172f7ab77/w_dpcpp-cpp-compiler_p_2024.0.1.28_offline.exe
   WINDOWS_ONEAPI_PATH: C:\Program Files (x86)\Intel\oneAPI
-  LINUX_TBB_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/af3ad519-4c87-4534-87cb-5c7bda12754e/l_tbb_oneapi_p_2021.11.0.49527_offline.sh
-  LINUX_ICPX_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/c68c8f0a-47f5-4f26-8e8e-fa2627271279/l_dpcpp-cpp-compiler_p_2024.0.1.29_offline.sh
   LINUX_ONEAPI_PATH: /opt/intel/oneapi
   # TODO: get rid of a deprecated configuration: Intel® C++ Compiler Classic
   MACOS_ONEAPI_DOWNLOAD_LINK: https://registrationcenter-download.intel.com/akdlm/irc_nas/18358/m_cpp-compiler-classic_p_2022.0.0.62_offline.dmg
@@ -176,30 +174,38 @@ jobs:
             device_type: HOST
     steps:
       - uses: actions/checkout@v3
+      - name: Set up Intel APT repository
+        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp' || matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
+        run: |
+          # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-0/apt.html
+          wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+          | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update -y
       - name: Install Intel® oneAPI Threading Building Blocks
         if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
         run: |
-          curl ${LINUX_TBB_DOWNLOAD_LINK} --output tbb_install.sh
-          sudo sh tbb_install.sh -s -a --silent --eula accept
-          rm -f tbb_install.sh
+          sudo apt-get install intel-oneapi-tbb-devel -y
       - name: Install Intel® oneAPI DPC++/C++ Compiler
         if: (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
         run: |
-          curl ${LINUX_ICPX_DOWNLOAD_LINK} --output icpx_install.sh
-          sudo sh icpx_install.sh -s -a --silent --eula accept
-          rm -f icpx_install.exe
-          sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl # avoid unintentional use
-          source ${LINUX_ONEAPI_PATH}/setvars.sh
-          echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
-          sycl-ls
+          sudo apt-get install intel-oneapi-compiler-dpcpp-cpp -y
+          # Avoid accidental use of a released version, keeping libpstloffload.so
+          sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl/latest/include
+      - name: Install Intel® oneAPI DPC++/C++ Compiler SYCL* FPGA Emulator Runtime
+        if: (matrix.device_type == 'FPGA_EMU')
+        run: |
+          sudo apt-get install intel-oneapi-runtime-dpcpp-sycl-fpga-emu -y
       - name: Run testing
         shell: bash
         run: |
           set -x
           if [[ -f "${LINUX_ONEAPI_PATH}/setvars.sh" ]]; then
             source ${LINUX_ONEAPI_PATH}/setvars.sh
+            sycl-ls
           fi
           echo "::warning::CMake: $(cmake --version)"
+          echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
           if [[ "${{ matrix.backend }}" == "dpcpp" ]]; then
             make_targets="build-onedpl-sycl_iterator-tests"
@@ -229,28 +235,28 @@ jobs:
             device_type: cpu
     steps:
       - uses: actions/checkout@v3
+      - name: Set up Intel APT repository
+        run: |
+          # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-0/apt.html
+          wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+          | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update -y
       - name: Install Intel® oneAPI Threading Building Blocks
-        if: (matrix.backend == 'tbb' || matrix.backend == 'dpcpp')
         run: |
-          curl ${LINUX_TBB_DOWNLOAD_LINK} --output tbb_install.sh
-          sudo sh tbb_install.sh -s -a --silent --eula accept
-          rm -f tbb_install.sh
+          sudo apt-get install intel-oneapi-tbb-devel -y
       - name: Install Intel® oneAPI DPC++/C++ Compiler
-        if: (matrix.cxx_compiler == 'icpx' || matrix.cxx_compiler == 'icx' || matrix.cxx_compiler == 'icx-cl' || matrix.cxx_compiler == 'dpcpp' || matrix.cxx_compiler == 'dpcpp-cl')
         run: |
-          curl ${LINUX_ICPX_DOWNLOAD_LINK} --output icpx_install.sh
-          sudo sh icpx_install.sh -s -a --silent --eula accept
-          rm -f icpx_install.exe
-          # sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl # keep oneDPL for pstloffload library
-          source ${LINUX_ONEAPI_PATH}/setvars.sh
-          echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
-          sycl-ls
+          sudo apt-get install intel-oneapi-compiler-dpcpp-cpp -y
+          # Avoid accidental use of a released version, keeping libpstloffload.so
+          sudo rm -rf ${LINUX_ONEAPI_PATH}/dpl/latest/include
       - name: Run testing
         shell: bash
         run: |
           set -x
           source ${LINUX_ONEAPI_PATH}/setvars.sh
           echo "::warning::CMake: $(cmake --version)"
+          echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
 
           make_targets=""
           ctest_regex="^("
@@ -324,20 +330,20 @@ jobs:
           curl %WINDOWS_ICPX_DOWNLOAD_LINK% --output icpx_install.exe
           icpx_install.exe -s -a --silent --eula accept -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
           del icpx_install.exe
+          :: Avoid accidental use of a released version
           rd /s /q "%WINDOWS_ONEAPI_PATH%\dpl"
-          call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
-          powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
-          sycl-ls
       - name: Run testing
         shell: cmd
         run: |
           if exist "%WINDOWS_ONEAPI_PATH%\setvars.bat" (
             call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
+            sycl-ls
           )
           if "${{ matrix.cxx_compiler }}" == "cl" (
             call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
           )
           powershell $output = cmake --version; Write-Host ::warning::CMake: $output
+          powershell $output = ${{ matrix.cxx_compiler }} --version; Write-Host ::warning::Compiler: $output
 
           if "${{ matrix.backend }}" == "dpcpp" (
             set ninja_targets="build-onedpl-sycl_iterator-tests"
