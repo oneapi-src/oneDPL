@@ -202,7 +202,6 @@ jobs:
           set -x
           if [[ -f "${LINUX_ONEAPI_PATH}/setvars.sh" ]]; then
             source ${LINUX_ONEAPI_PATH}/setvars.sh
-            sycl-ls
           fi
           echo "::warning::CMake: $(cmake --version)"
           echo "::warning::Compiler: $(${{ matrix.cxx_compiler }} --version)"
@@ -341,7 +340,6 @@ jobs:
         run: |
           if exist "%WINDOWS_ONEAPI_PATH%\setvars.bat" (
             call "%WINDOWS_ONEAPI_PATH%\setvars.bat"
-            sycl-ls
           )
           if "${{ matrix.cxx_compiler }}" == "cl" (
             call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
