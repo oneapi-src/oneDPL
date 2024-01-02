@@ -659,7 +659,7 @@ __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _
     auto __f = oneapi::dpl::__internal::fill_functor<_global_histogram_type>{_global_histogram_type{0}};
     //fill histogram bins with zeros
 
-    auto __init_e = oneapi::dpl::__par_backend_hetero::__parallel_for(
+    auto __init_event = oneapi::dpl::__par_backend_hetero::__parallel_for(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__hist_fill_zeros_wrapper>(__exec),
         unseq_backend::walk_n<_ExecutionPolicy, decltype(__f)>{__f}, __num_bins, __bins);
 
@@ -675,21 +675,21 @@ __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _
         if (__n < 1048576)
         {
             __parallel_histogram_select_kernel</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(__exec),
-                                                                            __init_e, __input_buf.all_view(),
+                                                                            __init_event, __input_buf.all_view(),
                                                                             ::std::move(__bins), __func_sycl)
                 .wait();
         }
         else
         {
             __parallel_histogram_select_kernel</*iters_per_workitem = */ 32>(::std::forward<_ExecutionPolicy>(__exec),
-                                                                             __init_e, __input_buf.all_view(),
+                                                                             __init_event, __input_buf.all_view(),
                                                                              ::std::move(__bins), __func_sycl)
                 .wait();
         }
     }
     else
     {
-        __init_e.wait();
+        __init_event.wait();
     }
 }
 
