@@ -88,7 +88,7 @@ using __evenly_divided_binhash = __evenly_divided_binhash_impl<_T1, std::is_floa
 template <typename _Range>
 struct __custom_range_binhash
 {
-    using __boundary_type = oneapi::dpl::__internal::__value_t<_Range>;
+    using range_value_type = oneapi::dpl::__internal::__value_t<_Range>;
     _Range __boundaries;
 
     __custom_range_binhash(_Range __boundaries_) : __boundaries(__boundaries_) {}
