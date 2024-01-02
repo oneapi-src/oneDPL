@@ -195,7 +195,7 @@ jobs:
       - name: Install Intel® oneAPI DPC++/C++ Compiler SYCL* FPGA Emulator Runtime
         if: (matrix.device_type == 'FPGA_EMU')
         run: |
-          sudo apt-get install intel-oneapi-runtime-dpcpp-sycl-fpga-emu -y
+          sudo apt-get install intel-oneapi-runtime-dpcpp-sycl-fpga-emul -y
       - name: Run testing
         shell: bash
         run: |
