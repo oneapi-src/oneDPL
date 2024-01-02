@@ -279,7 +279,7 @@ jobs:
           ctest_regex+=")"
 
           mkdir build && cd build
-
+          lscpu
           device_type=${{ matrix.device_type }}
           cmake -DCMAKE_CXX_STANDARD=${{ matrix.std }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DONEDPL_BACKEND=dpcpp \
