@@ -672,7 +672,7 @@ __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _
             oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read, _Iter1>();
         auto __input_buf = __keep_input(__first, __last);
 
-        if (__n < 1048576)
+        if (__n < 1048576) // 2^20
         {
             __parallel_histogram_select_kernel</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(__exec),
                                                                             __init_event, __input_buf.all_view(),
