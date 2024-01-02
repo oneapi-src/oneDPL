@@ -76,13 +76,13 @@ struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::u
 
 template <typename ExecutionPolicy>
 struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::transform_iterator>
-    : std::false_type
+    : ::std::false_type
 {
 };
 
 template <typename ExecutionPolicy>
 struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::callable_object>
-    : std::false_type
+    : ::std::false_type
 {
 };
 };
@@ -676,6 +676,8 @@ run_algo_tests_on_buffers()
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
+//These are only invoked on the host side, because permutation iterator is unsupported
+// for host std::vector iterator input source data.
 template <typename ValueType, typename PermItIndexTag>
 void
 run_algo_tests_on_sequence()
