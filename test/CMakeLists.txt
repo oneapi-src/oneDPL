@@ -176,13 +176,12 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     get_filename_component(_test_name ${test_source_file} NAME)
     string(REPLACE "\.cpp" "" _test_name ${_test_name})
 
-    onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "")
-
-    ##if (_test_name STREQUAL "reduce.pass")
-    set(coal_tests "reduce.pass" "transform_reduce.pass" "count.pass")
-
+    set(coal_tests "reduce.pass" "transform_reduce.pass" "count.pass" "sycl_iterator_reduce.pass")
     if (_test_name IN_LIST coal_tests)
+        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "-D_ONEDPL_DETECT_SPIRV_COMPILATION=1")
         onedpl_construct_exec(${test_source_file} ${_test_name}.coal ${switch_off_checked_iterators} "-D_ONEDPL_DETECT_SPIRV_COMPILATION=0")
+    else()
+        onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "")
     endif()
 endmacro()
 
