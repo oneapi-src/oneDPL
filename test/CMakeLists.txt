@@ -72,18 +72,13 @@ add_custom_target(run-onedpl-tests
     DEPENDS build-onedpl-tests
     COMMENT "Build and run all oneDPL tests")
 
-macro(onedpl_add_test test_source_file switch_off_checked_iterators)
-
-    set(_build_type_in_lower "unknown")
-    if (CMAKE_BUILD_TYPE)
-        string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
-    endif()
-
-    get_filename_component(_test_name ${test_source_file} NAME)
-    string(REPLACE "\.cpp" "" _test_name ${_test_name})
-
+macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_iterators custom_define)
     add_executable(${_test_name} EXCLUDE_FROM_ALL "${test_source_file}")
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
+
+    if (NOT ${custom_define} STREQUAL "")
+        target_compile_definitions(${_test_name} PRIVATE custom_define)
+    endif()
     if (MSVC)
         target_compile_options(${_test_name} PRIVATE /bigobj)
     endif()
@@ -170,6 +165,25 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
         add_dependencies(build-onedpl-${_label}-tests ${_test_name})
     endforeach()
     add_dependencies(build-onedpl-tests ${_test_name})
+endmacro()
+
+macro(onedpl_add_test test_source_file switch_off_checked_iterators)
+    set(_build_type_in_lower "unknown")
+    if (CMAKE_BUILD_TYPE)
+        string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_in_lower)
+    endif()
+
+    get_filename_component(_test_name ${test_source_file} NAME)
+    string(REPLACE "\.cpp" "" _test_name ${_test_name})
+
+    onedpl_construct_exec(${test_source_file} ${_test_name} ${switch_off_checked_iterators} "")
+
+    ##if (_test_name STREQUAL "reduce.pass")
+    set(coal_tests "reduce.pass" "transform_reduce.pass" "count.pass")
+
+    if (_test_name IN_LIST coal_tests)
+        onedpl_construct_exec(${test_source_file} ${_test_name}.coal ${switch_off_checked_iterators} "-D_ONEDPL_DETECT_SPIRV_COMPILATION=1")
+    endif()
 endmacro()
 
 set(_regexp_dpcpp_backend_required "(xpu_api/algorithms|test/xpu_api/cmath/nearbyint|test/xpu_api/containers|xpu_api/functional|test/xpu_api/iterators|test/xpu_api/language.support/support.initlist|test/xpu_api/language.support/support.types|xpu_api/numerics|test/xpu_api/random|test/xpu_api/ratio|test/xpu_api/tuple|test/xpu_api/utilities|parallel_api/dynamic_selection/sycl)")
