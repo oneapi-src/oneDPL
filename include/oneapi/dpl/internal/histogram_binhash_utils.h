@@ -93,13 +93,11 @@ struct __custom_range_binhash
 
     __custom_range_binhash(_Range __boundaries_) : __boundaries(__boundaries_) {}
 
-    template<typename _BoundaryIter, typename _T2>
+    template <typename _BoundaryIter, typename _T2>
     static ::std::uint32_t
     get_bin_helper(_BoundaryIter __first, _BoundaryIter __last, _T2 __value)
     {
-        return std::distance(__first, ::std::upper_bound(__first, __last,
-                                                                ::std::forward<_T2>(__value))) -
-        1;
+        return std::distance(__first, ::std::upper_bound(__first, __last, ::std::forward<_T2>(__value))) - 1;
     }
 
     template <typename _T2, typename _T3>
@@ -120,7 +118,7 @@ struct __custom_range_binhash
     bool
     is_valid(_T2&& __value) const
     {
-        return is_valid_helper(__boundaries[0], __boundaries[__boundaries.size()-1], ::std::forward<_T2>(__value));
+        return is_valid_helper(__boundaries[0], __boundaries[__boundaries.size() - 1], ::std::forward<_T2>(__value));
     }
 
     _Range

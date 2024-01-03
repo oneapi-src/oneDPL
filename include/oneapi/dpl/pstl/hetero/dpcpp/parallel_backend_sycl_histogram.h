@@ -99,14 +99,15 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     ::std::uint32_t
     get_bin(_T&& __value) const
     {
-        return _BinHashType::get_bin_helper(__slm_mem.begin(),  __slm_mem.end(), ::std::forward<_T>(__value));
+        return _BinHashType::get_bin_helper(__slm_mem.begin(), __slm_mem.end(), ::std::forward<_T>(__value));
     }
 
     template <typename _T>
     bool
     is_valid(_T&& __value) const
     {
-        return _BinHashType::is_valid_helper(__slm_mem[0], __slm_mem[__bin_hash.__boundaries.size() - 1], ::std::forward<_T>(__value));
+        return _BinHashType::is_valid_helper(__slm_mem[0], __slm_mem[__bin_hash.__boundaries.size() - 1],
+                                             ::std::forward<_T>(__value));
     }
 };
 
