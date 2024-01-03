@@ -9,6 +9,8 @@ on:
       - main
       - 'release/**'
 
+permissions: read-all
+
 env:
   BUILD_CONCURRENCY: 2
   MACOS_BUILD_CONCURRENCY: 3
