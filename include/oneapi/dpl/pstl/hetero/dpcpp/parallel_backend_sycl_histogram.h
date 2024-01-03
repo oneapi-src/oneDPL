@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- parallel_backend_sycl_reduce.h --------------------------------===//
+//===-- parallel_backend_sycl_histogram.h ---------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
