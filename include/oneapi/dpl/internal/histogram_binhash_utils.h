@@ -25,9 +25,7 @@ namespace dpl
 namespace __internal
 {
 template <typename _T1, bool _IsFloatingPoint>
-struct __evenly_divided_binhash_impl
-{
-};
+struct __evenly_divided_binhash_impl;
 
 template <typename _T1>
 struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint = */ true>
@@ -66,6 +64,7 @@ struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint= */ false>
         : __minimum(__min), __num_bins(__num_bins_), __range_size(__max - __min)
     {
     }
+
     template <typename _T2>
     ::std::uint32_t
     get_bin(_T2&& __value) const

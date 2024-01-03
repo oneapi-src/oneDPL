@@ -74,12 +74,6 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     __binhash_SLM_wrapper(_BinHashType __bin_hash_, _ExtraMemAccessor __slm_mem_, const sycl::nd_item<1>& __self_item)
         : __bin_hash(__bin_hash_), __slm_mem(__slm_mem_)
     {
-        init_SLM_memory(__self_item);
-    }
-
-    void
-    init_SLM_memory(const sycl::nd_item<1>& __self_item)
-    {
         ::std::uint32_t __gSize = __self_item.get_local_range()[0];
         ::std::uint32_t __self_lidx = __self_item.get_local_id(0);
         ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__bin_hash.__boundaries.size(), __gSize);
@@ -144,14 +138,14 @@ struct __binhash_manager_base
     }
 };
 
-// Specialization for custom range binhash function which stores boundary data
-// into SLM for quick repeated usage
+// Augmentation for binhash function which stores a range of dynamic memory to determine bin mapping
 template <typename _BinHash, typename _BufferType>
 struct __binhash_manager_with_buffer : __binhash_manager_base<_BinHash>
 {
     using BaseType = __binhash_manager_base<_BinHash>;
     using extra_memory_type = typename _BinHash::range_value_type;
-    //This is required to keep the buffer alive until the kernel has been completed (waited on)
+    //While this stays "unused" in this struct, __buffer is required to keep the sycl buffer alive until the kernel has
+    // been completed (waited on)
     _BufferType __buffer;
     ::std::size_t __extra_mem;
 
