@@ -13,6 +13,7 @@
 
 #include <new>
 #include <cstdlib>
+#include <malloc.h> // for malloc_usable_size
 
 #include "support/utils.h"
 
@@ -38,12 +39,21 @@ void test_alignment_allocation(AllocatingFunction allocate, DeallocatingFunction
 // test_alignment_allocation tests different sizes values because other functions
 // only requires the alignment to be power of two
 void test_aligned_alloc_alignment() {
+    int cnt = 0;
     for (std::size_t alignment = 1; alignment < 16*get_page_size(); alignment <<= 1) {
         const std::size_t sizes[] = { alignment, alignment * 2, alignment * 3};
 
         for (std::size_t size : sizes) {
             void* ptr = aligned_alloc(alignment, size);
+            EXPECT_TRUE(ptr, "The returned pointer is nullptr");
             EXPECT_TRUE(std::uintptr_t(ptr) % alignment == 0, "The returned pointer is not properly aligned");
+
+            // check that alinged object might be reallocated
+            constexpr std::size_t delta = 13;
+            std::size_t new_size = (++cnt % 2) && size > delta ? size - delta : size + delta;
+            ptr = realloc(ptr, new_size);
+            EXPECT_TRUE(malloc_usable_size(ptr) >= new_size, "Invalid reported size");
+
             free(ptr);
         }
     }

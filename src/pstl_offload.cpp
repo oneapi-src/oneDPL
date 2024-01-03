@@ -96,6 +96,16 @@ __get_original_msize()
     return __orig_msize;
 }
 
+
+static auto
+__get_original_realloc()
+{
+    using __realloc_func_type = void* (*)(void*, std::size_t);
+
+    static __realloc_func_type __orig_realloc = __realloc_func_type(dlsym(RTLD_NEXT, "realloc"));
+    return __orig_realloc;
+}
+
 struct __hash_aligned_ptr
 {
     uintptr_t operator()(void *p) const
@@ -111,7 +121,7 @@ struct __hash_aligned_ptr
 struct __large_aligned_ptr_header
 {
     __sycl_device_shared_ptr _M_device_ptr;
-    std::size_t   _M_size;
+    std::size_t   _M_requested_number_of_bytes;
 };
 
 std::mutex __large_aligned_ptrs_mtx;
@@ -140,14 +150,22 @@ __unregister_large_aligned_ptr(void* __ptr)
     return __header;
 }
 
+inline void
+__free_usm_pointer(__block_header* __header)
+{
+    assert(__header != nullptr);
+    __header->_M_uniq_const = 0;
+    sycl::context __context = __header->_M_device.__get_context();
+    __header->_M_device.__reset();
+    sycl::free(__header->_M_original_pointer, __context);
+}
+
 static void
 __internal_free(void* __user_ptr)
 {
     if (__user_ptr != nullptr)
     {
-        __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
-
-        if (__same_memory_page(__user_ptr, __header))
+        if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1; __same_memory_page(__user_ptr, __header))
         {
             if (__header->_M_uniq_const == __uniq_type_const)
             {
@@ -191,9 +209,7 @@ __internal_msize(void* __user_ptr)
         return 0;
     }
 
-    __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
-
-    if (__same_memory_page(__user_ptr, __header))
+    if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1; __same_memory_page(__user_ptr, __header))
     {
         if (__header->_M_uniq_const == __uniq_type_const)
         {
@@ -203,9 +219,64 @@ __internal_msize(void* __user_ptr)
     else if (std::optional<__large_aligned_ptr_header> __header = __unregister_large_aligned_ptr(__user_ptr);
              __header.has_value())
     {
-        return __header->_M_size;
+        return __header->_M_requested_number_of_bytes;
     }
     return __get_original_msize()(__user_ptr);
+}
+
+static void*
+__realloc_allocate_shared(__sycl_device_shared_ptr __device_ptr, void* __user_ptr, std::size_t __old_size, std::size_t __new_size)
+{
+    void* __new_ptr = __allocate_shared_for_device(__device_ptr, __new_size, alignof(std::max_align_t));
+
+    if (__new_ptr != nullptr)
+    {
+        std::memcpy(__new_ptr, __user_ptr, std::min(__old_size, __new_size));
+    }
+    else
+    {
+        errno = ENOMEM;
+    }
+    return __new_ptr;
+}
+
+_PSTL_OFFLOAD_EXPORT void*
+__realloc_impl(void* __user_ptr, std::size_t __new_size)
+{
+    assert(__user_ptr != nullptr);
+
+    if (!__new_size)
+    {
+        __internal_free(__user_ptr);
+        return nullptr;
+    }
+
+    if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1; __same_memory_page(__user_ptr, __header))
+    {
+        if (__header->_M_uniq_const == __uniq_type_const)
+        {
+            void* __result = __realloc_allocate_shared(__header->_M_device, __user_ptr, __header->_M_requested_number_of_bytes, __new_size);
+            if (__result)
+            {
+                __free_usm_pointer(__header);
+            }
+            return __result;
+        }
+    }
+    else if (std::optional<__large_aligned_ptr_header> __header = __unregister_large_aligned_ptr(__user_ptr);
+             __header.has_value())
+    {
+        void* __result = __realloc_allocate_shared(__header->_M_device_ptr, __user_ptr, __header->_M_requested_number_of_bytes, __new_size);
+        if (__result)
+        {
+            sycl::context __context = __header->_M_device_ptr.__get_context();
+            sycl::free(__user_ptr, __context);
+        }
+        return __result;
+    }
+
+    // __user_ptr is not a USM pointer, use original realloc function
+    return __get_original_realloc()(__user_ptr, __new_size);
 }
 
 _PSTL_OFFLOAD_EXPORT void*
