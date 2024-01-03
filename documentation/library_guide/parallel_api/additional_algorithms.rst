@@ -128,9 +128,9 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
   bin counts. The user must provide sufficient output data to store each bin, and the type of the output
   sequence must be sufficient to store the counts of the histogram without overflow. All input and output
   sequences must be ``RandomAccessIterators``. Histogram currently only supports execution with device
-  policies. For example::
+  policies.
 
-  Evenly Divided Bins::
+  Evenly Divided Bins example::
 
     inputs:   [9, 9, 3, 8, 4, 4, 4, 5, 1, 99]
     num_bins: 5
@@ -138,8 +138,8 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
     max:      10
     output:   [1, 1, 4, 0 3]
 
-  Custom Range Bins::
-    
+  Custom Range Bins example::
+
     inputs:     [9, 9, 3, 8, 4, 4, 4, 5, 1, 99]
     boundaries: [-1, 0, 8, 12]
     output:     [0, 6, 3]
