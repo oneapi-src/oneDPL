@@ -24,17 +24,17 @@ namespace dpl
 {
 namespace __internal
 {
-template <typename _T1, bool _IsFloatingPoint>
-struct __evenly_divided_binhash_impl;
+template <typename _T1, typename = void>
+struct __evenly_divided_binhash;
 
 template <typename _T1>
-struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint = */ true>
+struct __evenly_divided_binhash<_T1, ::std::enable_if_t<::std::is_floating_point_v<_T1>>>
 {
     _T1 __minimum;
     _T1 __maximum;
     _T1 __scale;
 
-    __evenly_divided_binhash_impl(const _T1& __min, const _T1& __max, ::std::uint32_t __num_bins)
+    __evenly_divided_binhash(const _T1& __min, const _T1& __max, ::std::uint32_t __num_bins)
         : __minimum(__min), __maximum(__max), __scale(_T1(__num_bins) / (__max - __min))
     {
     }
@@ -55,12 +55,12 @@ struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint = */ true>
 };
 
 template <typename _T1>
-struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint= */ false>
+struct __evenly_divided_binhash<_T1, ::std::enable_if_t<!::std::is_floating_point_v<_T1>>>
 {
     _T1 __minimum;
     _T1 __range_size;
     ::std::uint32_t __num_bins;
-    __evenly_divided_binhash_impl(const _T1& __min, const _T1& __max, ::std::uint32_t __num_bins_)
+    __evenly_divided_binhash(const _T1& __min, const _T1& __max, ::std::uint32_t __num_bins_)
         : __minimum(__min), __num_bins(__num_bins_), __range_size(__max - __min)
     {
     }
@@ -80,9 +80,6 @@ struct __evenly_divided_binhash_impl<_T1, /* _IsFloatingPoint= */ false>
         return (__value >= __minimum) && (__value < (__minimum + __range_size));
     }
 };
-
-template <typename _T1>
-using __evenly_divided_binhash = __evenly_divided_binhash_impl<_T1, std::is_floating_point_v<_T1>>;
 
 template <typename _Range>
 struct __custom_range_binhash
