@@ -6,9 +6,11 @@ Use them when you need better performance and
 you can sacrifice performance-portability as a side-effect of precise tuning for a specific device, number of elements, data type, etc.
 
 Generic structure for configuring a Kernel Template:
+
 * :doc:`Kernel Configuration <kernel_templates/kernel_configuration>`.
 
 Sets of Kernel Templates with a specific backend:
+
 * :doc:`ESIMD-based Kernel Templates <kernel_templates/esimd_main>`.
 
 .. toctree::
