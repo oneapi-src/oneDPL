@@ -74,11 +74,14 @@ The local memory is allocated as ``max(ranks, reorder)`` bytes, where:
    .. math::
       ranks = 2 * {2^{radix\_bits}} * {workgroup\_size} + 4 * 2^{radix\_bits}
 
+
    .. math::
       reorder_{(1,2)} = {sizeof(key\_type)} * {data\_per\_workitem} * {workgroup\_size}  + 4 * 2^{radix\_bits}
 
+
    .. math::
       reorder_{(3,4)} = ({sizeof(key\_type)} + {sizeof(value\_type)}) * {data\_per\_workitem} * {workgroup\_size} + 4 * 2^{radix\_bits}
+
 
 The device must have enough local memory to execute the selected configuration.
 
