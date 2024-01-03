@@ -182,7 +182,7 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     set(coal_tests "reduce.pass" "transform_reduce.pass" "count.pass")
 
     if (_test_name IN_LIST coal_tests)
-        onedpl_construct_exec(${test_source_file} ${_test_name}.coal ${switch_off_checked_iterators} "-D_ONEDPL_DETECT_SPIRV_COMPILATION=1")
+        onedpl_construct_exec(${test_source_file} ${_test_name}.coal ${switch_off_checked_iterators} "-D_ONEDPL_DETECT_SPIRV_COMPILATION=0")
     endif()
 endmacro()
 
