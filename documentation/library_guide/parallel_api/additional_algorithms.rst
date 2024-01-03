@@ -94,7 +94,7 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
   of this function, one for a single input sequence with a unary transform and a unary predicate, and another
   for two input sequences and a binary transform and a binary predicate.
 
-    Unary example:
+  Unary example::
 
     unary predicate: [](auto i){return i % 2 == 0;} // is even
     unary transform: [](auto i){return i * 2;}      // double element
@@ -103,7 +103,7 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
     final output sequence:    [0, 8, 4, 6, 5, 4, 8, 8, 1, 12]
 
 
-    Binary example:
+  Binary example::
 
     binary predicate: [](auto a, auto b){return a == b;} // are equal
     unary transform:  [](auto a, auto b){return a + b;}  // sum values
