@@ -118,7 +118,7 @@ General advice is to set the configuration according to the performance measurem
 
 But the initial configuration may be selected according to these points:
 
-a. The number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``. The elements can be processed by a signle work-group.
+a. The number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``. The elements can be processed by a single work-group.
 
    - Increase ``param`` values, so ``N <= param.data_per_workitem * param.workgroup_size``.
 
@@ -133,7 +133,7 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
 
 **Limitations (may be relaxed in the future)**
 
-- Algorithms can proccess only C++ integral and floating-point types with the width up to 64-bits (except for ``bool``).
+- Algorithms can process only C++ integral and floating-point types with the width up to 64-bits (except for ``bool``).
 - Number of elements to sort must not exceed `2^30`.
 - ``radix_bits`` can only be `8`.
 - ``param.data_per_workitem`` has discreteness of `32`.
@@ -152,7 +152,7 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
 - Allow range transformations (e.g. range pipes or transform iterators).
 
 
-**System requirements (coverage my be extened in the future)**
+**System requirements (coverage my be extended in the future)**
 
 - Hardware: Intel® Data Center GPU Max Series.
 - Compiler: Intel® oneAPI DPC++/C++ 2023.2 and newer.
@@ -162,4 +162,4 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
 **Known Issues**
 
 - Use of -g, -O0, -O1 compiler options may lead to compilation issues.
-- Combinations of ``param.data_per_workitem`` and ``param.work_group_size`` with large values may lead to device-code compilation errors due to allocation of local memory amounts beyond the device capabilites.
+- Combinations of ``param.data_per_workitem`` and ``param.work_group_size`` with large values may lead to device-code compilation errors due to allocation of local memory amounts beyond the device capabilities.
