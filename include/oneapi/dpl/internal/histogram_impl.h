@@ -56,9 +56,9 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                     _Size __num_bins, _IdxHashFunc __func, _RandomAccessIterator2 __histogram_first)
 {
-    static_assert(sizeof(_Size) == 0 /*false*/, "Histogram API is not currently supported for host parallel policies");
+    static_assert(sizeof(_Size) == 0 /*false*/,
+                  "Histogram API is currently unsupported for policies other than device execution policies");
 }
-
 
 } // namespace __internal
 
