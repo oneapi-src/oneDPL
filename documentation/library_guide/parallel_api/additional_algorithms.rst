@@ -87,14 +87,15 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
     output_keys:   [0,    0,   3,   3,   4,   5]
     output_values: ['c', 'f', 'a', 'e', 'd', 'b']
 
-* ``transform_if``: performs a transform on the elements of the input sequence(s) and stores the result into
-  the corresponding position in the output sequence at each position for which the predicate applied to the
+* ``transform_if``: performs a transform on the input sequence(s) elements and stores the result into the
+  corresponding position in the output sequence at each position for which the predicate applied to the 
   element(s) evaluates to ``true``. If the predicate evaluates to ``false``, the transform is not applied for
-  the elements(s) and the corresponding position in the output sequence is left unmodified. There are two
-  overloads of this function, one for a single input sequence with a unary transform and a unary predicate,
-  and another for two input sequences and a binary transform and a binary predicate.
+  the elements(s), and the output sequence's corresponding position is left unmodified. There are two overloads
+  of this function, one for a single input sequence with a unary transform and a unary predicate, and another
+  for two input sequences and a binary transform and a binary predicate.
 
-    Unary:
+    Unary example:
+
     unary predicate: [](auto i){return i % 2 == 0;} // is even
     unary transform: [](auto i){return i * 2;}      // double element
     input sequence:           [0, 1, 2, 3, 3, 3, 4, 4, 7, 6]
@@ -102,7 +103,8 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
     final output sequence:    [0, 8, 4, 6, 5, 4, 8, 8, 1, 12]
 
 
-    Binary:
+    Binary example:
+
     binary predicate: [](auto a, auto b){return a == b;} // are equal
     unary transform:  [](auto a, auto b){return a + b;}  // sum values
     input sequence1:           [0, 1, 2, 3, 3, 3, 4, 4, 7, 6]
