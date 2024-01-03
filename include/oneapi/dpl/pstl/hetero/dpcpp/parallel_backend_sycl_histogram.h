@@ -74,6 +74,7 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     __binhash_SLM_wrapper(_BinHashType __bin_hash_, _ExtraMemAccessor __slm_mem_, const sycl::nd_item<1>& __self_item)
         : __bin_hash(__bin_hash_), __slm_mem(__slm_mem_)
     {
+        //initialize __slm_memory
         ::std::uint32_t __gSize = __self_item.get_local_range()[0];
         ::std::uint32_t __self_lidx = __self_item.get_local_id(0);
         ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__bin_hash.__boundaries.size(), __gSize);
@@ -100,7 +101,7 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     bool
     is_valid(_T&& __value) const
     {
-        return _BinHashType::is_valid_helper(__slm_mem[0], __slm_mem[__bin_hash.__boundaries.size() - 1],
+        return _BinHashType::is_valid_helper(__slm_mem[0], __slm_mem[__slm_mem.size() - 1],
                                              ::std::forward<_T>(__value));
     }
 };
@@ -147,17 +148,16 @@ struct __binhash_manager_with_buffer : __binhash_manager_base<_BinHash>
     //While this stays "unused" in this struct, __buffer is required to keep the sycl buffer alive until the kernel has
     // been completed (waited on)
     _BufferType __buffer;
-    ::std::size_t __extra_mem;
 
-    __binhash_manager_with_buffer(_BinHash __bin_hash_, _BufferType __buffer_, ::std::size_t __extra_mem_)
-        : BaseType(__bin_hash_), __buffer(__buffer_), __extra_mem(__extra_mem_)
+    __binhash_manager_with_buffer(_BinHash __bin_hash_, _BufferType __buffer_)
+        : BaseType(__bin_hash_), __buffer(__buffer_)
     {
     }
 
     ::std::size_t
     get_required_SLM_elements()
     {
-        return __extra_mem;
+        return this->__bin_hash.get_range().size();
     }
 
     void
@@ -189,8 +189,8 @@ __make_binhash_manager(oneapi::dpl::__internal::__custom_range_binhash<_Range> _
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
                                                 decltype(__range_to_upg.begin())>();
     auto __buffer = __keep_boundaries(__range_to_upg.begin(), __range_to_upg.end());
-    return __binhash_manager_with_buffer(oneapi::dpl::__internal::__custom_range_binhash(__buffer.all_view()), __buffer,
-                                         __range_to_upg.size());
+    return __binhash_manager_with_buffer(oneapi::dpl::__internal::__custom_range_binhash(__buffer.all_view()),
+                                         __buffer);
 }
 
 template <typename... _Name>
