@@ -130,7 +130,7 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
   sequences must be ``RandomAccessIterators``. Histogram currently only supports execution with device
   policies.
 
-  Evenly Divided Bins example::
+  Evenly divided bins example::
 
     inputs:   [9, 9, 3, 8, 4, 4, 4, 5, 1, 99]
     num_bins: 5
@@ -138,7 +138,7 @@ header.  All algorithms are implemented in the ``oneapi::dpl`` namespace.
     max:      10
     output:   [1, 1, 4, 0 3]
 
-  Custom Range Bins example::
+  Custom range bins example::
 
     inputs:     [9, 9, 3, 8, 4, 4, 4, 5, 1, 99]
     boundaries: [-1, 0, 8, 12]
