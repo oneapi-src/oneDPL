@@ -10,7 +10,7 @@ Kernel Configuration
              typename KernelName = oneapi::dpl::execution::DefaultKernelName>
    struct kernel_param;
 
-Each Kernel Template is supplied by a `kernel_param` object, generic structure for configuring a Kernel Template.
+Each Kernel Template is supplied by a `kernel_param` object, generic structure for configuring a kernel.
 The supported and the most performant values depend on the Kernel Template itself, device capabilites, the data type and the data size.
 
 **Member constants**
