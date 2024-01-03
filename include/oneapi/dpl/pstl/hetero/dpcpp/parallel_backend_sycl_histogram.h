@@ -41,7 +41,11 @@ template <typename _BinHash, typename _ExtraMemAccessor>
 struct __binhash_SLM_wrapper
 {
     _BinHash __bin_hash;
-    __binhash_SLM_wrapper(_BinHash __bin_hash_, _ExtraMemAccessor /*__slm_mem_*/, const sycl::nd_item<1>& /*__self_item*/) : __bin_hash(__bin_hash_) {}
+    __binhash_SLM_wrapper(_BinHash __bin_hash_, _ExtraMemAccessor /*__slm_mem_*/,
+                          const sycl::nd_item<1>& /*__self_item*/)
+        : __bin_hash(__bin_hash_)
+    {
+    }
 
     template <typename _T>
     ::std::uint32_t
@@ -67,7 +71,8 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
 
     _BinHashType __bin_hash;
     _ExtraMemAccessor __slm_mem;
-    __binhash_SLM_wrapper(_BinHashType __bin_hash_, _ExtraMemAccessor __slm_mem_, const sycl::nd_item<1>& __self_item) : __bin_hash(__bin_hash_), __slm_mem(__slm_mem_) 
+    __binhash_SLM_wrapper(_BinHashType __bin_hash_, _ExtraMemAccessor __slm_mem_, const sycl::nd_item<1>& __self_item)
+        : __bin_hash(__bin_hash_), __slm_mem(__slm_mem_)
     {
         init_SLM_memory(__self_item);
     }
@@ -106,7 +111,6 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     {
         return (__value >= __slm_mem[0]) && (__value < __slm_mem[__bin_hash.__boundaries.size() - 1]);
     }
-
 };
 
 template <typename _BinHash, typename _ExtraMemAccessor>
@@ -115,7 +119,6 @@ __make_SLM_binhash(_BinHash __bin_hash, _ExtraMemAccessor __slm_mem, const sycl:
 {
     return __binhash_SLM_wrapper(__bin_hash, __slm_mem, __self_item);
 }
-
 
 template <typename _BinHash>
 struct __binhash_manager_base
@@ -135,7 +138,7 @@ struct __binhash_manager_base
     require_access(sycl::handler& __cgh)
     {
     }
-    
+
     auto
     get_device_copyable_binhash()
     {
@@ -154,7 +157,10 @@ struct __binhash_manager_with_buffer : __binhash_manager_base<_BinHash>
     _BufferType __buffer;
     ::std::size_t __extra_mem;
 
-    __binhash_manager_with_buffer(_BinHash __bin_hash_, _BufferType __buffer_, ::std::size_t __extra_mem_) : BaseType(__bin_hash_), __buffer(__buffer_), __extra_mem(__extra_mem_){}
+    __binhash_manager_with_buffer(_BinHash __bin_hash_, _BufferType __buffer_, ::std::size_t __extra_mem_)
+        : BaseType(__bin_hash_), __buffer(__buffer_), __extra_mem(__extra_mem_)
+    {
+    }
 
     ::std::size_t
     get_required_SLM_elements()
@@ -175,7 +181,6 @@ struct __binhash_manager_with_buffer : __binhash_manager_base<_BinHash>
     }
 };
 
-
 template <typename _BinHash>
 auto
 __make_binhash_manager(_BinHash __bin_hash)
@@ -192,9 +197,9 @@ __make_binhash_manager(oneapi::dpl::__internal::__custom_range_binhash<_Range> _
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
                                                 decltype(__range_to_upg.begin())>();
     auto __buffer = __keep_boundaries(__range_to_upg.begin(), __range_to_upg.end());
-    return __binhash_manager_with_buffer(oneapi::dpl::__internal::__custom_range_binhash(__buffer.all_view()), __buffer, __range_to_upg.size());
+    return __binhash_manager_with_buffer(oneapi::dpl::__internal::__custom_range_binhash(__buffer.all_view()), __buffer,
+                                         __range_to_upg.size());
 }
-
 
 template <typename... _Name>
 class __histo_kernel_register_local_red;
@@ -327,7 +332,8 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
                         for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; ++__idx)
                         {
                             __accum_local_register_iter<_histogram_index_type>(
-                                __input, __seg_start + __idx * __work_group_size + __self_lidx, __histogram, __SLM_binhash);
+                                __input, __seg_start + __idx * __work_group_size + __self_lidx, __histogram,
+                                __SLM_binhash);
                         }
                     }
                     else
@@ -540,7 +546,8 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
                             if (__val_idx < __n)
                             {
                                 __accum_local_atomics_iter<_histogram_index_type, _atomic_address_space>(
-                                    __input, __val_idx, __hacc_private, __wgroup_idx * __num_bins, _device_copyable_func);
+                                    __input, __val_idx, __hacc_private, __wgroup_idx * __num_bins,
+                                    _device_copyable_func);
                             }
                         }
                     }
