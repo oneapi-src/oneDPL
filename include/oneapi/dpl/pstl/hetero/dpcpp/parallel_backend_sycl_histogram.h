@@ -67,11 +67,11 @@ struct __binhash_SLM_wrapper
 template <typename _Range, typename _ExtraMemAccessor>
 struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Range>, _ExtraMemAccessor>
 {
-    using _BinHashType = typename oneapi::dpl::__internal::__custom_range_binhash<_Range>;
+    using _bin_hash_type = typename oneapi::dpl::__internal::__custom_range_binhash<_Range>;
 
-    _BinHashType __bin_hash;
+    _bin_hash_type __bin_hash;
     _ExtraMemAccessor __slm_mem;
-    __binhash_SLM_wrapper(_BinHashType __bin_hash_, _ExtraMemAccessor __slm_mem_, const sycl::nd_item<1>& __self_item)
+    __binhash_SLM_wrapper(_bin_hash_type __bin_hash_, _ExtraMemAccessor __slm_mem_, const sycl::nd_item<1>& __self_item)
         : __bin_hash(__bin_hash_), __slm_mem(__slm_mem_)
     {
         //initialize __slm_memory
@@ -94,15 +94,15 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     ::std::uint32_t
     get_bin(_T&& __value) const
     {
-        return _BinHashType::get_bin_helper(__slm_mem.begin(), __slm_mem.end(), ::std::forward<_T>(__value));
+        return _bin_hash_type::get_bin_helper(__slm_mem.begin(), __slm_mem.end(), ::std::forward<_T>(__value));
     }
 
     template <typename _T>
     bool
     is_valid(_T&& __value) const
     {
-        return _BinHashType::is_valid_helper(__slm_mem[0], __slm_mem[__slm_mem.size() - 1],
-                                             ::std::forward<_T>(__value));
+        return _bin_hash_type::is_valid_helper(__slm_mem[0], __slm_mem[__slm_mem.size() - 1],
+                                               ::std::forward<_T>(__value));
     }
 };
 
@@ -117,7 +117,7 @@ template <typename _BinHash>
 struct __binhash_manager_base
 {
     //will always be empty, but just to have some type
-    using extra_memory_type = typename ::std::uint8_t;
+    using _extra_memory_type = typename ::std::uint8_t;
     _BinHash __bin_hash;
     __binhash_manager_base(_BinHash __bin_hash_) : __bin_hash(__bin_hash_) {}
 
@@ -143,14 +143,14 @@ struct __binhash_manager_base
 template <typename _BinHash, typename _BufferType>
 struct __binhash_manager_with_buffer : __binhash_manager_base<_BinHash>
 {
-    using BaseType = __binhash_manager_base<_BinHash>;
-    using extra_memory_type = typename _BinHash::range_value_type;
+    using _base_type = __binhash_manager_base<_BinHash>;
+    using _extra_memory_type = typename _BinHash::_range_value_type;
     //While this stays "unused" in this struct, __buffer is required to keep the sycl buffer alive until the kernel has
     // been completed (waited on)
     _BufferType __buffer;
 
     __binhash_manager_with_buffer(_BinHash __bin_hash_, _BufferType __buffer_)
-        : BaseType(__bin_hash_), __buffer(__buffer_)
+        : _base_type(__bin_hash_), __buffer(__buffer_)
     {
     }
 
@@ -169,7 +169,7 @@ struct __binhash_manager_with_buffer : __binhash_manager_base<_BinHash>
     auto
     get_device_copyable_binhash()
     {
-        return BaseType::get_device_copyable_binhash();
+        return _base_type::get_device_copyable_binhash();
     }
 };
 
@@ -296,7 +296,7 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
         using _private_histogram_type = ::std::uint16_t;
         using _histogram_index_type = ::std::uint8_t;
         using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
-        using _extra_memory_type = typename _BinHashMgr::extra_memory_type;
+        using _extra_memory_type = typename _BinHashMgr::_extra_memory_type;
         auto _device_copyable_func = __binhash_manager.get_device_copyable_binhash();
 
         ::std::size_t __extra_SLM_elements = __binhash_manager.get_required_SLM_elements();
@@ -365,7 +365,7 @@ __histogram_general_registers_local_reduction(_ExecutionPolicy&& __exec, const s
                                               ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
                                               _BinHashMgr __binhash_manager)
 {
-    using _KernelBaseName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
+    using _kernel_base_name = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
     using _iters_per_work_item_t = ::std::integral_constant<::std::uint16_t, __iters_per_work_item>;
 
@@ -373,7 +373,7 @@ __histogram_general_registers_local_reduction(_ExecutionPolicy&& __exec, const s
     // them at runtime.  Other compile time arguments aren't required as it is the user's responsibility to provide a
     // unique kernel name to the policy for each call when using no-unamed-lambdas
     using _RegistersLocalReducName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __histo_kernel_register_local_red<_iters_per_work_item_t, _KernelBaseName>>;
+        __histo_kernel_register_local_red<_iters_per_work_item_t, _kernel_base_name>>;
 
     return __histogram_general_registers_local_reduction_submitter<__iters_per_work_item, __bins_per_work_item,
                                                                    _RegistersLocalReducName>()(
@@ -396,7 +396,7 @@ struct __histogram_general_local_atomics_submitter<__iters_per_work_item,
         using _local_histogram_type = ::std::uint32_t;
         using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
         using _histogram_index_type = ::std::uint16_t;
-        using _extra_memory_type = typename _BinHashMgr::extra_memory_type;
+        using _extra_memory_type = typename _BinHashMgr::_extra_memory_type;
 
         ::std::size_t __extra_SLM_elements = __binhash_manager.get_required_SLM_elements();
         const ::std::size_t __n = __input.size();
@@ -461,17 +461,17 @@ __histogram_general_local_atomics(_ExecutionPolicy&& __exec, const sycl::event& 
                                   ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
                                   _BinHashMgr __binhash_manager)
 {
-    using _KernelBaseName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
+    using _kernel_base_name = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
     using _iters_per_work_item_t = ::std::integral_constant<::std::uint16_t, __iters_per_work_item>;
 
     // Required to include _iters_per_work_item_t in kernel name because we compile multiple kernels and decide between
     // them at runtime.  Other compile time arguments aren't required as it is the user's responsibility to provide a
     // unique kernel name to the policy for each call when using no-unamed-lambdas
-    using _LocalAtomicsName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __histo_kernel_local_atomics<_iters_per_work_item_t, _KernelBaseName>>;
+    using _local_atomics_name = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __histo_kernel_local_atomics<_iters_per_work_item_t, _kernel_base_name>>;
 
-    return __histogram_general_local_atomics_submitter<__iters_per_work_item, _LocalAtomicsName>()(
+    return __histogram_general_local_atomics_submitter<__iters_per_work_item, _local_atomics_name>()(
         ::std::forward<_ExecutionPolicy>(__exec), __init_e, __work_group_size, ::std::forward<_Range1>(__input),
         ::std::forward<_Range2>(__bins), __binhash_manager);
 }
@@ -558,12 +558,12 @@ __histogram_general_private_global_atomics(_ExecutionPolicy&& __exec, const sycl
                                            ::std::uint16_t __min_iters_per_work_item, ::std::uint16_t __work_group_size,
                                            _Range1&& __input, _Range2&& __bins, _BinHashMgr __binhash_manager)
 {
-    using _KernelBaseName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
+    using _kernel_base_name = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
-    using _GlobalAtomicsName = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __histo_kernel_private_glocal_atomics<_KernelBaseName>>;
+    using _global_atomics_name = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __histo_kernel_private_glocal_atomics<_kernel_base_name>>;
 
-    return __histogram_general_private_global_atomics_submitter<_GlobalAtomicsName>()(
+    return __histogram_general_private_global_atomics_submitter<_global_atomics_name>()(
         ::std::forward<_ExecutionPolicy>(__exec), __init_e, __min_iters_per_work_item, __work_group_size,
         ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager);
 }
@@ -576,7 +576,7 @@ __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event&
 {
     using _private_histogram_type = ::std::uint16_t;
     using _local_histogram_type = ::std::uint32_t;
-    using _extra_memory_type = typename _BinHashMgr::extra_memory_type;
+    using _extra_memory_type = typename _BinHashMgr::_extra_memory_type;
 
     const auto __num_bins = __bins.size();
     ::std::size_t __max_wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
@@ -638,12 +638,12 @@ __parallel_histogram(_ExecutionPolicy&& __exec, _Iter1 __first, _Iter1 __last, _
     auto __bins_buf = __keep_bins(__histogram_first, __histogram_first + __num_bins);
     auto __bins = __bins_buf.all_view();
 
-    auto __f = oneapi::dpl::__internal::fill_functor<_global_histogram_type>{_global_histogram_type{0}};
+    auto __fill_func = oneapi::dpl::__internal::fill_functor<_global_histogram_type>{_global_histogram_type{0}};
     //fill histogram bins with zeros
 
     auto __init_event = oneapi::dpl::__par_backend_hetero::__parallel_for(
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__hist_fill_zeros_wrapper>(__exec),
-        unseq_backend::walk_n<_ExecutionPolicy, decltype(__f)>{__f}, __num_bins, __bins);
+        unseq_backend::walk_n<_ExecutionPolicy, decltype(__fill_func)>{__fill_func}, __num_bins, __bins);
 
     if (__n > 0)
     {

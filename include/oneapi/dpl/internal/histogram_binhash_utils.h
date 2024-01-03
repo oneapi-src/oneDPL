@@ -84,7 +84,7 @@ struct __evenly_divided_binhash<_T1, ::std::enable_if_t<!::std::is_floating_poin
 template <typename _Range>
 struct __custom_range_binhash
 {
-    using range_value_type = oneapi::dpl::__internal::__value_t<_Range>;
+    using _range_value_type = oneapi::dpl::__internal::__value_t<_Range>;
     _Range __boundaries;
 
     __custom_range_binhash(_Range __boundaries_) : __boundaries(__boundaries_) {}
