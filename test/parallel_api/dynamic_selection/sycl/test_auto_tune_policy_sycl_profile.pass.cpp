@@ -41,11 +41,6 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
         {
             j = 0;
         }
-        // we can capture all by reference
-        // the inline_scheduler reports timings in submit
-        // We wait but it should return immediately, since inline
-        // scheduler does the work "inline".
-        // The unwrapped wait type should be equal to the resource
         const size_t bytes = 1000000 * sizeof(double);
         if constexpr (call_select_before_submit)
         {
@@ -192,11 +187,6 @@ test_auto_submit_wait_on_group(UniverseContainer u, int best_resource)
         {
             j = 0;
         }
-        // we can capture all by reference
-        // the inline_scheduler reports timings in submit
-        // We wait but it should return immediately, since inline
-        // scheduler does the work "inline".
-        // The unwrapped wait type should be equal to the resource
         const size_t bytes = 1000000 * sizeof(double);
         if constexpr (call_select_before_submit)
         {
@@ -343,11 +333,6 @@ test_auto_submit_and_wait(UniverseContainer u, int best_resource)
         {
             j = 0;
         }
-        // we can capture all by reference
-        // the inline_scheduler reports timings in submit
-        // We wait but it should return immediately, since inline
-        // scheduler does the work "inline".
-        // The unwrapped wait type should be equal to the resource
         const size_t bytes = 1000000 * sizeof(double);
         if constexpr (call_select_before_submit)
         {
