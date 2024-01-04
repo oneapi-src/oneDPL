@@ -16,7 +16,8 @@ add_library(pstloffload SHARED ${CMAKE_CURRENT_SOURCE_DIR}/pstl_offload.cpp)
 target_compile_options(pstloffload PRIVATE
             -fsycl
             -Wall -Wextra -Wformat -Wformat-security -Wremarks -Werror
-            -fPIE -mretpoline
+            # have to put -fPIC after -fPIE to support linking when TLS is in use
+            -fPIE -fPIC -mretpoline
             -fstack-protector
             )
 

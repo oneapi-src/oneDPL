@@ -1632,7 +1632,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
             });
         }
 
-        return __future(__event1, __temp);
+        return __future(__event1);
     }
 };
 
@@ -1739,7 +1739,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
             });
         }
         // return future and extend lifetime of temporary buffer
-        return __future(__event1, __temp);
+        return __future(__event1);
     }
 };
 
