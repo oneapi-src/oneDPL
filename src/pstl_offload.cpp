@@ -106,6 +106,12 @@ __get_original_realloc()
     return __orig_realloc;
 }
 
+inline bool
+__is_ptr_page_aligned(void *p)
+{
+    return (uintptr_t)p % __get_memory_page_size() == 0;
+}
+
 struct __hash_aligned_ptr
 {
     uintptr_t operator()(void *p) const
@@ -118,37 +124,100 @@ struct __hash_aligned_ptr
     }
 };
 
-struct __large_aligned_ptr_header
+template<class T>
+struct __orig_free_allocator
 {
-    __sycl_device_shared_ptr _M_device_ptr;
-    std::size_t   _M_requested_number_of_bytes;
+    typedef T value_type;
+
+    __orig_free_allocator() = default;
+
+    template<class U>
+    constexpr __orig_free_allocator(const __orig_free_allocator <U>&) noexcept {}
+
+    T* allocate(std::size_t n)
+    {
+        if (T *ptr = static_cast<T*>(std::malloc(n * sizeof(T))))
+        {
+            return ptr;
+        }
+        throw std::bad_alloc();
+    }
+
+    void deallocate(T* ptr, std::size_t) noexcept
+    {
+        __original_free(ptr);
+    }
 };
 
-std::mutex __large_aligned_ptrs_mtx;
-// map user pointer to header
-std::unordered_map<void*, __large_aligned_ptr_header, __hash_aligned_ptr> __large_aligned_ptrs;
+template<class T, class U>
+bool operator==(const __orig_free_allocator <T>&, const __orig_free_allocator <U>&) { return true; }
+template<class T, class U>
+bool operator!=(const __orig_free_allocator <T>&, const __orig_free_allocator <U>&) { return false; }
 
-static void
-__register_large_alignment_ptr(void* __ptr, size_t __size, __sycl_device_shared_ptr __device_ptr)
+class __large_aligned_ptrs_map
 {
-    const std::lock_guard<std::mutex> l(__large_aligned_ptrs_mtx);
-    auto __ret = __large_aligned_ptrs.emplace(__ptr, __large_aligned_ptr_header{__device_ptr, __size});
-    assert(__ret.second); // the pointer must be unique
-}
-
-static std::optional<__large_aligned_ptr_header>
-__unregister_large_aligned_ptr(void* __ptr)
-{
-    const std::lock_guard<std::mutex> l(__large_aligned_ptrs_mtx);
-    auto __iter = __large_aligned_ptrs.find(__ptr);
-    if (__iter == __large_aligned_ptrs.end())
+public:
+    struct __ptr_desc
     {
-        return std::nullopt;
+        std::optional<__sycl_device_shared_ptr> _M_device_ptr;
+        std::size_t   _M_requested_number_of_bytes;
+    };
+
+private:
+    std::mutex _M_map_mtx;
+    // Find sycl::device and requested size by user pointer. Use custom allocator to not
+    // call global delete during delete processing (that includes __unregister_ptr call).
+    std::unordered_map<void*, __ptr_desc, __hash_aligned_ptr, std::equal_to<void*>,
+        __orig_free_allocator<std::pair<void* const, __ptr_desc>>> _M_map;
+    // to not use _M_map when one about to be destroyed
+    bool _M_dtor_called = false;
+
+public:
+    ~__large_aligned_ptrs_map()
+    {
+        _M_dtor_called = true;
     }
-    __large_aligned_ptr_header __header = __iter->second;
-    __large_aligned_ptrs.erase(__iter);
-    return __header;
-}
+
+    void
+    __register_ptr(void* __ptr, size_t __size, __sycl_device_shared_ptr __device_ptr)
+    {
+        assert(__is_ptr_page_aligned(__ptr));
+        if (_M_dtor_called)
+        {
+            return;
+        }
+        const std::lock_guard<std::mutex> l(_M_map_mtx);
+        [[maybe_unused]] auto __ret = _M_map.emplace(__ptr, __ptr_desc{__device_ptr, __size});
+        assert(__ret.second); // the pointer must be unique
+    }
+
+    // nullopt means "status unknown", empty __ptr_desc means "it's not our pointer"
+    std::optional<__ptr_desc>
+    __unregister_ptr(void* __ptr)
+    {
+        // only page-aligned can be registered
+        if (!__is_ptr_page_aligned(__ptr))
+        {
+            return __ptr_desc{std::nullopt, 0};
+        }
+        if (_M_dtor_called)
+        {
+            return std::nullopt;
+        }
+
+        const std::lock_guard<std::mutex> l(_M_map_mtx);
+        auto __iter = _M_map.find(__ptr);
+        if (__iter == _M_map.end())
+        {
+            return __ptr_desc{std::nullopt, 0};
+        }
+        __ptr_desc __header = __iter->second;
+        _M_map.erase(__iter);
+        return __header;
+    }
+};
+
+static __large_aligned_ptrs_map __large_aligned_ptrs;
 
 inline void
 __free_usm_pointer(__block_header* __header)
@@ -165,18 +234,22 @@ __internal_free(void* __user_ptr)
 {
     if (__user_ptr != nullptr)
     {
-        if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1; __same_memory_page(__user_ptr, __header))
+        if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
+            __same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
         {
-            if (__header->_M_uniq_const == __uniq_type_const)
-            {
-                __free_usm_pointer(__header);
-                return;
-            }
+            __free_usm_pointer(__header);
+            return;
         }
-        else if (std::optional<__large_aligned_ptr_header> __header = __unregister_large_aligned_ptr(__user_ptr);
-                 __header.has_value())
+
+        std::optional<__large_aligned_ptrs_map::__ptr_desc> __desc = __large_aligned_ptrs.__unregister_ptr(__user_ptr);
+
+        if (!__desc.has_value())
         {
-            sycl::context __context = __header->_M_device_ptr.__get_context();
+            return; // leak memory in "status unknown" case
+        }
+        if (__desc->_M_device_ptr.has_value())
+        {
+            sycl::context __context = __desc->_M_device_ptr->__get_context();
             sycl::free(__user_ptr, __context);
             return;
         }
@@ -216,12 +289,13 @@ __internal_msize(void* __user_ptr)
             return __header->_M_requested_number_of_bytes;
         }
     }
-    else if (std::optional<__large_aligned_ptr_header> __header = __unregister_large_aligned_ptr(__user_ptr);
-             __header.has_value())
+    else if (std::optional<__large_aligned_ptrs_map::__ptr_desc> __desc = __large_aligned_ptrs.__unregister_ptr(__user_ptr);
+             __desc.has_value())
     {
-        return __header->_M_requested_number_of_bytes;
+        return __desc->_M_device_ptr.has_value() ? __header->_M_requested_number_of_bytes : __get_original_msize()(__user_ptr) ;
     }
-    return __get_original_msize()(__user_ptr);
+    // report zero size in "status unknown" case
+    return 0;
 }
 
 static void*
@@ -251,25 +325,29 @@ __realloc_impl(void* __user_ptr, std::size_t __new_size)
         return nullptr;
     }
 
-    if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1; __same_memory_page(__user_ptr, __header))
+    if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1; 
+        __same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
     {
-        if (__header->_M_uniq_const == __uniq_type_const)
-        {
-            void* __result = __realloc_allocate_shared(__header->_M_device, __user_ptr, __header->_M_requested_number_of_bytes, __new_size);
-            if (__result)
-            {
-                __free_usm_pointer(__header);
-            }
-            return __result;
-        }
-    }
-    else if (std::optional<__large_aligned_ptr_header> __header = __unregister_large_aligned_ptr(__user_ptr);
-             __header.has_value())
-    {
-        void* __result = __realloc_allocate_shared(__header->_M_device_ptr, __user_ptr, __header->_M_requested_number_of_bytes, __new_size);
+        void* __result = __realloc_allocate_shared(__header->_M_device, __user_ptr,
+                                                   __header->_M_requested_number_of_bytes, __new_size);
         if (__result)
         {
-            sycl::context __context = __header->_M_device_ptr.__get_context();
+            __free_usm_pointer(__header);
+        }
+        return __result;
+    }
+
+    std::optional<__large_aligned_ptrs_map::__ptr_desc> __desc = __large_aligned_ptrs.__unregister_ptr(__user_ptr);
+    if (!__desc.has_value())
+    {
+        return nullptr; // can't do anything in "status unknown" case
+    }
+    if (__desc->_M_device_ptr.has_value())
+    {
+        void* __result = __realloc_allocate_shared(__desc->_M_device_ptr.value(), __user_ptr, __desc->_M_requested_number_of_bytes, __new_size);
+        if (__result)
+        {
+            sycl::context __context = __desc->_M_device_ptr->__get_context();
             sycl::free(__user_ptr, __context);
         }
         return __result;
@@ -288,7 +366,7 @@ __allocate_shared_for_device_large_alignment(__sycl_device_shared_ptr __device_p
 
     if (__ptr)
     {
-        __register_large_alignment_ptr(__ptr, __size, __device_ptr);
+        __large_aligned_ptrs.__register_ptr(__ptr, __size, __device_ptr);
     }
     return __ptr;
 }

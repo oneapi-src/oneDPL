@@ -48,7 +48,7 @@ void test_aligned_alloc_alignment() {
             EXPECT_TRUE(ptr, "The returned pointer is nullptr");
             EXPECT_TRUE(std::uintptr_t(ptr) % alignment == 0, "The returned pointer is not properly aligned");
 
-            // check that alinged object might be reallocated
+            // check that aligned object might be reallocated
             constexpr std::size_t delta = 13;
             std::size_t new_size = (++cnt % 2) && size > delta ? size - delta : size + delta;
             ptr = realloc(ptr, new_size);

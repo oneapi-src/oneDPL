@@ -155,7 +155,7 @@ __allocate_shared_for_device(__sycl_device_shared_ptr __device_ptr, std::size_t 
 {
     assert(__device_ptr.__is_device_created());
     // Impossible to guarantee that the returned pointer and memory header would be on the same memory
-    // page if the alignment for more than a memory page is requested, so process this case specifially
+    // page if the alignment for more than a memory page is requested, so process this case specifically
     if (__alignment >= __get_memory_page_size())
     {
         return __allocate_shared_for_device_large_alignment(__device_ptr, __size, __alignment);
