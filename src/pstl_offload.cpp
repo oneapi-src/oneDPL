@@ -25,6 +25,7 @@
 #include <dlfcn.h>
 #include <string.h>
 #include <unistd.h>
+#include <atomic>
 
 namespace __pstl_offload
 {
@@ -154,6 +155,10 @@ bool operator==(const __orig_free_allocator <T>&, const __orig_free_allocator <U
 template<class T, class U>
 bool operator!=(const __orig_free_allocator <T>&, const __orig_free_allocator <U>&) { return false; }
 
+// Mark when __large_aligned_ptrs when one about to be destroyed or not created yet.
+// Use atomic to have fences.
+static std::atomic<bool> __large_aligned_ptrs_available;
+
 class __large_aligned_ptrs_map
 {
 public:
@@ -169,20 +174,23 @@ private:
     // call global delete during delete processing (that includes __unregister_ptr call).
     std::unordered_map<void*, __ptr_desc, __hash_aligned_ptr, std::equal_to<void*>,
         __orig_free_allocator<std::pair<void* const, __ptr_desc>>> _M_map;
-    // to not use _M_map when one about to be destroyed
-    bool _M_dtor_called = false;
 
 public:
+    __large_aligned_ptrs_map()
+    {
+        __large_aligned_ptrs_available = true;
+    }
+
     ~__large_aligned_ptrs_map()
     {
-        _M_dtor_called = true;
+        __large_aligned_ptrs_available = false;
     }
 
     void
     __register_ptr(void* __ptr, size_t __size, __sycl_device_shared_ptr __device_ptr)
     {
         assert(__is_ptr_page_aligned(__ptr));
-        if (_M_dtor_called)
+        if (!__large_aligned_ptrs_available)
         {
             return;
         }
@@ -200,7 +208,7 @@ public:
         {
             return __ptr_desc{std::nullopt, 0};
         }
-        if (_M_dtor_called)
+        if (!__large_aligned_ptrs_available)
         {
             return std::nullopt;
         }

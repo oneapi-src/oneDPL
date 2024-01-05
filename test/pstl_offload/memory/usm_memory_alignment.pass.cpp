@@ -52,6 +52,7 @@ void test_aligned_alloc_alignment() {
             constexpr std::size_t delta = 13;
             std::size_t new_size = (++cnt % 2) && size > delta ? size - delta : size + delta;
             ptr = realloc(ptr, new_size);
+            EXPECT_TRUE(ptr, "The returned pointer is nullptr");
             EXPECT_TRUE(malloc_usable_size(ptr) >= new_size, "Invalid reported size");
 
             free(ptr);
