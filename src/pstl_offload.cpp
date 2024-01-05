@@ -29,7 +29,6 @@
 namespace __pstl_offload
 {
 
-<<<<<<< HEAD
 using __free_func_type = void (*)(void*);
 
 // list of objects for delayed releasing
@@ -77,16 +76,6 @@ __get_original_free_checked(void* __ptr_to_free)
     // Releasing objects from delayed release list.
     __free_delayed_list(__ptr_to_free, __orig_free);
 
-=======
-static auto
-__get_original_free()
-{
-    printf("Get original free\n");
-    using __free_func_type = void (*)(void*);
-
-    static __free_func_type __orig_free = __free_func_type(dlsym(RTLD_NEXT, "free"));
-    printf("Get original free done\n");
->>>>>>> d3e04d40 (Add free logging)
     return __orig_free;
 }
 
@@ -110,7 +99,6 @@ __get_original_msize()
 static void
 __internal_free(void* __user_ptr)
 {
-    printf("free\n");
     if (__user_ptr != nullptr)
     {
         __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
@@ -140,7 +128,6 @@ __internal_free(void* __user_ptr)
             }
         }
     }
-    printf("free done\n");
 }
 
 static std::size_t
