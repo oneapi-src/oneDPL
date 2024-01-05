@@ -116,11 +116,11 @@ struct __hash_aligned_ptr
 {
     uintptr_t operator()(void *p) const
     {
-        // we know that addresses are at least page-aligned, so drop 11 right bits that are zeros,
-        // and multiply to some prime number for bits hashing
-        // TODO: should well-known hashing function be used?
+        // We know that addresses are at least page-aligned, so, expecting page 4K-aligned,
+        // drop 11 right bits that are zeros, and treat rest as a pointer, hoping that
+        // an underlying Standart Library support this well.
         constexpr unsigned shift = 11;
-        return ((uintptr_t)p >> shift) * 1111111111111111111LLU;
+        return std::hash<void*>()((void*)((uintptr_t)p >> shift));
     }
 };
 
