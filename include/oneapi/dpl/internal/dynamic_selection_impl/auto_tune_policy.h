@@ -217,6 +217,10 @@ class auto_tune_policy
         static_assert(sizeof...(KeyArgs) == sizeof...(Args));
         if (state_)
         {
+            if (state_->resources_with_index_.empty())
+            {
+                initialize();
+            }
             std::unique_lock<std::mutex> l(state_->m_);
             auto k = make_task_key(std::forward<Function>(f), std::forward<Args>(args)...);
             auto t = state_->tuner_by_key_[k];

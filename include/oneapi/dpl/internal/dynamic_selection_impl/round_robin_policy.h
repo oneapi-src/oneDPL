@@ -115,6 +115,11 @@ struct round_robin_policy
     {
         if (state_)
         {
+
+            if (state_->resources_.empty())
+            {
+                initialize();
+            }
             resource_container_size_t current_context_;
             while (true)
             {

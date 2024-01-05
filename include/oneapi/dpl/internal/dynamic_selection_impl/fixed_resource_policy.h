@@ -111,7 +111,10 @@ struct fixed_resource_policy
             {
                 return selection_type{*this, state_->resources_[state_->offset_]};
             }
-            return selection_type{*this};
+            else{
+                initialize();
+                return selection_type{*this, state_->resources_[state_->offset_]};
+            }
         }
         else
         {
