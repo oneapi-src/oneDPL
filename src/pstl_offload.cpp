@@ -119,7 +119,7 @@ struct __hash_aligned_ptr
     {
         // We know that addresses are at least page-aligned, so, expecting page 4K-aligned,
         // drop 11 right bits that are zeros, and treat rest as a pointer, hoping that
-        // an underlying Standart Library support this well.
+        // an underlying Standard Library support this well.
         constexpr unsigned shift = 11;
         return std::hash<void*>()((void*)((uintptr_t)p >> shift));
     }
