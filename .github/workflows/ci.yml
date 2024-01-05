@@ -212,7 +212,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             cxx_compiler: icpx
             std: 17
             build_type: release
@@ -237,7 +237,9 @@ jobs:
           make_targets=""
           ctest_regex="^("
 
-          test_list="empty_test_pstl_offload.pass"
+          test_list="adjacent_find.pass copy_move.pass merge.pass partial_sort.pass remove_copy.pass \
+                     transform_reduce.pass transform_scan.pass algorithm.pass execution.pass functional.pass \
+                     algorithms_redirection.pass usm_memory_replacement.pass"
 
           for test in $test_list
           do
