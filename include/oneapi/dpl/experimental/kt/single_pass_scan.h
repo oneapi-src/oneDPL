@@ -113,11 +113,9 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     using _FlagStorageType = __scan_status_flag<_Type>::_StorageType;
 
     static_assert(_Inclusive, "Single-pass scan only available for inclusive scan");
-    if (sizeof(_Type) > 32 && !__queue.get_device().has(sycl::aspect::atomic64))
-    {
-        std::cerr << "TODO" << std::endl;
-        exit(1);
-    }
+
+    assert("This device does not support 64-bit atomics" &&
+           (sizeof(_Type) < 64 || __queue.get_device().has(sycl::aspect::atomic64)));
 
     const ::std::size_t __n = __in_rng.size();
 
