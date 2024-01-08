@@ -18,14 +18,14 @@ void
 test_constexpr()
 {
     constexpr dpl::complex<T> c1;
-    STD_COMPLEX_TESTS_STATIC_ASSERT(c1.real() == 0, "");
-    STD_COMPLEX_TESTS_STATIC_ASSERT(c1.imag() == 0, "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT(c1.real() == 0);
+    STD_COMPLEX_TESTS_STATIC_ASSERT(c1.imag() == 0);
     constexpr dpl::complex<T> c2(3);
-    STD_COMPLEX_TESTS_STATIC_ASSERT(c2.real() == 3, "");
-    STD_COMPLEX_TESTS_STATIC_ASSERT(c2.imag() == 0, "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT(c2.real() == 3);
+    STD_COMPLEX_TESTS_STATIC_ASSERT(c2.imag() == 0);
     constexpr dpl::complex<T> c3(3, 4);
-    STD_COMPLEX_TESTS_STATIC_ASSERT(c3.real() == 3, "");
-    STD_COMPLEX_TESTS_STATIC_ASSERT(c3.imag() == 4, "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT(c3.real() == 3);
+    STD_COMPLEX_TESTS_STATIC_ASSERT(c3.imag() == 4);
 }
 
 template <class T>

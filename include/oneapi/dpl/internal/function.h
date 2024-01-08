@@ -31,45 +31,6 @@ namespace internal
 {
 using ::std::get;
 
-#if _ONEDPL_BACKEND_SYCL
-using oneapi::dpl::__internal::is_hetero_iterator;
-using oneapi::dpl::__par_backend_hetero::__internal::__buffer;
-#endif
-
-#if _ONEDPL_BACKEND_SYCL
-// Helpers used to get indexable access to the data passed to the SYCL implementation of an
-// algorithm from either a SYCL iterator or a USM pointer.
-template <sycl::access::mode Mode, typename Policy, typename Iterator>
-auto
-get_access(Policy, Iterator i, typename ::std::enable_if<is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
-    -> decltype(i.get_buffer().template get_access<Mode>())
-{
-    return i.get_buffer().template get_access<Mode>();
-}
-
-template <sycl::access::mode Mode, typename Policy, typename Iterator>
-Iterator
-get_access(Policy, Iterator i, typename ::std::enable_if<!is_hetero_iterator<Iterator>::value, void>::type* = nullptr)
-{
-    return i;
-}
-
-template <sycl::access::mode Mode, typename Policy, typename T>
-counting_iterator<T>
-get_access(Policy, counting_iterator<T> i)
-{
-    return i;
-}
-
-template <sycl::access::mode Mode, typename Policy, typename T>
-T*
-get_access(const Policy& policy, T* ptr)
-{
-    assert(sycl::get_pointer_type(ptr, policy.queue().get_context()) == sycl::usm::alloc::shared);
-    return ptr;
-}
-#endif
-
 // struct for checking if iterator is a discard_iterator or not
 template <typename Iter, typename Void = void> // for non-discard iterators
 struct is_discard_iterator : ::std::false_type
@@ -77,7 +38,7 @@ struct is_discard_iterator : ::std::false_type
 };
 
 template <typename Iter> // for discard iterators
-struct is_discard_iterator<Iter, typename ::std::enable_if<Iter::is_discard::value, void>::type> : ::std::true_type
+struct is_discard_iterator<Iter, ::std::enable_if_t<Iter::is_discard::value>> : ::std::true_type
 {
 };
 
@@ -133,7 +94,8 @@ struct segmented_scan_fun
     operator()(const _T1& x, const _T2& y) const
     {
         using ::std::get;
-        auto new_x = get<1>(y) ? get<0>(y) : binary_op(get<0>(x), get<0>(y));
+        using x_t = ::std::tuple_element_t<0, _T1>;
+        auto new_x = get<1>(y) ? x_t(get<0>(y)) : x_t(binary_op(get<0>(x), get<0>(y)));
         auto new_y = get<1>(x) | get<1>(y);
         return _T1(new_x, new_y);
     }

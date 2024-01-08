@@ -49,7 +49,7 @@ none_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred);
 // [alg.foreach]
 
 template <typename _ExecutionPolicy, typename _Range, typename _Function>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 for_each(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f);
 
 // [alg.find]
@@ -133,7 +133,7 @@ search_n(_ExecutionPolicy&& __exec, _Range&& __rng, _Size __count, const _Tp& __
 // [alg.copy]
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __result);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate>
@@ -151,11 +151,11 @@ swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2);
 // [alg.transform]
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 transform(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _UnaryOperation __op);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _BinaryOperation>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 transform(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _BinaryOperation __op);
 
 // [alg.remove]
@@ -201,7 +201,7 @@ unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result);
 // [alg.reverse]
 
 template <typename _ExecutionPolicy, typename _Range>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 reverse(_ExecutionPolicy&& __exec, _Range&& __rng);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
@@ -218,11 +218,11 @@ rotate_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, oneapi::dpl::__internal:
 // [alg.replace]
 
 template <typename _ExecutionPolicy, typename _Range, typename _UnaryPredicate, typename _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 replace_if(_ExecutionPolicy&& __exec, _Range&& __rng, _UnaryPredicate __pred, const _Tp& __new_value);
 
 template <typename _ExecutionPolicy, typename _Range, typename _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 replace(_ExecutionPolicy&& __exec, _Range&& __rng, const _Tp& __old_value, const _Tp& __new_value);
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryPredicate, typename _Tp>
@@ -240,21 +240,21 @@ replace_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, con
 // [alg.sort]
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj = oneapi::dpl::identity>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj = {});
 
 template <typename _ExecutionPolicy, typename _Range>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 sort(_ExecutionPolicy&& __exec, _Range&& __rng);
 
 // [stable.sort]
 
 template <typename _ExecutionPolicy, typename _Range, typename _Compare>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp);
 
 template <typename _ExecutionPolicy, typename _Range>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng);
 
 // [is.sorted]
@@ -288,7 +288,7 @@ equal(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2);
 // [alg.move]
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 move(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2);
 
 // [alg.merge]

@@ -43,7 +43,7 @@ void test_random_iterator(const RandomIt& it) {
         [[maybe_unused]] auto t4 = typename RandomIt::iterator_category{};
     }
 
-    static_assert(::std::is_default_constructible<RandomIt>::value, "iterator is not default constructible");
+    static_assert(::std::is_default_constructible_v<RandomIt>, "iterator is not default constructible");
 
     EXPECT_TRUE(  it == it,      "== returned false negative");
     EXPECT_TRUE(!(it == it + 1), "== returned false positive");
@@ -274,7 +274,7 @@ struct test_transform_iterator {
         auto test_lambda = [](T2& x){ return x + 1; };
         auto new_transform_iterator = oneapi::dpl::make_transform_iterator(in2.begin(), test_lambda);
         EXPECT_TRUE(_it1.base() == in1.begin(), "wrong result from transform_iterator::base");
-        static_assert(::std::is_same<decltype(new_transform_iterator.functor()), decltype(test_lambda)>::value,
+        static_assert(::std::is_same_v<decltype(new_transform_iterator.functor()), decltype(test_lambda)>,
             "wrong result from transform_iterator::functor");
         test_random_iterator(_it2);
     }

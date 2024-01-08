@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <memory>
 #include <vector>
+#include <type_traits>
 #include <omp.h>
 
 #include "../parallel_backend_utils.h"
@@ -57,17 +58,19 @@ __cancel_execution()
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Tp>
-class __buffer
+class __buffer_impl
 {
     std::allocator<_Tp> __allocator_;
     _Tp* __ptr_;
     const std::size_t __buf_size_;
-    __buffer(const __buffer&) = delete;
+    __buffer_impl(const __buffer_impl&) = delete;
     void
-    operator=(const __buffer&) = delete;
+    operator=(const __buffer_impl&) = delete;
 
   public:
-    __buffer(std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+
+    __buffer_impl(std::size_t __n) : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n) {}
 
     operator bool() const { return __ptr_ != nullptr; }
 
@@ -76,14 +79,17 @@ class __buffer
     {
         return __ptr_;
     }
-    ~__buffer() { __allocator_.deallocate(__ptr_, __buf_size_); }
+    ~__buffer_impl() { __allocator_.deallocate(__ptr_, __buf_size_); }
 };
+
+template <typename _ExecutionPolicy, typename _Tp>
+using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 // Preliminary size of each chunk: requires further discussion
 constexpr std::size_t __default_chunk_size = 2048;
 
 // Convenience function to determine when we should run serial.
-template <typename _Iterator, std::enable_if_t<!std::is_integral<_Iterator>::value, bool> = true>
+template <typename _Iterator, std::enable_if_t<!std::is_integral_v<_Iterator>, bool> = true>
 constexpr auto
 __should_run_serial(_Iterator __first, _Iterator __last) -> bool
 {
@@ -92,7 +98,7 @@ __should_run_serial(_Iterator __first, _Iterator __last) -> bool
     return __size <= static_cast<_difference_type>(__default_chunk_size);
 }
 
-template <typename _Index, std::enable_if_t<std::is_integral<_Index>::value, bool> = true>
+template <typename _Index, std::enable_if_t<std::is_integral_v<_Index>, bool> = true>
 constexpr auto
 __should_run_serial(_Index __first, _Index __last) -> bool
 {

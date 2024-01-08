@@ -42,8 +42,6 @@
 namespace TestUtils
 {
 
-constexpr int kDefaultMultValue = 1;
-
 #define PRINT_DEBUG(message) ::TestUtils::print_debug(message)
 
 inline void
@@ -96,36 +94,36 @@ template <typename _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
 auto
 make_new_policy(_Policy&& __policy)
-    -> decltype(TestUtils::make_fpga_policy<::std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
+    -> decltype(TestUtils::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
         ::std::forward<_Policy>(__policy)))
 {
-    return TestUtils::make_fpga_policy<::std::decay<_Policy>::type::unroll_factor, _NewKernelName>(
+    return TestUtils::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor, _NewKernelName>(
         ::std::forward<_Policy>(__policy));
 }
 #endif
 
 #if ONEDPL_FPGA_DEVICE
-    auto default_selector =
+inline auto default_selector =
 #    if ONEDPL_FPGA_EMULATOR
         __dpl_sycl::__fpga_emulator_selector();
 #    else
         __dpl_sycl::__fpga_selector();
 #    endif // ONEDPL_FPGA_EMULATOR
 
-    auto&& default_dpcpp_policy =
+inline auto&& default_dpcpp_policy =
 #    if ONEDPL_USE_PREDEFINED_POLICIES
         oneapi::dpl::execution::dpcpp_fpga;
 #    else
         TestUtils::make_fpga_policy(sycl::queue{default_selector});
 #    endif // ONEDPL_USE_PREDEFINED_POLICIES
 #else
-    auto default_selector =
+inline auto default_selector =
 #    if _ONEDPL_LIBSYCL_VERSION >= 60000
         sycl::default_selector_v;
 #    else
         sycl::default_selector{};
 #    endif
-    auto&& default_dpcpp_policy =
+inline auto&& default_dpcpp_policy =
 #    if ONEDPL_USE_PREDEFINED_POLICIES
         oneapi::dpl::execution::dpcpp_default;
 #    else
@@ -133,12 +131,11 @@ make_new_policy(_Policy&& __policy)
 #    endif // ONEDPL_USE_PREDEFINED_POLICIES
 #endif     // ONEDPL_FPGA_DEVICE
 
-// create the queue with custom asynchronous exceptions handler
-static auto my_queue = sycl::queue(default_selector, async_handler);
-
 inline
 sycl::queue get_test_queue()
 {
+    // create the queue with custom asynchronous exceptions handler
+    static sycl::queue my_queue(default_selector, async_handler);
     return my_queue;
 }
 
@@ -273,7 +270,7 @@ test3buffers(int mult = kDefaultMultValue)
             invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n,
+                                               inout3_offset_first, inout3_offset_first + n * mult,
                                                n);
         }
     }
@@ -299,7 +296,7 @@ test3buffers(int mult = kDefaultMultValue)
             invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n,
+                                               inout3_offset_first, inout3_offset_first + n * mult,
                                                n);
         }
     }
@@ -336,8 +333,8 @@ test4buffers(int mult = kDefaultMultValue)
             invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n,
-                                               inout4_offset_first, inout4_offset_first + n,
+                                               inout3_offset_first, inout3_offset_first + n * mult,
+                                               inout4_offset_first, inout4_offset_first + n * mult,
                                                n);
         }
     }
@@ -365,44 +362,36 @@ test4buffers(int mult = kDefaultMultValue)
             invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n,
-                                               inout4_offset_first, inout4_offset_first + n,
+                                               inout3_offset_first, inout3_offset_first + n * mult,
+                                               inout4_offset_first, inout4_offset_first + n * mult,
                                                n);
         }
     }
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test1buffer()
 {
     test1buffer<alloc_type, typename TestName::UsedValueType, TestName>();
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test2buffers()
 {
     test2buffers<alloc_type, typename TestName::UsedValueType, TestName>();
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test3buffers(int mult = kDefaultMultValue)
 {
     test3buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
 }
 
 template <sycl::usm::alloc alloc_type, typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test4buffers(int mult = kDefaultMultValue)
 {
     test4buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);

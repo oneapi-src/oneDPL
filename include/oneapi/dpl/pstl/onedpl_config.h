@@ -24,13 +24,8 @@
 #endif
 
 #define ONEDPL_VERSION_MAJOR 2022
-#define ONEDPL_VERSION_MINOR 3
+#define ONEDPL_VERSION_MINOR 4
 #define ONEDPL_VERSION_PATCH 0
-
-#if defined(ONEDPL_USE_DPCPP_BACKEND)
-#    undef _ONEDPL_BACKEND_SYCL
-#    define _ONEDPL_BACKEND_SYCL ONEDPL_USE_DPCPP_BACKEND
-#endif
 
 #if defined(ONEDPL_FPGA_DEVICE)
 #    undef _ONEDPL_FPGA_DEVICE
@@ -49,16 +44,31 @@
 #    define _ONEDPL_PREDEFINED_POLICIES 1
 #endif
 
-#if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND)
-#    define _ONEDPL_PAR_BACKEND_TBB 1
+// Check availability of parallel backends
+#if __has_include(<tbb/tbb.h>)
+#    define _ONEDPL_TBB_AVAILABLE 1
+#endif
+#if ONEDPL_USE_TBB_BACKEND && !_ONEDPL_TBB_AVAILABLE
+#    error "Parallel execution policies with oneTBB or Intel(R) TBB support are enabled, but the library is not found"
 #endif
 
-#if ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && defined(_OPENMP))
-#    define _ONEDPL_PAR_BACKEND_OPENMP 1
+#if defined(_OPENMP) && __has_include(<omp.h>)
+#    define _ONEDPL_OPENMP_AVAILABLE 1
+#endif
+// During compilation for a device _OPENMP may not be set, so avoid throwing an error if
+// __SYCL_DEVICE_ONLY__ found
+#if ONEDPL_USE_OPENMP_BACKEND && !_ONEDPL_OPENMP_AVAILABLE && !defined(__SYCL_DEVICE_ONLY__)
+#    error "Parallel execution policies with OpenMP* support are enabled, \
+        but OpenMP headers are not found or the compiler does not support OpenMP"
 #endif
 
-#if !_ONEDPL_PAR_BACKEND_TBB && !_ONEDPL_PAR_BACKEND_OPENMP
-#    define _ONEDPL_PAR_BACKEND_SERIAL 1
+#if (defined(SYCL_LANGUAGE_VERSION) || defined(CL_SYCL_LANGUAGE_VERSION)) &&                                           \
+    (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>))
+#    define _ONEDPL_SYCL_AVAILABLE 1
+#endif
+#if ONEDPL_USE_DPCPP_BACKEND && !_ONEDPL_SYCL_AVAILABLE
+#    error "Device execution policies are enabled, \
+        but SYCL* headers are not found or the compiler does not support SYCL"
 #endif
 
 // Check the user-defined macro for warnings
@@ -90,7 +100,8 @@
 #endif
 
 // Enable SIMD for compilers that support OpenMP 4.0
-#if (_OPENMP >= 201307) || (__INTEL_COMPILER >= 1600) || (!defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900)
+#if (_OPENMP >= 201307) || __INTEL_LLVM_COMPILER || (__INTEL_COMPILER >= 1600) ||                                      \
+    (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900)
 #    define _ONEDPL_PRAGMA_SIMD _ONEDPL_PRAGMA(omp simd)
 #    define _ONEDPL_PRAGMA_DECLARE_SIMD _ONEDPL_PRAGMA(omp declare simd)
 #    define _ONEDPL_PRAGMA_SIMD_REDUCTION(PRM) _ONEDPL_PRAGMA(omp simd reduction(PRM))
@@ -105,13 +116,15 @@
 #endif //Enable SIMD
 
 // Enable loop unrolling pragmas where supported
-#if (__INTEL_COMPILER || (!defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 80000))
+#if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER ||                                                                      \
+     (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) &&                                                 \
+      ((_ONEDPL_GCC_VERSION >= 80000) || (_ONEDPL_CLANG_VERSION >= 30700))))
 #    define _ONEDPL_PRAGMA_UNROLL _ONEDPL_PRAGMA(unroll)
 #else //no pragma unroll
 #    define _ONEDPL_PRAGMA_UNROLL
 #endif
 
-#if (__INTEL_COMPILER)
+#if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER)
 #    define _ONEDPL_PRAGMA_FORCEINLINE _ONEDPL_PRAGMA(forceinline)
 #elif defined(_PSTL_PRAGMA_FORCEINLINE)
 #    define _ONEDPL_PRAGMA_FORCEINLINE _PSTL_PRAGMA_FORCEINLINE
@@ -119,7 +132,7 @@
 #    define _ONEDPL_PRAGMA_FORCEINLINE
 #endif
 
-#if (__INTEL_COMPILER >= 1900)
+#if (__INTEL_LLVM_COMPILER >= 20230100 || __INTEL_COMPILER >= 1900)
 #    define _ONEDPL_PRAGMA_SIMD_SCAN(PRM) _ONEDPL_PRAGMA(omp simd reduction(inscan, PRM))
 #    define _ONEDPL_PRAGMA_SIMD_INCLUSIVE_SCAN(PRM) _ONEDPL_PRAGMA(omp scan inclusive(PRM))
 #    define _ONEDPL_PRAGMA_SIMD_EXCLUSIVE_SCAN(PRM) _ONEDPL_PRAGMA(omp scan exclusive(PRM))
@@ -171,13 +184,20 @@
 #    define _ONEDPL_PRAGMA_SIMD_ORDERED_MONOTONIC_2ARGS(PRM1, PRM2)
 #endif
 
-#if (__INTEL_COMPILER >= 1900 || !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900 || _OPENMP >= 201307)
+#if (_OPENMP >= 201307 || __INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1900 ||                                         \
+     !defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 40900)
 #    define _ONEDPL_UDR_PRESENT 1
 #else
 #    define _ONEDPL_UDR_PRESENT 0
 #endif
 
-#define _ONEDPL_UDS_PRESENT (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
+// TODO: enable UDS on Windows with Intel LLVM-based compiler when it is fixed
+#if (__INTEL_LLVM_COMPILER >= 20230100 && !defined(_MSC_VER)) ||                                                       \
+    (__INTEL_COMPILER >= 1900 && __INTEL_COMPILER_BUILD_DATE >= 20180626)
+#    define _ONEDPL_UDS_PRESENT 1
+#else
+#    define _ONEDPL_UDS_PRESENT 0
+#endif
 
 // Declaration of reduction functor, where
 // NAME - the name of the functor
@@ -203,7 +223,7 @@
 
 // Check the user-defined macro to use non-temporal stores
 #ifndef _PSTL_USE_NONTEMPORAL_STORES_IF_ALLOWED
-#    if defined(PSTL_USE_NONTEMPORAL_STORES) && (__INTEL_COMPILER >= 1600)
+#    if defined(PSTL_USE_NONTEMPORAL_STORES) && (__INTEL_LLVM_COMPILER || __INTEL_COMPILER >= 1600)
 #        define _PSTL_USE_NONTEMPORAL_STORES_IF_ALLOWED _PSTL_PRAGMA(vector nontemporal)
 #    else
 #        define _PSTL_USE_NONTEMPORAL_STORES_IF_ALLOWED
@@ -240,15 +260,8 @@
 #define _ONEDPL_HAS_NUMERIC_SERIAL_IMPL                                                                                \
     (__GLIBCXX__ && (_GLIBCXX_RELEASE < 9 || (_GLIBCXX_RELEASE == 9 && __GLIBCXX__ < 20200312)))
 
-// Check the user-defined macro for parallel policies
-// define _ONEDPL_BACKEND_SYCL 1 when we compile with the Compiler that supports SYCL
-#if !defined(_ONEDPL_BACKEND_SYCL)
-#    if ((defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)) &&                                      \
-         (__has_include(<sycl/sycl.hpp>) || __has_include(<CL/sycl.hpp>)))
-#        define _ONEDPL_BACKEND_SYCL 1
-#    else
-#        define _ONEDPL_BACKEND_SYCL 0
-#    endif // CL_SYCL_LANGUAGE_VERSION
+#if ONEDPL_USE_DPCPP_BACKEND || (!defined(ONEDPL_USE_DPCPP_BACKEND) && _ONEDPL_SYCL_AVAILABLE)
+#    define _ONEDPL_BACKEND_SYCL 1
 #endif
 
 // if SYCL policy switch on then let's switch hetero policy macro on
@@ -285,10 +298,10 @@
 
 #define _ONEDPL_BUILT_IN_STABLE_NAME_PRESENT __has_builtin(__builtin_sycl_unique_stable_name)
 
-// When compile with Intel(R) oneAPI DPC++ Compiler macro is on
-// We need this macro to use compiler specific implementation of SYCL
-#if defined(__INTEL_LLVM_COMPILER) && defined(SYCL_LANGUAGE_VERSION)
-#    define _ONEDPL_SYCL_INTEL_COMPILER 1
+#if defined(_MSC_VER) && __INTEL_LLVM_COMPILER < 20240100
+#    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 1
+#else
+#    define _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN 0
 #endif
 
 #endif // _ONEDPL_CONFIG_H

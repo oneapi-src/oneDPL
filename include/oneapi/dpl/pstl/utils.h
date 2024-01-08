@@ -50,7 +50,7 @@ namespace __internal
 
 template <typename Iterator>
 using is_const_iterator =
-    typename ::std::is_const<typename ::std::remove_pointer<typename ::std::iterator_traits<Iterator>::pointer>::type>;
+    typename ::std::is_const<::std::remove_pointer_t<typename ::std::iterator_traits<Iterator>::pointer>>;
 
 template <typename _Fp>
 auto
@@ -289,6 +289,48 @@ class __transform_functor
     }
 };
 
+template <typename _UnaryOper, typename _UnaryPred>
+class __transform_if_unary_functor
+{
+    mutable _UnaryOper _M_oper;
+    mutable _UnaryPred _M_pred;
+
+  public:
+    explicit __transform_if_unary_functor(_UnaryOper&& __op, _UnaryPred&& __pred)
+        : _M_oper(::std::forward<_UnaryOper>(__op)), _M_pred(::std::forward<_UnaryPred>(__pred))
+    {
+    }
+
+    template <typename _Input1Type, typename _OutputType>
+    void
+    operator()(const _Input1Type& x, _OutputType& y) const
+    {
+        if (_M_pred(x))
+            y = _M_oper(x);
+    }
+};
+
+template <typename _BinaryOper, typename _BinaryPred>
+class __transform_if_binary_functor
+{
+    mutable _BinaryOper _M_oper;
+    mutable _BinaryPred _M_pred;
+
+  public:
+    explicit __transform_if_binary_functor(_BinaryOper&& __op, _BinaryPred&& __pred)
+        : _M_oper(::std::forward<_BinaryOper>(__op)), _M_pred(::std::forward<_BinaryPred>(__pred))
+    {
+    }
+
+    template <typename _Input1Type, typename _Input2Type, typename _OutputType>
+    void
+    operator()(const _Input1Type& x, const _Input2Type& y, _OutputType& z) const
+    {
+        if (_M_pred(x, y))
+            z = _M_oper(x, y);
+    }
+};
+
 template <typename _Tp, typename _Pred>
 class __replace_functor
 {
@@ -399,7 +441,7 @@ __pstl_right_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __
 template <typename _IntType, typename _Acc>
 struct _ReverseCounter
 {
-    typedef typename ::std::make_signed<_IntType>::type difference_type;
+    typedef ::std::make_signed_t<_IntType> difference_type;
 
     _IntType __my_cn;
 
@@ -449,7 +491,7 @@ struct _ReverseCounter
 
     class __private_class;
 
-    operator typename ::std::conditional<decltype(__check_braces<_Acc>(0))::value, sycl::id<1>, __private_class>::type()
+    operator ::std::conditional_t<decltype(__check_braces<_Acc>(0))::value, sycl::id<1>, __private_class>()
     {
         return sycl::id<1>(__my_cn);
     }
@@ -471,17 +513,6 @@ __pstl_left_bound(_Buffer& __a, _Index __first, _Index __last, const _Value& __v
 using __or_semantic = ::std::true_type;
 using __first_semantic = ::std::false_type;
 
-// Define __void_type via this structure to handle redefinition issue.
-// See CWG 1558 for information about it.
-template <typename... _Ts>
-struct __make_void_type
-{
-    using __type = void;
-};
-
-template <typename... _Ts>
-using __void_type = typename __make_void_type<_Ts...>::__type;
-
 // is_callable_object
 template <typename _Tp, typename = void>
 struct __is_callable_object : ::std::false_type
@@ -489,7 +520,7 @@ struct __is_callable_object : ::std::false_type
 };
 
 template <typename _Tp>
-struct __is_callable_object<_Tp, __void_type<decltype(&_Tp::operator())>> : ::std::true_type
+struct __is_callable_object<_Tp, ::std::void_t<decltype(&_Tp::operator())>> : ::std::true_type
 {
 };
 
@@ -524,21 +555,24 @@ template <typename _Tp>
 using __is_const_callable_object =
     ::std::integral_constant<bool, __is_callable_object<_Tp>::value && __is_pointer_to_const_member<_Tp>::value>;
 
+template <typename _Tp>
+inline constexpr bool __is_const_callable_object_v = __is_const_callable_object<_Tp>::value;
+
 struct __next_to_last
 {
     template <typename _Iterator>
-    typename ::std::enable_if<::std::is_base_of<::std::random_access_iterator_tag,
-                                                typename ::std::iterator_traits<_Iterator>::iterator_category>::value,
-                              _Iterator>::type
+    ::std::enable_if_t<::std::is_base_of_v<::std::random_access_iterator_tag,
+                                           typename ::std::iterator_traits<_Iterator>::iterator_category>,
+                       _Iterator>
     operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
     {
         return __n > __last - __it ? __last : __it + __n;
     }
 
     template <typename _Iterator>
-    typename ::std::enable_if<!::std::is_base_of<::std::random_access_iterator_tag,
-                                                 typename ::std::iterator_traits<_Iterator>::iterator_category>::value,
-                              _Iterator>::type
+    ::std::enable_if_t<!::std::is_base_of_v<::std::random_access_iterator_tag,
+                                            typename ::std::iterator_traits<_Iterator>::iterator_category>,
+                       _Iterator>
     operator()(_Iterator __it, _Iterator __last, typename ::std::iterator_traits<_Iterator>::difference_type __n)
     {
         for (; --__n >= 0 && __it != __last; ++__it)
@@ -549,21 +583,6 @@ struct __next_to_last
 
 template <typename _T, class _Enable = void>
 class __future;
-
-template <typename... _Bs>
-struct __conjunction : ::std::true_type
-{
-};
-
-template <typename _B1>
-struct __conjunction<_B1> : _B1
-{
-};
-
-template <typename _B1, typename... _Bs>
-struct __conjunction<_B1, _Bs...> : ::std::conditional<!bool(_B1::value), _B1, __conjunction<_Bs...>>::type
-{
-};
 
 // empty base class for type erasure
 struct __lifetime_keeper_base
@@ -641,6 +660,39 @@ constexpr auto
 __dpl_ceiling_div(_T1 __number, _T2 __divisor)
 {
     return (__number - 1) / __divisor + 1;
+}
+
+// TODO In C++20 we may try to use std::equality_comparable
+template <typename _Iterator1, typename _Iterator2, typename = void>
+struct __is_equality_comparable : std::false_type
+{
+};
+
+// All with implemented operator ==
+template <typename _Iterator1, typename _Iterator2>
+struct __is_equality_comparable<
+    _Iterator1, _Iterator2,
+    std::void_t<decltype(::std::declval<::std::decay_t<_Iterator1>>() == ::std::declval<::std::decay_t<_Iterator2>>())>>
+    : std::true_type
+{
+};
+
+template <typename _Iterator1, typename _Iterator2>
+constexpr bool
+__iterators_possibly_equal(_Iterator1 __it1, _Iterator2 __it2)
+{
+    if constexpr (__is_equality_comparable<_Iterator1, _Iterator2>::value)
+    {
+        return __it1 == __it2;
+    }
+    else if constexpr (__is_equality_comparable<_Iterator2, _Iterator1>::value)
+    {
+        return __it2 == __it1;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 } // namespace __internal

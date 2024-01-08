@@ -83,7 +83,7 @@ class zip_forward_iterator
     typedef typename ::std::tuple<_Types...> __it_types;
 
   public:
-    typedef typename ::std::make_signed<::std::size_t>::type difference_type;
+    typedef ::std::make_signed_t<::std::size_t> difference_type;
     typedef ::std::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
     typedef ::std::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
     typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
@@ -150,16 +150,15 @@ namespace dpl
 template <typename _Ip>
 class counting_iterator
 {
-    static_assert(::std::is_integral<_Ip>::value, "Cannot instantiate counting_iterator with a non-integer type");
+    static_assert(::std::is_integral_v<_Ip>, "Cannot instantiate counting_iterator with a non-integer type");
 
   public:
-    typedef typename ::std::make_signed<_Ip>::type difference_type;
+    typedef ::std::make_signed_t<_Ip> difference_type;
     typedef _Ip value_type;
     typedef const _Ip* pointer;
     // There is no storage behind the iterator, so we return a value instead of reference.
     typedef _Ip reference;
     typedef ::std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = ::std::true_type;
 
     counting_iterator() : __my_counter_() {}
     explicit counting_iterator(_Ip __init) : __my_counter_(__init) {}
@@ -269,7 +268,7 @@ class zip_iterator
     typedef oneapi::dpl::__internal::tuple<_Types...> __it_types;
 
   public:
-    typedef typename ::std::make_signed<::std::size_t>::type difference_type;
+    typedef ::std::make_signed_t<::std::size_t> difference_type;
     typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
     typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
     typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
@@ -421,7 +420,7 @@ class transform_iterator
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
     typedef decltype(__my_unary_func_(::std::declval<typename ::std::iterator_traits<_Iter>::reference>())) reference;
-    typedef typename ::std::remove_reference<reference>::type value_type;
+    typedef ::std::remove_reference_t<reference> value_type;
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
@@ -570,10 +569,11 @@ template <typename SourceIterator, typename _Permutation>
 class permutation_iterator
 {
   public:
-    typedef typename std::conditional<
+    typedef std::conditional_t<
         !__internal::__is_functor<_Permutation>, _Permutation,
         transform_iterator<counting_iterator<typename ::std::iterator_traits<SourceIterator>::difference_type>,
-                           _Permutation>>::type IndexMap;
+                           _Permutation>>
+        IndexMap;
     typedef typename ::std::iterator_traits<SourceIterator>::difference_type difference_type;
     typedef typename ::std::iterator_traits<SourceIterator>::value_type value_type;
     typedef typename ::std::iterator_traits<SourceIterator>::pointer pointer;
@@ -584,19 +584,19 @@ class permutation_iterator
 
     permutation_iterator() = default;
 
-    template <typename _T = _Permutation, typename ::std::enable_if<!__internal::__is_functor<_T>, int>::type = 0>
+    template <typename _T = _Permutation, ::std::enable_if_t<!__internal::__is_functor<_T>, int> = 0>
     permutation_iterator(SourceIterator input1, _Permutation input2) : my_source_it(input1), my_index(input2)
     {
     }
 
-    template <typename _T = _Permutation, typename ::std::enable_if<__internal::__is_functor<_T>, int>::type = 0>
+    template <typename _T = _Permutation, ::std::enable_if_t<__internal::__is_functor<_T>, int> = 0>
     permutation_iterator(SourceIterator input1, _Permutation __f, difference_type __idx = 0)
         : my_source_it(input1), my_index(counting_iterator<difference_type>(__idx), __f)
     {
     }
 
   private:
-    template <typename _T = _Permutation, typename ::std::enable_if<__internal::__is_functor<_T>, int>::type = 0>
+    template <typename _T = _Permutation, ::std::enable_if_t<__internal::__is_functor<_T>, int> = 0>
     permutation_iterator(SourceIterator input1, IndexMap input2) : my_source_it(input1), my_index(input2)
     {
     }
@@ -775,7 +775,6 @@ class discard_iterator
     typedef void* pointer;
     typedef value_type reference;
     typedef ::std::random_access_iterator_tag iterator_category;
-    using is_passed_directly = ::std::true_type;
     using is_discard = ::std::true_type;
 
     discard_iterator() : __my_position_() {}

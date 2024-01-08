@@ -40,7 +40,7 @@ namespace __internal
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                 /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
@@ -137,7 +137,10 @@ __pattern_swap(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
 // walk3
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
+template <__par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
+          __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::read,
+          __par_backend_hetero::access_mode __acc_mode3 = __par_backend_hetero::access_mode::write,
+          typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
           typename _Function>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator3>
 __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
@@ -148,14 +151,11 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     if (__n <= 0)
         return __first3;
 
-    auto __keep1 =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>();
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>();
     auto __buf1 = __keep1(__first1, __last1);
-    auto __keep2 =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator2>();
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
-    auto __keep3 =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator3>();
+    auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode3, _ForwardIterator3>();
     auto __buf3 = __keep3(__first3, __first3 + __n);
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(::std::forward<_ExecutionPolicy>(__exec),
@@ -176,7 +176,7 @@ struct __walk_brick_wrapper
 };
 
 template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_walk_brick(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                      /*parallel=*/::std::true_type)
 {
@@ -245,6 +245,55 @@ __pattern_walk2_brick_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
 }
 
 //------------------------------------------------------------------------
+// transform_if
+//------------------------------------------------------------------------
+
+template <typename _Name>
+struct __walk2_transform_if_wrapper
+{
+};
+
+template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator2>
+__pattern_walk2_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                             _ForwardIterator2 __first2, _Function __func,
+                             /*vector=*/::std::true_type,
+                             /*parallel=*/::std::true_type)
+{
+    // Require `read_write` access mode for output sequence to force a copy in for host iterators to capture incoming
+    // values of the output sequence for elements where the predicate is false.
+    return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read,
+                           __par_backend_hetero::access_mode::read_write>(
+        __par_backend_hetero::make_wrapped_policy<__walk2_transform_if_wrapper>(
+            ::std::forward<_ExecutionPolicy>(__exec)),
+        __first1, __last1, __first2, __func,
+        /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
+}
+
+template <typename _Name>
+struct __walk3_transform_if_wrapper
+{
+};
+
+template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
+          typename _Function>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator3>
+__pattern_walk3_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                             _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __func,
+                             /*vector=*/::std::true_type,
+                             /*parallel=*/::std::true_type)
+{
+    // Require `read_write` access mode for output sequence to force a copy in for host iterators to capture incoming
+    // values of the output sequence for elements where the predicate is false.
+    return __pattern_walk3<__par_backend_hetero::access_mode::read, __par_backend_hetero::access_mode::read,
+                           __par_backend_hetero::access_mode::read_write>(
+        __par_backend_hetero::make_wrapped_policy<__walk3_transform_if_wrapper>(
+            ::std::forward<_ExecutionPolicy>(__exec)),
+        __first1, __last1, __first2, __first3, __func,
+        /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
+}
+
+//------------------------------------------------------------------------
 // fill
 //------------------------------------------------------------------------
 
@@ -306,8 +355,7 @@ __pattern_generate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forward
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy>
-struct __brick_copy_n<_ExecutionPolicy,
-                      oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>>
+struct __brick_copy_n<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     template <typename _SourceT, typename _TargetT>
     void
@@ -318,11 +366,10 @@ struct __brick_copy_n<_ExecutionPolicy,
 };
 
 template <typename _ExecutionPolicy>
-struct __brick_copy<_ExecutionPolicy,
-                    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>>
+struct __brick_copy<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     template <typename _SourceT, typename _TargetT>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
     operator()(_SourceT&& __source, _TargetT&& __target) const
     {
         __target = ::std::forward<_SourceT>(__source);
@@ -330,11 +377,10 @@ struct __brick_copy<_ExecutionPolicy,
 };
 
 template <typename _ExecutionPolicy>
-struct __brick_move<_ExecutionPolicy,
-                    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>>
+struct __brick_move<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     template <typename _SourceT, typename _TargetT>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
     operator()(_SourceT&& __source, _TargetT&& __target) const
     {
         __target = ::std::move(__source);
@@ -343,11 +389,11 @@ struct __brick_move<_ExecutionPolicy,
 
 template <typename _SourceT, typename _ExecutionPolicy>
 struct __brick_fill<_SourceT, _ExecutionPolicy,
-                    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>>
+                    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     _SourceT __value;
     template <typename _TargetT>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
     operator()(_TargetT& __target) const
     {
         __target = __value;
@@ -356,11 +402,11 @@ struct __brick_fill<_SourceT, _ExecutionPolicy,
 
 template <typename _SourceT, typename _ExecutionPolicy>
 struct __brick_fill_n<_SourceT, _ExecutionPolicy,
-                      oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>>
+                      oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     _SourceT __value;
     template <typename _TargetT>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
     operator()(_TargetT& __target) const
     {
         __target = __value;
@@ -380,12 +426,12 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
         return __last;
 
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
-    using _IndexValueType =
-        typename ::std::make_unsigned<typename ::std::iterator_traits<_Iterator>::difference_type>::type;
+    using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
 
-    auto __identity_init_fn = __acc_handler_minelement<_ReduceValueType>{};
-    auto __identity_reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
+    // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
+    // not commutative.
+    auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
         using ::std::get;
         if (__comp(get<1>(__b), get<1>(__a)))
         {
@@ -393,14 +439,15 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
         }
         return __a;
     };
+    auto __transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
     auto __ret_idx =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
-                                                                       decltype(__identity_init_fn)>(
-            ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                       ::std::false_type /*is_commutative*/>(
+            ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
             unseq_backend::__no_init_value{}, // no initial value
             __buf.all_view())
             .get();
@@ -435,19 +482,40 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
         return ::std::make_pair(__first, __first);
 
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
-    using _IndexValueType =
-        typename ::std::make_unsigned<typename ::std::iterator_traits<_Iterator>::difference_type>::type;
+    using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = ::std::tuple<_IndexValueType, _IndexValueType, _IteratorValueType, _IteratorValueType>;
-    using _ReduceFnType = __identity_reduce_fn<_Compare>;
 
-    auto __identity_init_fn = __acc_handler_minmaxelement<_ReduceValueType>{};
+    // This operator doesn't track the lowest found index in case of equal min. values and the highest found index in
+    // case of equal max. values. Thus, this operator is not commutative.
+    auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
+        using ::std::get;
+        auto __chosen_for_min = __a;
+        auto __chosen_for_max = __b;
+
+        assert(get<0>(__a) < get<0>(__b));
+        assert(get<1>(__a) < get<1>(__b));
+
+        if (__comp(get<2>(__b), get<2>(__a)))
+            __chosen_for_min = ::std::move(__b);
+        if (__comp(get<3>(__b), get<3>(__a)))
+            __chosen_for_max = ::std::move(__a);
+        return _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
+                                get<3>(__chosen_for_max)};
+    };
+
+    // TODO: Doesn't work with `zip_iterator`.
+    //       In that case the first and the second arguments of `_ReduceValueType` will be
+    //       a `tuple` of `difference_type`, not the `difference_type` itself.
+    auto __transform_fn = [](auto __gidx, auto __acc) {
+        return _ReduceValueType{__gidx, __gidx, __acc[__gidx], __acc[__gidx]};
+    };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    auto __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, _ReduceFnType,
-                                                                                decltype(__identity_init_fn)>(
-                     ::std::forward<_ExecutionPolicy>(__exec), _ReduceFnType{__comp}, __identity_init_fn,
+    auto __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                                ::std::false_type /*is_commutative*/>(
+                     ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
                      unseq_backend::__no_init_value{}, // no initial value
                      __buf.all_view())
                      .get();
@@ -532,15 +600,19 @@ __pattern_count(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
 
     using _ReduceValueType = typename ::std::iterator_traits<_Iterator>::difference_type;
 
-    auto __identity_init_fn = acc_handler_count<_Predicate>{__predicate};
-    auto __identity_reduce_fn = ::std::plus<_ReduceValueType>{};
+    auto __reduce_fn = ::std::plus<_ReduceValueType>{};
+    // int is being implicitly casted to difference_type
+    // otherwise we can only pass the difference_type as a functor template parameter
+    auto __transform_fn = [__predicate](auto __gidx, auto __acc) -> int {
+        return (__predicate(__acc[__gidx]) ? 1 : 0);
+    };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<
-               _ReduceValueType, decltype(__identity_reduce_fn), decltype(__identity_init_fn)>(
-               ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                          ::std::true_type /*is_commutative*/>(
+               ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
                unseq_backend::__no_init_value{}, // no initial value
                __buf.all_view())
         .get();
@@ -925,8 +997,7 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __la
 
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec,
-                                                                                                __last - __first);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
     auto __copy_first = __buf.get();
     auto __copy_last = __pattern_copy_if(__exec, __first, __last, __copy_first, __not_pred<_Predicate>{__pred},
                                          /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
@@ -947,8 +1018,7 @@ __pattern_unique(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
 
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec,
-                                                                                                __last - __first);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
     auto __copy_first = __buf.get();
     auto __copy_last = __pattern_unique_copy(__exec, __first, __last, __copy_first, __pred,
                                              /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
@@ -972,21 +1042,6 @@ enum _IsPartitionedReduceType : signed char
     __true_false
 };
 
-template <typename _Predicate>
-struct acc_handler_is_partitioned
-{
-    _Predicate __predicate;
-
-    // int is being implicitly casted to difference_type
-    // otherwise we can only pass the difference_type as a functor template parameter
-    template <typename _Acc, typename _GlobalIdx>
-    _IsPartitionedReduceType
-    operator()(_GlobalIdx gidx, _Acc acc) const
-    {
-        return (__predicate(acc[gidx]) ? __all_true : __all_false);
-    }
-};
-
 template <typename _ExecutionPolicy, typename _Iterator, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, bool>
 __pattern_is_partitioned(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Predicate __predicate,
@@ -996,27 +1051,27 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
         return true;
 
     using _ReduceValueType = _IsPartitionedReduceType;
-
-    auto __identity_init_fn = acc_handler_is_partitioned<_Predicate>{__predicate};
-    auto __identity_reduce_fn = [](_ReduceValueType __val1, _ReduceValueType __val2) -> _ReduceValueType {
+    auto __reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b) {
         _ReduceValueType __table[] = {__broken,     __broken,     __broken,     __broken, __broken,    __all_true,
                                       __true_false, __true_false, __broken,     __broken, __all_false, __broken,
                                       __broken,     __broken,     __true_false, __broken};
-        return __table[__val1 * 4 + __val2];
+        return __table[__a * 4 + __b];
+    };
+    auto __transform_fn = [__predicate](auto __gidx, auto __acc) {
+        return (__predicate(__acc[__gidx]) ? __all_true : __all_false);
     };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    auto __res =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
-                                                                       decltype(__identity_init_fn)>(
-            ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
-            unseq_backend::__no_init_value{}, // no initial value
-            __buf.all_view())
-            .get();
+    auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                                ::std::false_type /*is_commutative*/>(
+                     ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                     unseq_backend::__no_init_value{}, // no initial value
+                     __buf.all_view())
+                     .get();
 
-    return __broken != __identity_reduce_fn(_ReduceValueType{__all_true}, __res);
+    return __broken != __reduce_fn(_ReduceValueType{__all_true}, __res);
 }
 
 //------------------------------------------------------------------------
@@ -1033,7 +1088,7 @@ struct __is_heap_check
     operator()(const _Idx __idx, const _Accessor& __acc) const
     {
         // Make sure that we have a signed integer here to avoid getting negative value when __idx == 0
-        using _SignedIdx = typename ::std::make_signed<_Idx>::type;
+        using _SignedIdx = ::std::make_signed_t<_Idx>;
         return __comp_(__acc[(static_cast<_SignedIdx>(__idx) - 1) / 2], __acc[__idx]);
     }
 };
@@ -1121,7 +1176,7 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
 // inplace_merge
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __middle, _Iterator __last,
                         _Compare __comp, /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
@@ -1133,7 +1188,7 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
     assert(__first < __middle && __middle < __last);
 
     auto __n = __last - __first;
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __n);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __n);
     auto __copy_first = __buf.get();
     auto __copy_last = __copy_first + __n;
 
@@ -1169,7 +1224,7 @@ __stable_sort_with_projection(_ExecutionPolicy&& __exec, _Iterator __first, _Ite
 }
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                /*vector=*/::std::true_type, /*parallel=*/::std::true_type, /*is_move_constructible=*/::std::true_type)
 {
@@ -1181,7 +1236,7 @@ __pattern_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _
 // stable_sort
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Compare __comp,
                       /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
@@ -1190,7 +1245,7 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
 }
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_sort_by_key(_ExecutionPolicy&& __exec, _Iterator1 __keys_first, _Iterator1 __keys_last,
                       _Iterator2 __values_first, _Compare __comp, /*vector=*/::std::true_type,
                       /*parallel=*/::std::true_type)
@@ -1223,8 +1278,8 @@ __pattern_stable_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterat
 
     auto __n = __last - __first;
 
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __true_buf(__exec, __n);
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __false_buf(__exec, __n);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __true_buf(__exec, __n);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __false_buf(__exec, __n);
     auto __true_result = __true_buf.get();
     auto __false_result = __false_buf.get();
 
@@ -1259,26 +1314,6 @@ __pattern_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __la
 // lexicographical_compare
 //------------------------------------------------------------------------
 
-template <typename _Predicate, typename _ReduceValueType>
-struct acc_handler_lexicographical_compare
-{
-    _Predicate __predicate;
-
-    template <typename _GlobalIdx, typename _Acc1, typename _Acc2>
-    _ReduceValueType
-    operator()(_GlobalIdx __gidx, _Acc1 __acc1, _Acc2 __acc2) const
-    {
-        auto __s1_val = __acc1[__gidx];
-        auto __s2_val = __acc2[__gidx];
-
-        int32_t __is_s1_val_less = __predicate(__s1_val, __s2_val);
-        int32_t __is_s1_val_greater = __predicate(__s2_val, __s1_val);
-
-        // 1 if __s1_val <  __s2_val, -1 if __s1_val <  __s2_val, 0 if __s1_val == __s2_val
-        return _ReduceValueType{1 * __is_s1_val_less - 1 * __is_s1_val_greater};
-    }
-};
-
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, bool>
 __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
@@ -1294,10 +1329,19 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
     using _Iterator1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
     using _ReduceValueType = int32_t;
 
-    auto __identity_init_fn = acc_handler_lexicographical_compare<_Compare, _ReduceValueType>{__comp};
-    auto __identity_reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b) -> _ReduceValueType {
+    auto __reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b) {
         bool __is_mismatched = __a != 0;
         return __a * __is_mismatched + __b * !__is_mismatched;
+    };
+    auto __transform_fn = [__comp](auto __gidx, auto __acc1, auto __acc2) {
+        auto const& __s1_val = __acc1[__gidx];
+        auto const& __s2_val = __acc2[__gidx];
+
+        ::std::int32_t __is_s1_val_less = __comp(__s1_val, __s2_val);
+        ::std::int32_t __is_s1_val_greater = __comp(__s2_val, __s1_val);
+
+        // 1 if __s1_val <  __s2_val, -1 if __s1_val <  __s2_val, 0 if __s1_val == __s2_val
+        return _ReduceValueType{1 * __is_s1_val_less - 1 * __is_s1_val_greater};
     };
 
     auto __shared_size = ::std::min(__last1 - __first1, (_Iterator1DifferenceType)(__last2 - __first2));
@@ -1309,9 +1353,9 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
     auto __buf2 = __keep2(__first2, __first2 + __shared_size);
 
     auto __ret_idx =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, decltype(__identity_reduce_fn),
-                                                                       decltype(__identity_init_fn)>(
-            ::std::forward<_ExecutionPolicy>(__exec), __identity_reduce_fn, __identity_init_fn,
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                       ::std::false_type /*is_commutative*/>(
+            ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
             unseq_backend::__no_init_value{}, // no initial value
             __buf1.all_view(), __buf2.all_view())
             .get();
@@ -1351,7 +1395,7 @@ __pattern_includes(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwa
 // partial_sort
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid, _Iterator __last, _Compare __comp,
                        /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
@@ -1433,7 +1477,7 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
         // - create a temporary buffer and copy all the elements from the input buffer there
         // - run partial sort on the temporary buffer
         // - copy k elements from the temporary buffer to the output buffer.
-        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __in_size);
+        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __in_size);
 
         auto __buf_first = __buf.get();
         auto __buf_last = __pattern_walk2</*_IsSync=*/::std::false_type>(
@@ -1460,7 +1504,7 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
 //------------------------------------------------------------------------
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_nth_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __nth, _Iterator __last, _Compare __comp,
                       /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type) noexcept
 {
@@ -1478,7 +1522,7 @@ __pattern_nth_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
 // reverse
 //------------------------------------------------------------------------
 template <typename _ExecutionPolicy, typename _Iterator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, void>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_reverse(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, /*vector=*/::std::true_type,
                   /*parallel=*/::std::true_type)
 {
@@ -1548,7 +1592,7 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __new_f
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
-    auto __temp_buf = oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _Tp>(__exec, __n);
+    auto __temp_buf = oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp>(__exec, __n);
 
     auto __temp_rng =
         oneapi::dpl::__ranges::all_view<_Tp, __par_backend_hetero::access_mode::write>(__temp_buf.get_buffer());
@@ -1631,7 +1675,7 @@ __pattern_hetero_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
         __comp, __n1, __n2};
 
     // temporary buffer to store boolean mask
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n1);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n1);
 
     auto __keep1 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>();
@@ -1755,7 +1799,7 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forw
 
     // temporary buffer to store intermediate result
     const auto __n2 = __last2 - __first2;
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __diff(__exec, __n2);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __diff(__exec, __n2);
     auto __buf = __diff.get();
 
     //1. Calc difference {2} \ {1}
@@ -1831,10 +1875,10 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
 
     // temporary buffers to store intermediate result
     const auto __n1 = __last1 - __first1;
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __diff_1(__exec, __n1);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __diff_1(__exec, __n1);
     auto __buf_1 = __diff_1.get();
     const auto __n2 = __last2 - __first2;
-    oneapi::dpl::__par_backend_hetero::__internal::__buffer<_ExecutionPolicy, _ValueType> __diff_2(__exec, __n2);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __diff_2(__exec, __n2);
     auto __buf_2 = __diff_2.get();
 
     //1. Calc difference {1} \ {2}

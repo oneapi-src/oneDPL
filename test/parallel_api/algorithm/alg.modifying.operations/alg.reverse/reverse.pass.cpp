@@ -29,14 +29,14 @@ struct test_one_policy
 {
 #if _PSTL_ICC_18_VC141_TEST_SIMD_LAMBDA_RELEASE_BROKEN // dummy specialization by policy type, in case of broken configuration
     template <typename Iterator1, typename Iterator2>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value, void>::type
+    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
     operator()(oneapi::dpl::execution::unsequenced_policy, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b,
                Iterator2 actual_e)
     {
     }
 
     template <typename Iterator1, typename Iterator2>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator1>::value, void>::type
+    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
     operator()(oneapi::dpl::execution::parallel_unsequenced_policy, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b,
                Iterator2 actual_e)
     {
@@ -44,7 +44,7 @@ struct test_one_policy
 #endif
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::bidirectional_iterator_tag, Iterator1>::value>::type
+    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, Iterator1>>
     operator()(ExecutionPolicy&& exec, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b, Iterator2 actual_e)
     {
         using namespace std;
@@ -59,7 +59,7 @@ struct test_one_policy
     }
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    typename ::std::enable_if<!is_base_of_iterator_category<::std::bidirectional_iterator_tag, Iterator1>::value>::type
+    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, Iterator1>>
     operator()(ExecutionPolicy&& /* exec */, Iterator1 /* data_b */, Iterator1 /* data_e */, Iterator2 /* actual_b */, Iterator2 /* actual_e */)
     {
     }

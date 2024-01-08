@@ -56,8 +56,8 @@ ONEDPL_TEST_NUM_MAIN
     {
     constexpr int x = 1;
     constexpr int y = 0;
-    static_assert(dpl::min(x, y) == y, "" );
-    static_assert(dpl::min(y, x) == y, "" );
+    static_assert(dpl::min(x, y) == y);
+    static_assert(dpl::min(y, x) == y);
     }
 #endif
 

@@ -62,7 +62,7 @@ compare(const wrapper<T>& a, const wrapper<T>& b)
 }
 
 template <typename Iterator1, typename Iterator2, typename T, typename Function>
-typename ::std::enable_if<!::std::is_floating_point<T>::value, bool>::type
+::std::enable_if_t<!::std::is_floating_point_v<T>, bool>
 compute_and_check(Iterator1 first, Iterator1 last, Iterator2 d_first, T, Function f)
 {
     using T2 = typename ::std::iterator_traits<Iterator2>::value_type;
@@ -89,7 +89,7 @@ compute_and_check(Iterator1 first, Iterator1 last, Iterator2 d_first, T, Functio
 // we don't want to check equality here
 // because we can't be sure it will be strictly equal for floating point types
 template <typename Iterator1, typename Iterator2, typename T, typename Function>
-typename ::std::enable_if<::std::is_floating_point<T>::value, bool>::type
+::std::enable_if_t<::std::is_floating_point_v<T>, bool>
 compute_and_check(Iterator1 /* first */, Iterator1 /* last */, Iterator2 /* d_first */, T, Function)
 {
     return true;

@@ -20,7 +20,7 @@ The minimal supported CMake version for |onedpl_short| is 3.11 on Linux and 3.20
 The supported `CMake Generator <https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#ninja-generators>`_ for Linux is `Unix Makefiles <https://cmake.org/cmake/help/latest/generator/Unix%20Makefiles.html>`_ (default). In the Windows environment, the supported generator is `Ninja <https://cmake.org/cmake/help/latest/generator/Ninja.html>`_ as described in the `Intel® oneAPI DPC++/C++ Compiler Developer Guide and Reference <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/current/use-cmake-with-the-compiler.html>`_ which may be specified via ``-GNinja``.
 
 |onedpl_short| Backend Options
-==============
+==============================
 
 Backend for Parallel Execution Policies (par and par_unseq)
 -----------------------------------------------------------
@@ -88,7 +88,7 @@ Below is an example ``Linux`` CMake invocation which generates Unix makefiles fo
   mkdir build && cd build
   cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=release -DONEDPL_PAR_BACKEND=tbb ..
 
-Below is an example ``Windows`` CMake invocation which generates ``Ninja`` build scripts (see :ref:`Requirements Section<Requirements>`) for the project in the parent directory with the ``icx`` compiler, ``OpenMP`` backend and ``debug`` build type:
+Below is an example ``Windows`` CMake invocation which generates ``Ninja`` build scripts (see the Requirements Section) for the project in the parent directory with the ``icx`` compiler, ``OpenMP`` backend and ``debug`` build type:
 
 .. code:: cpp
 

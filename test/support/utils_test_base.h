@@ -30,6 +30,8 @@
 
 namespace TestUtils
 {
+constexpr int kDefaultMultValue = 1;
+
 ////////////////////////////////////////////////////////////////////////////////
 /// enum UDTKind - describe test source data kinds
 enum class UDTKind
@@ -43,10 +45,12 @@ enum class UDTKind
 template <typename TEnum>
 auto
 enum_val_to_index(TEnum enumVal)
-    -> decltype(static_cast<typename ::std::underlying_type<TEnum>::type>(enumVal))
+    -> decltype(static_cast<::std::underlying_type_t<TEnum>>(enumVal))
 {
-    return static_cast<typename ::std::underlying_type<TEnum>::type>(enumVal);
+    return static_cast<::std::underlying_type_t<TEnum>>(enumVal);
 }
+
+using default_sequence_invoker = invoke_on_all_host_policies;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// First field - data size
@@ -235,6 +239,7 @@ struct test_base_data_sequence : test_base_data<TestValueType>
         }
     };
     ::std::vector<Data> data;   // Vector of source test data:
+                                //  - 2 items for test_algo_two_sequences
                                 //  - 3 items for test_algo_three_sequences
                                 //  - 4 items for test_algo_four_sequences
 
@@ -404,14 +409,14 @@ void update_data(TTestDataTransfer& helper, Args&& ...args)
 
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename T, typename TestName, typename TestBaseData>
-typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, TestName>::type
+::std::enable_if_t<::std::is_base_of_v<test_base<T>, TestName>, TestName>
 create_test_obj(TestBaseData& data)
 {
     return TestName(data);
 }
 
 template <typename T, typename TestName, typename TestBaseData>
-typename ::std::enable_if<!::std::is_base_of<test_base<T>, TestName>::value, TestName>::type
+::std::enable_if_t<!::std::is_base_of_v<test_base<T>, TestName>, TestName>
 create_test_obj(TestBaseData&)
 {
     return TestName();
@@ -419,10 +424,37 @@ create_test_obj(TestBaseData&)
 
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and one output sequences
-template <typename T, typename TestName>
-//typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, void>::type
+template <typename T, typename TestName, typename TPolicyInvoker = default_sequence_invoker>
 void
-test_algo_three_sequences()
+test_algo_one_sequence()
+{
+    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    {
+        //TODO: consider to use class TestUtils::Sequence directly. Actually, we don't need any special action for input/output data here.
+        using TestBaseData = test_base_data_sequence<T>;
+
+        TestBaseData test_base_data({{max_n, inout1_offset}});
+
+        // create iterators
+        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
+
+        TPolicyInvoker()(create_test_obj<T, TestName>(test_base_data), inout1_offset_first, inout1_offset_first + n, n);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestName, typename TPolicyInvoker = default_sequence_invoker>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+test_algo_one_sequence()
+{
+    test_algo_one_sequence<typename TestName::UsedValueType, TestName, TPolicyInvoker>();
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+// Used with algorithms that have two input sequences and one output sequences
+template <typename T, typename TestName, typename TPolicyInvoker = default_sequence_invoker>
+void
+test_algo_two_sequences()
 {
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
@@ -430,48 +462,78 @@ test_algo_three_sequences()
         using TestBaseData = test_base_data_sequence<T>;
 
         TestBaseData test_base_data({ { max_n, inout1_offset },
-                                      { max_n, inout2_offset },
-                                      { max_n, inout3_offset } });
+                                      { max_n, inout2_offset } });
+
+        // create iterators
+        auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
+        auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
+
+        TPolicyInvoker()(create_test_obj<T, TestName>(test_base_data),
+                         inout1_offset_first, inout1_offset_first + n,
+                         inout2_offset_first, inout2_offset_first + n,
+                         n);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+template <typename TestName, typename TPolicyInvoker = default_sequence_invoker>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+test_algo_two_sequences()
+{
+    test_algo_two_sequences<typename TestName::UsedValueType, TestName, TPolicyInvoker>();
+}
+
+//--------------------------------------------------------------------------------------------------------------------//
+// Used with algorithms that have two input sequences and one output sequences
+template <typename T, typename TestName, typename TPolicyInvoker = default_sequence_invoker>
+void
+test_algo_three_sequences(int mult = kDefaultMultValue)
+{
+    for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
+    {
+        //TODO: consider to use class TestUtils::Sequence directly. Actually, we don't need any special action for input/output data here.
+        using TestBaseData = test_base_data_sequence<T>;
+
+        TestBaseData test_base_data({ { max_n,        inout1_offset },
+                                      { max_n,        inout2_offset },
+                                      { max_n * mult, inout3_offset } });
 
         // create iterators
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
         auto inout2_offset_first = test_base_data.get_start_from(UDTKind::eVals);
         auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
 
-        invoke_on_all_host_policies()(create_test_obj<T, TestName>(test_base_data),
-                                      inout1_offset_first, inout1_offset_first + n,
-                                      inout2_offset_first, inout2_offset_first + n,
-                                      inout3_offset_first, inout3_offset_first + n,
-                                      n);
+        TPolicyInvoker()(create_test_obj<T, TestName>(test_base_data),
+                         inout1_offset_first, inout1_offset_first + n,
+                         inout2_offset_first, inout2_offset_first + n,
+                         inout3_offset_first, inout3_offset_first + n * mult,
+                         n);
     }
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
-template <typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+template <typename TestName, typename TPolicyInvoker = default_sequence_invoker>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test_algo_three_sequences()
 {
-    test_algo_three_sequences<typename TestName::UsedValueType, TestName>();
+    test_algo_three_sequences<typename TestName::UsedValueType, TestName, TPolicyInvoker>();
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and two output sequencess
-template <typename T, typename TestName>
-//typename ::std::enable_if<::std::is_base_of<test_base<T>, TestName>::value, void>::type
+template <typename T, typename TestName, typename TPolicyInvoker = default_sequence_invoker>
 void
-test_algo_four_sequences()
+test_algo_four_sequences(int mult = kDefaultMultValue)
 {
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         //TODO: consider to use class TestUtils::Sequence directly. Actually, we don't need any special action for input/output data here.
         using TestBaseData = test_base_data_sequence<T>;
 
-        TestBaseData test_base_data({ { max_n, inout1_offset },
-                                      { max_n, inout2_offset },
-                                      { max_n, inout3_offset },
-                                      { max_n, inout4_offset } });
+        TestBaseData test_base_data({ { max_n,        inout1_offset },
+                                      { max_n,        inout2_offset },
+                                      { max_n * mult, inout3_offset },
+                                      { max_n * mult, inout4_offset } });
 
         // create iterators
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
@@ -479,23 +541,21 @@ test_algo_four_sequences()
         auto inout3_offset_first = test_base_data.get_start_from(UDTKind::eRes);
         auto inout4_offset_first = test_base_data.get_start_from(UDTKind::eRes2);
 
-        invoke_on_all_host_policies()(create_test_obj<T, TestName>(test_base_data),
-                                      inout1_offset_first, inout1_offset_first + n,
-                                      inout2_offset_first, inout2_offset_first + n,
-                                      inout3_offset_first, inout3_offset_first + n,
-                                      inout4_offset_first, inout4_offset_first + n,
-                                      n);
+        TPolicyInvoker()(create_test_obj<T, TestName>(test_base_data),
+                         inout1_offset_first, inout1_offset_first + n,
+                         inout2_offset_first, inout2_offset_first + n,
+                         inout3_offset_first, inout3_offset_first + n * mult,
+                         inout4_offset_first, inout4_offset_first + n * mult,
+                         n);
     }
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
-template <typename TestName>
-typename ::std::enable_if<
-    ::std::is_base_of<test_base<typename TestName::UsedValueType>, TestName>::value,
-    void>::type
+template <typename TestName, typename TPolicyInvoker = default_sequence_invoker>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
 test_algo_four_sequences()
 {
-    test_algo_four_sequences<typename TestName::UsedValueType, TestName>();
+    test_algo_four_sequences<typename TestName::UsedValueType, TestName, TPolicyInvoker>();
 }
 
 }; // namespace TestUtils
@@ -553,8 +613,6 @@ template <sycl::usm::alloc alloc_type, typename TestValueType>
 void
 TestUtils::test_base_data_usm<alloc_type, TestValueType>::update_data(UDTKind kind, TestValueType* __it_from, TestValueType* __it_to)
 {
-    assert(alloc_type == sycl::usm::alloc::device);
-
     auto& data_item = data.at(enum_val_to_index(kind));
     data_item.update_data(__it_from, __it_to - __it_from);
 }

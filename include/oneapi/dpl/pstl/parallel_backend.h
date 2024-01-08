@@ -15,6 +15,19 @@
 #ifndef _ONEDPL_PARALLEL_BACKEND_H
 #define _ONEDPL_PARALLEL_BACKEND_H
 #include "onedpl_config.h"
+
+// Select a parallel backend
+#if ONEDPL_USE_TBB_BACKEND || (!defined(ONEDPL_USE_TBB_BACKEND) && !ONEDPL_USE_OPENMP_BACKEND && _ONEDPL_TBB_AVAILABLE)
+#    include "parallel_backend_tbb.h"
+#    define _ONEDPL_PAR_BACKEND_TBB 1
+#elif ONEDPL_USE_OPENMP_BACKEND || (!defined(ONEDPL_USE_OPENMP_BACKEND) && _ONEDPL_OPENMP_AVAILABLE)
+#    include "parallel_backend_omp.h"
+#    define _ONEDPL_PAR_BACKEND_OPENMP 1
+#else
+#    include "parallel_backend_serial.h"
+#    define _ONEDPL_PAR_BACKEND_SERIAL 1
+#endif
+
 #if _ONEDPL_BACKEND_SYCL
 #    include "hetero/dpcpp/parallel_backend_sycl.h"
 #    if _ONEDPL_FPGA_DEVICE
@@ -22,35 +35,20 @@
 #    endif
 #endif
 
+namespace oneapi
+{
+namespace dpl
+{
 #if _ONEDPL_PAR_BACKEND_TBB
-#    include "parallel_backend_tbb.h"
-namespace oneapi
-{
-namespace dpl
-{
 namespace __par_backend = __tbb_backend;
-}
-} // namespace oneapi
 #elif _ONEDPL_PAR_BACKEND_OPENMP
-#    include "parallel_backend_omp.h"
-namespace oneapi
-{
-namespace dpl
-{
 namespace __par_backend = __omp_backend;
-}
-} // namespace oneapi
 #elif _ONEDPL_PAR_BACKEND_SERIAL
-#    include "parallel_backend_serial.h"
-namespace oneapi
-{
-namespace dpl
-{
 namespace __par_backend = __serial_backend;
-}
-} // namespace oneapi
 #else
-_PSTL_PRAGMA_MESSAGE("Parallel backend was not specified");
+#    error "Parallel backend was not specified"
 #endif
+} // namespace dpl
+} // namespace oneapi
 
 #endif // _ONEDPL_PARALLEL_BACKEND_H

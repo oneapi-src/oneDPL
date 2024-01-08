@@ -176,18 +176,17 @@ struct __is_host_execution_policy<oneapi::dpl::execution::unsequenced_policy> : 
 {
 };
 
-template <class _ExecPolicy, class _T>
-using __enable_if_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::execution::is_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
+template <class _ExecPolicy, class _T = void>
+using __enable_if_execution_policy =
+    ::std::enable_if_t<oneapi::dpl::execution::is_execution_policy_v<::std::decay_t<_ExecPolicy>>, _T>;
 
-template <class _ExecPolicy, class _T>
-using __enable_if_host_execution_policy = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_host_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value, _T>::type;
+template <class _ExecPolicy, class _T = void>
+using __enable_if_host_execution_policy =
+    ::std::enable_if_t<__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
-template <class _ExecPolicy, const bool __condition, class _T>
-using __enable_if_host_execution_policy_conditional = typename ::std::enable_if<
-    oneapi::dpl::__internal::__is_host_execution_policy<typename ::std::decay<_ExecPolicy>::type>::value && __condition,
-    _T>::type;
+template <class _ExecPolicy, const bool __condition, class _T = void>
+using __enable_if_host_execution_policy_conditional =
+    ::std::enable_if_t<__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value && __condition, _T>;
 
 template <typename _ExecPolicy, typename _T>
 struct __ref_or_copy_impl
@@ -196,8 +195,7 @@ struct __ref_or_copy_impl
 };
 
 template <typename _ExecPolicy, typename _T>
-using __ref_or_copy =
-    typename oneapi::dpl::__internal::__ref_or_copy_impl<typename ::std::decay<_ExecPolicy>::type, _T>::type;
+using __ref_or_copy = typename __ref_or_copy_impl<::std::decay_t<_ExecPolicy>, _T>::type;
 
 // utilities for Range API
 template <typename _R>
@@ -206,10 +204,14 @@ __check_size(int) -> decltype(::std::declval<_R&>().size());
 
 template <typename _R>
 auto
-__check_size(...) -> decltype(::std::declval<_R&>().get_count());
+__check_size(long) -> decltype(::std::declval<_R&>().get_count());
+
+template <typename _It>
+auto
+__check_size(...) -> typename ::std::iterator_traits<_It>::difference_type;
 
 template <typename _R>
-using __difference_t = typename ::std::make_signed<decltype(__check_size<_R>(0))>::type;
+using __difference_t = ::std::make_signed_t<decltype(__check_size<_R>(0))>;
 
 } // namespace __internal
 

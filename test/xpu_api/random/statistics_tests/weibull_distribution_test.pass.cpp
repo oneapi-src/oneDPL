@@ -20,7 +20,7 @@
 #include "support/utils.h"
 #include <iostream>
 
-#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#if TEST_UNNAMED_LAMBDAS
 #include <random>
 #include <limits>
 #include <oneapi/dpl/random>
@@ -73,7 +73,7 @@ test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> _a,  on
                 oneapi::dpl::weibull_distribution<RealType> distr(_a, _b);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine);
-                res.store(idx.get_linear_id(), acc.get_pointer());
+                res.store(idx.get_linear_id(), acc);
             });
         });
     }
@@ -95,7 +95,7 @@ test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> _a,  on
 
 template <class RealType, class UIntType>
 int
-test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> _a,  oneapi::dpl::internal::element_type_t<RealType> _b, 
+test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType> _a,  oneapi::dpl::internal::element_type_t<RealType> _b,
                     int nsamples, unsigned int part)
 {
     // memory allocation
@@ -119,7 +119,7 @@ test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<RealType>
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<RealType>, num_elems> res = distr(engine, part);
                 for (int i = 0; i < n_elems; ++i)
-                    acc.get_pointer()[offset + i] = res[i];
+                    acc[offset + i] = res[i];
             });
         });
         queue.wait_and_throw();
@@ -178,13 +178,13 @@ tests_set_portion(sycl::queue& queue, std::int32_t nsamples, unsigned int part)
     return 0;
 }
 
-#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#endif // TEST_UNNAMED_LAMBDAS
 
 int
 main()
 {
 
-#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#if TEST_UNNAMED_LAMBDAS
 
     sycl::queue queue = TestUtils::get_test_queue();
 
@@ -564,7 +564,7 @@ main()
         EXPECT_TRUE(!err, "Test FAILED");
     }
 
-#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#endif // TEST_UNNAMED_LAMBDAS
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS);
+    return TestUtils::done(TEST_UNNAMED_LAMBDAS);
 }

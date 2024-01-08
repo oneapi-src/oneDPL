@@ -40,6 +40,10 @@ auto
 get_value_type(long) ->
     typename ::std::iterator_traits<::std::decay_t<decltype(::std::declval<_R&>().begin())>>::value_type;
 
+template <typename _It>
+auto
+get_value_type(long long) -> typename ::std::iterator_traits<_It>::value_type;
+
 template <typename _R>
 auto
 get_value_type(...)
@@ -66,6 +70,9 @@ struct __range_has_raw_ptr_iterator<T, ::std::void_t<decltype(::std::declval<T&>
     : ::std::is_pointer<decltype(::std::declval<T&>().begin())>
 {
 };
+
+template <typename T>
+inline constexpr bool __range_has_raw_ptr_iterator_v = __range_has_raw_ptr_iterator<T>::value;
 
 } //namespace __internal
 
@@ -95,9 +102,9 @@ struct pipeline_base
 };
 
 template <typename Range>
-struct pipeline_base<Range, typename ::std::enable_if<is_pipeline_object<Range>::value>::type>
+struct pipeline_base<Range, ::std::enable_if_t<is_pipeline_object<Range>::value>>
 {
-    using type = typename pipeline_base<typename ::std::decay<decltype(::std::declval<Range>().base())>::type>::type;
+    using type = typename pipeline_base<::std::decay_t<decltype(::std::declval<Range>().base())>>::type;
 };
 
 //pipeline_base_range
@@ -116,7 +123,7 @@ struct pipeline_base_range
 
 // use ::std::conditional to understand what class to inherit from
 template <typename Range>
-struct pipeline_base_range<Range, typename ::std::enable_if<is_pipeline_object<Range>::value, void>::type>
+struct pipeline_base_range<Range, ::std::enable_if_t<is_pipeline_object<Range>::value>>
 {
     Range rng;
 
@@ -251,7 +258,7 @@ class guard_view
 template <typename _R>
 struct reverse_view_simple
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
+    using value_type = oneapi::dpl::__internal::__value_t<_R>;
 
     _R __r;
 
@@ -288,7 +295,7 @@ struct reverse_view_simple
 template <typename _R, typename _Size>
 struct take_view_simple
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
+    using value_type = oneapi::dpl::__internal::__value_t<_R>;
 
     _R __r;
     _Size __n;
@@ -326,7 +333,7 @@ struct take_view_simple
 template <typename _R, typename _Size>
 struct drop_view_simple
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
+    using value_type = oneapi::dpl::__internal::__value_t<_R>;
 
     _R __r;
     _Size __n;
@@ -364,7 +371,7 @@ struct drop_view_simple
 template <typename _R, typename _Size>
 struct replicate_start_view_simple
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
+    using value_type = oneapi::dpl::__internal::__value_t<_R>;
 
     _R __r;
     _Size __repl_count;
@@ -451,31 +458,33 @@ struct is_map_view : decltype(test_map_view<_Map>(0))
 };
 
 //It is kind of pseudo-view for permutation_iterator support.
-template <typename _R, typename _M, typename = void>
+template <typename _Source, typename _M, typename = void>
 struct permutation_view_simple;
 
 //permutation view: specialization for an index map functor
-template <typename _R, typename _M>
-struct permutation_view_simple<_R, _M, typename ::std::enable_if<oneapi::dpl::__internal::__is_functor<_M>>::type>
+//size of such view  is specified by a caller
+template <typename _Source, typename _M>
+struct permutation_view_simple<_Source, _M, ::std::enable_if_t<oneapi::dpl::__internal::__is_functor<_M>>>
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
-    using _Size = oneapi::dpl::__internal::__difference_t<_R>;
+    using value_type = oneapi::dpl::__internal::__value_t<_Source>;
+    using _Size = oneapi::dpl::__internal::__difference_t<_Source>;
 
-    _R __r;
+    _Source __src; //Iterator (pointer) or unreachable range
     _M __map_fn;
     _Size __size;
 
-    permutation_view_simple(_R __rng, _M __m, _Size __s) : __r(__rng), __map_fn(__m), __size(__s) {}
+    permutation_view_simple(_Source __data, _M __m, _Size __s) : __src(__data), __map_fn(__m), __size(__s) {}
 
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
-    auto operator[](Idx __i) const -> decltype(__r[__map_fn(__i)])
+    auto
+    operator[](Idx __i) const
     {
-        return __r[__map_fn(__i)];
+        return __src[__map_fn(__i)];
     }
 
     auto
-    size() const -> decltype(__size)
+    size() const
     {
         return __size;
     }
@@ -487,33 +496,36 @@ struct permutation_view_simple<_R, _M, typename ::std::enable_if<oneapi::dpl::__
     }
 
     auto
-    base() const -> decltype(__r)
+    base() const
     {
-        return __r;
+        return __src;
     }
 };
 
 //permutation view: specialization for a map view (a viewable range concept)
-template <typename _R, typename _M>
-struct permutation_view_simple<_R, _M, typename ::std::enable_if<is_map_view<_M>::value>::type>
+//size of such view  is specified by size of the map view (permutation range)
+template <typename _Source, typename _M>
+struct permutation_view_simple<_Source, _M, ::std::enable_if_t<is_map_view<_M>::value>>
 {
-    using value_type = typename ::std::decay_t<_R>::value_type;
+    using value_type = oneapi::dpl::__internal::__value_t<_Source>;
 
-    zip_view<_R, _M> __data;
+    _Source __src; //Iterator (pointer) or unreachable range
+    _M __map;      //permutation range
 
-    permutation_view_simple(_R __r, _M __m) : __data(__r, __m) {}
+    permutation_view_simple(_Source __data, _M __m) : __src(__data), __map(__m) {}
 
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
-    auto operator[](Idx __i) const -> decltype(::std::get<0>(__data.tuple())[::std::get<1>(__data.tuple())[__i]])
+    auto
+    operator[](Idx __i) const
     {
-        return ::std::get<0>(__data.tuple())[::std::get<1>(__data.tuple())[__i]];
+        return __src[__map[__i]];
     }
 
     auto
-    size() const -> decltype(::std::get<1>(__data.tuple()).size())
+    size() const
     {
-        return ::std::get<1>(__data.tuple()).size();
+        return __map.size();
     }
 
     bool
@@ -523,9 +535,9 @@ struct permutation_view_simple<_R, _M, typename ::std::enable_if<is_map_view<_M>
     }
 
     auto
-    base() const -> decltype(__data)
+    base() const
     {
-        return __data;
+        return oneapi::dpl::__internal::make_tuple(__src, __map);
     }
 };
 

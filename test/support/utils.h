@@ -34,6 +34,7 @@
 #include <memory>
 #include <sstream>
 #include <vector>
+#include <tuple>
 
 #include "utils_const.h"
 #include "iterator_utils.h"
@@ -162,6 +163,18 @@ expect_equal(Iterator1 expected_first, Iterator2 actual_first, Size n, const cha
     }
 }
 
+template <typename T1, typename T2>
+bool
+check_data(const T1* device_iter, const T2* host_iter, int N)
+{
+    for (int i = 0; i < N; ++i)
+    {
+        if (*(host_iter + i) != *(device_iter + i))
+            return false;
+    }
+    return true;
+}
+
 struct MemoryChecker
 {
     // static counters and state tags
@@ -271,19 +284,19 @@ struct MemoryChecker
     }
 };
 
-::std::atomic<::std::size_t> MemoryChecker::alive_object_counter{0};
+inline ::std::atomic<::std::size_t> MemoryChecker::alive_object_counter{0};
 
-::std::ostream&
+inline ::std::ostream&
 operator<<(::std::ostream& os, const MemoryChecker& val)
 {
     return (os << val.value());
 }
-bool
+inline bool
 operator==(const MemoryChecker& v1, const MemoryChecker& v2)
 {
     return v1.value() == v2.value();
 }
-bool
+inline bool
 operator<(const MemoryChecker& v1, const MemoryChecker& v2)
 {
     return v1.value() < v2.value();
@@ -635,7 +648,7 @@ transform_reduce_serial(InputIterator first, InputIterator last, T init, BinaryO
     return init;
 }
 
-int
+inline int
 done(int is_done = 1)
 {
     if (is_done)
@@ -695,6 +708,9 @@ struct can_use_default_less_operator<T, decltype(::std::declval<T>() < ::std::de
 {
 };
 
+template <typename T>
+inline constexpr bool can_use_default_less_operator_v = can_use_default_less_operator<T>::value;
+
 // An arbitrary binary predicate to simulate a predicate the user providing
 // a custom predicate.
 template <typename _Tp>
@@ -751,6 +767,18 @@ struct MaxAbsFunctor<::std::complex<_Tp>>
     operator()(const ::std::complex<_Tp>& __x, const ::std::complex<_Tp>& __y) const
     {
         return (complex_abs(__x) < complex_abs(__y)) ? complex_abs(__y) : complex_abs(__x);
+    }
+};
+
+struct TupleAddFunctor
+{
+    template <typename Tup1, typename Tup2>
+    auto
+    operator()(const Tup1& lhs, const Tup2& rhs) const
+    {
+        using ::std::get;
+        Tup1 tup_sum = ::std::make_tuple(get<0>(lhs) + get<0>(rhs), get<1>(lhs) + get<1>(rhs));
+        return tup_sum;
     }
 };
 

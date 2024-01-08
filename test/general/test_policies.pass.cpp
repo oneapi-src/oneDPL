@@ -89,7 +89,7 @@ main()
     test_policy_instance(device_policy<class Kernel_24>(sycl::queue(dpcpp_default))); // conversion to sycl::queue
     test_policy_instance(device_policy<>{});
     class Kernel_25;
-    static_assert(std::is_same<device_policy<Kernel_25>::kernel_name, Kernel_25>::value, "wrong result for kernel_name (device_policy)");
+    static_assert(std::is_same_v<device_policy<Kernel_25>::kernel_name, Kernel_25>, "wrong result for kernel_name (device_policy)");
 
 #if ONEDPL_FPGA_DEVICE
     static_assert(is_execution_policy<fpga_policy</*unroll_factor =*/ 1, class Kernel_0>>::value, "wrong result for is_execution_policy<fpga_policy>");
@@ -109,7 +109,7 @@ main()
     test_policy_instance(fpga_policy</*unroll_factor =*/ 2, class Kernel_42>(sycl::device{TestUtils::default_selector}));
     test_policy_instance(fpga_policy</*unroll_factor =*/ 4, class Kernel_43>(dpcpp_fpga));
     test_policy_instance(fpga_policy</*unroll_factor =*/ 8, class Kernel_44>{});
-    static_assert(std::is_same<fpga_policy</*unroll_factor =*/ 8, Kernel_25>::kernel_name, Kernel_25>::value, "wrong result for kernel_name (fpga_policy)");
+    static_assert(std::is_same_v<fpga_policy</*unroll_factor =*/ 8, Kernel_25>::kernel_name, Kernel_25>, "wrong result for kernel_name (fpga_policy)");
     static_assert(fpga_policy</*unroll_factor =*/ 16, class Kernel_45>::unroll_factor == 16, "wrong unroll_factor");
 #endif // ONEDPL_FPGA_DEVICE
 

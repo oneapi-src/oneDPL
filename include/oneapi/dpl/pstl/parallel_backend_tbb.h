@@ -54,29 +54,34 @@ not an initialize array, because initialization/destruction
 would make the span be at least O(N). */
 // tbb::allocator can improve performance in some cases.
 template <typename _ExecutionPolicy, typename _Tp>
-class __buffer
+class __buffer_impl
 {
     tbb::tbb_allocator<_Tp> _M_allocator;
     _Tp* _M_ptr;
     const ::std::size_t _M_buf_size;
-    __buffer(const __buffer&) = delete;
+    __buffer_impl(const __buffer_impl&) = delete;
     void
-    operator=(const __buffer&) = delete;
+    operator=(const __buffer_impl&) = delete;
 
   public:
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+
     //! Try to obtain buffer of given size to store objects of _Tp type
-    __buffer(const ::std::size_t __n) : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n) {}
+    __buffer_impl(const ::std::size_t __n) : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n) {}
     //! True if buffer was successfully obtained, zero otherwise.
-    operator bool() const { return _M_ptr != NULL; }
-    //! Return pointer to buffer, or  NULL if buffer could not be obtained.
+    operator bool() const { return _M_ptr != nullptr; }
+    //! Return pointer to buffer, or nullptr if buffer could not be obtained.
     _Tp*
     get() const
     {
         return _M_ptr;
     }
     //! Destroy buffer
-    ~__buffer() { _M_allocator.deallocate(_M_ptr, _M_buf_size); }
+    ~__buffer_impl() { _M_allocator.deallocate(_M_ptr, _M_buf_size); }
 };
+
+template <typename _ExecutionPolicy, typename _Tp>
+using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 // Wrapper for tbb::task
 inline void
@@ -384,7 +389,7 @@ __parallel_strict_scan(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __redu
             const _Index __slack = 4;
             _Index __tilesize = (__n - 1) / (__slack * __p) + 1;
             _Index __m = (__n - 1) / __tilesize;
-            __buffer<_ExecutionPolicy, _Tp> __buf(__m + 1);
+            __tbb_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__m + 1);
             _Tp* __r = __buf.get();
             __tbb_backend::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __reduce,
                                      __combine);
@@ -447,14 +452,14 @@ class __task : public tbb::task
     __task*
     make_continuation(_Fn&& __f)
     {
-        return new (allocate_continuation()) __func_task<typename ::std::decay<_Fn>::type>(::std::forward<_Fn>(__f));
+        return new (allocate_continuation()) __func_task<::std::decay_t<_Fn>>(::std::forward<_Fn>(__f));
     }
 
     template <typename _Fn>
     __task*
     make_child_of(__task* parent, _Fn&& __f)
     {
-        return new (parent->allocate_child()) __func_task<typename ::std::decay<_Fn>::type>(::std::forward<_Fn>(__f));
+        return new (parent->allocate_child()) __func_task<::std::decay_t<_Fn>>(::std::forward<_Fn>(__f));
     }
 
     template <typename _Fn>
@@ -462,7 +467,7 @@ class __task : public tbb::task
     make_additional_child_of(tbb::task* parent, _Fn&& __f)
     {
         return new (tbb::task::allocate_additional_child_of(*parent))
-            __func_task<typename ::std::decay<_Fn>::type>(::std::forward<_Fn>(__f));
+            __func_task<::std::decay_t<_Fn>>(::std::forward<_Fn>(__f));
     }
 
     inline void
@@ -547,8 +552,7 @@ class __task : public tbb::detail::d1::task
     {
         assert(_M_execute_data != nullptr);
         tbb::detail::d1::small_object_allocator __alloc{};
-        auto __t = __alloc.new_object<__func_task<typename ::std::decay<_Fn>::type>>(*_M_execute_data,
-                                                                                     ::std::forward<_Fn>(__f));
+        auto __t = __alloc.new_object<__func_task<::std::decay_t<_Fn>>>(*_M_execute_data, ::std::forward<_Fn>(__f));
         __t->_M_allocator = __alloc;
         return __t;
     }
@@ -733,7 +737,7 @@ class __merge_func
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::common_type_t<_DifferenceType1, _DifferenceType2> _SizeType;
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::value_type _ValueType;
 
     _RandomAccessIterator1 _M_x_beg;
@@ -1113,7 +1117,7 @@ class __stable_sort_func
   public:
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::common_type_t<_DifferenceType1, _DifferenceType2> _SizeType;
 
   private:
     _RandomAccessIterator1 _M_xs, _M_xe, _M_x_beg;
@@ -1190,7 +1194,7 @@ __parallel_stable_sort(_ExecutionPolicy&&, _RandomAccessIterator __xs, _RandomAc
         const _DifferenceType __sort_cut_off = _ONEDPL_STABLE_SORT_CUT_OFF;
         if (__n > __sort_cut_off)
         {
-            __buffer<_ExecutionPolicy, _ValueType> __buf(__n);
+            __tbb_backend::__buffer<_ExecutionPolicy, _ValueType> __buf(__n);
             __root_task<__stable_sort_func<_RandomAccessIterator, _ValueType*, _Compare, _LeafSort>> __root{
                 __xs, __xe, __buf.get(), true, __comp, __leaf_sort, __nsort, __xs, __buf.get()};
             __task::spawn_root_and_wait(__root);
@@ -1235,7 +1239,7 @@ operator()(__task* __self)
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::common_type_t<_DifferenceType1, _DifferenceType2> _SizeType;
     const _SizeType __n = (_M_xe - _M_xs) + (_M_ye - _M_ys);
     const _SizeType __merge_cut_off = _ONEDPL_MERGE_CUT_OFF;
     if (__n <= __merge_cut_off)
@@ -1276,7 +1280,7 @@ __parallel_merge(_ExecutionPolicy&&, _RandomAccessIterator1 __xs, _RandomAccessI
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
-    typedef typename ::std::common_type<_DifferenceType1, _DifferenceType2>::type _SizeType;
+    typedef typename ::std::common_type_t<_DifferenceType1, _DifferenceType2> _SizeType;
     const _SizeType __n = (__xe - __xs) + (__ye - __ys);
     const _SizeType __merge_cut_off = _ONEDPL_MERGE_CUT_OFF;
     if (__n <= __merge_cut_off)

@@ -1,0 +1,28 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) 2023 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _ONEDPL_DYNAMIC_SELECTION
+#define _ONEDPL_DYNAMIC_SELECTION
+
+#include "oneapi/dpl/internal/common_config.h"
+#include "oneapi/dpl/pstl/onedpl_config.h"
+
+#if _ONEDPL_BACKEND_SYCL != 0 && __INTEL_LLVM_COMPILER >= 20230000
+
+    //TODO: Use a config macro that detects the presence of host tasks
+#    define _DS_BACKEND_SYCL 1
+#else
+#    define _DS_BACKEND_SYCL 0
+#endif
+
+#include "oneapi/dpl/internal/dynamic_selection_impl/fixed_resource_policy.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/round_robin_policy.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/auto_tune_policy.h"
+#include "oneapi/dpl/internal/dynamic_selection_impl/dynamic_load_policy.h"
+#endif /* ONEDPL_DYNAMIC_SELECTION */

@@ -58,8 +58,8 @@ struct __serial_move_merge
                _RandomAccessIterator2 __ye, _RandomAccessIterator3 __zs, _Compare __comp, _MoveValueX __move_value_x,
                _MoveValueY __move_value_y, _MoveSequenceX __move_sequence_x, _MoveSequenceY __move_sequence_y)
     {
-        constexpr bool __same_move_val = ::std::is_same<_MoveValueX, _MoveValueY>::value;
-        constexpr bool __same_move_seq = ::std::is_same<_MoveSequenceX, _MoveSequenceY>::value;
+        constexpr bool __same_move_val = ::std::is_same_v<_MoveValueX, _MoveValueY>;
+        constexpr bool __same_move_seq = ::std::is_same_v<_MoveSequenceX, _MoveSequenceY>;
 
         auto __n = _M_nmerge;
         assert(__n > 0);

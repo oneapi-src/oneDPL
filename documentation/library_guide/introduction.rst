@@ -65,6 +65,9 @@ Difference with Standard C++ Parallel Algorithms
 
 * oneDPL execution policies only result in parallel execution if random access iterators are provided,
   the execution will remain serial for other iterator types.
+* Function objects passed in to algorithms executed with device policies must provide ``const``-qualified ``operator()``.
+  `The SYCL specification <https://registry.khronos.org/SYCL/>`_ states that writing to such an object during a SYCL
+  kernel is undefined behavior.
 * For the following algorithms, par_unseq and unseq policies do not result in vectorized execution:
   ``includes``, ``inplace_merge``, ``merge``, ``set_difference``, ``set_intersection``,
   ``set_symmetric_difference``, ``set_union``, ``stable_partition``, ``unique``.
@@ -91,6 +94,15 @@ When called with |dpcpp_short| execution policies, |onedpl_short| algorithms app
 Known Limitations
 *****************
 
+* When compiled with ``-fsycl-pstl-offload`` option of Intel oneAPI DPC++/C++ compiler and with
+  ``libstdc++`` version 8 or ``libc++``, ``oneapi::dpl::execution::par_unseq`` offloads
+  standard parallel algorithms to the SYCL device similarly to ``std::execution::par_unseq``
+  in accordance with the ``-fsycl-pstl-offload`` option value.
+* For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
+  used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
+  it is required that the provided input and destination iterators are equality comparable.
+  Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
+  If these conditions are not met, the result of these algorithm calls is undefined.
 * For ``transform_exclusive_scan``, ``transform_inclusive_scan`` algorithms the result of the unary operation should be
   convertible to the type of the initial value if one is provided, otherwise it is convertible to the type of values
   in the processed data sequence: ``std::iterator_traits<IteratorType>::value_type``.
@@ -98,6 +110,8 @@ Known Limitations
   vector execution policies when building a program with GCC 10 and using ``-O0`` option.
 * Compiling ``reduce`` and ``transform_reduce`` algorithms with the Intel DPC++ Compiler, versions 2021 and older,
   may result in a runtime error. To fix this issue, use an Intel DPC++ Compiler version 2022 or newer.
+* When compiling on Windows, add the option ``/EHsc`` to the compilation command to avoid errors with oneDPL's experimental
+  ranges API that uses exceptions.
 * The use of |onedpl_short| together with the GNU C++ standard library (libstdc++) version 9 or 10 may lead to
   compilation errors (caused by oneTBB API changes).
   Using libstdc++ version 9 requires TBB version 2020 for the header file. This may result in compilation errors when

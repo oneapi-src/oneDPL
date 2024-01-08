@@ -17,6 +17,7 @@
 #define _ONEDPL_PARALLEL_BACKEND_SYCL_UTILS_H
 
 //!!! NOTE: This file should be included under the macro _ONEDPL_BACKEND_SYCL
+#include <memory>
 #include <type_traits>
 #include <tuple>
 
@@ -147,12 +148,6 @@ namespace __par_backend_hetero
 // aliases for faster access to modes
 using access_mode = sycl::access_mode;
 
-// substitution for C++17 convenience types
-template <typename _T>
-using __decay_t = typename ::std::decay<_T>::type;
-template <bool __flag, typename _T = void>
-using __enable_if_t = typename ::std::enable_if<__flag, _T>::type;
-
 // function to simplify zip_iterator creation
 template <typename... T>
 oneapi::dpl::zip_iterator<T...>
@@ -166,11 +161,9 @@ template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
 auto
 make_wrapped_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy)))
 {
-    return oneapi::dpl::execution::make_device_policy<_NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy));
+    return oneapi::dpl::execution::make_device_policy<
+        _NewKernelName<oneapi::dpl::__internal::__policy_kernel_name<_Policy>>>(::std::forward<_Policy>(__policy));
 }
 
 #if _ONEDPL_FPGA_DEVICE
@@ -178,13 +171,10 @@ template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
 auto
 make_wrapped_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
-                                                         _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy)))
 {
-    return oneapi::dpl::execution::make_fpga_policy<__decay_t<_Policy>::unroll_factor,
-                                                    _NewKernelName<typename __decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy));
+    return oneapi::dpl::execution::make_fpga_policy<
+        oneapi::dpl::__internal::__policy_unroll_factor<_Policy>,
+        _NewKernelName<oneapi::dpl::__internal::__policy_kernel_name<_Policy>>>(::std::forward<_Policy>(__policy));
 }
 #endif
 
@@ -199,9 +189,9 @@ namespace __internal
 template <typename _CustomName>
 struct _HasDefaultName
 {
-    static constexpr bool value = ::std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelName>::value
+    static constexpr bool value = ::std::is_same_v<_CustomName, oneapi::dpl::execution::DefaultKernelName>
 #if _ONEDPL_FPGA_DEVICE
-                                  || ::std::is_same<_CustomName, oneapi::dpl::execution::DefaultKernelNameFPGA>::value
+                                  || ::std::is_same_v<_CustomName, oneapi::dpl::execution::DefaultKernelNameFPGA>
 #endif
         ;
 };
@@ -218,8 +208,8 @@ struct __optional_kernel_name;
 template <typename _CustomName>
 using __kernel_name_provider =
 #if __SYCL_UNNAMED_LAMBDA__
-    typename ::std::conditional<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
-                                __optional_kernel_name<_CustomName>>::type;
+    ::std::conditional_t<_HasDefaultName<_CustomName>::value, __optional_kernel_name<>,
+                         __optional_kernel_name<_CustomName>>;
 #else
     __optional_kernel_name<_CustomName>;
 #endif
@@ -386,22 +376,21 @@ struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
     using type = sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
 };
 
-// __buffer defaulted to sycl::buffer<_T, 1, ...>
-template <typename _ExecutionPolicy, typename _T, typename _Container = sycl::buffer<_T, 1>>
-struct __buffer;
-
 // impl for sycl::buffer<...>
-template <typename _ExecutionPolicy, typename _T, typename _BValueT, int __dim, typename _AllocT>
-struct __buffer<_ExecutionPolicy, _T, sycl::buffer<_BValueT, __dim, _AllocT>>
+template <typename _ExecutionPolicy, typename _T>
+class __buffer_impl
 {
   private:
-    using __exec_policy_t = __decay_t<_ExecutionPolicy>;
-    using __container_t = typename __local_buffer<sycl::buffer<_T, __dim, _AllocT>>::type;
+    using __container_t = typename __local_buffer<sycl::buffer<_T>>::type;
 
     __container_t __container;
 
   public:
-    __buffer(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)} {}
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+
+    __buffer_impl(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)}
+    {
+    }
 
     auto
     get() -> decltype(oneapi::dpl::begin(__container)) const
@@ -441,37 +430,6 @@ struct __sycl_usm_alloc
     }
 };
 
-// impl for USM pointer
-template <typename _ExecutionPolicy, typename _T, typename _BValueT>
-struct __buffer<_ExecutionPolicy, _T, _BValueT*>
-{
-  private:
-    using __exec_policy_t = __decay_t<_ExecutionPolicy>;
-    using __container_t = ::std::unique_ptr<_T, __sycl_usm_free<__exec_policy_t, _T>>;
-    using __alloc_t = sycl::usm::alloc;
-
-    __container_t __container;
-
-  public:
-    __buffer(_ExecutionPolicy __exec, ::std::size_t __n_elements)
-        : __container(__sycl_usm_alloc<__exec_policy_t, _T, __alloc_t::shared>{__exec}(__n_elements),
-                      __sycl_usm_free<__exec_policy_t, _T>{__exec})
-    {
-    }
-
-    _T*
-    get() const
-    {
-        return __container.get();
-    }
-
-    _T*
-    get_buffer() const
-    {
-        return __container.get();
-    }
-};
-
 //-----------------------------------------------------------------------
 // type traits for objects granting access to some value objects
 //-----------------------------------------------------------------------
@@ -489,6 +447,9 @@ struct __memobj_traits<_T*>
 };
 
 } // namespace __internal
+
+template <typename _ExecutionPolicy, typename _T>
+using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T>;
 
 template <typename T>
 struct __repacked_tuple
@@ -508,8 +469,99 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
-//A contract for future class: <sycl::event or other event, a value or sycl::buffers...>
-//Impl details: inheretance (private) instead of aggregation for enabling the empty base optimization.
+template <typename _T>
+struct __usm_host_or_buffer_accessor
+{
+  private:
+    using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
+                                        sycl::access::placeholder::false_t>;
+    __accessor_t __acc;
+    _T* __ptr = nullptr;
+    bool __usm = false;
+
+  public:
+    // Buffer accessor
+    __usm_host_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})), __usm(false)
+    {
+    }
+
+    // USM pointer
+    __usm_host_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf) : __ptr(__usm_buf), __usm(true) {}
+
+    auto
+    __get_pointer() const // should be cached within a kernel
+    {
+        return __usm ? __ptr : &__acc[0];
+    }
+};
+
+template <typename _ExecutionPolicy, typename _T>
+struct __usm_host_or_buffer_storage
+{
+  private:
+    using __sycl_buffer_t = sycl::buffer<_T, 1>;
+    ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
+    ::std::shared_ptr<_T> __usm_buf;
+    bool __usm;
+
+    // Only use USM host allocations on L0 GPUs. Other devices show significant slowdowns and will use a buffer instead.
+    inline bool
+    __use_USM_host_allocations(sycl::queue __queue)
+    {
+// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
+#if _ONEDPL_SYCL_USM_HOST_PRESENT
+        auto __device = __queue.get_device();
+        if (!__device.is_gpu())
+            return false;
+        if (!__device.has(sycl::aspect::usm_host_allocations))
+            return false;
+        if (__device.get_backend() != sycl::backend::ext_oneapi_level_zero)
+            return false;
+        return true;
+#else
+        return false;
+#endif
+    }
+
+  public:
+    __usm_host_or_buffer_storage(_ExecutionPolicy& __exec, ::std::size_t __n)
+    {
+        __usm = __use_USM_host_allocations(__exec.queue());
+        if (__usm)
+        {
+            __usm_buf = std::shared_ptr<_T>(
+                __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(__n),
+                __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
+        }
+        else
+        {
+            __sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__n));
+        }
+    }
+
+    auto
+    __get_acc(sycl::handler& __cgh)
+    {
+        return __usm ? __usm_host_or_buffer_accessor<_T>(__cgh, __usm_buf.get())
+                     : __usm_host_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
+    }
+
+    _T
+    __get_value(size_t idx = 0) const
+    {
+        return __usm ? *(__usm_buf.get() + idx) : __sycl_buf->get_host_access(sycl::read_only)[idx];
+    }
+
+    bool
+    __get_usm() const
+    {
+        return __usm;
+    }
+};
+
+//A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __usm_host_or_buffer_storage>
+//Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
 {
@@ -521,6 +573,16 @@ class __future : private std::tuple<_Args...>
     {
         //according to a contract, returned value is one-element sycl::buffer
         return __buf.get_host_access(sycl::read_only)[0];
+    }
+
+    template <typename _ExecutionPolicy, typename _T>
+    constexpr auto
+    __wait_and_get_value(__usm_host_or_buffer_storage<_ExecutionPolicy, _T>& __buf)
+    {
+        // Explicit wait in case of USM memory. Buffer accessors are synchronous.
+        if (__buf.__get_usm())
+            wait();
+        return __buf.__get_value();
     }
 
     template <typename _T>

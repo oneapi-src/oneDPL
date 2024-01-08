@@ -8,6 +8,125 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.3.0
+===============
+
+New Features
+------------
+- Added an experimental feature to dynamically select an execution context, e.g., a SYCL queue.
+  The feature provides selection functions such as ``select``, ``submit`` and ``submit_and_wait``,
+  and several selection policies: ``fixed_resource_policy``, ``round_robin_policy``,
+  ``dynamic_load_policy``, and ``auto_tune_policy``.
+- ``unseq`` and ``par_unseq`` policies now enable vectorization also for Intel oneAPI DPC++/C++ Compiler.
+- Added support for passing zip iterators as segment value data in ``reduce_by_segment``, ``exclusive_scan_by_segment``,
+  and ``inclusive_scan_by_segment``.
+- Improved performance of the ``merge``, ``sort``, ``stable_sort``, ``sort_by_key``,
+  ``reduce``, ``min_element``, ``max_element``, ``minmax_element``, ``is_partitioned``, and
+  ``lexicographical_compare`` algorithms with DPC++ execution policies.
+
+Fixed Issues
+------------
+- Fixed the ``reduce_async`` function to not ignore the provided binary operation.
+
+Known Issues and Limitations
+----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- When compiled with ``-fsycl-pstl-offload`` option of Intel oneAPI DPC++/C++ compiler and with
+  ``libstdc++`` version 8 or ``libc++``, ``oneapi::dpl::execution::par_unseq`` offloads
+  standard parallel algorithms to the SYCL device similarly to ``std::execution::par_unseq``
+  in accordance with the ``-fsycl-pstl-offload`` option value.
+- When using the dpl modulefile to initialize the user's environment and compiling with ``-fsycl-pstl-offload``
+  option of Intel® oneAPI DPC++/C++ compiler, a linking issue or program crash may be encountered due to the directory
+  containing libpstloffload.so not being included in the search path. Use the env/vars.sh to configure the working
+  environment to avoid the issue.
+- Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
+- Incorrect results may be produced by ``set_intersection`` with a DPC++ execution policy,
+  where elements are copied from the second input range rather than the first input range. 
+- For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
+  used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
+  it is required that the provided input and destination iterators are equality comparable.
+  Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
+  If these conditions are not met, the result of these algorithm calls is undefined.
+- ``sort``, ``stable_sort``, ``sort_by_key``, ``partial_sort_copy`` algorithms may work incorrectly or cause
+  a segmentation fault when used a DPC++ execution policy for CPU device, and built
+  on Linux with Intel® oneAPI DPC++/C++ Compiler and -O0 -g compiler options.
+  To avoid the issue, pass ``-fsycl-device-code-split=per_kernel`` option to the compiler.
+- Incorrect results may be produced by ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
+  ``transform_inclusive_scan``, ``exclusive_scan_by_segment``, ``inclusive_scan_by_segment``, ``reduce_by_segment``
+  with ``unseq`` or ``par_unseq`` policy when compiled by Intel® oneAPI DPC++/C++ Compiler
+  with ``-fiopenmp``, ``-fiopenmp-simd``, ``-qopenmp``, ``-qopenmp-simd`` options on Linux.
+  To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
+- Incorrect results may be produced by ``reduce`` and ``transform_reduce`` with 64-bit types and ``std::multiplies``,
+  ``sycl::multiplies`` operations when compiled by Intel® C++ Compiler 2021.3 and newer and executed on GPU devices. 
+
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
+
+New in 2022.2.0
+===============
+
+New Features
+------------
+- Added ``sort_by_key`` algorithm for key-value sorting.
+- Improved performance of the ``reduce``, ``min_element``, ``max_element``, ``minmax_element``,
+  ``is_partitioned``, and ``lexicographical_compare`` algorithms with DPC++ execution policies.
+- Improved performance of the ``reduce_by_segment``, ``inclusive_scan_by_segment``, and
+  ``exclusive_scan_by_segment`` algorithms for binary operators with known identities
+  when using DPC++ execution policies.
+- Added ``value_type`` to all views in ``oneapi::dpl::experimental::ranges``. 
+- Extended ``oneapi::dpl::experimental::ranges::sort`` to support projections applied to the range elements prior to comparison.
+
+Fixed Issues
+------------
+- The minimally required CMake version is raised to 3.11 on Linux and 3.20 on Windows.
+- Added new CMake package ``oneDPLIntelLLVMConfig.cmake`` to resolve issues using CMake 3.20+ on Windows for icx and icx-cl.
+- Fixed an error in the ``sort`` and ``stable_sort`` algorithms when performing a descending sort
+  on signed numeric types with negative values.
+- Fixed an error in ``reduce_by_segment`` algorithm when a non-commutative predicate is used.
+- Fixed an error in ``sort`` and ``stable_sort`` algorithms for integral types wider than 4 bytes.
+- Fixed an error for some compilers where OpenMP or SYCL backend was selected by CMake scripts without full compiler support.
+
+Known Issues and Limitations
+----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- Incorrect results may be produced with in-place scans using ``unseq`` and ``par_unseq`` policies on
+  CPUs with the Intel® C++ Compiler 2021.8.
+
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
+
+New in 2022.1.1
+===============
+
+New Features
+------------
+- Improved ``sort`` algorithm performance for the arithmetic data types with ``std::less`` or ``std::greater`` comparison operator and DPC++ policy.
+
+Fixes Issues
+------------
+- Fixed an error that caused segmentation faults in ``transform_reduce``, ``minmax_element``, and related algorithms when ran on CPU devices. 
+- Fixed a compilation error in ``transform_reduce``, ``minmax_element``, and related algorithms on FPGAs.
+- Fixed ``permutation_iterator`` to support C-style array as a permutation map.
+- Fixed a radix-sort issue with 64-bit signed integer types.
+
 New in 2022.1.0
 ===============
 
@@ -454,7 +573,7 @@ Known Issues and Limitations
 .. _`the oneDPL Specification`: https://spec.oneapi.com/versions/latest/elements/oneDPL/source/index.html
 .. _`oneDPL Guide`: https://oneapi-src.github.io/oneDPL/index.html
 .. _`Intel® oneAPI Threading Building Blocks (oneTBB) Release Notes`: https://www.intel.com/content/www/us/en/developer/articles/release-notes/intel-oneapi-threading-building-blocks-release-notes.html
-.. _`restrictions and known limitations`: https://oneapi-src.github.io/oneDPL/overview.html#restrictions
+.. _`restrictions and known limitations`: https://oneapi-src.github.io/oneDPL/introduction.html#restrictions.
 .. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_sycl_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 .. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
 .. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/oneDPL_2022.0_changes.html

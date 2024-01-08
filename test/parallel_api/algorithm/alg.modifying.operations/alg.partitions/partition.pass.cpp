@@ -54,14 +54,14 @@ struct DataType
 };
 
 template <typename Iterator>
-typename ::std::enable_if<::std::is_trivial<typename ::std::iterator_traits<Iterator>::value_type>::value, bool>::type
+::std::enable_if_t<::std::is_trivial_v<typename ::std::iterator_traits<Iterator>::value_type>, bool>
 is_equal(Iterator first, Iterator last, Iterator d_first)
 {
     return ::std::equal(first, last, d_first);
 }
 
 template <typename Iterator>
-typename ::std::enable_if<!::std::is_trivial<typename ::std::iterator_traits<Iterator>::value_type>::value, bool>::type
+::std::enable_if_t<!::std::is_trivial_v<typename ::std::iterator_traits<Iterator>::value_type>, bool>
 is_equal(Iterator /* first */, Iterator /* last */, Iterator /* d_first */)
 {
     return true;
@@ -71,7 +71,7 @@ template<typename T>
 struct test_partition
 {
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt>::value, void>::type
+    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>>
     operator()(Policy&& exec, BiDirIt first, BiDirIt last, BiDirIt /* exp_first */, BiDirIt /* exp_last */, Size /* n */,
                UnaryOp unary_op, Generator generator)
     {
@@ -82,7 +82,7 @@ struct test_partition
     }
 
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    typename ::std::enable_if<!is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt>::value, void>::type
+    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>>
     operator()(Policy&& /* exec */, BiDirIt /* first */, BiDirIt /* last */, BiDirIt /* exp_first */, BiDirIt /* exp_last */, Size /* n */,
                UnaryOp /* unary_op */, Generator /* generator */)
     {

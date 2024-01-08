@@ -29,8 +29,8 @@ namespace __internal
 template <typename _Tp, typename _Combiner>
 class __reduction_object
 {
-    static_assert(::std::is_copy_constructible<_Tp>::value, "_Tp shall be CopyConstructible");
-    static_assert(::std::is_move_assignable<_Tp>::value, "_Tp shall be MoveAssignable");
+    static_assert(::std::is_copy_constructible_v<_Tp>, "_Tp shall be CopyConstructible");
+    static_assert(::std::is_move_assignable_v<_Tp>, "_Tp shall be MoveAssignable");
 
     // Reference to the original variable. It's only used at the end of execution
     // when finalize method is called and accumulated value stored in acc is written

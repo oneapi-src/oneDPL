@@ -57,10 +57,33 @@
 // TODO: determine which compiler configurations provide subgroup load/store
 #define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT false
 
+// Macro to check if we are compiling for Intel devices
+#if (defined(__SPIR__) || defined(__SPIRV__)) && defined(__SYCL_DEVICE_ONLY__)
+#    define _ONEDPL_DETECT_SPIRV_COMPILATION 1
+#else
+#    define _ONEDPL_DETECT_SPIRV_COMPILATION 0
+#endif
+
 #if _ONEDPL_LIBSYCL_VERSION >= 50300
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) sycl::reqd_sub_group_size(SIZE)
 #else
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
+#endif
+
+// Only require a subgroup size if we are compiling to SPIRV. Otherwise, an empty
+// attribute will be provided.
+#if _ONEDPL_DETECT_SPIRV_COMPILATION
+#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(SIZE) _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE)
+#else
+#    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(SIZE)
+#endif
+
+// The unified future supporting USM host memory and buffers is only supported after DPCPP 2023.1
+// but not by 2023.2.
+#if (_ONEDPL_LIBSYCL_VERSION >= 60100 && _ONEDPL_LIBSYCL_VERSION != 60200)
+#    define _ONEDPL_SYCL_USM_HOST_PRESENT 1
+#else
+#    define _ONEDPL_SYCL_USM_HOST_PRESENT 0
 #endif
 
 namespace __dpl_sycl
@@ -88,14 +111,17 @@ template <typename _BinaryOp, typename _T>
 using __has_known_identity = sycl::ONEAPI::has_known_identity<_BinaryOp, _T>;
 #endif // _ONEDPL_SYCL2020_KNOWN_IDENTITY_PRESENT
 
+template <typename _BinaryOp, typename _T>
+inline constexpr auto __known_identity_v = __known_identity<_BinaryOp, _T>::value;
+
 #if _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
-template <typename _T>
+template <typename _T = void>
 using __plus = sycl::plus<_T>;
 
-template <typename _T>
+template <typename _T = void>
 using __maximum = sycl::maximum<_T>;
 
-template <typename _T>
+template <typename _T = void>
 using __minimum = sycl::minimum<_T>;
 
 #else  // _ONEDPL_SYCL2020_FUNCTIONAL_OBJECTS_PRESENT
@@ -360,12 +386,12 @@ struct __atomic_ref : sycl::atomic<_AtomicType, _Space>
 };
 #endif // _ONEDPL_SYCL2023_ATOMIC_REF_PRESENT
 
-template <typename DataT, int Dimensions = 1>
+template <typename _DataT, int _Dimensions = 1>
 using __local_accessor =
 #if _ONEDPL_LIBSYCL_VERSION >= 60000
-    sycl::local_accessor<DataT, Dimensions>;
+    sycl::local_accessor<_DataT, _Dimensions>;
 #else
-    sycl::accessor<DataT, Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
+    sycl::accessor<_DataT, _Dimensions, sycl::access::mode::read_write, __dpl_sycl::__target::local>;
 #endif
 
 template <typename _Buf>
@@ -376,6 +402,17 @@ __get_host_access(_Buf&& __buf)
     return ::std::forward<_Buf>(__buf).get_host_access(sycl::read_only);
 #else
     return ::std::forward<_Buf>(__buf).template get_access<sycl::access::mode::read>();
+#endif
+}
+
+template <typename _Acc>
+auto
+__get_accessor_ptr(const _Acc& __acc)
+{
+#if _ONEDPL_LIBSYCL_VERSION >= 70000
+    return __acc.template get_multi_ptr<sycl::access::decorated::no>().get();
+#else
+    return __acc.get_pointer();
 #endif
 }
 

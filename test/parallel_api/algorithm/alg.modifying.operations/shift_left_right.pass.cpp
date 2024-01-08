@@ -41,8 +41,15 @@ struct USM;
 
 struct test_shift
 {
+    // Additional check for std::execution::par_unseq is required because standard execution policy is
+    // not a host execution policy in terms of oneDPL and the eligible overload of operator() would not be found
+    // while testing PSTL offload
     template <typename Policy, typename It, typename Algo>
-    oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, void>
+    std::enable_if_t<oneapi::dpl::__internal::__is_host_execution_policy<std::decay_t<Policy>>::value
+#if __SYCL_PSTL_OFFLOAD__
+                     || std::is_same_v<std::decay_t<Policy>, std::execution::parallel_unsequenced_policy>
+#endif
+                     >
     operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,
         It first_exp, typename ::std::iterator_traits<It>::difference_type n, Algo algo)
     {
@@ -80,7 +87,7 @@ struct test_shift
 #endif
 
     template <typename Policy, typename It, typename Algo>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, void>
+    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy>
     operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,
         It first_exp, typename ::std::iterator_traits<It>::difference_type n, Algo algo)
     {
@@ -121,7 +128,7 @@ struct shift_left_algo
     template <typename Policy, typename It>
     It operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
-        return oneapi::dpl::shift_left(::std::forward<Policy>(exec), first, last, n);
+        return std::shift_left(::std::forward<Policy>(exec), first, last, n);
     }
 
     template <typename It, typename ItExp>
@@ -148,27 +155,21 @@ struct shift_left_algo
 struct shift_right_algo
 {
     template <typename Policy, typename It>
-    typename ::std::enable_if<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
-                            It>::value,
-                            It>::type
+    ::std::enable_if_t<TestUtils::is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, It>, It>
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
-        return oneapi::dpl::shift_right(::std::forward<Policy>(exec), first, last, n);
+        return std::shift_right(::std::forward<Policy>(exec), first, last, n);
     }
     //skip the test for non-bidirectional iterator (forward iterator, etc)
     template <typename Policy, typename It>
-    typename ::std::enable_if<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
-                            It>::value,
-                            It>::type
+    ::std::enable_if_t<!TestUtils::is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, It>, It>
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
         return first;
     }
 
     template <typename It, typename ItExp>
-    typename ::std::enable_if<TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
-                            It>::value,
-                            void>::type
+    ::std::enable_if_t<TestUtils::is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, It>>
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
         typename ::std::iterator_traits<It>::difference_type n)
     {
@@ -188,9 +189,7 @@ struct shift_right_algo
     }
     //skip the check for non-bidirectional iterator (forward iterator, etc)
     template <typename It, typename ItExp>
-    typename ::std::enable_if<!TestUtils::is_base_of_iterator_category<::std::bidirectional_iterator_tag, 
-                            It>::value,
-                            void>::type
+    ::std::enable_if_t<!TestUtils::is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, It>>
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
         typename ::std::iterator_traits<It>::difference_type n)
     {

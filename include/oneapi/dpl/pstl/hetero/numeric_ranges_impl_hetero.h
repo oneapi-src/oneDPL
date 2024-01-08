@@ -49,7 +49,8 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&
     using _Functor = unseq_backend::walk_n<_ExecutionPolicy, _BinaryOperation2>;
     using _RepackedTp = oneapi::dpl::__par_backend_hetero::__repacked_tuple_t<_Tp>;
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, _BinaryOperation1, _Functor>(
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
+                                                                          ::std::true_type /*is_commutative*/>(
                ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
                unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
                ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
@@ -71,7 +72,8 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _Range&& __rng, _Tp __init
     using _Functor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
     using _RepackedTp = oneapi::dpl::__par_backend_hetero::__repacked_tuple_t<_Tp>;
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, _BinaryOperation, _Functor>(
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
+                                                                          ::std::true_type /*is_commutative*/>(
                ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
                unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
                ::std::forward<_Range>(__rng))

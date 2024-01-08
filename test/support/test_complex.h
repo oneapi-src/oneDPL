@@ -17,7 +17,6 @@
 #define _TEST_COMPLEX_H
 
 #include <oneapi/dpl/complex>
-#include <oneapi/dpl/pstl/utils.h>
 
 #include "utils.h"
 #include "utils_invoke.h"
@@ -27,9 +26,9 @@
 #include <cassert>
 
 #if !_PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN
-#    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg, msg) static_assert(arg, msg)
+#    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg) static_assert(arg)
 #else
-#    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg, msg) assert(arg)
+#    define STD_COMPLEX_TESTS_STATIC_ASSERT(arg) assert(arg)
 #endif // !_PSTL_MSVC_LESS_THAN_CPP20_COMPLEX_CONSTEXPR_BROKEN
 
 #define ONEDPL_TEST_NUM_MAIN                                                                          \
@@ -65,14 +64,14 @@ int                                                                             
 run_test()
 
 // We should use this macros to avoid runtime-error if type double doesn't supported on device.
-// 
+//
 // Example:
 //     template <class T>
 //     void
-//     test(T x, typename std::enable_if<std::is_integral<T>::value>::type* = 0)
+//     test(T x, ::std::enable_if_t<std::is_integral_v<T>>* = 0)
 //     {
-//         static_assert((std::is_same<decltype(dpl::conj(x)), dpl::complex<double>>::value), "");
-// 
+//         static_assert((std::is_same_v<decltype(dpl::conj(x)), dpl::complex<double>>));
+//
 //         // HERE IS THE CODE WHICH CALL WE SHOULD AVOID IF DOUBLE IS NOT SUPPORTED ON DEVICE
 //         assert(dpl::conj(x) == dpl::conj(dpl::complex<double>(x, 0)));
 //     }

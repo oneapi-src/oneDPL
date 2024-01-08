@@ -38,7 +38,7 @@ class InclusiveScan1;
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
+oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, OutputIterator>
 pattern_inclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                   OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
 {
@@ -55,9 +55,8 @@ pattern_inclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputI
 
     typedef unsigned int FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
-    typedef typename ::std::decay<Policy>::type policy_type;
 
-    oneapi::dpl::__par_backend::__buffer<policy_type, FlagType> _mask(n);
+    oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _mask(n);
     auto mask = _mask.get();
 
     mask[0] = 1;
@@ -75,7 +74,7 @@ pattern_inclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputI
 #if _ONEDPL_BACKEND_SYCL
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
 inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op,
                                ::std::true_type /* has_known_identity */)
@@ -88,7 +87,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
 inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op,
                                ::std::false_type /* has_known_identity */)
@@ -96,7 +95,6 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     typedef unsigned int FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
-    typedef typename ::std::decay<Policy>::type policy_type;
 
     const auto n = ::std::distance(first1, last1);
 
@@ -106,7 +104,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
     FlagType initial_mask = 1;
 
-    internal::__buffer<policy_type, FlagType> _mask(policy, n);
+    oneapi::dpl::__par_backend_hetero::__buffer<Policy, FlagType> _mask(policy, n);
     {
         auto mask_buf = _mask.get_buffer();
         auto mask = mask_buf.get_host_access(sycl::read_write);
@@ -127,7 +125,7 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<typename ::std::decay<Policy>::type, OutputIterator>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
 pattern_inclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                                   OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
 {

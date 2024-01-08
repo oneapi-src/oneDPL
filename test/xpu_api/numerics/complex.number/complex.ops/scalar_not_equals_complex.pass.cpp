@@ -21,22 +21,22 @@ test_constexpr()
     {
     constexpr T lhs(-2.5);
     constexpr dpl::complex<T> rhs(1.5,  2.5);
-    STD_COMPLEX_TESTS_STATIC_ASSERT (lhs != rhs, "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT (lhs != rhs);
     }
     {
     constexpr T lhs(-2.5);
     constexpr dpl::complex<T> rhs(1.5,  0);
-    STD_COMPLEX_TESTS_STATIC_ASSERT (lhs != rhs, "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT (lhs != rhs);
     }
     {
     constexpr T lhs(1.5);
     constexpr dpl::complex<T> rhs(1.5, 2.5);
-    STD_COMPLEX_TESTS_STATIC_ASSERT (lhs != rhs, "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT (lhs != rhs);
     }
     {
     constexpr T lhs(1.5);
     constexpr dpl::complex<T> rhs(1.5, 0);
-    STD_COMPLEX_TESTS_STATIC_ASSERT (!(lhs != rhs), "");
+    STD_COMPLEX_TESTS_STATIC_ASSERT (!(lhs != rhs));
     }
 }
 

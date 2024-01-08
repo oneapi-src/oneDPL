@@ -28,7 +28,7 @@ struct test_one_policy
     // inplace_merge works with bidirectional iterators at least
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt1>::value, void>::type
+    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt1>>
     operator()(Policy&& exec, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2, Compare comp)
     {
@@ -39,7 +39,7 @@ struct test_one_policy
     }
 
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2>
-    typename ::std::enable_if<is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt1>::value, void>::type
+    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt1>>
     operator()(Policy&& exec, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2)
     {
@@ -64,14 +64,14 @@ struct test_one_policy
     }
 
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2>
-    typename ::std::enable_if<!is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt1>::value, void>::type
+    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt1>>
     operator()(Policy&& /* exec */, BiDirIt1 /* first1 */, BiDirIt1 /* last1 */, BiDirIt1 /* first2 */, BiDirIt1 /* last2 */, Size /* n */, Size /* m */,
                Generator1 /* generator1 */, Generator2 /* generator2 */)
     {
     }
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    typename ::std::enable_if<!is_base_of_iterator_category<::std::bidirectional_iterator_tag, BiDirIt1>::value, void>::type
+    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt1>>
     operator()(Policy&& /* exec */, BiDirIt1 /* first1 */, BiDirIt1 /* last1 */, BiDirIt1 /* first2 */, BiDirIt1 /* last2 */, Size /* n */, Size /* m */,
                Generator1 /* generator1 */, Generator2 /* generator2 */, Compare /* comp */)
     {

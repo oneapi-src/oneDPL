@@ -11,11 +11,26 @@
 # See https://llvm.org/LICENSE.txt for license information.
 #
 ##===----------------------------------------------------------------------===##
+add_subdirectory(kt)
+
 # rng_tests
 set (ranlux_24_48_test.pass_timeout_debug "900") # 15min
 set (ranlux_24_48_test.pass_timeout_release "720") # 12min
 
-# disable fast math for ALL TESTS 
+# If TBB headers are available, libstdc++ enables TBB backend; some TBB symbols become undefined unless it is linked.
+# The undefined symbol error arises only with GCC compiler.
+# There is no known way to limit the workaround to libstdc++ only.
+if (CMAKE_CXX_COMPILER_ID STREQUAL GNU AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11)
+    if (ONEDPL_BACKEND MATCHES "^(serial|omp|dpcpp_only)$")
+        find_package(TBB 2021 QUIET COMPONENTS tbb OPTIONAL_COMPONENTS tbbmalloc)
+        if (TBB_FOUND)
+            message(STATUS "Tests are linked against TBB to avoid undefined symbol errors due to TBB usage in libstdc++")
+            set(_gcc_link_tbb TRUE)
+        endif()
+    endif()
+endif()
+
+# disable fast math for ALL TESTS
 # icpx and dpcpp accept -fno-fast-math, but icx-cl and dpcpp-cl only accept /clang:-fno-fast-math
 foreach(_fno_fast_math_flag -fno-fast-math /clang:-fno-fast-math)
     string(MAKE_C_IDENTIFIER ${_fno_fast_math_flag} FLAG_DISPLAY_NAME)
@@ -91,6 +106,9 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     target_include_directories(${_test_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
     target_link_libraries(${_test_name} PRIVATE oneDPL)
+    if (_gcc_link_tbb)
+        target_link_libraries(${_test_name} PRIVATE TBB::tbb)
+    endif()
     set_target_properties(${_test_name} PROPERTIES CXX_EXTENSIONS NO)
 
     add_test(NAME ${_test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${_test_name})
@@ -110,8 +128,19 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
 
     set_tests_properties(${_test_name} PROPERTIES SKIP_RETURN_CODE 77)
 
-    if (DEFINED DEVICE_SELECTION_LINE)
-        set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
+    if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
+        if (DEFINED DEVICE_SELECTION_LINE)
+            message(FATAL_ERROR "PSTL offload tests ${_test_name} don't need ${DEVICE_SELECTION_LINE} variable, so one should be not set.")
+        endif()
+        # This test is only one requiring device selection environment, set it manually.
+        if ("${_test_name}" STREQUAL selected_different_device.pass AND _ONEDPL_PSTL_OFFLOAD MATCHES "(cpu|gpu)")
+            set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT  "${DEVICE_SELECTION_VARIABLE}=${ONEDPL_DEVICE_BACKEND}:${_ONEDPL_PSTL_OFFLOAD}")
+        endif()
+    elseif (DEFINED DEVICE_SELECTION_LINE)
+        file(GLOB_RECURSE DS_TESTS "parallel_api/dynamic_selection/*.cpp")
+        if (NOT "${DS_TESTS}" MATCHES "${_test_name}") # do not set SYCL_DEVICE_FILTER for dynamic selection tests
+            set_tests_properties(${_test_name} PROPERTIES ENVIRONMENT ${DEVICE_SELECTION_LINE})
+        endif()
     endif()
 
     add_custom_target(run-${_test_name}
@@ -143,26 +172,62 @@ macro(onedpl_add_test test_source_file switch_off_checked_iterators)
     add_dependencies(build-onedpl-tests ${_test_name})
 endmacro()
 
-set(_regexp_dpcpp_backend_required "(xpu_api/algorithms|xpu_api/functional|xpu_api/numerics)")
-set(_regexp_switch_off_checked_it  "(test/general/header_order_ranges|test/parallel_api/algorithm/alg.sorting/alg.min.max|test/parallel_api/ranges|test/xpu_api/random/device_tests|test/xpu_api/random/interface_tests|test/xpu_api/random/statistics_tests|test/parallel_api/numeric/numeric.ops/transform_scan)")
+set(_regexp_dpcpp_backend_required "(xpu_api/algorithms|test/xpu_api/cmath/nearbyint|test/xpu_api/containers|xpu_api/functional|test/xpu_api/iterators|test/xpu_api/language.support/support.initlist|test/xpu_api/language.support/support.types|xpu_api/numerics|test/xpu_api/random|test/xpu_api/ratio|test/xpu_api/tuple|test/xpu_api/utilities|parallel_api/dynamic_selection/sycl)")
+set(_regexp_switch_off_checked_it  "(test/general/header_order_ranges|test/parallel_api/algorithm/alg.sorting/alg.min.max|test/parallel_api/ranges|test/parallel_api/dynamic_selection|test/xpu_api/iterators/iterator.primitives|test/xpu_api/random/device_tests|test/xpu_api/random/interface_tests|test/xpu_api/random/statistics_tests|test/parallel_api/numeric/numeric.ops/transform_scan)")
+
+set(_regexp_pstl_offload_only "(test/pstl_offload)")
+set(_regexp_pstl_offload_parallel_api "(test/xpu_api|test/parallel_api/algorithm|test/parallel_api/memory|test/parallel_api/numeric)")
+set(_regexp_pstl_offload_exclude "(test/parallel_api/algorithm/alg.sorting/alg.binary.search|test/parallel_api/numeric/numeric.ops/.*_by_segment)")
+
+# Some of the headers tests C++20/23 files that can or cannot be available in C++17 mode
+# So we need to check file presence and skip the test if no header available
+# The test should be placed in the special folder and the name should be the same as the header that is required to be present
+set(_regexp_pstl_offload_header_presence_required "(test/pstl_offload/headers/headers.standard/requires_header_presence)")
+
 file(GLOB_RECURSE UNIT_TESTS "*.pass.cpp")
 foreach (_file IN LISTS UNIT_TESTS)
-
-    if (_file MATCHES "${_regexp_dpcpp_backend_required}")
-        if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
-            # Switch off checked iterators
-            onedpl_add_test(${_file} true)
+    if (_file MATCHES "${_regexp_pstl_offload_only}")
+        if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
+            if (_file MATCHES "${_regexp_pstl_offload_header_presence_required}")
+                get_filename_component(_filename "${_file}" NAME_WE)
+                CHECK_INCLUDE_FILE_CXX(${_filename} _has_header_file)
+                if (_has_header_file)
+                    onedpl_add_test(${_file} true)
+                endif()
+                unset(_has_header_file CACHE)
+            else()
+                onedpl_add_test(${_file} true)
+            endif()
         else()
-            message(STATUS "Skip test ${_file} as it requires DPC++ backend")
+            continue()
+        endif()
+    elseif (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
+        if (_file MATCHES "${_regexp_pstl_offload_parallel_api}" AND NOT _file MATCHES "${_regexp_pstl_offload_exclude}")
+            onedpl_add_test(${_file} true)
         endif()
     else()
-        if (_file MATCHES "${_regexp_switch_off_checked_it}")
-            # Switch off checked iterators
-            onedpl_add_test(${_file} true)
+        if (_file MATCHES "${_regexp_dpcpp_backend_required}")
+            if (ONEDPL_BACKEND MATCHES "^(dpcpp|dpcpp_only)$")
+                # Switch off checked iterators
+                onedpl_add_test(${_file} true)
+            else()
+                message(STATUS "Skip test ${_file} as it requires DPC++ backend")
+            endif()
         else()
-            # Do not switch off checked iterators
-            onedpl_add_test(${_file} false)
+            if (_file MATCHES "${_regexp_switch_off_checked_it}")
+                # Switch off checked iterators
+                onedpl_add_test(${_file} true)
+            else()
+                # Do not switch off checked iterators
+                onedpl_add_test(${_file} false)
+            endif()
         endif()
     endif()
 
 endforeach()
+
+# add additional TUs if required
+if (TARGET interop_allocs.pass)
+    target_sources(interop_allocs.pass PRIVATE "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_system.cpp"
+                                               "${CMAKE_CURRENT_LIST_DIR}/pstl_offload/memory/interop_allocs_usm.cpp")
+endif()

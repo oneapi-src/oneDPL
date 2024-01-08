@@ -22,9 +22,6 @@
 #include "support/utils.h"
 #include "support/test_iterators.h"
 
-constexpr sycl::access::mode sycl_read = sycl::access::mode::read;
-constexpr sycl::access::mode sycl_write = sycl::access::mode::write;
-
 template <typename _T1, typename _T2> void ASSERT_EQUAL(_T1 &&X, _T2 &&Y) {
   if (X != Y)
     std::cout << "CHECK CORRECTNESS (STL WITH SYCL): fail (" << X << "," << Y
@@ -41,8 +38,8 @@ template <class InIter, class OutIter, class Test> void test() {
     sycl::buffer<int, 1> buffer1(input, numOfItems1);
     sycl::buffer<int, 1> buffer2(output, numOfItems1);
     deviceQueue.submit([&](sycl::handler &cgh) {
-      auto in = buffer1.get_access<sycl_read>(cgh);
-      auto out = buffer2.get_access<sycl_write>(cgh);
+      auto in = buffer1.get_access<sycl::access::mode::read>(cgh);
+      auto out = buffer2.get_access<sycl::access::mode::write>(cgh);
       cgh.single_task<Test>([=]() {
         OutIter r = oneapi::dpl::partial_sum(InIter(&in[0]), InIter(&in[0] + 5),
                                              OutIter(&out[0]),

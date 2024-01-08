@@ -260,7 +260,7 @@ DEFINE_TEST(test_destroy)
 
         ::std::destroy(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec), first1 + (n / 3),
                        first1 + (n / 2));
-        if (!::std::is_trivially_destructible<T1>::value)
+        if (!::std::is_trivially_destructible_v<T1>)
             value = T1{-2};
         wait_and_throw(exec);
 
@@ -287,7 +287,7 @@ DEFINE_TEST(test_destroy_n)
         host_keys.update_data();
 
         ::std::destroy_n(make_new_policy<policy_name_wrapper<new_kernel_name<Policy, 0>, T1>>(exec), first1, n);
-        if(!::std::is_trivially_destructible<T1>::value)
+        if(!::std::is_trivially_destructible_v<T1>)
             value = T1{-2};
         wait_and_throw(exec);
 
@@ -1030,12 +1030,16 @@ DEFINE_TEST(test_adjacent_difference)
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
+
+using ValueType = ::std::int32_t;
+
+template<>
+struct sycl::is_device_copyable<SyclTypeWrapper<ValueType>> : std::true_type {};
+
 template <sycl::usm::alloc alloc_type>
 void
 test_usm_and_buffer()
 {
-    using ValueType = ::std::int32_t;
-
     // test1buffer
     PRINT_DEBUG("test_for_each");
     test1buffer<alloc_type, test_for_each<ValueType>>();

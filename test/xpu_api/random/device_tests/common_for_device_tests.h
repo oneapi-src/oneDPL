@@ -35,7 +35,7 @@ int comparison(Fp* r0, Fp* r1, std::uint32_t length) {
     Fp coeff;
     int numErrors = 0;
     for (size_t i = 0; i < length; ++i) {
-        if constexpr (std::is_integral<Fp>::value) {
+        if constexpr (std::is_integral_v<Fp>) {
             if (((int)r0[i] - (int)r1[i]) > 1 || ((int)r1[i] - (int)r0[i]) > 1) {
                 std::cout << "mismatch in " << i << " element: " << r0[i] << " " << r1[i] << std::endl;
                 ++numErrors;
@@ -45,8 +45,8 @@ int comparison(Fp* r0, Fp* r1, std::uint32_t length) {
             auto norm = std::fmax(fabs(r0[i]), fabs(r1[i]));
             if (diff > norm * 1000 * 16 * std::numeric_limits<Fp>::epsilon()) {
                 std::cout <<  "mismatch in " << i << " element: "  << std::endl;
-                std::cout << std::setprecision (15) << r0[i]  << std::endl; 
-                std::cout << std::setprecision (15) << r1[i] << std::endl; 
+                std::cout << std::setprecision (15) << r0[i]  << std::endl;
+                std::cout << std::setprecision (15) << r1[i] << std::endl;
                 ++numErrors;
             }
         }
@@ -59,7 +59,7 @@ int device_copyable_test(sycl::queue& queue) {
 
     using result_type = typename Distr::result_type;
     using scalar_type = typename Distr::scalar_type;
-    
+
     Engine engine(seed);
     Distr distr;
 
@@ -87,7 +87,7 @@ int device_copyable_test(sycl::queue& queue) {
                 Distr device_distr(distr);
                 device_engine.discard(offset);
                 result_type res = device_distr(device_engine);
-                res.store(idx.get_linear_id(), acc.get_pointer());
+                res.store(idx.get_linear_id(), acc);
             });
         });
     }
@@ -100,7 +100,7 @@ int device_copyable_test(sycl::queue& queue) {
             r_host[i*num_elems + j] = res[j];
     }
 
-    // compare    
+    // compare
     return comparison(r_dev, r_host, N);
 }
 

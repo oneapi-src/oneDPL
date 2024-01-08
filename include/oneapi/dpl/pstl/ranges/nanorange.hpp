@@ -528,7 +528,7 @@ namespace detail
 
 template <typename T, typename U>
 constexpr bool same_decayed_v =
-    ::std::is_same<T, ::std::decay_t<T>>::value&& ::std::is_same<U, ::std::decay_t<U>>::value;
+    ::std::is_same<T, ::std::decay_t<T>>::value && ::std::is_same<U, ::std::decay_t<U>>::value;
 
 template <typename T, typename U>
 using ternary_return_t = ::std::decay_t<decltype(false ? ::std::declval<T>() : ::std::declval<U>())>;

@@ -166,7 +166,7 @@ class normal_distribution
 
     // Type of real distribution
     using uniform_result_type =
-        typename ::std::conditional<size_of_type_ % 2, sycl::vec<scalar_type, size_of_type_ + 1>, result_type>::type;
+        ::std::conditional_t<size_of_type_ % 2, sycl::vec<scalar_type, size_of_type_ + 1>, result_type>;
 
     // Distribution parameters
     scalar_type mean_;
@@ -176,7 +176,7 @@ class normal_distribution
     scalar_type saved_u2_;
 
     // Static asserts
-    static_assert(::std::is_floating_point<scalar_type>::value,
+    static_assert(::std::is_floating_point_v<scalar_type>,
                   "oneapi::dpl::normal_distribution. Error: unsupported data type");
 
     // Real distribution for the conversion
@@ -215,7 +215,7 @@ class normal_distribution
 
     // Implementation for generate function
     template <int _Ndistr, class _Engine>
-    typename ::std::enable_if<(_Ndistr != 0), result_type>::type
+    ::std::enable_if_t<(_Ndistr != 0), result_type>
     generate(_Engine& __engine, const param_type __params)
     {
         return generate_vec<_Ndistr, _Engine>(__engine, __params);
@@ -223,7 +223,7 @@ class normal_distribution
 
     // Specialization of the scalar generation
     template <int _Ndistr, class _Engine>
-    typename ::std::enable_if<(_Ndistr == 0), result_type>::type
+    ::std::enable_if_t<(_Ndistr == 0), result_type>
     generate(_Engine& __engine, const param_type __params)
     {
         result_type __res;
@@ -257,7 +257,7 @@ class normal_distribution
 
     // Specialization of the vector generation with size = [1; 2; 3]
     template <int __N, class _Engine>
-    typename ::std::enable_if<(__N <= 3), result_type>::type
+    ::std::enable_if_t<(__N <= 3), result_type>
     generate_vec(_Engine& __engine, const param_type __params)
     {
         return generate_n_elems<_Engine>(__engine, __params, __N);
@@ -265,7 +265,7 @@ class normal_distribution
 
     // Specialization of the vector generation with size = [4; 8; 16]
     template <int __N, class _Engine>
-    typename ::std::enable_if<(__N > 3), result_type>::type
+    ::std::enable_if_t<(__N > 3), result_type>
     generate_vec(_Engine& __engine, const param_type __params)
     {
         uniform_result_type __u;
@@ -404,7 +404,7 @@ class normal_distribution
 
     // Implementation for result_portion function
     template <int _Ndistr, class _Engine>
-    typename ::std::enable_if<(_Ndistr != 0), result_type>::type
+    ::std::enable_if_t<(_Ndistr != 0), result_type>
     result_portion_internal(_Engine& __engine, const param_type __params, unsigned int __N)
     {
         result_type __part_vec;

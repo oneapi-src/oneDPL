@@ -95,7 +95,7 @@ vector_example(sycl::queue& queue, std::uint32_t seed, std::vector<RealType>& x)
                         auto res = distr(engine);
 
                         // Store results from res to VecSize * offset position of x_acc
-                        res.store(idx.get_linear_id(), x_acc.get_pointer());
+                        res.store(idx.get_linear_id(), x_acc);
                     });
             });
     }

@@ -19,7 +19,7 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#if TEST_UNNAMED_LAMBDAS
 #    include <iostream>
 #    include <vector>
 #    include <oneapi/dpl/random>
@@ -381,13 +381,13 @@ public:
     }
 };
 
-#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#endif // TEST_UNNAMED_LAMBDAS
 
 int
 main()
 {
 
-#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#if TEST_UNNAMED_LAMBDAS
 
     sycl::queue queue = TestUtils::get_test_queue();
     
@@ -435,7 +435,7 @@ main()
 #endif // TEST_LONG_RUN
     EXPECT_TRUE(!err, "Test FAILED");
 
-#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#endif // TEST_UNNAMED_LAMBDAS
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS);
+    return TestUtils::done(TEST_UNNAMED_LAMBDAS);
 }

@@ -20,7 +20,7 @@
 #include "support/utils.h"
 #include <iostream>
 
-#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#if TEST_UNNAMED_LAMBDAS
 #include <vector>
 #include <random>
 #include <oneapi/dpl/random>
@@ -48,7 +48,7 @@ int test(sycl::queue& queue, oneapi::dpl::internal::element_type_t<typename Engi
                 Engine engine(seed, offset);
 
                 sycl::vec<oneapi::dpl::internal::element_type_t<typename Engine::result_type>, num_elems> res = engine();
-                res.store(idx.get_linear_id(), dpstd_acc.get_pointer());
+                res.store(idx.get_linear_id(), dpstd_acc);
             });
         });
         queue.wait();
@@ -104,7 +104,7 @@ int test_portion(sycl::queue& queue, oneapi::dpl::internal::element_type_t<typen
 
                 auto res = engine(part);
                 for(unsigned int i = 0; i < n_elems; ++i)
-                    dpstd_acc.get_pointer()[offset + i] = res[i];
+                    dpstd_acc[offset + i] = res[i];
             });
         });
         queue.wait();
@@ -168,11 +168,11 @@ int tests_set_portion(sycl::queue& queue, int nsamples, unsigned int part) {
     return 0;
 }
 
-#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#endif // TEST_UNNAMED_LAMBDAS
 
 int main() {
 
-#if TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#if TEST_UNNAMED_LAMBDAS
 
     sycl::queue queue = TestUtils::get_test_queue();
     constexpr int nsamples = 100;
@@ -282,7 +282,7 @@ int main() {
     EXPECT_TRUE(!err, "Test FAILED");
 #endif // TEST_LONG_RUN
 
-#endif // TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS
+#endif // TEST_UNNAMED_LAMBDAS
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT && TEST_UNNAMED_LAMBDAS);
+    return TestUtils::done(TEST_UNNAMED_LAMBDAS);
 }

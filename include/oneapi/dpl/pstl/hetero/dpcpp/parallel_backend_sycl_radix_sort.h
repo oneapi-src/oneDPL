@@ -51,7 +51,7 @@ __order_preserving_cast(bool __val)
         return !__val;
 }
 
-template <bool __is_ascending, typename _UInt, __enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
+template <bool __is_ascending, typename _UInt, ::std::enable_if_t<::std::is_unsigned_v<_UInt>, int> = 0>
 _UInt
 __order_preserving_cast(_UInt __val)
 {
@@ -62,7 +62,7 @@ __order_preserving_cast(_UInt __val)
 }
 
 template <bool __is_ascending, typename _Int,
-          __enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
+          ::std::enable_if_t<::std::is_integral_v<_Int> && ::std::is_signed_v<_Int>, int> = 0>
 ::std::make_unsigned_t<_Int>
 __order_preserving_cast(_Int __val)
 {
@@ -74,7 +74,7 @@ __order_preserving_cast(_Int __val)
 }
 
 template <bool __is_ascending, typename _Float,
-          __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
+          ::std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
 ::std::uint32_t
 __order_preserving_cast(_Float __val)
 {
@@ -89,7 +89,7 @@ __order_preserving_cast(_Float __val)
 }
 
 template <bool __is_ascending, typename _Float,
-          __enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t), int> = 0>
+          ::std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint64_t), int> = 0>
 ::std::uint64_t
 __order_preserving_cast(_Float __val)
 {
@@ -343,7 +343,7 @@ struct __peer_prefix_helper<_OffsetT, __peer_prefix_algo::atomic_fetch_or>
 
     __peer_prefix_helper(sycl::nd_item<1> __self_item, _TempStorageT __lacc)
         : __sgroup(__self_item.get_sub_group()), __self_lidx(__self_item.get_local_linear_id()),
-          __item_mask(~(~0u << (__self_lidx))), __atomic_peer_mask(*__lacc.get_pointer())
+          __item_mask(~(~0u << (__self_lidx))), __atomic_peer_mask(*__dpl_sycl::__get_accessor_ptr(__lacc))
     {
     }
 
@@ -630,15 +630,18 @@ struct __parallel_radix_sort_iteration
     submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter, _InRange&& __in_rng,
            _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event, _Proj __proj)
     {
-        using _CustomName = typename __decay_t<_ExecutionPolicy>::kernel_name;
+        using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _RadixCountKernel =
-            __internal::__kernel_name_generator<__count_phase, _CustomName, __decay_t<_InRange>, __decay_t<_TmpBuf>>;
-        using _RadixLocalScanKernel =
-            __internal::__kernel_name_generator<__local_scan_phase, _CustomName, __decay_t<_TmpBuf>>;
-        using _RadixReorderPeerKernel = __internal::__kernel_name_generator<__reorder_peer_phase, _CustomName,
-                                                                            __decay_t<_InRange>, __decay_t<_OutRange>>;
-        using _RadixReorderKernel = __internal::__kernel_name_generator<__reorder_phase, _CustomName,
-                                                                        __decay_t<_InRange>, __decay_t<_OutRange>>;
+            __internal::__kernel_name_generator<__count_phase, _CustomName, _ExecutionPolicy, ::std::decay_t<_InRange>,
+                                                ::std::decay_t<_TmpBuf>>;
+        using _RadixLocalScanKernel = __internal::__kernel_name_generator<__local_scan_phase, _CustomName,
+                                                                          _ExecutionPolicy, ::std::decay_t<_TmpBuf>>;
+        using _RadixReorderPeerKernel =
+            __internal::__kernel_name_generator<__reorder_peer_phase, _CustomName, _ExecutionPolicy,
+                                                ::std::decay_t<_InRange>, ::std::decay_t<_OutRange>>;
+        using _RadixReorderKernel =
+            __internal::__kernel_name_generator<__reorder_phase, _CustomName, _ExecutionPolicy,
+                                                ::std::decay_t<_InRange>, ::std::decay_t<_OutRange>>;
 
         ::std::size_t __max_sg_size = oneapi::dpl::__internal::__max_sub_group_size(__exec);
         ::std::size_t __reorder_sg_size = __max_sg_size;
@@ -666,14 +669,14 @@ struct __parallel_radix_sort_iteration
         const ::std::uint32_t __radix_states = 1 << __radix_bits;
 
         // correct __count_wg_size according to local memory limit in count phase
-        using _CounterType = typename __decay_t<_TmpBuf>::value_type;
+        using _CounterType = typename ::std::decay_t<_TmpBuf>::value_type;
         const auto __max_count_wg_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(
             __exec, sizeof(_CounterType) * __radix_states, __count_wg_size);
         __count_wg_size = static_cast<::std::size_t>((__max_count_wg_size / __radix_states)) * __radix_states;
 
         // work-group size must be a power of 2 and not less than the number of states.
         // TODO: Check how to get rid of that restriction.
-        __count_wg_size = 
+        __count_wg_size =
             sycl::max(oneapi::dpl::__internal::__dpl_bit_floor(__count_wg_size), ::std::size_t(__radix_states));
 
         // Compute the radix position for the given iteration
@@ -746,16 +749,12 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     assert(__n > 1);
 
     // types
-    using _DecExecutionPolicy = __decay_t<_ExecutionPolicy>;
     using _ValueT = oneapi::dpl::__internal::__value_t<_Range>;
     using _KeyT = oneapi::dpl::__internal::__key_t<_Proj, _Range>;
 
     // radix bits represent number of processed bits in each value during one iteration
     constexpr ::std::uint32_t __radix_bits = 4;
 
-    //sycl::buffer doesn't have a default constructor; so, we have to pass zero-range to create an empty buffer
-    sycl::buffer<::std::uint32_t, 1> __tmp_buf(sycl::range<1>(0));
-    sycl::buffer<_ValueT, 1> __val_buf(sycl::range<1>(0));
     sycl::event __event{};
 
     const auto __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
@@ -764,7 +763,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     constexpr auto __wg_size = 64;
 
     //TODO: with _RadixSortKernel also the following a couple of compile time constants is used for unique kernel name
-    using _RadixSortKernel = typename __decay_t<_ExecutionPolicy>::kernel_name;
+    using _RadixSortKernel = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     if (__n <= 64 && __wg_size <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size, 1, __radix_bits, __is_ascending>{}(
@@ -810,13 +809,12 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
         // 'No operation' flag specifies whether to skip re-order phase if the all keys are the same (lie in one bin)
         const ::std::size_t __tmp_buf_size = __segments * __radix_states + __radix_states + 1 /*no_op flag*/;
         // memory for storing count and offset values
-        __tmp_buf = sycl::buffer<::std::uint32_t, 1>(sycl::range<1>(__tmp_buf_size));
+        sycl::buffer<::std::uint32_t, 1> __tmp_buf{sycl::range<1>(__tmp_buf_size)};
 
         // memory for storing values sorted for an iteration
-        __internal::__buffer<_DecExecutionPolicy, _ValueT> __out_buffer_holder{__exec, __n};
-        __val_buf = __out_buffer_holder.get_buffer();
-        auto __out_rng =
-            oneapi::dpl::__ranges::all_view<_ValueT, __par_backend_hetero::access_mode::read_write>(__val_buf);
+        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueT> __out_buffer_holder{__exec, __n};
+        auto __out_rng = oneapi::dpl::__ranges::all_view<_ValueT, __par_backend_hetero::access_mode::read_write>(
+            __out_buffer_holder.get_buffer());
 
         // iterations per each bucket
         assert("Number of iterations must be even" && __radix_iters % 2 == 0);
@@ -833,7 +831,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
         }
     }
 
-    return __future(__event, __tmp_buf, __val_buf);
+    return __future(__event);
 }
 
 } // namespace __par_backend_hetero

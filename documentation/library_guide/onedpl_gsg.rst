@@ -213,3 +213,5 @@ Find More
      - Learn how to use |onedpl_short| with samples.
    * - `Layers for Yocto* Project <https://www.intel.com/content/www/us/en/docs/oneapi-iot-toolkit/get-started-guide-linux/current/adding-oneapi-components-to-yocto-project-builds.html>`_
      - Add oneAPI components to a Yocto project build using the meta-intel layers.
+   * - `oneAPI Samples Catalog <https://oneapi-src.github.io/oneAPI-samples/>`_
+     - Explore the complete list of oneAPI code samples in the oneAPI Samples Catalog (GitHub*). These samples were designed to help you develop, offload, and optimize multiarchitecture applications targeting CPUs, GPUs, and FPGAs.

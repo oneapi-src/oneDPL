@@ -28,7 +28,7 @@
 
 template <class T>
 double
-promote(T, typename std::enable_if<std::is_integral<T>::value>::type* = 0);
+promote(T, ::std::enable_if_t<std::is_integral_v<T>>* = 0);
 
 float promote(float);
 double promote(double);
@@ -39,7 +39,7 @@ void
 test(T x, const dpl::complex<U>& y)
 {
     typedef decltype(promote(x) + promote(dpl::real(y))) V;
-    static_assert((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
+    static_assert((std::is_same_v<decltype(dpl::pow(x, y)), dpl::complex<V> >));
     is_about(dpl::pow(x, y), dpl::pow(dpl::complex<V>(x, 0), dpl::complex<V>(y)));
 }
 
@@ -48,7 +48,7 @@ void
 test(const dpl::complex<T>& x, U y)
 {
     typedef decltype(promote(dpl::real(x)) + promote(y)) V;
-    static_assert((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
+    static_assert((std::is_same_v<decltype(dpl::pow(x, y)), dpl::complex<V> >));
     is_about(dpl::pow(x, y), dpl::pow(dpl::complex<V>(x), dpl::complex<V>(y, 0)));
 }
 
@@ -57,13 +57,13 @@ void
 test(const dpl::complex<T>& x, const dpl::complex<U>& y)
 {
     typedef decltype(promote(dpl::real(x)) + promote(dpl::real(y))) V;
-    static_assert((std::is_same<decltype(dpl::pow(x, y)), dpl::complex<V> >::value), "");
+    static_assert((std::is_same_v<decltype(dpl::pow(x, y)), dpl::complex<V> >));
     assert(dpl::pow(x, y) == dpl::pow(dpl::complex<V>(x), dpl::complex<V>(y)));
 }
 
 template <class T, class U>
 void
-test(typename std::enable_if<std::is_integral<T>::value>::type* = 0, typename std::enable_if<!std::is_integral<U>::value>::type* = 0)
+test(::std::enable_if_t<std::is_integral_v<T>>* = 0, ::std::enable_if_t<!std::is_integral_v<U>>* = 0)
 {
     test(T(3), dpl::complex<U>(4, 5));
     test(dpl::complex<U>(3, 4), T(5));
@@ -71,7 +71,7 @@ test(typename std::enable_if<std::is_integral<T>::value>::type* = 0, typename st
 
 template <class T, class U>
 void
-test(typename std::enable_if<!std::is_integral<T>::value>::type* = 0, typename std::enable_if<!std::is_integral<U>::value>::type* = 0)
+test(::std::enable_if_t<!std::is_integral_v<T>>* = 0, ::std::enable_if_t<!std::is_integral_v<U>>* = 0)
 {
     test(T(3), dpl::complex<U>(4, 5));
     test(dpl::complex<T>(3, 4), U(5));

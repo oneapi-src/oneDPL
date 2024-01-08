@@ -18,6 +18,7 @@
 
 #include <iterator>
 #include "../parallel_backend.h"
+#include "../utils.h"
 #if _ONEDPL_BACKEND_SYCL
 #    include "dpcpp/execution_sycl_defs.h"
 #    include "algorithm_impl_hetero.h" // to use __pattern_walk2_brick
@@ -57,7 +58,8 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __f
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, _BinaryOperation1, _Functor>(
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
+                                                                          ::std::true_type /*is_commutative*/>(
                ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
                unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
                __buf1.all_view(), __buf2.all_view())
@@ -84,7 +86,8 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, _BinaryOperation, _Functor>(
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
+                                                                          ::std::true_type /*is_commutative*/>(
                ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
                unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
                __buf.all_view())
@@ -96,21 +99,6 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
 //------------------------------------------------------------------------
 template <typename T>
 struct ExecutionPolicyWrapper;
-
-// TODO In C++20 we may try to use std::equality_comparable
-template <typename _Iterator1, typename _Iterator2, typename = void>
-struct __is_equality_comparable : std::false_type
-{
-};
-
-// All with implemented operator ==
-template <typename _Iterator1, typename _Iterator2>
-struct __is_equality_comparable<
-    _Iterator1, _Iterator2,
-    std::void_t<decltype(::std::declval<::std::decay_t<_Iterator1>>() == ::std::declval<::std::decay_t<_Iterator2>>())>>
-    : std::true_type
-{
-};
 
 #if _ONEDPL_BACKEND_SYCL
 template <sycl::access::mode _Mode1, sycl::access::mode _Mode2, typename _T, typename _Allocator>
@@ -133,24 +121,6 @@ __iterators_possibly_equal(const sycl_iterator<_Mode1, _T, _Allocator>& __it1,
     return __it1 == __it2;
 }
 #endif // _ONEDPL_BACKEND_SYCL
-
-template <typename _Iterator1, typename _Iterator2>
-constexpr bool
-__iterators_possibly_equal(_Iterator1 __it1, _Iterator2 __it2)
-{
-    if constexpr (__is_equality_comparable<_Iterator1, _Iterator2>::value)
-    {
-        return __it1 == __it2;
-    }
-    else if constexpr (__is_equality_comparable<_Iterator2, _Iterator1>::value)
-    {
-        return __it2 == __it1;
-    }
-    else
-    {
-        return false;
-    }
-}
 
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
           typename _InitType, typename _BinaryOperation, typename _Inclusive>
@@ -191,7 +161,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         using _NewExecutionPolicy = decltype(__policy);
 
         // Create temporary buffer
-        oneapi::dpl::__par_backend_hetero::__internal::__buffer<_NewExecutionPolicy, _Type> __tmp_buf(__policy, __n);
+        oneapi::dpl::__par_backend_hetero::__buffer<_NewExecutionPolicy, _Type> __tmp_buf(__policy, __n);
         auto __first_tmp = __tmp_buf.get();
         auto __last_tmp = __first_tmp + __n;
         auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
