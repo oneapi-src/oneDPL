@@ -97,9 +97,9 @@ struct __scan_status_flag
     _AtomicRefT __atomic_flag;
 };
 
-template <typename _KernelParam, bool _Inclusive, typename _InRange, typename _OutRange, typename _BinaryOp>
-void
-single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op)
+template <bool _Inclusive, typename _InRange, typename _OutRange, typename _BinaryOp, typename _KernelParam>
+sycl::event
+single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op, _KernelParam)
 {
     using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
     using _FlagType = __scan_status_flag<_Type>;
@@ -212,19 +212,19 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
             __hdl.host_task([=](){ sycl::free(__status_flags, __queue); });
         });
 
-    __free_event.wait();
+    return __free_event;
 
 }
 
-template <typename _KernelParam, typename _InIterator, typename _OutIterator, typename _BinaryOp>
-void
-single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin, _BinaryOp __binary_op)
+template <typename _InIterator, typename _OutIterator, typename _BinaryOp, typename _KernelParam>
+sycl::event
+single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin, _BinaryOp __binary_op, _KernelParam __param)
 {
     auto __n = __in_end - __in_begin;
 
     // TODO: check semantics
     if (__n == 0)
-        return;
+        return sycl::event{};
 
     auto __keep1 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _InIterator>();
@@ -233,9 +233,8 @@ single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InItera
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
     auto __buf2 = __keep2(__out_begin, __out_begin + __n);
 
-    single_pass_scan_impl<_KernelParam, true>(__queue, __buf1.all_view(), __buf2.all_view(), __binary_op);
+    return single_pass_scan_impl<true>(__queue, __buf1.all_view(), __buf2.all_view(), __binary_op, __param);
 
-    auto __out_rng = __buf2.all_view();
 }
 
 } // inline namespace igpu
