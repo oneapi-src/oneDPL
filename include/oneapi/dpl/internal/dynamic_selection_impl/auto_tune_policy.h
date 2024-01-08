@@ -220,6 +220,9 @@ class auto_tune_policy
             if (state_->resources_with_index_.empty())
             {
                 initialize();
+                if(state_->resources_with_index_.empty()){
+                    throw std::logic_error("Resources empty after initialization");
+                }
             }
             std::unique_lock<std::mutex> l(state_->m_);
             auto k = make_task_key(std::forward<Function>(f), std::forward<Args>(args)...);

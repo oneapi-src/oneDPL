@@ -158,6 +158,9 @@ struct dynamic_load_policy
             if (state_->resources_.empty())
             {
                 initialize();
+                if(state_->resources_.empty()){
+                    throw std::logic_error("Resources empty after initialization");
+                }
             }
             for (int i = 0; i < state_->resources_.size(); i++)
             {

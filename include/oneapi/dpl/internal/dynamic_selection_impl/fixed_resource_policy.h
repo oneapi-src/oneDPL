@@ -113,6 +113,9 @@ struct fixed_resource_policy
             }
             else{
                 initialize();
+                if(state_->resources_.empty()){
+                    throw std::logic_error("Resources empty after initialization");
+                }
                 return selection_type{*this, state_->resources_[state_->offset_]};
             }
         }

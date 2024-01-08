@@ -119,6 +119,9 @@ struct round_robin_policy
             if (state_->resources_.empty())
             {
                 initialize();
+                if(state_->resources_.empty()){
+                    throw std::logic_error("Resources empty after initialization");
+                }
             }
             resource_container_size_t current_context_;
             while (true)
