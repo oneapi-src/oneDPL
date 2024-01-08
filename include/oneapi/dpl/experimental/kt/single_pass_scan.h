@@ -216,15 +216,6 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
 
 }
 
-// The generic structure for configuring a kernel
-template <std::uint16_t DataPerWorkItem, std::uint16_t WorkGroupSize, typename KernelName>
-struct kernel_param
-{
-    static constexpr std::uint16_t data_per_workitem = DataPerWorkItem;
-    static constexpr std::uint16_t workgroup_size = WorkGroupSize;
-    using kernel_name = KernelName;
-};
-
 template <typename _KernelParam, typename _InIterator, typename _OutIterator, typename _BinaryOp>
 void
 single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin, _BinaryOp __binary_op)

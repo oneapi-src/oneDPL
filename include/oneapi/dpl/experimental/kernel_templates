@@ -18,4 +18,6 @@
 #   include "kt/esimd_radix_sort.h"
 #endif
 
+#include "kt/single_pass_scan.h"
+
 #endif // _ONEDPL_KERNEL_TEMPLATES

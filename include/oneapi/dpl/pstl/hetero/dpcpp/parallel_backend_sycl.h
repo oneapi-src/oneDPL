@@ -40,8 +40,6 @@
 #    include "parallel_backend_sycl_radix_sort.h"
 #endif
 
-#include "parallel_backend_sycl_scan.h"
-
 namespace oneapi
 {
 namespace dpl

@@ -14,7 +14,8 @@
 //===----------------------------------------------------------------------===//
 
 
-#include "support/test_config.h"
+#include <oneapi/dpl/experimental/kernel_templates>
+#include "../support/test_config.h"
 #include <fstream>
 #include <iomanip>
 

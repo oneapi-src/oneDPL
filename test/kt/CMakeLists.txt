@@ -13,6 +13,7 @@
 ##===----------------------------------------------------------------------===##
 
 option(ONEDPL_TEST_ENABLE_KT_ESIMD "Enable ESIMD-based kernel template tests")
+option(ONEDPL_TEST_ENABLE_KT_SYCL "Enable SYCL-based kernel template tests")
 
 function(_generate_test _target_name _test_path)
     add_executable(${_target_name} EXCLUDE_FROM_ALL ${_test_path})
@@ -121,4 +122,9 @@ if (ONEDPL_TEST_ENABLE_KT_ESIMD)
 
     # Pin some cases to track them, e.g. because they fail
     _generate_esimd_sort_test("256" "32" "double" "" 1000) # segfault
+endif()
+
+
+if (ONEDPL_TEST_ENABLE_KT_SYCL)
+    _generate_test("single_pass_scan" "single_pass_scan.cpp")
 endif()
