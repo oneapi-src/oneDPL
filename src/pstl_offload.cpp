@@ -170,7 +170,7 @@ public:
 
 private:
     std::mutex _M_map_mtx;
-    // Find sycl::device and requested size by user pointer. Use custom allocator to not
+    // Find sycl::device and requested size by user pointer. Use __orig_free_allocator to not
     // call global delete during delete processing (that includes __unregister_ptr call).
     std::unordered_map<void*, __ptr_desc, __hash_aligned_ptr, std::equal_to<void*>,
         __orig_free_allocator<std::pair<void* const, __ptr_desc>>> _M_map;
@@ -222,6 +222,29 @@ public:
         __ptr_desc __header = __iter->second;
         _M_map.erase(__iter);
         return __header;
+    }
+
+    // nullopt means "it's not our pointer", return 0 if the map is not available
+    std::optional<std::size_t>
+    __get_size(void* __ptr)
+    {
+        // only page-aligned can be registered
+        if (!__is_ptr_page_aligned(__ptr))
+        {
+            return std::nullopt;
+        }
+        if (!__large_aligned_ptrs_available)
+        {
+            return 0;
+        }
+
+        const std::lock_guard<std::mutex> l(_M_map_mtx);
+        auto __iter = _M_map.find(__ptr);
+        if (__iter == _M_map.end())
+        {
+            return std::nullopt;
+        }
+        return __iter->second._M_requested_number_of_bytes;
     }
 };
 
@@ -297,13 +320,10 @@ __internal_msize(void* __user_ptr)
             return __header->_M_requested_number_of_bytes;
         }
     }
-    else if (std::optional<__large_aligned_ptrs_map::__ptr_desc> __desc = __large_aligned_ptrs.__unregister_ptr(__user_ptr);
-             __desc.has_value())
-    {
-        return __desc->_M_device_ptr.has_value() ? __header->_M_requested_number_of_bytes : __get_original_msize()(__user_ptr) ;
-    }
-    // report zero size in "status unknown" case
-    return 0;
+
+    std::optional<std::size_t> __size = __large_aligned_ptrs.__get_size(__user_ptr);
+
+    return __size.has_value() ? __size.value() : __get_original_msize()(__user_ptr);
 }
 
 static void*

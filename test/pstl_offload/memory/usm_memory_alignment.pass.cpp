@@ -47,6 +47,7 @@ void test_aligned_alloc_alignment() {
             void* ptr = aligned_alloc(alignment, size);
             EXPECT_TRUE(ptr, "The returned pointer is nullptr");
             EXPECT_TRUE(std::uintptr_t(ptr) % alignment == 0, "The returned pointer is not properly aligned");
+            EXPECT_TRUE(malloc_usable_size(ptr) >= size, "Invalid reported size");
 
             // check that aligned object might be reallocated
             constexpr std::size_t delta = 13;
