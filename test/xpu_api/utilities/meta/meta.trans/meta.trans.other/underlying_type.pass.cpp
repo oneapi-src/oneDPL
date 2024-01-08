@@ -120,9 +120,12 @@ kernel_test1(sycl::queue& deviceQueue)
 void
 kernel_test2(sycl::queue& deviceQueue)
 {
+    // Until C++20 the behaviour of std::underlying_type<T> is undefined when T is not enum
+#if TEST_STD_VER >= 20
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest2>([=]() { static_assert(!has_underlying_type_member<double>::value); });
     });
+#endif
 }
 
 int
