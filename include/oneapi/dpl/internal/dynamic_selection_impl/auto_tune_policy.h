@@ -241,6 +241,7 @@ class auto_tune_policy
     auto
     submit(selection_type e, Function&& f, Args&&... args)
     {
+        static_assert(sizeof...(KeyArgs) == sizeof...(Args));
         if (backend_)
         {
             return backend_->submit(e, std::forward<Function>(f), std::forward<Args>(args)...);
