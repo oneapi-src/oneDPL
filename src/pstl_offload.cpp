@@ -356,6 +356,11 @@ __realloc_impl(void* __user_ptr, std::size_t __new_size)
     if (__block_header* __header = static_cast<__block_header*>(__user_ptr) - 1; 
         __same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
     {
+        if (__header->_M_requested_number_of_bytes == __new_size)
+        {
+            return __user_ptr;
+        }
+
         void* __result = __realloc_allocate_shared(__header->_M_device, __user_ptr,
                                                    __header->_M_requested_number_of_bytes, __new_size);
         if (__result)
@@ -372,6 +377,11 @@ __realloc_impl(void* __user_ptr, std::size_t __new_size)
     }
     if (__desc->_M_device_ptr.has_value())
     {
+        if (__desc->_M_requested_number_of_bytes == __new_size)
+        {
+            return __user_ptr;
+        }
+
         void* __result = __realloc_allocate_shared(__desc->_M_device_ptr.value(), __user_ptr, __desc->_M_requested_number_of_bytes, __new_size);
         if (__result)
         {
