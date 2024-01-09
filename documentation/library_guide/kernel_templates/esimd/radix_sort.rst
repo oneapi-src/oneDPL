@@ -140,8 +140,8 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
 - Number of elements to sort must not exceed `2^30`.
 - ``radix_bits`` can only be `8`.
 - ``param.data_per_workitem`` has discreteness of `32`.
-- ``param.work_group_size`` can be either `32` or `64`.
-- Local memory is always used to rank keys, reorder keys or key-value pairs which limits possible values of ``param.data_per_workitem`` and ``param.work_group_size``.
+- ``param.workgroup_size`` can be either `32` or `64`.
+- Local memory is always used to rank keys, reorder keys or key-value pairs which limits possible values of ``param.data_per_workitem`` and ``param.workgroup_size``.
 - ``radix_sort_by_key`` does not have single-work-group implementation yet.
 
 
@@ -159,10 +159,17 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
 
 - Hardware: Intel® Data Center GPU Max Series.
 - Compiler: Intel® oneAPI DPC++/C++ 2023.2 and newer.
-- OS: RHEL 9.2, SLES 15 SP5, Ubuntu 22.04.
+- OS: RHEL 9.2, SLES 15 SP5, Ubuntu 22.04. Other distributions and their versions listed in `<https://dgpu-docs.intel.com/driver/installation.html>` should be supported accordingly.
 
 
 **Known Issues**
 
 - Use of -g, -O0, -O1 compiler options may lead to compilation issues.
-- Combinations of ``param.data_per_workitem`` and ``param.work_group_size`` with large values may lead to device-code compilation errors due to allocation of local memory amounts beyond the device capabilities.
+- Combinations of ``param.data_per_workitem`` and ``param.work_group_size`` with large values may lead to device-code compilation errors due to allocation of local memory amounts beyond the device capabilities. Refer to "Local memory usage" paragraph for the details regarding allocation.
+- Some combinations of types and ``kt::kernel_param`` values lead to wrong results starting with `20231219 <https://dgpu-docs.intel.com/releases/stable_775_20_20231219.html>`_ rolling release of the GPU driver: 
+   - ``radix_sort`` with ``sizeof(key_type)=8``, ``param.workgroup_size = 32`` and ``param.data_per_workitem>=288``
+   - ``radix_sort_by_key`` with ``4 <= sizeof(key_type) + sizeof(value_type) <= 8``, ``param.workgroup_size = 32`` and ``param.data_per_workitem >= 288``
+   - ``radix_sort_by_key`` with ``9 <= sizeof(key_type) + sizeof(value_type) <= 10``, ``param.workgroup_size = 32`` and ``param.data_per_workitem >= 224``
+   - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) > 10``, ``param.workgroup_size = 32`` and ``param.data_per_workitem = 64``
+   - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) = 12``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 96``
+   - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) = 16``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 64``
