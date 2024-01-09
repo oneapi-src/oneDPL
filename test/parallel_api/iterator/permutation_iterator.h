@@ -36,9 +36,10 @@ struct perm_it_index_tags
     struct host { };
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    // Index of permutation iterator is based on USM shared/device memory
+    // Index of permutation iterator is based on USM shared memory
     struct usm_shared { };
-    struct usm_device { };
+    // Test case is for USM device memory is unavailable to implement due to indexes
+    // cannot be initialized on the host (USM device is not accessible on the host)
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     // Index of permutation iterator is based on transform iterator
@@ -53,7 +54,6 @@ struct perm_it_index_tags
  *          - perm_it_index_tags::counting;
  *          - perm_it_index_tags::host;
  *          - perm_it_index_tags::usm_shared;
- *          - perm_it_index_tags::usm_device;
  *          - perm_it_index_tags::transform_iterator.
  */
 template <typename TSourceIterator, typename TSourceDataSize>
@@ -167,25 +167,6 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
     operator()(TStepFunctor stepOp, Operand op)
     {
         call_op_impl_usm<sycl::usm::alloc::shared, TSourceIterator, TSourceDataSize>(stepOp, op, data);
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-template <typename TSourceIterator, typename TSourceDataSize>
-struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags::usm_device>
-{
-    test_through_permutation_iterator_data<TSourceIterator, TSourceDataSize> data;
-
-    test_through_permutation_iterator(TSourceIterator itSource, const TSourceDataSize src_data_size)
-        : data{itSource, src_data_size}
-    {
-    }
-
-    template <typename TStepFunctor, typename Operand>
-    void
-    operator()(TStepFunctor stepOp, Operand op)
-    {
-        call_op_impl_usm<sycl::usm::alloc::device, TSourceIterator, TSourceDataSize>(stepOp, op, data);
     }
 };
 #endif // TEST_DPCPP_BACKEND_PRESENT

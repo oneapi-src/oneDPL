@@ -75,12 +75,6 @@ struct is_able_to_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags
 {
 };
 
-template <typename ExecutionPolicy>
-struct is_able_to_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::usm_device>
-    : ::std::negation<oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<ExecutionPolicy>>>
-{
-};
-
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 template <typename ExecutionPolicy>
@@ -692,12 +686,6 @@ main()
     test_counting_iterator(100);
 
     run_algo_tests<ValueType, perm_it_index_tags::usm_shared>();
-
-#if 0
-//TODO: test case is broken due to indexes cannot be initialized on the host (USM device is not accessible on the host)
-    run_algo_tests<ValueType, perm_it_index_tags::usm_device>();
-#endif
-
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     run_algo_tests<ValueType, perm_it_index_tags::counting>();
