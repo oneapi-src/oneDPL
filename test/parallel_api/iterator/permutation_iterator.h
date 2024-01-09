@@ -86,8 +86,10 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
     {
         auto indexes_begin = dpl::counting_iterator<TSourceDataSize>(0);
 
-        op(dpl::make_permutation_iterator(data.itSource, indexes_begin),
-           dpl::make_permutation_iterator(data.itSource, indexes_begin) + data.src_data_size);
+        auto permItBegin = dpl::make_permutation_iterator(data.itSource, indexes_begin);
+        auto permItEnd = permItBegin + data.src_data_size;
+
+        op(permItBegin, permItEnd);
     }
 };
 
@@ -115,8 +117,10 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
             for (TSourceDataSize idx = 0, val = 0; idx < idx_size; ++idx, val += perm_idx_step)
                 indexes[idx] = val;
 
-            op(dpl::make_permutation_iterator(data.itSource, indexes.begin()),
-               dpl::make_permutation_iterator(data.itSource, indexes.begin()) + indexes.size());
+            auto permItBegin = dpl::make_permutation_iterator(data.itSource, indexes.begin());
+            auto permItEnd = permItBegin + indexes.size();
+
+            op(permItBegin, permItEnd);
         }
     }
 };
@@ -145,8 +149,10 @@ call_op_impl_usm(
 
         test_base_data.update_data(TestUtils::UDTKind::eKeys, indexes.data(), indexes.data() + indexes.size());
 
-        op(dpl::make_permutation_iterator(data.itSource, itIndexStart),
-           dpl::make_permutation_iterator(data.itSource, itIndexStart) + indexes.size());
+        auto permItBegin = dpl::make_permutation_iterator(data.itSource, itIndexStart);
+        auto permItEnd = permItBegin + indexes.size();
+
+        op(permItBegin, permItEnd);
     }
 }
 
