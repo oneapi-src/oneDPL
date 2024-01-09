@@ -145,7 +145,6 @@ call_op_impl_usm(
 
         test_base_data.update_data(TestUtils::UDTKind::eKeys, indexes.data(), indexes.data() + indexes.size());
 
-        TSourceDataSize* itIndexStart = test_base_data.get_start_from(TestUtils::UDTKind::eKeys);
         op(dpl::make_permutation_iterator(data.itSource, itIndexStart),
            dpl::make_permutation_iterator(data.itSource, itIndexStart) + indexes.size());
     }
