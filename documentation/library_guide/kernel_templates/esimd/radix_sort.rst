@@ -26,8 +26,7 @@ Radix Sort
 
    } // namespace esimd
 
-The functions sort data using radix sort algorithm. For small number of elements to sort, they invoke single-work-group implementation, otherwise multiple-work-group implementation based on onesweep algorithm variant.
-
+The functions sort data using the radix sort algorithm. For a small number of elements to sort, they invoke a single-work-group implementation; otherwise, they use a multiple-work-group implementation based on the onesweep algorithm variant.
 
 **Template Parameters**
 
@@ -49,15 +48,15 @@ The functions sort data using radix sort algorithm. For small number of elements
 |  ``q``                                               | SYCL queue to submit the kernel template to.                     |
 +------------------------------------------------------+------------------------------------------------------------------+
 |                                                      | The sequences(s) of elements to apply the algorithm to.          |
-|  - ``rng`` (1)                                       | They can be be provided as:                                      |
+|  - ``rng`` (1)                                       | They can be provided as:                                         |
 |  - ``first``, ``last`` (2)                           |                                                                  |
-|  - ``keys_rng``, ``vals_rng`` (3)                    |  - ``sycl::buffer`` (1,3),                                       |
-|  - ``keys_first``, ``keys_last``, ``vals_first`` (4) |  - ``oneapi::dpl::experimental::ranges::views::all`` (1,3),      |
-|                                                      |  - ``oneapi::dpl::experimental::ranges::views::subrange`` (1,3). |
-|                                                      |  - USM pointer (2,4),                                            |
-|                                                      |  - ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` (2,4).        |
+|  - ``keys_rng``, ``vals_rng`` (3)                    | - ``sycl::buffer`` (1,3),                                        |
+|  - ``keys_first``, ``keys_last``, ``vals_first`` (4) | - ``oneapi::dpl::experimental::ranges::views::all`` (1,3)        |
+|                                                      | - ``oneapi::dpl::experimental::ranges::views::subrange`` (1,3)   |
+|                                                      | - USM pointer (2,4)                                              |
+|                                                      | - ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` (2,4)          |
 +------------------------------------------------------+------------------------------------------------------------------+
-|  ``param``                                           | Kernel configuration structure. ``data_per_workitem`` ,          |
+|  ``param``                                           | Kernel configuration structure. ``data_per_workitem``,           |
 |                                                      | can be any value among ``32``, ``64``, ``96``,..., ``k * 32``;   |
 |                                                      | ``workgroup_size`` can be either ``32`` or ``64``.               |
 +------------------------------------------------------+------------------------------------------------------------------+
@@ -69,18 +68,28 @@ The functions sort data using radix sort algorithm. For small number of elements
 
 **Local memory usage**
 
-The local memory is allocated as ``max(ranks, reorder)`` bytes, where:
+The local memory is allocated as shown in the pseudo-code blocks below:
 
-   .. math::
-      ranks = 2 * {2^{radix\_bits}} * {workgroup\_size} + 4 * 2^{radix\_bits}
+- ``radix_sort`` (1,2):
+
+  .. code:: python
+
+     ranks = 2 * (2 ^ radix_bits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ radix_bits)
+
+     reorder = sizeof(key_type) * data_per_workitem * workgroup_size + 4 * (2 ^ radix_bits) 
+
+     allocated_bytes = round_up_to_nearest_multiple(max(ranks, reorder), 2048)
 
 
-   .. math::
-      reorder_{(1,2)} = {sizeof(key\_type)} * {data\_per\_workitem} * {workgroup\_size}  + 4 * 2^{radix\_bits}
+- ``radix_sort_by_key`` (3,4):
 
+  .. code:: python
 
-   .. math::
-      reorder_{(3,4)} = ({sizeof(key\_type)} + {sizeof(value\_type)}) * {data\_per\_workitem} * {workgroup\_size} + 4 * 2^{radix\_bits}
+     ranks = 2 * (2 ^ radix_bits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ radix_bits)
+
+     reorder = (sizeof(key_type) + sizeof(value_type)) * data_per_workitem * workgroup_size + 4 * (2 ^ radix_bits)
+
+     allocated_bytes = round_up_to_nearest_multiple(max(ranks, reorder), 2048)
 
 
 The device must have enough local memory to execute the selected configuration.
@@ -147,10 +156,10 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
 
 **Possible API extensions (may be implemented in the future)**
 
-- Add API to pass externally allocated memory.
-- Add API to pass dependent events.
-- Add API to pass a range of bits to sort.
-- Add API to allow out-of-place sorting, e.g. with a double-buffer or an output sequence(s)
+- Allow passing externally allocated memory.
+- Allow passing dependent events.
+- Allow passing a range of bits to sort.
+- Allow out-of-place sorting, e.g. with a double-buffer or an output sequence(s)
 - Allow configuration of kernels other than the most time-consuming kernel (e.g. of a kernel computing histograms).
 - Allow range transformations (e.g. range pipes or transform iterators).
 
@@ -166,10 +175,11 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
 
 - Use of -g, -O0, -O1 compiler options may lead to compilation issues.
 - Combinations of ``param.data_per_workitem`` and ``param.work_group_size`` with large values may lead to device-code compilation errors due to allocation of local memory amounts beyond the device capabilities. Refer to "Local memory usage" paragraph for the details regarding allocation.
-- Some combinations of types and ``kt::kernel_param`` values lead to wrong results starting with `20231219 <https://dgpu-docs.intel.com/releases/stable_775_20_20231219.html>`_ rolling release of the GPU driver: 
-   - ``radix_sort`` with ``sizeof(key_type)=8``, ``param.workgroup_size = 32`` and ``param.data_per_workitem>=288``
-   - ``radix_sort_by_key`` with ``4 <= sizeof(key_type) + sizeof(value_type) <= 8``, ``param.workgroup_size = 32`` and ``param.data_per_workitem >= 288``
-   - ``radix_sort_by_key`` with ``9 <= sizeof(key_type) + sizeof(value_type) <= 10``, ``param.workgroup_size = 32`` and ``param.data_per_workitem >= 224``
-   - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) > 10``, ``param.workgroup_size = 32`` and ``param.data_per_workitem = 64``
-   - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) = 12``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 96``
-   - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) = 16``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 64``
+- Some combinations of types and ``kt::kernel_param`` values lead to wrong results starting with `20231219 <https://dgpu-docs.intel.com/releases/stable_775_20_20231219.html>`_ rolling release of the GPU driver:
+
+  - ``radix_sort`` with ``sizeof(key_type)=8``, ``param.workgroup_size = 32``, and ``param.data_per_workitem>=288``
+  - ``radix_sort_by_key`` with ``4 <= sizeof(key_type) + sizeof(value_type) <= 8``, ``param.workgroup_size = 32`` and ``param.data_per_workitem >= 288``
+  - ``radix_sort_by_key`` with ``9 <= sizeof(key_type) + sizeof(value_type) <= 10``, ``param.workgroup_size = 32`` and ``param.data_per_workitem >= 224``
+  - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) > 10``, ``param.workgroup_size = 32`` and ``param.data_per_workitem = 64``
+  - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) = 12``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 96``
+  - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) = 16``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 64``
