@@ -22,11 +22,10 @@
 #include "support/utils.h"
 #include "support/utils_test_base.h"
 
+#include <vector>
 #include <iostream>
 
 #include "permutation_iterator.h"
-
-#define ASSERT_ON_NOT_IMPLEMENTED_CHECK 0
 
 #if TEST_DPCPP_BACKEND_PRESENT
 using namespace oneapi::dpl::execution;
@@ -188,24 +187,29 @@ DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag)
         if constexpr (can_run_modify_test<Policy, Iterator1, PermItIndexTag>())
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // sorting data
+            const auto host_keys_ptr = host_keys.get();
 
             test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
+                    using ValueType = typename ::std::iterator_traits<decltype(permItBegin)>::value_type;
+
+                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
+
                     // Fill full source data set (not only values iterated by permutation iterator)
-                    generate_data(host_keys.get(), host_keys.get() + n, n);
+                    generate_data(host_keys_ptr, host_keys_ptr + n, n);
                     host_keys.update_data();
 
                     dpl::sort(exec, permItBegin, permItEnd);
                     wait_and_throw(exec);
 
-                    host_keys.retrieve_data();
+                    // Copy data back
+                    std::vector<TestValueType> expected(testing_n);
+                    dpl::copy(exec, permItBegin, permItEnd, expected.data());
+                    wait_and_throw(exec);
 
-                    // KSATODO required to implement results check
-                    //check_results(permItBegin, permItEnd);
-    #if ASSERT_ON_NOT_IMPLEMENTED_CHECK
-                    assert(false);
-    #endif // ASSERT_ON_NOT_IMPLEMENTED_CHECK
+                    // Check results
+                    check_results(expected.begin(), expected.end());
                 });
         }
     }
@@ -239,6 +243,11 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
         if constexpr (can_run_modify_test<Policy, Iterator1, PermItIndexTag>())
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // sorting data
+            const auto host_keys_ptr = host_keys.get();
+
+            // Fill full source data set (not only values iterated by permutation iterator)
+            generate_data(host_keys_ptr, host_keys_ptr + n, n);
+            host_keys.update_data();
 
             test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
@@ -247,20 +256,16 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
 
                     for (::std::size_t p = 0; p < testing_n; p = p <= 16 ? p + 1 : ::std::size_t(31.415 * p))
                     {
-                        // Fill full source data set (not only values iterated by permutation iterator)
-                        generate_data(host_keys.get(), host_keys.get() + n, n);
-                        host_keys.update_data();
-
                         dpl::partial_sort(exec, permItBegin, permItBegin + p, permItEnd);
                         wait_and_throw(exec);
 
-                        host_keys.retrieve_data();
+                        // Copy data back
+                        std::vector<TestValueType> expected(p);
+                        dpl::copy(exec, permItBegin, permItBegin + p, expected.data());
+                        wait_and_throw(exec);
 
-                        // KSATODO required to implement results check
-                        //check_results(permItBegin, permItBegin + p);
-#if ASSERT_ON_NOT_IMPLEMENTED_CHECK
-                        assert(false);
-#endif // ASSERT_ON_NOT_IMPLEMENTED_CHECK
+                        // Check results
+                        check_results(expected.begin(), expected.end());
                     }
                 });
         }
@@ -295,17 +300,6 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
         ::std::fill(itBegin, itEnd, TestValueType{});
     }
 
-    template <typename TIterator, typename TResultIterator, typename UnaryOperation>
-    void check_results(TIterator itBegin, TIterator itEnd, TResultIterator itResult, UnaryOperation op)
-    {
-        for (auto it = itBegin; it != itEnd; ++it, ++itResult)
-        {
-            const auto expected = op(*it);
-            const auto result = *itResult;
-            EXPECT_EQ(expected, result, "Wrong result of dpl::transform call");
-        }
-    }
-
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
@@ -315,26 +309,40 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for transform
             TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);     // result data of transform
 
+            const auto host_keys_ptr = host_keys.get();
+            const auto host_vals_ptr = host_vals.get();
+
+            // Fill full source data set (not only values iterated by permutation iterator)
+            generate_data(host_keys_ptr, host_keys_ptr + n, n);
+            host_keys.update_data();
+
             test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
-                    // Fill full source data set (not only values iterated by permutation iterator)
-                    generate_data(host_keys.get(), host_keys.get() + n, n);
-                    host_keys.update_data();
+                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
 
-                    clear_output_data(host_vals.get(), host_vals.get() + n);
+                    clear_output_data(host_vals_ptr, host_vals_ptr + n);
                     host_vals.update_data();
 
-                    dpl::transform(exec, permItBegin, permItEnd, first2, TransformOp{});
+                    auto itResultEnd = dpl::transform(exec, permItBegin, permItEnd, first2, TransformOp{});
                     wait_and_throw(exec);
 
-                    host_vals.retrieve_data();
+                    const auto resultSize = ::std::distance(first2, itResultEnd);
 
-                    // KSATODO required to implement results check
-                    //check_results(permItBegin, permItEnd, first2, TransformOp{});
-#if ASSERT_ON_NOT_IMPLEMENTED_CHECK
-                    assert(false);
-#endif // ASSERT_ON_NOT_IMPLEMENTED_CHECK
+                    // Copy data back
+                    std::vector<TestValueType> sourceData(testing_n);
+                    dpl::copy(exec, permItBegin, permItEnd, sourceData.data());
+                    wait_and_throw(exec);
+                    std::vector<TestValueType> transformedDataResult(testing_n);
+                    dpl::copy(exec, first2, itResultEnd, transformedDataResult.data());
+                    wait_and_throw(exec);
+
+                    // Check results
+                    std::vector<TestValueType> transformedDataExpected(testing_n);
+                    const auto itExpectedEnd = ::std::transform(sourceData.begin(), sourceData.end(), transformedDataExpected.data(), TransformOp{});
+                    const auto expectedSize = ::std::distance(transformedDataExpected.data(), itExpectedEnd);
+                    EXPECT_EQ(expectedSize, resultSize, "Wrong size from dpl::transform");
+                    EXPECT_EQ_N(transformedDataExpected.begin(), transformedDataResult.begin(), expectedSize, "Wrong result of dpl::transform");
                 });
         }
     }
@@ -354,18 +362,6 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
             *it = (n - index) % 2 ? 0 : 1;
     }
 
-    template <typename TIteratorExpected, typename TIteratorResult>
-    void
-    check_results(TIteratorExpected itBeginExpected, TIteratorExpected itEndExpected,
-                  TIteratorResult itBeginResult, TIteratorResult itEndResult)
-    {
-        const auto sizeExpected = ::std::distance(itBeginExpected, itEndExpected);
-        const auto sizeResult = ::std::distance(itBeginExpected, itEndExpected);
-        EXPECT_EQ(sizeExpected, sizeResult, "Wrong result size after dpl::remove_if");
-
-        EXPECT_EQ_N(itBeginExpected, itBeginResult, sizeExpected, "Wrong result of dpl::remove_if");
-    }
-
     template <typename Policy, typename Iterator1, typename Size>
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
@@ -373,12 +369,13 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
         if constexpr (can_run_modify_test<Policy, Iterator1, PermItIndexTag>())
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for remove_if
+            const auto host_keys_ptr = host_keys.get();
 
             test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
                     // Fill full source data set (not only values iterated by permutation iterator)
-                    generate_data(host_keys.get(), host_keys.get() + n, n);
+                    generate_data(host_keys_ptr, host_keys_ptr + n, n);
                     host_keys.update_data();
 
                     const auto op = [](TestValueType val) { return val > 0; };
@@ -386,11 +383,15 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
                     auto itEndNewRes = dpl::remove_if(exec, permItBegin, permItEnd, op);
                     wait_and_throw(exec);
 
-                    // KSATODO required to implement results check
-                    //check_results(srcDataCopy.begin(), itEndNewExp, permItBegin, itEndNewRes);
-#if ASSERT_ON_NOT_IMPLEMENTED_CHECK
-                    assert(false);
-#endif // ASSERT_ON_NOT_IMPLEMENTED_CHECK
+                    const auto newSize = ::std::distance(permItBegin, itEndNewRes);
+
+                    // Copy data back
+                    dpl::copy(exec, permItBegin, itEndNewRes, host_keys_ptr);
+                    wait_and_throw(exec);
+
+                    // Check results
+                    for (auto it = host_keys_ptr; it != host_keys_ptr + newSize; ++it)
+                        EXPECT_EQ(false, op(*it), "Wrong result size after dpl::remove_if");
                 });
         }
     }
@@ -415,27 +416,29 @@ DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
         if constexpr (can_run_nonmodify_test<Iterator1>())
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for transform_reduce
+            const auto host_keys_ptr = host_keys.get();
+
+            // Fill full source data set (not only values iterated by permutation iterator)
+            generate_data(host_keys_ptr, host_keys_ptr + n, TestValueType{});
+            host_keys.update_data();
 
             test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
-                    // Fill full source data set (not only values iterated by permutation iterator)
-                    generate_data(host_keys.get(), host_keys.get() + n, TestValueType{});
-                    host_keys.update_data();
+                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
 
                     const auto result = dpl::transform_reduce(exec, permItBegin, permItEnd, TestValueType{},
                                                               ::std::plus<TestValueType>(), ::std::negate<TestValueType>());
                     wait_and_throw(exec);
 
-                    // KSATODO required to implement results check
-                    //const auto expected =
-                    //    ::std::transform_reduce(permItBegin, permItEnd, TestValueType{}, ::std::plus<TestValueType>(),
-                    //                            ::std::negate<TestValueType>());
-                    //
-                    //EXPECT_EQ(expected, result, "Wrong result of dpl::transform_reduce");
-#if ASSERT_ON_NOT_IMPLEMENTED_CHECK
-                    assert(false);
-#endif // ASSERT_ON_NOT_IMPLEMENTED_CHECK
+                    // Copy data back
+                    std::vector<TestValueType> sourceData(testing_n);
+                    dpl::copy(exec, permItBegin, permItEnd, sourceData.data());
+                    wait_and_throw(exec);
+
+                    const auto expected = ::std::transform_reduce(sourceData.begin(), sourceData.end(), TestValueType{},
+                                                                  ::std::plus<TestValueType>(), ::std::negate<TestValueType>());
+                    EXPECT_EQ(expected, result, "Wrong result of dpl::transform_reduce");
                 });
         }
     }
@@ -458,46 +461,60 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
     {
         if constexpr (can_run_nonmodify_test<Iterator1>())
         {
-            TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data(1) for merge
-            TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);     // source data(2) for merge
-            TestDataTransfer<UDTKind::eRes,  Size> host_res (*this, n);     // merge results
+            TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);                                 // source data(1) for merge
+            TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);                                 // source data(2) for merge
+            TestDataTransfer<UDTKind::eRes,  Size> host_res (*this, ::std::distance(first3, last3));    // merge results
 
-            assert(::std::distance(first3, last3) >= ::std::distance(first1, last1) + ::std::distance(first2, last2));
+            const auto host_keys_ptr = host_keys.get();
+            const auto host_vals_ptr = host_vals.get();
+            const auto host_res_ptr  = host_res.get();
 
             // Fill full source data set
-            generate_data(host_keys.get(), host_keys.get() + n, TestValueType{});
-            generate_data(host_vals.get(), host_vals.get() + n, TestValueType{} + n / 2);
+            generate_data(host_keys_ptr, host_keys_ptr + n, TestValueType{});
+            generate_data(host_vals_ptr, host_vals_ptr + n, TestValueType{} + n / 2);
+            ::std::fill(host_res_ptr, host_res_ptr + n, TestValueType{});
 
+            // Update data
             host_keys.update_data();
             host_vals.update_data();
+            host_res.update_data();
+
+            assert(::std::distance(first3, last3) >= ::std::distance(first1, last1) + ::std::distance(first2, last2));
 
             test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin1, auto permItEnd1)
                 {
-                    const auto size1 = ::std::distance(permItBegin1, permItEnd1);
+                    const auto testing_n1 = ::std::distance(permItBegin1, permItEnd1);
+
+                    // Copy data back
+                    std::vector<TestValueType> srcData1(testing_n1);
+                    dpl::copy(exec, permItBegin1, permItEnd1, srcData1.data());
+                    wait_and_throw(exec);
 
                     test_through_permutation_iterator_mibt<Iterator2, Size, PermItIndexTag>{first2, n}(
                         [&](auto permItBegin2, auto permItEnd2)
                         {
-                            const auto size2 = ::std::distance(permItBegin1, permItEnd1);
+                            const auto testing_n2 = ::std::distance(permItBegin2, permItEnd2);
 
                             const auto resultEnd = dpl::merge(exec, permItBegin1, permItEnd1, permItBegin2, permItEnd2, first3);
                             wait_and_throw(exec);
+                            const auto resultSize = ::std::distance(first3, resultEnd);
 
-                            host_res.retrieve_data();
+                            // Copy data back
+                            std::vector<TestValueType> srcData2(testing_n2);
+                            dpl::copy(exec, permItBegin2, permItEnd2, srcData2.data());
+                            wait_and_throw(exec);
 
-                            // KSATODO required to implement results check
-                            //std::vector<TestValueType> expected(3 * n);
-                            //
-                            //auto expectedEnd = std::merge(permItBegin1, permItEnd1, permItBegin2, permItEnd2, expected.begin());
-                            //
-                            //const auto expectedSize = ::std::distance(expected.begin(), expectedEnd);
-                            //const auto resultSize = ::std::distance(resultBuf.begin(), resultEnd);
-                            //EXPECT_EQ(expectedSize, resultSize, "Wrong size from dpl::merge");
-                            //EXPECT_EQ_N(expected.begin(), resultBuf.begin(), expectedSize, "Wrong result of dpl::merge");
-#if ASSERT_ON_NOT_IMPLEMENTED_CHECK
-                            assert(false);
-#endif // ASSERT_ON_NOT_IMPLEMENTED_CHECK
+                            std::vector<TestValueType> mergedDataResult(resultSize);
+                            dpl::copy(exec, first3, resultEnd, mergedDataResult.data());
+                            wait_and_throw(exec);
+
+                            // Check results
+                            std::vector<TestValueType> mergedDataExpected(testing_n1 + testing_n2);
+                            auto expectedEnd = std::merge(srcData1.begin(), srcData1.end(), srcData2.begin(), srcData2.end(), mergedDataExpected.data());
+                            const auto expectedSize = ::std::distance(mergedDataExpected.data(), expectedEnd);
+                            EXPECT_EQ(expectedSize, resultSize, "Wrong size from dpl::merge");
+                            EXPECT_EQ_N(mergedDataExpected.begin(), mergedDataResult.begin(), expectedSize, "Wrong result of dpl::merge");
                         });
                 });
         }
@@ -519,33 +536,39 @@ DEFINE_TEST_PERM_IT(test_find, PermItIndexTag)
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
     {
+        assert(n > 0);
+
         if constexpr (can_run_nonmodify_test<Iterator1>())
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for find
+            const auto host_keys_ptr = host_keys.get();
 
             // Fill full source data set
-            generate_data(host_keys.get(), host_keys.get() + n, TestValueType{});
+            generate_data(host_keys_ptr, host_keys_ptr + n, TestValueType{});
             host_keys.update_data();
-
-            assert(n > 0);
-            const auto valueToFind = *host_keys.get();
 
             test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
-                    if (2 <= ::std::distance(permItBegin, permItEnd))
+                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
+
+                    if (testing_n >= 2)
                     {
+                        // Get value to find: the second value
+                        TestValueType valueToFind{};
+                        dpl::copy(exec, permItBegin + 1, permItBegin + 2, &valueToFind);
+                        wait_and_throw(exec);
+
                         const auto result = dpl::find(exec, permItBegin, permItEnd, valueToFind);
                         wait_and_throw(exec);
 
-                        // KSA//TODO: required to implement results check
-                        //EXPECT_TRUE(result != permItEnd, "Wrong result of dpl::find");
-                        //
-                        //const auto foundedVal = *result;
-                        //EXPECT_EQ(foundedVal, valueToFind, "Incorrect value was found in dpl::find");
-#if ASSERT_ON_NOT_IMPLEMENTED_CHECK
-                        assert(false);
-#endif // ASSERT_ON_NOT_IMPLEMENTED_CHECK
+                        EXPECT_TRUE(result != permItEnd, "Wrong result of dpl::find");
+
+                        // Copy data back
+                        TestValueType foundedVal{};
+                        dpl::copy(exec, result, result + 1, &foundedVal);
+                        wait_and_throw(exec);
+                        EXPECT_EQ(foundedVal, valueToFind, "Incorrect value was found in dpl::find");
                     }
                 });
         }
@@ -571,27 +594,30 @@ DEFINE_TEST_PERM_IT(test_is_heap, PermItIndexTag)
         {
             for (bool bCallMakeHeap : {false, true})
             {
-                TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for find
+                TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for is_heap check
+                const auto host_keys_ptr = host_keys.get();
 
                 // Fill full source data set
-                generate_data(host_keys.get(), host_keys.get() + n, TestValueType{});
+                generate_data(host_keys_ptr, host_keys_ptr + n, TestValueType{});
                 if (bCallMakeHeap)
-                    ::std::make_heap(host_keys.get(), host_keys.get());
+                    ::std::make_heap(host_keys_ptr, host_keys_ptr + n);
                 host_keys.update_data();
 
                 test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
                     [&](auto permItBegin, auto permItEnd)
                     {
-                        const auto result = dpl::is_heap(exec, permItBegin, permItEnd);
+                        const auto testing_n = ::std::distance(permItBegin, permItEnd);
+
+                        const auto resultIsHeap = dpl::is_heap(exec, permItBegin, permItEnd);
                         wait_and_throw(exec);
 
-                        // KSA//TODO: required to implement results check
-                        //const auto expected = std::is_heap(permItBegin, permItEnd);
-                        //
-                        //EXPECT_EQ(expected, result, "Wrong result of dpl::is_heap");
-#if ASSERT_ON_NOT_IMPLEMENTED_CHECK
-                        assert(false);
-#endif // ASSERT_ON_NOT_IMPLEMENTED_CHECK
+                        // Copy data back
+                        std::vector<TestValueType> expected(testing_n);
+                        dpl::copy(exec, permItBegin, permItEnd, expected.data());
+                        wait_and_throw(exec);
+
+                        const auto expectedIsHeap = std::is_heap(expected.begin(), expected.end());
+                        EXPECT_EQ(expectedIsHeap, resultIsHeap, "Wrong result of dpl::is_heap");
                     });
             }
         }
@@ -633,32 +659,34 @@ template <typename ValueType, typename PermItIndexTag>
 void
 run_algo_tests_on_sequence()
 {
+    constexpr ::std::size_t kZeroOffset = 0;
+
     // dpl::transform -> __parallel_for (only for random_access_iterator)
-    test_algo_two_sequences<ValueType, test_transform<ValueType, PermItIndexTag>>();
+    test_algo_two_sequences<ValueType, test_transform<ValueType, PermItIndexTag>>(kZeroOffset, kZeroOffset);
 
     // dpl::reduce, dpl::transform_reduce -> __parallel_transform_reduce (only for random_access_iterator)
-    test_algo_one_sequence<ValueType, test_transform_reduce<ValueType, PermItIndexTag>>();
+    test_algo_one_sequence<ValueType, test_transform_reduce<ValueType, PermItIndexTag>>(kZeroOffset);
 
     // dpl::merge, dpl::inplace_merge -> __parallel_merge
     if constexpr (!::std::is_same_v<PermItIndexTag, perm_it_index_tags::transform_iterator>)
     {
-        test_algo_three_sequences<ValueType, test_merge<ValueType, PermItIndexTag>>(2);
+        test_algo_three_sequences<ValueType, test_merge<ValueType, PermItIndexTag>>(2, kZeroOffset, kZeroOffset, kZeroOffset);
     }
 
     // dpl::find, dpl::find_if, dpl::find_if_not -> __parallel_find -> _parallel_find_or
-    test_algo_one_sequence<ValueType, test_find<ValueType, PermItIndexTag>>();
+    test_algo_one_sequence<ValueType, test_find<ValueType, PermItIndexTag>>(kZeroOffset);
 
     // dpl::is_heap, dpl::includes -> __parallel_or -> _parallel_find_or
-    test_algo_one_sequence<ValueType, test_is_heap<ValueType, PermItIndexTag>>();
+    test_algo_one_sequence<ValueType, test_is_heap<ValueType, PermItIndexTag>>(kZeroOffset);
 
     // dpl::remove_if -> __parallel_transform_scan (only for random_access_iterator)
-    test_algo_one_sequence<ValueType, test_remove_if<ValueType, PermItIndexTag>>();
+    test_algo_one_sequence<ValueType, test_remove_if<ValueType, PermItIndexTag>>(kZeroOffset);
 
     // test_sort : dpl::sort -> __parallel_stable_sort (only for random_access_iterator)
-    test_algo_one_sequence<ValueType, test_sort<ValueType, PermItIndexTag>>();
+    test_algo_one_sequence<ValueType, test_sort<ValueType, PermItIndexTag>>(kZeroOffset);
 
     // dpl::partial_sort -> __parallel_partial_sort (only for random_access_iterator)
-    test_algo_one_sequence<ValueType, test_partial_sort<ValueType, PermItIndexTag>>();
+    test_algo_one_sequence<ValueType, test_partial_sort<ValueType, PermItIndexTag>>(kZeroOffset);
 }
 
 template <typename ValueType, typename PermItIndexTag>
