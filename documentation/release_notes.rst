@@ -13,20 +13,17 @@ New in 2022.4.0
 
 New Features
 ------------
-- Added highly configurable ``radix_sort`` and ``radix_sort_by_key`` algorithms
-  residing in ``oneapi::dpl::experimental::kt::esimd`` namespace, which work with Intel® Data Center GPU Max Series.
-  They can be parameterized by a number of elements processed by a work-item,
-  number of work-items in a work-group to achieve the best performance depending on
-  input characteristics such as a number of elements and their type.
-- Added new ``transform_if`` algorithm for conditionally applying a transform based on
-  a predicate to the input sequence(s). Overloads exist for a single input sequence with
-  a unary transform and unary predicate and for a pair of input sequences with
-  a binary transform and binary predicate.
-- Improved performance of most of algorithms used with DPC++ execution policies,
-  when a program is built with oneAPI DPC++ compiler, by applying optimizations which
-  are already effective with Intel oneAPI DPC++/C++ Compiler.
-- Improved algorithms performance for the host data types (the host iterators) and DPC++ execution policies.
-- Improved compile time diagnostic for the unsupported data types.
+- Added experimental ``radix_sort`` and ``radix_sort_by_key`` algorithms residing in
+  the ``oneapi::dpl::experimental::kt::esimd`` namespace. These algorithms are first
+  in the family of _kernel templates_ that allow configuring a variety of parameters
+  including the number of elements to process by a work item, and the size of a workgroup.
+  The algorithms only work with Intel® Data Center GPU Max Series.
+- Added new ``transform_if`` algorithm for applying a transform function conditionally
+  based on a predicate, with overloads provided for one and two input sequences
+  that use correspondingly unary and binary operations and predicates.
+- Optimizations used with Intel oneAPI DPC++/C++ Compiler are expanded to the open source oneAPI DPC++ compiler.
+- Improved performance of algorithms with device execution policies applied to host data containers.
+- Improved compile time diagnostic for unsupported data types.
 
 New in 2022.3.0
 ===============
