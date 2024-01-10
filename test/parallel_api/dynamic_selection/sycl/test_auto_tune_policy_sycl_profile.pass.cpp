@@ -457,7 +457,7 @@ build_auto_tune_universe1(std::vector<sycl::queue>& u)
     try
     {
         auto device_cpu = sycl::device(sycl::cpu_selector_v);
-        sycl::queue cpu_queue{device_cpu};
+        sycl::queue cpu_queue{device_cpu, prop_list};
         run_sycl_sanity_test(cpu_queue);
         u.push_back(cpu_queue);
     }
@@ -468,7 +468,7 @@ build_auto_tune_universe1(std::vector<sycl::queue>& u)
     try
     {
         auto device_gpu = sycl::device(sycl::gpu_selector_v);
-        sycl::queue gpu_queue{device_gpu};
+        sycl::queue gpu_queue{device_gpu, prop_list};
         run_sycl_sanity_test(gpu_queue);
         u.push_back(gpu_queue);
     }
