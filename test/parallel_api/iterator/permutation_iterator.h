@@ -193,10 +193,20 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
     {
         using ValueType = typename ::std::iterator_traits<TSourceIterator>::value_type;
 
-        auto no_transformation = [](ValueType val) { return val; };
+        // Attention: we are unable to use lambda here due compile errors in tbb backend: lambda isn't default constractible.
+        //auto no_transformation = [](ValueType val) { return val; };
+        struct NoTransform
+        {
+            ValueType operator()(const ValueType& val) const
+            {
+                return val;
+            }
+        };
 
-        op(dpl::make_transform_iterator(data.itSource, no_transformation),
-           dpl::make_transform_iterator(data.itSource, no_transformation) + data.src_data_size);
+        auto itTransformBegin = dpl::make_transform_iterator(data.itSource, NoTransform{});
+        auto itTransformEnd = itTransformBegin + data.src_data_size;
+
+        op(itTransformBegin, itTransformEnd);
     }
 };
 

@@ -36,19 +36,18 @@ using namespace TestUtils;
 // 
 // Table: Current test state
 // 
-// +------------------------+-----------------------+-----------+--------------------------------------+-------------------------------------------------+---------------+
-// +       Test name        |     Algorithm         + Is modify +         Pattern                      +                Host policy                      + Hetero policy +
-// +------------------------+-----------------------+-----------+--------------------------------------+-------------------------------------------------+---------------+
-// | test_transform         | dpl::transform        |     N     | __parallel_for                       |                     +                           |       +       |
-// | test_transform_reduce  | dpl::transform_reduce |     N     | __parallel_transform_reduce          |                     +                           |       +       |
-// | test_find              | dpl::find             |     N     | __parallel_find -> _parallel_find_or |                     +                           |       +       |
-// | test_is_heap           | dpl::is_heap          |     N     | __parallel_or -> _parallel_find_or   |                     +                           |       +       |
-// | test_merge             | dpl::merge            |     N     | __parallel_merge                     | exc. perm_it_index_tags::transform_iterator(1)  |       +       |
-// | test_sort              | dpl::sort             |     Y     | __parallel_stable_sort               | exc. perm_it_index_tags::transform_iterator     |       -       |
-// | test_partial_sort      | dpl::partial_sort     |     Y     | __parallel_partial_sort              | exc. perm_it_index_tags::transform_iterator     |       -       |
-// | test_remove_if         | dpl::remove_if        |     Y     | __parallel_transform_scan            | exc. perm_it_index_tags::transform_iterator     |       -       |
-// +------------------------+-----------------------+-----------+--------------------------------------+-------------------------------------------------+---------------+
-// TODO: compile error in case(1) looks like an error in host implementation of dpl::merge
+// +------------------------+-----------------------+-----------+--------------------------------------+---------------------------------------------+---------------+
+// +       Test name        |     Algorithm         + Is modify +         Pattern                      +                Host policy                  + Hetero policy +
+// +------------------------+-----------------------+-----------+--------------------------------------+---------------------------------------------+---------------+
+// | test_transform         | dpl::transform        |     N     | __parallel_for                       |                     +                       |       +       |
+// | test_transform_reduce  | dpl::transform_reduce |     N     | __parallel_transform_reduce          |                     +                       |       +       |
+// | test_find              | dpl::find             |     N     | __parallel_find -> _parallel_find_or |                     +                       |       +       |
+// | test_is_heap           | dpl::is_heap          |     N     | __parallel_or -> _parallel_find_or   |                     +                       |       +       |
+// | test_merge             | dpl::merge            |     N     | __parallel_merge                     | exc. perm_it_index_tags::transform_iterator |       +       |
+// | test_sort              | dpl::sort             |     Y     | __parallel_stable_sort               | exc. perm_it_index_tags::transform_iterator |       -       |
+// | test_partial_sort      | dpl::partial_sort     |     Y     | __parallel_partial_sort              | exc. perm_it_index_tags::transform_iterator |       -       |
+// | test_remove_if         | dpl::remove_if        |     Y     | __parallel_transform_scan            | exc. perm_it_index_tags::transform_iterator |       -       |
+// +------------------------+-----------------------+-----------+--------------------------------------+---------------------------------------------+---------------+
 
 namespace
 {
@@ -668,10 +667,7 @@ run_algo_tests_on_sequence()
     test_algo_one_sequence<ValueType, test_transform_reduce<ValueType, PermItIndexTag>>(kZeroOffset);
 
     // dpl::merge, dpl::inplace_merge -> __parallel_merge
-    if constexpr (!::std::is_same_v<PermItIndexTag, perm_it_index_tags::transform_iterator>)
-    {
-        test_algo_three_sequences<ValueType, test_merge<ValueType, PermItIndexTag>>(2, kZeroOffset, kZeroOffset, kZeroOffset);
-    }
+    test_algo_three_sequences<ValueType, test_merge<ValueType, PermItIndexTag>>(2, kZeroOffset, kZeroOffset, kZeroOffset);
 
     // dpl::find, dpl::find_if, dpl::find_if_not -> __parallel_find -> _parallel_find_or
     test_algo_one_sequence<ValueType, test_find<ValueType, PermItIndexTag>>(kZeroOffset);
