@@ -22,8 +22,6 @@ New Features
   based on a predicate, with overloads provided for one and two input sequences
   that use correspondingly unary and binary operations and predicates.
 - Optimizations used with Intel oneAPI DPC++/C++ Compiler are expanded to the open source oneAPI DPC++ compiler.
-- Improved performance of algorithms with device execution policies applied to host data containers.
-- Improved compile time diagnostic for unsupported data types.
 
 New in 2022.3.0
 ===============
