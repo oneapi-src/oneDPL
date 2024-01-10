@@ -477,7 +477,8 @@ struct permutation_view_simple<_Source, _M, ::std::enable_if_t<oneapi::dpl::__in
 
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
-    decltype(auto) operator[](Idx __i) const
+    decltype(auto)
+    operator[](Idx __i) const
     {
         return __src[__map_fn(__i)];
     }
@@ -515,7 +516,8 @@ struct permutation_view_simple<_Source, _M, ::std::enable_if_t<is_map_view<_M>::
 
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying range
     template <typename Idx>
-    decltype(auto) operator[](Idx __i) const
+    decltype(auto)
+    operator[](Idx __i) const
     {
         return __src[__map[__i]];
     }
