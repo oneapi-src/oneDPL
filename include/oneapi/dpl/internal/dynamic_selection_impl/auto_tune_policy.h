@@ -124,6 +124,7 @@ class auto_tune_policy
             {
                 // ignore the 1st timing to cover for JIT compilation
                 time_by_index_[index] = time_data_t{0, std::numeric_limits<timing_t>::max()};
+                std::cout<<"This timing is ignored\n";
             }
             else
             {
@@ -132,6 +133,7 @@ class auto_tune_policy
                 new_value = (n * td.value_ + t) / (n + 1);
                 td.num_timings_ = n + 1;
                 td.value_ = new_value;
+
             }
             if (new_value < best_timing_)
             {
@@ -221,6 +223,7 @@ class auto_tune_policy
             auto k = make_task_key(std::forward<Function>(f), std::forward<Args>(args)...);
             auto t = state_->tuner_by_key_[k];
             auto index = t->get_resource_to_profile();
+            std::cout<<"Device used : "<<index<<"\n";
             if (index == use_best_resource)
             {
                 return selection_type{*this, t->best_resource_, t};
