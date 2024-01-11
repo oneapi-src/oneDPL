@@ -36,16 +36,16 @@ using namespace TestUtils;
 // Table: Current test state
 // 
 // +------------------------+-----------------------+-----------+--------------------------------------+---------------------------------------------+---------------+
-// +       Test name        |     Algorithm         + Is modify +         Pattern                      +                Host policy                  + Hetero policy +
+// +       Test name        |     Algorithm         + Is modify +         Pattern                      + Host policy + Hetero policy +
 // +------------------------+-----------------------+-----------+--------------------------------------+---------------------------------------------+---------------+
-// | test_transform         | dpl::transform        |     N     | __parallel_for                       |                     +                       |       +       |
-// | test_transform_reduce  | dpl::transform_reduce |     N     | __parallel_transform_reduce          |                     +                       |       +       |
-// | test_find              | dpl::find             |     N     | __parallel_find -> _parallel_find_or |                     +                       |       +       |
-// | test_is_heap           | dpl::is_heap          |     N     | __parallel_or -> _parallel_find_or   |                     +                       |       +       |
-// | test_merge             | dpl::merge            |     N     | __parallel_merge                     | exc. perm_it_index_tags::transform_iterator |       +       |
-// | test_sort              | dpl::sort             |     Y     | __parallel_stable_sort               | exc. perm_it_index_tags::transform_iterator |       -       |
-// | test_partial_sort      | dpl::partial_sort     |     Y     | __parallel_partial_sort              | exc. perm_it_index_tags::transform_iterator |       -       |
-// | test_remove_if         | dpl::remove_if        |     Y     | __parallel_transform_scan            | exc. perm_it_index_tags::transform_iterator |       -       |
+// | test_transform         | dpl::transform        |     N     | __parallel_for                       |     +       |              +                |
+// | test_transform_reduce  | dpl::transform_reduce |     N     | __parallel_transform_reduce          |     +       |              +                |
+// | test_find              | dpl::find             |     N     | __parallel_find -> _parallel_find_or |     +       |              +                |
+// | test_is_heap           | dpl::is_heap          |     N     | __parallel_or -> _parallel_find_or   |     +       |              +                |
+// | test_merge             | dpl::merge            |     N     | __parallel_merge                     |     +       |              +                |
+// | test_sort              | dpl::sort             |     Y     | __parallel_stable_sort               |     +       | exc. perm_it_index_tags::host |
+// | test_partial_sort      | dpl::partial_sort     |     Y     | __parallel_partial_sort              |     +       | exc. perm_it_index_tags::host |
+// | test_remove_if         | dpl::remove_if        |     Y     | __parallel_transform_scan            |     +       | exc. perm_it_index_tags::host |
 // +------------------------+-----------------------+-----------+--------------------------------------+---------------------------------------------+---------------+
 
 namespace
@@ -55,36 +55,12 @@ struct is_able_to_modify_src_data_in_test : ::std::true_type { };
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <typename ExecutionPolicy>
-struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::counting>
-    : ::std::true_type
-{
-};
-
-template <typename ExecutionPolicy>
 struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::host>
     : ::std::negation<oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<ExecutionPolicy>>>
 {
 };
 
-template <typename ExecutionPolicy>
-struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::usm_shared>
-    : ::std::true_type
-{
-};
-
 #endif // TEST_DPCPP_BACKEND_PRESENT
-
-template <typename ExecutionPolicy>
-struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::transform_iterator>
-    : ::std::true_type
-{
-};
-
-template <typename ExecutionPolicy>
-struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::callable_object>
-    : ::std::true_type
-{
-};
 };
 
 // Check ability to run non-modifying source data test
