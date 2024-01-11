@@ -24,6 +24,14 @@ inline namespace igpu
 
 namespace __impl
 {
+
+template <typename... _Name>
+class __lookback_init_kernel;
+
+template <typename... _Name>
+class __lookback_kernel;
+
+
 static constexpr int SUBGROUP_SIZE = 32;
 
 template <typename _T>
@@ -105,6 +113,29 @@ struct __scan_status_flag
     _AtomicRefT __atomic_flag;
 };
 
+template <
+           typename _KernelName>
+struct __lookback_init_submitter;
+
+template <
+          typename... _Name>
+struct __lookback_init_submitter<
+                                     oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+{
+    template <typename _StatusFlags, typename _Flag>
+    sycl::event
+    operator()(sycl::queue __q, _StatusFlags&& __status_flags, ::std::size_t __status_flags_size, ::std::uint16_t __status_flag_padding, _Flag __oob_value) const
+    {
+        return __q.submit([&](sycl::handler& __hdl) {
+        __hdl.parallel_for<_Name...>(sycl::range<1>{__status_flags_size}, [=](const sycl::item<1>& __item) {
+            auto __id = __item.get_linear_id();
+            __status_flags[__id] = __id < __status_flag_padding ? __oob_value : 0;
+        });
+    });
+    }
+};
+
+
 template <bool _Inclusive, typename _InRange, typename _OutRange, typename _BinaryOp, typename _KernelParam>
 sycl::event
 __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op,
@@ -113,6 +144,12 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
     using _FlagType = __scan_status_flag<_Type>;
     using _FlagStorageType = __scan_status_flag<_Type>::_StorageType;
+
+    using _KernelName = typename _KernelParam::kernel_name;
+    using _LookbackInitKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __lookback_init_kernel<_KernelName>>;
+    using _LookbackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        __lookback_kernel<_KernelName>>;
 
     const ::std::size_t __n = __in_rng.size();
 
@@ -142,12 +179,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
 
     _FlagStorageType* __status_flags = sycl::malloc_device<_FlagStorageType>(__status_flags_size, __queue);
 
-    auto __fill_event = __queue.submit([&](sycl::handler& __hdl) {
-        __hdl.parallel_for<class scan_kt_init>(sycl::range<1>{__status_flags_size}, [=](const sycl::item<1>& __item) {
-            auto __id = __item.get_linear_id();
-            __status_flags[__id] = __id < __status_flag_padding ? _FlagType::__oob_value : 0;
-        });
-    });
+    auto __fill_event = __lookback_init_submitter<_LookbackInitKernel>{}(__queue, __status_flags, __status_flags_size, __status_flag_padding, _FlagType::__oob_value);
 
     sycl::event __prev_event = __fill_event;
     for (int __chunk = 0; __chunk < __num_chunks; ++__chunk)

@@ -111,7 +111,6 @@ test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
-
 template <typename T, typename KernelParam>
 void
 test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
