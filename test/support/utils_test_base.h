@@ -426,14 +426,14 @@ create_test_obj(TestBaseData&)
 // Used with algorithms that have two input sequences and one output sequences
 template <typename T, typename TestName, typename TPolicyInvoker = default_sequence_invoker>
 void
-test_algo_one_sequence()
+test_algo_one_sequence(::std::size_t offset1 = inout1_offset)
 {
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         //TODO: consider to use class TestUtils::Sequence directly. Actually, we don't need any special action for input/output data here.
         using TestBaseData = test_base_data_sequence<T>;
 
-        TestBaseData test_base_data({{max_n, inout1_offset}});
+        TestBaseData test_base_data({{max_n, offset1}});
 
         // create iterators
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
@@ -445,24 +445,24 @@ test_algo_one_sequence()
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestName, typename TPolicyInvoker = default_sequence_invoker>
 ::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
-test_algo_one_sequence()
+test_algo_one_sequence(::std::size_t offset1 = inout1_offset)
 {
-    test_algo_one_sequence<typename TestName::UsedValueType, TestName, TPolicyInvoker>();
+    test_algo_one_sequence<typename TestName::UsedValueType, TestName, TPolicyInvoker>(offset1);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and one output sequences
 template <typename T, typename TestName, typename TPolicyInvoker = default_sequence_invoker>
 void
-test_algo_two_sequences()
+test_algo_two_sequences(::std::size_t offset1 = inout1_offset, ::std::size_t offset2 = inout2_offset)
 {
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         //TODO: consider to use class TestUtils::Sequence directly. Actually, we don't need any special action for input/output data here.
         using TestBaseData = test_base_data_sequence<T>;
 
-        TestBaseData test_base_data({ { max_n, inout1_offset },
-                                      { max_n, inout2_offset } });
+        TestBaseData test_base_data({ { max_n, offset1 },
+                                      { max_n, offset2 } });
 
         // create iterators
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
@@ -478,25 +478,28 @@ test_algo_two_sequences()
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestName, typename TPolicyInvoker = default_sequence_invoker>
 ::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
-test_algo_two_sequences()
+test_algo_two_sequences(::std::size_t offset1 = inout1_offset, ::std::size_t offset2 = inout2_offset)
 {
-    test_algo_two_sequences<typename TestName::UsedValueType, TestName, TPolicyInvoker>();
+    test_algo_two_sequences<typename TestName::UsedValueType, TestName, TPolicyInvoker>(offset1, offset2);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
 // Used with algorithms that have two input sequences and one output sequences
 template <typename T, typename TestName, typename TPolicyInvoker = default_sequence_invoker>
 void
-test_algo_three_sequences(int mult = kDefaultMultValue)
+test_algo_three_sequences(int mult = kDefaultMultValue,
+                          ::std::size_t offset1 = inout1_offset,
+                          ::std::size_t offset2 = inout2_offset,
+                          ::std::size_t offset3 = inout3_offset)
 {
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
         //TODO: consider to use class TestUtils::Sequence directly. Actually, we don't need any special action for input/output data here.
         using TestBaseData = test_base_data_sequence<T>;
 
-        TestBaseData test_base_data({ { max_n,        inout1_offset },
-                                      { max_n,        inout2_offset },
-                                      { max_n * mult, inout3_offset } });
+        TestBaseData test_base_data({ { max_n,        offset1 },
+                                      { max_n,        offset2 },
+                                      { max_n * mult, offset3 } });
 
         // create iterators
         auto inout1_offset_first = test_base_data.get_start_from(UDTKind::eKeys);
@@ -514,9 +517,12 @@ test_algo_three_sequences(int mult = kDefaultMultValue)
 //--------------------------------------------------------------------------------------------------------------------//
 template <typename TestName, typename TPolicyInvoker = default_sequence_invoker>
 ::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
-test_algo_three_sequences()
+test_algo_three_sequences(int mult = kDefaultMultValue,
+                          ::std::size_t offset1 = inout1_offset,
+                          ::std::size_t offset2 = inout2_offset,
+                          ::std::size_t offset3 = inout3_offset)
 {
-    test_algo_three_sequences<typename TestName::UsedValueType, TestName, TPolicyInvoker>();
+    test_algo_three_sequences<typename TestName::UsedValueType, TestName, TPolicyInvoker>(mult, offset1, offset2, offset3);
 }
 
 //--------------------------------------------------------------------------------------------------------------------//
