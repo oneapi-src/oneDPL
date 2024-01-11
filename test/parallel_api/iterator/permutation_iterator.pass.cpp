@@ -213,7 +213,7 @@ DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag)
 
                     // Copy data back
                     std::vector<TestValueType> resultTest(testing_n);
-                    dpl::copy(exec, permItBegin, permItEnd, resultTest.data());
+                    dpl::copy(exec, permItBegin, permItEnd, resultTest.begin());
                     wait_and_throw(exec);
 
                     // Check results
@@ -269,7 +269,7 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
 
                         // Copy data back
                         std::vector<TestValueType> partialSortResult(p);
-                        dpl::copy(exec, permItBegin, permItBegin + p, partialSortResult.data());
+                        dpl::copy(exec, permItBegin, permItBegin + p, partialSortResult.begin());
                         wait_and_throw(exec);
 
                         // Check results
@@ -339,16 +339,16 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
 
                     // Copy data back
                     std::vector<TestValueType> sourceData(testing_n);
-                    dpl::copy(exec, permItBegin, permItEnd, sourceData.data());
+                    dpl::copy(exec, permItBegin, permItEnd, sourceData.begin());
                     wait_and_throw(exec);
                     std::vector<TestValueType> transformedDataResult(testing_n);
-                    dpl::copy(exec, first2, itResultEnd, transformedDataResult.data());
+                    dpl::copy(exec, first2, itResultEnd, transformedDataResult.begin());
                     wait_and_throw(exec);
 
                     // Check results
                     std::vector<TestValueType> transformedDataExpected(testing_n);
-                    const auto itExpectedEnd = ::std::transform(sourceData.begin(), sourceData.end(), transformedDataExpected.data(), TransformOp{});
-                    const auto expectedSize = ::std::distance(transformedDataExpected.data(), itExpectedEnd);
+                    const auto itExpectedEnd = ::std::transform(sourceData.begin(), sourceData.end(), transformedDataExpected.begin(), TransformOp{});
+                    const auto expectedSize = ::std::distance(transformedDataExpected.begin(), itExpectedEnd);
                     EXPECT_EQ(expectedSize, resultSize, "Wrong size from dpl::transform");
                     EXPECT_EQ_N(transformedDataExpected.begin(), transformedDataResult.begin(), expectedSize, "Wrong result of dpl::transform");
                 });
@@ -390,7 +390,7 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
 
                     // Copy source data back
                     std::vector<TestValueType> sourceData(testing_n);
-                    dpl::copy(exec, permItBegin, permItEnd, sourceData.data());
+                    dpl::copy(exec, permItBegin, permItEnd, sourceData.begin());
                     wait_and_throw(exec);
 
                     const auto op = [](TestValueType val) { return val > 0; };
@@ -402,7 +402,7 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
 
                     // Copy modified data back
                     std::vector<TestValueType> resultRemoveIf(newSizeResult);
-                    dpl::copy(exec, permItBegin, itEndNewRes, resultRemoveIf.data());
+                    dpl::copy(exec, permItBegin, itEndNewRes, resultRemoveIf.begin());
                     wait_and_throw(exec);
 
                     // Eval expected result
@@ -454,7 +454,7 @@ DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
 
                     // Copy data back
                     std::vector<TestValueType> sourceData(testing_n);
-                    dpl::copy(exec, permItBegin, permItEnd, sourceData.data());
+                    dpl::copy(exec, permItBegin, permItEnd, sourceData.begin());
                     wait_and_throw(exec);
 
                     const auto expected = ::std::transform_reduce(sourceData.begin(), sourceData.end(), TestValueType{},
@@ -509,7 +509,7 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 
                     // Copy data back
                     std::vector<TestValueType> srcData1(testing_n1);
-                    dpl::copy(exec, permItBegin1, permItEnd1, srcData1.data());
+                    dpl::copy(exec, permItBegin1, permItEnd1, srcData1.begin());
                     wait_and_throw(exec);
 
                     test_through_permutation_iterator<Iterator2, Size, PermItIndexTag>{first2, n}(
@@ -523,17 +523,17 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 
                             // Copy data back
                             std::vector<TestValueType> srcData2(testing_n2);
-                            dpl::copy(exec, permItBegin2, permItEnd2, srcData2.data());
+                            dpl::copy(exec, permItBegin2, permItEnd2, srcData2.begin());
                             wait_and_throw(exec);
 
                             std::vector<TestValueType> mergedDataResult(resultSize);
-                            dpl::copy(exec, first3, resultEnd, mergedDataResult.data());
+                            dpl::copy(exec, first3, resultEnd, mergedDataResult.begin());
                             wait_and_throw(exec);
 
                             // Check results
                             std::vector<TestValueType> mergedDataExpected(testing_n1 + testing_n2);
-                            auto expectedEnd = std::merge(srcData1.begin(), srcData1.end(), srcData2.begin(), srcData2.end(), mergedDataExpected.data());
-                            const auto expectedSize = ::std::distance(mergedDataExpected.data(), expectedEnd);
+                            auto expectedEnd = std::merge(srcData1.begin(), srcData1.end(), srcData2.begin(), srcData2.end(), mergedDataExpected.begin());
+                            const auto expectedSize = ::std::distance(mergedDataExpected.begin(), expectedEnd);
                             EXPECT_EQ(expectedSize, resultSize, "Wrong size from dpl::merge");
                             EXPECT_EQ_N(mergedDataExpected.begin(), mergedDataResult.begin(), expectedSize, "Wrong result of dpl::merge");
                         });
@@ -634,7 +634,7 @@ DEFINE_TEST_PERM_IT(test_is_heap, PermItIndexTag)
 
                         // Copy data back
                         std::vector<TestValueType> expected(testing_n);
-                        dpl::copy(exec, permItBegin, permItEnd, expected.data());
+                        dpl::copy(exec, permItBegin, permItEnd, expected.begin());
                         wait_and_throw(exec);
 
                         const auto expectedIsHeap = std::is_heap(expected.begin(), expected.end());
