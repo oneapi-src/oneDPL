@@ -20,6 +20,10 @@
 #include <iostream>
 #endif
 
+#if _ENABLE_RANGES_TESTING
+#    include <oneapi/dpl/ranges>
+#endif
+
 #include "../support/test_config.h"
 #include "../support/utils.h"
 #include "../support/sycl_alloc_utils.h"
@@ -31,6 +35,32 @@ inline const std::vector<std::size_t> scan_sizes = {
     5072,    8192,      14001,   1 << 14,   (1 << 14) + 1, 50000,         67543,
     100'000, 1 << 17,   179'581, 250'000,   1 << 18,       (1 << 18) + 1, 500'000,
     888'235, 1'000'000, 1 << 20, 10'000'000};
+
+#if _ENABLE_RANGES_TESTING
+template <typename T, typename KernelParam>
+void
+test_all_view(sycl::queue q, std::size_t size, KernelParam param)
+{
+#if LOG_TEST_INFO
+    std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
+#endif
+    std::vector<T> input(size);
+    generate_data(input.data(), size, 42);
+    std::vector<T> ref(input);
+    std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref));
+    {
+        sycl::buffer<T> buf(input.data(), input.size());
+        oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
+        sycl::buffer<T> buf_out(input.size());
+        oneapi::dpl::experimental::kt::inclusive_scan(q, view, view, ::std::plus<T>(),
+                                                                      param)
+            .wait();
+    }
+
+    std::string msg = "wrong results with all_view, n: " + std::to_string(size);
+    EXPECT_EQ_RANGES(ref, input, msg.c_str());
+}
+#endif
 
 template <typename T, sycl::usm::alloc _alloc_type, typename KernelParam>
 void
@@ -48,7 +78,7 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
 
     std::inclusive_scan(expected.begin(), expected.end(), expected.begin());
 
-    oneapi::dpl::experimental::kt::single_pass_inclusive_scan(q, dt_input.get_data(), dt_input.get_data() + size, dt_output.get_data(), ::std::plus<T>(), param)
+    oneapi::dpl::experimental::kt::inclusive_scan(q, dt_input.get_data(), dt_input.get_data() + size, dt_output.get_data(), ::std::plus<T>(), param)
         .wait();
 
     std::vector<T> actual(size);
@@ -72,7 +102,7 @@ test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         sycl::buffer<T> buf_out(input.size());
-        oneapi::dpl::experimental::kt::single_pass_inclusive_scan(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), oneapi::dpl::begin(buf_out), ::std::plus<T>(),
+        oneapi::dpl::experimental::kt::inclusive_scan(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), oneapi::dpl::begin(buf_out), ::std::plus<T>(),
                                                                       param)
             .wait();
     }
@@ -89,6 +119,9 @@ test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
     test_usm<T, sycl::usm::alloc::shared>(q, size, param);
     test_usm<T, sycl::usm::alloc::device>(q, size, param);
     test_sycl_iterators<T>(q, size, param);
+#if _ENABLE_RANGES_TESTING
+    test_all_view<T>(q, size, param);
+#endif
 }
 
 

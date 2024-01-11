@@ -22,6 +22,8 @@ namespace oneapi::dpl::experimental::kt
 inline namespace igpu
 {
 
+namespace __impl
+{
 static constexpr int SUBGROUP_SIZE = 32;
 
 template <typename _T>
@@ -105,19 +107,23 @@ struct __scan_status_flag
 
 template <bool _Inclusive, typename _InRange, typename _OutRange, typename _BinaryOp, typename _KernelParam>
 sycl::event
-single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op,
+__single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op,
                       _KernelParam)
 {
     using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
     using _FlagType = __scan_status_flag<_Type>;
     using _FlagStorageType = __scan_status_flag<_Type>::_StorageType;
 
+    const ::std::size_t __n = __in_rng.size();
+
+    if (__n == 0)
+      return sycl::event{};
+
     static_assert(_Inclusive, "Single-pass scan only available for inclusive scan");
 
     assert("This device does not support 64-bit atomics" &&
            (sizeof(_Type) < 64 || __queue.get_device().has(sycl::aspect::atomic64)));
 
-    const ::std::size_t __n = __in_rng.size();
 
     // We need to process the input array by 2^30 chunks for 32-bit ints
     constexpr ::std::size_t __chunk_size = 1ul << (sizeof(_Type) * 8 - 2);
@@ -219,23 +225,30 @@ single_pass_scan_impl(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __ou
     return __free_event;
 }
 
+} // namespace __impl
+
+template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _KernelParam>
+sycl::event
+inclusive_scan(sycl::queue __queue, _InRng __in_rng, _OutRng __out_rng,
+                           _BinaryOp __binary_op, _KernelParam __param)
+{
+
+    return __impl::__single_pass_scan<true>(__queue, __in_rng, __out_rng, __binary_op, __param);
+}
+
 template <typename _InIterator, typename _OutIterator, typename _BinaryOp, typename _KernelParam>
 sycl::event
-single_pass_inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
+inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
                            _BinaryOp __binary_op, _KernelParam __param)
 {
     auto __n = __in_end - __in_begin;
-
-    // TODO: check semantics
-    if (__n == 0)
-        return sycl::event{};
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _InIterator>();
     auto __buf1 = __keep1(__in_begin, __in_end);
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _OutIterator>();
     auto __buf2 = __keep2(__out_begin, __out_begin + __n);
 
-    return single_pass_scan_impl<true>(__queue, __buf1.all_view(), __buf2.all_view(), __binary_op, __param);
+    return __impl::__single_pass_scan<true>(__queue, __buf1.all_view(), __buf2.all_view(), __binary_op, __param);
 }
 
 } // namespace igpu
