@@ -113,7 +113,7 @@ int
 main()
 {
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
-    EXPECT_EQ(0, test_runner(), "");
+    EXPECT_EQ(0, test_runner(), "test_runner failed either on the default, cpu or gpu queue");
 #endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 
     return TestUtils::done(TEST_DYNAMIC_SELECTION_AVAILABLE);
