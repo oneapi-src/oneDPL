@@ -25,7 +25,7 @@ Radix Sort
 
    } // namespace esimd
 
-The functions sort data using the radix sort algorithm. For a small number of elements to sort, they invoke a single-work-group implementation; otherwise, they use a multiple-work-group implementation based on the onesweep algorithm variant.
+The functions sort data using the radix sort algorithm. For a small number of elements to sort, they invoke a single-work-group implementation; otherwise, they use a multiple-work-group implementation based on the `onesweep <https://arxiv.org/abs/2206.01784>`_ algorithm variant.
 
 Template Parameters
 --------------------
