@@ -381,10 +381,64 @@ struct __range_holder
     }
 };
 
-template <sycl::access::mode AccMode, typename _Iterator>
+template <typename _ExecutionPolicy, typename _T, bool>
+struct __sycl_usm_buf_free;
+
+template <typename _ExecutionPolicy, typename _T>
+struct __sycl_usm_buf_free<_ExecutionPolicy, _T, true/*write back*/>
+{
+    using __diff_type = typename std::iterator_traits<_T*>::difference_type;
+
+    _ExecutionPolicy __exec;
+    _T* __data = NULL;
+    __diff_type __size = 0;
+
+    void
+    operator()(_T* __memory) const
+    {
+        // don't  call algo wait here because it called above on the the stack
+        __exec.queue().copy(__memory, __data, __size).wait();
+
+        sycl::free(__memory, __exec.queue().get_context());
+    }
+};
+
+template <typename _ExecutionPolicy, typename _T>
+struct __sycl_usm_buf_free<_ExecutionPolicy, _T, false/*no write back*/>
+{
+    _ExecutionPolicy __exec;
+    template<typename _Data, typename _Size>
+    __sycl_usm_buf_free(_ExecutionPolicy&& __e, _Data, _Size): __exec(__e) {}
+    void
+    operator()(_T* __memory) const
+    {
+        sycl::free(__memory, __exec.queue().get_context());
+    }
+};
+
+template <typename _ExecutionPolicy, typename _T, bool __is_copy_direct>
+struct __sycl_usm_buf_alloc
+{
+    using __diff_type = typename std::iterator_traits<_T*>::difference_type;
+    _ExecutionPolicy __exec;
+
+    _T*
+    operator()(const _T* __data, __diff_type __size) const
+    {
+        const auto& __queue = __exec.queue();
+        auto __ptr = (_T*)sycl::malloc(sizeof(_T) * __size, __queue.get_device(), __queue.get_context(), sycl::usm::alloc::device);
+
+        if constexpr (__is_copy_direct)
+            __exec.queue().copy(__data, __ptr, __size).wait();
+        return __ptr;
+    }
+};
+
+template <sycl::access::mode AccMode, typename _ExecutionPolicy>
 struct __get_sycl_range
 {
-    __get_sycl_range()
+    _ExecutionPolicy __exec;
+    __get_sycl_range(_ExecutionPolicy&& __e = /*TODO*/{}): __exec(__e)
     {
         m_buffers.reserve(4); //4 - due to a number of arguments(host iterators) cannot be too big.
     }
@@ -555,8 +609,7 @@ struct __get_sycl_range
     operator()(_Iter __first, _Iter __last)
     {
         assert(__first < __last);
-        return __range_holder<oneapi::dpl::__ranges::guard_view<_Iter>>{
-            oneapi::dpl::__ranges::guard_view<_Iter>{__first, __last - __first}};
+        return __range_holder{oneapi::dpl::__ranges::guard_view<_Iter>{__first, __last - __first}};
     }
 
     //specialization for hetero iterator
@@ -580,6 +633,7 @@ struct __get_sycl_range
     }
 
     //SFINAE-overload for a contiguous host iterator
+#if 0 //sycl::buffer as temporary buffer 
     template <typename _Iter>
     auto
     operator()(_Iter __first, _Iter __last)
@@ -588,21 +642,42 @@ struct __get_sycl_range
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
         using _T = val_t<_Iter>;
-
         return __process_host_iter_impl(__first, __last, [&]() {
             if constexpr (__is_copy_direct)
             {
                 //wait and copy on a buffer destructor; an exclusive access buffer, good performance
-                return sycl::buffer<_T, 1>{::std::addressof(*__first), __last - __first};
+                sycl::buffer<_T, 1> __buf{::std::addressof(*__first), __last - __first};
+                __buf.set_write_back(__is_copy_back);
+                return __buf;
             }
             else
             {
                 sycl::buffer<_T, 1> __buf(__last - __first);
                 __buf.set_final_data(::std::addressof(*__first)); //wait and fast copy on a buffer destructor
+                __buf.set_write_back(__is_copy_back);
                 return __buf;
             }
-        });
+        },
+        [](auto& __buf) { return oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf);});
     }
+#else //USM buffer as temporary buffer 
+    template <typename _Iter, typename ::std::enable_if_t<is_temp_buff<_Iter>::value && __is_addressable_v<_Iter> && !is_zip<_Iter>::value &&
+                                  !is_permutation<_Iter>::value, int> = 0>
+    auto
+    operator()(_Iter __first, _Iter __last)
+    {
+        using _T = val_t<_Iter>;
+
+        auto __data = ::std::addressof(*__first);
+        auto __n = __last - __first;
+        return __process_host_iter_impl(__first, __last, [&]() {
+                return std::shared_ptr<_T>(
+                    __sycl_usm_buf_alloc<_ExecutionPolicy, _T, __is_copy_direct>{__exec}(__data, __n),
+                    __sycl_usm_buf_free<_ExecutionPolicy, _T, __is_copy_back>{__exec, __data, __n});
+        },
+        [__n](const auto& __buf) { return oneapi::dpl::__ranges::guard_view{__buf.get(), __n};});
+    }
+#endif
 
     //SFINAE-overload for non-contiguous host iterator
     template <typename _Iter>
@@ -613,29 +688,31 @@ struct __get_sycl_range
                               __range_holder<oneapi::dpl::__ranges::all_view<val_t<_Iter>, AccMode>>>
     {
         using _T = val_t<_Iter>;
-
         return __process_host_iter_impl(__first, __last, [&]() {
             if constexpr (__is_copy_direct)
             {
                 sycl::buffer<_T, 1> __buf(__first, __last); //SYCL API for non-contiguous iterators
                 if constexpr (__is_copy_back)
                     __buf.set_final_data(__first); //SYCL API for non-contiguous iterators
+                __buf.set_write_back(__is_copy_back);
                 return __buf;
             }
             else
             {
                 sycl::buffer<_T, 1> __buf(__last - __first);
                 __buf.set_final_data(__first); //SYCL API for non-contiguous iterators
+                __buf.set_write_back(__is_copy_back);
                 return __buf;
             }
-        });
+        },
+        [](const auto& __buf) { return oneapi::dpl::__ranges::all_view<_T, AccMode>{__buf};});
     }
 
   private:
     //implementation of operator()(_Iter __first, _Iter __last) for the host iterator types
-    template <typename _Iter, typename _GetBufferFunc>
+    template <typename _Iter, typename _GetBufferFunc, typename _GetViewFunc>
     auto
-    __process_host_iter_impl(_Iter __first, _Iter __last, _GetBufferFunc __get_buf)
+    __process_host_iter_impl(_Iter __first, _Iter __last, _GetBufferFunc __get_buf, _GetViewFunc __get_view)
     {
         static_assert(!oneapi::dpl::__internal::is_const_iterator<_Iter>::value || AccMode == sycl::access::mode::read,
                       "Should be non-const iterator for a modifying algorithm.");
@@ -643,16 +720,13 @@ struct __get_sycl_range
         assert(__first < __last);
 
         auto __buf = __get_buf();
-        __buf.set_write_back(__is_copy_back);
 
         // We have to extend sycl buffer lifetime by sync reasons in case of host iterators. SYCL runtime has sync
         // in buffer destruction and a sycl view instance keeps just placeholder accessor, not a buffer.
         using BufferType = oneapi::dpl::__internal::__lifetime_keeper<decltype(__buf)>;
         m_buffers.push_back(::std::make_unique<BufferType>(__buf));
 
-        using _T = val_t<_Iter>;
-        return __range_holder<oneapi::dpl::__ranges::all_view<_T, AccMode>>{
-            oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf)};
+        return __range_holder<decltype(__get_view(__buf))>{__get_view(__buf)};
     }
 };
 

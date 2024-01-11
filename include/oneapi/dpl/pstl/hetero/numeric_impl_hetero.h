@@ -52,10 +52,10 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __f
 
     auto __n = __last1 - __first1;
     auto __keep1 =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator1>();
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ExecutionPolicy>(__exec);
     auto __buf1 = __keep1(__first1, __last1);
     auto __keep2 =
-        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator2>();
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ExecutionPolicy>(__exec);
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
@@ -83,7 +83,7 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, 
     using _Functor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
 
-    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>();
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ExecutionPolicy>(__exec);
     auto __buf = __keep(__first, __last);
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
