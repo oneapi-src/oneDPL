@@ -66,10 +66,14 @@ Parameters
 Return Value
 ------------
 
-``sycl::event`` object representing the status of the algorithm execution.
+``sycl::event`` object representing a status of the algorithm execution.
 
-Local memory usage
-------------------
+
+Memory usage
+------------
+
+Local memory
+~~~~~~~~~~~~
 
 The local memory is allocated as shown in the pseudo-code blocks below:
 
@@ -78,9 +82,7 @@ The local memory is allocated as shown in the pseudo-code blocks below:
   .. code:: python
 
      ranks = 2 * (2 ^ radix_bits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ radix_bits)
-
      reorder = sizeof(key_type) * data_per_workitem * workgroup_size + 4 * (2 ^ radix_bits)
-
      allocated_bytes = round_up_to_nearest_multiple(max(ranks, reorder), 2048)
 
 
@@ -89,16 +91,35 @@ The local memory is allocated as shown in the pseudo-code blocks below:
   .. code:: python
 
      ranks = 2 * (2 ^ radix_bits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ radix_bits)
-
      reorder = (sizeof(key_type) + sizeof(value_type)) * data_per_workitem * workgroup_size + 4 * (2 ^ radix_bits)
-
      allocated_bytes = round_up_to_nearest_multiple(max(ranks, reorder), 2048)
-
 
 The device must have enough local memory to execute the selected configuration.
 
-Invocation examples
--------------------
+
+Global memory
+~~~~~~~~~~~~~
+The global (USM device) memory is allocated as shown in the pseudo-code blocks below:
+
+- ``radix_sort`` (1,2):
+
+  .. code:: python
+
+     histogram_bytes = (2 ^ radix_bits) * ceiling_division(sizeof(key_type) * 8, radix_bits)
+     tmp_buffer_bytes = N * sizeof(key_type)
+     allocated_bytes = tmp_buffer_bytes + histogram_bytes
+
+- ``radix_sort_by_key`` (3,4):
+
+  .. code:: python
+
+     histogram_bytes = (2 ^ radix_bits) * ceiling_division(sizeof(key_type) * 8, radix_bits)
+     tmp_buffer_bytes = N * (sizeof(key_type) + sizeof(value_type))
+     allocated_bytes = tmp_buffer_bytes + histogram_bytes
+
+
+Examples
+--------
 
 .. code:: cpp
 
@@ -123,7 +144,7 @@ Invocation examples
       keys[0] = 3, keys[1] = 2, keys[2] = 1, keys[3] = 5, keys[4] = 3, keys[5] = 3;
 
       // sort
-      auto e = kt::esimd::radix_sort<false, 8>(q, keys, keys + n, kt::kernel_param<416, 64>{});
+      auto e = kt::esimd::radix_sort<false, 8>(q, keys, keys + n, kt::kernel_param<416, 64>{}); // (2)
       e.wait();
 
       // print
