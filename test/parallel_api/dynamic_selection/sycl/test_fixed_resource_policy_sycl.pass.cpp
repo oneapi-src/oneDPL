@@ -8,7 +8,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "oneapi/dpl/dynamic_selection"
-#include <iostream>
 #include "support/test_dynamic_selection_utils.h"
 #include "support/test_config.h"
 #include "support/utils.h"
@@ -25,7 +24,6 @@ main()
     using policy_t = oneapi::dpl::experimental::fixed_resource_policy<oneapi::dpl::experimental::sycl_backend>;
     std::vector<sycl::queue> u;
     build_universe(u);
-    std::cout << "UNIVERSE SIZE " << u.size() << std::endl;
     if (!u.empty())
     {
         auto f = [u](int i, int offset = 0) { return u[offset]; };
