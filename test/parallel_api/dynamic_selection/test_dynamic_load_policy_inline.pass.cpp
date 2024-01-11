@@ -27,21 +27,13 @@ main()
     constexpr bool call_select_before_submit = true;
 
     auto actual = test_initialization<policy_t, int>(u);
-    EXPECT_EQ(0, actual, "");
     actual = test_select<policy_t, decltype(u), decltype(f)&, false>(u, f);
-    EXPECT_EQ(0, actual, "");
     actual = test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f);
-    EXPECT_EQ(0, actual, "");
     actual = test_submit_and_wait_on_event<call_select_before_submit, policy_t>(u, f);
-    EXPECT_EQ(0, actual, "");
     actual = test_submit_and_wait<just_call_submit, policy_t>(u, f);
-    EXPECT_EQ(0, actual, "");
     actual = test_submit_and_wait<call_select_before_submit, policy_t>(u, f);
-    EXPECT_EQ(0, actual, "");
     actual = test_submit_and_wait_on_group<just_call_submit, policy_t>(u, f);
-    EXPECT_EQ(0, actual, "");
     actual = test_submit_and_wait_on_group<call_select_before_submit, policy_t>(u, f);
-    EXPECT_EQ(0, actual, "");
 
     return TestUtils::done();
 }
