@@ -51,23 +51,23 @@ using namespace TestUtils;
 namespace
 {
 template <typename ExecutionPolicy, typename PermItIndexTag>
-struct is_able_to_to_modify_src_data_in_test : ::std::true_type { };
+struct is_able_to_modify_src_data_in_test : ::std::true_type { };
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <typename ExecutionPolicy>
-struct is_able_to_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::counting>
+struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::counting>
     : ::std::negation<oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<ExecutionPolicy>>>
 {
 };
 
 template <typename ExecutionPolicy>
-struct is_able_to_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::host>
+struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::host>
     : ::std::negation<oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<ExecutionPolicy>>>
 {
 };
 
 template <typename ExecutionPolicy>
-struct is_able_to_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::usm_shared>
+struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::usm_shared>
     : ::std::negation<oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<ExecutionPolicy>>>
 {
 };
@@ -75,13 +75,13 @@ struct is_able_to_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 template <typename ExecutionPolicy>
-struct is_able_to_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::transform_iterator>
+struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::transform_iterator>
     : std::false_type
 {
 };
 
 template <typename ExecutionPolicy>
-struct is_able_to_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::callable_object>
+struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::callable_object>
     : std::false_type
 {
 };
@@ -101,7 +101,7 @@ constexpr bool
 can_run_modify_test()
 {
     return is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
-           is_able_to_to_modify_src_data_in_test<Policy, PermItIndexTag>::value;
+           is_able_to_modify_src_data_in_test<Policy, PermItIndexTag>::value;
 }
 
 //----------------------------------------------------------------------------//
