@@ -259,12 +259,12 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
                         wait_and_throw(exec);
 
                         // Copy data back
-                        std::vector<TestValueType> expected(p);
-                        dpl::copy(exec, permItBegin, permItBegin + p, expected.data());
+                        std::vector<TestValueType> partialSortResult(p);
+                        dpl::copy(exec, permItBegin, permItBegin + p, partialSortResult.data());
                         wait_and_throw(exec);
 
                         // Check results
-                        check_results(expected.begin(), expected.end());
+                        check_results(partialSortResult.begin(), partialSortResult.end());
                     }
                 });
         }
