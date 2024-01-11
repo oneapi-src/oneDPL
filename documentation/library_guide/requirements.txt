@@ -1,7 +1,7 @@
 breathe==4.9.1
 sphinx==3.4.0
 jinja2<3.1
-# https://github.com/sphinx-doc/sphinx/issues/9923#issuecomment-984512294
+# https://github.com/sphinx-doc/sphinx/issues/9923
 docutils==0.17
 sphinx_book_theme
 sphinx-intl==2.0.0
