@@ -1,7 +1,6 @@
 Radix Sort
 ##########
 
-
 .. code:: cpp
 
    // Defined in header <oneapi/dpl/experimental/kernel_templates>
@@ -28,7 +27,8 @@ Radix Sort
 
 The functions sort data using the radix sort algorithm. For a small number of elements to sort, they invoke a single-work-group implementation; otherwise, they use a multiple-work-group implementation based on the onesweep algorithm variant.
 
-**Template Parameters**
+Template Parameters
+--------------------
 
 +-----------------------------+----------------------------------------------------------+
 | Name                        | Description                                              |
@@ -40,7 +40,8 @@ The functions sort data using the radix sort algorithm. For a small number of el
 +-----------------------------+----------------------------------------------------------+
 
 
-**Parameters**
+Parameters
+----------
 
 +------------------------------------------------------+------------------------------------------------------------------+
 | Name                                                 | Description                                                      |
@@ -62,11 +63,13 @@ The functions sort data using the radix sort algorithm. For a small number of el
 +------------------------------------------------------+------------------------------------------------------------------+
 
 
-**Return Value**
+Return Value
+------------
 
 ``sycl::event`` object representing the status of the algorithm execution.
 
-**Local memory usage**
+Local memory usage
+------------------
 
 The local memory is allocated as shown in the pseudo-code blocks below:
 
@@ -76,7 +79,7 @@ The local memory is allocated as shown in the pseudo-code blocks below:
 
      ranks = 2 * (2 ^ radix_bits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ radix_bits)
 
-     reorder = sizeof(key_type) * data_per_workitem * workgroup_size + 4 * (2 ^ radix_bits) 
+     reorder = sizeof(key_type) * data_per_workitem * workgroup_size + 4 * (2 ^ radix_bits)
 
      allocated_bytes = round_up_to_nearest_multiple(max(ranks, reorder), 2048)
 
@@ -94,36 +97,111 @@ The local memory is allocated as shown in the pseudo-code blocks below:
 
 The device must have enough local memory to execute the selected configuration.
 
-**Invocation examples**
+Invocation examples
+-------------------
 
 .. code:: cpp
 
-   #include <oneapi/dpl/experimental/kernel_templates>
-   namespace kt = oneapi::dpl::experimental::kt;
-   ...
-   std::size_t n = 10'000'000;
-   sycl::queue q{sycl::gpu_selector_v};
-   std::uint32_t* keys = sycl::malloc_device<std::uint32_t>(q, n);
-   ...
-   auto e = kt::esimd::radix_sort<false, 8>(q, keys, keys + n, kt::kernel_param<416, 32>{}); // (2)
-   e.wait(); // keys are now sorted in descending order
+   // example1.cpp
+   // icpx -fsycl example1.cpp -o example1 -I /path/to/oneDPL/include && ./example1
 
+   #include <cstdint>
+   #include <iostream>
+   #include <sycl/sycl.hpp>
+
+   #include <oneapi/dpl/experimental/kernel_templates>
+
+   namespace kt = oneapi::dpl::experimental::kt;
+
+   int main()
+   {
+      std::size_t n = 6;
+      sycl::queue q{sycl::gpu_selector_v};
+      std::uint32_t* keys = sycl::malloc_shared<std::uint32_t>(n, q);
+
+      // initialize
+      keys[0] = 3, keys[1] = 2, keys[2] = 1, keys[3] = 5, keys[4] = 3, keys[5] = 3;
+
+      // sort
+      auto e = kt::esimd::radix_sort<false, 8>(q, keys, keys + n, kt::kernel_param<416, 64>{});
+      e.wait();
+
+      // print
+      for(std::size_t i = 0; i < n; ++i)
+         std::cout << keys[i] << ' ';
+      std::cout << '\n';
+
+      sycl::free(keys, q);
+      return 0;
+   }
+
+**Output:**
+
+.. code:: none
+
+   5 3 3 3 2 1
+
+-----
 
 .. code:: cpp
 
+   // example2.cpp
+   // icpx -fsycl example2.cpp -o example2 -I /path/to/oneDPL/include && ./example2
+
+   #include <cstdint>
+   #include <iostream>
+   #include <sycl/sycl.hpp>
+
    #include <oneapi/dpl/experimental/kernel_templates>
+
    namespace kt = oneapi::dpl::experimental::kt;
-   ...
-   std::size_t n = 500'000;
-   sycl::queue q{sycl::gpu_selector_v};
-   sycl::buffer<std::uint32_t> keys{sycl::range<1>(n)};
-   sycl::buffer<float> values(sycl::range<1>(n));
-   ...
-   auto e = kt::esimd::radix_sort_by_key<true, 8>(q, keys, values, kt::kernel_param<96, 64>{}); // (3)
-   e.wait(); // key-value pairs are now sorted in ascedning order
+
+   int main()
+   {
+      std::size_t n = 6;
+      sycl::queue q{sycl::gpu_selector_v};
+      sycl::buffer<std::uint32_t> keys{sycl::range<1>(n)};
+      sycl::buffer<char> values{sycl::range<1>(n)};
+
+      // initialize
+      {
+         sycl::host_accessor k_acc{keys, sycl::write_only};
+         k_acc[0] = 3, k_acc[1] = 2, k_acc[2] = 1, k_acc[3] = 5, k_acc[4] = 3, k_acc[5] = 3;
+
+         sycl::host_accessor v_acc{values, sycl::write_only};
+         v_acc[0] = 'r', v_acc[1] = 'o', v_acc[2] = 's', v_acc[3] = 'd', v_acc[4] = 't', v_acc[5] = 'e';
+      }
+
+      // sort
+      auto e = kt::esimd::radix_sort_by_key<true, 8>(q, keys, values, kt::kernel_param<96, 64>{}); // (3)
+      e.wait();
+
+      // print
+      {
+         sycl::host_accessor k_acc{keys, sycl::read_only};
+         for(std::size_t i = 0; i < n; ++i)
+               std::cout << k_acc[i] << ' ';
+         std::cout << '\n';
+
+         sycl::host_accessor v_acc{values, sycl::read_only};
+         for(std::size_t i = 0; i < n; ++i)
+               std::cout << v_acc[i] << ' ';
+         std::cout << '\n';
+      }
+
+      return 0;
+   }
+
+**Output:**
+
+.. code:: none
+
+   1 2 3 3 3 5
+   s o r t e d
 
 
-**Recommended settings for the best performance**
+Recommended settings for the best performance
+---------------------------------------------
 
 General advice is to set the configuration according to the performance measurements and profiling information.
 
@@ -142,7 +220,8 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
    - Increase the occupancy to hide the latency: ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``. The occupancy depends on the local memory usage which is determined by ``key_type``, ``value_type``, ``radix_bits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters. Refer to "Local memory usage" chapter for the calculation.
 
 
-**Limitations (may be relaxed in the future)**
+Limitations (may be relaxed in the future)
+------------------------------------------
 
 - Algorithms can process only C++ integral and floating-point types with the width up to 64-bits (except for ``bool``).
 - Number of elements to sort must not exceed `2^30`.
@@ -153,7 +232,8 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
 - ``radix_sort_by_key`` does not have single-work-group implementation yet.
 
 
-**Possible API extensions (may be implemented in the future)**
+Possible API extensions (may be implemented in the future)
+----------------------------------------------------------
 
 - Allow passing externally allocated memory.
 - Allow passing dependent events.
@@ -163,14 +243,16 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
 - Allow range transformations (e.g. range pipes or transform iterators).
 
 
-**System requirements (coverage my be extended in the future)**
+System requirements (coverage my be extended in the future)
+-----------------------------------------------------------
 
 - Hardware: Intel® Data Center GPU Max Series.
 - Compiler: Intel® oneAPI DPC++/C++ 2023.2 and newer.
-- OS: RHEL 9.2, SLES 15 SP5, Ubuntu 22.04. Other distributions and their versions listed in `<https://dgpu-docs.intel.com/driver/installation.html>` should be supported accordingly.
+- OS: RHEL 9.2, SLES 15 SP5, Ubuntu 22.04. Other distributions and their versions listed in `<https://dgpu-docs.intel.com/driver/installation.html>`_ should be supported accordingly however they have not been tested.
 
 
-**Known Issues**
+Known Issues
+------------
 
 - Use of -g, -O0, -O1 compiler options may lead to compilation issues.
 - Combinations of ``param.data_per_workitem`` and ``param.work_group_size`` with large values may lead to device-code compilation errors due to allocation of local memory amounts beyond the device capabilities. Refer to "Local memory usage" paragraph for the details regarding allocation.

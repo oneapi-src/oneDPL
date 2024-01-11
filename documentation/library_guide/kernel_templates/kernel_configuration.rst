@@ -13,7 +13,8 @@ Kernel Configuration
 Each Kernel Template is supplied by a `kernel_param` object, generic structure for configuring a kernel.
 The supported and the most performant values depend on the Kernel Template itself, device capabilities, the data type and the data size.
 
-**Member constants**
+Member constants
+----------------
 
 +------------------------------------------------------+---------------------+------------------------------------------------------+
 | Name                                                 | Value               | Description                                          |
@@ -24,7 +25,8 @@ The supported and the most performant values depend on the Kernel Template itsel
 +------------------------------------------------------+---------------------+------------------------------------------------------+
 
 
-**Member types**
+Member types
+------------
 
 +-----------------+----------------+----------------------------------------------------------------------------------------+
 | Type            | Definition     | Description                                                                            |

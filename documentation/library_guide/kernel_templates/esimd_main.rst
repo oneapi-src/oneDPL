@@ -12,7 +12,7 @@ This technology supports only Intel GPU devices.
 
 List of Kernel Templates:
 
-* :doc:`Radix Sort <esimd/radix_sort>`.
+* :doc:`Radix Sort <esimd/radix_sort>`
 
 .. toctree::
    :maxdepth: 2
