@@ -208,7 +208,6 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
 
         // Using callable object instead of lambda here to ensure transform iterator would be
         // default constructible, that is part of the Forward Iterator requirements in the C++ standard.
-        //auto no_transformation = [](ValueType val) { return val; };
         struct NoTransform
         {
             ValueType operator()(const ValueType& val) const
