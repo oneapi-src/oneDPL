@@ -76,7 +76,7 @@ struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::u
 
 template <typename ExecutionPolicy>
 struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::transform_iterator>
-    : ::std::false_type
+    : ::std::true_type
 {
 };
 

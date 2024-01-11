@@ -204,6 +204,8 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
     void
     operator()(Operand op)
     {
+
+        auto indexes_begin = dpl::counting_iterator<TSourceDataSize>(0);
         using ValueType = typename ::std::iterator_traits<TSourceIterator>::value_type;
 
         // Using callable object instead of lambda here to ensure transform iterator would be
@@ -216,10 +218,11 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
             }
         };
 
-        auto itTransformBegin = dpl::make_transform_iterator(data.itSource, NoTransform{});
-        auto itTransformEnd = itTransformBegin + data.src_data_size;
+        auto itTransformBegin = dpl::make_transform_iterator(indexes_begin, NoTransform{});
+        auto permItBegin = dpl::make_permutation_iterator(data.itSource, itTransformBegin);
+        auto permItEnd = permItBegin + data.src_data_size;
 
-        op(itTransformBegin, itTransformEnd);
+        op(permItBegin, permItEnd);
     }
 };
 
