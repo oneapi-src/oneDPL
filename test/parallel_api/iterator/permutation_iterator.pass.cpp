@@ -23,7 +23,6 @@
 #include "support/utils_test_base.h"
 
 #include <vector>
-#include <iostream>
 
 #include "permutation_iterator.h"
 
@@ -139,28 +138,32 @@ wait_and_throw(ExecutionPolicy&& exec)
 
 ////////////////////////////////////////////////////////////////////////////////
 void
-test_counting_iterator(const std::size_t num_elelemts)
+test_counting_iterator()
 {
-    sycl::queue q = TestUtils::get_test_queue();
+    const int countingItIndexBegin = 0;
+    const int countingItIndexEnd = 20;
+    dpl::counting_iterator<int> countingItBegin(countingItIndexBegin);
+    dpl::counting_iterator<int> countingItEnd(countingItIndexEnd);
+    const auto countingItDistanceResult = ::std::distance(countingItBegin, countingItEnd);
+    EXPECT_EQ(countingItIndexEnd - countingItIndexBegin, countingItDistanceResult,
+              "Wrong result of std::distance<countingIterator1, countingIterator2)");
 
-    std::vector<float> result(num_elelemts, 1);
-    oneapi::dpl::counting_iterator<int> first(0);
-    oneapi::dpl::counting_iterator<int> last(20);
-
-    // first and last are iterators that define a contiguous range of input elements
-    // compute the number of elements in the range between the first and last that are accessed
+    // countingItBegin and countingItEnd are iterators that define a contiguous range of input elements
+    // compute the number of elements in the range between the countingItBegin and countingItEnd that are accessed
     // by the permutation iterator
-    size_t num_elements = std::distance(first, last) / 2 + std::distance(first, last) % 2;
-    auto permutation_first = dpl::make_permutation_iterator(first, multiply_index_by_two());
-    auto permutation_last = permutation_first + num_elements;
+    const std::size_t perm_size_expected = kDefaultIndexStepOp.eval_items_count(countingItDistanceResult);
+    auto permItBegin = dpl::make_permutation_iterator(countingItBegin, kDefaultIndexStepOp);
+    auto permItEnd = permItBegin + perm_size_expected;
+    const std::size_t perm_size_result = std::distance(permItBegin, permItEnd);
+    EXPECT_EQ(perm_size_expected, perm_size_result,
+              "Wrong result of std::distance<permutationIterator1, permutationIterator2)");
 
-    auto it = std::copy(TestUtils::default_dpcpp_policy, permutation_first, permutation_last, result.begin());
-    auto count = ::std::distance(result.begin(), it);
+    std::vector<int> resultCopy(perm_size_result);
+    auto itCopiedDataEnd = dpl::copy(TestUtils::default_dpcpp_policy, permItBegin, permItEnd, resultCopy.begin());
+    EXPECT_EQ(true, resultCopy.end() == itCopiedDataEnd, "Wrong result of dpl::copy");
 
-    for (int i = 0; i < count; i++)
-        ::std::cout << result[i] << " ";
-
-    ::std::cout << ::std::endl;
+    const std::vector<int> expectedCopy = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 };
+    EXPECT_EQ_N(expectedCopy.begin(), resultCopy.begin(), perm_size_result, "Wrong state of dpl::copy data");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
@@ -726,7 +729,7 @@ main()
     using ValueType = ::std::uint32_t;
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_counting_iterator(100);
+    test_counting_iterator();
 
     run_algo_tests<ValueType, perm_it_index_tags::usm_shared>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
