@@ -193,7 +193,7 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
     {
         using ValueType = typename ::std::iterator_traits<TSourceIterator>::value_type;
 
-        // Attention: we are unable to use lambda here due compile errors in tbb backend: lambda isn't default constractible.
+        // Attention: we are unable to use lambda here due compile errors in tbb backend: lambda isn't default constructible.
         //auto no_transformation = [](ValueType val) { return val; };
         struct NoTransform
         {
