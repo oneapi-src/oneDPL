@@ -80,6 +80,12 @@ struct is_able_to_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags
     : std::false_type
 {
 };
+
+template <typename ExecutionPolicy>
+struct is_able_to_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::callable_object>
+    : std::false_type
+{
+};
 };
 
 // Check ability to run non-modifying source data test
@@ -188,7 +194,7 @@ DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag)
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // sorting data
             const auto host_keys_ptr = host_keys.get();
 
-            test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
+            test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
                     using ValueType = typename ::std::iterator_traits<decltype(permItBegin)>::value_type;
@@ -248,7 +254,7 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
             generate_data(host_keys_ptr, host_keys_ptr + n, n);
             host_keys.update_data();
 
-            test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
+            test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
                     const auto testing_n = ::std::distance(permItBegin, permItEnd);
@@ -315,7 +321,7 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
             generate_data(host_keys_ptr, host_keys_ptr + n, n);
             host_keys.update_data();
 
-            test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
+            test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
                     const auto testing_n = ::std::distance(permItBegin, permItEnd);
@@ -370,7 +376,7 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for remove_if
             const auto host_keys_ptr = host_keys.get();
 
-            test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
+            test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
                     const auto testing_n = ::std::distance(permItBegin, permItEnd);
@@ -434,7 +440,7 @@ DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
             generate_data(host_keys_ptr, host_keys_ptr + n, TestValueType{});
             host_keys.update_data();
 
-            test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
+            test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
                     const auto testing_n = ::std::distance(permItBegin, permItEnd);
@@ -493,7 +499,7 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 
             assert(::std::distance(first3, last3) >= ::std::distance(first1, last1) + ::std::distance(first2, last2));
 
-            test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
+            test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin1, auto permItEnd1)
                 {
                     const auto testing_n1 = ::std::distance(permItBegin1, permItEnd1);
@@ -503,7 +509,7 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
                     dpl::copy(exec, permItBegin1, permItEnd1, srcData1.data());
                     wait_and_throw(exec);
 
-                    test_through_permutation_iterator_mibt<Iterator2, Size, PermItIndexTag>{first2, n}(
+                    test_through_permutation_iterator<Iterator2, Size, PermItIndexTag>{first2, n}(
                         [&](auto permItBegin2, auto permItEnd2)
                         {
                             const auto testing_n2 = ::std::distance(permItBegin2, permItEnd2);
@@ -559,7 +565,7 @@ DEFINE_TEST_PERM_IT(test_find, PermItIndexTag)
             generate_data(host_keys_ptr, host_keys_ptr + n, TestValueType{});
             host_keys.update_data();
 
-            test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
+            test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
                     const auto testing_n = ::std::distance(permItBegin, permItEnd);
@@ -615,7 +621,7 @@ DEFINE_TEST_PERM_IT(test_is_heap, PermItIndexTag)
                     ::std::make_heap(host_keys_ptr, host_keys_ptr + n);
                 host_keys.update_data();
 
-                test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
+                test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                     [&](auto permItBegin, auto permItEnd)
                     {
                         const auto testing_n = ::std::distance(permItBegin, permItEnd);
@@ -728,6 +734,7 @@ main()
     run_algo_tests<ValueType, perm_it_index_tags::counting>();
     run_algo_tests<ValueType, perm_it_index_tags::host>();
     run_algo_tests<ValueType, perm_it_index_tags::transform_iterator>();
+    run_algo_tests<ValueType, perm_it_index_tags::callable_object>();
 
     return TestUtils::done();
 }

@@ -44,6 +44,9 @@ struct perm_it_index_tags
 
     // Index of permutation iterator is based on transform iterator
     struct transform_iterator { };
+
+    // Index of permutation iterator is based on callable object
+    struct callable_object { };
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,6 +67,24 @@ struct test_through_permutation_iterator_data
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+struct multiply_index_by_two
+{
+    template <typename Index>
+    Index
+    operator()(const Index& i) const
+    {
+        return i * 2;
+    }
+
+    std::size_t
+    eval_items_count(std::size_t src_items_count) const
+    {
+        return src_items_count / 2 + src_items_count % 2;
+    }
+};
+const auto kDefaultIndexStepOp = multiply_index_by_two{};
+
+////////////////////////////////////////////////////////////////////////////////
 template <typename TSourceIterator, typename TSourceDataSize, typename PermItIndexTag>
 struct test_through_permutation_iterator
 {
@@ -80,9 +101,9 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
     {
     }
 
-    template <typename TStepFunctor, typename Operand>
+    template <typename Operand>
     void
-    operator()(TStepFunctor stepOp, Operand op)
+    operator()(Operand op)
     {
         auto indexes_begin = dpl::counting_iterator<TSourceDataSize>(0);
 
@@ -104,13 +125,13 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
     {
     }
 
-    template <typename TStepFunctor, typename Operand>
+    template <typename Operand>
     void
-    operator()(TStepFunctor stepOp, Operand op)
+    operator()(Operand op)
     {
         ::std::vector<TSourceDataSize> indexes;
 
-        for (TSourceDataSize perm_idx_step = 1; perm_idx_step < data.src_data_size; perm_idx_step = stepOp(perm_idx_step))
+        for (TSourceDataSize perm_idx_step = 1; perm_idx_step < data.src_data_size; perm_idx_step = kDefaultIndexStepOp(perm_idx_step))
         {
             const TSourceDataSize idx_size = data.src_data_size / perm_idx_step;
             indexes.resize(idx_size);
@@ -138,9 +159,9 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
     {
     }
 
-    template <typename TStepFunctor, typename Operand>
+    template <typename Operand>
     void
-    operator()(TStepFunctor stepOp, Operand op)
+    operator()(Operand op)
     {
         using TestBaseData = TestUtils::test_base_data_usm<sycl::usm::alloc::shared, TSourceDataSize>;
 
@@ -150,7 +171,7 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
         std::vector<TSourceDataSize> indexes;
 
         for (TSourceDataSize perm_idx_step = 1; perm_idx_step < data.src_data_size;
-             perm_idx_step = stepOp(perm_idx_step))
+             perm_idx_step = kDefaultIndexStepOp(perm_idx_step))
         {
             const TSourceDataSize idx_size = data.src_data_size / perm_idx_step;
             indexes.resize(idx_size);
@@ -179,9 +200,9 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
     {
     }
 
-    template <typename TStepFunctor, typename Operand>
+    template <typename Operand>
     void
-    operator()(TStepFunctor stepOp, Operand op)
+    operator()(Operand op)
     {
         using ValueType = typename ::std::iterator_traits<TSourceIterator>::value_type;
 
@@ -204,42 +225,24 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-struct multiply_index_by_two
+template <typename TSourceIterator, typename TSourceDataSize>
+struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags::callable_object>
 {
-    template <typename Index>
-    Index
-    operator()(const Index& i) const
-    {
-        return i * 2;
-    }
-};
+    test_through_permutation_iterator_data<TSourceIterator, TSourceDataSize> data;
 
-////////////////////////////////////////////////////////////////////////////////
-// struct test_through_permutation_iterator_mibt - implementation of the
-// test_through_permutation_iterator with automatically pass of
-// multiply_index_by_two instance into test_through_permutation_iterator::operator()
-template <typename TSourceIterator, typename TSourceDataSize, typename PermItIndexTag,
-          typename TStepFunctor = multiply_index_by_two>
-struct test_through_permutation_iterator_mibt
-    : test_through_permutation_iterator<TSourceIterator, TSourceDataSize, PermItIndexTag>
-{
-    using base = test_through_permutation_iterator<TSourceIterator, TSourceDataSize, PermItIndexTag>;
-
-    /**
-     * Constructor
-     * 
-     * @param TSourceIterator itSource - first source iterator
-     * @param const TSourceDataSize src_data_size - source data items count
-     */
-    test_through_permutation_iterator_mibt(TSourceIterator itSource, const TSourceDataSize src_data_size)
-        : base(itSource, src_data_size)
+    test_through_permutation_iterator(TSourceIterator itSource, const TSourceDataSize src_data_size)
+        : data{itSource, src_data_size}
     {
     }
 
     template <typename Operand>
-    void operator()(Operand op)
+    void
+    operator()(Operand op)
     {
-        base::operator()(TStepFunctor{}, op);
+        auto permItBegin = dpl::make_permutation_iterator(data.itSource, kDefaultIndexStepOp);
+        auto permItEnd = permItBegin + kDefaultIndexStepOp.eval_items_count(data.src_data_size);
+
+        op(permItBegin, permItEnd);
     }
 };
 
