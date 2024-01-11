@@ -10,15 +10,14 @@ This technology supports only Intel GPU devices.
    However, work-items in ESIMD-based Kernel Templates perform vectorization,
    so the sequential work is in fact ``data_per_workitem / vector_lenght``, where ``vector_lenght`` is an implementation-defined vectorization factor.
 
-------------
-
 List of Kernel Templates:
 
-* :doc:`Radix Sort Kernel Templates <esimd/radix_sort>`.
+* :doc:`Radix Sort <esimd/radix_sort>`.
 
 .. toctree::
    :maxdepth: 2
    :titlesonly:
    :glob:
+   :hidden:
 
    esimd/radix_sort
