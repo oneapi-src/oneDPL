@@ -373,24 +373,37 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
             test_through_permutation_iterator_mibt<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
+                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
+
                     // Fill full source data set (not only values iterated by permutation iterator)
                     generate_data(host_keys_ptr, host_keys_ptr + n, n);
                     host_keys.update_data();
+
+                    // Copy source data back
+                    std::vector<TestValueType> sourceData(testing_n);
+                    dpl::copy(exec, permItBegin, permItEnd, sourceData.data());
+                    wait_and_throw(exec);
 
                     const auto op = [](TestValueType val) { return val > 0; };
 
                     auto itEndNewRes = dpl::remove_if(exec, permItBegin, permItEnd, op);
                     wait_and_throw(exec);
 
-                    const auto newSize = ::std::distance(permItBegin, itEndNewRes);
+                    const auto newSizeResult = ::std::distance(permItBegin, itEndNewRes);
 
-                    // Copy data back
-                    dpl::copy(exec, permItBegin, itEndNewRes, host_keys_ptr);
+                    // Copy modified data back
+                    std::vector<TestValueType> resultRemoveIf(newSizeResult);
+                    dpl::copy(exec, permItBegin, itEndNewRes, resultRemoveIf.data());
                     wait_and_throw(exec);
 
+                    // Eval expected result
+                    auto expectedRemoveIf = sourceData;
+                    auto itEndNewExpected = ::std::remove_if(expectedRemoveIf.begin(), expectedRemoveIf.end(), op);
+                    const auto newSizeExpected = ::std::distance(expectedRemoveIf.begin(), itEndNewExpected);
+
                     // Check results
-                    for (auto it = host_keys_ptr; it != host_keys_ptr + newSize; ++it)
-                        EXPECT_EQ(false, op(*it), "Wrong result size after dpl::remove_if");
+                    EXPECT_EQ(newSizeExpected, newSizeResult, "Wrong result size after dpl::remove_if");
+                    EXPECT_EQ_N(expectedRemoveIf.begin(), resultRemoveIf.begin(), newSizeExpected, "Wrong result after dpl::remove_if");
                 });
         }
     }
