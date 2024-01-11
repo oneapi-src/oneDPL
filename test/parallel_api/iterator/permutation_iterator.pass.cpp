@@ -203,12 +203,12 @@ DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag)
                     wait_and_throw(exec);
 
                     // Copy data back
-                    std::vector<TestValueType> expected(testing_n);
-                    dpl::copy(exec, permItBegin, permItEnd, expected.data());
+                    std::vector<TestValueType> resultTest(testing_n);
+                    dpl::copy(exec, permItBegin, permItEnd, resultTest.data());
                     wait_and_throw(exec);
 
                     // Check results
-                    check_results(expected.begin(), expected.end());
+                    check_results(resultTest.begin(), resultTest.end());
                 });
         }
     }
