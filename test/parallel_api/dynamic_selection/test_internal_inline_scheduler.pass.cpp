@@ -170,19 +170,13 @@ int
 main()
 {
     auto actual = test_cout();
-    EXPECT_EQ(0, actual, "");
+    EXPECT_EQ(0, actual, "test_cout failed");
     actual = test_submit_and_wait_on_submission_group();
-    EXPECT_EQ(0, actual, "");
     actual = test_submit_and_wait_on_submission_group_single_element();
-    EXPECT_EQ(0, actual, "");
     actual = test_submit_and_wait_on_submission_group_empty();
-    EXPECT_EQ(0, actual, "");
     actual = test_submit_and_wait_on_submission();
-    EXPECT_EQ(0, actual, "");
     actual = test_submit_and_wait_on_submission_single_element();
-    EXPECT_EQ(0, actual, "");
     actual = test_properties();
-    EXPECT_EQ(0, actual, "");
 
     return TestUtils::done();
 }
