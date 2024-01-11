@@ -58,7 +58,7 @@ The functions sort data using the radix sort algorithm. For a small number of el
 +------------------------------------------------------+------------------------------------------------------------------+
 |  ``param``                                           | Kernel configuration structure. ``data_per_workitem``,           |
 |                                                      | can be any value among ``32``, ``64``, ``96``,..., ``k * 32``;   |
-|                                                      | ``workgroup_size`` can be either ``32`` or ``64``.               |
+|                                                      | ``workgroup_size`` can be only ``64``.                           |
 +------------------------------------------------------+------------------------------------------------------------------+
 
 
@@ -93,7 +93,6 @@ The local memory is allocated as shown in the pseudo-code blocks below:
 
 
 The device must have enough local memory to execute the selected configuration.
-
 
 **Invocation examples**
 
@@ -149,7 +148,7 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
 - Number of elements to sort must not exceed `2^30`.
 - ``radix_bits`` can only be `8`.
 - ``param.data_per_workitem`` has discreteness of `32`.
-- ``param.workgroup_size`` can be either `32` or `64`.
+- ``param.workgroup_size`` can only be `64`.
 - Local memory is always used to rank keys, reorder keys or key-value pairs which limits possible values of ``param.data_per_workitem`` and ``param.workgroup_size``.
 - ``radix_sort_by_key`` does not have single-work-group implementation yet.
 
@@ -175,11 +174,7 @@ c. The number of elements to sort is large (more than ~1M). The work-groups pree
 
 - Use of -g, -O0, -O1 compiler options may lead to compilation issues.
 - Combinations of ``param.data_per_workitem`` and ``param.work_group_size`` with large values may lead to device-code compilation errors due to allocation of local memory amounts beyond the device capabilities. Refer to "Local memory usage" paragraph for the details regarding allocation.
-- Some combinations of types and ``kt::kernel_param`` values lead to wrong results starting with `20231219 <https://dgpu-docs.intel.com/releases/stable_775_20_20231219.html>`_ rolling release of the GPU driver:
+- ``radix_sort_by_key`` produces wrong results with the following combinations of ``kt::kernel_param`` and types of keys and values:
 
-  - ``radix_sort`` with ``sizeof(key_type)=8``, ``param.workgroup_size = 32``, and ``param.data_per_workitem>=288``
-  - ``radix_sort_by_key`` with ``4 <= sizeof(key_type) + sizeof(value_type) <= 8``, ``param.workgroup_size = 32`` and ``param.data_per_workitem >= 288``
-  - ``radix_sort_by_key`` with ``9 <= sizeof(key_type) + sizeof(value_type) <= 10``, ``param.workgroup_size = 32`` and ``param.data_per_workitem >= 224``
-  - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) > 10``, ``param.workgroup_size = 32`` and ``param.data_per_workitem = 64``
-  - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) = 12``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 96``
-  - ``radix_sort_by_key`` with ``sizeof(key_type) + sizeof(value_type) = 16``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 64``
+  - ``sizeof(key_type) + sizeof(value_type) = 12``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 96``
+  - ``sizeof(key_type) + sizeof(value_type) = 16``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 64``
