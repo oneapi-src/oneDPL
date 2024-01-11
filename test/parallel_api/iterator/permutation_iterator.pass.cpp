@@ -68,21 +68,21 @@ struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::h
 
 template <typename ExecutionPolicy>
 struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::usm_shared>
-    : std::true_type
+    : ::std::true_type
 {
 };
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 template <typename ExecutionPolicy>
-struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::usm_device>
-    : oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<ExecutionPolicy>>
+struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::transform_iterator>
+    : ::std::true_type
 {
 };
 
 template <typename ExecutionPolicy>
 struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::callable_object>
-    : ::std::false_type
+    : ::std::true_type
 {
 };
 };
