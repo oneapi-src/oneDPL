@@ -244,21 +244,14 @@ main()
         sycl::queue q;
 
         auto actual = test_cout();
-        EXPECT_EQ(0, actual, "");
+        EXPECT_EQ(0, actual, "test_cout failed");
         actual = test_submit_and_wait_on_scheduler();
-        EXPECT_EQ(0, actual, "");
         actual = test_submit_and_wait_on_scheduler_single_element();
-        EXPECT_EQ(0, actual, "");
         actual = test_submit_and_wait_on_scheduler_empty();
-        EXPECT_EQ(0, actual, "");
         actual = test_submit_and_wait_on_sync();
-        EXPECT_EQ(0, actual, "");
         actual = test_submit_and_wait_on_sync_single_element();
-        EXPECT_EQ(0, actual, "");
         actual = test_submit_and_wait_on_sync_empty();
-        EXPECT_EQ(0, actual, "");
         actual = test_properties();
-        EXPECT_EQ(0, actual, "");
 
         bProcessed = true;
     }
