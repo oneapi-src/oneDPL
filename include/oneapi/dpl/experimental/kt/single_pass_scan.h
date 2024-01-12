@@ -191,6 +191,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
 
         auto __event = __queue.submit([&](sycl::handler& __hdl) {
             auto __tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, __hdl);
+            auto __tile_vals = sycl::local_accessor<_Type, 1>(sycl::range<1>{__elems_in_tile}, __hdl);
             __hdl.depends_on(__prev_event);
 
             oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
@@ -199,6 +200,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
                 [=](const sycl::nd_item<1>& __item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
                     auto __group = __item.get_group();
                     auto __subgroup = __item.get_sub_group();
+                    auto __local_id = __item.get_local_id(0);
 
                     // Obtain unique ID for this work-group that will be used in decoupled lookback
                     if (__group.leader())
@@ -213,17 +215,41 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
 
                     // TODO: only need the cast if size is greater than 2>30, maybe specialize?
                     ::std::size_t __current_offset = static_cast<::std::size_t>(__tile_id) * __elems_in_tile;
-                    ::std::size_t __next_offset = ((static_cast<::std::size_t>(__tile_id) + 1) * __elems_in_tile);
-                    if (__next_offset > __n)
-                        __next_offset = __n;
-                    auto __in_begin = __in_rng.begin() + __current_offset;
-                    auto __in_end = __in_rng.begin() + __next_offset;
                     auto __out_begin = __out_rng.begin() + __current_offset;
 
                     if (__current_offset >= __n)
                         return;
 
-                    _Type __local_sum = sycl::joint_reduce(__group, __in_begin, __in_end, __binary_op);
+                    // Global load into local
+                    auto __wg_current_offset = (__tile_id * __elems_in_tile);
+                    auto __wg_next_offset = ((__tile_id + 1) * __elems_in_tile);
+                    auto __wg_local_memory_size = __elems_in_tile;
+
+                    if (__wg_next_offset > __n)
+                        __wg_local_memory_size = __n - __wg_current_offset;
+
+                    if (__wg_next_offset <= __n)
+                    {
+                        #pragma unroll
+                        for (std::uint32_t __i = 0; __i < __elems_per_workitem; ++__i)
+                        {
+                            __tile_vals[__local_id + __wgsize * __i] = __in_rng[__wg_current_offset + __local_id + __wgsize * __i];
+                        }
+                    }
+                    else
+                    {
+                        #pragma unroll
+                        for (std::uint32_t __i = 0; __i < __elems_per_workitem; ++__i)
+                        {
+                            if (__wg_current_offset + __local_id + __wgsize * __i < __n)
+                            {
+                                __tile_vals[__local_id + __wgsize * __i] = __in_rng[__wg_current_offset + __local_id + __wgsize * __i];
+                            }
+                        }
+                    }
+
+                    auto __tile_vals_ptr = __dpl_sycl::__get_accessor_ptr(__tile_vals);
+                    _Type __local_sum = sycl::joint_reduce(__group, __tile_vals_ptr, __tile_vals_ptr+__wg_local_memory_size, __binary_op);
                     _Type __prev_sum = 0;
 
                     // The first sub-group will query the previous tiles to find a prefix
@@ -242,7 +268,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
 
                     __prev_sum = sycl::group_broadcast(__group, __prev_sum, 0);
 
-                    sycl::joint_inclusive_scan(__group, __in_begin, __in_end, __out_begin, __binary_op, __prev_sum);
+                    sycl::joint_inclusive_scan(__group, __tile_vals_ptr, __tile_vals_ptr+__wg_local_memory_size, __out_begin, __binary_op, __prev_sum);
                 });
         });
 
