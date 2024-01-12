@@ -428,7 +428,7 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
     using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
-#if defined(_ONEDPL_DETECT_SPIRV_COMPILATION) && _ONEDPL_DETECT_SPIRV_COMPILATION
+#if _ONEDPL_DETECT_SPIRV_COMPILATION
     using _Commutative = ::std::false_type;
     // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
     // not commutative.
