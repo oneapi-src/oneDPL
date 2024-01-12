@@ -216,10 +216,12 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
             }
         };
 
-        auto itTransformBegin = dpl::make_transform_iterator(data.itSource, NoTransform{});
-        auto itTransformEnd = itTransformBegin + data.src_data_size;
+        auto indexes_begin = dpl::counting_iterator<TSourceDataSize>(0);
+        auto itTransformBegin = dpl::make_transform_iterator(indexes_begin, NoTransform{});
+        auto permItBegin = dpl::make_permutation_iterator(data.itSource, itTransformBegin);
+        auto permItEnd = permItBegin + data.src_data_size;
 
-        op(itTransformBegin, itTransformEnd);
+        op(permItBegin, permItEnd);
     }
 };
 
