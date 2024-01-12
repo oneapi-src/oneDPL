@@ -16,6 +16,9 @@
 #ifndef _ONEDPL_parallel_backend_sycl_scan_H
 #define _ONEDPL_parallel_backend_sycl_scan_H
 
+#include "../../pstl/hetero/dpcpp/sycl_defs.h"
+#include "../../pstl/hetero/dpcpp/unseq_backend_sycl.h"
+
 namespace oneapi::dpl::experimental::kt
 {
 
@@ -77,7 +80,7 @@ struct __scan_status_flag
     cooperative_lookback(::std::uint32_t __tile_id, const _Subgroup& __subgroup, _BinaryOp __binary_op,
                          _StorageType* __flags_begin)
     {
-        _T __sum{0};
+        _T __running = oneapi::dpl::unseq_backend::__known_identity<_BinaryOp, _T>;
         auto __local_id = __subgroup.get_local_id();
 
         for (int __tile = static_cast<int>(__tile_id) - 1; __tile >= 0; __tile -= SUBGROUP_SIZE)
@@ -95,10 +98,10 @@ struct __scan_status_flag
             __is_full_ballot.extract_bits(__is_full_ballot_bits);
 
             auto __lowest_item_with_full = sycl::ctz(__is_full_ballot_bits);
-            _T __contribution = __local_id <= __lowest_item_with_full ? __tile_val & __value_mask : _T{0};
+            _T __contribution = __local_id <= __lowest_item_with_full ? __tile_val & __value_mask : oneapi::dpl::unseq_backend::__known_identity<_BinaryOp, _T>;
 
-            // Sum all of the partial results from the tiles found, as well as the full contribution from the closest tile (if any)
-            __sum += sycl::reduce_over_group(__subgroup, __contribution, __binary_op);
+            // Running reduction of all of the partial results from the tiles found, as well as the full contribution from the closest tile (if any)
+            __running = __binary_op(__running, sycl::reduce_over_group(__subgroup, __contribution, __binary_op));
 
             // If we found a full value, we can stop looking at previous tiles. Otherwise,
             // keep going through tiles until we either find a full tile or we've completely
@@ -106,7 +109,7 @@ struct __scan_status_flag
             if (__is_full_ballot_bits)
                 break;
         }
-        return __sum;
+        return __running;
     }
 
     _AtomicRefT __atomic_flag;
@@ -151,7 +154,6 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
                ::std::size_t __current_num_items) const
     {
         return __q.submit([&](sycl::handler& __hdl) {
-            auto __tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, __hdl);
             auto __tile_vals = sycl::local_accessor<_Type, 1>(sycl::range<1>{__elems_in_tile}, __hdl);
             __hdl.depends_on(__prev_event);
 
@@ -163,16 +165,18 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
                     auto __subgroup = __item.get_sub_group();
                     auto __local_id = __item.get_local_id(0);
 
+                    ::std::uint32_t __tile_id = 0;
+
                     // Obtain unique ID for this work-group that will be used in decoupled lookback
                     if (__group.leader())
                     {
                         sycl::atomic_ref<_FlagStorageType, sycl::memory_order::relaxed, sycl::memory_scope::device,
                                          sycl::access::address_space::global_space>
                             __idx_atomic(__status_flags[__status_flags_size - 1]);
-                        __tile_id_lacc[0] = __idx_atomic.fetch_add(1);
+                        __tile_id = __idx_atomic.fetch_add(1);
                     }
-                    sycl::group_barrier(__group);
-                    ::std::uint32_t __tile_id = __tile_id_lacc[0];
+
+                    __tile_id = sycl::group_broadcast(__group, __tile_id, 0);
 
                     // TODO: only need the cast if size is greater than 2>30, maybe specialize?
                     ::std::size_t __current_offset = static_cast<::std::size_t>(__tile_id) * __elems_in_tile;
@@ -210,8 +214,8 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
                     }
 
                     auto __tile_vals_ptr = __dpl_sycl::__get_accessor_ptr(__tile_vals);
-                    _Type __local_sum = sycl::joint_reduce(__group, __tile_vals_ptr, __tile_vals_ptr+__wg_local_memory_size, __binary_op);
-                    _Type __prev_sum = 0;
+                    _Type __local_reduction = sycl::joint_reduce(__group, __tile_vals_ptr, __tile_vals_ptr+__wg_local_memory_size, __binary_op);
+                    _Type __prev_tile_reduction = 0;
 
                     // The first sub-group will query the previous tiles to find a prefix
                     if (__subgroup.get_group_id() == 0)
@@ -219,17 +223,17 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
                         _FlagType __flag(__status_flags, __tile_id);
 
                         if (__group.leader())
-                            __flag.set_partial(__local_sum);
+                            __flag.set_partial(__local_reduction);
 
-                        __prev_sum = __flag.cooperative_lookback(__tile_id, __subgroup, __binary_op, __status_flags);
+                        __prev_tile_reduction = __flag.cooperative_lookback(__tile_id, __subgroup, __binary_op, __status_flags);
 
                         if (__group.leader())
-                            __flag.set_full(__prev_sum + __local_sum);
+                            __flag.set_full(__binary_op(__prev_tile_reduction, __local_reduction));
                     }
 
-                    __prev_sum = sycl::group_broadcast(__group, __prev_sum, 0);
+                    __prev_tile_reduction = sycl::group_broadcast(__group, __prev_tile_reduction, 0);
 
-                    sycl::joint_inclusive_scan(__group, __tile_vals_ptr, __tile_vals_ptr+__wg_local_memory_size, __out_begin, __binary_op, __prev_sum);
+                    sycl::joint_inclusive_scan(__group, __tile_vals_ptr, __tile_vals_ptr+__wg_local_memory_size, __out_begin, __binary_op, __prev_tile_reduction);
                 });
         });
     }
@@ -255,6 +259,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
         return sycl::event{};
 
     static_assert(_Inclusive, "Single-pass scan only available for inclusive scan");
+    static_assert(oneapi::dpl::unseq_backend::__has_known_identity<_BinaryOp, _Type>::value, "Only binary operators with known identity values are supported");
 
     assert("This device does not support 64-bit atomics" &&
            (sizeof(_Type) < 64 || __queue.get_device().has(sycl::aspect::atomic64)));
@@ -263,7 +268,6 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     constexpr ::std::size_t __chunk_size = 1ul << (sizeof(_Type) * 8 - 2);
     const ::std::size_t __num_chunks = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk_size);
 
-    auto __max_cu = __queue.get_device().template get_info<sycl::info::device::max_compute_units>();
     constexpr ::std::size_t __workgroup_size = _KernelParam::workgroup_size;
     constexpr ::std::size_t __data_per_workitem = _KernelParam::data_per_workitem;
 
@@ -305,7 +309,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
 
 template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _KernelParam>
 sycl::event
-inclusive_scan(sycl::queue __queue, _InRng __in_rng, _OutRng __out_rng, _BinaryOp __binary_op, _KernelParam __param)
+inclusive_scan(sycl::queue __queue, _InRng __in_rng, _OutRng __out_rng, _BinaryOp __binary_op, _KernelParam __param = {})
 {
 
     return __impl::__single_pass_scan<true>(__queue, __in_rng, __out_rng, __binary_op, __param);
@@ -314,7 +318,7 @@ inclusive_scan(sycl::queue __queue, _InRng __in_rng, _OutRng __out_rng, _BinaryO
 template <typename _InIterator, typename _OutIterator, typename _BinaryOp, typename _KernelParam>
 sycl::event
 inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
-               _BinaryOp __binary_op, _KernelParam __param)
+               _BinaryOp __binary_op, _KernelParam __param = {})
 {
     auto __n = __in_end - __in_begin;
 
