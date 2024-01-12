@@ -282,4 +282,4 @@ Known Issues
   - ``sizeof(key_type) + sizeof(value_type) = 12``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 96``
   - ``sizeof(key_type) + sizeof(value_type) = 16``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 64``
 
-.. [#fnote1] Adinets, A., & Merrill, D. (2022). Onesweep: A Faster Least Significant Digit Radix Sort for GPUs. Retrieved from https://arxiv.org/abs/2206.01784.
+.. [#fnote1] Andy Adinets and Duane Merrill (2022). Onesweep: A Faster Least Significant Digit Radix Sort for GPUs. Retrieved from https://arxiv.org/abs/2206.01784.
