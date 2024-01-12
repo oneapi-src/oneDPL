@@ -54,6 +54,7 @@ template <typename ExecutionPolicy, typename PermItIndexTag>
 struct is_able_to_modify_src_data_in_test : ::std::true_type { };
 
 #if TEST_DPCPP_BACKEND_PRESENT
+// TODO: fix bug for host_iterator as permutation_iterator index and re-enable this case
 template <typename ExecutionPolicy>
 struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::host>
     : ::std::negation<oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<ExecutionPolicy>>>
