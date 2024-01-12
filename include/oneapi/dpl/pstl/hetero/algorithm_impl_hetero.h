@@ -1506,7 +1506,7 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_nth_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __nth, _Iterator __last, _Compare __comp,
-                      /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type) noexcept
+                      /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type)
 {
     if (__first == __last || __nth == __last)
         return;
