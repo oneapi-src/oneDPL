@@ -31,7 +31,6 @@ class __lookback_init_kernel;
 template <typename... _Name>
 class __lookback_kernel;
 
-
 static constexpr int SUBGROUP_SIZE = 32;
 
 template <typename _T>
@@ -73,9 +72,9 @@ struct __scan_status_flag
         __atomic_flag.store(__val | __full_mask);
     }
 
-    template <typename _Subgroup, typename _BinOp>
+    template <typename _Subgroup, typename _BinaryOp>
     _T
-    cooperative_lookback(::std::uint32_t __tile_id, const _Subgroup& __subgroup, _BinOp __bin_op,
+    cooperative_lookback(::std::uint32_t __tile_id, const _Subgroup& __subgroup, _BinaryOp __binary_op,
                          _StorageType* __flags_begin)
     {
         _T __sum{0};
@@ -99,7 +98,7 @@ struct __scan_status_flag
             _T __contribution = __local_id <= __lowest_item_with_full ? __tile_val & __value_mask : _T{0};
 
             // Sum all of the partial results from the tiles found, as well as the full contribution from the closest tile (if any)
-            __sum += sycl::reduce_over_group(__subgroup, __contribution, __bin_op);
+            __sum += sycl::reduce_over_group(__subgroup, __contribution, __binary_op);
 
             // If we found a full value, we can stop looking at previous tiles. Otherwise,
             // keep going through tiles until we either find a full tile or we've completely
@@ -113,90 +112,52 @@ struct __scan_status_flag
     _AtomicRefT __atomic_flag;
 };
 
-template <
-           typename _KernelName>
+template <typename _KernelName>
 struct __lookback_init_submitter;
 
-template <
-          typename... _Name>
-struct __lookback_init_submitter<
-                                     oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+template <typename... _Name>
+struct __lookback_init_submitter<oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _StatusFlags, typename _Flag>
     sycl::event
-    operator()(sycl::queue __q, _StatusFlags&& __status_flags, ::std::size_t __status_flags_size, ::std::uint16_t __status_flag_padding, _Flag __oob_value) const
+    operator()(sycl::queue __q, _StatusFlags&& __status_flags, ::std::size_t __status_flags_size,
+               ::std::uint16_t __status_flag_padding, _Flag __oob_value) const
     {
         return __q.submit([&](sycl::handler& __hdl) {
-        __hdl.parallel_for<_Name...>(sycl::range<1>{__status_flags_size}, [=](const sycl::item<1>& __item) {
-            auto __id = __item.get_linear_id();
-            __status_flags[__id] = __id < __status_flag_padding ? __oob_value : 0;
+            __hdl.parallel_for<_Name...>(sycl::range<1>{__status_flags_size}, [=](const sycl::item<1>& __item) {
+                auto __id = __item.get_linear_id();
+                __status_flags[__id] = __id < __status_flag_padding ? __oob_value : 0;
+            });
         });
-    });
     }
 };
 
+template <::std::uint16_t __data_per_workitem, ::std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
+          typename _KernelName>
+struct __lookback_submitter;
 
-template <bool _Inclusive, typename _InRange, typename _OutRange, typename _BinaryOp, typename _KernelParam>
-sycl::event
-__single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op,
-                      _KernelParam)
+template <::std::uint16_t __data_per_workitem, ::std::uint16_t __workgroup_size, typename _Type, typename _FlagType,
+          typename... _Name>
+struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType,
+                            oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
-    using _FlagType = __scan_status_flag<_Type>;
-    using _FlagStorageType = __scan_status_flag<_Type>::_StorageType;
+    using _FlagStorageType = typename _FlagType::_StorageType;
+    static constexpr std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
 
-    using _KernelName = typename _KernelParam::kernel_name;
-    using _LookbackInitKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __lookback_init_kernel<_KernelName>>;
-    using _LookbackKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        __lookback_kernel<_KernelName>>;
-
-    const ::std::size_t __n = __in_rng.size();
-
-    if (__n == 0)
-      return sycl::event{};
-
-    static_assert(_Inclusive, "Single-pass scan only available for inclusive scan");
-
-    assert("This device does not support 64-bit atomics" &&
-           (sizeof(_Type) < 64 || __queue.get_device().has(sycl::aspect::atomic64)));
-
-
-    // We need to process the input array by 2^30 chunks for 32-bit ints
-    constexpr ::std::size_t __chunk_size = 1ul << (sizeof(_Type) * 8 - 2);
-    const ::std::size_t __num_chunks = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk_size);
-
-    auto __max_cu = __queue.get_device().template get_info<sycl::info::device::max_compute_units>();
-    constexpr ::std::size_t __wgsize = _KernelParam::workgroup_size;
-    constexpr ::std::size_t __elems_per_workitem = _KernelParam::data_per_workitem;
-
-    // Avoid non_uniform n by padding up to a multiple of wgsize
-    std::uint32_t __elems_in_tile = __wgsize * __elems_per_workitem;
-    ::std::size_t __num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
-
-    constexpr int __status_flag_padding = SUBGROUP_SIZE;
-    std::uint32_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
-
-    _FlagStorageType* __status_flags = sycl::malloc_device<_FlagStorageType>(__status_flags_size, __queue);
-
-    auto __fill_event = __lookback_init_submitter<_LookbackInitKernel>{}(__queue, __status_flags, __status_flags_size, __status_flag_padding, _FlagType::__oob_value);
-
-    sycl::event __prev_event = __fill_event;
-    for (int __chunk = 0; __chunk < __num_chunks; ++__chunk)
+    template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _StatusFlags>
+    sycl::event
+    operator()(sycl::queue __q, sycl::event __prev_event, _InRng&& __in_rng, _OutRng&& __out_rng, _BinaryOp __binary_op,
+               ::std::size_t __n, _StatusFlags&& __status_flags, ::std::size_t __status_flags_size,
+               ::std::size_t __current_num_items) const
     {
-        ::std::size_t __current_chunk_size = __chunk == __num_chunks - 1 ? __n % __chunk_size : __chunk_size;
-        ::std::size_t __current_num_wgs =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__current_chunk_size, __elems_in_tile);
-        ::std::size_t __current_num_items = __current_num_wgs * __wgsize;
-
-        auto __event = __queue.submit([&](sycl::handler& __hdl) {
+        return __q.submit([&](sycl::handler& __hdl) {
             auto __tile_id_lacc = sycl::local_accessor<std::uint32_t, 1>(sycl::range<1>{1}, __hdl);
             auto __tile_vals = sycl::local_accessor<_Type, 1>(sycl::range<1>{__elems_in_tile}, __hdl);
             __hdl.depends_on(__prev_event);
 
             oneapi::dpl::__ranges::__require_access(__hdl, __in_rng, __out_rng);
-            __hdl.parallel_for<class scan_kt_main>(
-                sycl::nd_range<1>(__current_num_items, __wgsize),
+            __hdl.parallel_for<_Name...>(
+                sycl::nd_range<1>(__current_num_items, __workgroup_size),
                 [=](const sycl::nd_item<1>& __item) [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] {
                     auto __group = __item.get_group();
                     auto __subgroup = __item.get_sub_group();
@@ -271,7 +232,64 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
                     sycl::joint_inclusive_scan(__group, __tile_vals_ptr, __tile_vals_ptr+__wg_local_memory_size, __out_begin, __binary_op, __prev_sum);
                 });
         });
+    }
+};
 
+template <bool _Inclusive, typename _InRange, typename _OutRange, typename _BinaryOp, typename _KernelParam>
+sycl::event
+__single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_rng, _BinaryOp __binary_op, _KernelParam)
+{
+    using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
+    using _FlagType = __scan_status_flag<_Type>;
+    using _FlagStorageType = typename _FlagType::_StorageType;
+
+    using _KernelName = typename _KernelParam::kernel_name;
+    using _LookbackInitKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__lookback_init_kernel<_KernelName>>;
+    using _LookbackKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__lookback_kernel<_KernelName>>;
+
+    const ::std::size_t __n = __in_rng.size();
+
+    if (__n == 0)
+        return sycl::event{};
+
+    static_assert(_Inclusive, "Single-pass scan only available for inclusive scan");
+
+    assert("This device does not support 64-bit atomics" &&
+           (sizeof(_Type) < 64 || __queue.get_device().has(sycl::aspect::atomic64)));
+
+    // We need to process the input array by 2^30 chunks for 32-bit ints
+    constexpr ::std::size_t __chunk_size = 1ul << (sizeof(_Type) * 8 - 2);
+    const ::std::size_t __num_chunks = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk_size);
+
+    auto __max_cu = __queue.get_device().template get_info<sycl::info::device::max_compute_units>();
+    constexpr ::std::size_t __workgroup_size = _KernelParam::workgroup_size;
+    constexpr ::std::size_t __data_per_workitem = _KernelParam::data_per_workitem;
+
+    // Avoid non_uniform n by padding up to a multiple of workgroup_size
+    std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
+    ::std::size_t __num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
+
+    constexpr int __status_flag_padding = SUBGROUP_SIZE;
+    std::uint32_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
+
+    _FlagStorageType* __status_flags = sycl::malloc_device<_FlagStorageType>(__status_flags_size, __queue);
+
+    auto __fill_event = __lookback_init_submitter<_LookbackInitKernel>{}(__queue, __status_flags, __status_flags_size,
+                                                                         __status_flag_padding, _FlagType::__oob_value);
+
+    sycl::event __prev_event = __fill_event;
+    for (int __chunk = 0; __chunk < __num_chunks; ++__chunk)
+    {
+        ::std::size_t __current_chunk_size = __chunk == __num_chunks - 1 ? __n % __chunk_size : __chunk_size;
+        ::std::size_t __current_num_wgs =
+            oneapi::dpl::__internal::__dpl_ceiling_div(__current_chunk_size, __elems_in_tile);
+        ::std::size_t __current_num_items = __current_num_wgs * __workgroup_size;
+
+        auto __event = __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType, _LookbackKernel>{}(
+            __queue, __prev_event, __in_rng, __out_rng, __binary_op, __n, __status_flags, __status_flags_size,
+            __current_num_items);
         __prev_event = __event;
     }
 
@@ -287,8 +305,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
 
 template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _KernelParam>
 sycl::event
-inclusive_scan(sycl::queue __queue, _InRng __in_rng, _OutRng __out_rng,
-                           _BinaryOp __binary_op, _KernelParam __param)
+inclusive_scan(sycl::queue __queue, _InRng __in_rng, _OutRng __out_rng, _BinaryOp __binary_op, _KernelParam __param)
 {
 
     return __impl::__single_pass_scan<true>(__queue, __in_rng, __out_rng, __binary_op, __param);
@@ -297,7 +314,7 @@ inclusive_scan(sycl::queue __queue, _InRng __in_rng, _OutRng __out_rng,
 template <typename _InIterator, typename _OutIterator, typename _BinaryOp, typename _KernelParam>
 sycl::event
 inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end, _OutIterator __out_begin,
-                           _BinaryOp __binary_op, _KernelParam __param)
+               _BinaryOp __binary_op, _KernelParam __param)
 {
     auto __n = __in_end - __in_begin;
 
