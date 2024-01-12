@@ -192,19 +192,19 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
                     if (__wg_next_offset <= __n)
                     {
                         #pragma unroll
-                        for (std::uint32_t __i = 0; __i < __elems_per_workitem; ++__i)
+                        for (std::uint32_t __i = 0; __i < __data_per_workitem; ++__i)
                         {
-                            __tile_vals[__local_id + __wgsize * __i] = __in_rng[__wg_current_offset + __local_id + __wgsize * __i];
+                            __tile_vals[__local_id + __workgroup_size * __i] = __in_rng[__wg_current_offset + __local_id + __workgroup_size * __i];
                         }
                     }
                     else
                     {
                         #pragma unroll
-                        for (std::uint32_t __i = 0; __i < __elems_per_workitem; ++__i)
+                        for (std::uint32_t __i = 0; __i < __data_per_workitem; ++__i)
                         {
-                            if (__wg_current_offset + __local_id + __wgsize * __i < __n)
+                            if (__wg_current_offset + __local_id + __workgroup_size * __i < __n)
                             {
-                                __tile_vals[__local_id + __wgsize * __i] = __in_rng[__wg_current_offset + __local_id + __wgsize * __i];
+                                __tile_vals[__local_id + __workgroup_size * __i] = __in_rng[__wg_current_offset + __local_id + __workgroup_size * __i];
                             }
                         }
                     }
