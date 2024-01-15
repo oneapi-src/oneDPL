@@ -25,7 +25,7 @@ Radix Sort
 
    } // namespace esimd
 
-The functions sort data using the radix sort algorithm. For a small number of elements to sort, they invoke a single-work-group implementation; otherwise, they use a multiple-work-group implementation based on the Onesweep [#fnote1]_ algorithm variant.
+The functions sort data using the radix sort algorithm. For a small number of elements to sort, they invoke a single-work-group implementation; otherwise, they use a multiple-work-group implementation based on the Onesweep* [#fnote1]_ algorithm variant.
 
 Template Parameters
 --------------------
@@ -69,10 +69,10 @@ Return Value
 ``sycl::event`` object representing a status of the algorithm execution.
 
 
-Memory usage
+Memory Usage
 ------------
 
-Local memory
+Local Memory
 ~~~~~~~~~~~~
 
 The local memory is allocated as shown in the pseudo-code blocks below:
@@ -97,7 +97,7 @@ The local memory is allocated as shown in the pseudo-code blocks below:
 The device must have enough local memory to execute the selected configuration.
 
 
-Global memory
+Global Memory
 ~~~~~~~~~~~~~
 The global (USM device) memory is allocated as shown in the pseudo-code blocks below:
 
@@ -221,8 +221,8 @@ Examples
    s o r t e d
 
 
-Recommended settings for the best performance
----------------------------------------------
+Best Performace Tips
+--------------------
 
 General advice is to set the configuration according to the performance measurements and profiling information.
 
@@ -253,7 +253,7 @@ Limitations (may be relaxed in the future)
 - ``radix_sort_by_key`` does not have single-work-group implementation yet.
 
 
-Possible API extensions (may be implemented in the future)
+Possible API Extensions (may be implemented in the future)
 ----------------------------------------------------------
 
 - Allow passing externally allocated memory.
@@ -264,7 +264,7 @@ Possible API extensions (may be implemented in the future)
 - Allow range transformations (e.g. range pipes or transform iterators).
 
 
-System requirements (coverage my be extended in the future)
+System Requirements (coverage my be extended in the future)
 -----------------------------------------------------------
 
 - Hardware: Intel® Data Center GPU Max Series.
