@@ -53,7 +53,7 @@ main()
 {
 #if !TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
     kernel_test();
-#endif
+#endif // !TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
 
     return TestUtils::done(!TEST_GCC7_RVALUE_TUPLE_GET_BROKEN);
 }
