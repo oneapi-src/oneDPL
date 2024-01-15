@@ -21,6 +21,7 @@
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
+#include <optional>
 
 #include "parallel_backend_utils.h"
 
@@ -1248,25 +1249,26 @@ operator()(__task* __self)
         return nullptr;
     }
 
-    _RandomAccessIterator1 __xm;
-    _RandomAccessIterator2 __ym;
+    ::std::optional<_RandomAccessIterator1> __xm;
+    ::std::optional<_RandomAccessIterator2> __ym;
+
     if (_M_xe - _M_xs < _M_ye - _M_ys)
     {
-        __ym = _M_ys + (_M_ye - _M_ys) / 2;
-        __xm = ::std::upper_bound(_M_xs, _M_xe, *__ym, _M_comp);
+        __ym.emplace(_M_ys + (_M_ye - _M_ys) / 2);
+        __xm.emplace(::std::upper_bound(_M_xs, _M_xe, *__ym.value(), _M_comp));
     }
     else
     {
-        __xm = _M_xs + (_M_xe - _M_xs) / 2;
-        __ym = ::std::lower_bound(_M_ys, _M_ye, *__xm, _M_comp);
+        __xm.emplace(_M_xs + (_M_xe - _M_xs) / 2);
+        __ym.emplace(::std::lower_bound(_M_ys, _M_ye, *__xm.value(), _M_comp));
     }
-    const _RandomAccessIterator3 __zm = _M_zs + ((__xm - _M_xs) + (__ym - _M_ys));
+    const _RandomAccessIterator3 __zm = _M_zs + ((__xm.value() - _M_xs) + (__ym.value() - _M_ys));
     auto __right = __self->make_additional_child_of(
-        __self->parent(), __merge_func_static(__xm, _M_xe, __ym, _M_ye, __zm, _M_comp, _M_leaf_merge));
+        __self->parent(), __merge_func_static(__xm.value(), _M_xe, __ym.value(), _M_ye, __zm, _M_comp, _M_leaf_merge));
     __self->spawn(__right);
     __self->recycle_as_continuation();
-    _M_xe = __xm;
-    _M_ye = __ym;
+    _M_xe = __xm.value();
+    _M_ye = __ym.value();
 
     return __self;
 }
