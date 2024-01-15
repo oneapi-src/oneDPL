@@ -51,9 +51,9 @@ kernel_test()
 int
 main()
 {
-#if !TEST_GCC7_RVALUE_REFERENCE_FROM_TUPLE_BROKEN
+#if !TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
     kernel_test();
 #endif
 
-    return TestUtils::done(!TEST_GCC7_RVALUE_REFERENCE_FROM_TUPLE_BROKEN);
+    return TestUtils::done(!TEST_GCC7_RVALUE_TUPLE_GET_BROKEN);
 }
