@@ -21,7 +21,7 @@ New Features
 - Added new ``transform_if`` algorithm for applying a transform function conditionally
   based on a predicate, with overloads provided for one and two input sequences
   that use correspondingly unary and binary operations and predicates.
-- Optimizations used with Intel oneAPI DPC++/C++ Compiler are expanded to the open source oneAPI DPC++ compiler.
+- Optimizations used with Intel® oneAPI DPC++/C++ Compiler are expanded to the open source oneAPI DPC++ compiler.
 
 New in 2022.3.0
 ===============
