@@ -54,6 +54,8 @@
 #define _PSTL_STD_UNINITIALIZED_FILL_BROKEN (_MSC_VER == 1900)
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
+// GCC7 not returning const rvalue reference from const rvalue reference of tuple
+#define TEST_GCC7_RVALUE_REFERENCE_FROM_TUPLE_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 8)
 // Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
 // call some internal function which is not declared as SYCL external and we have compile error
 #if defined(_MSC_VER)
