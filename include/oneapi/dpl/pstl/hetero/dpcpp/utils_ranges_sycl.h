@@ -231,8 +231,19 @@ struct is_passed_directly<zip_iterator<Iters...>> : ::std::conjunction<is_passed
 {
 };
 
+template <typename Iter, typename Void = void>
+struct is_passed_directly_legacy_trait : ::std::false_type
+{
+};
+
 template <typename Iter>
-inline constexpr bool is_passed_directly_v = is_passed_directly<Iter>::value;
+struct is_passed_directly_legacy_trait<Iter, ::std::enable_if_t<Iter::is_passed_directly::value>> : ::std::true_type
+{
+};
+
+template <typename Iter>
+inline constexpr bool is_passed_directly_v =
+    is_passed_directly<Iter>::value || is_passed_directly_legacy_trait<Iter>::value;
 
 // A trait for checking if iterator is heterogeneous or not
 
