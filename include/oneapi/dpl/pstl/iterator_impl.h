@@ -424,9 +424,7 @@ class transform_iterator
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
-    transform_iterator() = default;
-
-    transform_iterator(_Iter __it, _UnaryFunc __unary_func = _UnaryFunc())
+    transform_iterator(_Iter __it = _Iter(), _UnaryFunc __unary_func = _UnaryFunc())
         : __my_it_(__it), __my_unary_func_(__unary_func)
     {
     }
