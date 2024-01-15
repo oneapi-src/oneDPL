@@ -3,6 +3,8 @@ sphinx==3.4.0
 jinja2<3.1
 # https://github.com/sphinx-doc/sphinx/issues/9923
 docutils==0.15
+# sphinxcontrib_applehelp==1.0.8 (docutils dependency): "The sphinxcontrib.applehelp extension used by this project needs at least Sphinx v5.0"
+sphinxcontrib_applehelp<1.0.8
 sphinx_book_theme
 sphinx-intl==2.0.0
 sphinx-tabs
