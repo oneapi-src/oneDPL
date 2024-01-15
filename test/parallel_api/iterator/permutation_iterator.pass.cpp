@@ -32,54 +32,21 @@ using namespace oneapi::dpl::execution;
 using namespace TestUtils;
 
 ////////////////////////////////////////////////////////////////////////////////
-// 
+//
 // Table: Current test state
-// 
-// +------------------------+-----------------------+-----------+--------------------------------------+-------------+-------------------------------+
-// +       Test name        |     Algorithm         + Is modify +         Pattern                      + Host policy +        Hetero policy          +
-// +------------------------+-----------------------+-----------+--------------------------------------+-------------+-------------------------------+
-// | test_transform         | dpl::transform        |     N     | __parallel_for                       |     +       |              +                |
-// | test_transform_reduce  | dpl::transform_reduce |     N     | __parallel_transform_reduce          |     +       |              +                |
-// | test_find              | dpl::find             |     N     | __parallel_find -> _parallel_find_or |     +       |              +                |
-// | test_is_heap           | dpl::is_heap          |     N     | __parallel_or -> _parallel_find_or   |     +       |              +                |
-// | test_merge             | dpl::merge            |     N     | __parallel_merge                     |     +       |              +                |
-// | test_sort              | dpl::sort             |     Y     | __parallel_stable_sort               |     +       | exc. perm_it_index_tags::host |
-// | test_partial_sort      | dpl::partial_sort     |     Y     | __parallel_partial_sort              |     +       | exc. perm_it_index_tags::host |
-// | test_remove_if         | dpl::remove_if        |     Y     | __parallel_transform_scan            |     +       | exc. perm_it_index_tags::host |
-// +------------------------+-----------------------+-----------+--------------------------------------+-------------+-------------------------------+
-
-namespace
-{
-template <typename ExecutionPolicy, typename PermItIndexTag>
-struct is_able_to_modify_src_data_in_test : ::std::true_type { };
-
-#if TEST_DPCPP_BACKEND_PRESENT
-// TODO: fix bug for host_iterator as permutation_iterator index and re-enable this case
-template <typename ExecutionPolicy>
-struct is_able_to_modify_src_data_in_test<ExecutionPolicy, perm_it_index_tags::host>
-    : ::std::negation<oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<ExecutionPolicy>>>
-{
-};
-
-#endif // TEST_DPCPP_BACKEND_PRESENT
-};
-
-// Check ability to run non-modifying source data test
-template <typename Iterator>
-constexpr bool
-can_run_nonmodify_test()
-{
-    return is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value;
-}
-
-// Check ability to run modifying source data test
-template <typename Policy, typename Iterator, typename PermItIndexTag>
-constexpr bool
-can_run_modify_test()
-{
-    return is_base_of_iterator_category<::std::random_access_iterator_tag, Iterator>::value &&
-           is_able_to_modify_src_data_in_test<Policy, PermItIndexTag>::value;
-}
+//
+// +------------------------+-----------------------+-----------+--------------------------------------+-------------+---------------+
+// +       Test name        |     Algorithm         + Is modify +         Pattern                      + Host policy + Hetero policy +
+// +------------------------+-----------------------+-----------+--------------------------------------+-------------+---------------+
+// | test_transform         | dpl::transform        |     N     | __parallel_for                       |     +       |       +       |
+// | test_transform_reduce  | dpl::transform_reduce |     N     | __parallel_transform_reduce          |     +       |       +       |
+// | test_find              | dpl::find             |     N     | __parallel_find -> _parallel_find_or |     +       |       +       |
+// | test_is_heap           | dpl::is_heap          |     N     | __parallel_or -> _parallel_find_or   |     +       |       +       |
+// | test_merge             | dpl::merge            |     N     | __parallel_merge                     |     +       |       +       |
+// | test_sort              | dpl::sort             |     Y     | __parallel_stable_sort               |     +       |       +       |
+// | test_partial_sort      | dpl::partial_sort     |     Y     | __parallel_partial_sort              |     +       |       +       |
+// | test_remove_if         | dpl::remove_if        |     Y     | __parallel_transform_scan            |     +       |       +       |
+// +------------------------+-----------------------+-----------+--------------------------------------+-------------+---------------+
 
 //----------------------------------------------------------------------------//
 template <typename ExecutionPolicy>
@@ -169,7 +136,7 @@ DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag)
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
     {
-        if constexpr (can_run_modify_test<Policy, Iterator1, PermItIndexTag>())
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // sorting data
             const auto host_keys_ptr = host_keys.get();
@@ -225,7 +192,7 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
     {
-        if constexpr (can_run_modify_test<Policy, Iterator1, PermItIndexTag>())
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // sorting data
             const auto host_keys_ptr = host_keys.get();
@@ -289,7 +256,7 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Size n)
     {
-        if constexpr (can_run_nonmodify_test<Iterator1>())
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for transform
             TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);     // result data of transform
@@ -351,7 +318,7 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
     {
-        if constexpr (can_run_modify_test<Policy, Iterator1, PermItIndexTag>())
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for remove_if
             const auto host_keys_ptr = host_keys.get();
@@ -411,7 +378,7 @@ DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
     {
-        if constexpr (can_run_nonmodify_test<Iterator1>())
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for transform_reduce
             const auto host_keys_ptr = host_keys.get();
@@ -457,7 +424,7 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Iterator3 first3, Iterator3 last3, Size n)
     {
-        if constexpr (can_run_nonmodify_test<Iterator1>())
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);                                 // source data(1) for merge
             TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);                                 // source data(2) for merge
@@ -536,7 +503,7 @@ DEFINE_TEST_PERM_IT(test_find, PermItIndexTag)
     {
         assert(n > 0);
 
-        if constexpr (can_run_nonmodify_test<Iterator1>())
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for find
             const auto host_keys_ptr = host_keys.get();
@@ -588,7 +555,7 @@ DEFINE_TEST_PERM_IT(test_is_heap, PermItIndexTag)
     void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
     {
-        if constexpr (can_run_nonmodify_test<Iterator1>())
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
             for (bool bCallMakeHeap : {false, true})
             {
