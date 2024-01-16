@@ -224,11 +224,10 @@ __clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _Offset
     __dpl_sycl::__group_barrier(__self_item);
 }
 
-template <typename _BinIdxType, typename _Range, typename _HistReg, typename _BinFunc>
+template <typename _BinIdxType, typename _ValueType, typename _HistReg, typename _BinFunc>
 void
-__accum_local_register_iter(_Range&& __input, const ::std::size_t& __index, _HistReg* __histogram, _BinFunc __func)
+__accum_local_register_iter(const _ValueType& __x, _HistReg* __histogram, _BinFunc __func)
 {
-    const auto& __x = __input[__index];
     if (__func.is_valid(__x))
     {
         _BinIdxType c = __func.get_bin(__x);
@@ -236,14 +235,13 @@ __accum_local_register_iter(_Range&& __input, const ::std::size_t& __index, _His
     }
 }
 
-template <typename _BinIdxType, sycl::access::address_space _AddressSpace, typename _Range, typename _HistAccessor,
+template <typename _BinIdxType, sycl::access::address_space _AddressSpace, typename _ValueType, typename _HistAccessor,
           typename _OffsetT, typename _BinFunc>
 void
-__accum_local_atomics_iter(_Range&& __input, const ::std::size_t& __index, const _HistAccessor& __wg_local_histogram,
+__accum_local_atomics_iter(const _ValueType& __x, const _HistAccessor& __wg_local_histogram,
                            const _OffsetT& __offset, _BinFunc __func)
 {
     using _histo_value_type = typename _HistAccessor::value_type;
-    const auto& __x = __input[__index];
     if (__func.is_valid(__x))
     {
         _BinIdxType __c = __func.get_bin(__x);
@@ -324,7 +322,7 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
                         for (::std::uint8_t __idx = 0; __idx < __iters_per_work_item; ++__idx)
                         {
                             __accum_local_register_iter<_histogram_index_type>(
-                                __input, __seg_start + __idx * __work_group_size + __self_lidx, __histogram,
+                                __input[__seg_start + __idx * __work_group_size + __self_lidx], __histogram,
                                 __SLM_binhash);
                         }
                     }
@@ -336,7 +334,7 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
                             ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
                             if (__val_idx < __n)
                             {
-                                __accum_local_register_iter<_histogram_index_type>(__input, __val_idx, __histogram,
+                                __accum_local_register_iter<_histogram_index_type>(__input[__val_idx], __histogram,
                                                                                    __SLM_binhash);
                             }
                         }
@@ -429,7 +427,7 @@ struct __histogram_general_local_atomics_submitter<__iters_per_work_item,
                         {
                             ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
                             __accum_local_atomics_iter<_histogram_index_type, _atomic_address_space>(
-                                __input, __val_idx, __local_histogram, 0, __SLM_binhash);
+                                __input[__val_idx], __local_histogram, 0, __SLM_binhash);
                         }
                     }
                     else
@@ -441,7 +439,7 @@ struct __histogram_general_local_atomics_submitter<__iters_per_work_item,
                             if (__val_idx < __n)
                             {
                                 __accum_local_atomics_iter<_histogram_index_type, _atomic_address_space>(
-                                    __input, __val_idx, __local_histogram, 0, __SLM_binhash);
+                                    __input[__val_idx], __local_histogram, 0, __SLM_binhash);
                             }
                         }
                     }
@@ -527,7 +525,7 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
                         {
                             ::std::size_t __val_idx = __seg_start + __idx * __work_group_size + __self_lidx;
                             __accum_local_atomics_iter<_histogram_index_type, _atomic_address_space>(
-                                __input, __val_idx, __hacc_private, __wgroup_idx * __num_bins, _device_copyable_func);
+                                __input[__val_idx], __hacc_private, __wgroup_idx * __num_bins, _device_copyable_func);
                         }
                     }
                     else
@@ -538,7 +536,7 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
                             if (__val_idx < __n)
                             {
                                 __accum_local_atomics_iter<_histogram_index_type, _atomic_address_space>(
-                                    __input, __val_idx, __hacc_private, __wgroup_idx * __num_bins,
+                                    __input[__val_idx], __hacc_private, __wgroup_idx * __num_bins,
                                     _device_copyable_func);
                             }
                         }
