@@ -15,6 +15,11 @@
 
 #ifndef _ONEDPL_HISTOGRAM_BINHASH_UTILS_H
 #define _ONEDPL_HISTOGRAM_BINHASH_UTILS_H
+#include <algorithm>
+#include <utility>
+#include <iterator>
+#include <cstdint>
+#include <type_traits>
 
 #include "utils_ranges.h"
 
