@@ -221,8 +221,8 @@ Examples
    s o r t e d
 
 
-Best Performace Tips
---------------------
+Recommended Settings for Best Performance
+-----------------------------------------
 
 General advice is to set the configuration according to the performance measurements and profiling information.
 
