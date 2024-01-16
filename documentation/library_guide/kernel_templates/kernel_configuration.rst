@@ -28,12 +28,21 @@ Member Constants
 Member Types
 ------------
 
-+-----------------+----------------+----------------------------------------------------------------------------------------+
-| Type            | Definition     | Description                                                                            |
-+=================+================+========================================================================================+
-|                 |                | Name of the kernel.                                                                    |
-|                 |                | It can be augmented for a ``kernel_param`` object passed in a multi-kernel template    |
-|                 |                | to guarantee uniqueness of the individual kernels.                                     |
-|                 |                | For ``DefaultKernelName``, unique implementation-defined name is generated even across |
-| ``kernel_name`` | ``KernelName`` | multiple kernel templates if ``fsycl-unnamed-lambda`` is enabled.                      |
-+-----------------+----------------+----------------------------------------------------------------------------------------+
++-----------------+----------------+-----------------------------------------------------------------------------------------+
+| Type            | Definition     | Description                                                                             |
++=================+================+=========================================================================================+
+| ``kernel_name`` | ``KernelName`` | Optional parameter used to set a kernel name. The behavior is different whether the     |
+|                 |                | parameter is provided:                                                                  |
+|                 |                |                                                                                         |
+|                 |                | a. Provided. It is passed as is or augmented to guarantee unique kernel                 |
+|                 |                |    names in the kernel template if it has multiple kernels.                             |
+|                 |                | b. Not provided. Default value (``DefaultKernelName``) results in                       |
+|                 |                |    implementation-defined generation of unique kernels names across the whole           |
+|                 |                |    program.                                                                             |
+|                 |                |                                                                                         |
+|                 |                | .. note::                                                                               |
+|                 |                |                                                                                         |
+|                 |                |    Automatic kernel name generation ("Not provided" option above) assumes that the used |
+|                 |                |    compiler and runtime are compliant to SYCL* 2020 and supports optional kernel names. |
+|                 |                |    For example, Intel® oneAPI DPC++/C++ Compiler supports it by default.                |
++-----------------+----------------+-----------------------------------------------------------------------------------------+
