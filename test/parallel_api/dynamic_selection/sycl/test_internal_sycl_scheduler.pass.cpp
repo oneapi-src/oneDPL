@@ -259,7 +259,6 @@ main()
     catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to use sycl at all\n";
-        return 0;
     }
 #endif // TEST_DYNAMIC_SELECTION_AVAILABLE    
 
