@@ -3,7 +3,7 @@ sphinx==3.4.0
 jinja2<3.1
 # https://github.com/sphinx-doc/sphinx/issues/9923
 docutils==0.15
-# Versions a pinned to avoid a compatibility issue: "The sphinxcontrib.<extension_name> extension used by this project needs at least Sphinx v5.0"
+# Pin versions to avoid a compatibility issue: "The sphinxcontrib.<extension_name> extension used by this project needs at least Sphinx v5.0"
 sphinxcontrib_applehelp<1.0.8
 sphinxcontrib_devhelp<1.0.5
 sphinxcontrib_htmlhelp<2.0.4
