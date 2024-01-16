@@ -1,14 +1,14 @@
-ESIMD-based Kernel Templates
+ESIMD-Based Kernel Templates
 ############################
 
-ESIMD Kernel Templates are based on `Explicit SIMD SYCL (ESIMD) <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2024-0/explicit-simd-sycl-extension.html>`_.
-This technology supports only Intel GPU devices.
+The ESIMD kernel templates are based on `Explicit SIMD SYCL (ESIMD) <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2024-0/explicit-simd-sycl-extension.html>`_.
+This technology only supports Intel GPU devices.
 
 .. note::
-   ``kernel_param::data_per_workitem`` parameter has a special meaning in ESIMD-based Kernel Templates.
+   The ``kernel_param::data_per_workitem`` parameter has a special meaning in ESIMD-based kernel templates.
    Usually, each work-item processes ``data_per_workitem`` sequentially.
-   However, work-items in ESIMD-based Kernel Templates perform vectorization,
-   so the sequential work is in fact ``data_per_workitem / vector_lenght``, where ``vector_lenght`` is an implementation-defined vectorization factor.
+   However, work-items in ESIMD-based kernel templates perform vectorization,
+   so the sequential work is ``data_per_workitem / vector_lenght``, where ``vector_lenght`` is an implementation-defined vectorization factor.
 
 List of Kernel Templates:
 
