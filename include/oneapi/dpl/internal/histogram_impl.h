@@ -22,7 +22,7 @@
 #include "../pstl/iterator_impl.h"
 
 #if _ONEDPL_HETERO_BACKEND
-#    include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_histogram.h"
+#    include "../pstl/hetero/histogram_impl_hetero.h"
 #endif
 
 namespace oneapi
@@ -32,23 +32,6 @@ namespace dpl
 
 namespace __internal
 {
-
-//Only supported for dpcpp backend
-#if _ONEDPL_BACKEND_SYCL
-template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _IdxHashFunc,
-          typename _RandomAccessIterator2>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
-__pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
-                    _Size __num_bins, _IdxHashFunc __func, _RandomAccessIterator2 __histogram_first)
-{
-    //If there are no histogram bins there is nothing to do
-    if (__num_bins > 0)
-    {
-        oneapi::dpl::__par_backend_hetero::__parallel_histogram(::std::forward<_ExecutionPolicy>(exec), __first, __last,
-                                                                __num_bins, __func, __histogram_first);
-    }
-}
-#endif // _ONEDPL_BACKEND_SYCL
 
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _IdxHashFunc,
           typename _RandomAccessIterator2>
