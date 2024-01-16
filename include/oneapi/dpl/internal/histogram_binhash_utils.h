@@ -40,17 +40,15 @@ struct __evenly_divided_binhash<_T1, ::std::enable_if_t<::std::is_floating_point
     }
 
     template <typename _T2>
-    ::std::uint32_t
-    get_bin(_T2&& __value) const
+    ::std::int32_t
+    get_bin(const _T2& __value) const
     {
-        return ::std::uint32_t((::std::forward<_T2>(__value) - __minimum) * __scale);
-    }
-
-    template <typename _T2>
-    bool
-    is_valid(const _T2& __value) const
-    {
-        return (__value >= __minimum) && (__value < __maximum);
+        int ret = -1; 
+        if ((__value >= __minimum) && (__value < __maximum))
+        {
+            ret = (__value - __minimum) * __scale;
+        }
+        return ret;
     }
 };
 
@@ -66,18 +64,15 @@ struct __evenly_divided_binhash<_T1, ::std::enable_if_t<!::std::is_floating_poin
     }
 
     template <typename _T2>
-    ::std::uint32_t
-    get_bin(_T2&& __value) const
+    ::std::int32_t 
+    get_bin(const _T2& __value) const
     {
-        return ::std::uint32_t(
-            ((::std::uint64_t(::std::forward<_T2>(__value)) - __minimum) * ::std::uint64_t(__num_bins)) / __range_size);
-    }
-
-    template <typename _T2>
-    bool
-    is_valid(const _T2& __value) const
-    {
-        return (__value >= __minimum) && (__value < (__minimum + __range_size));
+        int ret = -1;
+        if ((__value >= __minimum) && (__value < (__minimum + __range_size)))
+        {
+            ret = ((::std::uint64_t(__value) - __minimum) * ::std::uint64_t(__num_bins)) / __range_size;
+        }
+        return ret;
     }
 };
 
@@ -89,32 +84,23 @@ struct __custom_range_binhash
 
     __custom_range_binhash(_Range __boundaries_) : __boundaries(__boundaries_) {}
 
-    template <typename _BoundaryIter, typename _T2>
-    static ::std::uint32_t
-    get_bin_helper(_BoundaryIter __first, _BoundaryIter __last, _T2 __value)
+    template <typename _BoundaryIter, typename _T2, typename _T3>
+    static int
+    get_bin_helper(_BoundaryIter __first, _BoundaryIter __last, _T2 __value, _T3 __min, _T3 __max)
     {
-        return std::distance(__first, ::std::upper_bound(__first, __last, ::std::forward<_T2>(__value))) - 1;
-    }
-
-    template <typename _T2, typename _T3>
-    static bool
-    is_valid_helper(_T2 __min, _T2 __max, _T3 __value)
-    {
-        return __value >= __min && __value < __max;
+        int ret = -1;
+        if (__value >= __min && __value < __max)
+        {
+            ret = std::distance(__first, ::std::upper_bound(__first, __last, ::std::forward<_T2>(__value))) - 1;
+        }
+        return ret;
     }
 
     template <typename _T2>
-    ::std::uint32_t
+    ::std::int32_t
     get_bin(_T2&& __value) const
     {
-        return get_bin_helper(__boundaries.begin(), __boundaries.end(), ::std::forward<_T2>(__value));
-    }
-
-    template <typename _T2>
-    bool
-    is_valid(_T2&& __value) const
-    {
-        return is_valid_helper(__boundaries[0], __boundaries[__boundaries.size() - 1], ::std::forward<_T2>(__value));
+        return get_bin_helper(__boundaries.begin(), __boundaries.end(), ::std::forward<_T2>(__value), __boundaries[0], __boundaries[__boundaries.size()-1]);
     }
 
     _Range

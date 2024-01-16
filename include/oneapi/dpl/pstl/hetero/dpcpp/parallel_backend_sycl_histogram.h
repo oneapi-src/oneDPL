@@ -48,17 +48,10 @@ struct __binhash_SLM_wrapper
     }
 
     template <typename _T>
-    ::std::uint32_t
+    ::std::int32_t
     get_bin(_T&& __value) const
     {
         return __bin_hash.get_bin(::std::forward<_T>(__value));
-    }
-
-    template <typename _T>
-    bool
-    is_valid(_T&& __value) const
-    {
-        return __bin_hash.is_valid(::std::forward<_T>(__value));
     }
 };
 
@@ -91,18 +84,10 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     }
 
     template <typename _T>
-    ::std::uint32_t
+    ::std::int32_t
     get_bin(_T&& __value) const
     {
-        return _bin_hash_type::get_bin_helper(__slm_mem.begin(), __slm_mem.end(), ::std::forward<_T>(__value));
-    }
-
-    template <typename _T>
-    bool
-    is_valid(_T&& __value) const
-    {
-        return _bin_hash_type::is_valid_helper(__slm_mem[0], __slm_mem[__slm_mem.size() - 1],
-                                               ::std::forward<_T>(__value));
+        return _bin_hash_type::get_bin_helper(__slm_mem.begin(), __slm_mem.end(), ::std::forward<_T>(__value), __slm_mem[0], __slm_mem[__slm_mem.size()-1]);
     }
 };
 
@@ -228,9 +213,9 @@ template <typename _BinIdxType, typename _ValueType, typename _HistReg, typename
 void
 __accum_local_register_iter(const _ValueType& __x, _HistReg* __histogram, _BinFunc __func)
 {
-    if (__func.is_valid(__x))
+    _BinIdxType c = __func.get_bin(__x);
+    if (c >= 0)
     {
-        _BinIdxType c = __func.get_bin(__x);
         ++__histogram[c];
     }
 }
@@ -242,9 +227,9 @@ __accum_local_atomics_iter(const _ValueType& __x, const _HistAccessor& __wg_loca
                            const _OffsetT& __offset, _BinFunc __func)
 {
     using _histo_value_type = typename _HistAccessor::value_type;
-    if (__func.is_valid(__x))
+    _BinIdxType __c = __func.get_bin(__x);
+    if (__c >= 0)
     {
-        _BinIdxType __c = __func.get_bin(__x);
         __dpl_sycl::__atomic_ref<_histo_value_type, _AddressSpace> __local_bin(__wg_local_histogram[__offset + __c]);
         ++__local_bin;
     }
@@ -292,7 +277,7 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
         const ::std::uint8_t __num_bins = __bins.size();
         using _local_histogram_type = ::std::uint32_t;
         using _private_histogram_type = ::std::uint16_t;
-        using _histogram_index_type = ::std::uint8_t;
+        using _histogram_index_type = ::std::int8_t;
         using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
         using _extra_memory_type = typename _BinHashMgr::_extra_memory_type;
         auto _device_copyable_func = __binhash_manager.get_device_copyable_binhash();
@@ -393,7 +378,7 @@ struct __histogram_general_local_atomics_submitter<__iters_per_work_item,
     {
         using _local_histogram_type = ::std::uint32_t;
         using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
-        using _histogram_index_type = ::std::uint16_t;
+        using _histogram_index_type = ::std::int16_t;
         using _extra_memory_type = typename _BinHashMgr::_extra_memory_type;
 
         ::std::size_t __extra_SLM_elements = __binhash_manager.get_required_SLM_elements();
@@ -488,7 +473,7 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
         const ::std::size_t __n = __input.size();
         const ::std::size_t __num_bins = __bins.size();
         using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
-        using _histogram_index_type = ::std::uint32_t;
+        using _histogram_index_type = ::std::int32_t;
 
         auto __global_mem_size = __exec.queue().get_device().template get_info<sycl::info::device::global_mem_size>();
         const ::std::size_t __max_segments =
