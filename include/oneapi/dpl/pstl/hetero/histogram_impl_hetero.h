@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <iterator>
 #include "../../internal/histogram_binhash_utils.h"
+#include "../parallel_backend.h"
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "dpcpp/execution_sycl_defs.h"
@@ -48,8 +49,9 @@ struct __binhash_manager_base
         return 0;
     }
 
+    template<typename _Handler>
     void
-    require_access(sycl::handler& __cgh) const
+    require_access(_Handler& __cgh) const
     {
     }
 
@@ -81,8 +83,9 @@ struct __binhash_manager_with_buffer : __binhash_manager_base<_BinHash>
         return this->__bin_hash.get_range().size();
     }
 
+    template <typename _Handler>
     void
-    require_access(sycl::handler& __cgh) const
+    require_access(_Handler& __cgh) const
     {
         oneapi::dpl::__ranges::__require_access(__cgh, this->__bin_hash.get_range());
     }
