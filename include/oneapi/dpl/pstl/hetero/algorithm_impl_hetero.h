@@ -428,7 +428,8 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
     using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
-
+#ifdef _ONEDPL_DETECT_SPIRV_COMPILATION
+    using _Commutative = ::std::false_type;
     // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
     // not commutative.
     auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
@@ -439,18 +440,31 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
         }
         return __a;
     };
+#else
+    using _Commutative = ::std::true_type;
+    // This operator keeps track of the lowest found index in case of equal min. or max. values. Thus, this operator is
+    // commutative.
+    auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
+        bool _is_a_lt_b = __comp(get<1>(__a), get<1>(__b));
+        bool _is_b_lt_a = __comp(get<1>(__b), get<1>(__a));
+
+        if (_is_b_lt_a || (!_is_a_lt_b && get<0>(__b) < get<0>(__a)))
+        {
+            return __b;
+        }
+        return __a;
+    };
+#endif
     auto __transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    auto __ret_idx =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
-                                                                       ::std::false_type /*is_commutative*/>(
-            ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
-            unseq_backend::__no_init_value{}, // no initial value
-            __buf.all_view())
-            .get();
+    auto __ret_idx = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, _Commutative>(
+                         ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                         unseq_backend::__no_init_value{}, // no initial value
+                         __buf.all_view())
+                         .get();
 
     return __first + ::std::get<0>(__ret_idx);
 }
@@ -1506,7 +1520,7 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_nth_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __nth, _Iterator __last, _Compare __comp,
-                      /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type) noexcept
+                      /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type)
 {
     if (__first == __last || __nth == __last)
         return;
