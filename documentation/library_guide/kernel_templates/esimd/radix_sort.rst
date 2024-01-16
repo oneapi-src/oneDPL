@@ -72,6 +72,8 @@ Return Value
 Memory Usage
 ------------
 
+.. _local-memory:
+
 Local Memory
 ~~~~~~~~~~~~
 
@@ -99,6 +101,7 @@ The device must have enough local memory to execute the selected configuration.
 
 Global Memory
 ~~~~~~~~~~~~~
+
 The global (USM device) memory is allocated as shown in the pseudo-code blocks below:
 
 - ``radix_sort`` (1,2):
@@ -224,48 +227,46 @@ Examples
 Recommended Settings for Best Performance
 -----------------------------------------
 
-General advice is to set the configuration according to the performance measurements and profiling information.
+The general advice is to set your configuration according to the performance measurements and profiling information. The initial configuration may be selected according to these points:
 
-But the initial configuration may be selected according to these points:
+- When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``, then the elements can be processed by a single work-group. Increase the param values, so ``N <= param.data_per_workitem * param.workgroup_size``.
 
-a. The number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``. The elements can be processed by a single work-group.
+- When the number of elements to sort is medium (between ~16K and ~1M), then all the work-groups can execute simultaneously. Make sure the device is saturated: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``. A larger ``param.workgroup_size`` in ``param.data_per_workitem * param.workgroup_size`` combination is preferred to reduce the number of work-groups and the synchronization overhead.
 
-   - Increase ``param`` values, so ``N <= param.data_per_workitem * param.workgroup_size``.
-
-b. The number of elements to sort is medium (between ~16K and ~1M). All the work-groups can execute simultaneously.
-
-   - Make sure the device is saturated: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``. Prefer larger ``param.workgroup_size`` in ``param.data_per_workitem * param.workgroup_size`` combination to reduce the number of work-groups and thus synchronization overhead.
-
-c. The number of elements to sort is large (more than ~1M). The work-groups preempt each other.
-
-   - Increase the occupancy to hide the latency: ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``. The occupancy depends on the local memory usage which is determined by ``key_type``, ``value_type``, ``radix_bits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters. Refer to "Local memory usage" chapter for the calculation.
+- When the number of elements to sort is large (more than ~1M), then the work-groups preempt each other. Increase the occupancy to hide the latency with ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``. The occupancy depends on the local memory usage, which is determined by ``key_type``, ``value_type``, ``radix_bits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters. Refer to :ref:`Local Memory <local-memory>` section for the calculation.
 
 
-Limitations (may be relaxed in the future)
-------------------------------------------
+.. _limitations:
 
-- Algorithms can process only C++ integral and floating-point types with the width up to 64-bits (except for ``bool``).
+Limitations
+-----------
+
+- Algorithms can only process C++ integral and floating-point types with a width of up to 64 bits (except for ``bool``).
 - Number of elements to sort must not exceed `2^30`.
 - ``radix_bits`` can only be `8`.
 - ``param.data_per_workitem`` has discreteness of `32`.
 - ``param.workgroup_size`` can only be `64`.
-- Local memory is always used to rank keys, reorder keys or key-value pairs which limits possible values of ``param.data_per_workitem`` and ``param.workgroup_size``.
+- Local memory is always used to rank keys, reorder keys, or key-value pairs, which limits possible values of ``param.data_per_workitem`` and ``param.workgroup_size``
 - ``radix_sort_by_key`` does not have single-work-group implementation yet.
 
 
-Possible API Extensions (may be implemented in the future)
-----------------------------------------------------------
+.. _possible-api-extensions:
+
+Possible API Extensions
+-----------------------
 
 - Allow passing externally allocated memory.
 - Allow passing dependent events.
 - Allow passing a range of bits to sort.
-- Allow out-of-place sorting, e.g. with a double-buffer or an output sequence(s)
-- Allow configuration of kernels other than the most time-consuming kernel (e.g. of a kernel computing histograms).
-- Allow range transformations (e.g. range pipes or transform iterators).
+- Allow out-of-place sorting (for example, through a double-buffer or an output sequence).
+- Allow configuration of kernels other than the most time-consuming kernel (for example, of a kernel computing histograms).
+- Allow range transformations (for example, range pipes or transform iterators).
 
 
-System Requirements (coverage my be extended in the future)
------------------------------------------------------------
+.. _system-requirements:
+
+System Requirements
+-------------------
 
 - Hardware: Intel® Data Center GPU Max Series.
 - Compiler: Intel® oneAPI DPC++/C++ 2023.2 and newer.
@@ -281,5 +282,14 @@ Known Issues
 
   - ``sizeof(key_type) + sizeof(value_type) = 12``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 96``
   - ``sizeof(key_type) + sizeof(value_type) = 16``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 64``
+
+.. note::
+
+   The following may be changed in the future:
+
+   - The API may be expanded (see :ref:`Possible API Extensions <possible-api-extensions>`). As a result, it may become incompatible with the previous versions.
+   - :ref:`Limitations <limitations>` may be relaxed.
+   - List of supported hardware, compilers and operative systems shown on :ref:`System Requirements <system-requirements>` may be expanded.
+
 
 .. [#fnote1] Andy Adinets and Duane Merrill (2022). Onesweep: A Faster Least Significant Digit Radix Sort for GPUs. Retrieved from https://arxiv.org/abs/2206.01784.
