@@ -269,8 +269,12 @@ System Requirements
 -------------------
 
 - Hardware: Intel® Data Center GPU Max Series.
-- Compiler: Intel® oneAPI DPC++/C++ 2023.2 and newer.
-- OS: RHEL 9.2, SLES 15 SP5, Ubuntu 22.04. Other distributions and their versions listed in `<https://dgpu-docs.intel.com/driver/installation.html>`_ should be supported accordingly however they have not been tested.
+- Compiler: Intel® oneAPI DPC++/C++ Compiler 2023.2 and newer.
+- Operating Systems:
+   - Red Hat Enterprise Linux* 9.2,
+   - SUSE Linux Enterprise Server* 15 SP5,
+   - Ubuntu* 22.04.
+   - Other distributions and their versions listed in `<https://dgpu-docs.intel.com/driver/installation.html>`_ should be supported accordingly, however they have not been tested.
 
 
 Known Issues
@@ -289,7 +293,7 @@ Known Issues
 
    - The API may be expanded (see :ref:`Possible API Extensions <possible-api-extensions>`). As a result, it may become incompatible with the previous versions.
    - :ref:`Limitations <limitations>` may be relaxed.
-   - List of supported hardware, compilers and operative systems shown on :ref:`System Requirements <system-requirements>` may be expanded.
+   - List of supported hardware, compilers and operating systems shown on :ref:`System Requirements <system-requirements>` may be expanded.
 
 
 .. [#fnote1] Andy Adinets and Duane Merrill (2022). Onesweep: A Faster Least Significant Digit Radix Sort for GPUs. Retrieved from https://arxiv.org/abs/2206.01784.
