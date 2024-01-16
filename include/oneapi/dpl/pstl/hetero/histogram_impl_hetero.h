@@ -49,7 +49,7 @@ struct __binhash_manager
         return 0;
     }
 
-    template<typename _Handler>
+    template <typename _Handler>
     auto
     prepare_device_binhash(_Handler& __cgh) const
     {
@@ -76,7 +76,7 @@ struct __binhash_manager_custom_boundary
         return __range_holder.size();
     }
 
-    template<typename _Handler>
+    template <typename _Handler>
     auto
     prepare_device_binhash(_Handler& __cgh) const
     {

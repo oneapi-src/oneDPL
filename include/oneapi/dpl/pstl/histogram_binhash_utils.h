@@ -46,7 +46,7 @@ struct __evenly_divided_binhash<_T1, ::std::enable_if_t<::std::is_floating_point
     ::std::int32_t
     get_bin(const _T2& __value) const
     {
-        int ret = -1; 
+        int ret = -1;
         if ((__value >= __minimum) && (__value < __maximum))
         {
             ret = (__value - __minimum) * __scale;
@@ -67,7 +67,7 @@ struct __evenly_divided_binhash<_T1, ::std::enable_if_t<!::std::is_floating_poin
     }
 
     template <typename _T2>
-    ::std::int32_t 
+    ::std::int32_t
     get_bin(const _T2& __value) const
     {
         int ret = -1;
@@ -97,14 +97,19 @@ struct __custom_boundary_binhash
     _RandomAccessIterator __boundary_first;
     _RandomAccessIterator __boundary_last;
     ::std::size_t __size;
-    __custom_boundary_binhash(_RandomAccessIterator __boundary_first_, _RandomAccessIterator __boundary_last_) : __boundary_first(__boundary_first_), __boundary_last(__boundary_last_), __size(__boundary_last-__boundary_first){}
+    __custom_boundary_binhash(_RandomAccessIterator __boundary_first_, _RandomAccessIterator __boundary_last_)
+        : __boundary_first(__boundary_first_), __boundary_last(__boundary_last_),
+          __size(__boundary_last - __boundary_first)
+    {
+    }
 
     template <typename _T2>
     ::std::int32_t
     get_bin(_T2&& __value) const
     {
         auto __size = ::std::distance(__boundary_first, __boundary_last);
-        return __custom_boundary_get_bin_helper(__boundary_first, __boundary_last, ::std::forward<_T2>(__value), __boundary_first[0], __boundary_first[__size - 1]);
+        return __custom_boundary_get_bin_helper(__boundary_first, __boundary_last, ::std::forward<_T2>(__value),
+                                                __boundary_first[0], __boundary_first[__size - 1]);
     }
 };
 

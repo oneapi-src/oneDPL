@@ -417,7 +417,7 @@ struct __buffer_holder
     {
         return oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf);
     }
-    
+
     auto
     size() const
     {

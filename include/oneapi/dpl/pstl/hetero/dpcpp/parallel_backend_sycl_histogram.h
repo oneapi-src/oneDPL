@@ -40,13 +40,15 @@ template <typename _Range>
 struct __custom_boundary_range_binhash
 {
     _Range __boundaries;
-    __custom_boundary_range_binhash(_Range __boundaries_) : __boundaries(__boundaries_){}
+    __custom_boundary_range_binhash(_Range __boundaries_) : __boundaries(__boundaries_) {}
 
     template <typename _T2>
     ::std::int32_t
     get_bin(_T2&& __value) const
     {
-        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__boundaries.begin(), __boundaries.end(), ::std::forward<_T2>(__value), __boundaries[0], __boundaries[__boundaries.size() - 1]);
+        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__boundaries.begin(), __boundaries.end(),
+                                                                         ::std::forward<_T2>(__value), __boundaries[0],
+                                                                         __boundaries[__boundaries.size() - 1]);
     }
 };
 
@@ -102,7 +104,9 @@ struct __binhash_SLM_wrapper<__custom_boundary_range_binhash<_Range>, _ExtraMemA
     ::std::int32_t
     get_bin(_T&& __value) const
     {
-        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__slm_mem.begin(), __slm_mem.end(), ::std::forward<_T>(__value), __slm_mem[0], __slm_mem[__slm_mem.size()-1]);
+        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__slm_mem.begin(), __slm_mem.end(),
+                                                                         ::std::forward<_T>(__value), __slm_mem[0],
+                                                                         __slm_mem[__slm_mem.size() - 1]);
     }
 };
 
@@ -158,8 +162,8 @@ __accum_local_register_iter(const _ValueType& __x, _HistReg* __histogram, _BinFu
 template <typename _BinIdxType, sycl::access::address_space _AddressSpace, typename _ValueType, typename _HistAccessor,
           typename _OffsetT, typename _BinFunc>
 void
-__accum_local_atomics_iter(const _ValueType& __x, const _HistAccessor& __wg_local_histogram,
-                           const _OffsetT& __offset, _BinFunc __func)
+__accum_local_atomics_iter(const _ValueType& __x, const _HistAccessor& __wg_local_histogram, const _OffsetT& __offset,
+                           _BinFunc __func)
 {
     using _histo_value_type = typename _HistAccessor::value_type;
     _BinIdxType __c = __func.get_bin(__x);
@@ -401,7 +405,8 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinHashMgr>
     auto
     operator()(_ExecutionPolicy&& __exec, const sycl::event& __init_event, ::std::uint16_t __min_iters_per_work_item,
-               ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins, const _BinHashMgr& __binhash_manager)
+               ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
+               const _BinHashMgr& __binhash_manager)
     {
         const ::std::size_t __n = __input.size();
         const ::std::size_t __num_bins = __bins.size();
@@ -480,7 +485,8 @@ __histogram_general_private_global_atomics(_ExecutionPolicy&& __exec, const sycl
 
     return __histogram_general_private_global_atomics_submitter<_global_atomics_name>()(
         ::std::forward<_ExecutionPolicy>(__exec), __init_event, __min_iters_per_work_item, __work_group_size,
-        ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), ::std::forward<_BinHashMgr>(__binhash_manager));
+        ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
+        ::std::forward<_BinHashMgr>(__binhash_manager));
 }
 
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
@@ -505,8 +511,9 @@ __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event&
     {
         return __future(
             __histogram_general_registers_local_reduction<__iters_per_work_item, __max_work_item_private_bins>(
-                ::std::forward<_ExecutionPolicy>(__exec), __init_event, __work_group_size, ::std::forward<_Range1>(__input),
-                ::std::forward<_Range2>(__bins), ::std::forward<_BinHashMgr>(__binhash_manager)));
+                ::std::forward<_ExecutionPolicy>(__exec), __init_event, __work_group_size,
+                ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
+                ::std::forward<_BinHashMgr>(__binhash_manager)));
     }
     // if bins fit into SLM, use local atomics
     else if (__num_bins * sizeof(_local_histogram_type) +
@@ -526,27 +533,27 @@ __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event&
         // is a runtime argument.
         return __future(__histogram_general_private_global_atomics(
             ::std::forward<_ExecutionPolicy>(__exec), __init_event, __iters_per_work_item, __work_group_size,
-            ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), ::std::forward<_BinHashMgr>(__binhash_manager)));
+            ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
+            ::std::forward<_BinHashMgr>(__binhash_manager)));
     }
 }
 
-
-
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinHashMgr>
 auto
-__parallel_histogram(_ExecutionPolicy&& __exec, const sycl::event& __init_event,  _Range1&& __input, _Range2&& __bins, _BinHashMgr&& __binhash_manager)
+__parallel_histogram(_ExecutionPolicy&& __exec, const sycl::event& __init_event, _Range1&& __input, _Range2&& __bins,
+                     _BinHashMgr&& __binhash_manager)
 {
     if (__input.size() < 1048576) // 2^20
     {
-        return __parallel_histogram_select_kernel</*iters_per_workitem = */ 4>(::std::forward<_ExecutionPolicy>(__exec),
-                                                                        __init_event, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
-                                                                        ::std::forward<_BinHashMgr>(__binhash_manager));
+        return __parallel_histogram_select_kernel</*iters_per_workitem = */ 4>(
+            ::std::forward<_ExecutionPolicy>(__exec), __init_event, ::std::forward<_Range1>(__input),
+            ::std::forward<_Range2>(__bins), ::std::forward<_BinHashMgr>(__binhash_manager));
     }
     else
     {
-        return __parallel_histogram_select_kernel</*iters_per_workitem = */ 32>(::std::forward<_ExecutionPolicy>(__exec),
-                                                                        __init_event, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
-                                                                        ::std::forward<_BinHashMgr>(__binhash_manager));
+        return __parallel_histogram_select_kernel</*iters_per_workitem = */ 32>(
+            ::std::forward<_ExecutionPolicy>(__exec), __init_event, ::std::forward<_Range1>(__input),
+            ::std::forward<_Range2>(__bins), ::std::forward<_BinHashMgr>(__binhash_manager));
     }
 }
 

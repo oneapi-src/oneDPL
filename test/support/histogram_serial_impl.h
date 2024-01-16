@@ -32,8 +32,8 @@ get_bin(const T1& value, T2 min, T2 max, const Size& num_bins)
 
 template <typename _InputIterator1, typename _Size, typename _T, typename _OutputIterator>
 _OutputIterator
-histogram_sequential(_InputIterator1 __first, _InputIterator1 __last, _Size __num_bins,
-                     _T __first_bin_min_val, _T __last_bin_max_val, _OutputIterator __histogram_first)
+histogram_sequential(_InputIterator1 __first, _InputIterator1 __last, _Size __num_bins, _T __first_bin_min_val,
+                     _T __last_bin_max_val, _OutputIterator __histogram_first)
 {
     ::std::fill_n(__histogram_first, __num_bins, 0);
 
@@ -56,7 +56,6 @@ histogram_sequential(_InputIterator1 __first, _InputIterator1 __last, _InputIter
 {
     int __num_bins = (__boundary_last - __boundary_first) - 1;
     ::std::fill_n(__histogram_first, __num_bins, 0);
-
 
     for (auto __tmp = __first; __tmp < __last; ++__tmp)
     {
