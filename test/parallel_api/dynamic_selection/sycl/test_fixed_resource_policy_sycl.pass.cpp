@@ -7,9 +7,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_config.h"
+
 #include "oneapi/dpl/dynamic_selection"
 #include "support/test_dynamic_selection_utils.h"
-#include "support/test_config.h"
 #include "support/utils.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 #    include "support/sycl_sanity.h"

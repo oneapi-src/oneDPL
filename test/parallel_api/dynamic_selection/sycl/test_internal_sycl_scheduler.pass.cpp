@@ -7,10 +7,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_config.h"
+
 #include "oneapi/dpl/dynamic_selection"
 #include <atomic>
 #include <iostream>
-#include "support/test_config.h"
 #include "support/utils.h"
 
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
@@ -258,7 +259,6 @@ main()
     catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to use sycl at all\n";
-        return 0;
     }
 #endif // TEST_DYNAMIC_SELECTION_AVAILABLE    
 
