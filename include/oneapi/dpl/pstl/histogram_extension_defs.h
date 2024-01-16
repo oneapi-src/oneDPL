@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_HISTOGRAM_EXTENSION_DEFS_H
 #define _ONEDPL_HISTOGRAM_EXTENSION_DEFS_H
 
-#include "../pstl/onedpl_config.h"
+#include "onedpl_config.h"
 
 namespace oneapi
 {

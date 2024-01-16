@@ -16,13 +16,12 @@
 #ifndef _ONEDPL_HISTOGRAM_IMPL_H
 #define _ONEDPL_HISTOGRAM_IMPL_H
 
-#include "function.h"
 #include "histogram_extension_defs.h"
 #include "histogram_binhash_utils.h"
-#include "../pstl/iterator_impl.h"
+#include "iterator_impl.h"
 
 #if _ONEDPL_HETERO_BACKEND
-#    include "../pstl/hetero/histogram_impl_hetero.h"
+#    include "hetero/histogram_impl_hetero.h"
 #endif
 
 namespace oneapi

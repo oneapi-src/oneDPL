@@ -20,13 +20,13 @@
 #include <cstdint>
 #include <type_traits>
 
-#include "../../../pstl/hetero/dpcpp/sycl_defs.h"
-#include "../../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
-#include "../../../pstl/hetero/dpcpp/execution_sycl_defs.h"
-#include "../../../pstl/hetero/dpcpp/unseq_backend_sycl.h"
-#include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
+#include "sycl_defs.h"
+#include "parallel_backend_sycl_utils.h"
+#include "execution_sycl_defs.h"
+#include "unseq_backend_sycl.h"
+#include "utils_ranges_sycl.h"
 
-#include "../../../internal/histogram_binhash_utils.h"
+#include "../../histogram_binhash_utils.h"
 #include "../../../internal/async_impl/async_impl_hetero.h"
 
 namespace oneapi

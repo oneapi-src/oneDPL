@@ -16,7 +16,7 @@
 #ifndef _ONEDPL_HISTOGRAM_BINHASH_UTILS_H
 #define _ONEDPL_HISTOGRAM_BINHASH_UTILS_H
 
-#include "../pstl/utils_ranges.h"
+#include "utils_ranges.h"
 
 namespace oneapi
 {

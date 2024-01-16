@@ -18,7 +18,7 @@
 
 #include <cstdint>
 #include <iterator>
-#include "../../internal/histogram_binhash_utils.h"
+#include "../histogram_binhash_utils.h"
 #include "../parallel_backend.h"
 
 #if _ONEDPL_BACKEND_SYCL
