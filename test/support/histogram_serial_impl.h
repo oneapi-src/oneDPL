@@ -35,18 +35,15 @@ _OutputIterator
 histogram_sequential(_InputIterator1 __first, _InputIterator1 __last, _Size __num_bins,
                      _T __first_bin_min_val, _T __last_bin_max_val, _OutputIterator __histogram_first)
 {
-    for (int bin = 0; bin < __num_bins; bin++)
-    {
-        __histogram_first[bin] = 0;
-    }
+    ::std::fill_n(__histogram_first, __num_bins, 0);
 
-    for (auto tmp = __first; tmp < __last; ++tmp)
+    for (auto __tmp = __first; __tmp < __last; ++__tmp)
     {
-        auto value = *tmp;
-        if (value >= __first_bin_min_val && value < __last_bin_max_val)
+        auto __value = *__tmp;
+        if (__value >= __first_bin_min_val && __value < __last_bin_max_val)
         {
-            _Size bin = get_bin(value, __first_bin_min_val, __last_bin_max_val, __num_bins);
-            ++(__histogram_first[bin]);
+            _Size __bin = get_bin(__value, __first_bin_min_val, __last_bin_max_val, __num_bins);
+            ++(__histogram_first[__bin]);
         }
     }
     return __histogram_first + __num_bins;
@@ -57,23 +54,21 @@ _OutputIterator
 histogram_sequential(_InputIterator1 __first, _InputIterator1 __last, _InputIterator2 __boundary_first,
                      _InputIterator2 __boundary_last, _OutputIterator __histogram_first)
 {
-    int num_bins = (__boundary_last - __boundary_first) - 1;
-    for (int bin = 0; bin < num_bins; bin++)
-    {
-        __histogram_first[bin] = 0;
-    }
+    int __num_bins = (__boundary_last - __boundary_first) - 1;
+    ::std::fill_n(__histogram_first, __num_bins, 0);
 
-    for (auto tmp = __first; tmp < __last; ++tmp)
+
+    for (auto __tmp = __first; __tmp < __last; ++__tmp)
     {
-        auto value = *tmp;
-        if ((value >= (*__boundary_first)) && (value < (*(__boundary_last - 1))))
+        auto __value = *__tmp;
+        if ((__value >= (*__boundary_first)) && (__value < (*(__boundary_last - 1))))
         {
             ::std::ptrdiff_t bin =
-                (::std::upper_bound(__boundary_first, __boundary_last, value) - __boundary_first) - 1;
+                (::std::upper_bound(__boundary_first, __boundary_last, __value) - __boundary_first) - 1;
             ++(__histogram_first[bin]);
         }
     }
-    return __histogram_first + num_bins;
+    return __histogram_first + __num_bins;
 }
 
 #endif // _HISTOGRAM_SERIAL_IMPL_H
