@@ -36,12 +36,12 @@ namespace __internal
 {
 
 template <typename _BinHash>
-struct __binhash_manager_base
+struct __binhash_manager
 {
     //will always be empty, but just to have some type
     using _extra_memory_type = typename ::std::uint8_t;
     _BinHash __bin_hash;
-    __binhash_manager_base(_BinHash __bin_hash_) : __bin_hash(__bin_hash_) {}
+    __binhash_manager(_BinHash __bin_hash_) : __bin_hash(__bin_hash_) {}
 
     ::std::size_t
     get_required_SLM_elements() const
@@ -50,50 +50,39 @@ struct __binhash_manager_base
     }
 
     template<typename _Handler>
-    void
-    require_access(_Handler& __cgh) const
-    {
-    }
-
     auto
-    get_device_copyable_binhash() const
+    prepare_device_binhash(_Handler& __cgh) const
     {
         return __bin_hash;
     }
 };
 
 // Augmentation for binhash function which stores a range of dynamic memory to determine bin mapping
-template <typename _BinHash, typename _BufferType>
-struct __binhash_manager_with_buffer : __binhash_manager_base<_BinHash>
+template <typename _BufferHolder, typename _RangeHolder>
+struct __binhash_manager_custom_boundary
 {
-    using _base_type = __binhash_manager_base<_BinHash>;
-    using _extra_memory_type = typename _BinHash::_range_value_type;
-    //While this stays "unused" in this struct, __buffer is required to keep the sycl buffer alive until the kernel has
-    // been completed (waited on)
-    _BufferType __buffer;
-
-    __binhash_manager_with_buffer(_BinHash __bin_hash_, _BufferType __buffer_)
-        : _base_type(__bin_hash_), __buffer(__buffer_)
+    using _extra_memory_type = typename _RangeHolder::value_type;
+    // __buffer_holder is required to keep the sycl buffer alive until the kernel has been completed (waited on)
+    _BufferHolder __buffer_holder;
+    _RangeHolder __range_holder;
+    __binhash_manager_custom_boundary(_BufferHolder&& __buffer_holder_, _RangeHolder&& __range_holder_)
+        : __buffer_holder(::std::move(__buffer_holder_)), __range_holder(::std::move(__range_holder_))
     {
-    }
-
-    ::std::size_t
-    get_required_SLM_elements() const
-    {
-        return this->__bin_hash.get_range().size();
-    }
-
-    template <typename _Handler>
-    void
-    require_access(_Handler& __cgh) const
-    {
-        oneapi::dpl::__ranges::__require_access(__cgh, this->__bin_hash.get_range());
     }
 
     auto
-    get_device_copyable_binhash() const
+    get_required_SLM_elements() const
     {
-        return _base_type::get_device_copyable_binhash();
+        return __range_holder.size();
+    }
+
+    template<typename _Handler>
+    auto
+    prepare_device_binhash(_Handler& __cgh) const
+    {
+        auto __view = __range_holder.all_view();
+        oneapi::dpl::__ranges::__require_access(__cgh, __view);
+        return oneapi::dpl::__par_backend_hetero::__custom_boundary_range_binhash{::std::move(__view)};
     }
 };
 
@@ -101,20 +90,18 @@ template <typename _BinHash>
 auto
 __make_binhash_manager(_BinHash __bin_hash)
 {
-    return __binhash_manager_base(__bin_hash);
+    return __binhash_manager(__bin_hash);
 }
 
-template <typename _Range>
+template <typename _RandomAccessIterator>
 auto
-__make_binhash_manager(oneapi::dpl::__internal::__custom_range_binhash<_Range> __bin_hash)
+__make_binhash_manager(oneapi::dpl::__internal::__custom_boundary_binhash<_RandomAccessIterator> __bin_hash)
 {
-    auto __range_to_upg = __bin_hash.get_range();
     auto __keep_boundaries =
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
-                                                decltype(__range_to_upg.begin())>();
-    auto __buffer = __keep_boundaries(__range_to_upg.begin(), __range_to_upg.end());
-    return __binhash_manager_with_buffer(oneapi::dpl::__internal::__custom_range_binhash(__buffer.all_view()),
-                                         __buffer);
+                                                _RandomAccessIterator>();
+    auto __holder = __keep_boundaries(__bin_hash.__boundary_first, __bin_hash.__boundary_last);
+    return __binhash_manager_custom_boundary{::std::move(__keep_boundaries), ::std::move(__holder)};
 }
 
 template <typename _Name>
@@ -154,6 +141,7 @@ __pattern_histogram(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _
         if (__n > 0)
         {
             //need __binhash_manager to stay in scope until the kernel completes to keep the buffer alive
+            // __make_binhash_manager will call __get_sycl_range for any data which requires it within __func
             auto __binhash_manager = __make_binhash_manager(__func);
             auto __keep_input =
                 oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,

@@ -21,8 +21,6 @@
 #include <cstdint>
 #include <type_traits>
 
-#include "utils_ranges.h"
-
 namespace oneapi
 {
 namespace dpl
@@ -81,37 +79,32 @@ struct __evenly_divided_binhash<_T1, ::std::enable_if_t<!::std::is_floating_poin
     }
 };
 
-template <typename _Range>
-struct __custom_range_binhash
+template <typename _BoundaryIter, typename _T2, typename _T3>
+int
+__custom_boundary_get_bin_helper(_BoundaryIter __first, _BoundaryIter __last, _T2 __value, _T3 __min, _T3 __max)
 {
-    using _range_value_type = oneapi::dpl::__internal::__value_t<_Range>;
-    _Range __boundaries;
-
-    __custom_range_binhash(_Range __boundaries_) : __boundaries(__boundaries_) {}
-
-    template <typename _BoundaryIter, typename _T2, typename _T3>
-    static int
-    get_bin_helper(_BoundaryIter __first, _BoundaryIter __last, _T2 __value, _T3 __min, _T3 __max)
+    int ret = -1;
+    if (__value >= __min && __value < __max)
     {
-        int ret = -1;
-        if (__value >= __min && __value < __max)
-        {
-            ret = std::distance(__first, ::std::upper_bound(__first, __last, ::std::forward<_T2>(__value))) - 1;
-        }
-        return ret;
+        ret = ::std::distance(__first, ::std::upper_bound(__first, __last, ::std::forward<_T2>(__value))) - 1;
     }
+    return ret;
+}
+
+template <typename _RandomAccessIterator>
+struct __custom_boundary_binhash
+{
+    _RandomAccessIterator __boundary_first;
+    _RandomAccessIterator __boundary_last;
+    ::std::size_t __size;
+    __custom_boundary_binhash(_RandomAccessIterator __boundary_first_, _RandomAccessIterator __boundary_last_) : __boundary_first(__boundary_first_), __boundary_last(__boundary_last_), __size(__boundary_last-__boundary_first){}
 
     template <typename _T2>
     ::std::int32_t
     get_bin(_T2&& __value) const
     {
-        return get_bin_helper(__boundaries.begin(), __boundaries.end(), ::std::forward<_T2>(__value), __boundaries[0], __boundaries[__boundaries.size()-1]);
-    }
-
-    _Range
-    get_range() const
-    {
-        return __boundaries;
+        auto __size = ::std::distance(__boundary_first, __boundary_last);
+        return __custom_boundary_get_bin_helper(__boundary_first, __boundary_last, ::std::forward<_T2>(__value), __boundary_first[0], __boundary_first[__size - 1]);
     }
 };
 

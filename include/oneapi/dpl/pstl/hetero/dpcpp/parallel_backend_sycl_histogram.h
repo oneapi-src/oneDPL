@@ -36,6 +36,20 @@ namespace dpl
 namespace __par_backend_hetero
 {
 
+template <typename _Range>
+struct __custom_boundary_range_binhash
+{
+    _Range __boundaries;
+    __custom_boundary_range_binhash(_Range __boundaries_) : __boundaries(__boundaries_){}
+
+    template <typename _T2>
+    ::std::int32_t
+    get_bin(_T2&& __value) const
+    {
+        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__boundaries.begin(), __boundaries.end(), ::std::forward<_T2>(__value), __boundaries[0], __boundaries[__boundaries.size() - 1]);
+    }
+};
+
 // Baseline wrapper which provides no acceleration via SLM memory, but still
 // allows generic calls to a wrapped binhash structure from within the kernels
 template <typename _BinHash, typename _ExtraMemAccessor>
@@ -59,26 +73,26 @@ struct __binhash_SLM_wrapper
 // Specialization for custom range binhash function which stores boundary data
 // into SLM for quick repeated usage
 template <typename _Range, typename _ExtraMemAccessor>
-struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Range>, _ExtraMemAccessor>
+struct __binhash_SLM_wrapper<__custom_boundary_range_binhash<_Range>, _ExtraMemAccessor>
 {
-    using _bin_hash_type = typename oneapi::dpl::__internal::__custom_range_binhash<_Range>;
+    using _bin_hash_type = typename oneapi::dpl::__par_backend_hetero::__custom_boundary_range_binhash<_Range>;
 
-    _bin_hash_type __bin_hash;
     _ExtraMemAccessor __slm_mem;
-    __binhash_SLM_wrapper(_bin_hash_type __bin_hash_, _ExtraMemAccessor __slm_mem_, const sycl::nd_item<1>& __self_item)
-        : __bin_hash(__bin_hash_), __slm_mem(__slm_mem_)
+    __binhash_SLM_wrapper(_bin_hash_type __bin_hash, _ExtraMemAccessor __slm_mem_, const sycl::nd_item<1>& __self_item)
+        : __slm_mem(__slm_mem_)
     {
         //initialize __slm_memory
         ::std::uint32_t __gSize = __self_item.get_local_range()[0];
         ::std::uint32_t __self_lidx = __self_item.get_local_id(0);
-        ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__bin_hash.__boundaries.size(), __gSize);
+        auto __size = __bin_hash.__boundaries.size();
+        ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__size, __gSize);
         ::std::uint8_t __k = 0;
         for (; __k < __factor - 1; ++__k)
         {
             __slm_mem[__gSize * __k + __self_lidx] = __bin_hash.__boundaries[__gSize * __k + __self_lidx];
         }
         // residual
-        if (__gSize * __k + __self_lidx < __bin_hash.__boundaries.size())
+        if (__gSize * __k + __self_lidx < __size)
         {
             __slm_mem[__gSize * __k + __self_lidx] = __bin_hash.__boundaries[__gSize * __k + __self_lidx];
         }
@@ -88,7 +102,7 @@ struct __binhash_SLM_wrapper<oneapi::dpl::__internal::__custom_range_binhash<_Ra
     ::std::int32_t
     get_bin(_T&& __value) const
     {
-        return _bin_hash_type::get_bin_helper(__slm_mem.begin(), __slm_mem.end(), ::std::forward<_T>(__value), __slm_mem[0], __slm_mem[__slm_mem.size()-1]);
+        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__slm_mem.begin(), __slm_mem.end(), ::std::forward<_T>(__value), __slm_mem[0], __slm_mem[__slm_mem.size()-1]);
     }
 };
 
@@ -201,14 +215,13 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
         using _histogram_index_type = ::std::int8_t;
         using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
         using _extra_memory_type = typename _BinHashMgr::_extra_memory_type;
-        auto _device_copyable_func = __binhash_manager.get_device_copyable_binhash();
 
         ::std::size_t __extra_SLM_elements = __binhash_manager.get_required_SLM_elements();
         ::std::size_t __segments =
             oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __iters_per_work_item);
         return __exec.queue().submit([&](auto& __h) {
             __h.depends_on(__init_event);
-            __binhash_manager.require_access(__h);
+            auto _device_copyable_func = __binhash_manager.prepare_device_binhash(__h);
             oneapi::dpl::__ranges::__require_access(__h, __input, __bins);
             __dpl_sycl::__local_accessor<_local_histogram_type> __local_histogram(sycl::range(__num_bins), __h);
             __dpl_sycl::__local_accessor<_extra_memory_type> __extra_SLM(sycl::range(__extra_SLM_elements), __h);
@@ -305,12 +318,11 @@ struct __histogram_general_local_atomics_submitter<__iters_per_work_item,
         ::std::size_t __extra_SLM_elements = __binhash_manager.get_required_SLM_elements();
         const ::std::size_t __n = __input.size();
         const ::std::size_t __num_bins = __bins.size();
-        auto _device_copyable_func = __binhash_manager.get_device_copyable_binhash();
         ::std::size_t __segments =
             oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __iters_per_work_item);
         return __exec.queue().submit([&](auto& __h) {
             __h.depends_on(__init_event);
-            __binhash_manager.require_access(__h);
+            auto _device_copyable_func = __binhash_manager.prepare_device_binhash(__h);
             oneapi::dpl::__ranges::__require_access(__h, __input, __bins);
             // minimum type size for atomics
             __dpl_sycl::__local_accessor<_local_histogram_type> __local_histogram(sycl::range(__num_bins), __h);
@@ -408,11 +420,10 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
         auto __private_histograms =
             oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _bin_type>(__exec, __segments * __num_bins)
                 .get_buffer();
-        auto _device_copyable_func = __binhash_manager.get_device_copyable_binhash();
 
         return __exec.queue().submit([&](auto& __h) {
             __h.depends_on(__init_event);
-            __binhash_manager.require_access(__h);
+            auto _device_copyable_func = __binhash_manager.prepare_device_binhash(__h);
             oneapi::dpl::__ranges::__require_access(__h, __input, __bins);
             sycl::accessor __hacc_private{__private_histograms, __h, sycl::read_write, sycl::no_init};
             __h.template parallel_for<_KernelName...>(

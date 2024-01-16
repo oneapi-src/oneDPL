@@ -65,9 +65,8 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
           _RandomAccessIterator3 histogram_first)
 {
     ::std::ptrdiff_t num_bins = boundary_last - boundary_first - 1;
-    auto boundary_view = oneapi::dpl::__ranges::guard_view<_RandomAccessIterator2>(boundary_first, boundary_last);
     __internal::__pattern_histogram(::std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
-                                    __internal::__custom_range_binhash{boundary_view}, histogram_first);
+                                    __internal::__custom_boundary_binhash{boundary_first, boundary_last}, histogram_first);
     return histogram_first + num_bins;
 }
 

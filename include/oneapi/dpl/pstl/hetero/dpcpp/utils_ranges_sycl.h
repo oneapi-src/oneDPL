@@ -364,11 +364,19 @@ __require_access(sycl::handler& __cgh, _Range&& __rng, _Ranges&&... __rest)
 template <typename _R>
 struct __range_holder
 {
+    using value_type = oneapi::dpl::__internal::__value_t<_R>;
+
     _R __r;
     constexpr _R
     all_view() const
     {
         return __r;
+    }
+
+    auto
+    size() const
+    {
+        return __r.size();
     }
 
     //TODO: The dummy conversion operators.
@@ -389,6 +397,31 @@ struct __range_holder
                                               oneapi::dpl::internal::ignore_copyable,
                                               oneapi::dpl::internal::ignore_copyable>(
             oneapi::dpl::internal::ignore, oneapi::dpl::internal::ignore, oneapi::dpl::internal::ignore);
+    }
+};
+
+// We have to keep sycl buffer instance here by sync reasons, at least in case of host iterators. SYCL runtime has sync
+// in buffer destruction and a sycl view instance keeps just placeholder accessor, not a buffer.
+template <typename _T>
+using buf_type = sycl::buffer<_T, 1>;
+
+template <typename _T, sycl::access::mode AccMode>
+struct __buffer_holder
+{
+    using value_type = _T;
+
+    buf_type<_T> __buf;
+
+    constexpr oneapi::dpl::__ranges::all_view<_T, AccMode>
+    all_view() const
+    {
+        return oneapi::dpl::__ranges::all_view<_T, AccMode>(__buf);
+    }
+    
+    auto
+    size() const
+    {
+        return __buf.size();
     }
 };
 
