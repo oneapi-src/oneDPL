@@ -20,6 +20,7 @@
 #include <iterator>
 #include <cstdint>
 #include <type_traits>
+#include <cassert>
 
 namespace oneapi
 {
