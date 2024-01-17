@@ -10,7 +10,7 @@ Kernel Configuration
              typename KernelName = oneapi::dpl::execution::DefaultKernelName>
    struct kernel_param;
 
-Each kernel template is supplied by a `kernel_param` object, a generic structure for configuring a kernel.
+Each kernel template is supplied by a ``kernel_param`` object, a generic structure for configuring a kernel.
 The supported and the most performant values depend on the kernel template itself, device capabilities, the data type, and the data size.
 
 Member Constants
@@ -31,18 +31,18 @@ Member Types
 +-----------------+----------------+-----------------------------------------------------------------------------------------+
 | Type            | Definition     | Description                                                                             |
 +=================+================+=========================================================================================+
-| ``kernel_name`` | ``KernelName`` | Optional parameter used to set a kernel name. The behavior is different whether the     |
-|                 |                | parameter is provided:                                                                  |
+| ``kernel_name`` | ``KernelName`` | An optional parameter that is used to set a kernel name.                                |
+|                 |                | The behavior is different whether the parameter is provided or not:                     |
 |                 |                |                                                                                         |
-|                 |                | a. Provided. It is passed as is or augmented to guarantee unique kernel                 |
-|                 |                |    names in the kernel template if it has multiple kernels.                             |
-|                 |                | b. Not provided. Default value (``DefaultKernelName``) results in                       |
-|                 |                |    implementation-defined generation of unique kernels names across the whole           |
+|                 |                | a. Provided: It is passed as is or augmented to guarantee                               |
+|                 |                |    unique kernel names in the kernel template if it has multiple kernels.               |
+|                 |                | b. Not provided: The default value (``DefaultKernelName``) results in                   |
+|                 |                |    the implementation-defined generation of unique kernels names across the whole       |
 |                 |                |    program.                                                                             |
 |                 |                |                                                                                         |
 |                 |                | .. note::                                                                               |
 |                 |                |                                                                                         |
-|                 |                |    Automatic kernel name generation ("Not provided" option above) assumes that the used |
-|                 |                |    compiler and runtime are compliant to SYCL* 2020 and supports optional kernel names. |
+|                 |                |    Automatic kernel name generation (the **not provided** option) assumes that the used |
+|                 |                |    compiler and runtime comply with SYCL* 2020 and support optional kernel names.       |
 |                 |                |    For example, Intel® oneAPI DPC++/C++ Compiler supports it by default.                |
 +-----------------+----------------+-----------------------------------------------------------------------------------------+
