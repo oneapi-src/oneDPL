@@ -87,6 +87,9 @@ struct __scan_status_flag
         {
             _AtomicRefT __tile_atomic(*(__flags_begin + __tile + __padding - __local_id));
             _StorageType __tile_val = 0;
+
+            // Load flag from a previous tile based on my local id.
+            // Spin until every work-item in this subgroup reads a valid status
             do
             {
                 __tile_val = __tile_atomic.load();
@@ -264,10 +267,6 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     assert("This device does not support 64-bit atomics" &&
            (sizeof(_Type) < 64 || __queue.get_device().has(sycl::aspect::atomic64)));
 
-    // We need to process the input array by 2^30 chunks for 32-bit ints
-    constexpr ::std::size_t __chunk_size = 1ul << (sizeof(_Type) * 8 - 2);
-    const ::std::size_t __num_chunks = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __chunk_size);
-
     constexpr ::std::size_t __workgroup_size = _KernelParam::workgroup_size;
     constexpr ::std::size_t __data_per_workitem = _KernelParam::data_per_workitem;
 
@@ -283,26 +282,27 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     auto __fill_event = __lookback_init_submitter<_LookbackInitKernel>{}(__queue, __status_flags, __status_flags_size,
                                                                          __status_flag_padding, _FlagType::__oob_value);
 
-    sycl::event __prev_event = __fill_event;
-    for (int __chunk = 0; __chunk < __num_chunks; ++__chunk)
+    ::std::size_t __current_num_wgs =
+        oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
+    ::std::size_t __current_num_items = __current_num_wgs * __workgroup_size;
+
+    auto __prev_event = __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType, _LookbackKernel>{}(
+        __queue, __fill_event, __in_rng, __out_rng, __binary_op, __n, __status_flags, __status_flags_size,
+        __current_num_items);
+
+    if (0)
     {
-        ::std::size_t __current_chunk_size = __chunk == __num_chunks - 1 ? __n % __chunk_size : __chunk_size;
-        ::std::size_t __current_num_wgs =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__current_chunk_size, __elems_in_tile);
-        ::std::size_t __current_num_items = __current_num_wgs * __workgroup_size;
-
-        auto __event = __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType, _LookbackKernel>{}(
-            __queue, __prev_event, __in_rng, __out_rng, __binary_op, __n, __status_flags, __status_flags_size,
-            __current_num_items);
-        __prev_event = __event;
+        return __queue.submit([=](sycl::handler& __hdl) {
+            __hdl.depends_on(__prev_event);
+            __hdl.host_task([=]() { sycl::free(__status_flags, __queue); });
+        });
     }
-
-    auto __free_event = __queue.submit([=](sycl::handler& __hdl) {
-        __hdl.depends_on(__prev_event);
-        __hdl.host_task([=]() { sycl::free(__status_flags, __queue); });
-    });
-
-    return __free_event;
+    else
+    {
+        __prev_event.wait();
+        sycl::free(__status_flags, __queue);
+        return __prev_event;
+    }
 }
 
 } // namespace __impl
