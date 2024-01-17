@@ -127,6 +127,12 @@ test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
 int
 main()
 {
+#if LOG_TEST_INFO
+    std::cout << "TEST_DATA_PER_WORK_ITEM : " << TEST_DATA_PER_WORK_ITEM << "\n"
+              << "TEST_WORK_GROUP_SIZE    : " << TEST_WORK_GROUP_SIZE    << "\n"
+              << "TEST_TYPE               : " << TypeInfo().name<TEST_TYPE>() << std::endl;
+#endif
+
     constexpr oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE> params;
     auto q = TestUtils::get_test_queue();
     try
