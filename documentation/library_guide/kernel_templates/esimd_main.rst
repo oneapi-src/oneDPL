@@ -1,6 +1,10 @@
 ESIMD-Based Kernel Templates
 ############################
 
+All API on this section reside in ``oneapi::dpl::experimental::kt`` namespace and
+are available through inclusion of ``oneapi/dpl/experimental/kernel_templates`` header file
+This namespace is omitted in the rest of the page, while the nested namespaces are specified.
+
 The ESIMD kernel templates are based on `Explicit SIMD SYCL (ESIMD) <https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2024-0/explicit-simd-sycl-extension.html>`_.
 This technology only supports Intel GPU devices.
 
@@ -12,7 +16,7 @@ This technology only supports Intel GPU devices.
 
 List of kernel templates:
 
-* :doc:`Radix Sort <esimd/radix_sort>`
+* :doc:`radix_sort and radix_sort_by_key <esimd/radix_sort>`
 
 .. toctree::
    :maxdepth: 2

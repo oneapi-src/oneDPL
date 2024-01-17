@@ -1,9 +1,20 @@
 Radix Sort
 ##########
 
-.. code:: cpp
+All API on this section reside in ``oneapi::dpl::experimental::kt`` namespace and
+are available through inclusion of ``oneapi/dpl/experimental/kernel_templates`` header file
+This namespace is omitted in the rest of the page, while the nested namespaces are specified.
 
-   // Defined in header <oneapi/dpl/experimental/kernel_templates>
+--------------------------------------------------
+``radix_sort`` and ``radix_sort_by_key`` Interface
+--------------------------------------------------
+
+The functions sort data using the radix sort algorithm. For a small number of elements to sort, they invoke a single-work-group implementation;
+otherwise, they use a multiple-work-group implementation based on the Onesweep* [#fnote1]_ algorithm variant.
+
+A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` funcitons is provided below:
+
+.. code:: cpp
 
    namespace esimd {
 
@@ -25,7 +36,6 @@ Radix Sort
 
    } // namespace esimd
 
-The functions sort data using the radix sort algorithm. For a small number of elements to sort, they invoke a single-work-group implementation; otherwise, they use a multiple-work-group implementation based on the Onesweep* [#fnote1]_ algorithm variant.
 
 Template Parameters
 --------------------
@@ -121,13 +131,18 @@ The global (USM device) memory is allocated as shown in the pseudo-code blocks b
      allocated_bytes = tmp_buffer_bytes + histogram_bytes
 
 
-Examples
---------
+--------------
+Usage Examples
+--------------
+
+
+``radix_sort`` Example
+----------------------
 
 .. code:: cpp
 
-   // example1.cpp
-   // icpx -fsycl example1.cpp -o example1 -I /path/to/oneDPL/include && ./example1
+   // possible build and run commands:
+   //    icpx -fsycl radix_sort.cpp -o radix_sort -I /path/to/oneDPL/include && ./radix_sort
 
    #include <cstdint>
    #include <iostream>
@@ -165,12 +180,14 @@ Examples
 
    5 3 3 3 2 1
 
------
+
+``radix_sort_by_key`` Example
+-----------------------------
 
 .. code:: cpp
 
-   // example2.cpp
-   // icpx -fsycl example2.cpp -o example2 -I /path/to/oneDPL/include && ./example2
+   // possible build and run commands:
+   //    icpx -fsycl radix_sort_by_key.cpp -o radix_sort_by_key -I /path/to/oneDPL/include && ./radix_sort_by_key
 
    #include <cstdint>
    #include <iostream>
@@ -224,6 +241,7 @@ Examples
    s o r t e d
 
 
+-----------------------------------------
 Recommended Settings for Best Performance
 -----------------------------------------
 
@@ -238,6 +256,7 @@ The general advice is to set your configuration according to the performance mea
 
 .. _limitations:
 
+-----------
 Limitations
 -----------
 
@@ -252,6 +271,7 @@ Limitations
 
 .. _possible-api-extensions:
 
+-----------------------
 Possible API Extensions
 -----------------------
 
@@ -265,18 +285,21 @@ Possible API Extensions
 
 .. _system-requirements:
 
+-------------------
 System Requirements
 -------------------
 
 - Hardware: Intel® Data Center GPU Max Series.
 - Compiler: Intel® oneAPI DPC++/C++ Compiler 2023.2 and newer.
 - Operating Systems:
-   - Red Hat Enterprise Linux* 9.2,
-   - SUSE Linux Enterprise Server* 15 SP5,
-   - Ubuntu* 22.04.
-   - Other distributions and their versions listed in `<https://dgpu-docs.intel.com/driver/installation.html>`_ should be supported accordingly, however they have not been tested.
+
+  - Red Hat Enterprise Linux* 9.2,
+  - SUSE Linux Enterprise Server* 15 SP5,
+  - Ubuntu* 22.04.
+  - Other distributions and their versions listed in `<https://dgpu-docs.intel.com/driver/installation.html>`_ should be supported accordingly, however they have not been tested.
 
 
+------------
 Known Issues
 ------------
 

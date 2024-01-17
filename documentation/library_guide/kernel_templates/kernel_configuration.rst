@@ -1,28 +1,36 @@
 Kernel Configuration
 ####################
 
-.. code:: cpp
+All API on this section reside in ``oneapi::dpl::experimental::kt`` namespace and
+are available through inclusion of ``oneapi/dpl/experimental/kernel_templates`` header file
+This namespace is omitted in the rest of the page, while the nested namespaces are specified.
 
-   // Defined in header <oneapi/dpl/experimental/kernel_templates>
+--------------------------
+``kernel_param`` Interface
+--------------------------
+
+Each kernel template is supplied by a ``kernel_param`` object, a generic structure for configuring a kernel.
+The supported and the most performant values depend on the kernel template itself, device capabilities, the data type, and the data size.
+
+A synopsis of the ``kernel_param`` struct is provided below:
+
+.. code:: cpp
 
    template <std::uint16_t DataPerWorkItem,
              std::uint16_t WorkGroupSize,
              typename KernelName = oneapi::dpl::execution::DefaultKernelName>
    struct kernel_param;
 
-Each kernel template is supplied by a ``kernel_param`` object, a generic structure for configuring a kernel.
-The supported and the most performant values depend on the kernel template itself, device capabilities, the data type, and the data size.
-
 Member Constants
 ----------------
 
-+------------------------------------------------------+---------------------+------------------------------------------------------+
-| Name                                                 | Value               | Description                                          |
-+======================================================+=====================+======================================================+
-| ``static constexpr std::uint16_t data_per_workitem`` | ``DataPerWorkItem`` | Number of iterations to be processed by a work-item. |
-+------------------------------------------------------+---------------------+------------------------------------------------------+
-| ``static constexpr std::uint16_t workgroup_size``    | ``WorkGroupSize``   | Number of work-items within a work-group.            |
-+------------------------------------------------------+---------------------+------------------------------------------------------+
++------------------------------------------------------+---------------------+----------------------------------------------------------+
+| Name                                                 | Value               | Description                                              |
++======================================================+=====================+==========================================================+
+| ``static constexpr std::uint16_t data_per_workitem`` | ``DataPerWorkItem`` | The number of iterations to be processed by a work-item. |
++------------------------------------------------------+---------------------+----------------------------------------------------------+
+| ``static constexpr std::uint16_t workgroup_size``    | ``WorkGroupSize``   | The number of work-items within a work-group.            |
++------------------------------------------------------+---------------------+----------------------------------------------------------+
 
 
 Member Types
