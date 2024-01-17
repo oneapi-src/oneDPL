@@ -68,7 +68,7 @@ test_range_and_even_histogram(Size n, T min_boundary, T max_boundary, T overflow
 {
     //possibly spill over by overflow/2 on each side of range
     Sequence<T> in(n, [&](size_t k) {
-        return (std::rand() % Size(max_boundary - min_boundary + overflow)) + min_boundary - overflow / 2;
+        return T(std::rand() % Size(max_boundary - min_boundary + overflow)) + min_boundary - overflow / T(2);
     });
 
     Sequence<Size> expected(num_bins, [](size_t k) { return 0; });
@@ -114,8 +114,8 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_histogram<float, int64_t>(10000.0, 110000.0, 300.0, int64_t(50), int64_t(99999));
-    test_histogram<std::int32_t, int64_t>(100, 300000, 10, int64_t(5), int64_t(99999));
+    test_histogram<float, int64_t>(10000.0f, 110000.0f, 300.0f, int64_t(50), int64_t(99999));
+    test_histogram<std::int32_t, int64_t>(-50000, 50000, 10000, int64_t(5), int64_t(99999));
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return done(TEST_DPCPP_BACKEND_PRESENT);
