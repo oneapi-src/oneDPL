@@ -13,6 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "../support/test_config.h"
 
 #include <oneapi/dpl/experimental/kernel_templates>
 
@@ -24,7 +25,6 @@
 #    include <oneapi/dpl/ranges>
 #endif
 
-#include "../support/test_config.h"
 #include "../support/utils.h"
 #include "../support/sycl_alloc_utils.h"
 
