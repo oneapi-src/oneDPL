@@ -106,7 +106,7 @@ struct __custom_boundary_binhash
     }
 
     template <typename _T2>
-    ::std::int32_t
+    auto
     get_bin(_T2 __value) const
     {
         auto __size = ::std::distance(__boundary_first, __boundary_last);

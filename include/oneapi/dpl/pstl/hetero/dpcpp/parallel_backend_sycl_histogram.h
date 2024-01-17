@@ -43,7 +43,7 @@ struct __custom_boundary_range_binhash
     __custom_boundary_range_binhash(_Range __boundaries_) : __boundaries(__boundaries_) {}
 
     template <typename _T2>
-    ::std::int32_t
+    auto
     get_bin(_T2 __value) const
     {
         return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(
@@ -64,7 +64,7 @@ struct __binhash_SLM_wrapper
     }
 
     template <typename _T>
-    ::std::int32_t
+    auto
     get_bin(_T __value) const
     {
         return __bin_hash.get_bin(__value);
@@ -100,7 +100,7 @@ struct __binhash_SLM_wrapper<__custom_boundary_range_binhash<_Range>, _ExtraMemA
     }
 
     template <typename _T>
-    ::std::int32_t
+    auto
     get_bin(_T __value) const
     {
         return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__slm_mem.begin(), __slm_mem.end(), __value,
