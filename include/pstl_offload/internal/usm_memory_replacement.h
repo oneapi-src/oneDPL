@@ -14,7 +14,6 @@
 #    error "PSTL offload compiler mode should be enabled to use this header"
 #endif
 
-#include <atomic>
 #include <cstdlib>
 #include <cassert>
 #include <cerrno>
@@ -29,12 +28,13 @@
 namespace __pstl_offload
 {
 
-static std::atomic<sycl::device*> __active_device = nullptr;
+// allocation can be requested before static ctor run, have a flag for that
+static std::atomic_bool __device_ready;
 
 static void
-__set_active_device(sycl::device* __new_active_device)
+__set_device_status(bool __ready)
 {
-    __active_device.store(__new_active_device, std::memory_order_release);
+    __device_ready.store(__ready, std::memory_order_release);
 }
 
 static auto
@@ -53,56 +53,56 @@ __get_offload_device_selector()
 
 class __offload_policy_holder_type
 {
-    using __set_active_device_func_type = void (*)(sycl::device*);
+    using __set_device_status_func_type = void (*)(bool);
 
   public:
-    // Since the global object of __offload_policy_holder_type is static but the constructor
+    // Since the global object of __offload_policy_holder_type is static but the template constructor
     // of the class is inline, we need to avoid calling static functions inside of the constructor
     // and pass the pointer to exact function as an argument to guarantee that the correct __active_device
     // would be stored in each translation unit
     template <typename _DeviceSelector>
     __offload_policy_holder_type(const _DeviceSelector& __device_selector,
-                                 __set_active_device_func_type __set_active_device_func)
-        : _M_set_active_device(__set_active_device_func)
+                                 __set_device_status_func_type __set_device_status_func)
+        :  _M_offload_device(__device_selector), _M_set_device_status_func(__set_device_status_func)
     {
-        try
+        if (_M_offload_device.__is_device_created())
         {
-            _M_offload_device.emplace(__device_selector);
-            _M_set_active_device(&*_M_offload_device);
-            _M_offload_policy.emplace(*_M_offload_device);
-        }
-        catch (const sycl::exception& e)
-        {
-            // __device_selector throws with e.code() == sycl::errc::runtime when device selection unable
-            // to get offload device with required type. Do not pass an exception, as ctor is called for
-            // a static object and the exception can't be processed.
-            // Remember the situation and re-throw exception when asked for the policy from user's code.
-            // Re-throw in every other case, as we don't know the reason.
-            if (e.code() != sycl::errc::runtime)
-                throw;
+            _M_offload_policy.emplace(_M_offload_device.__get_device());
+            _M_set_device_status_func(true);
         }
     }
 
     ~__offload_policy_holder_type()
     {
-        if (_M_offload_device.has_value())
-            _M_set_active_device(nullptr);
+        if (_M_offload_device.__is_device_created())
+        {
+            _M_set_device_status_func(false);
+        }
     }
 
     auto
     __get_policy()
     {
-        if (!_M_offload_device.has_value())
+        if (!_M_offload_device.__is_device_created())
+        {
             throw sycl::exception(sycl::errc::runtime);
+        }
         return *_M_offload_policy;
     }
+
+    __sycl_device_shared_ptr
+    __get_device_ptr()
+    {
+        assert(_M_offload_device.__is_device_created());
+        return _M_offload_device;
+    }
   private:
-    std::optional<sycl::device> _M_offload_device;
+    __sycl_device_shared_ptr _M_offload_device;
     std::optional<oneapi::dpl::execution::device_policy<>> _M_offload_policy;
-    __set_active_device_func_type _M_set_active_device;
+    __set_device_status_func_type _M_set_device_status_func;
 }; // class __offload_policy_holder_type
 
-static __offload_policy_holder_type __offload_policy_holder{__get_offload_device_selector(), __set_active_device};
+static __offload_policy_holder_type __offload_policy_holder{__get_offload_device_selector(), &__set_device_status};
 
 #if __linux__
 inline void*
@@ -119,12 +119,11 @@ __original_aligned_alloc(std::size_t __alignment, std::size_t __size)
 static void*
 __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
 {
-    sycl::device* __device = __active_device.load(std::memory_order_acquire);
     void* __res = nullptr;
 
-    if (__device != nullptr)
+    if (__device_ready.load(std::memory_order_acquire))
     {
-        __res = __allocate_shared_for_device(__device, __size, __alignment);
+        __res = __allocate_shared_for_device(__offload_policy_holder.__get_device_ptr(), __size, __alignment);
     }
     else
     {
