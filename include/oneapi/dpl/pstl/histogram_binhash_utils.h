@@ -76,7 +76,7 @@ struct __evenly_divided_binhash<_T1, ::std::enable_if_t<!::std::is_floating_poin
         ::std::int32_t ret = -1;
         if ((__value >= __minimum) && (__value < (__minimum + __range_size)))
         {
-            ret = ((::std::uint64_t(__value) - __minimum) * ::std::uint64_t(__num_bins)) / __range_size;
+            ret = ::std::uint64_t(__value - __minimum) * ::std::uint64_t(__num_bins) / __range_size;
         }
         return ret;
     }
