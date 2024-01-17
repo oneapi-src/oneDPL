@@ -127,15 +127,12 @@ test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
 int
 main()
 {
-    using T = int;
-    constexpr int data_per_work_item = 8;
-    constexpr int work_group_size = 256;
-    constexpr oneapi::dpl::experimental::kt::kernel_param<data_per_work_item, work_group_size> params;
+    constexpr oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE> params;
     auto q = TestUtils::get_test_queue();
     try
     {
         for (auto size : scan_sizes)
-          test_general_cases<T>(q, size, params);
+            test_general_cases<TEST_TYPE>(q, size, params);
     }
     catch (const ::std::exception& exc)
     {
