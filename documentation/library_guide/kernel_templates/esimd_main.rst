@@ -9,10 +9,11 @@ The ESIMD kernel templates are based on `Explicit SIMD SYCL (ESIMD) <https://www
 This technology only supports Intel GPU devices.
 
 .. note::
+
    The ``kernel_param::data_per_workitem`` parameter has a special meaning in ESIMD-based kernel templates.
    Usually, each work-item processes ``data_per_workitem`` sequentially.
    However, work-items in ESIMD-based kernel templates perform vectorization,
-   so the sequential work is ``data_per_workitem / vector_lenght``, where ``vector_lenght`` is an implementation-defined vectorization factor.
+   so the sequential work is ``data_per_workitem / vector_length``, where ``vector_length`` is an implementation-defined vectorization factor.
 
 List of kernel templates:
 
