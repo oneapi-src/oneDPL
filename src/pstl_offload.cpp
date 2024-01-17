@@ -10,6 +10,7 @@
 #include <new>
 #include <cassert>
 #include <cstdint>
+#include <thread> // std::this_thread::yield
 #include <sycl/sycl.hpp>
 
 #include <pstl_offload/internal/usm_memory_replacement_common.h>
@@ -155,9 +156,70 @@ bool operator==(const __orig_free_allocator <T>&, const __orig_free_allocator <U
 template<class T, class U>
 bool operator!=(const __orig_free_allocator <T>&, const __orig_free_allocator <U>&) { return false; }
 
-// Mark when __large_aligned_ptrs when one about to be destroyed or not created yet.
-// Use atomic to have fences.
-static std::atomic<bool> __large_aligned_ptrs_available;
+// stripped down spin mutex for placement in zero-initialized memory
+class __spin_mutex
+{
+    std::atomic_flag _M_flag = ATOMIC_FLAG_INIT;
+
+    void lock()
+    {
+        while (_M_flag.test_and_set())
+        {
+            std::this_thread::yield();
+        }
+    }
+    bool try_lock()
+    {
+        return !_M_flag.test_and_set();
+    }
+    void unlock() {
+        _M_flag.clear(std::memory_order_release);
+    }
+
+public:
+    class __scoped_lock
+    {
+        __spin_mutex& _M_mutex;
+        bool _M_taken;
+
+    public:
+        __scoped_lock(__spin_mutex& __m) : _M_mutex(__m), _M_taken(true)
+        {
+            __m.lock();
+        }
+
+        __scoped_lock(__scoped_lock&) = delete;
+        __scoped_lock& operator=(__scoped_lock&) = delete;
+
+        ~__scoped_lock()
+        {
+            if (_M_taken)
+            {
+                _M_mutex.unlock();
+            }
+        }
+    };
+    friend class __scoped_lock;
+};
+
+// Signal when __large_aligned_ptrs about to be destroyed.
+// We suppose that all users of libpstloffload have dependence on it, so it's impossible to register 
+// >=4K-aligned USM memory before ctor of static objects executed. So, no need for special support for
+// adding to not-yet-created __large_aligned_ptrs_map.
+static bool __skip_large_aligned_ptrs;
+
+static __spin_mutex __large_aligned_ptrs_map_mtx;
+
+struct __unreleased_ptr_desc
+{
+    void* _M_ptr;
+    bool _M_valid;
+    sycl::device _M_device;
+    std::size_t   _M_requested_number_of_bytes;
+};
+
+static __unreleased_ptr_desc* __unreleased_ptrs;
+static std::size_t __unreleased_ptrs_size;
 
 class __large_aligned_ptrs_map
 {
@@ -169,34 +231,60 @@ public:
     };
 
 private:
-    std::mutex _M_map_mtx;
     // Find sycl::device and requested size by user pointer. Use __orig_free_allocator to not
     // call global delete during delete processing (that includes __unregister_ptr call).
     std::unordered_map<void*, __ptr_desc, __hash_aligned_ptr, std::equal_to<void*>,
         __orig_free_allocator<std::pair<void* const, __ptr_desc>>> _M_map;
 
 public:
-    __large_aligned_ptrs_map()
-    {
-        __large_aligned_ptrs_available = true;
-    }
-
     ~__large_aligned_ptrs_map()
     {
-        __large_aligned_ptrs_available = false;
+        __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
+        __unreleased_ptrs_size = _M_map.size();
+        if (__unreleased_ptrs_size)
+        {
+            // call malloc to able to use __original_free after
+            __unreleased_ptrs = (__unreleased_ptr_desc*)malloc(sizeof(__unreleased_ptr_desc)*__unreleased_ptrs_size);
+            std::size_t __cnt = 0;
+            for (auto const& [__ptr, __val] : _M_map)
+            {
+                __unreleased_ptrs[__cnt++] =
+                    __unreleased_ptr_desc{__ptr, true, __val._M_device_ptr->__get_device(), __val._M_requested_number_of_bytes};
+            }
+        }
+
+        fprintf(stderr, "size %lu\n", _M_map.size());
+        __skip_large_aligned_ptrs = true;
     }
 
     void
     __register_ptr(void* __ptr, size_t __size, __sycl_device_shared_ptr __device_ptr)
     {
         assert(__is_ptr_page_aligned(__ptr));
-        if (!__large_aligned_ptrs_available)
+
+        __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
+        if (__skip_large_aligned_ptrs)
         {
-            return;
+            // adding new element is rare operation, so implements it via re-allocation of the array
+            // with only valid elements
+            std::size_t __active = 1 + std::count_if(__unreleased_ptrs, __unreleased_ptrs + __unreleased_ptrs_size,
+                [](const __unreleased_ptr_desc& __e){ return __e._M_valid; });
+            __unreleased_ptr_desc*
+                __new_unreleased_ptrs = (__unreleased_ptr_desc*)malloc(sizeof(__unreleased_ptr_desc)*__active);
+            __unreleased_ptr_desc* __dest_it = __new_unreleased_ptrs;
+
+            std::copy_if(__unreleased_ptrs, __unreleased_ptrs + __unreleased_ptrs_size, __dest_it,
+                [](const __unreleased_ptr_desc& __e){ return __e._M_valid; });
+            *__dest_it = __unreleased_ptr_desc{__ptr, true, __device_ptr.__get_device(), __size};
+            __original_free(__unreleased_ptrs);
+            __unreleased_ptrs = __new_unreleased_ptrs;
+            __unreleased_ptrs_size = __active;
         }
-        const std::lock_guard<std::mutex> l(_M_map_mtx);
-        [[maybe_unused]] auto __ret = _M_map.emplace(__ptr, __ptr_desc{__device_ptr, __size});
-        assert(__ret.second); // the pointer must be unique
+        else
+        {
+            [[maybe_unused]] auto __ret = _M_map.emplace(__ptr, __ptr_desc{__device_ptr, __size});
+            assert(__ret.second); // the pointer must be unique
+        }
     }
 
     // nullopt means "status unknown", empty __ptr_desc means "it's not our pointer"
@@ -208,12 +296,21 @@ public:
         {
             return __ptr_desc{std::nullopt, 0};
         }
-        if (!__large_aligned_ptrs_available)
+
+        __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
+        if (__skip_large_aligned_ptrs)
         {
-            return std::nullopt;
+            auto __it =
+                std::find_if(__unreleased_ptrs, __unreleased_ptrs + __unreleased_ptrs_size,
+                    [=](const __unreleased_ptr_desc& __e){ return __e._M_valid && __e._M_ptr == __ptr; });
+            if (__it == __unreleased_ptrs + __unreleased_ptrs_size)
+            {
+                return std::nullopt;
+            }
+            __it->_M_valid = false;
+            return __ptr_desc{__it->_M_device, __it->_M_requested_number_of_bytes};
         }
 
-        const std::lock_guard<std::mutex> l(_M_map_mtx);
         auto __iter = _M_map.find(__ptr);
         if (__iter == _M_map.end())
         {
@@ -224,7 +321,7 @@ public:
         return __header;
     }
 
-    // nullopt means "it's not our pointer", return 0 if the map is not available
+    // nullopt means "it's not our pointer"
     std::optional<std::size_t>
     __get_size(void* __ptr)
     {
@@ -233,12 +330,17 @@ public:
         {
             return std::nullopt;
         }
-        if (!__large_aligned_ptrs_available)
+
+        __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
+        if (__skip_large_aligned_ptrs)
         {
-            return 0;
+            auto __it =
+                std::find_if(__unreleased_ptrs, __unreleased_ptrs + __unreleased_ptrs_size,
+                    [=](const __unreleased_ptr_desc& __e){ return __e._M_valid && __e._M_ptr == __ptr; });
+            return __it == __unreleased_ptrs + __unreleased_ptrs_size ? std::nullopt
+                : std::optional<std::size_t>(__it->_M_requested_number_of_bytes);
         }
 
-        const std::lock_guard<std::mutex> l(_M_map_mtx);
         auto __iter = _M_map.find(__ptr);
         if (__iter == _M_map.end())
         {
