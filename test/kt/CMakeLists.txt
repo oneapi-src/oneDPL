@@ -124,7 +124,7 @@ if (ONEDPL_TEST_ENABLE_KT_ESIMD)
     _generate_esimd_sort_test("256" "32" "double" "" 1000) # segfault
 endif()
 
-function (_generate_scan_test _data_per_work_item _work_group_size _type)
+function (_generate_igpu_scan_test _data_per_work_item _work_group_size _type)
 
     if ((NOT TARGET build-scan-tests) AND (NOT TARGET run-scan-tests))
         add_custom_target(build-scan-tests COMMENT "Build all scan kernel template tests")
@@ -151,7 +151,7 @@ function (_generate_scan_test _data_per_work_item _work_group_size _type)
 
 endfunction()
 
-function(_generate_scan_tests)
+function(_generate_igpu_scan_tests)
     set(_data_per_work_item_all "1" "2" "4" "8" "16" "32")
     set(_work_group_size_all "64" "128" "256" "512" "1024")
     set(_type_all "uint32_t")
@@ -159,7 +159,7 @@ function(_generate_scan_tests)
     foreach (_data_per_work_item ${_data_per_work_item_all})
         foreach (_work_group_size ${_work_group_size_all})
             foreach (_type ${_type_all})
-                _generate_scan_test(${_data_per_work_item} ${_work_group_size} ${_type})
+                _generate_igpu_scan_test(${_data_per_work_item} ${_work_group_size} ${_type})
             endforeach()
         endforeach()
     endforeach()
@@ -168,5 +168,5 @@ function(_generate_scan_tests)
 endfunction()
 
 if (ONEDPL_TEST_ENABLE_KT_SYCL)
-    _generate_scan_tests()
+    _generate_igpu_scan_tests()
 endif()
