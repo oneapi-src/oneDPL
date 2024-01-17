@@ -154,7 +154,7 @@ endfunction()
 function(_generate_scan_tests)
     set(_data_per_work_item_all "8")
     set(_work_group_size_all "256")
-    set(_type_all "int")
+    set(_type_all "int" "uint32_t")
 
     foreach (_data_per_work_item ${_data_per_work_item_all})
         foreach (_work_group_size ${_work_group_size_all})
