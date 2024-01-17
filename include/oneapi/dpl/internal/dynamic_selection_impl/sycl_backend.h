@@ -19,6 +19,7 @@
 #include <vector>
 #include <memory>
 #include <utility>
+#include <atomic>
 
 namespace oneapi
 {
@@ -80,6 +81,7 @@ class sycl_backend
     {
         initialize_default_resources();
         sgroup_ptr_ = std::make_unique<submission_group>(global_rank_);
+        number_of_resources=global_rank_.size();
     }
 
     template <typename NativeUniverseVector>
@@ -91,6 +93,7 @@ class sycl_backend
             global_rank_.push_back(e);
         }
         sgroup_ptr_ = std::make_unique<submission_group>(global_rank_);
+        number_of_resources=global_rank_.size();
     }
 
     template <typename SelectionHandle, typename Function, typename... Args>
@@ -115,6 +118,7 @@ class sycl_backend
                 }
             }
             auto e1 = f(q, std::forward<Args>(args)...);
+        break;
             auto e2 = q.submit([=](sycl::handler& h) {
                 h.depends_on(e1);
                 h.host_task([=]() {
@@ -124,18 +128,35 @@ class sycl_backend
                     }
                     if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t>)
                     {
-                        if (use_event_profiling)
-                        {
-                            cl_ulong time_start = e1.template get_profiling_info<sycl::info::event_profiling::command_start>();
-                            cl_ulong time_end = e1.template get_profiling_info<sycl::info::event_profiling::command_end>();
-                            std::cout<<"Total time : "<<time_end-time_start<<"\n";
-                            s.report(execution_info::task_time, time_end - time_start);
+                        if(number_of_resources==0){
+                            if (use_event_profiling)
+                            {
+                                try{
+                                    cl_ulong time_start = e1.template get_profiling_info<sycl::info::event_profiling::command_start>();
+                                //std::cout<<" Time start : "<<time_start<<"\n";
+                                    cl_ulong time_end = e1.template get_profiling_info<sycl::info::event_profiling::command_end>();
+
+                                //std::cout<<"Time end : "<<time_end<<"\n";
+                                //std::cout<<"Total time : "<<time_end-time_start<<"\n";
+                                s.report(execution_info::task_time, time_end - time_start);
+                                }catch(std::exception &e){
+                                    std::cout<<e.what();
+                                    break;
+                                }
+                            }
+                            else
+                            {
+
+                                s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
+                            }
                         }
-                        else
-                        {
-                            s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
+                        else{
+                            std::cout<<"Timing ignored\n";
+                            number_of_resources--;
                         }
+
                     }
+                    std::cout<<"Exit\n";
                 });
             });
             return async_waiter{e2};
@@ -159,6 +180,7 @@ class sycl_backend
     }
 
   private:
+    std::atomic<int> number_of_resources;;
     resource_container_t global_rank_;
     std::unique_ptr<submission_group> sgroup_ptr_;
 
