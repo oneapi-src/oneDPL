@@ -47,7 +47,7 @@ struct __custom_boundary_range_binhash
     get_bin(_T2 __value) const
     {
         return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(
-            __boundaries.begin(), __boundaries.end(), __value, __boundaries[0], __boundaries[__boundaries.size() - 1]);
+            __boundaries, __boundaries.size(), __value, __boundaries[0], __boundaries[__boundaries.size() - 1]);
     }
 };
 
@@ -103,8 +103,9 @@ struct __binhash_SLM_wrapper<__custom_boundary_range_binhash<_Range>, _ExtraMemA
     auto
     get_bin(_T __value) const
     {
-        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__slm_mem.begin(), __slm_mem.end(), __value,
-                                                                         __slm_mem[0], __slm_mem[__slm_mem.size() - 1]);
+        auto __size = __slm_mem.size();
+        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__slm_mem.begin(), __size, __value,
+                                                                         __slm_mem[0], __slm_mem[__size - 1]);
     }
 };
 

@@ -82,14 +82,16 @@ struct __evenly_divided_binhash<_T1, ::std::enable_if_t<!::std::is_floating_poin
     }
 };
 
-template <typename _BoundaryIter, typename _T2, typename _T3>
+template <typename _Acc, typename _T2, typename _T3>
 ::std::int32_t
-__custom_boundary_get_bin_helper(_BoundaryIter __first, _BoundaryIter __last, _T2 __value, _T3 __min, _T3 __max)
+__custom_boundary_get_bin_helper(_Acc __acc, ::std::int32_t __size, _T2 __value, _T3 __min, _T3 __max)
 {
     ::std::int32_t ret = -1;
     if (__value >= __min && __value < __max)
     {
-        ret = ::std::distance(__first, ::std::upper_bound(__first, __last, __value)) - 1;
+        ret =
+            oneapi::dpl::__internal::__pstl_upper_bound(__acc, ::std::int32_t{0}, __size, __value, ::std::less<_T2>{}) -
+            1;
     }
     return ret;
 }
@@ -111,7 +113,7 @@ struct __custom_boundary_binhash
     get_bin(_T2 __value) const
     {
         auto __size = ::std::distance(__boundary_first, __boundary_last);
-        return __custom_boundary_get_bin_helper(__boundary_first, __boundary_last, __value, __boundary_first[0],
+        return __custom_boundary_get_bin_helper(__boundary_first, __size, __value, __boundary_first[0],
                                                 __boundary_first[__size - 1]);
     }
 };
