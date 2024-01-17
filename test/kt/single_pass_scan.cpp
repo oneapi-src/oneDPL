@@ -37,9 +37,9 @@ inline const std::vector<std::size_t> scan_sizes = {
     888'235, 1'000'000, 1 << 20, 10'000'000};
 
 #if _ENABLE_RANGES_TESTING
-template <typename T, typename KernelParam>
+template <typename T, typename BinOp, typename KernelParam>
 void
-test_all_view(sycl::queue q, std::size_t size, KernelParam param)
+test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 {
 #if LOG_TEST_INFO
     std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
@@ -47,12 +47,12 @@ test_all_view(sycl::queue q, std::size_t size, KernelParam param)
     std::vector<T> input(size);
     generate_data(input.data(), size, 42);
     std::vector<T> ref(input);
-    std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref));
+    std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
         sycl::buffer<T> buf_out(input.size());
-        oneapi::dpl::experimental::kt::inclusive_scan(q, view, view, ::std::plus<T>(),
+        oneapi::dpl::experimental::kt::inclusive_scan(q, view, view, bin_op,
                                                                       param)
             .wait();
     }
@@ -62,9 +62,9 @@ test_all_view(sycl::queue q, std::size_t size, KernelParam param)
 }
 #endif
 
-template <typename T, sycl::usm::alloc _alloc_type, typename KernelParam>
+template <typename T, sycl::usm::alloc _alloc_type, typename BinOp, typename KernelParam>
 void
-test_usm(sycl::queue q, std::size_t size, KernelParam param)
+test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 {
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>()
@@ -72,13 +72,14 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
 #endif
     std::vector<T> expected(size);
     generate_data(expected.data(), size, 42);
+    //std::fill(expected.begin(), expected.end(), 22);
 
     TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
     TestUtils::usm_data_transfer<_alloc_type, T> dt_output(q, size);
 
-    std::inclusive_scan(expected.begin(), expected.end(), expected.begin());
+    std::inclusive_scan(expected.begin(), expected.end(), expected.begin(), bin_op);
 
-    oneapi::dpl::experimental::kt::inclusive_scan(q, dt_input.get_data(), dt_input.get_data() + size, dt_output.get_data(), ::std::plus<T>(), param)
+    oneapi::dpl::experimental::kt::inclusive_scan(q, dt_input.get_data(), dt_input.get_data() + size, dt_output.get_data(), bin_op, param)
         .wait();
 
     std::vector<T> actual(size);
@@ -88,9 +89,9 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
     EXPECT_EQ_N(expected.begin(), actual.begin(), size, msg.c_str());
 }
 
-template <typename T, typename KernelParam>
+template <typename T, typename BinOp, typename KernelParam>
 void
-test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
+test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 {
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
@@ -98,11 +99,11 @@ test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
     std::vector<T> input(size);
     generate_data(input.data(), size, 42);
     std::vector<T> ref(input);
-    std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref));
+    std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
         sycl::buffer<T> buf(input.data(), input.size());
         sycl::buffer<T> buf_out(input.size());
-        oneapi::dpl::experimental::kt::inclusive_scan(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), oneapi::dpl::begin(buf_out), ::std::plus<T>(),
+        oneapi::dpl::experimental::kt::inclusive_scan(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), oneapi::dpl::begin(buf_out), bin_op,
                                                                       param)
             .wait();
     }
@@ -111,16 +112,24 @@ test_sycl_iterators(sycl::queue q, std::size_t size, KernelParam param)
     EXPECT_EQ_RANGES(ref, input, msg.c_str());
 }
 
+template <typename T, typename BinOp, typename KernelParam>
+void
+test_general_cases(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
+{
+    test_usm<T, sycl::usm::alloc::shared>(q, size, bin_op, param);
+    test_usm<T, sycl::usm::alloc::device>(q, size, bin_op, param);
+//    test_sycl_iterators<T>(q, size, param);
+#if _ENABLE_RANGES_TESTING
+//    test_all_view<T>(q, size, param);
+#endif
+}
+
 template <typename T, typename KernelParam>
 void
-test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
+test_all_cases(sycl::queue q, std::size_t size, KernelParam param)
 {
-    test_usm<T, sycl::usm::alloc::shared>(q, size, param);
-    test_usm<T, sycl::usm::alloc::device>(q, size, param);
-    test_sycl_iterators<T>(q, size, param);
-#if _ENABLE_RANGES_TESTING
-    test_all_view<T>(q, size, param);
-#endif
+  test_general_cases<T>(q, size, std::plus<T>{}, param);
+  //test_general_cases<T>(q, size, std::multiplies<T>{}, param);
 }
 
 int
@@ -137,7 +146,7 @@ main()
     try
     {
         for (auto size : scan_sizes)
-            test_general_cases<TEST_TYPE>(q, size, params);
+            test_all_cases<TEST_TYPE>(q, size, params);
     }
     catch (const ::std::exception& exc)
     {

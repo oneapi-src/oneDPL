@@ -39,69 +39,74 @@ static constexpr int SUBGROUP_SIZE = 32;
 template <typename _T>
 struct __scan_status_flag
 {
-    // 00xxxx - not computed
-    // 01xxxx - partial
-    // 10xxxx - full
-    // 110000 - out of bounds
-
-    static constexpr bool __is_larger_than_32_bits = sizeof(_T) * 8 > 32;
-    using _StorageType = ::std::conditional_t<__is_larger_than_32_bits, ::std::uint64_t, ::std::uint32_t>;
-    using _AtomicRefT = sycl::atomic_ref<_StorageType, sycl::memory_order::relaxed, sycl::memory_scope::device,
+    using _FlagType = uint32_t;
+    using _AtomicFlagT = sycl::atomic_ref<_FlagType, sycl::memory_order::seq_cst, sycl::memory_scope::device,
+                                         sycl::access::address_space::global_space>;
+    using _AtomicValueT = sycl::atomic_ref<_T, sycl::memory_order::seq_cst, sycl::memory_scope::device,
                                          sycl::access::address_space::global_space>;
 
-    static constexpr ::std::size_t __flag_length = sizeof(_StorageType);
-
-    static constexpr _StorageType __partial_mask = 1ul << (__flag_length * 8 - 2);
-    static constexpr _StorageType __full_mask = 1ul << (__flag_length * 8 - 1);
-    static constexpr _StorageType __value_mask = ~(__partial_mask | __full_mask);
-    static constexpr _StorageType __oob_value = __partial_mask | __full_mask;
+    static constexpr _FlagType __initialized_status = 0;
+    static constexpr _FlagType __partial_status = 1;
+    static constexpr _FlagType __full_status = 2;
+    static constexpr _FlagType __oob_status = 3;
 
     static constexpr int __padding = SUBGROUP_SIZE;
 
-    __scan_status_flag(_StorageType* __flags_begin, const std::uint32_t __tile_id)
-        : __atomic_flag(*(__flags_begin + __tile_id + __padding))
+    __scan_status_flag(_FlagType* __flags, _T* __full_vals, _T* __partial_vals, const std::uint32_t __tile_id)
+        : __tile_id(__tile_id)
+        , __flags_begin(__flags)
+        , __full_vals_begin(__full_vals)
+        , __partial_vals_begin(__partial_vals)
+        , __atomic_flag(*(__flags + __tile_id + __padding))
+        , __atomic_partial_value(*(__partial_vals + __tile_id + __padding))
+        , __atomic_full_value(*(__full_vals + __tile_id + __padding))
     {
     }
 
     void
     set_partial(const _T __val)
     {
-        __atomic_flag.store(__val | __partial_mask);
+        __atomic_partial_value.store(__val, sycl::memory_order::seq_cst);
+        __atomic_flag.store(__partial_status, sycl::memory_order::seq_cst);
     }
 
     void
     set_full(const _T __val)
     {
-        __atomic_flag.store(__val | __full_mask);
+        __atomic_full_value.store(__val, sycl::memory_order::seq_cst);
+        __atomic_flag.store(__full_status, sycl::memory_order::seq_cst);
     }
 
     template <typename _Subgroup, typename _BinaryOp>
     _T
-    cooperative_lookback(::std::uint32_t __tile_id, const _Subgroup& __subgroup, _BinaryOp __binary_op,
-                         _StorageType* __flags_begin)
+    cooperative_lookback(const _Subgroup& __subgroup, _BinaryOp __binary_op)
     {
         _T __running = oneapi::dpl::unseq_backend::__known_identity<_BinaryOp, _T>;
         auto __local_id = __subgroup.get_local_id();
 
         for (int __tile = static_cast<int>(__tile_id) - 1; __tile >= 0; __tile -= SUBGROUP_SIZE)
         {
-            _AtomicRefT __tile_atomic(*(__flags_begin + __tile + __padding - __local_id));
-            _StorageType __tile_val = 0;
+            _AtomicFlagT __tile_flag_atomic(*(__flags_begin + __tile + __padding - __local_id));
+            _T __tile_flag = __initialized_status;
 
             // Load flag from a previous tile based on my local id.
             // Spin until every work-item in this subgroup reads a valid status
             do
             {
-                __tile_val = __tile_atomic.load();
-            } while (!sycl::all_of_group(__subgroup, __tile_val != 0));
+                __tile_flag = __tile_flag_atomic.load(sycl::memory_order::seq_cst);
+            } while (!sycl::all_of_group(__subgroup, __tile_flag != __initialized_status));
 
-            bool __is_full = (__tile_val & __full_mask) && ((__tile_val & __partial_mask) == 0);
+
+            bool __is_full = __tile_flag == __full_status;
             auto __is_full_ballot = sycl::ext::oneapi::group_ballot(__subgroup, __is_full);
             ::std::uint32_t __is_full_ballot_bits{};
             __is_full_ballot.extract_bits(__is_full_ballot_bits);
 
+            _AtomicValueT __tile_value_atomic(*((__is_full ? __full_vals_begin : __partial_vals_begin) + __tile + __padding - __local_id));
+            _T __tile_val = __tile_value_atomic.load(sycl::memory_order::seq_cst);
+
             auto __lowest_item_with_full = sycl::ctz(__is_full_ballot_bits);
-            _T __contribution = __local_id <= __lowest_item_with_full ? __tile_val & __value_mask : oneapi::dpl::unseq_backend::__known_identity<_BinaryOp, _T>;
+            _T __contribution = __local_id <= __lowest_item_with_full ? __tile_val : oneapi::dpl::unseq_backend::__known_identity<_BinaryOp, _T>;
 
             // Running reduction of all of the partial results from the tiles found, as well as the full contribution from the closest tile (if any)
             __running = __binary_op(__running, sycl::reduce_over_group(__subgroup, __contribution, __binary_op));
@@ -115,24 +120,30 @@ struct __scan_status_flag
         return __running;
     }
 
-    _AtomicRefT __atomic_flag;
+    const uint32_t __tile_id;
+    _FlagType* __flags_begin;
+    _T* __full_vals_begin;
+    _T* __partial_vals_begin;
+    _AtomicFlagT __atomic_flag;
+    _AtomicValueT __atomic_partial_value;
+    _AtomicValueT __atomic_full_value;
 };
 
-template <typename _KernelName>
+template <typename _FlagType, typename _KernelName>
 struct __lookback_init_submitter;
 
-template <typename... _Name>
-struct __lookback_init_submitter<oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
+template <typename _FlagType, typename... _Name>
+struct __lookback_init_submitter<_FlagType, oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _StatusFlags, typename _Flag>
+    template <typename _StatusFlags>
     sycl::event
     operator()(sycl::queue __q, _StatusFlags&& __status_flags, ::std::size_t __status_flags_size,
-               ::std::uint16_t __status_flag_padding, _Flag __oob_value) const
+               ::std::uint16_t __status_flag_padding) const
     {
         return __q.submit([&](sycl::handler& __hdl) {
             __hdl.parallel_for<_Name...>(sycl::range<1>{__status_flags_size}, [=](const sycl::item<1>& __item) {
                 auto __id = __item.get_linear_id();
-                __status_flags[__id] = __id < __status_flag_padding ? __oob_value : 0;
+                __status_flags[__id] = __id < __status_flag_padding ? _FlagType::__oob_status : _FlagType::__initialized_status;
             });
         });
     }
@@ -147,13 +158,13 @@ template <::std::uint16_t __data_per_workitem, ::std::uint16_t __workgroup_size,
 struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType,
                             oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    using _FlagStorageType = typename _FlagType::_StorageType;
+    using _FlagStorageType = typename _FlagType::_FlagType;
     static constexpr std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
 
-    template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _StatusFlags>
+    template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _StatusFlags, typename _StatusValues>
     sycl::event
     operator()(sycl::queue __q, sycl::event __prev_event, _InRng&& __in_rng, _OutRng&& __out_rng, _BinaryOp __binary_op,
-               ::std::size_t __n, _StatusFlags&& __status_flags, ::std::size_t __status_flags_size,
+               ::std::size_t __n, _StatusFlags&& __status_flags, ::std::size_t __status_flags_size, _StatusValues&& __status_vals_full, _StatusValues&& __status_vals_partial,
                ::std::size_t __current_num_items) const
     {
         return __q.submit([&](sycl::handler& __hdl) {
@@ -181,7 +192,6 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
 
                     __tile_id = sycl::group_broadcast(__group, __tile_id, 0);
 
-                    // TODO: only need the cast if size is greater than 2>30, maybe specialize?
                     ::std::size_t __current_offset = static_cast<::std::size_t>(__tile_id) * __elems_in_tile;
                     auto __out_begin = __out_rng.begin() + __current_offset;
 
@@ -223,12 +233,12 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
                     // The first sub-group will query the previous tiles to find a prefix
                     if (__subgroup.get_group_id() == 0)
                     {
-                        _FlagType __flag(__status_flags, __tile_id);
+                        _FlagType __flag(__status_flags, __status_vals_full, __status_vals_partial, __tile_id);
 
                         if (__group.leader())
                             __flag.set_partial(__local_reduction);
 
-                        __prev_tile_reduction = __flag.cooperative_lookback(__tile_id, __subgroup, __binary_op, __status_flags);
+                        __prev_tile_reduction = __flag.cooperative_lookback(__subgroup, __binary_op);
 
                         if (__group.leader())
                             __flag.set_full(__binary_op(__prev_tile_reduction, __local_reduction));
@@ -248,7 +258,7 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
 {
     using _Type = oneapi::dpl::__internal::__value_t<_InRange>;
     using _FlagType = __scan_status_flag<_Type>;
-    using _FlagStorageType = typename _FlagType::_StorageType;
+    using _FlagStorageType = typename _FlagType::_FlagType;
 
     using _KernelName = typename _KernelParam::kernel_name;
     using _LookbackInitKernel =
@@ -278,16 +288,18 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     std::uint32_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
 
     _FlagStorageType* __status_flags = sycl::malloc_device<_FlagStorageType>(__status_flags_size, __queue);
+    _Type* __status_vals_full = sycl::malloc_device<_Type>(__status_flags_size, __queue);
+    _Type* __status_vals_partial = sycl::malloc_device<_Type>(__status_flags_size, __queue);
 
-    auto __fill_event = __lookback_init_submitter<_LookbackInitKernel>{}(__queue, __status_flags, __status_flags_size,
-                                                                         __status_flag_padding, _FlagType::__oob_value);
+    auto __fill_event = __lookback_init_submitter<_FlagType, _LookbackInitKernel>{}(__queue, __status_flags, __status_flags_size,
+                                                                         __status_flag_padding);
 
     ::std::size_t __current_num_wgs =
         oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
     ::std::size_t __current_num_items = __current_num_wgs * __workgroup_size;
 
     auto __prev_event = __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagType, _LookbackKernel>{}(
-        __queue, __fill_event, __in_rng, __out_rng, __binary_op, __n, __status_flags, __status_flags_size,
+        __queue, __fill_event, __in_rng, __out_rng, __binary_op, __n, __status_flags, __status_flags_size, __status_vals_full, __status_vals_partial,
         __current_num_items);
 
     if (0)
