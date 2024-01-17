@@ -20,6 +20,7 @@
 #include <iterator>
 #include "../histogram_binhash_utils.h"
 #include "../parallel_backend.h"
+#include "../utils_ranges.h"
 
 #if _ONEDPL_BACKEND_SYCL
 #    include "dpcpp/execution_sycl_defs.h"
@@ -35,13 +36,18 @@ namespace dpl
 namespace __internal
 {
 
-template <typename _BinHash>
-struct __binhash_manager
+template <typename _BinHash, typename _BufferHolder>
+struct __binhash_manager;
+
+template <typename _T>
+struct __binhash_manager<__evenly_divided_binhash<_T>, void>
 {
     //will always be empty, but just to have some type
     using _extra_memory_type = typename ::std::uint8_t;
-    _BinHash __bin_hash;
-    __binhash_manager(_BinHash __bin_hash_) : __bin_hash(__bin_hash_) {}
+
+    __evenly_divided_binhash<_T> __bin_hash;
+
+    __binhash_manager(__evenly_divided_binhash<_T>&& __bin_hash_) : __bin_hash(::std::move(__bin_hash_)) {}
 
     ::std::size_t
     get_required_SLM_elements() const
@@ -58,50 +64,54 @@ struct __binhash_manager
 };
 
 // Augmentation for binhash function which stores a range of dynamic memory to determine bin mapping
-template <typename _BufferHolder, typename _RangeHolder>
-struct __binhash_manager_custom_boundary
+template <typename _Range, typename _BufferHolder>
+struct __binhash_manager<oneapi::dpl::__par_backend_hetero::__custom_boundary_range_binhash<_Range>, _BufferHolder>
 {
-    using _extra_memory_type = typename _RangeHolder::value_type;
+    using _bin_hash_type = oneapi::dpl::__par_backend_hetero::__custom_boundary_range_binhash<_Range>;
+    using _extra_memory_type = __value_t<_Range>;
     // __buffer_holder is required to keep the sycl buffer alive until the kernel has been completed (waited on)
     _BufferHolder __buffer_holder;
-    _RangeHolder __range_holder;
-    __binhash_manager_custom_boundary(_BufferHolder&& __buffer_holder_, _RangeHolder&& __range_holder_)
-        : __buffer_holder(::std::move(__buffer_holder_)), __range_holder(::std::move(__range_holder_))
+    _bin_hash_type __bin_hash;
+
+    __binhash_manager(_bin_hash_type&& __bin_hash_, _BufferHolder&& __buffer_holder_)
+        : __bin_hash(::std::move(__bin_hash_)), __buffer_holder(::std::move(__buffer_holder_))
     {
     }
 
     auto
     get_required_SLM_elements() const
     {
-        return __range_holder.size();
+        return __bin_hash.__boundaries.size();
     }
 
     template <typename _Handler>
     auto
     prepare_device_binhash(_Handler& __cgh) const
     {
-        auto __view = __range_holder.all_view();
-        oneapi::dpl::__ranges::__require_access(__cgh, __view);
-        return oneapi::dpl::__par_backend_hetero::__custom_boundary_range_binhash{::std::move(__view)};
+        oneapi::dpl::__ranges::__require_access(__cgh, __bin_hash.__boundaries);
+        return __bin_hash;
     }
 };
 
 template <typename _BinHash>
 auto
-__make_binhash_manager(_BinHash __bin_hash)
+__make_binhash_manager(_BinHash&& __bin_hash)
 {
-    return __binhash_manager(__bin_hash);
+    return __binhash_manager<_BinHash, void>(::std::forward<_BinHash>(__bin_hash));
 }
 
 template <typename _RandomAccessIterator>
 auto
-__make_binhash_manager(oneapi::dpl::__internal::__custom_boundary_binhash<_RandomAccessIterator> __bin_hash)
+__make_binhash_manager(oneapi::dpl::__internal::__custom_boundary_binhash<_RandomAccessIterator>&& __bin_hash)
 {
-    auto __keep_boundaries =
+    auto __buffer_lifetime_holder =
         oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
                                                 _RandomAccessIterator>();
-    auto __holder = __keep_boundaries(__bin_hash.__boundary_first, __bin_hash.__boundary_last);
-    return __binhash_manager_custom_boundary{::std::move(__keep_boundaries), ::std::move(__holder)};
+    auto __range_holder = __buffer_lifetime_holder(__bin_hash.__boundary_first, __bin_hash.__boundary_last);
+    auto __bin_hash_range =
+        oneapi::dpl::__par_backend_hetero::__custom_boundary_range_binhash{__range_holder.all_view()};
+    return __binhash_manager<decltype(__bin_hash_range), decltype(__buffer_lifetime_holder)>{
+        ::std::move(__bin_hash_range), ::std::move(__buffer_lifetime_holder)};
 }
 
 template <typename _Name>
@@ -109,11 +119,11 @@ struct __hist_fill_zeros_wrapper
 {
 };
 
-template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _IdxHashFunc,
+template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _BinHash,
           typename _RandomAccessIterator2>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_histogram(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
-                    _Size __num_bins, _IdxHashFunc __func, _RandomAccessIterator2 __histogram_first)
+                    _Size __num_bins, _BinHash&& __func, _RandomAccessIterator2 __histogram_first)
 {
     //If there are no histogram bins there is nothing to do
     if (__num_bins > 0)
@@ -142,7 +152,7 @@ __pattern_histogram(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _
         {
             //need __binhash_manager to stay in scope until the kernel completes to keep the buffer alive
             // __make_binhash_manager will call __get_sycl_range for any data which requires it within __func
-            auto __binhash_manager = __make_binhash_manager(__func);
+            auto __binhash_manager = __make_binhash_manager(::std::forward<_BinHash>(__func));
             auto __keep_input =
                 oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
                                                         _RandomAccessIterator1>();
