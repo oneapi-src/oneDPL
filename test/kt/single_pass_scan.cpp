@@ -13,6 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#define LOG_TEST_INFO 1
+
 #include "../support/test_config.h"
 
 #include <oneapi/dpl/experimental/kernel_templates>
