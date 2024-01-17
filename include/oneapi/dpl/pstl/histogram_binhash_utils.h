@@ -44,7 +44,7 @@ struct __evenly_divided_binhash<_T1, ::std::enable_if_t<::std::is_floating_point
 
     template <typename _T2>
     ::std::int32_t
-    get_bin(const _T2& __value) const
+    get_bin(_T2 __value) const
     {
         int ret = -1;
         if ((__value >= __minimum) && (__value < __maximum))
@@ -68,7 +68,7 @@ struct __evenly_divided_binhash<_T1, ::std::enable_if_t<!::std::is_floating_poin
 
     template <typename _T2>
     ::std::int32_t
-    get_bin(const _T2& __value) const
+    get_bin(_T2 __value) const
     {
         int ret = -1;
         if ((__value >= __minimum) && (__value < (__minimum + __range_size)))
@@ -86,7 +86,7 @@ __custom_boundary_get_bin_helper(_BoundaryIter __first, _BoundaryIter __last, _T
     int ret = -1;
     if (__value >= __min && __value < __max)
     {
-        ret = ::std::distance(__first, ::std::upper_bound(__first, __last, ::std::forward<_T2>(__value))) - 1;
+        ret = ::std::distance(__first, ::std::upper_bound(__first, __last, __value)) - 1;
     }
     return ret;
 }
@@ -105,11 +105,11 @@ struct __custom_boundary_binhash
 
     template <typename _T2>
     ::std::int32_t
-    get_bin(_T2&& __value) const
+    get_bin(_T2 __value) const
     {
         auto __size = ::std::distance(__boundary_first, __boundary_last);
-        return __custom_boundary_get_bin_helper(__boundary_first, __boundary_last, ::std::forward<_T2>(__value),
-                                                __boundary_first[0], __boundary_first[__size - 1]);
+        return __custom_boundary_get_bin_helper(__boundary_first, __boundary_last, __value, __boundary_first[0],
+                                                __boundary_first[__size - 1]);
     }
 };
 

@@ -18,14 +18,14 @@
 
 template <typename T1, typename T2, typename Size>
 ::std::enable_if_t<!std::is_floating_point_v<T1>, ::std::uint32_t>
-get_bin(const T1& value, T2 min, T2 max, const Size& num_bins)
+get_bin(T1 value, T2 min, T2 max, Size num_bins)
 {
     return ::std::uint32_t(((::std::uint64_t(value) - min) * ::std::uint64_t(num_bins)) / (max - min));
 }
 
 template <typename T1, typename T2, typename Size>
 ::std::enable_if_t<std::is_floating_point_v<T1>, ::std::uint32_t>
-get_bin(const T1& value, T2 min, T2 max, const Size& num_bins)
+get_bin(T1 value, T2 min, T2 max, Size num_bins)
 {
     return ::std::uint32_t((value - min) * (T1(num_bins) / (max - min)));
 }

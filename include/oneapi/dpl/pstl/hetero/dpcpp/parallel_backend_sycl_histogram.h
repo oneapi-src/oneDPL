@@ -44,11 +44,10 @@ struct __custom_boundary_range_binhash
 
     template <typename _T2>
     ::std::int32_t
-    get_bin(_T2&& __value) const
+    get_bin(_T2 __value) const
     {
-        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__boundaries.begin(), __boundaries.end(),
-                                                                         ::std::forward<_T2>(__value), __boundaries[0],
-                                                                         __boundaries[__boundaries.size() - 1]);
+        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(
+            __boundaries.begin(), __boundaries.end(), __value, __boundaries[0], __boundaries[__boundaries.size() - 1]);
     }
 };
 
@@ -66,9 +65,9 @@ struct __binhash_SLM_wrapper
 
     template <typename _T>
     ::std::int32_t
-    get_bin(_T&& __value) const
+    get_bin(_T __value) const
     {
-        return __bin_hash.get_bin(::std::forward<_T>(__value));
+        return __bin_hash.get_bin(__value);
     }
 };
 
@@ -102,11 +101,10 @@ struct __binhash_SLM_wrapper<__custom_boundary_range_binhash<_Range>, _ExtraMemA
 
     template <typename _T>
     ::std::int32_t
-    get_bin(_T&& __value) const
+    get_bin(_T __value) const
     {
-        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__slm_mem.begin(), __slm_mem.end(),
-                                                                         ::std::forward<_T>(__value), __slm_mem[0],
-                                                                         __slm_mem[__slm_mem.size() - 1]);
+        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__slm_mem.begin(), __slm_mem.end(), __value,
+                                                                         __slm_mem[0], __slm_mem[__slm_mem.size() - 1]);
     }
 };
 
