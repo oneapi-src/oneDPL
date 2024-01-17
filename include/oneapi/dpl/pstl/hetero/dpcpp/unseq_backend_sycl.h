@@ -228,10 +228,10 @@ struct transform_reduce
         }
     }
 
-    template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
+    template <typename _NDItemId, typename _Size, typename _AccLocal, typename _Acc>
     void
     nonseq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, const _AccLocal& __local_mem,
-                const _Acc&... __acc) const
+                const _Acc& __acc) const
     {
         auto __local_idx = __item_id.get_local_id(0);
         const _Size __stride = __item_id.get_local_range(0);
@@ -241,21 +241,24 @@ struct transform_reduce
         const _Size __adjusted_n = __global_offset + __n;
 
         // Coalesced load and reduce from global memory
+        auto sg = __item_id.get_sub_group();
+        auto sg_size = sg.get_group_linear_range();
         if (__adjusted_global_id + __stride * __iters_per_work_item < __adjusted_n)
         {
-            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc);
             _ONEDPL_PRAGMA_UNROLL
             for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
+                __res = __binary_op(__res, sg.load(__acc.begin() + (__adjusted_global_id + __stride * __i)/sg_size));
+                //__res = __binary_op(__res, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
             __local_mem[__local_idx] = __res;
         }
         else if (__adjusted_global_id < __adjusted_n)
         {
             const _Size __items_to_process =
                 std::max(((__adjusted_n - __adjusted_global_id - 1) / __stride) + 1, static_cast<_Size>(0));
-            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc);
             for (_Size __i = 1; __i < __items_to_process; ++__i)
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
+                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __stride * __i, __acc));
             __local_mem[__local_idx] = __res;
         }
     }

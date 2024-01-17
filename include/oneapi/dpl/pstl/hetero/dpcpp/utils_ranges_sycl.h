@@ -67,13 +67,13 @@ class all_view
 
     all_view(__accessor_t __acc) : __m_acc(__acc) {}
 
-    __return_t*
+    _T*
     begin() const
     {
-        return &__m_acc[0];
+        return __m_acc.get_pointer();
     } //or “honest” iterator over an accessor and a sentinel
 
-    __return_t*
+    _T*
     end() const
     {
         return begin() + size();
