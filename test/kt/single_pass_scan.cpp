@@ -72,7 +72,6 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 #endif
     std::vector<T> expected(size);
     generate_data(expected.data(), size, 42);
-    //std::fill(expected.begin(), expected.end(), 22);
 
     TestUtils::usm_data_transfer<_alloc_type, T> dt_input(q, expected.begin(), expected.end());
     TestUtils::usm_data_transfer<_alloc_type, T> dt_output(q, size);
@@ -118,9 +117,9 @@ test_general_cases(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam pa
 {
     test_usm<T, sycl::usm::alloc::shared>(q, size, bin_op, param);
     test_usm<T, sycl::usm::alloc::device>(q, size, bin_op, param);
-//    test_sycl_iterators<T>(q, size, param);
+    test_sycl_iterators<T>(q, size, param);
 #if _ENABLE_RANGES_TESTING
-//    test_all_view<T>(q, size, param);
+    test_all_view<T>(q, size, param);
 #endif
 }
 
@@ -129,7 +128,7 @@ void
 test_all_cases(sycl::queue q, std::size_t size, KernelParam param)
 {
   test_general_cases<T>(q, size, std::plus<T>{}, param);
-  //test_general_cases<T>(q, size, std::multiplies<T>{}, param);
+  test_general_cases<T>(q, size, std::multiplies<T>{}, param);
 }
 
 int

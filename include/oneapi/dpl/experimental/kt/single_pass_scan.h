@@ -40,9 +40,9 @@ template <typename _T>
 struct __scan_status_flag
 {
     using _FlagType = uint32_t;
-    using _AtomicFlagT = sycl::atomic_ref<_FlagType, sycl::memory_order::seq_cst, sycl::memory_scope::device,
+    using _AtomicFlagT = sycl::atomic_ref<_FlagType, sycl::memory_order::acq_rel, sycl::memory_scope::device,
                                          sycl::access::address_space::global_space>;
-    using _AtomicValueT = sycl::atomic_ref<_T, sycl::memory_order::seq_cst, sycl::memory_scope::device,
+    using _AtomicValueT = sycl::atomic_ref<_T, sycl::memory_order::acq_rel, sycl::memory_scope::device,
                                          sycl::access::address_space::global_space>;
 
     static constexpr _FlagType __initialized_status = 0;
@@ -66,15 +66,15 @@ struct __scan_status_flag
     void
     set_partial(const _T __val)
     {
-        __atomic_partial_value.store(__val, sycl::memory_order::seq_cst);
-        __atomic_flag.store(__partial_status, sycl::memory_order::seq_cst);
+        __atomic_partial_value.store(__val, sycl::memory_order::release);
+        __atomic_flag.store(__partial_status, sycl::memory_order::release);
     }
 
     void
     set_full(const _T __val)
     {
-        __atomic_full_value.store(__val, sycl::memory_order::seq_cst);
-        __atomic_flag.store(__full_status, sycl::memory_order::seq_cst);
+        __atomic_full_value.store(__val, sycl::memory_order::release);
+        __atomic_flag.store(__full_status, sycl::memory_order::release);
     }
 
     template <typename _Subgroup, typename _BinaryOp>
@@ -93,7 +93,7 @@ struct __scan_status_flag
             // Spin until every work-item in this subgroup reads a valid status
             do
             {
-                __tile_flag = __tile_flag_atomic.load(sycl::memory_order::seq_cst);
+                __tile_flag = __tile_flag_atomic.load(sycl::memory_order::acquire);
             } while (!sycl::all_of_group(__subgroup, __tile_flag != __initialized_status));
 
 
@@ -103,7 +103,7 @@ struct __scan_status_flag
             __is_full_ballot.extract_bits(__is_full_ballot_bits);
 
             _AtomicValueT __tile_value_atomic(*((__is_full ? __full_vals_begin : __partial_vals_begin) + __tile + __padding - __local_id));
-            _T __tile_val = __tile_value_atomic.load(sycl::memory_order::seq_cst);
+            _T __tile_val = __tile_value_atomic.load(sycl::memory_order::acquire);
 
             auto __lowest_item_with_full = sycl::ctz(__is_full_ballot_bits);
             _T __contribution = __local_id <= __lowest_item_with_full ? __tile_val : oneapi::dpl::unseq_backend::__known_identity<_BinaryOp, _T>;
@@ -228,7 +228,7 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
 
                     auto __tile_vals_ptr = __dpl_sycl::__get_accessor_ptr(__tile_vals);
                     _Type __local_reduction = sycl::joint_reduce(__group, __tile_vals_ptr, __tile_vals_ptr+__wg_local_memory_size, __binary_op);
-                    _Type __prev_tile_reduction = 0;
+                    _Type __prev_tile_reduction{};
 
                     // The first sub-group will query the previous tiles to find a prefix
                     if (__subgroup.get_group_id() == 0)
