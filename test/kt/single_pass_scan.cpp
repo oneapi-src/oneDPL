@@ -125,7 +125,6 @@ test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
 #endif
 }
 
-
 int
 main()
 {
