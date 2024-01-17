@@ -124,7 +124,49 @@ if (ONEDPL_TEST_ENABLE_KT_ESIMD)
     _generate_esimd_sort_test("256" "32" "double" "" 1000) # segfault
 endif()
 
+function (_generate_igpu_scan_test _data_per_work_item _work_group_size _type)
+
+    if ((NOT TARGET build-igpu-tests) AND (NOT TARGET run-igpu-tests))
+        add_custom_target(build-igpu-tests COMMENT "Build all scan kernel template tests")
+        add_custom_target(run-igpu-tests
+            COMMAND "${CMAKE_CTEST_COMMAND}" -R "^run-igpu-tests$" --output-on-failure --no-label-summary
+            DEPENDS build-igpu-tests
+            COMMENT "Build and run all scan kernel template tests")
+    endif()
+
+    string(REPLACE "_t" "" _type_short ${_type})
+    set(_target_name "single_pass_scan_dpwi${_data_per_work_item}_wgs${_work_group_size}_${_type_short}")
+    set(_test_path "single_pass_scan.cpp")
+
+    #_generate_test_randomly(${_target_name} ${_test_path} ${_probability_permille})
+    _generate_test(${_target_name} ${_test_path})
+    if(TARGET ${_target_name})
+        add_dependencies(build-igpu-tests ${_target_name})
+        add_dependencies(run-igpu-tests ${_target_name})
+
+        target_compile_definitions(${_target_name} PRIVATE TEST_DATA_PER_WORK_ITEM=${_data_per_work_item})
+        target_compile_definitions(${_target_name} PRIVATE TEST_WORK_GROUP_SIZE=${_work_group_size})
+        target_compile_definitions(${_target_name} PRIVATE TEST_TYPE=${_type})
+    endif()
+
+endfunction()
+
+function(_generate_igpu_scan_tests)
+    set(_data_per_work_item_all "1" "2" "4" "8" "16" "32")
+    set(_work_group_size_all "64" "128" "256" "512" "1024")
+    set(_type_all "uint32_t")
+
+    foreach (_data_per_work_item ${_data_per_work_item_all})
+        foreach (_work_group_size ${_work_group_size_all})
+            foreach (_type ${_type_all})
+                _generate_igpu_scan_test(${_data_per_work_item} ${_work_group_size} ${_type})
+            endforeach()
+        endforeach()
+    endforeach()
+
+    _generate_test("single_pass_scan" "single_pass_scan.cpp")
+endfunction()
 
 if (ONEDPL_TEST_ENABLE_KT_SYCL)
-    _generate_test("single_pass_scan" "single_pass_scan.cpp")
+    _generate_igpu_scan_tests()
 endif()

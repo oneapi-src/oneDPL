@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- scan.pass.cpp -----------------------------------------------------===//
+//===-- single_pass_scan.cpp ----------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -13,6 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "../support/test_config.h"
 
 #include <oneapi/dpl/experimental/kernel_templates>
 
@@ -24,7 +25,6 @@
 #    include <oneapi/dpl/ranges>
 #endif
 
-#include "../support/test_config.h"
 #include "../support/utils.h"
 #include "../support/sycl_alloc_utils.h"
 
@@ -68,7 +68,7 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
 {
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>()
-              ">(" << size << ");" << std::endl;
+              << ">(" << size << ");" << std::endl;
 #endif
     std::vector<T> expected(size);
     generate_data(expected.data(), size, 42);
@@ -123,19 +123,21 @@ test_general_cases(sycl::queue q, std::size_t size, KernelParam param)
 #endif
 }
 
-
 int
 main()
 {
-    using T = int;
-    constexpr int data_per_work_item = 8;
-    constexpr int work_group_size = 256;
-    constexpr oneapi::dpl::experimental::kt::kernel_param<data_per_work_item, work_group_size> params;
+#if LOG_TEST_INFO
+    std::cout << "TEST_DATA_PER_WORK_ITEM : " << TEST_DATA_PER_WORK_ITEM << "\n"
+              << "TEST_WORK_GROUP_SIZE    : " << TEST_WORK_GROUP_SIZE    << "\n"
+              << "TEST_TYPE               : " << TypeInfo().name<TEST_TYPE>() << std::endl;
+#endif
+
+    constexpr oneapi::dpl::experimental::kt::kernel_param<TEST_DATA_PER_WORK_ITEM, TEST_WORK_GROUP_SIZE> params;
     auto q = TestUtils::get_test_queue();
     try
     {
         for (auto size : scan_sizes)
-          test_general_cases<T>(q, size, params);
+            test_general_cases<TEST_TYPE>(q, size, params);
     }
     catch (const ::std::exception& exc)
     {
