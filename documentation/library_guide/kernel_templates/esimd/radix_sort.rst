@@ -12,7 +12,7 @@ This namespace is omitted in the rest of the page, while the nested namespaces a
 The functions sort data using the radix sort algorithm. For a small number of elements to sort, they invoke a single-work-group implementation;
 otherwise, they use a multiple-work-group implementation based on the Onesweep* [#fnote1]_ algorithm variant.
 
-A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` funcitons is provided below:
+A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided below:
 
 .. code:: cpp
 
