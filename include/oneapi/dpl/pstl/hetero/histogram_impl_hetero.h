@@ -157,7 +157,7 @@ __pattern_histogram(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _
             auto __input_buf = __keep_input(__first, __last);
 
             __parallel_histogram(::std::forward<_ExecutionPolicy>(__exec), __init_event, __input_buf.all_view(),
-                                 ::std::move(__bins), ::std::move(__binhash_manager))
+                                 ::std::move(__bins), __binhash_manager)
                 .wait();
         }
         else
