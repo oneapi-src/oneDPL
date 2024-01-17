@@ -70,7 +70,7 @@ test_usm(sycl::queue q, std::size_t size, KernelParam param)
 {
 #if LOG_TEST_INFO
     std::cout << "\t\ttest_usm<" << TypeInfo().name<T>() << ", " << USMAllocPresentation().name<_alloc_type>()
-              ">(" << size << ");" << std::endl;
+              << ">(" << size << ");" << std::endl;
 #endif
     std::vector<T> expected(size);
     generate_data(expected.data(), size, 42);
