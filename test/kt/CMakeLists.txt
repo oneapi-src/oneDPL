@@ -126,11 +126,11 @@ endif()
 
 function (_generate_igpu_scan_test _data_per_work_item _work_group_size _type)
 
-    if ((NOT TARGET build-scan-tests) AND (NOT TARGET run-scan-tests))
-        add_custom_target(build-scan-tests COMMENT "Build all scan kernel template tests")
-        add_custom_target(run-scan-tests
-            COMMAND "${CMAKE_CTEST_COMMAND}" -R "^run-scan-tests$" --output-on-failure --no-label-summary
-            DEPENDS build-scan-tests
+    if ((NOT TARGET build-igpu-tests) AND (NOT TARGET run-igpu-tests))
+        add_custom_target(build-igpu-tests COMMENT "Build all scan kernel template tests")
+        add_custom_target(run-igpu-tests
+            COMMAND "${CMAKE_CTEST_COMMAND}" -R "^run-igpu-tests$" --output-on-failure --no-label-summary
+            DEPENDS build-igpu-tests
             COMMENT "Build and run all scan kernel template tests")
     endif()
 
@@ -141,8 +141,8 @@ function (_generate_igpu_scan_test _data_per_work_item _work_group_size _type)
     #_generate_test_randomly(${_target_name} ${_test_path} ${_probability_permille})
     _generate_test(${_target_name} ${_test_path})
     if(TARGET ${_target_name})
-        add_dependencies(build-scan-tests ${_target_name})
-        add_dependencies(run-scan-tests ${_target_name})
+        add_dependencies(build-igpu-tests ${_target_name})
+        add_dependencies(run-igpu-tests ${_target_name})
 
         target_compile_definitions(${_target_name} PRIVATE TEST_DATA_PER_WORK_ITEM=${_data_per_work_item})
         target_compile_definitions(${_target_name} PRIVATE TEST_WORK_GROUP_SIZE=${_work_group_size})
