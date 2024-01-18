@@ -281,20 +281,6 @@ Limitations
 - ``radix_sort_by_key`` does not have single-work-group implementation yet.
 
 
-.. _possible-api-extensions:
-
------------------------
-Possible API Extensions
------------------------
-
-- Allow passing externally allocated memory.
-- Allow passing dependent events.
-- Allow passing a range of bits to sort.
-- Allow out-of-place sorting (for example, through a double-buffer or an output sequence).
-- Allow configuration of kernels other than the most time-consuming kernel (for example, of a kernel computing histograms).
-- Allow range transformations (for example, range pipes or transform iterators).
-
-
 .. _system-requirements:
 
 -------------------
@@ -326,7 +312,7 @@ Known Issues
 
    The following may be changed in the future:
 
-   - The API may be expanded (see :ref:`Possible API Extensions <possible-api-extensions>`). As a result, it may become incompatible with the previous versions.
+   - The API may be expanded. As a result, it may become incompatible with the previous versions.
    - :ref:`Limitations <limitations>` may be relaxed.
    - List of supported hardware, compilers and operating systems shown on :ref:`System Requirements <system-requirements>` may be expanded.
 
