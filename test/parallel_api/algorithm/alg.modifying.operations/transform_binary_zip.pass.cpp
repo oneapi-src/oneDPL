@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- transform_binary.pass.cpp -----------------------------------------===//
+//===-- transform_binary_zip.pass.cpp -------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //

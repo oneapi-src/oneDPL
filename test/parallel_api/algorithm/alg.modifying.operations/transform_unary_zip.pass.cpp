@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- transform_unary.pass.cpp ------------------------------------------===//
+//===-- transform_unary_zip.pass.cpp --------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
