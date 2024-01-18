@@ -266,6 +266,10 @@ The initial configuration may be selected according to these high-level guidelin
 - When the number of elements to sort is medium (between ~16K and ~1M),
   then all the work-groups can execute simultaneously.
   Make sure the device is saturated: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``.
+..
+   TODO: add this part when param.workgroup_size supports more than one value:
+   A larger ``param.workgroup_size`` in ``param.data_per_workitem * param.workgroup_size``
+   combination is preferred to reduce the number of work-groups and the synchronization overhead.
 
 - When the number of elements to sort is large (more than ~1M), then the work-groups preempt each other.
   Increase the occupancy to hide the latency with ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``.
