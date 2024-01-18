@@ -428,23 +428,22 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
     using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
-#if _ONEDPL_DETECT_SPIRV_COMPILATION
-    using _Commutative = ::std::false_type;
-    // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
-    // not commutative.
+    using _Commutative = ::std::true_type;
     auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
+//TODO: Develop a long-term solution to the commutativity property, or remove the non commutative implementation for SPIRV
+//when we no longer always use sequential loads.
+#if _ONEDPL_DETECT_SPIRV_COMPILATION
+        // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
+        // not commutative.
         using ::std::get;
         if (__comp(get<1>(__b), get<1>(__a)))
         {
             return __b;
         }
         return __a;
-    };
 #else
-    using _Commutative = ::std::true_type;
-    // This operator keeps track of the lowest found index in case of equal min. or max. values. Thus, this operator is
-    // commutative.
-    auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
+        // This operator keeps track of the lowest found index in case of equal min. or max. values. Thus, this operator is
+        // commutative.
         bool _is_a_lt_b = __comp(get<1>(__a), get<1>(__b));
         bool _is_b_lt_a = __comp(get<1>(__b), get<1>(__a));
 
@@ -453,8 +452,8 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
             return __b;
         }
         return __a;
-    };
 #endif
+    };
     auto __transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
