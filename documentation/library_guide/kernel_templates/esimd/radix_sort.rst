@@ -9,7 +9,7 @@ This namespace is omitted in the rest of the page, while the nested namespaces a
 ``radix_sort`` and ``radix_sort_by_key`` Interface
 --------------------------------------------------
 
-The `radix_sort` and `radix_sort_by_key` functions sort data using the radix sort algorithm.
+The ``radix_sort`` and ``radix_sort_by_key`` functions sort data using the radix sort algorithm.
 The sorting is stable, ensuring the preservation of the relative order of elements with equal keys.
 The functions implement Onesweep* [#fnote1]_ algorithm variant.
 
@@ -93,7 +93,8 @@ Memory Requirements
 The device must have enough global (USM device) and local (SLM) memory.
 Otherwise, undefined behavior will occur and the algorithm may fail.
 
-They allocalte this memory according to the formulas in the sub-sections below, where:
+- ``radix_sort`` and ``radix_sort_by_key`` allocate this memory
+- according to the formulas in the sub-sections below, where:
 
 - ``workgroup_size`` and ``data_per_workitem`` are part of the ``param`` :ref:`parameter <parameters>`,
 - ``RadixBits`` is a :ref:`template parameter  <template-parameters>`,
