@@ -430,7 +430,8 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
     using _Commutative = ::std::true_type;
     auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
-//TODO: Remove the non commutative implementation for SPIRV when we no longer always use sequential loads
+//TODO: Develop a long-term solution to the commutativity property, or remove the non commutative implementation for SPIRV
+//when we no longer always use sequential loads.
 #if _ONEDPL_DETECT_SPIRV_COMPILATION
         // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
         // not commutative.
