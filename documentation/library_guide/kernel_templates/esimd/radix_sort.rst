@@ -273,6 +273,11 @@ The initial configuration may be selected according to these high-level guidelin
   ``key_type``, ``val_type``, ``RadixBits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters.
   Refer to :ref:`Local Memory Requirements <local-memory>` section for the calculation.
 
+.. note::
+
+   ``param.data_per_workitem`` is the only available parameter to tune the performance,
+   since ``param.workgroup_size`` currently supports only one value (``64``).
+
 
 .. _limitations:
 
