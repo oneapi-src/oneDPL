@@ -259,11 +259,21 @@ Recommended Settings for Best Performance
 The general advice is to set your configuration according to the performance measurements and profiling information.
 The initial configuration may be selected according to these high-level guidelines:
 
-- When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``, then the elements can be processed by a single work-group. Increase the param values, so ``N <= param.data_per_workitem * param.workgroup_size``.
+- When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``,
+  then the elements can be processed by a single-work-group.
+  Increase the param values, so ``N <= param.data_per_workitem * param.workgroup_size``.
 
-- When the number of elements to sort is medium (between ~16K and ~1M), then all the work-groups can execute simultaneously. Make sure the device is saturated: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``. A larger ``param.workgroup_size`` in ``param.data_per_workitem * param.workgroup_size`` combination is preferred to reduce the number of work-groups and the synchronization overhead.
+- When the number of elements to sort is medium (between ~16K and ~1M),
+  then all the work-groups can execute simultaneously.
+  Make sure the device is saturated: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``.
+  A larger ``param.workgroup_size`` in ``param.data_per_workitem * param.workgroup_size``
+  combination is preferred to reduce the number of work-groups and the synchronization overhead.
 
-- When the number of elements to sort is large (more than ~1M), then the work-groups preempt each other. Increase the occupancy to hide the latency with ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``. The occupancy depends on the local memory usage, which is determined by ``key_type``, ``val_type``, ``radix_bits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters. Refer to :ref:`Local Memory Requirements <local-memory>` section for the calculation.
+- When the number of elements to sort is large (more than ~1M), then the work-groups preempt each other.
+  Increase the occupancy to hide the latency with ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``.
+  The occupancy depends on the local memory usage, which is determined by
+  ``key_type``, ``val_type``, ``radix_bits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters.
+  Refer to :ref:`Local Memory Requirements <local-memory>` section for the calculation.
 
 
 .. _limitations:
