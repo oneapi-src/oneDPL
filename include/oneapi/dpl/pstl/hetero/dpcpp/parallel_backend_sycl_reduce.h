@@ -281,7 +281,8 @@ __parallel_transform_reduce_mid_impl(_ExecutionPolicy&& __exec, _Size __n, _Redu
     __n = __n_groups; // Number of preliminary results from the device kernel.
     return __parallel_transform_reduce_work_group_kernel_submitter<
         _Tp, __work_group_size, __iters_per_work_item_work_group_kernel, _Commutative, _ReduceWorkGroupKernel>()(
-        ::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __n, __reduce_op, __transform_op, __init, __scratch_container);
+        ::std::forward<_ExecutionPolicy>(__exec), __reduce_event, __n, __reduce_op, __transform_op, __init,
+        __scratch_container);
 }
 
 // General implementation using a tree reduction
