@@ -39,40 +39,47 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    } // namespace esimd
 
 
+.. _template-parameters:
+
 Template Parameters
 --------------------
 
-+-----------------------------+----------------------------------------------------------+
-| Name                        | Description                                              |
-+=============================+==========================================================+
-| ``bool IsAscending``        | Sort order. Ascending: ``true``; Descending: ``false``.  |
-+-----------------------------+----------------------------------------------------------+
-| ``std::uint8_t RadixBits``  | Number of bits to sort per a radix sort algorithm pass.  |
-|                             | Only ``8`` is currently supported.                       |
-+-----------------------------+----------------------------------------------------------+
++-----------------------------+---------------------------------------------------------------------------------------+
+| Name                        | Description                                                                           |
++=============================+=======================================================================================+
+| ``bool IsAscending``        | Sort order. Ascending: ``true``; Descending: ``false``.                               |
++-----------------------------+---------------------------------------------------------------------------------------+
+| ``std::uint8_t RadixBits``  | Number of bits to sort per a radix sort algorithm pass.                               |
+|                             | Only ``8`` is currently supported.                                                    |
++-----------------------------+---------------------------------------------------------------------------------------+
 
+
+.. _parameters:
 
 Parameters
 ----------
 
-+------------------------------------------------------+------------------------------------------------------------------+
-| Name                                                 | Description                                                      |
-+======================================================+==================================================================+
-|  ``q``                                               | SYCL queue to submit the kernel template to.                     |
-+------------------------------------------------------+------------------------------------------------------------------+
-|                                                      | The sequences(s) of elements to apply the algorithm to.          |
-|  - ``rng`` (1)                                       | They can be provided as:                                         |
-|  - ``first``, ``last`` (2)                           |                                                                  |
-|  - ``keys_rng``, ``vals_rng`` (3)                    | - ``sycl::buffer`` (1,3),                                        |
-|  - ``keys_first``, ``keys_last``, ``vals_first`` (4) | - ``oneapi::dpl::experimental::ranges::views::all`` (1,3)        |
-|                                                      | - ``oneapi::dpl::experimental::ranges::views::subrange`` (1,3)   |
-|                                                      | - USM pointer (2,4)                                              |
-|                                                      | - ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` (2,4)          |
-+------------------------------------------------------+------------------------------------------------------------------+
-|  ``param``                                           | Kernel configuration structure. ``data_per_workitem``,           |
-|                                                      | can be any value among ``32``, ``64``, ``96``,..., ``k * 32``;   |
-|                                                      | ``workgroup_size`` can be only ``64``.                           |
-+------------------------------------------------------+------------------------------------------------------------------+
++-----------------------------------------------+---------------------------------------------------------------------+
+| Name                                          | Description                                                         |
++===============================================+=====================================================================+
+|  ``q``                                        | SYCL queue to submit the kernel template to.                        |
++-----------------------------------------------+---------------------------------------------------------------------+
+|                                               | The sequences(s) of elements to apply the algorithm to.             |
+|  - ``rng`` (1)                                | They can be provided as:                                            |
+|  - ``first``, ``last`` (2)                    |                                                                     |
+|  - ``keys_rng``, ``vals_rng`` (3)             | - ``sycl::buffer`` (1,3),                                           |
+|  - ``keys_first``, ``keys_last``,             | - ``oneapi::dpl::experimental::ranges::views::all`` (1,3)           |
+|    ``vals_first`` (4)                         | - ``oneapi::dpl::experimental::ranges::views::subrange`` (1,3)      |
+|                                               | - USM pointer (2,4)                                                 |
+|                                               | - ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` (2,4)             |
+|                                               |                                                                     |
++-----------------------------------------------+---------------------------------------------------------------------+
+|  ``param``                                    | A :doc:`kernel_param <../kernel_configuration>` object.             |
+|                                               | Its ``data_per_workitem`` can be any value among                    |
+|                                               | ``32``, ``64``, ``96``,..., ``k * 32``.                             |
+|                                               | Its ``workgroup_size`` can only be ``64``.                          |
+|                                               |                                                                     |
++-----------------------------------------------+---------------------------------------------------------------------+
 
 
 Return Value
@@ -80,16 +87,18 @@ Return Value
 
 ``sycl::event`` object representing a status of the algorithm execution.
 
-
-Memory Usage
-------------
+-------------------
+Memory Requirements
+-------------------
 
 .. _local-memory:
 
-Local Memory
-~~~~~~~~~~~~
+Local Memory Requirements
+-------------------------
 
-The local memory is allocated as shown in the pseudo-code blocks below:
+The algorithms require local (SLM) memory, and will allocate this memory according to the following formulas,
+where ``workgroup_size``, and ``data_per_workitem`` are part of the ``param`` :ref:`parameter <parameters>`,
+and ``RadixBits``, is a :ref:`template parameter  <template-parameters>`, and ``key_type``, ``val_type`` are the types of the input keys, values respectively.
 
 - ``radix_sort`` (1,2):
 
@@ -105,14 +114,14 @@ The local memory is allocated as shown in the pseudo-code blocks below:
   .. code:: python
 
      ranks = 2 * (2 ^ radix_bits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ radix_bits)
-     reorder = (sizeof(key_type) + sizeof(value_type)) * data_per_workitem * workgroup_size + 4 * (2 ^ radix_bits)
+     reorder = (sizeof(key_type) + sizeof(val_type)) * data_per_workitem * workgroup_size + 4 * (2 ^ radix_bits)
      allocated_bytes = round_up_to_nearest_multiple(max(ranks, reorder), 2048)
 
 The device must have enough local memory to execute the selected configuration.
 
 
-Global Memory
-~~~~~~~~~~~~~
+Global Memory Requirements
+--------------------------
 
 The global (USM device) memory is allocated as shown in the pseudo-code blocks below:
 
@@ -129,7 +138,7 @@ The global (USM device) memory is allocated as shown in the pseudo-code blocks b
   .. code:: python
 
      histogram_bytes = (2 ^ radix_bits) * ceiling_division(sizeof(key_type) * 8, radix_bits)
-     tmp_buffer_bytes = N * (sizeof(key_type) + sizeof(value_type))
+     tmp_buffer_bytes = N * (sizeof(key_type) + sizeof(val_type))
      allocated_bytes = tmp_buffer_bytes + histogram_bytes
 
 
@@ -247,13 +256,14 @@ Usage Examples
 Recommended Settings for Best Performance
 -----------------------------------------
 
-The general advice is to set your configuration according to the performance measurements and profiling information. The initial configuration may be selected according to these points:
+The general advice is to set your configuration according to the performance measurements and profiling information.
+The initial configuration may be selected according to these high-level guidelines:
 
 - When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``, then the elements can be processed by a single work-group. Increase the param values, so ``N <= param.data_per_workitem * param.workgroup_size``.
 
 - When the number of elements to sort is medium (between ~16K and ~1M), then all the work-groups can execute simultaneously. Make sure the device is saturated: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``. A larger ``param.workgroup_size`` in ``param.data_per_workitem * param.workgroup_size`` combination is preferred to reduce the number of work-groups and the synchronization overhead.
 
-- When the number of elements to sort is large (more than ~1M), then the work-groups preempt each other. Increase the occupancy to hide the latency with ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``. The occupancy depends on the local memory usage, which is determined by ``key_type``, ``value_type``, ``radix_bits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters. Refer to :ref:`Local Memory <local-memory>` section for the calculation.
+- When the number of elements to sort is large (more than ~1M), then the work-groups preempt each other. Increase the occupancy to hide the latency with ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``. The occupancy depends on the local memory usage, which is determined by ``key_type``, ``val_type``, ``radix_bits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters. Refer to :ref:`Local Memory Requirements <local-memory>` section for the calculation.
 
 
 .. _limitations:
@@ -306,11 +316,11 @@ Known Issues
 ------------
 
 - Use of -g, -O0, -O1 compiler options may lead to compilation issues.
-- Combinations of ``param.data_per_workitem`` and ``param.work_group_size`` with large values may lead to device-code compilation errors due to allocation of local memory amounts beyond the device capabilities. Refer to :ref:`Local Memory <local-memory>` for the details regarding allocation.
+- Combinations of ``param.data_per_workitem`` and ``param.work_group_size`` with large values may lead to device-code compilation errors due to allocation of local memory amounts beyond the device capabilities. Refer to :ref:`Local Memory Requirements <local-memory>` for the details regarding allocation.
 - ``radix_sort_by_key`` produces wrong results with the following combinations of ``kt::kernel_param`` and types of keys and values:
 
-  - ``sizeof(key_type) + sizeof(value_type) = 12``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 96``
-  - ``sizeof(key_type) + sizeof(value_type) = 16``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 64``
+  - ``sizeof(key_type) + sizeof(val_type) = 12``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 96``
+  - ``sizeof(key_type) + sizeof(val_type) = 16``, ``param.workgroup_size = 64`` and ``param.data_per_workitem = 64``
 
 .. note::
 
