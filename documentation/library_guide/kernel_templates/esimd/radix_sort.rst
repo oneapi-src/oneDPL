@@ -90,21 +90,24 @@ Return Value
 Memory Requirements
 -------------------
 
-The device must have enough global and local memory.
+The device must have enough global (USM device) and local (SLM) memory.
 Otherwise, undefined behavior will occur and the algorithm may fail.
+
+They allocalte this memory according to the formulas in the sub-sections below, where:
+
+- ``workgroup_size`` and ``data_per_workitem`` are part of the ``param`` :ref:`parameter <parameters>`,
+- ``RadixBits`` is a :ref:`template parameter  <template-parameters>`,
+- ``key_type``, ``val_type`` are the types of the input keys, values respectively,
+- ``N`` is the number of elements to sort.
 
 .. _local-memory:
 
 Local Memory Requirements
 -------------------------
 
-The algorithms require local (SLM) memory, and will allocate this memory according to the following formulas,
-where ``workgroup_size``, and ``data_per_workitem`` are part of the ``param`` :ref:`parameter <parameters>`,
-and ``RadixBits``, is a :ref:`template parameter  <template-parameters>`, and ``key_type``, ``val_type`` are the types of the input keys, values respectively.
-
 - ``radix_sort`` (1,2):
 
-  single-work-group case (``N <= param.data_per_workitem * param.workgroup_size``), where ``N`` is the number of elements to sort:
+  single-work-group case (``N <= data_per_workitem * workgroup_size``):
 
   .. code:: python
 
@@ -112,7 +115,7 @@ and ``RadixBits``, is a :ref:`template parameter  <template-parameters>`, and ``
      reorder_bytes = sizeof(key_type) * data_per_workitem * workgroup_size
      allocated_bytes = rank_bytes + reorder_bytes
 
-  multiple-work-group case (``N > param.data_per_workitem * param.workgroup_size``):
+  multiple-work-group case (``N > data_per_workitem * workgroup_size``):
 
   .. code:: python
 
@@ -132,11 +135,9 @@ and ``RadixBits``, is a :ref:`template parameter  <template-parameters>`, and ``
 Global Memory Requirements
 --------------------------
 
-The global (USM device) memory is allocated as shown in the pseudo-code blocks below:
-
 - ``radix_sort`` (1,2):
 
-  multiple-work-group case (``N > param.data_per_workitem * param.workgroup_size``), where ``N`` is the number of elements to sort:
+  multiple-work-group case (``N > data_per_workitem * workgroup_size``):
 
   .. code:: python
 
@@ -146,7 +147,7 @@ The global (USM device) memory is allocated as shown in the pseudo-code blocks b
 
   .. note::
 
-     single-work-group case (``N <= param.data_per_workitem * param.workgroup_size``)
+     single-work-group case (``N <= data_per_workitem * workgroup_size``)
      does not impose any global memory requirements.
 
 - ``radix_sort_by_key`` (3,4):
@@ -277,7 +278,8 @@ The initial configuration may be selected according to these high-level guidelin
 
 - When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``,
   then the elements can be processed by a single-work-group sort, which generally outperforms multiple-work-group sort.
-  Increase the param values, so ``N <= param.data_per_workitem * param.workgroup_size``.
+  Increase the ``param`` values, so ``N <= param.data_per_workitem * param.workgroup_size``,
+  where ``N`` is the number of elements to sort.
 
 - When the number of elements to sort is medium (between ~16K and ~1M),
   then all the work-groups can execute simultaneously.
