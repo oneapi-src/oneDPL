@@ -57,7 +57,8 @@
 // TODO: determine which compiler configurations provide subgroup load/store
 #define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT false
 
-// Macro to check if we are compiling for Intel devices
+// Macro to check if we are compiling for Intel devices. This macro must only be used within
+// SYCL kernels for determining SPIRV compilation. Using this macro on the host may lead to incorrect behavior.
 #ifndef _ONEDPL_DETECT_SPIRV_COMPILATION // Check if overridden for testing
 #    if (defined(__SPIR__) || defined(__SPIRV__)) && defined(__SYCL_DEVICE_ONLY__)
 #        define _ONEDPL_DETECT_SPIRV_COMPILATION 1
