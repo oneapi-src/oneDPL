@@ -2,7 +2,7 @@ Kernel Configuration
 ####################
 
 All API on this section reside in ``oneapi::dpl::experimental::kt`` namespace and
-are available through inclusion of ``oneapi/dpl/experimental/kernel_templates`` header file
+are available through inclusion of ``oneapi/dpl/experimental/kernel_templates`` header file.
 This namespace is omitted in the rest of the page, while the nested namespaces are specified.
 
 --------------------------

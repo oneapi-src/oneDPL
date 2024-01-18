@@ -2,15 +2,17 @@ Radix Sort
 ##########
 
 All API on this section reside in ``oneapi::dpl::experimental::kt`` namespace and
-are available through inclusion of ``oneapi/dpl/experimental/kernel_templates`` header file
+are available through inclusion of ``oneapi/dpl/experimental/kernel_templates`` header file.
 This namespace is omitted in the rest of the page, while the nested namespaces are specified.
 
 --------------------------------------------------
 ``radix_sort`` and ``radix_sort_by_key`` Interface
 --------------------------------------------------
 
-The functions sort data using the radix sort algorithm. For a small number of elements to sort, they invoke a single-work-group implementation;
-otherwise, they use a multiple-work-group implementation based on the Onesweep* [#fnote1]_ algorithm variant.
+The `radix_sort` and `radix_sort_by_key` functions sort data using the radix sort algorithm.
+The sorting is stable, ensuring the preservation of the relative order of elements with equal keys.
+For a small number of elements to sort, the functions invoke a single-work-group implementation.
+Otherwise, for larger datasets, a multiple-work-group implementation is employed, which is based on the Onesweep* [#fnote1]_ algorithm variant.
 
 A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided below:
 
