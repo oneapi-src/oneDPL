@@ -265,6 +265,23 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
                                                                       __comp);
 }
 
+//------------------------------------------------------------------------
+// parallel_histogram
+//-----------------------------------------------------------------------
+
+// TODO: check if it makes sense to move these wrappers out of backend to a common place
+template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename _Range2, typename _BinHashMgr,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
+auto
+__parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
+                     _BinHashMgr&& __binhash_manager)
+{
+    // workaround until we implement more performant version for patterns
+    return oneapi::dpl::__par_backend_hetero::__parallel_histogram(
+        __device_policy(__exec), __init_event, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
+        ::std::forward<_BinHashMgr>(__binhash_manager));
+}
+
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi

@@ -54,6 +54,8 @@
 #define _PSTL_STD_UNINITIALIZED_FILL_BROKEN (_MSC_VER == 1900)
 // GCC10 produces wrong answer calling exclusive_scan using vectorized polices
 #define TEST_GCC10_EXCLUSIVE_SCAN_BROKEN (_GLIBCXX_RELEASE == 10)
+// GCC7 std::get doesn't return const rvalue reference from const rvalue reference of tuple
+#define _PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN (_GLIBCXX_RELEASE && _GLIBCXX_RELEASE < 8)
 // Array swap broken on Windows because Microsoft implementation of std::swap function for std::array
 // call some internal function which is not declared as SYCL external and we have compile error
 #if defined(_MSC_VER)
@@ -139,7 +141,7 @@
 #define _PSTL_CLANG_TEST_COMPLEX_ATAN_IS_CASE_BROKEN __clang__
 #define _PSTL_CLANG_TEST_COMPLEX_SIN_IS_CASE_BROKEN __clang__
 
-#define TEST_DYNAMIC_SELECTION_AVAILABLE (__INTEL_LLVM_COMPILER >= 20230000)
+#define TEST_DYNAMIC_SELECTION_AVAILABLE (TEST_DPCPP_BACKEND_PRESENT && __INTEL_LLVM_COMPILER >= 20230000)
 
 // oneAPI DPC++ compiler in 2023.2 release build crashes during optimization of reduce_by_segment.pass.cpp
 // with TBB backend.

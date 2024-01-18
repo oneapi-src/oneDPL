@@ -7,11 +7,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "support/test_config.h"
+#include "support/utils.h"
+
 #include <cstdio>
 #include <memory>
 #include <iostream>
 #include <vector>
-#include "support/test_config.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 #    include "support/sycl_sanity.h"
 
@@ -49,7 +51,7 @@ run_test(sycl::queue q)
             sycl::accessor b_(b_buf, h, sycl::read_only);
             sycl::accessor c_(c_buf, h, sycl::write_only);
             h.parallel_for<
-                TestUtils::unique_kernel_name<class sum1, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                TestUtils::unique_kernel_name<class sum1, 0>>(
                 num_items, [=](auto j) { c_[j] += a_[j] + b_[j]; });
         });
 
@@ -58,10 +60,9 @@ run_test(sycl::queue q)
              sycl::accessor b_(b_buf, h, sycl::read_only);
              sycl::accessor c_(c_buf, h, sycl::write_only);
              h.parallel_for<
-                 TestUtils::unique_kernel_name<class sum2, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                 TestUtils::unique_kernel_name<class sum2, 0>>(
                  num_items, [=](auto j) { c_[j] += a_[j] + b_[j]; });
-         })
-            .wait();
+         }).wait();
     }
     printf("%f, %f, %f, %f\n", c[0], c[1000], c[10000], c[100000]);
     return 0;
@@ -77,7 +78,7 @@ test_runner()
         default_queue = sycl::queue{sycl::default_selector_v};
         r += run_test(default_queue);
     }
-    catch (sycl::exception)
+    catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to run with default_selector\n";
     }
@@ -88,7 +89,7 @@ test_runner()
         gpu_queue = sycl::queue{sycl::gpu_selector_v};
         r += run_test(gpu_queue);
     }
-    catch (sycl::exception)
+    catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to run with gpu_selector\n";
     }
@@ -99,7 +100,7 @@ test_runner()
         cpu_queue = sycl::queue{sycl::cpu_selector_v};
         r += run_test(cpu_queue);
     }
-    catch (sycl::exception)
+    catch (const sycl::exception&)
     {
         std::cout << "SKIPPED: Unable to run with cpu_selector\n";
     }
@@ -112,9 +113,8 @@ int
 main()
 {
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
-    return test_runner();
-#else
-    std::cout << "SKIPPED\n";
-    return 0;
+    EXPECT_EQ(0, test_runner(), "test_runner failed either on the default, cpu or gpu queue");
 #endif // TEST_DYNAMIC_SELECTION_AVAILABLE
+
+    return TestUtils::done(TEST_DYNAMIC_SELECTION_AVAILABLE);
 }
