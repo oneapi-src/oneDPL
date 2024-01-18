@@ -11,8 +11,7 @@ This namespace is omitted in the rest of the page, while the nested namespaces a
 
 The `radix_sort` and `radix_sort_by_key` functions sort data using the radix sort algorithm.
 The sorting is stable, ensuring the preservation of the relative order of elements with equal keys.
-For a small number of elements to sort, the functions invoke a single-work-group implementation.
-Otherwise, for larger datasets, a multiple-work-group implementation is employed, which is based on the Onesweep* [#fnote1]_ algorithm variant.
+The functions implement Onesweep* [#fnote1]_ algorithm variant.
 
 A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided below:
 
@@ -91,6 +90,9 @@ Return Value
 Memory Requirements
 -------------------
 
+The device must have enough global and local memory.
+Otherwise, undefined behavior will occur and the algorithm may fail.
+
 .. _local-memory:
 
 Local Memory Requirements
@@ -102,12 +104,21 @@ and ``RadixBits``, is a :ref:`template parameter  <template-parameters>`, and ``
 
 - ``radix_sort`` (1,2):
 
+  single-work-group case (``N <= param.data_per_workitem * param.workgroup_size``), where ``N`` is the number of elements to sort:
+
   .. code:: python
 
-     rank_bytes = 2 * (2 ^ RadixBits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ RadixBits)
-     reorder_bytes = sizeof(key_type) * data_per_workitem * workgroup_size + 4 * (2 ^ RadixBits)
-     allocated_bytes = round_up_to_nearest_multiple(max(ranks, reorder), 2048)
+     rank_bytes = 2 * (2 ^ RadixBits) * workgroup_size + 2 * ((2 ^ RadixBits) + 1)
+     reorder_bytes = sizeof(key_type) * data_per_workitem * workgroup_size
+     allocated_bytes = rank_bytes + reorder_bytes
 
+  multiple-work-group case (``N > param.data_per_workitem * param.workgroup_size``):
+
+  .. code:: python
+
+      rank_bytes = 2 * (2 ^ RadixBits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ RadixBits)
+      reorder_bytes = sizeof(key_type) * data_per_workitem * workgroup_size + 4 * (2 ^ RadixBits)
+      allocated_bytes = round_up_to_nearest_multiple(max(rank_bytes, reorder_bytes), 2048)
 
 - ``radix_sort_by_key`` (3,4):
 
@@ -115,9 +126,7 @@ and ``RadixBits``, is a :ref:`template parameter  <template-parameters>`, and ``
 
      rank_bytes = 2 * (2 ^ RadixBits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ RadixBits)
      reorder_bytes = (sizeof(key_type) + sizeof(val_type)) * data_per_workitem * workgroup_size + 4 * (2 ^ RadixBits)
-     allocated_bytes = round_up_to_nearest_multiple(max(ranks, reorder), 2048)
-
-The device must have enough local memory to execute the selected configuration.
+     allocated_bytes = round_up_to_nearest_multiple(max(rank_bytes, reorder_bytes), 2048)
 
 
 Global Memory Requirements
@@ -127,11 +136,18 @@ The global (USM device) memory is allocated as shown in the pseudo-code blocks b
 
 - ``radix_sort`` (1,2):
 
+  multiple-work-group case (``N > param.data_per_workitem * param.workgroup_size``), where ``N`` is the number of elements to sort:
+
   .. code:: python
 
      histogram_bytes = (2 ^ RadixBits) * ceiling_division(sizeof(key_type) * 8, RadixBits)
      tmp_buffer_bytes = N * sizeof(key_type)
      allocated_bytes = tmp_buffer_bytes + histogram_bytes
+
+  .. note::
+
+     single-work-group case (``N <= param.data_per_workitem * param.workgroup_size``)
+     does not impose any global memory requirements.
 
 - ``radix_sort_by_key`` (3,4):
 
@@ -266,10 +282,11 @@ The initial configuration may be selected according to these high-level guidelin
 - When the number of elements to sort is medium (between ~16K and ~1M),
   then all the work-groups can execute simultaneously.
   Make sure the device is saturated: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``.
-..
-   TODO: add this part when param.workgroup_size supports more than one value:
-   A larger ``param.workgroup_size`` in ``param.data_per_workitem * param.workgroup_size``
-   combination is preferred to reduce the number of work-groups and the synchronization overhead.
+
+  ..
+     TODO: add this part when param.workgroup_size supports more than one value:
+     A larger ``param.workgroup_size`` in ``param.data_per_workitem * param.workgroup_size``
+     combination is preferred to reduce the number of work-groups and the synchronization overhead.
 
 - When the number of elements to sort is large (more than ~1M), then the work-groups preempt each other.
   Increase the occupancy to hide the latency with ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``.
