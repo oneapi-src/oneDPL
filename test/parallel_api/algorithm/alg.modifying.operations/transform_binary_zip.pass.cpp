@@ -22,6 +22,17 @@
 
 using namespace TestUtils;
 
+template <typename T>
+constexpr T
+get_epsilon();
+
+template <>
+constexpr float32_t
+get_epsilon<float32_t>()
+{
+    return 1e-7;
+}
+
 template <typename TInput1, typename TInput2, typename TOutput>
 class TheOperation
 {
@@ -50,9 +61,9 @@ check_and_reset(InputIterator1 first1, InputIterator1 last1, InputIterator2 firs
         // check
         Out expected = Out(1.5) + (::std::get<0>(*first1) + ::std::get<1>(*first1)) - (::std::get<0>(*first2) + ::std::get<1>(*first2));
         Out actual = *out_first;
-        if (::std::is_floating_point_v<Out>)
+        if constexpr (::std::is_floating_point_v<Out>)
         {
-            EXPECT_TRUE((expected > actual ? expected - actual : actual - expected) < Out(1e-7),
+            EXPECT_TRUE((expected > actual ? expected - actual : actual - expected) < get_epsilon<Out>(),
                         "wrong value in output sequence");
         }
         else
