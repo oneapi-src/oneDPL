@@ -104,8 +104,8 @@ and ``RadixBits``, is a :ref:`template parameter  <template-parameters>`, and ``
 
   .. code:: python
 
-     ranks = 2 * (2 ^ radix_bits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ radix_bits)
-     reorder = sizeof(key_type) * data_per_workitem * workgroup_size + 4 * (2 ^ radix_bits)
+     rank_bytes = 2 * (2 ^ RadixBits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ RadixBits)
+     reorder_bytes = sizeof(key_type) * data_per_workitem * workgroup_size + 4 * (2 ^ RadixBits)
      allocated_bytes = round_up_to_nearest_multiple(max(ranks, reorder), 2048)
 
 
@@ -113,8 +113,8 @@ and ``RadixBits``, is a :ref:`template parameter  <template-parameters>`, and ``
 
   .. code:: python
 
-     ranks = 2 * (2 ^ radix_bits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ radix_bits)
-     reorder = (sizeof(key_type) + sizeof(val_type)) * data_per_workitem * workgroup_size + 4 * (2 ^ radix_bits)
+     rank_bytes = 2 * (2 ^ RadixBits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ RadixBits)
+     reorder_bytes = (sizeof(key_type) + sizeof(val_type)) * data_per_workitem * workgroup_size + 4 * (2 ^ RadixBits)
      allocated_bytes = round_up_to_nearest_multiple(max(ranks, reorder), 2048)
 
 The device must have enough local memory to execute the selected configuration.
@@ -129,7 +129,7 @@ The global (USM device) memory is allocated as shown in the pseudo-code blocks b
 
   .. code:: python
 
-     histogram_bytes = (2 ^ radix_bits) * ceiling_division(sizeof(key_type) * 8, radix_bits)
+     histogram_bytes = (2 ^ RadixBits) * ceiling_division(sizeof(key_type) * 8, RadixBits)
      tmp_buffer_bytes = N * sizeof(key_type)
      allocated_bytes = tmp_buffer_bytes + histogram_bytes
 
@@ -137,7 +137,7 @@ The global (USM device) memory is allocated as shown in the pseudo-code blocks b
 
   .. code:: python
 
-     histogram_bytes = (2 ^ radix_bits) * ceiling_division(sizeof(key_type) * 8, radix_bits)
+     histogram_bytes = (2 ^ RadixBits) * ceiling_division(sizeof(key_type) * 8, RadixBits)
      tmp_buffer_bytes = N * (sizeof(key_type) + sizeof(val_type))
      allocated_bytes = tmp_buffer_bytes + histogram_bytes
 
@@ -260,19 +260,17 @@ The general advice is to set your configuration according to the performance mea
 The initial configuration may be selected according to these high-level guidelines:
 
 - When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``,
-  then the elements can be processed by a single-work-group.
+  then the elements can be processed by a single-work-group sort, which generally outperforms multiple-work-group sort.
   Increase the param values, so ``N <= param.data_per_workitem * param.workgroup_size``.
 
 - When the number of elements to sort is medium (between ~16K and ~1M),
   then all the work-groups can execute simultaneously.
   Make sure the device is saturated: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``.
-  A larger ``param.workgroup_size`` in ``param.data_per_workitem * param.workgroup_size``
-  combination is preferred to reduce the number of work-groups and the synchronization overhead.
 
 - When the number of elements to sort is large (more than ~1M), then the work-groups preempt each other.
   Increase the occupancy to hide the latency with ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``.
   The occupancy depends on the local memory usage, which is determined by
-  ``key_type``, ``val_type``, ``radix_bits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters.
+  ``key_type``, ``val_type``, ``RadixBits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters.
   Refer to :ref:`Local Memory Requirements <local-memory>` section for the calculation.
 
 
@@ -284,7 +282,7 @@ Limitations
 
 - Algorithms can only process C++ integral and floating-point types with a width of up to 64 bits (except for ``bool``).
 - Number of elements to sort must not exceed `2^30`.
-- ``radix_bits`` can only be `8`.
+- ``RadixBits`` can only be `8`.
 - ``param.data_per_workitem`` has discreteness of `32`.
 - ``param.workgroup_size`` can only be `64`.
 - Local memory is always used to rank keys, reorder keys, or key-value pairs, which limits possible values of ``param.data_per_workitem`` and ``param.workgroup_size``
