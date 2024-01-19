@@ -197,6 +197,7 @@ struct transform_reduce
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
+    using _CommutativeOperator = oneapi::dpl::__par_backend_hetero::__is_commutative_operator<_Commutative>;
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     void
@@ -265,7 +266,7 @@ struct transform_reduce
                const _Acc&... __acc) const
     {
 #if !_ONEDPL_DETECT_SPIRV_COMPILATION
-        if constexpr (_Commutative::value)
+        if constexpr (_CommutativeOperator::non_spirv_commutative_value)
             return nonseq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
 #endif // _ONEDPL_DETECT_SPIRV_COMPILATION
         return seq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
@@ -276,7 +277,7 @@ struct transform_reduce
     output_size(const _Size& __n, const ::std::uint16_t& __work_group_size) const
     {
 #if !_ONEDPL_DETECT_SPIRV_COMPILATION
-        if constexpr (_Commutative::value)
+        if constexpr (_CommutativeOperator::non_spirv_commutative_value)
         {
             _Size __items_per_work_group = __work_group_size * __iters_per_work_item;
             _Size __full_group_contrib = (__n / __items_per_work_group) * __work_group_size;
