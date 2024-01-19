@@ -29,7 +29,8 @@ namespace dpl
 {
 namespace unseq_backend
 {
-
+namespace
+{
 #if _USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 //This optimization depends on Intel(R) oneAPI DPC++ Compiler implementation such as support of binary operators from std namespace.
 //We need to use defined(SYCL_IMPLEMENTATION_INTEL) macro as a guard.
@@ -38,7 +39,7 @@ namespace unseq_backend
 //std::multiplies, std::bit_or, std::bit_and and std::bit_xor operations will be fixed.
 //std::logical_and and std::logical_or are not supported in Intel(R) oneAPI DPC++ Compiler to be used in sycl::inclusive_scan_over_group and sycl::reduce_over_group
 template <typename _BinaryOp, typename _Tp>
-using __has_known_identity =
+using __has_known_identity_src =
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::disjunction<
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
@@ -63,9 +64,33 @@ using __has_known_identity =
 #else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 
 template <typename _BinaryOp, typename _Tp>
-using __has_known_identity = std::false_type;
+using __has_known_identity_src = std::false_type;
 
 #endif //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
+
+template <typename _Tp>
+using __able_to_use_known_identity_src =
+#if !defined(_ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES) || _ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES
+    typename ::std::true_type;
+#else
+    // disable for arithmetic 64-bit data types
+    typename ::std::negation<
+        typename ::std::conjunction<
+            typename ::std::is_arithmetic<_Tp>::type,
+            typename ::std::bool_constant<sizeof(_Tp) == sizeof(::std::uint64_t)>::type
+        >::type
+    >::type;
+#endif // _ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES
+
+} // namespace
+
+// If _ONEDPL_ICPX_AVOID_KNOWN_IDENTITY_FOR_FOR_64BIT_DATA_TYPES is defined,
+// we avoid using known identity for 64-bit arithmetic data types
+template <typename _BinaryOp, typename _Tp>
+using __has_known_identity = typename ::std::conjunction<
+    typename __able_to_use_known_identity_src<_Tp>::type,
+    typename __has_known_identity_src<_BinaryOp, _Tp>
+::type>;
 
 template <typename _BinaryOp, typename _Tp>
 struct __known_identity_for_plus
