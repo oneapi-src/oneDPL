@@ -270,33 +270,34 @@ class __transform_functor
 
     template <typename _Input1Type, typename _Input2Type, typename _OutputType>
     void
-    operator()(const _Input1Type& x, const _Input2Type& y, _OutputType&& output) const
+    operator()(const _Input1Type& __x, const _Input2Type& __y, _OutputType&& __output) const
     {
-        __transform_impl(::std::forward<_OutputType>(output), x, y);
+        __transform_impl(::std::forward<_OutputType>(__output), __x, __y);
     }
 
     template <typename _InputType, typename _OutputType>
     void
-    operator()(_InputType&& x, _OutputType&& output) const
+    operator()(const _InputType& __x, _OutputType&& __output) const
     {
-        __transform_impl(::std::forward<_OutputType>(output), ::std::forward<_InputType>(x));
+        __transform_impl(::std::forward<_OutputType>(__output), __x);
     }
 
   private:
     template <typename _OutputType, typename... _Args>
     void
-    __transform_impl(_OutputType&& output, _Args&&... args) const
+    __transform_impl(_OutputType&& __output, const _Args&... __args) const
     {
         static_assert(sizeof...(_Args) < 3, "A predicate supports either unary or binary transformation");
-        static_assert(::std::is_invocable_v<_Pred, _Args...>, "A predicate cannot be called with the passed arguments");
-        ::std::forward<_OutputType>(output) = _M_pred(::std::forward<_Args>(args)...);
+        static_assert(::std::is_invocable_v<_Pred, const _Args&...>,
+                      "A predicate cannot be called with the passed arguments");
+        ::std::forward<_OutputType>(__output) = _M_pred(__args...);
     }
 };
 
 template <typename _UnaryOper, typename _UnaryPred>
 class __transform_if_unary_functor
 {
-    mutable _UnaryOper _M_oper;
+    __transform_functor<_UnaryOper> _M_oper;
     mutable _UnaryPred _M_pred;
 
   public:
@@ -307,17 +308,17 @@ class __transform_if_unary_functor
 
     template <typename _Input1Type, typename _OutputType>
     void
-    operator()(const _Input1Type& x, _OutputType& y) const
+    operator()(const _Input1Type& __x, _OutputType&& __output) const
     {
-        if (_M_pred(x))
-            y = _M_oper(x);
+        if (_M_pred(__x))
+            _M_oper(__x, ::std::forward<_OutputType>(__output));
     }
 };
 
 template <typename _BinaryOper, typename _BinaryPred>
 class __transform_if_binary_functor
 {
-    mutable _BinaryOper _M_oper;
+    __transform_functor<_BinaryOper> _M_oper;
     mutable _BinaryPred _M_pred;
 
   public:
@@ -328,10 +329,10 @@ class __transform_if_binary_functor
 
     template <typename _Input1Type, typename _Input2Type, typename _OutputType>
     void
-    operator()(const _Input1Type& x, const _Input2Type& y, _OutputType& z) const
+    operator()(const _Input1Type& __x, const _Input2Type& __y, _OutputType&& __output) const
     {
-        if (_M_pred(x, y))
-            z = _M_oper(x, y);
+        if (_M_pred(__x, __y))
+            _M_oper(__x, __y, ::std::forward<_OutputType>(__output));
     }
 };
 
@@ -346,10 +347,10 @@ class __replace_functor
 
     template <typename _OutputType>
     void
-    operator()(_OutputType& __elem) const
+    operator()(_OutputType&& __output) const
     {
-        if (_M_pred(__elem))
-            __elem = _M_value;
+        if (_M_pred(::std::forward<_OutputType>(__output)))
+            ::std::forward<_OutputType>(__output) = _M_value;
     }
 };
 
@@ -364,9 +365,9 @@ class __replace_copy_functor
 
     template <typename _InputType, typename _OutputType>
     void
-    operator()(const _InputType& __x, _OutputType& __y) const
+    operator()(const _InputType& __x, _OutputType&& __output) const
     {
-        __y = _M_pred(__x) ? _M_value : __x;
+        ::std::forward<_OutputType>(__output) = _M_pred(__x) ? _M_value : __x;
     }
 };
 
