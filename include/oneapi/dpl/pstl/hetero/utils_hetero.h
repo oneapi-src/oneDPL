@@ -84,8 +84,6 @@ struct __create_mask_unique_copy
 template <typename _SpirvCommutative, typename _NonSpirvCommutative>
 struct __commutative_matrix
 {
-    constexpr static bool spirv_commutative_value = _SpirvCommutative::value;
-    constexpr static bool non_spirv_commutative_value = _NonSpirvCommutative::value;
 };
 } // namespace __internal
 } // namespace dpl
