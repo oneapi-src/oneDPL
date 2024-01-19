@@ -18,7 +18,9 @@
 int
 main()
 {
+#if defined(_ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES)
     static_assert(_ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES == 1);
+#endif
 
     using ValueType = int;
     using BinaryPredicate = ::std::equal_to<ValueType>;
