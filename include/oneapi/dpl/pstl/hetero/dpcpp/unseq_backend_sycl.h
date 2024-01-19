@@ -265,8 +265,10 @@ struct transform_reduce
     operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __global_offset, const _AccLocal& __local_mem,
                const _Acc&... __acc) const
     {
+        // For non-SPIRV targets, we check if the operator is commutative before selecting the appropriate codepath.
+        // On SPIRV targets, we always force the non-commutative implementation as this is more performant.
 #if !_ONEDPL_DETECT_SPIRV_COMPILATION
-        if constexpr (_CommutativeOperator::non_spirv_commutative_value)
+        if constexpr (_CommutativeOperator::value)
             return nonseq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
 #endif // _ONEDPL_DETECT_SPIRV_COMPILATION
         return seq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
@@ -277,7 +279,7 @@ struct transform_reduce
     output_size(const _Size& __n, const ::std::uint16_t& __work_group_size) const
     {
 #if !_ONEDPL_DETECT_SPIRV_COMPILATION
-        if constexpr (_CommutativeOperator::non_spirv_commutative_value)
+        if constexpr (_CommutativeOperator::value)
         {
             _Size __items_per_work_group = __work_group_size * __iters_per_work_item;
             _Size __full_group_contrib = (__n / __items_per_work_group) * __work_group_size;

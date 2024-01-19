@@ -682,20 +682,19 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
     }
 };
 
-template <typename _CommutativeMatrix>
-struct __is_commutative_operator : _CommutativeMatrix
+template <typename _Commutative>
+struct __is_commutative_operator : _Commutative
 {
 };
 
-template <>
-struct __is_commutative_operator<::std::true_type>
-    : oneapi::dpl::__internal::__commutative_matrix<::std::true_type, ::std::true_type>
-{
-};
-
-template <>
-struct __is_commutative_operator<::std::false_type>
-    : oneapi::dpl::__internal::__commutative_matrix<::std::false_type, ::std::false_type>
+template <typename _SpirvCommutative, typename _NonSpirvCommutative>
+struct __is_commutative_operator<oneapi::dpl::__internal::__commutative_matrix<_SpirvCommutative, _NonSpirvCommutative>>
+    :
+#if _ONEDPL_DETECT_SPIRV_COMPILATION
+    _SpirvCommutative
+#else
+    _NonSpirvCommutative
+#endif
 {
 };
 } // namespace __par_backend_hetero
