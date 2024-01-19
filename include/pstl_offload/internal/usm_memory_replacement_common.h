@@ -43,7 +43,8 @@ class __sycl_device_shared_ptr
     };
 
     __shared_device* _M_shared_device;
-public:
+
+  public:
     template <typename _DeviceSelector>
     __sycl_device_shared_ptr(const _DeviceSelector& __device_selector)
         : _M_shared_device(new __shared_device{std::nullopt, std::nullopt, 1})
@@ -51,8 +52,8 @@ public:
         try
         {
             _M_shared_device->_M_device.emplace(__device_selector);
-            _M_shared_device->_M_default_context.emplace(_M_shared_device->_M_device->
-                get_platform().ext_oneapi_get_default_context());
+            _M_shared_device->_M_default_context.emplace(
+                _M_shared_device->_M_device->get_platform().ext_oneapi_get_default_context());
         }
         catch (const sycl::exception& e)
         {
@@ -66,22 +67,26 @@ public:
         }
     }
 
-    bool __is_device_created() const
+    bool
+    __is_device_created() const
     {
         return _M_shared_device->_M_device.has_value();
     }
 
-    sycl::device __get_device() const
+    sycl::device
+    __get_device() const
     {
         return *_M_shared_device->_M_device;
     }
 
-    sycl::context __get_context() const
+    sycl::context
+    __get_context() const
     {
         return *_M_shared_device->_M_default_context;
     }
 
-    __sycl_device_shared_ptr& operator=(const __sycl_device_shared_ptr& other)
+    __sycl_device_shared_ptr&
+    operator=(const __sycl_device_shared_ptr& other)
     {
         if (this != &other)
         {
@@ -97,7 +102,8 @@ public:
         ++_M_shared_device->_M_cnt;
     }
 
-    void __reset()
+    void
+    __reset()
     {
         if (0 == --_M_shared_device->_M_cnt)
         {
@@ -106,10 +112,7 @@ public:
         _M_shared_device = nullptr;
     }
 
-    ~__sycl_device_shared_ptr()
-    {
-        __reset();
-    }
+    ~__sycl_device_shared_ptr() { __reset(); }
 };
 
 inline constexpr std::size_t __uniq_type_const = 0x23499abc405a9bccLLU;

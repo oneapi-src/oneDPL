@@ -63,7 +63,7 @@ class __offload_policy_holder_type
     template <typename _DeviceSelector>
     __offload_policy_holder_type(const _DeviceSelector& __device_selector,
                                  __set_device_status_func_type __set_device_status_func)
-        :  _M_offload_device(__device_selector), _M_set_device_status_func(__set_device_status_func)
+        : _M_offload_device(__device_selector), _M_set_device_status_func(__set_device_status_func)
     {
         if (_M_offload_device.__is_device_created())
         {
@@ -96,6 +96,7 @@ class __offload_policy_holder_type
         assert(_M_offload_device.__is_device_created());
         return _M_offload_device;
     }
+
   private:
     __sycl_device_shared_ptr _M_offload_device;
     std::optional<oneapi::dpl::execution::device_policy<>> _M_offload_policy;
