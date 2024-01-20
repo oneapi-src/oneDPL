@@ -110,6 +110,32 @@ expect_equal_val(const T& expected, const T& actual, const char* file, std::int3
     }
 }
 
+template <typename T>
+void
+expect_equal_val_impl(const T& expected, const T& actual, const char* file, std::int32_t line, const char* message)
+{
+    const auto eps = std::numeric_limits<T>::epsilon();
+    if (std::fabs(expected - actual) >= eps)
+    {
+        ::std::stringstream outstr;
+        outstr << "error at " << file << ":" << line << " - " << message << ", expected " << expected << " got "
+               << actual;
+        issue_error_message(outstr);
+    }
+}
+
+void
+expect_equal_val(const float64_t& expected, const float64_t& actual, const char* file, std::int32_t line, const char* message)
+{
+    expect_equal_val_impl(expected, actual, file, line, message);
+}
+
+void
+expect_equal_val(const float32_t& expected, const float32_t& actual, const char* file, std::int32_t line, const char* message)
+{
+    expect_equal_val_impl(expected, actual, file, line, message);
+}
+
 template <typename R1, typename R2>
 void
 expect_equal(const R1& expected, const R2& actual, const char* file, std::int32_t line, const char* message)
@@ -325,21 +351,6 @@ HashBits(size_t i, size_t bits)
     size_t mask = bits >= 8 * sizeof(size_t) ? ~size_t(0) : (size_t(1) << bits) - 1;
     return (424157 * i ^ 0x24aFa) & mask;
 }
-
-// Stateful unary op
-template <typename T, typename U>
-class Complement
-{
-    std::int32_t val;
-
-  public:
-    Complement(T v) : val(v) {}
-    U
-    operator()(const T& x) const
-    {
-        return U(val - x);
-    }
-};
 
 // Tag used to prevent accidental use of converting constructor, even if use is explicit.
 struct OddTag
