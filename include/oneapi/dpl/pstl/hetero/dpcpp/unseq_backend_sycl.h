@@ -72,7 +72,7 @@ template <typename _Tp>
 using __able_to_use_known_identity_src =
 #if !defined(_ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES) ||                                       \
     _ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES
-    typename ::std::true_type;
+    ::std::true_type;
 #else
     // disable for arithmetic 64-bit data types
     typename ::std::negation<typename ::std::conjunction<
