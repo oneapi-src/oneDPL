@@ -340,7 +340,7 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
         typedef typename ::std::iterator_traits<_ForwardIterator2>::reference _ReferenceType2;
 
         __par_backend::__parallel_for_each(::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
-                                           [&__f](const ::std::tuple<_ReferenceType1, _ReferenceType2>& __val) {
+                                           [&__f](::std::tuple<_ReferenceType1, _ReferenceType2> __val) {
                                                __f(::std::get<0>(__val), ::std::get<1>(__val));
                                            });
 
@@ -418,7 +418,7 @@ __pattern_walk2_brick(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
 
     return __except_handler([&]() {
         __par_backend::__parallel_for_each(::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
-                                           [__brick](const ::std::tuple<_ReferenceType1, _ReferenceType2>& __val) {
+                                           [__brick](::std::tuple<_ReferenceType1, _ReferenceType2> __val) {
                                                __brick(::std::get<0>(__val),
                                                        ::std::forward<_ReferenceType2>(::std::get<1>(__val)));
                                            });
@@ -533,11 +533,10 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
         typedef typename ::std::iterator_traits<_ForwardIterator2>::reference _ReferenceType2;
         typedef typename ::std::iterator_traits<_ForwardIterator3>::reference _ReferenceType3;
 
-        __par_backend::__parallel_for_each(
-            ::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
-            [&](const ::std::tuple<_ReferenceType1, _ReferenceType2, _ReferenceType3>& __val) {
-                __f(::std::get<0>(__val), ::std::get<1>(__val), ::std::get<2>(__val));
-            });
+        __par_backend::__parallel_for_each(::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
+                                           [&](::std::tuple<_ReferenceType1, _ReferenceType2, _ReferenceType3> __val) {
+                                               __f(::std::get<0>(__val), ::std::get<1>(__val), ::std::get<2>(__val));
+                                           });
 
         //TODO: parallel_for_each does not allow to return correct iterator value according to the ::std::transform
         // implementation. Therefore, iterator value is calculated separately.
