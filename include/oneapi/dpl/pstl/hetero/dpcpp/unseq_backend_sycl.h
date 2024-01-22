@@ -265,7 +265,7 @@ struct transform_reduce
     constexpr static bool
     use_nonseq_impl()
     {
-        return oneapi::dpl::__internal::__is_spirv_target::value && _Commutative::type::value;
+        return !oneapi::dpl::__internal::__is_spirv_target::value && _Commutative::type::value;
     }
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
