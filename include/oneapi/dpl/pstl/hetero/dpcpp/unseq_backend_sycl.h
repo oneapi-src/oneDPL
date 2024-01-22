@@ -70,16 +70,14 @@ using __has_known_identity_src = std::false_type;
 
 template <typename _Tp>
 using __able_to_use_known_identity_src =
-#if !defined(_ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES) || _ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES
+#if !defined(_ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES) ||                                       \
+    _ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES
     typename ::std::true_type;
 #else
     // disable for arithmetic 64-bit data types
-    typename ::std::negation<
-        typename ::std::conjunction<
-            typename ::std::is_arithmetic<_Tp>::type,
-            typename ::std::bool_constant<sizeof(_Tp) == sizeof(::std::uint64_t)>::type
-        >::type
-    >::type;
+    typename ::std::negation<typename ::std::conjunction<
+        typename ::std::is_arithmetic<_Tp>::type,
+        typename ::std::bool_constant<sizeof(_Tp) == sizeof(::std::uint64_t)>::type>::type>::type;
 #endif // _ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES
 
 } // namespace
@@ -87,10 +85,8 @@ using __able_to_use_known_identity_src =
 // If _ONEDPL_ICPX_AVOID_KNOWN_IDENTITY_FOR_FOR_64BIT_DATA_TYPES is defined,
 // we avoid using known identity for 64-bit arithmetic data types
 template <typename _BinaryOp, typename _Tp>
-using __has_known_identity = typename ::std::conjunction<
-    typename __able_to_use_known_identity_src<_Tp>::type,
-    typename __has_known_identity_src<_BinaryOp, _Tp>
-::type>;
+using __has_known_identity = typename ::std::conjunction<typename __able_to_use_known_identity_src<_Tp>::type,
+                                                         typename __has_known_identity_src<_BinaryOp, _Tp>::type>;
 
 template <typename _BinaryOp, typename _Tp>
 struct __known_identity_for_plus
