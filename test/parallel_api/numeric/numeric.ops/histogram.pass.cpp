@@ -61,7 +61,7 @@ struct test_histogram_range_bins
     }
 };
 
-template <typename Size, typename T>
+template <::std::size_t CallNumber, typename Size, typename T>
 void
 test_range_and_even_histogram(Size n, T min_boundary, T max_boundary, T overflow, Size jitter, Size num_bins,
                               Size trash)
@@ -74,11 +74,11 @@ test_range_and_even_histogram(Size n, T min_boundary, T max_boundary, T overflow
     Sequence<Size> expected(num_bins, [](size_t k) { return 0; });
     Sequence<Size> out(num_bins, [&](size_t k) { return trash; });
 
-    invoke_on_all_hetero_policies<0>()(test_histogram_even_bins(), in.begin(), in.end(), expected.begin(),
+    invoke_on_all_hetero_policies<CallNumber * 4>()(test_histogram_even_bins(), in.begin(), in.end(), expected.begin(),
                                        expected.end(), out.begin(), out.end(), Size(in.size()), min_boundary,
                                        max_boundary, trash);
 #    if !ONEDPL_FPGA_DEVICE
-    invoke_on_all_hetero_policies<1>()(test_histogram_even_bins(), in.cbegin(), in.cend(), expected.begin(),
+    invoke_on_all_hetero_policies<CallNumber * 4 + 1>()(test_histogram_even_bins(), in.cbegin(), in.cend(), expected.begin(),
                                        expected.end(), out.begin(), out.end(), Size(in.size()), min_boundary,
                                        max_boundary, trash);
 #    endif // !ONEDPL_FPGA_DEVICE
@@ -86,17 +86,17 @@ test_range_and_even_histogram(Size n, T min_boundary, T max_boundary, T overflow
     T offset = (max_boundary - min_boundary) / T(num_bins);
     Sequence<T> boundaries(num_bins + 1, [&](size_t k) { return k * offset + (std::rand() % jitter) + min_boundary; });
 
-    invoke_on_all_hetero_policies<2>()(test_histogram_range_bins(), in.begin(), in.end(), boundaries.begin(),
+    invoke_on_all_hetero_policies<CallNumber * 4 + 2>()(test_histogram_range_bins(), in.begin(), in.end(), boundaries.begin(),
                                        boundaries.end(), expected.begin(), expected.end(), out.begin(), out.end(),
                                        trash);
 #    if !ONEDPL_FPGA_DEVICE
-    invoke_on_all_hetero_policies<3>()(test_histogram_range_bins(), in.cbegin(), in.cend(), boundaries.cbegin(),
+    invoke_on_all_hetero_policies<CallNumber * 4 + 3>()(test_histogram_range_bins(), in.cbegin(), in.cend(), boundaries.cbegin(),
                                        boundaries.cend(), expected.begin(), expected.end(), out.begin(), out.end(),
                                        trash);
 #    endif // !ONEDPL_FPGA_DEVICE
 }
 
-template <typename T, typename Size>
+template <::std::size_t CallNumber, typename T, typename Size>
 void
 test_histogram(T min_boundary, T max_boundary, T overflow, Size jitter, Size trash)
 {
@@ -104,7 +104,7 @@ test_histogram(T min_boundary, T max_boundary, T overflow, Size jitter, Size tra
     {
         for (Size n = 0; n <= 100000; n = n <= 16 ? n + 1 : Size(3.1415 * n))
         {
-            test_range_and_even_histogram(n, min_boundary, max_boundary, overflow, jitter, bin_size, trash);
+            test_range_and_even_histogram<CallNumber>(n, min_boundary, max_boundary, overflow, jitter, bin_size, trash);
         }
     }
 }
@@ -114,8 +114,8 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_histogram<float, int64_t>(10000.0f, 110000.0f, 300.0f, int64_t(50), int64_t(99999));
-    test_histogram<std::int32_t, int64_t>(-50000, 50000, 10000, int64_t(5), int64_t(99999));
+    test_histogram<0, float, int64_t>(10000.0f, 110000.0f, 300.0f, int64_t(50), int64_t(99999));
+    test_histogram<1, std::int32_t, int64_t>(-50000, 50000, 10000, int64_t(5), int64_t(99999));
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return done(TEST_DPCPP_BACKEND_PRESENT);
