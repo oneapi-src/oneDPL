@@ -366,12 +366,12 @@ struct __parallel_transform_reduce_impl
                         _Tp __result = *std::launder(reinterpret_cast<_Tp*>(alloca(sizeof(_Tp))));
                         if (__is_first)
                         {
-                            __result = __transform_pattern1(__item_id, __n, /*global_offset*/ (_Size)0,  __rngs...);
+                            __result = __transform_pattern1(__item_id, __n, /*global_offset*/ (_Size)0, __rngs...);
                             __n_items = __transform_pattern1.output_size(__n, __work_group_size);
                         }
                         else
                         {
-                            __result = __transform_pattern2(__item_id, __n, __offset_2,  __temp_acc);
+                            __result = __transform_pattern2(__item_id, __n, __offset_2, __temp_acc);
                             __n_items = __transform_pattern2.output_size(__n, __work_group_size);
                         }
                         // 2. Reduce within work group using local memory

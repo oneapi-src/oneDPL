@@ -319,7 +319,8 @@ struct reduce_over_group
     {
         auto __local_idx = __item_id.get_local_id(0);
         auto __global_idx = __item_id.get_global_id(0);
-        return __dpl_sycl::__reduce_over_group(__item_id.get_group(), __global_idx >= __n ? __known_identity<_BinaryOperation1, _Tp> : __val, __bin_op1);
+        return __dpl_sycl::__reduce_over_group(
+            __item_id.get_group(), __global_idx >= __n ? __known_identity<_BinaryOperation1, _Tp> : __val, __bin_op1);
     }
 
     template <typename _NDItemId, typename _Size, typename _AccLocal>
