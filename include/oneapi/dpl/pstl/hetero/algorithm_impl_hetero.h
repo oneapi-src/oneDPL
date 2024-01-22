@@ -428,32 +428,35 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
     using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
-    using _Commutative = oneapi::dpl::__internal::__commutative_matrix</*_SpirvCommutative*/ ::std::false_type,
-                                                                       /*_NonSpirvCommutative*/ ::std::true_type>;
+    using _Commutative = oneapi::dpl::__internal::__spirv_target_selector</*_SpirvT*/ ::std::false_type,
+                                                                          /*_NonSpirvT*/ ::std::true_type>;
     auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
         using ::std::get;
-//TODO: Develop a long-term solution to the commutativity property, or remove the non commutative implementation for SPIRV
-//when we no longer always use sequential loads.
-#if _ONEDPL_DETECT_SPIRV_COMPILATION
-        // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
-        // not commutative.
-        if (__comp(get<1>(__b), get<1>(__a)))
+        //TODO: Develop a long-term solution to the commutativity property, or remove the non commutative implementation for SPIRV
+        //when we no longer always use sequential loads.
+        if constexpr (oneapi::dpl::__internal::__is_spirv_target::value)
         {
-            return __b;
+            // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
+            // not commutative.
+            if (__comp(get<1>(__b), get<1>(__a)))
+            {
+                return __b;
+            }
+            return __a;
         }
-        return __a;
-#else
-        // This operator keeps track of the lowest found index in case of equal min. or max. values. Thus, this operator is
-        // commutative.
-        bool _is_a_lt_b = __comp(get<1>(__a), get<1>(__b));
-        bool _is_b_lt_a = __comp(get<1>(__b), get<1>(__a));
+        else
+        {
+            // This operator keeps track of the lowest found index in case of equal min. or max. values. Thus, this operator is
+            // commutative.
+            bool _is_a_lt_b = __comp(get<1>(__a), get<1>(__b));
+            bool _is_b_lt_a = __comp(get<1>(__b), get<1>(__a));
 
-        if (_is_b_lt_a || (!_is_a_lt_b && get<0>(__b) < get<0>(__a)))
-        {
-            return __b;
+            if (_is_b_lt_a || (!_is_a_lt_b && get<0>(__b) < get<0>(__a)))
+            {
+                return __b;
+            }
+            return __a;
         }
-        return __a;
-#endif
     };
     auto __transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
 

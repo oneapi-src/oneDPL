@@ -27,7 +27,6 @@
 #include "execution_sycl_defs.h"
 #include "sycl_iterator.h"
 #include "../../utils.h"
-#include "../utils_hetero.h"
 
 #if _ONEDPL_DEBUG_SYCL
 #    include <iostream>
@@ -682,21 +681,6 @@ class __static_monotonic_dispatcher<::std::integer_sequence<::std::uint16_t, _X,
     }
 };
 
-template <typename _Commutative>
-struct __is_commutative_operator : _Commutative
-{
-};
-
-template <typename _SpirvCommutative, typename _NonSpirvCommutative>
-struct __is_commutative_operator<oneapi::dpl::__internal::__commutative_matrix<_SpirvCommutative, _NonSpirvCommutative>>
-    :
-#if _ONEDPL_DETECT_SPIRV_COMPILATION
-    _SpirvCommutative
-#else
-    _NonSpirvCommutative
-#endif
-{
-};
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
