@@ -75,7 +75,9 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     return oneapi::dpl::transform(policy, value_start, value_end, result,
-                                  [=](auto val) { return ::std::lower_bound(start, end, val, comp) - start; });
+                                  [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
+                                      return ::std::lower_bound(start, end, val, comp) - start;
+                                  });
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
@@ -85,7 +87,9 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     return oneapi::dpl::transform(policy, value_start, value_end, result,
-                                  [=](auto val) { return ::std::upper_bound(start, end, val, comp) - start; });
+                                  [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
+                                      return ::std::upper_bound(start, end, val, comp) - start;
+                                  });
 }
 
 template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
@@ -95,7 +99,9 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
                    InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     return oneapi::dpl::transform(policy, value_start, value_end, result,
-                                  [=](auto val) { return ::std::binary_search(start, end, val, comp); });
+                                  [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
+                                      return ::std::binary_search(start, end, val, comp);
+                                  });
 }
 
 #if _ONEDPL_BACKEND_SYCL
