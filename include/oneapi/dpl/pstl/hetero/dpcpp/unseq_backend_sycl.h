@@ -266,7 +266,7 @@ struct transform_reduce
                const _Acc&... __acc) const
     {
         // For non-SPIRV targets, we check if the operator is commutative before selecting the appropriate codepath.
-        // On SPIRV targets, we always force the non-commutative implementation as this is more performant.
+        // On SPIRV targets, we always force the sequential implementation as this is more performant.
 #if !_ONEDPL_DETECT_SPIRV_COMPILATION
         if constexpr (_CommutativeOperator::value)
             return nonseq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
