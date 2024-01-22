@@ -793,6 +793,24 @@ struct TupleAddFunctor
     }
 };
 
+struct _Identity
+{
+    template< class T >
+    constexpr T&& operator()(T&& t) const noexcept
+    {
+        return std::forward<T>(t);
+    }
+};
+
+struct _ZipIteratorAdapter
+{
+    template< class T >
+    constexpr auto operator()(T&& t) const noexcept
+    {
+        return dpl::make_zip_iterator(std::forward<T>(t));
+    }
+};
+
 } /* namespace TestUtils */
 
 #endif // _UTILS_H
