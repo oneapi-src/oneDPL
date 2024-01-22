@@ -27,7 +27,6 @@
 #include "utils_ranges_sycl.h"
 
 #include "../../histogram_binhash_utils.h"
-#include "../../../internal/async_impl/async_impl_hetero.h"
 #include "../../utils.h"
 
 namespace oneapi
