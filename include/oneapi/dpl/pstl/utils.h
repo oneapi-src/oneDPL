@@ -697,7 +697,12 @@ __iterators_possibly_equal(_Iterator1 __it1, _Iterator2 __it2)
 
 // Trait that has a true value if _ONEDPL_DETECT_SPIRV_COMPILATION is set and false otherwise. This may be used within kernels
 // to determine SPIR-V targets.
-struct __is_spirv_target : ::std::conditional_t<_ONEDPL_DETECT_SPIRV_COMPILATION, ::std::true_type, ::std::false_type>
+struct __is_spirv_target :
+#if _ONEDPL_DETECT_SPIRV_COMPILATION
+    ::std::true_type
+#else
+    ::std::false_type
+#endif
 {
 };
 
@@ -706,7 +711,12 @@ struct __is_spirv_target : ::std::conditional_t<_ONEDPL_DETECT_SPIRV_COMPILATION
 template <typename _SpirvT, typename _NonSpirvT>
 struct __spirv_target_selector
 {
-    using type = ::std::conditional_t<_ONEDPL_DETECT_SPIRV_COMPILATION, _SpirvT, _NonSpirvT>;
+    using type =
+#if _ONEDPL_DETECT_SPIRV_COMPILATION
+        _SpirvT;
+#else
+        _NonSpirvT;
+#endif
 };
 
 } // namespace __internal
