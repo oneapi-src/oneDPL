@@ -524,9 +524,16 @@ struct __get_sycl_range
         auto __n = __last - __first;
         assert(__n > 0);
 
-        // The size of the source range is unknown. So, just base iterator is passing to permutation_view
+        // The size of the source range is unknown. However, we know the base is passed directly,
+        // therefore we know that it is composed of purely passed directly components. To properly
+        // wrap the underlying ranges in views to be handled by require access properly, we must recurse.
+        // We will not require any real "processing" of the data, so the length of the range is
+        // unimportant. We use length one here as we don't have anything better.
+        auto base_src = __first.base();
+        auto res_src = __process_input_iter<_LocalAccMode>(base_src, base_src + 1);
+
         //_Map is handled by recursively calling __get_sycl_range() in __get_permutation_view.
-        auto rng = __get_permutation_view(__first.base(), __first.map(), __n);
+        auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
 
         return __range_holder<decltype(rng)>{rng};
     }
