@@ -39,7 +39,7 @@ if (NOT _ONEDPL_PSTL_OFFLOAD_BINARY_PATH)
         VISIBILITY_INLINES_HIDDEN ON
     )
 
-    add_custom_command(TARGET pstloffload POST_BUILD COMMAND
+    add_custom_command(OUTPUT ${OUTPUT_VARS} COMMAND
                 ${CMAKE_COMMAND}
                 -DDPL_ROOT=${CMAKE_SOURCE_DIR}
                 -DVARS_TEMPLATE=${VARS_TEMPLATE}
@@ -47,6 +47,9 @@ if (NOT _ONEDPL_PSTL_OFFLOAD_BINARY_PATH)
                 -DPSTL_OFFLOAD_BINARY_PATH=${CMAKE_CURRENT_BINARY_DIR}
                 -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_vars.cmake
             )
+
+    add_custom_target(set_env_vars DEPENDS ${OUTPUT_VARS})
+    add_dependencies(pstloffload set_env_vars)
 else()
     message(STATUS "Skip PSTL offload library build")
     message(STATUS "Generate vars for binaries in ${_ONEDPL_PSTL_OFFLOAD_BINARY_PATH}")
