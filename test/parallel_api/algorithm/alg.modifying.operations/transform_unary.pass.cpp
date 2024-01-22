@@ -79,24 +79,6 @@ private:
     }
 };
 
-struct _Identity
-{
-    template< class T >
-    constexpr T&& operator()(T&& t) const noexcept
-    {
-        return std::forward<T>(t);
-    }
-};
-
-struct _ZipIteratorAdapter
-{
-    template< class T >
-    constexpr auto operator()(T&& t) const noexcept
-    {
-        return dpl::make_zip_iterator(std::forward<T>(t));
-    }
-};
-
 // Stateful unary op
 template <typename T, typename U>
 struct Complement
@@ -165,6 +147,7 @@ main()
     test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
     test_algo_basic_double<std::int64_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 
+    //test case for zip iterator
     test<std::int32_t, std::int32_t, ComplementZip, _ZipIteratorAdapter>();
 
     return done();

@@ -22,17 +22,6 @@
 
 using namespace TestUtils;
 
-template <typename T>
-constexpr T
-get_epsilon();
-
-template <>
-constexpr float32_t
-get_epsilon<float32_t>()
-{
-    return 1e-7;
-}
-
 template <typename In1, typename In2, typename Out>
 class TheOperation
 {
