@@ -65,7 +65,7 @@ struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...
             oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
 
             __cgh.single_task<_Name...>([=]() {
-#pragma unroll(::std::decay <_ExecutionPolicy>::type::unroll_factor)
+#pragma unroll(::std::decay<_ExecutionPolicy>::type::unroll_factor)
                 for (auto __idx = 0; __idx < __count; ++__idx)
                 {
                     __brick(__idx, __rngs...);
@@ -146,8 +146,7 @@ __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
-          typename _CopyByMaskOp,
-          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
+          typename _CopyByMaskOp, oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n,
                      _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
@@ -274,12 +273,12 @@ template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
-                     _BinHashMgr&& __binhash_manager)
+                     const _BinHashMgr& __binhash_manager)
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_histogram(
-        __device_policy(__exec), __init_event, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
-        ::std::forward<_BinHashMgr>(__binhash_manager));
+    return oneapi::dpl::__par_backend_hetero::__parallel_histogram(__exec.__device_policy(), __init_event,
+                                                                   ::std::forward<_Range1>(__input),
+                                                                   ::std::forward<_Range2>(__bins), __binhash_manager);
 }
 
 } // namespace __par_backend_hetero
