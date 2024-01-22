@@ -57,8 +57,8 @@
 // TODO: determine which compiler configurations provide subgroup load/store
 #define _ONEDPL_SYCL_SUB_GROUP_LOAD_STORE_PRESENT false
 
-// Macro to check if we are compiling for Intel devices. This macro must only be used within
-// SYCL kernels for determining SPIRV compilation. Using this macro on the host may lead to incorrect behavior.
+// Macro to check if we are compiling for SPIR-V devices. This macro must only be used within
+// SYCL kernels for determining SPIR-V compilation. Using this macro on the host may lead to incorrect behavior.
 #ifndef _ONEDPL_DETECT_SPIRV_COMPILATION // Check if overridden for testing
 #    if (defined(__SPIR__) || defined(__SPIRV__)) && defined(__SYCL_DEVICE_ONLY__)
 #        define _ONEDPL_DETECT_SPIRV_COMPILATION 1
@@ -73,8 +73,9 @@
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE) intel::reqd_sub_group_size(SIZE)
 #endif
 
-// Only require a subgroup size if we are compiling to SPIRV. Otherwise, an empty
-// attribute will be provided.
+// This macro is intended to be used for specifying a subgroup size as a SYCL kernel attribute for SPIR-V targets
+// only. For non-SPIR-V targets, it will be empty. This macro should only be used in device code and may lead
+// to incorrect behavior if used on the host.
 #if _ONEDPL_DETECT_SPIRV_COMPILATION
 #    define _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE_IF_SUPPORTED(SIZE) _ONEDPL_SYCL_REQD_SUB_GROUP_SIZE(SIZE)
 #else
