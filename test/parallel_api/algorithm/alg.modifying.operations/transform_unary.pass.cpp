@@ -79,31 +79,6 @@ private:
     }
 };
 
-// Stateful unary op
-template <typename T, typename U>
-struct Complement
-{
-    std::int32_t val = 1;
-
-    U
-    operator()(const T& x) const
-    {
-        return U(val - x);
-    }
-};
-
-struct ComplementZip
-{
-    std::int32_t val = 1;
-
-    template<typename T>
-    auto
-    operator()(const oneapi::dpl::__internal::tuple<T&>& t) const
-    {
-        return oneapi::dpl::__internal::tuple<T>(val - std::get<0>(t));
-    }
-};
-
 template <typename Tin, typename Tout, typename _Op = Complement<Tin, Tout>, typename _IteratorAdapter = _Identity>
 void
 test()

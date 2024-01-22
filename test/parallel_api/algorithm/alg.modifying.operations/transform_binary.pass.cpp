@@ -22,36 +22,6 @@
 
 using namespace TestUtils;
 
-template <typename In1, typename In2, typename Out>
-class TheOperation
-{
-    Out val;
-
-  public:
-    TheOperation(Out v) : val(v) {}
-    Out
-    operator()(const In1& x, const In2& y) const
-    {
-        return Out(val + x - y);
-    }
-};
-
-template <typename Out>
-class TheOperationZip
-{
-    Out val;
-
-  public:
-    TheOperationZip(Out v) : val(v) {}
-
-    template <typename T1, typename T2>
-    auto
-    operator()(const oneapi::dpl::__internal::tuple<T1&>& t1, const oneapi::dpl::__internal::tuple<T2&>& t2) const
-    {
-        return oneapi::dpl::__internal::tuple<Out>(val + std::get<0>(t1) - std::get<0>(t2));
-    }
-};
-
 struct test_one_policy
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
