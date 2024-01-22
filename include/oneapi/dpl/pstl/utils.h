@@ -713,7 +713,7 @@ struct __spirv_target_selector
 struct __is_spirv_target : __spirv_target_selector<::std::true_type, ::std::false_type>
 {
 };
-constexpr static bool __is_spirv_target_v = __is_spirv_target::type::value;
+inline constexpr bool __is_spirv_target_v = __is_spirv_target::type::value;
 
 } // namespace __internal
 } // namespace dpl
