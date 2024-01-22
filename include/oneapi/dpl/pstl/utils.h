@@ -260,6 +260,9 @@ class __not_equal_value
     }
 };
 
+//TODO: to do the same fix  for output type (by re-using __transform_functor if applicable) for the other functor below:
+// __transform_if_unary_functor, __transform_if_binary_functor, __replace_functor, __replace_copy_functor
+//TODO: to make input type consistently: const T& or T&&; to think which way is preferable
 template <typename _Pred>
 class __transform_functor
 {
