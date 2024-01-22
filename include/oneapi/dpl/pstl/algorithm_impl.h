@@ -336,8 +336,14 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
         auto __begin = _iterator_tuple(__first1, __first2);
         auto __end = _iterator_tuple(__last1, /*dummy parameter*/ _ForwardIterator2());
 
+        typedef typename ::std::iterator_traits<_ForwardIterator1>::reference _ReferenceType1;
+        typedef typename ::std::iterator_traits<_ForwardIterator2>::reference _ReferenceType2;
+
         __par_backend::__parallel_for_each(::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
-                                           [&__f](auto&& __val) { __f(::std::get<0>(__val), ::std::get<1>(__val)); });
+                                           [&__f](auto&& __val) {
+                                               __f(::std::forward<_ReferenceType1>(::std::get<0>(__val)),
+                                                   ::std::forward<_ReferenceType2>(::std::get<1>(__val)));
+                                           });
 
         //TODO: parallel_for_each does not allow to return correct iterator value according to the ::std::transform
         // implementation. Therefore, iterator value is calculated separately.
@@ -528,11 +534,11 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
         typedef typename ::std::iterator_traits<_ForwardIterator2>::reference _ReferenceType2;
         typedef typename ::std::iterator_traits<_ForwardIterator3>::reference _ReferenceType3;
 
-        __par_backend::__parallel_for_each(
-            ::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
-            [&](const ::std::tuple<_ReferenceType1, _ReferenceType2, _ReferenceType3>& __val) {
-                __f(::std::get<0>(__val), ::std::get<1>(__val), ::std::get<2>(__val));
-            });
+        __par_backend::__parallel_for_each(::std::forward<_ExecutionPolicy>(__exec), __begin, __end, [&](auto&& __val) {
+            __f(::std::forward<_ReferenceType1>(::std::get<0>(__val)),
+                ::std::forward<_ReferenceType2>(::std::get<1>(__val)),
+                ::std::forward<_ReferenceType3>(::std::get<2>(__val)));
+        });
 
         //TODO: parallel_for_each does not allow to return correct iterator value according to the ::std::transform
         // implementation. Therefore, iterator value is calculated separately.

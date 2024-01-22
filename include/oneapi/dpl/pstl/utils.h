@@ -261,9 +261,6 @@ class __not_equal_value
 };
 
 template <typename _Pred>
-class Q;
-
-template <typename _Pred>
 class __transform_functor
 {
     mutable _Pred _M_pred;
