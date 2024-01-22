@@ -270,26 +270,26 @@ class __transform_functor
 
     template <typename _Input1Type, typename _Input2Type, typename _OutputType>
     void
-    operator()(const _Input1Type& x, const _Input2Type& y, _OutputType&& output) const
+    operator()(const _Input1Type& __x, const _Input2Type& __y, _OutputType&& __output) const
     {
-        __transform_impl(::std::forward<_OutputType>(output), x, y);
+        __transform_impl(::std::forward<_OutputType>(__output), __x, __y);
     }
 
     template <typename _InputType, typename _OutputType>
     void
-    operator()(_InputType&& x, _OutputType&& output) const
+    operator()(_InputType&& __x, _OutputType&& __output) const
     {
-        __transform_impl(::std::forward<_OutputType>(output), ::std::forward<_InputType>(x));
+        __transform_impl(::std::forward<_OutputType>(__output), ::std::forward<_InputType>(__x));
     }
 
   private:
     template <typename _OutputType, typename... _Args>
     void
-    __transform_impl(_OutputType&& output, _Args&&... args) const
+    __transform_impl(_OutputType&& __output, _Args&&... __args) const
     {
         static_assert(sizeof...(_Args) < 3, "A predicate supports either unary or binary transformation");
         static_assert(::std::is_invocable_v<_Pred, _Args...>, "A predicate cannot be called with the passed arguments");
-        ::std::forward<_OutputType>(output) = _M_pred(::std::forward<_Args>(args)...);
+        ::std::forward<_OutputType>(__output) = _M_pred(::std::forward<_Args>(__args)...);
     }
 };
 
