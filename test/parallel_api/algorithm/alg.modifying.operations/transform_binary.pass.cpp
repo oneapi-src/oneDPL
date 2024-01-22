@@ -46,7 +46,7 @@ class TheOperationZip
 
     template <typename T1, typename T2>
     auto
-    operator()(oneapi::dpl::__internal::tuple<T1&>&& t1, oneapi::dpl::__internal::tuple<T2&>&& t2) const
+    operator()(const oneapi::dpl::__internal::tuple<T1&>& t1, const oneapi::dpl::__internal::tuple<T2&>& t2) const
     {
         return oneapi::dpl::__internal::tuple<Out>(val + std::get<0>(t1) - std::get<0>(t2));
     }
