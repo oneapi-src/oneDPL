@@ -20,6 +20,7 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 #include "support/utils_sycl.h"
 #endif // TEST_DPCPP_BACKEND_PRESENT
+#include "support/utils_invoke.h"
 #include "support/utils_test_base.h"
 
 #include <type_traits>
