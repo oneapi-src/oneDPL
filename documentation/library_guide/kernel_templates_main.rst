@@ -1,11 +1,18 @@
 Kernel Templates API
 ####################
 
-Kernel templates is an experimental API that includes algorithms that can be configured based on various parameters, such as the number of elements to be processed by a work-item and the size of a work-group.
-Use it when you can specialize an algorithm for a specific workload (for example, the number of elements and their type) or a device to achieve better performance.
+Kernel templates is an experimental API that includes algorithms that can be configured based on various parameters,
+such as the number of elements to be processed by a work-item and the size of a work-group.
+These algorithms aim to deliver optimal performance. However, they may depend on assumptions
+that are not satisfied by all devices, prioritizing efficiency over generality.
 
-* :doc:`ESIMD-based kernel templates <kernel_templates/esimd_main>`. Kernel templates based on Intel "Explicit SIMD" SYCL extension.
+It is recommended to use kernel templates when there is an opportunity to customize an algorithm
+for a particular workload (for example, the number of elements and their type),
+or for a specific device (for example, based on the available local memory).
+
+
 * :doc:`Kernel Configuration <kernel_templates/kernel_configuration>`. Generic structure for configuring a kernel template.
+* :doc:`ESIMD-based kernel templates <kernel_templates/esimd_main>`. Kernel templates based on Intel "Explicit SIMD" SYCL extension.
 
 .. toctree::
    :maxdepth: 2
@@ -13,5 +20,5 @@ Use it when you can specialize an algorithm for a specific workload (for example
    :glob:
    :hidden:
 
-   kernel_templates/esimd_main
    kernel_templates/kernel_configuration
+   kernel_templates/esimd_main

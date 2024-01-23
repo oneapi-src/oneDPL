@@ -1,12 +1,8 @@
 Radix Sort
 ##########
 
-All API on this section reside in ``oneapi::dpl::experimental::kt`` namespace and
-are available through inclusion of ``oneapi/dpl/experimental/kernel_templates`` header file.
-This namespace is omitted in the rest of the page, while the nested namespaces are specified.
-
 --------------------------------------------------
-``radix_sort`` and ``radix_sort_by_key`` Interface
+``radix_sort`` and ``radix_sort_by_key`` Functions
 --------------------------------------------------
 
 The ``radix_sort`` and ``radix_sort_by_key`` functions sort data using the radix sort algorithm.
@@ -17,7 +13,9 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
 
 .. code:: cpp
 
-   namespace esimd {
+   // defined in header <oneapi/dpl/experimental/kernel_templates>
+
+   namespace oneapi::dpl::experimental::kt::esimd {
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8, typename KernelParam, typename Range>
    sycl::event
@@ -35,7 +33,7 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    sycl::event
    radix_sort_by_key(sycl::queue q, KeysIter keys_first, KeysIter keys_last, ValsIter vals_first, KernelParam param); // (4)
 
-   } // namespace esimd
+   } // namespace oneapi::dpl::experimental::kt
 
 
 .. _template-parameters:
@@ -46,9 +44,9 @@ Template Parameters
 +-----------------------------+---------------------------------------------------------------------------------------+
 | Name                        | Description                                                                           |
 +=============================+=======================================================================================+
-| ``bool IsAscending``        | Sort order. Ascending: ``true``; Descending: ``false``.                               |
+| ``bool IsAscending``        | The sort order. Ascending: ``true``; Descending: ``false``.                           |
 +-----------------------------+---------------------------------------------------------------------------------------+
-| ``std::uint8_t RadixBits``  | Number of bits to sort per a radix sort algorithm pass.                               |
+| ``std::uint8_t RadixBits``  | The number of bits to sort per a radix sort algorithm pass.                           |
 |                             | Only ``8`` is currently supported.                                                    |
 +-----------------------------+---------------------------------------------------------------------------------------+
 
@@ -61,7 +59,7 @@ Parameters
 +-----------------------------------------------+---------------------------------------------------------------------+
 | Name                                          | Description                                                         |
 +===============================================+=====================================================================+
-|  ``q``                                        | SYCL queue to submit the kernel template to.                        |
+|  ``q``                                        | SYCL* queue to submit the kernel template to.                       |
 +-----------------------------------------------+---------------------------------------------------------------------+
 |                                               | The sequences(s) of elements to apply the algorithm to.             |
 |  - ``rng`` (1)                                | They can be provided as:                                            |
@@ -93,11 +91,10 @@ Memory Requirements
 The device must have enough global (USM device) and local (SLM) memory.
 Otherwise, undefined behavior will occur and the algorithm may fail.
 
-- ``radix_sort`` and ``radix_sort_by_key`` allocate this memory
-- according to the formulas in the sub-sections below, where:
+``radix_sort`` and ``radix_sort_by_key`` allocate this memory according to the formulas in the sub-sections below, where:
 
-- ``workgroup_size`` and ``data_per_workitem`` are part of the ``param`` :ref:`parameter <parameters>`,
-- ``RadixBits`` is a :ref:`template parameter  <template-parameters>`,
+- ``workgroup_size`` and ``data_per_workitem`` are a part of the ``param`` :ref:`parameter <parameters>`,
+- ``RadixBits`` is a :ref:`template parameter <template-parameters>`,
 - ``key_type``, ``val_type`` are the types of the input keys, values respectively,
 - ``N`` is the number of elements to sort.
 
