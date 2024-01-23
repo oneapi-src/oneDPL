@@ -48,20 +48,16 @@ template <typename T>
 struct test_is_heap
 {
     template <typename Policy, typename Iterator>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    void
     operator()(Policy&& exec, Iterator first, Iterator last)
     {
-        using namespace std;
-        bool expected = is_heap(first, last);
-        bool actual = is_heap(exec, first, last);
-        EXPECT_TRUE(expected == actual, "wrong return value from is_heap");
-    }
-
-    // is_heap works only with random access iterators
-    template <typename Policy, typename Iterator>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
-    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */)
-    {
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>)
+        {
+            using namespace std;
+            bool expected = is_heap(first, last);
+            bool actual = is_heap(exec, first, last);
+            EXPECT_TRUE(expected == actual, "wrong return value from is_heap");
+        }
     }
 };
 
@@ -69,20 +65,16 @@ template <typename T>
 struct test_is_heap_predicate
 {
     template <typename Policy, typename Iterator, typename Predicate>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    void
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred)
     {
-        using namespace std;
-        bool expected = is_heap(first, last, pred);
-        bool actual = is_heap(exec, first, last, pred);
-        EXPECT_TRUE(expected == actual, "wrong return value from is_heap with predicate");
-    }
-
-    // is_heap works only with random access iterators
-    template <typename Policy, typename Iterator, typename Predicate>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
-    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Predicate /* pred */)
-    {
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>)
+        {
+            using namespace std;
+            bool expected = is_heap(first, last, pred);
+            bool actual = is_heap(exec, first, last, pred);
+            EXPECT_TRUE(expected == actual, "wrong return value from is_heap with predicate");
+        }
     }
 };
 
@@ -90,20 +82,16 @@ template <typename T>
 struct test_is_heap_until
 {
     template <typename Policy, typename Iterator>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    void
     operator()(Policy&& exec, Iterator first, Iterator last)
     {
-        using namespace std;
-        Iterator expected = is_heap_until(first, last);
-        Iterator actual = is_heap_until(exec, first, last);
-        EXPECT_TRUE(expected == actual, "wrong return value from is_heap_until");
-    }
-
-    // is_heap, is_heap_until works only with random access iterators
-    template <typename Policy, typename Iterator>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
-    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */)
-    {
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>)
+        {
+            using namespace std;
+            Iterator expected = is_heap_until(first, last);
+            Iterator actual = is_heap_until(exec, first, last);
+            EXPECT_TRUE(expected == actual, "wrong return value from is_heap_until");
+        }
     }
 };
 
@@ -111,20 +99,16 @@ template <typename T>
 struct test_is_heap_until_predicate
 {
     template <typename Policy, typename Iterator, typename Predicate>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
+    void
     operator()(Policy&& exec, Iterator first, Iterator last, Predicate pred)
     {
-        using namespace std;
-        const Iterator expected = is_heap_until(first, last, pred);
-        const Iterator actual = is_heap_until(exec, first, last, pred);
-        EXPECT_TRUE(expected == actual, "wrong return value from is_heap_until with predicate");
-    }
-
-    // is_heap, is_heap_until works only with random access iterators
-    template <typename Policy, typename Iterator, typename Predicate>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>>
-    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Predicate /* pred */)
-    {
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator>)
+        {
+            using namespace std;
+            const Iterator expected = is_heap_until(first, last, pred);
+            const Iterator actual = is_heap_until(exec, first, last, pred);
+            EXPECT_TRUE(expected == actual, "wrong return value from is_heap_until with predicate");
+        }
     }
 };
 
