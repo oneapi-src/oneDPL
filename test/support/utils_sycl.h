@@ -32,6 +32,9 @@
 #include "test_config.h"
 
 #include _PSTL_TEST_HEADER(iterator)
+
+#include <type_traits>
+
 #include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"
 #include "iterator_utils.h"
 #include "utils_invoke.h"
@@ -144,7 +147,7 @@ sycl::queue get_test_queue()
     return my_queue;
 }
 
-template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName1, typename TestName2 = TestName1>
 void
 test1buffer()
 {
@@ -165,7 +168,7 @@ test1buffer()
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
+            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName1>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                n);
         }
@@ -185,14 +188,14 @@ test1buffer()
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
+            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName2>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                n);
         }
     }
 }
 
-template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName1, typename TestName2 = TestName1>
 void
 test2buffers()
 {
@@ -215,7 +218,7 @@ test2buffers()
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
+            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName1>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
                                                n);
@@ -238,7 +241,7 @@ test2buffers()
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
+            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName2>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
                                                n);
@@ -246,7 +249,7 @@ test2buffers()
     }
 }
 
-template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName1, typename TestName2 = TestName1>
 void
 test3buffers(int mult = kDefaultMultValue)
 {
@@ -272,7 +275,7 @@ test3buffers(int mult = kDefaultMultValue)
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
+            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName1>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
                                                inout3_offset_first, inout3_offset_first + n * mult,
@@ -298,7 +301,7 @@ test3buffers(int mult = kDefaultMultValue)
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
+            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName2>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
                                                inout3_offset_first, inout3_offset_first + n * mult,
@@ -307,7 +310,7 @@ test3buffers(int mult = kDefaultMultValue)
     }
 }
 
-template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName1, typename TestName2 = TestName1>
 void
 test4buffers(int mult = kDefaultMultValue)
 {
@@ -335,7 +338,7 @@ test4buffers(int mult = kDefaultMultValue)
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
+            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName1>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
                                                inout3_offset_first, inout3_offset_first + n * mult,
@@ -364,7 +367,7 @@ test4buffers(int mult = kDefaultMultValue)
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
+            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName2>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
                                                inout3_offset_first, inout3_offset_first + n * mult,
@@ -374,32 +377,36 @@ test4buffers(int mult = kDefaultMultValue)
     }
 }
 
-template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+template <sycl::usm::alloc alloc_type, typename TestName1, typename TestName2 = TestName1>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName1::UsedValueType>, TestName1>>
 test1buffer()
 {
-    test1buffer<alloc_type, typename TestName::UsedValueType, TestName>();
+    static_assert(::std::is_same_v<typename TestName1::UsedValueType, typename TestName2::UsedValueType>);
+    test1buffer<alloc_type, typename TestName1::UsedValueType, TestName1, TestName2>();
 }
 
-template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+template <sycl::usm::alloc alloc_type, typename TestName1, typename TestName2 = TestName1>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName1::UsedValueType>, TestName1>>
 test2buffers()
 {
-    test2buffers<alloc_type, typename TestName::UsedValueType, TestName>();
+    static_assert(::std::is_same_v<typename TestName1::UsedValueType, typename TestName2::UsedValueType>);
+    test2buffers<alloc_type, typename TestName1::UsedValueType, TestName1, TestName2>();
 }
 
-template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+template <sycl::usm::alloc alloc_type, typename TestName1, typename TestName2 = TestName1>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName1::UsedValueType>, TestName1>>
 test3buffers(int mult = kDefaultMultValue)
 {
-    test3buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
+    static_assert(::std::is_same_v<typename TestName1::UsedValueType, typename TestName2::UsedValueType>);
+    test3buffers<alloc_type, typename TestName1::UsedValueType, TestName1, TestName2>(mult);
 }
 
-template <sycl::usm::alloc alloc_type, typename TestName>
-::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName::UsedValueType>, TestName>>
+template <sycl::usm::alloc alloc_type, typename TestName1, typename TestName2 = TestName1>
+::std::enable_if_t<::std::is_base_of_v<test_base<typename TestName1::UsedValueType>, TestName1>>
 test4buffers(int mult = kDefaultMultValue)
 {
-    test4buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
+    static_assert(::std::is_same_v<typename TestName1::UsedValueType, typename TestName2::UsedValueType>);
+    test4buffers<alloc_type, typename TestName1::UsedValueType, TestName1, TestName2>(mult);
 }
 } /* namespace TestUtils */
 
