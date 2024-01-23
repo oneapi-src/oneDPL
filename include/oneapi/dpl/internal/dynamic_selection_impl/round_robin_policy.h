@@ -43,7 +43,7 @@ struct round_robin_policy
     using execution_resource_t = typename backend_t::execution_resource_t;    
     using wrapped_resource_t = execution_resource_t;
 
-public:
+  public:
     //Policy Traits
     using selection_type =
         oneapi::dpl::experimental::basic_selection_handle_t<round_robin_policy<Backend>, execution_resource_t>;
