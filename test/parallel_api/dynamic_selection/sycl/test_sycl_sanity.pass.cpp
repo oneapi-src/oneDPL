@@ -67,51 +67,17 @@ run_test(sycl::queue q)
     return 0;
 }
 
+
+
+template<typename T>
 int
-test_runner_default()
+test_runner(T selector, int r)
 {
-    int r = 0;
     try
     {
-        sycl::queue default_queue;
-        default_queue = sycl::queue{sycl::default_selector_v};
-        r += run_test(default_queue);
-    }
-    catch (const sycl::exception&)
-    {
-        std::cout << "SKIPPED: Unable to run with default_selector\n";
-    }
-
-    return r;
-}
-
-int
-test_runner_gpu()
-{
-    int r = 0;
-    try
-    {
-        sycl::queue gpu_queue;
-        gpu_queue = sycl::queue{sycl::gpu_selector_v};
-        r += run_test(gpu_queue);
-    }
-    catch (const sycl::exception&)
-    {
-        std::cout << "SKIPPED: Unable to run with gpu_selector\n";
-    }
-
-    return r;
-}
-
-int
-test_runner_cpu()
-{
-    int r = 0;
-    try
-    {
-        sycl::queue cpu_queue;
-        cpu_queue = sycl::queue{sycl::cpu_selector_v};
-        r += run_test(cpu_queue);
+        sycl::queue queue;
+        queue = sycl::queue{selector};
+        r += run_test(queue);
     }
     catch (const sycl::exception&)
     {
@@ -125,8 +91,9 @@ test_runner_cpu()
 int
 main()
 {
+    int r=0;
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
-    return test_runner_default() ||  test_runner_gpu() || test_runner_cpu();
+    return test_runner(sycl::default_selector_v, r) ||  test_runner(sycl::gpu_selector_v, r) || test_runner(sycl::cpu_selector_v, r);
 #else
     std::cout << "SKIPPED\n";
     return 0;
