@@ -196,53 +196,45 @@ DEFINE_TEST_2(test_reduce_by_segment, BinaryPredicate, BinaryOperation)
     }
 #endif
 
-    // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
               typename Size>
-    ::std::enable_if_t<
+    void
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
+    {
+        if constexpr (
 #if TEST_DPCPP_BACKEND_PRESENT
-        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
+            !oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
 #endif
             is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3> &&
-            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator4>>
-    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
-               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
-    {
-        // call algorithm with no optional arguments
-        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
-        auto res1 =
-            oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first);
-        size_t segments_key_ret1 = ::std::distance(key_res_first, res1.first);
-        size_t segments_val_ret1 = ::std::distance(val_res_first, res1.second);
-        check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret1, segments_val_ret1);
+            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator4>)
+        {
+            // call algorithm with no optional arguments
+            initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
+            auto res1 =
+                oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first, val_res_first);
+            size_t segments_key_ret1 = ::std::distance(key_res_first, res1.first);
+            size_t segments_val_ret1 = ::std::distance(val_res_first, res1.second);
+            check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret1, segments_val_ret1);
 
-        // call algorithm with predicate
-        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
-        auto res2 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, BinaryPredicate());
-        size_t segments_key_ret2 = ::std::distance(key_res_first, res2.first);
-        size_t segments_val_ret2 = ::std::distance(val_res_first, res2.second);
-        check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret2, segments_val_ret2,
-                     BinaryPredicate());
+            // call algorithm with predicate
+            initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
+            auto res2 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
+                                                       val_res_first, BinaryPredicate());
+            size_t segments_key_ret2 = ::std::distance(key_res_first, res2.first);
+            size_t segments_val_ret2 = ::std::distance(val_res_first, res2.second);
+            check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret2, segments_val_ret2,
+                         BinaryPredicate());
 
-        // call algorithm with predicate and operator
-        initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
-        auto res3 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
-                                                   val_res_first, BinaryPredicate(), BinaryOperation());
-        size_t segments_key_ret3 = ::std::distance(key_res_first, res3.first);
-        size_t segments_val_ret3 = ::std::distance(val_res_first, res3.second);
-        check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret3, segments_val_ret3,
-                     BinaryPredicate(), BinaryOperation());
-    }
-
-    // specialization for non-random_access iterators
-    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Iterator4,
-              typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3> ||
-                           !is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator4>>
-    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
-               Iterator3 key_res_first, Iterator3 key_res_last, Iterator4 val_res_first, Iterator4 val_res_last, Size n)
-    {
+            // call algorithm with predicate and operator
+            initialize_data(keys_first, vals_first, key_res_first, val_res_first, n);
+            auto res3 = oneapi::dpl::reduce_by_segment(exec, keys_first, keys_last, vals_first, key_res_first,
+                                                       val_res_first, BinaryPredicate(), BinaryOperation());
+            size_t segments_key_ret3 = ::std::distance(key_res_first, res3.first);
+            size_t segments_val_ret3 = ::std::distance(val_res_first, res3.second);
+            check_values(keys_first, vals_first, key_res_first, val_res_first, n, segments_key_ret3, segments_val_ret3,
+                         BinaryPredicate(), BinaryOperation());
+        }
     }
 };
 
