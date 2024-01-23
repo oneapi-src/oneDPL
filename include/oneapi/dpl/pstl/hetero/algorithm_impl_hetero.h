@@ -428,7 +428,8 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
     using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
-    using _Commutative = oneapi::dpl::__internal::__spirv_target_selector<::std::false_type>;
+    using _Commutative = oneapi::dpl::__internal::__spirv_target_selector</*_SpirvT*/ ::std::false_type,
+                                                                          /*_NonSpirvT*/ ::std::true_type>;
     auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
         using ::std::get;
         //TODO: Develop a long-term solution to the commutativity property, or remove the non commutative implementation for SPIRV
