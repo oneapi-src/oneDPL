@@ -161,18 +161,18 @@ class __spin_mutex
 {
     std::atomic_flag _M_flag = ATOMIC_FLAG_INIT;
 
-    void lock()
+    void
+    __lock()
     {
         while (_M_flag.test_and_set())
         {
+            // TODO: exponential backoff or switch to wait() from c++20
             std::this_thread::yield();
         }
     }
-    bool try_lock()
+    void
+    __unlock()
     {
-        return !_M_flag.test_and_set();
-    }
-    void unlock() {
         _M_flag.clear(std::memory_order_release);
     }
 
@@ -185,7 +185,7 @@ public:
     public:
         __scoped_lock(__spin_mutex& __m) : _M_mutex(__m), _M_taken(true)
         {
-            __m.lock();
+            __m.__lock();
         }
 
         __scoped_lock(__scoped_lock&) = delete;
@@ -195,51 +195,43 @@ public:
         {
             if (_M_taken)
             {
-                _M_mutex.unlock();
+                _M_mutex.__unlock();
             }
         }
     };
     friend class __scoped_lock;
 };
 
-// Signal when __large_aligned_ptrs about to be destroyed.
-// We suppose that all users of libpstloffload have dependence on it, so it's impossible to register 
-// >=4K-aligned USM memory before ctor of static objects executed. So, no need for special support for
-// adding to not-yet-created __large_aligned_ptrs_map.
-static bool __skip_large_aligned_ptrs;
-
 static __spin_mutex __large_aligned_ptrs_map_mtx;
-
-struct __unreleased_ptr_desc
-{
-    void* _M_ptr;
-    bool _M_valid;
-    sycl::device _M_device;
-    std::size_t   _M_requested_number_of_bytes;
-};
 
 class __large_aligned_ptrs_map
 {
 public:
     struct __ptr_desc
     {
-        std::optional<__sycl_device_shared_ptr> _M_device_ptr;
-        std::size_t   _M_requested_number_of_bytes;
+        __sycl_device_shared_ptr _M_device_ptr;
+        std::size_t _M_requested_number_of_bytes;
     };
 
 private:
     // Find sycl::device and requested size by user pointer. Use __orig_free_allocator to not
-    // call global delete during delete processing (that includes __unregister_ptr call).
-    std::unordered_map<void*, __ptr_desc, __hash_aligned_ptr, std::equal_to<void*>,
-        __orig_free_allocator<std::pair<void* const, __ptr_desc>>> _M_map;
+    // call global delete during delete processing (overloaded global delete includes
+    // __unregister_ptr call).
+    using __map_ptr_to_object_prop =
+        std::unordered_map<void*, __ptr_desc, __hash_aligned_ptr, std::equal_to<void*>,
+        __orig_free_allocator<std::pair<void* const, __ptr_desc>>>;
+    __map_ptr_to_object_prop* _M_map;
 
 public:
-    ~__large_aligned_ptrs_map()
-    {
-        __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
-        fprintf(stderr, "size %lu\n", _M_map.size());
-        __skip_large_aligned_ptrs = true;
-    }
+    // We suppose that all users of libpstloffload have dependence on it, so it's impossible to register
+    // >=4K-aligned USM memory before ctor of static objects executed. So, no need for special support for
+    // adding to not-yet-created __large_aligned_ptrs_map.
+    __large_aligned_ptrs_map() : _M_map(new __map_ptr_to_object_prop) { }
+
+    // Intentionally leaks _M_map to able use it after static object dtor is executed. Global
+    // free/delete/realloc/etc are overloaded, so we need to use it even when static object dtor
+    // already run.
+    ~__large_aligned_ptrs_map() { }
 
     void
     __register_ptr(void* __ptr, size_t __size, __sycl_device_shared_ptr __device_ptr)
@@ -247,28 +239,28 @@ public:
         assert(__is_ptr_page_aligned(__ptr));
 
         __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
-        [[maybe_unused]] auto __ret = _M_map.emplace(__ptr, __ptr_desc{__device_ptr, __size});
+        [[maybe_unused]] auto __ret = _M_map->emplace(__ptr, __ptr_desc{__device_ptr, __size});
         assert(__ret.second); // the pointer must be unique
     }
 
-    // nullopt means "status unknown", empty __ptr_desc means "it's not our pointer"
+    // nullopt means "it's not our pointer"
     std::optional<__ptr_desc>
     __unregister_ptr(void* __ptr)
     {
         // only page-aligned can be registered
         if (!__is_ptr_page_aligned(__ptr))
         {
-            return __ptr_desc{std::nullopt, 0};
+            return std::nullopt;
         }
 
         __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
-        auto __iter = _M_map.find(__ptr);
-        if (__iter == _M_map.end())
+        auto __iter = _M_map->find(__ptr);
+        if (__iter == _M_map->end())
         {
-            return __ptr_desc{std::nullopt, 0};
+            return std::nullopt;
         }
         __ptr_desc __header = __iter->second;
-        _M_map.erase(__iter);
+        _M_map->erase(__iter);
         return __header;
     }
 
@@ -283,8 +275,8 @@ public:
         }
 
         __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
-        auto __iter = _M_map.find(__ptr);
-        if (__iter == _M_map.end())
+        auto __iter = _M_map->find(__ptr);
+        if (__iter == _M_map->end())
         {
             return std::nullopt;
         }
@@ -318,13 +310,9 @@ __internal_free(void* __user_ptr)
 
         std::optional<__large_aligned_ptrs_map::__ptr_desc> __desc = __large_aligned_ptrs.__unregister_ptr(__user_ptr);
 
-        if (!__desc.has_value())
+        if (__desc.has_value())
         {
-            return; // leak memory in "status unknown" case
-        }
-        if (__desc->_M_device_ptr.has_value())
-        {
-            sycl::context __context = __desc->_M_device_ptr->__get_context();
+            sycl::context __context = __desc->_M_device_ptr.__get_context();
             sycl::free(__user_ptr, __context);
             return;
         }
@@ -415,21 +403,17 @@ __realloc_impl(void* __user_ptr, std::size_t __new_size)
     }
 
     std::optional<__large_aligned_ptrs_map::__ptr_desc> __desc = __large_aligned_ptrs.__unregister_ptr(__user_ptr);
-    if (!__desc.has_value())
-    {
-        return nullptr; // can't do anything in "status unknown" case
-    }
-    if (__desc->_M_device_ptr.has_value())
+    if (__desc.has_value())
     {
         if (__desc->_M_requested_number_of_bytes == __new_size)
         {
             return __user_ptr;
         }
 
-        void* __result = __realloc_allocate_shared(__desc->_M_device_ptr.value(), __user_ptr, __desc->_M_requested_number_of_bytes, __new_size);
+        void* __result = __realloc_allocate_shared(__desc->_M_device_ptr, __user_ptr, __desc->_M_requested_number_of_bytes, __new_size);
         if (__result)
         {
-            sycl::context __context = __desc->_M_device_ptr->__get_context();
+            sycl::context __context = __desc->_M_device_ptr.__get_context();
             sycl::free(__user_ptr, __context);
         }
         return __result;
