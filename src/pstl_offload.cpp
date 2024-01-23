@@ -218,9 +218,6 @@ struct __unreleased_ptr_desc
     std::size_t   _M_requested_number_of_bytes;
 };
 
-static __unreleased_ptr_desc* __unreleased_ptrs;
-static std::size_t __unreleased_ptrs_size;
-
 class __large_aligned_ptrs_map
 {
 public:
@@ -240,19 +237,6 @@ public:
     ~__large_aligned_ptrs_map()
     {
         __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
-        __unreleased_ptrs_size = _M_map.size();
-        if (__unreleased_ptrs_size)
-        {
-            // call malloc to able to use __original_free after
-            __unreleased_ptrs = (__unreleased_ptr_desc*)malloc(sizeof(__unreleased_ptr_desc)*__unreleased_ptrs_size);
-            std::size_t __cnt = 0;
-            for (auto const& [__ptr, __val] : _M_map)
-            {
-                __unreleased_ptrs[__cnt++] =
-                    __unreleased_ptr_desc{__ptr, true, __val._M_device_ptr->__get_device(), __val._M_requested_number_of_bytes};
-            }
-        }
-
         fprintf(stderr, "size %lu\n", _M_map.size());
         __skip_large_aligned_ptrs = true;
     }
@@ -263,28 +247,8 @@ public:
         assert(__is_ptr_page_aligned(__ptr));
 
         __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
-        if (__skip_large_aligned_ptrs)
-        {
-            // adding new element is rare operation, so implements it via re-allocation of the array
-            // with only valid elements
-            std::size_t __active = 1 + std::count_if(__unreleased_ptrs, __unreleased_ptrs + __unreleased_ptrs_size,
-                [](const __unreleased_ptr_desc& __e){ return __e._M_valid; });
-            __unreleased_ptr_desc*
-                __new_unreleased_ptrs = (__unreleased_ptr_desc*)malloc(sizeof(__unreleased_ptr_desc)*__active);
-            __unreleased_ptr_desc* __dest_it = __new_unreleased_ptrs;
-
-            std::copy_if(__unreleased_ptrs, __unreleased_ptrs + __unreleased_ptrs_size, __dest_it,
-                [](const __unreleased_ptr_desc& __e){ return __e._M_valid; });
-            *__dest_it = __unreleased_ptr_desc{__ptr, true, __device_ptr.__get_device(), __size};
-            __original_free(__unreleased_ptrs);
-            __unreleased_ptrs = __new_unreleased_ptrs;
-            __unreleased_ptrs_size = __active;
-        }
-        else
-        {
-            [[maybe_unused]] auto __ret = _M_map.emplace(__ptr, __ptr_desc{__device_ptr, __size});
-            assert(__ret.second); // the pointer must be unique
-        }
+        [[maybe_unused]] auto __ret = _M_map.emplace(__ptr, __ptr_desc{__device_ptr, __size});
+        assert(__ret.second); // the pointer must be unique
     }
 
     // nullopt means "status unknown", empty __ptr_desc means "it's not our pointer"
@@ -298,19 +262,6 @@ public:
         }
 
         __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
-        if (__skip_large_aligned_ptrs)
-        {
-            auto __it =
-                std::find_if(__unreleased_ptrs, __unreleased_ptrs + __unreleased_ptrs_size,
-                    [=](const __unreleased_ptr_desc& __e){ return __e._M_valid && __e._M_ptr == __ptr; });
-            if (__it == __unreleased_ptrs + __unreleased_ptrs_size)
-            {
-                return std::nullopt;
-            }
-            __it->_M_valid = false;
-            return __ptr_desc{__it->_M_device, __it->_M_requested_number_of_bytes};
-        }
-
         auto __iter = _M_map.find(__ptr);
         if (__iter == _M_map.end())
         {
@@ -332,15 +283,6 @@ public:
         }
 
         __spin_mutex::__scoped_lock l(__large_aligned_ptrs_map_mtx);
-        if (__skip_large_aligned_ptrs)
-        {
-            auto __it =
-                std::find_if(__unreleased_ptrs, __unreleased_ptrs + __unreleased_ptrs_size,
-                    [=](const __unreleased_ptr_desc& __e){ return __e._M_valid && __e._M_ptr == __ptr; });
-            return __it == __unreleased_ptrs + __unreleased_ptrs_size ? std::nullopt
-                : std::optional<std::size_t>(__it->_M_requested_number_of_bytes);
-        }
-
         auto __iter = _M_map.find(__ptr);
         if (__iter == _M_map.end())
         {
