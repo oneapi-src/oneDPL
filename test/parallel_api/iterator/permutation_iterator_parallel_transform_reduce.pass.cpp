@@ -19,7 +19,7 @@
 
 // dpl::reduce, dpl::transform_reduce -> __parallel_transform_reduce
 // Requirements: only for random_access_iterator
-DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
+DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag, KernelName)
 {
     DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_transform_reduce)
 
@@ -31,10 +31,12 @@ DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
 
     template <typename Policy, typename Iterator1, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Size n)
+    operator()(Policy&& exec_src, Iterator1 first1, Iterator1 last1, Size n)
     {
         if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
+            auto exec = create_new_policy<KernelName>(::std::forward<Policy>(exec_src));
+
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for transform_reduce
             const auto host_keys_ptr = host_keys.get();
 
@@ -64,7 +66,7 @@ DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
     }
 };
 
-template <typename ValueType, typename PermItIndexTag>
+template <typename ValueType, typename PermItIndexTag, typename KernelName>
 void
 run_algo_tests()
 {
@@ -73,13 +75,15 @@ run_algo_tests()
 #if TEST_DPCPP_BACKEND_PRESENT
     // Run tests on <USM::shared, USM::device, sycl::buffer> + <all_hetero_policies>
     // dpl::reduce, dpl::transform_reduce -> __parallel_transform_reduce (only for random_access_iterator)
-    test1buffer<sycl::usm::alloc::shared, ValueType, test_transform_reduce<ValueType, PermItIndexTag>>();
-    test1buffer<sycl::usm::alloc::device, ValueType, test_transform_reduce<ValueType, PermItIndexTag>>();
+    test1buffer<sycl::usm::alloc::shared, ValueType, test_transform_reduce<ValueType, PermItIndexTag, new_kernel_name<KernelName, 10>>,
+                                                     test_transform_reduce<ValueType, PermItIndexTag, new_kernel_name<KernelName, 15>>>();
+    test1buffer<sycl::usm::alloc::device, ValueType, test_transform_reduce<ValueType, PermItIndexTag, new_kernel_name<KernelName, 20>>,
+                                                     test_transform_reduce<ValueType, PermItIndexTag, new_kernel_name<KernelName, 25>>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     // Run tests on <std::vector::iterator> + <all_host_policies>
     // dpl::reduce, dpl::transform_reduce -> __parallel_transform_reduce (only for random_access_iterator)
-    test_algo_one_sequence<ValueType, test_transform_reduce<ValueType, PermItIndexTag>>(kZeroOffset);
+    test_algo_one_sequence<ValueType, test_transform_reduce<ValueType, PermItIndexTag, KernelName>>(kZeroOffset);
 }
 
 int
@@ -88,13 +92,13 @@ main()
     using ValueType = ::std::uint32_t;
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    run_algo_tests<ValueType, perm_it_index_tags::usm_shared>();
+    run_algo_tests<ValueType, perm_it_index_tags::usm_shared,         class KernelName1>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    run_algo_tests<ValueType, perm_it_index_tags::counting>();
-    run_algo_tests<ValueType, perm_it_index_tags::host>();
-    run_algo_tests<ValueType, perm_it_index_tags::transform_iterator>();
-    run_algo_tests<ValueType, perm_it_index_tags::callable_object>();
+    run_algo_tests<ValueType, perm_it_index_tags::counting,           class KernelName2>();
+    run_algo_tests<ValueType, perm_it_index_tags::host,               class KernelName3>();
+    run_algo_tests<ValueType, perm_it_index_tags::transform_iterator, class KernelName4>();
+    run_algo_tests<ValueType, perm_it_index_tags::callable_object,    class KernelName5>();
 
     return TestUtils::done();
 }
