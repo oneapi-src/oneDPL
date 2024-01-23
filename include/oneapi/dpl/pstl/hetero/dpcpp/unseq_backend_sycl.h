@@ -262,18 +262,14 @@ struct transform_reduce
 
     // For non-SPIR-V targets, we check if the operator is commutative before selecting the appropriate codepath.
     // On SPIRV targets, we force the non-commutative implementation as this is currently more performant.
-    constexpr static bool
-    use_nonseq_impl()
-    {
-        return !oneapi::dpl::__internal::__is_spirv_target_v && _Commutative::type::value;
-    }
+    static constexpr bool use_nonseq_impl = !oneapi::dpl::__internal::__is_spirv_target_v && _Commutative::value;
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     inline void
     operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __global_offset, const _AccLocal& __local_mem,
                const _Acc&... __acc) const
     {
-        if constexpr (use_nonseq_impl())
+        if constexpr (use_nonseq_impl)
             return nonseq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
         return seq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
     }
@@ -282,7 +278,7 @@ struct transform_reduce
     _Size
     output_size(const _Size& __n, const ::std::uint16_t& __work_group_size) const
     {
-        if constexpr (use_nonseq_impl())
+        if constexpr (use_nonseq_impl)
         {
             _Size __items_per_work_group = __work_group_size * __iters_per_work_item;
             _Size __full_group_contrib = (__n / __items_per_work_group) * __work_group_size;

@@ -695,25 +695,20 @@ __iterators_possibly_equal(_Iterator1 __it1, _Iterator2 __it2)
     }
 }
 
-// Conditionally sets type to _SpirvT if oneDPL is being compiled to a SPIR-V target with the SYCL backend and _NonSpirvT otherwise.
-// This should be used only in kernels.
-template <typename _SpirvT, typename _NonSpirvT>
-struct __spirv_target_selector
-{
-    using type =
+// Conditionally sets type to _IsSpirvT if oneDPL is being compiled to a SPIR-V target with the SYCL backend and the negation otherwise.
+template <typename _IsSpirvT>
+struct __spirv_target_selector :
 #if _ONEDPL_DETECT_SPIRV_COMPILATION
-        _SpirvT;
+    _IsSpirvT
 #else
-        _NonSpirvT;
+    ::std::bool_constant<!_IsSpirvT::value>
 #endif
+{
 };
 
 // Trait that has a true value if _ONEDPL_DETECT_SPIRV_COMPILATION is set and false otherwise. This may be used within kernels
 // to determine SPIR-V targets.
-struct __is_spirv_target : __spirv_target_selector<::std::true_type, ::std::false_type>
-{
-};
-inline constexpr bool __is_spirv_target_v = __is_spirv_target::type::value;
+inline constexpr bool __is_spirv_target_v = __spirv_target_selector<::std::true_type>::value;
 
 } // namespace __internal
 } // namespace dpl
