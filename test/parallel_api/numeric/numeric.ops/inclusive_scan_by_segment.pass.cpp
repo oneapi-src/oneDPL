@@ -159,42 +159,36 @@ DEFINE_TEST_2(test_inclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
     }
 #endif
 
-    // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    ::std::enable_if_t<
+    void
+    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
+               Iterator3 val_res_first, Iterator3 val_res_last, Size n)
+    {
+        if constexpr (
 #if TEST_DPCPP_BACKEND_PRESENT
-        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
+            !oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
 #endif
-            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3>>
-    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
-               Iterator3 val_res_first, Iterator3 val_res_last, Size n)
-    {
-        typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
+            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3>)
+        {
+            typedef typename ::std::iterator_traits<Iterator1>::value_type KeyT;
 
-        // call algorithm with no optional arguments
-        initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res1 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
-        check_values(keys_first, vals_first, val_res_first, n);
+            // call algorithm with no optional arguments
+            initialize_data(keys_first, vals_first, val_res_first, n);
+            auto res1 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first);
+            check_values(keys_first, vals_first, val_res_first, n);
 
-        // call algorithm with predicate
-        initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res2 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
-                                                           BinaryPredicate());
-        check_values(keys_first, vals_first, val_res_first, n, BinaryPredicate());
+            // call algorithm with predicate
+            initialize_data(keys_first, vals_first, val_res_first, n);
+            auto res2 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
+                                                               BinaryPredicate());
+            check_values(keys_first, vals_first, val_res_first, n, BinaryPredicate());
 
-        // call algorithm with predicate and operator
-        initialize_data(keys_first, vals_first, val_res_first, n);
-        auto res3 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
-                                                           BinaryPredicate(), BinaryOperation());
-        check_values(keys_first, vals_first, val_res_first, n, BinaryPredicate(), BinaryOperation());
-    }
-
-    // specialization for non-random_access iterators
-    template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator3>>
-    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Iterator2 vals_first, Iterator2 vals_last,
-               Iterator3 val_res_first, Iterator3 val_res_last, Size n)
-    {
+            // call algorithm with predicate and operator
+            initialize_data(keys_first, vals_first, val_res_first, n);
+            auto res3 = oneapi::dpl::inclusive_scan_by_segment(exec, keys_first, keys_last, vals_first, val_res_first,
+                                                               BinaryPredicate(), BinaryOperation());
+            check_values(keys_first, vals_first, val_res_first, n, BinaryPredicate(), BinaryOperation());
+        }
     }
 };
 
