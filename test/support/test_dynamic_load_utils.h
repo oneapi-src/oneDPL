@@ -18,7 +18,19 @@
 #include<iostream>
 #include "support/test_config.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
-#include "support/sycl_sanity.h"
+
+namespace TestUtils
+{
+  template <sycl::usm::alloc alloc_type>
+  constexpr ::std::size_t
+  uniq_kernel_index()
+  {
+    return static_cast<typename ::std::underlying_type_t<sycl::usm::alloc>>(alloc_type);
+  }
+
+  template <typename Op, ::std::size_t CallNumber>
+  struct unique_kernel_name;
+}
 
 int
 test_dl_initialization(const std::vector<sycl::queue>& u)
