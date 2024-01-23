@@ -44,24 +44,21 @@ struct test_one_policy
 #endif
 
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, Iterator1>>
+    void
     operator()(ExecutionPolicy&& exec, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b, Iterator2 actual_e)
     {
-        using namespace std;
+        if constexpr (is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, Iterator1>)
+        {
+            using namespace std;
 
-        copy(data_b, data_e, actual_b);
+            copy(data_b, data_e, actual_b);
 
-        reverse(exec, actual_b, actual_e);
+            reverse(exec, actual_b, actual_e);
 
-        bool check = equal(data_b, data_e, reverse_iterator<Iterator2>(actual_e));
+            bool check = equal(data_b, data_e, reverse_iterator<Iterator2>(actual_e));
 
-        EXPECT_TRUE(check, "wrong result of reverse");
-    }
-
-    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, Iterator1>>
-    operator()(ExecutionPolicy&& /* exec */, Iterator1 /* data_b */, Iterator1 /* data_e */, Iterator2 /* actual_b */, Iterator2 /* actual_e */)
-    {
+            EXPECT_TRUE(check, "wrong result of reverse");
+        }
     }
 };
 
