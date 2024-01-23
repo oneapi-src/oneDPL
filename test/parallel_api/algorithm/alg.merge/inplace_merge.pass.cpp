@@ -28,30 +28,37 @@ struct test_one_policy
     // inplace_merge works with bidirectional iterators at least
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt1>>
+    void
     operator()(Policy&& exec, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2, Compare comp)
     {
-        auto mid = init(first1, last1, first2, last2, generator1, generator2, m);
-        ::std::inplace_merge(first1, mid.first, last1, comp);
-        ::std::inplace_merge(exec, first2, mid.second, last2, comp);
-        EXPECT_EQ_N(first1, first2, n, "wrong effect from inplace_merge with predicate");
+        if constexpr (is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt1>)
+        {
+            auto mid = init(first1, last1, first2, last2, generator1, generator2, m);
+            ::std::inplace_merge(first1, mid.first, last1, comp);
+            ::std::inplace_merge(exec, first2, mid.second, last2, comp);
+            EXPECT_EQ_N(first1, first2, n, "wrong effect from inplace_merge with predicate");
+        }
     }
 
     template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt1>>
+    void
     operator()(Policy&& exec, BiDirIt1 first1, BiDirIt1 last1, BiDirIt1 first2, BiDirIt1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2)
     {
-        auto mid = init(first1, last1, first2, last2, generator1, generator2, m);
-        ::std::inplace_merge(first1, mid.first, last1);
-        ::std::inplace_merge(exec, first2, mid.second, last2);
-        EXPECT_EQ_N(first1, first2, n, "wrong effect from inplace_merge without predicate");
+        if constexpr (is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt1>)
+        {
+            auto mid = init(first1, last1, first2, last2, generator1, generator2, m);
+            ::std::inplace_merge(first1, mid.first, last1);
+            ::std::inplace_merge(exec, first2, mid.second, last2);
+            EXPECT_EQ_N(first1, first2, n, "wrong effect from inplace_merge without predicate");
+        }
     }
 
-    template<typename BiDirIt, typename Generator1, typename Generator2, typename Size>
-    ::std::pair<const BiDirIt, const BiDirIt> init(BiDirIt first1, BiDirIt last1, BiDirIt first2, BiDirIt last2,
-                                                    Generator1 generator1, Generator2 generator2, Size m)
+    template <typename BiDirIt, typename Generator1, typename Generator2, typename Size>
+    ::std::pair<const BiDirIt, const BiDirIt>
+    init(BiDirIt first1, BiDirIt last1, BiDirIt first2, BiDirIt last2, Generator1 generator1, Generator2 generator2,
+         Size m)
     {
         const BiDirIt mid1 = ::std::next(first1, m);
         fill_data(first1, mid1, generator1);
@@ -61,20 +68,6 @@ struct test_one_policy
         fill_data(first2, mid2, generator1);
         fill_data(mid2, last2, generator2);
         return ::std::make_pair(mid1, mid2);
-    }
-
-    template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt1>>
-    operator()(Policy&& /* exec */, BiDirIt1 /* first1 */, BiDirIt1 /* last1 */, BiDirIt1 /* first2 */, BiDirIt1 /* last2 */, Size /* n */, Size /* m */,
-               Generator1 /* generator1 */, Generator2 /* generator2 */)
-    {
-    }
-    template <typename Policy, typename BiDirIt1, typename Size, typename Generator1, typename Generator2,
-              typename Compare>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt1>>
-    operator()(Policy&& /* exec */, BiDirIt1 /* first1 */, BiDirIt1 /* last1 */, BiDirIt1 /* first2 */, BiDirIt1 /* last2 */, Size /* n */, Size /* m */,
-               Generator1 /* generator1 */, Generator2 /* generator2 */, Compare /* comp */)
-    {
     }
 };
 
