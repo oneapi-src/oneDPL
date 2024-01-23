@@ -271,7 +271,8 @@ struct transform_reduce
     {
         if constexpr (__use_nonseq_impl)
             return nonseq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
-        return seq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
+        else
+            return seq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
     }
 
     template <typename _Size>
@@ -287,7 +288,8 @@ struct transform_reduce
             _Size __last_wg_contrib = ::std::min(__last_wg_remainder, static_cast<_Size>(__work_group_size));
             return __full_group_contrib + __last_wg_contrib;
         }
-        return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
+        else
+            return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
     }
 };
 
