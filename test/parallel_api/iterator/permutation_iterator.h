@@ -50,31 +50,32 @@ struct perm_it_index_tags
     struct callable_object { };
 };
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // Implementation of create_new_policy for all policies (host + hetero)
+template <typename Policy>
+using __is_able_to_create_new_policy =
 #if TEST_DPCPP_BACKEND_PRESENT
-template <typename _NewKernelName, typename Policy,
-          ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>>, int> = 0>
-decltype(auto)
+    oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>;
+#else
+    ::std::false_type;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+#if TEST_DPCPP_BACKEND_PRESENT
+template <typename _NewKernelName, typename Policy, ::std::enable_if_t<__is_able_to_create_new_policy<Policy>::value, int> = 0>
+auto
 create_new_policy(Policy&& policy)
 {
     return TestUtils::make_new_policy<_NewKernelName>(::std::forward<Policy>(policy));
 }
-template <typename _NewKernelName, typename Policy,
-          ::std::enable_if_t<!oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>>, int> = 0>
-decltype(auto)
-create_new_policy(Policy&& policy)
-{
-    return ::std::forward<Policy>(policy);
-}
-#else
-template <typename _NewKernelName, typename Policy>
-decltype(auto)
-create_new_policy(Policy&& policy)
-{
-    return ::std::forward<Policy>(policy);
-}
 #endif // TEST_DPCPP_BACKEND_PRESENT
+
+template <typename _NewKernelName, typename Policy, ::std::enable_if_t<!__is_able_to_create_new_policy<Policy>::value, int> = 0>
+auto
+create_new_policy(Policy&& policy)
+{
+    return ::std::forward<Policy>(policy);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
