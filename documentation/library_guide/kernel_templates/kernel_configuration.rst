@@ -5,8 +5,10 @@ Kernel Configuration
 ``kernel_param`` Class Template
 -------------------------------
 
-Each kernel template is supplied by a ``kernel_param`` object, a generic structure for configuring a kernel.
-The supported and the most performant values depend on the kernel template itself, device capabilities, the data type, and the data size.
+``kernel_param`` is a generic structure for configuring SYCL* kernels.
+Each kernel template is invoked with a ``kernel_param`` type or object.
+Typically, a kernel template supports multiple values for the configuration parameters.
+Optimal values may depend on the invoked kernel, the data size and type(s), as well as on the used device.
 
 A synopsis of the ``kernel_param`` struct is provided below:
 
@@ -21,11 +23,11 @@ A synopsis of the ``kernel_param`` struct is provided below:
              typename KernelName = /*unspecified*/>
    struct kernel_param;
 
-   } // oneapi::dpl::experimental::kt
+   }
 
 
-Member Constants
-----------------
+Static Member Constants
+-----------------------
 
 +------------------------------------------------------+---------------------+----------------------------------------+
 | Name                                                 | Value               | Description                            |
@@ -56,7 +58,7 @@ Member Types
 |                 |                | The behavior is different whether the parameter is provided or not.              |
 |                 |                |                                                                                  |
 |                 |                | If provided, it must be a unique C++ typename that satisfies the requirements    |
-|                 |                | for SYCL* kernel names (see `SYCL 2020 Specification                             |
+|                 |                | for SYCL kernel names (see `SYCL 2020 Specification                              |
 |                 |                | <https://registry.khronos.org/SYCL/specs/                                        |
 |                 |                | sycl-2020/html/sycl-2020.html#sec:naming.kernels>`_)                             |
 |                 |                |                                                                                  |
