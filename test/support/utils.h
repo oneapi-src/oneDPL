@@ -29,6 +29,7 @@
 #include <cstring>
 #include <iostream>
 #include <iterator>
+#include <cmath>
 #include <complex>
 #include <type_traits>
 #include <memory>
