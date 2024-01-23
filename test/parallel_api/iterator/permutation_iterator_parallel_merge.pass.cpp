@@ -18,7 +18,7 @@
 #include "permutation_iterator_common.h"
 
 // dpl::merge, dpl::inplace_merge -> __parallel_merge
-DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
+DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag, KernelName)
 {
     DEFINE_TEST_PERM_IT_CONSTRUCTOR(test_merge)
 
@@ -30,10 +30,14 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 
     template <typename Policy, typename Iterator1, typename Iterator2, typename Iterator3, typename Size>
     void
-    operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Iterator3 first3, Iterator3 last3, Size n)
+    operator()(Policy&& exec_src, Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2, Iterator3 first3, Iterator3 last3, Size n)
     {
         if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
+            auto exec = create_new_policy<KernelName>(::std::forward<Policy>(exec_src));
+            auto exec1 = create_new_policy<TestUtils::new_kernel_name<KernelName, 1>>(::std::forward<Policy>(exec_src));
+            auto exec2 = create_new_policy<TestUtils::new_kernel_name<KernelName, 2>>(::std::forward<Policy>(exec_src));
+
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);                                 // source data(1) for merge
             TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);                                 // source data(2) for merge
             TestDataTransfer<UDTKind::eRes,  Size> host_res (*this, ::std::distance(first3, last3));    // merge results
@@ -75,12 +79,12 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 
                             // Copy data back
                             std::vector<TestValueType> srcData2(testing_n2);
-                            dpl::copy(exec, permItBegin2, permItEnd2, srcData2.begin());
-                            wait_and_throw(exec);
+                            dpl::copy(exec1, permItBegin2, permItEnd2, srcData2.begin());
+                            wait_and_throw(exec1);
 
                             std::vector<TestValueType> mergedDataResult(resultSize);
-                            dpl::copy(exec, first3, resultEnd, mergedDataResult.begin());
-                            wait_and_throw(exec);
+                            dpl::copy(exec2, first3, resultEnd, mergedDataResult.begin());
+                            wait_and_throw(exec2);
 
                             // Check results
                             std::vector<TestValueType> mergedDataExpected(testing_n1 + testing_n2);
@@ -94,7 +98,7 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
     }
 };
 
-template <typename ValueType, typename PermItIndexTag>
+template <typename ValueType, typename PermItIndexTag, typename KernelName>
 void
 run_algo_tests()
 {
@@ -103,13 +107,15 @@ run_algo_tests()
 #if TEST_DPCPP_BACKEND_PRESENT
     // Run tests on <USM::shared, USM::device, sycl::buffer> + <all_hetero_policies>
     // dpl::merge, dpl::inplace_merge -> __parallel_merge
-    test3buffers<sycl::usm::alloc::shared, ValueType, test_merge<ValueType, PermItIndexTag>>(2);
-    test3buffers<sycl::usm::alloc::device, ValueType, test_merge<ValueType, PermItIndexTag>>(2);
+    test3buffers<sycl::usm::alloc::shared, ValueType, test_merge<ValueType, PermItIndexTag, new_kernel_name<KernelName, 10>>,
+                                                      test_merge<ValueType, PermItIndexTag, new_kernel_name<KernelName, 15>>>(2);
+    test3buffers<sycl::usm::alloc::device, ValueType, test_merge<ValueType, PermItIndexTag, new_kernel_name<KernelName, 20>>,
+                                                      test_merge<ValueType, PermItIndexTag, new_kernel_name<KernelName, 25>>>(2);
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     // Run tests on <std::vector::iterator> + <all_host_policies>
     // dpl::merge, dpl::inplace_merge -> __parallel_merge
-    test_algo_three_sequences<ValueType, test_merge<ValueType, PermItIndexTag>>(2, kZeroOffset, kZeroOffset, kZeroOffset);
+    test_algo_three_sequences<ValueType, test_merge<ValueType, PermItIndexTag, KernelName>>(2, kZeroOffset, kZeroOffset, kZeroOffset);
 }
 
 int
@@ -118,13 +124,13 @@ main()
     using ValueType = ::std::uint32_t;
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    run_algo_tests<ValueType, perm_it_index_tags::usm_shared>();
+    run_algo_tests<ValueType, perm_it_index_tags::usm_shared,         class KernelName1>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    run_algo_tests<ValueType, perm_it_index_tags::counting>();
-    run_algo_tests<ValueType, perm_it_index_tags::host>();
-    run_algo_tests<ValueType, perm_it_index_tags::transform_iterator>();
-    run_algo_tests<ValueType, perm_it_index_tags::callable_object>();
+    run_algo_tests<ValueType, perm_it_index_tags::counting,           class KernelName2>();
+    run_algo_tests<ValueType, perm_it_index_tags::host,               class KernelName3>();
+    run_algo_tests<ValueType, perm_it_index_tags::transform_iterator, class KernelName4>();
+    run_algo_tests<ValueType, perm_it_index_tags::callable_object,    class KernelName5>();
 
     return TestUtils::done();
 }
