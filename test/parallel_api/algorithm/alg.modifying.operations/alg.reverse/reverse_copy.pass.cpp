@@ -55,26 +55,23 @@ template<typename T1, typename T2>
 struct test_one_policy
 {
     template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, Iterator1>>
+    void
     operator()(ExecutionPolicy&& exec, Iterator1 data_b, Iterator1 data_e, Iterator2 actual_b, Iterator2 actual_e)
     {
-        using namespace std;
-        fill(actual_b, actual_e, T2(-123));
-        Iterator2 actual_return = reverse_copy(exec, data_b, data_e, actual_b);
+        if constexpr (is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, Iterator1>)
+        {
+            using namespace std;
+            fill(actual_b, actual_e, T2(-123));
+            Iterator2 actual_return = reverse_copy(exec, data_b, data_e, actual_b);
 
-        EXPECT_TRUE(actual_return == actual_e, "wrong result of reverse_copy");
+            EXPECT_TRUE(actual_return == actual_e, "wrong result of reverse_copy");
 
-        const auto n = ::std::distance(data_b, data_e);
-        Sequence<T2> res(n);
-        ::std::copy(::std::reverse_iterator<Iterator1>(data_e), ::std::reverse_iterator<Iterator1>(data_b), res.begin());
+            const auto n = ::std::distance(data_b, data_e);
+            Sequence<T2> res(n);
+            ::std::copy(::std::reverse_iterator<Iterator1>(data_e), ::std::reverse_iterator<Iterator1>(data_b), res.begin());
 
-        EXPECT_EQ_N(res.begin(), actual_b, n, "wrong effect of reverse_copy");
-    }
-
-    template <typename ExecutionPolicy, typename Iterator1, typename Iterator2>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, Iterator1>>
-    operator()(ExecutionPolicy&& /* exec */, Iterator1 /* data_b */, Iterator1 /* data_e */, Iterator2 /* actual_b */, Iterator2 /* actual_e*/)
-    {
+            EXPECT_EQ_N(res.begin(), actual_b, n, "wrong effect of reverse_copy");
+        }
     }
 };
 
