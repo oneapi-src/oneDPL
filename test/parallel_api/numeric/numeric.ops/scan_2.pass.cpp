@@ -190,38 +190,29 @@ DEFINE_TEST_1(test_scan_non_inplace, TestingAlgoritm)
         EXPECT_EQ_N(expected.cbegin(), host_vals.get(), n, TestingAlgoritm().getMsg(false));
     }
 
-    // specialization for host execution policies
     template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
-    ::std::enable_if_t<
-        !oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
-            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
+    void
     operator()(Policy&& exec,
                Iterator1 keys_first, Iterator1 keys_last,
                Iterator2 vals_first, Iterator2 vals_last,
                Size n)
     {
-        using ValT = typename ::std::iterator_traits<Iterator2>::value_type;
+        if constexpr (!oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
+                      is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
+        {
+            using ValT = typename ::std::iterator_traits<Iterator2>::value_type;
 
-        TestingAlgoritm testingAlgo;
+            TestingAlgoritm testingAlgo;
 
-        // Initialize source data in the buffer [keys_first, keys_last)
-        initialize_data(keys_first, n);
+            // Initialize source data in the buffer [keys_first, keys_last)
+            initialize_data(keys_first, n);
 
-        testingAlgo.call_onedpl(exec, keys_first, keys_last, vals_first);
+            testingAlgo.call_onedpl(exec, keys_first, keys_last, vals_first);
 
-        std::vector<ValT> expected(n);
-        testingAlgo.call_serial(keys_first, keys_last + n, expected.data());
-        EXPECT_EQ_N(expected.cbegin(), vals_first, n, TestingAlgoritm().getMsg(false));
-    }
-
-    // specialization for non-random_access iterators
-    template <typename Policy, typename Iterator1, typename Iterator2, typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
-    operator()(Policy&& exec,
-               Iterator1 keys_first, Iterator1 keys_last,
-               Iterator2 vals_first, Iterator2 vals_last,
-               Size n)
-    {
+            std::vector<ValT> expected(n);
+            testingAlgo.call_serial(keys_first, keys_last + n, expected.data());
+            EXPECT_EQ_N(expected.cbegin(), vals_first, n, TestingAlgoritm().getMsg(false));
+        }
     }
 };
 
@@ -252,42 +243,36 @@ DEFINE_TEST_1(test_scan_inplace, TestingAlgoritm)
         EXPECT_EQ_N(expected.cbegin(), keys_first, n, testingAlgo.getMsg(true));
     }
 
-    // specialization for hetero policy
     template <typename Policy, typename Iterator1, typename Size>
-    ::std::enable_if_t<
-        oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
-            is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
+    void
     operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last,
                Size n)
     {
-        using KeyT = typename ::std::iterator_traits<Iterator1>::value_type;
+        if constexpr (oneapi::dpl::__internal::__is_hetero_execution_policy_v<::std::decay_t<Policy>> &&
+                      is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
+        {
+            using KeyT = typename ::std::iterator_traits<Iterator1>::value_type;
 
-        TestingAlgoritm testingAlgo;
+            TestingAlgoritm testingAlgo;
 
-        TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
+            TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);
 
-        // Initialize source data in the buffer [keys_first, keys_last)
-        initialize_data(host_keys.get(), n);
-        const std::vector<KeyT> source_host_keys_state(host_keys.get(), host_keys.get() + n);
+            // Initialize source data in the buffer [keys_first, keys_last)
+            initialize_data(host_keys.get(), n);
+            const std::vector<KeyT> source_host_keys_state(host_keys.get(), host_keys.get() + n);
 
-        // Copy data from the buffer [keys_first, keys_last) to a device.
-        update_data(host_keys);
+            // Copy data from the buffer [keys_first, keys_last) to a device.
+            update_data(host_keys);
 
-        // Now we are ready to call tested algorithm
-        testingAlgo.call_onedpl(make_new_policy<new_kernel_name<Policy, 0>>(exec), keys_first, keys_last, keys_first);
+            // Now we are ready to call tested algorithm
+            testingAlgo.call_onedpl(make_new_policy<new_kernel_name<Policy, 0>>(exec), keys_first, keys_last, keys_first);
 
-        retrieve_data(host_keys);
+            retrieve_data(host_keys);
 
-        std::vector<KeyT> expected(n);
-        testingAlgo.call_serial(source_host_keys_state.cbegin(), source_host_keys_state.cend(), expected.data());
-        EXPECT_EQ_N(expected.cbegin(), host_keys.get(), n, testingAlgo.getMsg(true));
-    }
-
-    // specialization for non-random_access iterators
-    template <typename Policy, typename Iterator1, typename Size>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
-    operator()(Policy&& exec, Iterator1 keys_first, Iterator1 keys_last, Size n)
-    {
+            std::vector<KeyT> expected(n);
+            testingAlgo.call_serial(source_host_keys_state.cbegin(), source_host_keys_state.cend(), expected.data());
+            EXPECT_EQ_N(expected.cbegin(), host_keys.get(), n, testingAlgo.getMsg(true));
+        }
     }
 };
 
