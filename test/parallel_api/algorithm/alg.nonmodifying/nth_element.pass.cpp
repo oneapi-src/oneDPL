@@ -76,34 +76,29 @@ struct test_without_compare
 {
     // nth_element works only with random access iterators
     template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1> &&
-                           can_use_default_less_operator_v<Type>>
+    void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator1 first2, Iterator1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2)
     {
-        const Iterator1 mid1 = ::std::next(first1, m);
-        const Iterator1 mid2 = ::std::next(first2, m);
-
-        fill_data(first1, mid1, generator1);
-        fill_data(mid1, last1, generator2);
-        fill_data(first2, mid2, generator1);
-        fill_data(mid2, last2, generator2);
-        ::std::nth_element(first1, mid1, last1);
-        ::std::nth_element(::std::forward<Policy>(exec), first2, mid2, last2);
-        if (m > 0 && m < n)
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1> &&
+            can_use_default_less_operator_v<Type>)
         {
-            EXPECT_TRUE(is_equal(*mid1, *mid2), "wrong result from nth_element without predicate");
-        }
-        EXPECT_TRUE(::std::find_first_of(first2, mid2, mid2, last2, [](Type& x, Type& y) { return y < x; }) == mid2,
-                    "wrong effect from nth_element without predicate");
-    }
+            const Iterator1 mid1 = ::std::next(first1, m);
+            const Iterator1 mid2 = ::std::next(first2, m);
 
-    template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1> ||
-                           !can_use_default_less_operator_v<Type>>
-    operator()(Policy&& /* exec */, Iterator1 /* first1 */, Iterator1 /* last1 */, Iterator1 /* first2 */, Iterator1 /* last2 */, Size /* n */, Size /* m */,
-               Generator1 /* generator1 */, Generator2 /* generator2 */)
-    {
+            fill_data(first1, mid1, generator1);
+            fill_data(mid1, last1, generator2);
+            fill_data(first2, mid2, generator1);
+            fill_data(mid2, last2, generator2);
+            ::std::nth_element(first1, mid1, last1);
+            ::std::nth_element(::std::forward<Policy>(exec), first2, mid2, last2);
+            if (m > 0 && m < n)
+            {
+                EXPECT_TRUE(is_equal(*mid1, *mid2), "wrong result from nth_element without predicate");
+            }
+            EXPECT_TRUE(::std::find_first_of(first2, mid2, mid2, last2, [](Type& x, Type& y) { return y < x; }) == mid2,
+                        "wrong effect from nth_element without predicate");
+        }
     }
 };
 
@@ -113,33 +108,28 @@ struct test_with_compare
     // nth_element works only with random access iterators
     template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2,
               typename Compare>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
+    void
     operator()(Policy&& exec, Iterator1 first1, Iterator1 last1, Iterator1 first2, Iterator1 last2, Size n, Size m,
                Generator1 generator1, Generator2 generator2, Compare comp)
     {
-        const Iterator1 mid1 = ::std::next(first1, m);
-        const Iterator1 mid2 = ::std::next(first2, m);
-
-        fill_data(first1, mid1, generator1);
-        fill_data(mid1, last1, generator2);
-        fill_data(first2, mid2, generator1);
-        fill_data(mid2, last2, generator2);
-        ::std::nth_element(first1, mid1, last1, comp);
-        ::std::nth_element(::std::forward<Policy>(exec), first2, mid2, last2, comp);
-        if (m > 0 && m < n)
+        if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
-            EXPECT_TRUE(is_equal(*mid1, *mid2), "wrong result from nth_element with predicate");
-        }
-        EXPECT_TRUE(::std::find_first_of(first2, mid2, mid2, last2, [comp](Type& x, Type& y) { return comp(y, x); }) == mid2,
-                    "wrong effect from nth_element with predicate");
-    }
+            const Iterator1 mid1 = ::std::next(first1, m);
+            const Iterator1 mid2 = ::std::next(first2, m);
 
-    template <typename Policy, typename Iterator1, typename Size, typename Generator1, typename Generator2,
-              typename Compare>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>>
-    operator()(Policy&& /* exec */, Iterator1 /* first1 */, Iterator1 /* last1 */, Iterator1 /* first2 */, Iterator1 /* last2 */, Size /* n */, Size /* m */,
-               Generator1 /* generator1 */, Generator2 /* generator2 */, Compare /* comp */)
-    {
+            fill_data(first1, mid1, generator1);
+            fill_data(mid1, last1, generator2);
+            fill_data(first2, mid2, generator1);
+            fill_data(mid2, last2, generator2);
+            ::std::nth_element(first1, mid1, last1, comp);
+            ::std::nth_element(::std::forward<Policy>(exec), first2, mid2, last2, comp);
+            if (m > 0 && m < n)
+            {
+                EXPECT_TRUE(is_equal(*mid1, *mid2), "wrong result from nth_element with predicate");
+            }
+            EXPECT_TRUE(::std::find_first_of(first2, mid2, mid2, last2, [comp](Type& x, Type& y) { return comp(y, x); }) == mid2,
+                        "wrong effect from nth_element with predicate");
+        }
     }
 };
 
