@@ -71,21 +71,17 @@ template<typename T>
 struct test_partition
 {
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>>
+    void
     operator()(Policy&& exec, BiDirIt first, BiDirIt last, BiDirIt /* exp_first */, BiDirIt /* exp_last */, Size /* n */,
                UnaryOp unary_op, Generator generator)
     {
-        fill_data(first, last, generator);
-        BiDirIt actual_ret = ::std::partition(exec, first, last, unary_op);
-        EXPECT_TRUE(::std::all_of(first, actual_ret, unary_op) && !::std::any_of(actual_ret, last, unary_op),
-                    "wrong effect from partition");
-    }
-
-    template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>>
-    operator()(Policy&& /* exec */, BiDirIt /* first */, BiDirIt /* last */, BiDirIt /* exp_first */, BiDirIt /* exp_last */, Size /* n */,
-               UnaryOp /* unary_op */, Generator /* generator */)
-    {
+        if constexpr (is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>)
+        {
+            fill_data(first, last, generator);
+            BiDirIt actual_ret = ::std::partition(exec, first, last, unary_op);
+            EXPECT_TRUE(::std::all_of(first, actual_ret, unary_op) && !::std::any_of(actual_ret, last, unary_op),
+                        "wrong effect from partition");
+        }
     }
 };
 
