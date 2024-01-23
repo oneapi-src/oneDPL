@@ -91,13 +91,9 @@ class zip_forward_iterator
 
     zip_forward_iterator() : __my_it_() {}
     explicit zip_forward_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
-    zip_forward_iterator(const zip_forward_iterator& __input) : __my_it_(__input.__my_it_) {}
+    zip_forward_iterator(const zip_forward_iterator& __input) = default;
     zip_forward_iterator&
-    operator=(const zip_forward_iterator& __input)
-    {
-        __my_it_ = __input.__my_it_;
-        return *this;
-    }
+    operator=(const zip_forward_iterator& __input) = default;
 
     reference operator*() const
     {
@@ -162,6 +158,9 @@ class counting_iterator
 
     counting_iterator() : __my_counter_() {}
     explicit counting_iterator(_Ip __init) : __my_counter_(__init) {}
+    counting_iterator(const counting_iterator& __input) = default;
+    counting_iterator&
+    operator=(const counting_iterator& __input) = default;
 
     reference operator*() const { return __my_counter_; }
     reference operator[](difference_type __i) const { return *(*this + __i); }
@@ -278,13 +277,9 @@ class zip_iterator
     zip_iterator() : __my_it_() {}
     explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
     explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
-    zip_iterator(const zip_iterator& __input) : __my_it_(__input.__my_it_) {}
+    zip_iterator(const zip_iterator& __input) = default;
     zip_iterator&
-    operator=(const zip_iterator& __input)
-    {
-        __my_it_ = __input.__my_it_;
-        return *this;
-    }
+    operator=(const zip_iterator& __input) = default;
 
     reference operator*() const
     {
@@ -432,9 +427,14 @@ class transform_iterator
     transform_iterator&
     operator=(const transform_iterator& __input)
     {
+        //TODO: Investigate making transform_iterator trivially_copyable. This custom copy assignment operator prevents
+        // transform_iterator, and therefore permutation_iterator from being trivially_copyable.  Not being trivially
+        // copyable makes their device_copyable trait deprecated in SYCL2020. However, defaulting this function implies
+        // an extra requirement that __my_unary_func_ implements a copy assignment operator.
         __my_it_ = __input.__my_it_;
         return *this;
     }
+
     reference operator*() const { return __my_unary_func_(*__my_it_); }
     reference operator[](difference_type __i) const { return *(*this + __i); }
     transform_iterator&
@@ -594,6 +594,9 @@ class permutation_iterator
         : my_source_it(input1), my_index(counting_iterator<difference_type>(__idx), __f)
     {
     }
+    permutation_iterator(const permutation_iterator& __input) = default;
+    permutation_iterator&
+    operator=(const permutation_iterator& __input) = default;
 
   private:
     template <typename _T = _Permutation, ::std::enable_if_t<__internal::__is_functor<_T>, int> = 0>
