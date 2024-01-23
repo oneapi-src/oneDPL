@@ -51,9 +51,14 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag, KernelName)
     {
         if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
-            auto exec = create_new_policy<TestUtils::new_kernel_name<KernelName, 0>>(::std::forward<Policy>(exec_src));
+            auto exec = create_new_policy<KernelName>(::std::forward<Policy>(exec_src));
+#if TEST_DPCPP_BACKEND_PRESENT
             auto exec1 = create_new_policy<TestUtils::new_kernel_name<KernelName, 1>>(::std::forward<Policy>(exec_src));
             auto exec2 = create_new_policy<TestUtils::new_kernel_name<KernelName, 2>>(::std::forward<Policy>(exec_src));
+#else
+            auto exec1 = exec_src;
+            auto exec2 = exec_src;
+#endif // TEST_DPCPP_BACKEND_PRESENT
 
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for transform
             TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);     // result data of transform
