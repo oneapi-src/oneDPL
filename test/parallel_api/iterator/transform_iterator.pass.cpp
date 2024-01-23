@@ -162,12 +162,32 @@ void test_multi_transform_copy(size_t buffer_size)
     TestUtils::invoke_on_all_hetero_policies<2>()(test, tr3_sycl_source_begin, tr3_sycl_source_end, sycl_result_begin, buffer_size, identity + 3);
 }
 
+void
+test_copyable()
+{
+    //transform_iterator is not trivially_copyable, as it defines a copy assignment operator which does not copy
+    // its unary functor. This makes transform_iterator's device_copyable trait deprecated with sycl 2020.
+
+    EXPECT_TRUE(check_device_copyable_w_deprecrated_sycl2020<oneapi::dpl::counting_iterator<int>>,
+                "counting_iterator is not device copyable");
+
+    auto trans_count = ::dpl::make_transform_iterator(oneapi::dpl::counting_iterator<int>(0), [](auto i) { return i; });
+    EXPECT_TRUE(check_device_copyable_w_deprecrated_sycl2020<decltype(trans_count)>,
+                "transform_iterator(counting_iterator) is not device copyable");
+
+    std::vector<int> array(10, 0);
+    auto trans_array = ::dpl::make_transform_iterator(array.begin(), [](auto i) { return i; });
+    EXPECT_TRUE(check_device_copyable_w_deprecrated_sycl2020<decltype(trans_array)>,
+                "transform_iterator(host_iterator) is not device copyable");
+}
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 std::int32_t
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
+    test_copyable();
+
     size_t max_n = 10000;
     for (size_t n = 1; n <= max_n; n = n <= 16 ? n + 1 : size_t(3.1415 * n))
     {
