@@ -71,25 +71,21 @@ template <typename T>
 struct test_stable_partition
 {
     template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    ::std::enable_if_t<is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>>
+    void
     operator()(Policy&& exec, BiDirIt first, BiDirIt last, BiDirIt exp_first, BiDirIt exp_last, Size /* n */,
                UnaryOp unary_op, Generator generator)
     {
-        fill_data(exp_first, exp_last, generator);
-        BiDirIt exp_ret = ::std::stable_partition(exp_first, exp_last, unary_op);
-        fill_data(first, last, generator);
-        BiDirIt actual_ret = ::std::stable_partition(exec, first, last, unary_op);
+        if constexpr (is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>)
+        {
+            fill_data(exp_first, exp_last, generator);
+            BiDirIt exp_ret = ::std::stable_partition(exp_first, exp_last, unary_op);
+            fill_data(first, last, generator);
+            BiDirIt actual_ret = ::std::stable_partition(exec, first, last, unary_op);
 
-        EXPECT_TRUE(::std::distance(first, actual_ret) == ::std::distance(exp_first, exp_ret),
-                    "wrong result from stable_partition");
-        EXPECT_TRUE((is_equal<BiDirIt>(exp_first, exp_last, first)), "wrong effect from stable_partition");
-    }
-
-    template <typename Policy, typename BiDirIt, typename Size, typename UnaryOp, typename Generator>
-    ::std::enable_if_t<!is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, BiDirIt>>
-    operator()(Policy&& /* exec */, BiDirIt /* first */, BiDirIt /* last */, BiDirIt /* exp_first */, BiDirIt /* exp_last */, Size /* n */,
-               UnaryOp /* unary_op */, Generator /* generator */)
-    {
+            EXPECT_TRUE(::std::distance(first, actual_ret) == ::std::distance(exp_first, exp_ret),
+                        "wrong result from stable_partition");
+            EXPECT_TRUE((is_equal<BiDirIt>(exp_first, exp_last, first)), "wrong effect from stable_partition");
+        }
     }
 };
 
