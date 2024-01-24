@@ -258,7 +258,12 @@ struct is_sycl_iterator<oneapi::dpl::__internal::sycl_iterator<Mode, Types...>> 
 };
 
 template <typename Iter>
-inline constexpr bool is_sycl_iterator_v = is_sycl_iterator<Iter>::value;
+struct is_hetero_legacy_trait<Iter, ::std::enable_if_t<Iter::is_hetero::value>> : ::std::true_type
+{
+};
+
+template <typename Iter>
+inline constexpr bool is_sycl_iterator_v = is_sycl_iterator<Iter>::value || is_hetero_legacy_trait<Iter>::value;
 
 //A trait for checking if it needs to create a temporary SYCL buffer or not
 
