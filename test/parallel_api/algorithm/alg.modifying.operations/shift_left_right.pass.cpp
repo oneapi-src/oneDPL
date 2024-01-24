@@ -155,44 +155,38 @@ struct shift_left_algo
 struct shift_right_algo
 {
     template <typename Policy, typename It>
-    ::std::enable_if_t<TestUtils::is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, It>, It>
+    It
     operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
     {
-        return std::shift_right(::std::forward<Policy>(exec), first, last, n);
-    }
-    //skip the test for non-bidirectional iterator (forward iterator, etc)
-    template <typename Policy, typename It>
-    ::std::enable_if_t<!TestUtils::is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, It>, It>
-    operator()(Policy&& exec, It first, It last, typename ::std::iterator_traits<It>::difference_type n)
-    {
+        if constexpr (TestUtils::is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, It>)
+        {
+            return std::shift_right(::std::forward<Policy>(exec), first, last, n);
+        }
+
         return first;
     }
 
     template <typename It, typename ItExp>
-    ::std::enable_if_t<TestUtils::is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, It>>
+    void
     check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
         typename ::std::iterator_traits<It>::difference_type n)
     {
-        //if (n > 0 && n < m), returns first + n. Otherwise, if n  > 0, returns last.
-        //Otherwise, returns first.
-        It __last = ::std::next(first, m);
-        auto res_exp = (n > 0 && n < m ? ::std::next(first, n) : (n > 0 ? __last : first));
-
-        EXPECT_TRUE(res_exp == res, "wrong return value of shift_right");
-
-        if (res != first && res != __last)
+        if constexpr (TestUtils::is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, It>)
         {
-            EXPECT_EQ_N(::std::next(first, n), first_exp, m - n, "wrong effect of shift_right");
-            //restore unput data
-            std::copy_n(first_exp, m, first);
+            //if (n > 0 && n < m), returns first + n. Otherwise, if n  > 0, returns last.
+            //Otherwise, returns first.
+            It __last = ::std::next(first, m);
+            auto res_exp = (n > 0 && n < m ? ::std::next(first, n) : (n > 0 ? __last : first));
+
+            EXPECT_TRUE(res_exp == res, "wrong return value of shift_right");
+
+            if (res != first && res != __last)
+            {
+                EXPECT_EQ_N(::std::next(first, n), first_exp, m - n, "wrong effect of shift_right");
+                //restore unput data
+                std::copy_n(first_exp, m, first);
+            }
         }
-    }
-    //skip the check for non-bidirectional iterator (forward iterator, etc)
-    template <typename It, typename ItExp>
-    ::std::enable_if_t<!TestUtils::is_base_of_iterator_category_v<::std::bidirectional_iterator_tag, It>>
-    check(It res, It first, typename ::std::iterator_traits<It>::difference_type m, ItExp first_exp,
-        typename ::std::iterator_traits<It>::difference_type n)
-    {
     }
 };
 
