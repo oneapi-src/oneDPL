@@ -410,11 +410,11 @@ class transform_iterator
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
     transform_iterator() = default;
-    explicit transform_iterator(_Iter __it)
+    transform_iterator(_Iter __it)
         : __my_it_(__it)
     {
     }
-    explicit transform_iterator(_Iter __it, _UnaryFunc __unary_func)
+    transform_iterator(_Iter __it, _UnaryFunc __unary_func)
         : __my_it_(__it), __my_unary_func_(__unary_func)
     {
     }
@@ -461,12 +461,12 @@ class transform_iterator
     transform_iterator
     operator+(difference_type __forward) const
     {
-        return transform_iterator{__my_it_ + __forward, __my_unary_func_};
+        return {__my_it_ + __forward, __my_unary_func_};
     }
     transform_iterator
     operator-(difference_type __backward) const
     {
-        return transform_iterator{__my_it_ - __backward, __my_unary_func_};
+        return {__my_it_ - __backward, __my_unary_func_};
     }
     transform_iterator&
     operator+=(difference_type __forward)
@@ -483,7 +483,7 @@ class transform_iterator
     friend transform_iterator
     operator+(difference_type __forward, const transform_iterator& __it)
     {
-        return transform_iterator{__it + __forward};
+        return __it + __forward;
     }
     difference_type
     operator-(const transform_iterator& __it) const
