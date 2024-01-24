@@ -13,9 +13,6 @@
 #include <iostream>
 #include "oneapi/dpl/dynamic_selection"
 #include "support/test_dynamic_selection_utils.h"
-#if TEST_DYNAMIC_SELECTION_AVAILABLE
-#    include "support/sycl_sanity.h"
-#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 
 int
 main()
@@ -37,7 +34,7 @@ main()
         constexpr bool call_select_before_submit = true;
 
         auto actual = test_initialization<policy_t, sycl::queue>(u);
-     
+
         actual = test_select<policy_t, decltype(u), decltype(f)&, false>(u, f);
 
         actual = test_submit_and_wait_on_event<just_call_submit, policy_t>(u, f);
