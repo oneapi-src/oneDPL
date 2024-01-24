@@ -89,11 +89,8 @@ class zip_forward_iterator
     typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
     typedef ::std::forward_iterator_tag iterator_category;
 
-    zip_forward_iterator() : __my_it_() {}
+    zip_forward_iterator() = default;
     explicit zip_forward_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
-    zip_forward_iterator(const zip_forward_iterator& __input) = default;
-    zip_forward_iterator&
-    operator=(const zip_forward_iterator& __input) = default;
 
     reference operator*() const
     {
@@ -156,11 +153,8 @@ class counting_iterator
     typedef _Ip reference;
     typedef ::std::random_access_iterator_tag iterator_category;
 
-    counting_iterator() : __my_counter_() {}
+    counting_iterator() = default;
     explicit counting_iterator(_Ip __init) : __my_counter_(__init) {}
-    counting_iterator(const counting_iterator& __input) = default;
-    counting_iterator&
-    operator=(const counting_iterator& __input) = default;
 
     reference operator*() const { return __my_counter_; }
     reference operator[](difference_type __i) const { return *(*this + __i); }
@@ -274,12 +268,8 @@ class zip_iterator
     typedef ::std::random_access_iterator_tag iterator_category;
     using is_zip = ::std::true_type;
 
-    zip_iterator() : __my_it_() {}
+    zip_iterator() = default;
     explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
-    explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
-    zip_iterator(const zip_iterator& __input) = default;
-    zip_iterator&
-    operator=(const zip_iterator& __input) = default;
 
     reference operator*() const
     {
@@ -419,7 +409,12 @@ class transform_iterator
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
-    transform_iterator(_Iter __it = _Iter(), _UnaryFunc __unary_func = _UnaryFunc())
+    transform_iterator() = default;
+    transform_iterator(_Iter __it)
+        : __my_it_(__it)
+    {
+    }
+    transform_iterator(_Iter __it, _UnaryFunc __unary_func)
         : __my_it_(__it), __my_unary_func_(__unary_func)
     {
     }
@@ -594,9 +589,6 @@ class permutation_iterator
         : my_source_it(input1), my_index(counting_iterator<difference_type>(__idx), __f)
     {
     }
-    permutation_iterator(const permutation_iterator& __input) = default;
-    permutation_iterator&
-    operator=(const permutation_iterator& __input) = default;
 
   private:
     template <typename _T = _Permutation, ::std::enable_if_t<__internal::__is_functor<_T>, int> = 0>
