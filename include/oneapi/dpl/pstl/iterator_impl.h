@@ -401,7 +401,7 @@ class transform_iterator
 {
   private:
     _Iter __my_it_;
-    const _UnaryFunc __my_unary_func_;
+    _UnaryFunc __my_unary_func_;
 
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
