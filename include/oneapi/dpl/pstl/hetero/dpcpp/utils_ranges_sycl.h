@@ -518,7 +518,7 @@ struct __get_sycl_range
         auto __base_iter = __first.base();
         auto __base_buffer = __base_iter.get_buffer();
         auto res_src = __process_input_iter<_LocalAccMode>(
-            oneapi::dpl::begin(__base_buffer) + __base_iter.get_buffer_offset(), oneapi::dpl::end(__base_buffer));
+            oneapi::dpl::begin(__base_buffer) + __base_iter.get_idx(), oneapi::dpl::end(__base_buffer));
 
         //_Map is handled by recursively calling __get_sycl_range() in __get_permutation_view.
         auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
@@ -593,7 +593,7 @@ struct __get_sycl_range
         assert(__first < __last);
         using value_type = val_t<_Iter>;
 
-        const auto __offset = __first.get_buffer_offset();
+        const auto __offset = __first.get_idx();
         const auto __size = __dpl_sycl::__get_buffer_size(__first.get_buffer());
         const auto __n = ::std::min(decltype(__size)(__last - __first), __size);
         assert(__offset + __n <= __size);
