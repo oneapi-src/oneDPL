@@ -428,6 +428,9 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
     using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
+    // Commutativity of the reduction operator depends on the compilation target (see __reduce_fn below);
+    // __spirv_target_conditional postpones deciding on commutativity to the device code where the
+    // target can be correctly tested.
     using _Commutative = oneapi::dpl::__internal::__spirv_target_conditional</*_SpirvT*/ ::std::false_type,
                                                                              /*_NonSpirvT*/ ::std::true_type>;
     auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
