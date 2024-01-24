@@ -270,6 +270,7 @@ class zip_iterator
 
     zip_iterator() = default;
     explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
+    explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
 
     reference operator*() const
     {
