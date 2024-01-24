@@ -61,9 +61,13 @@ wait_and_throw(ExecutionPolicy&& exec)
 #endif // _PSTL_SYCL_TEST_USM
 }
 
+struct DefaultKernelTestName
+{
+};
+
 // DEFINE_TEST_PERM_IT should be used to declare permutation iterator tests
 #define DEFINE_TEST_PERM_IT(TestClassName, PermItIndexTag, KernelName)                                                 \
-    template <typename TestValueType, typename PermItIndexTag, typename KernelName>                                    \
+    template <typename TestValueType, typename PermItIndexTag, typename KernelName = DefaultKernelTestName>            \
     struct TestClassName : TestUtils::test_base<TestValueType>
 
 // DEFINE_TEST_PERM_IT_CONSTRUCTOR should be used to declare permutation iterator tests constructor

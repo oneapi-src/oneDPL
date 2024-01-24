@@ -119,7 +119,7 @@ run_algo_tests()
 
     // Run tests on <std::vector::iterator> + <all_host_policies>
     // dpl::transform -> __parallel_for (only for random_access_iterator)
-    test_algo_two_sequences<ValueType, test_transform<ValueType, PermItIndexTag, KernelName>>(kZeroOffset, kZeroOffset);
+    test_algo_two_sequences<ValueType, test_transform<ValueType, PermItIndexTag>>(kZeroOffset, kZeroOffset);
 }
 
 int

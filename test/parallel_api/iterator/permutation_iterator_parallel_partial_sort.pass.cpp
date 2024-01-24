@@ -93,7 +93,7 @@ run_algo_tests()
 
     // Run tests on <std::vector::iterator> + <all_host_policies>
     // dpl::partial_sort -> __parallel_partial_sort (only for random_access_iterator)
-    test_algo_one_sequence<ValueType, test_partial_sort<ValueType, PermItIndexTag, KernelName>>(kZeroOffset);
+    test_algo_one_sequence<ValueType, test_partial_sort<ValueType, PermItIndexTag>>(kZeroOffset);
 }
 
 int

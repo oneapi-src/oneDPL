@@ -85,7 +85,7 @@ run_algo_tests()
 
     // Run tests on <std::vector::iterator> + <all_host_policies>
     // dpl::is_heap, dpl::includes -> __parallel_or -> _parallel_find_or
-    test_algo_one_sequence<ValueType, test_is_heap<ValueType, PermItIndexTag, KernelName>>(kZeroOffset);
+    test_algo_one_sequence<ValueType, test_is_heap<ValueType, PermItIndexTag>>(kZeroOffset);
 }
 
 int

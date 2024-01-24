@@ -92,7 +92,7 @@ run_algo_tests()
 
     // Run tests on <std::vector::iterator> + <all_host_policies>
     // test_sort : dpl::sort -> __parallel_stable_sort (only for random_access_iterator)
-    test_algo_one_sequence<ValueType, test_sort<ValueType, PermItIndexTag, KernelName>>(kZeroOffset);
+    test_algo_one_sequence<ValueType, test_sort<ValueType, PermItIndexTag>>(kZeroOffset);
 }
 
 int

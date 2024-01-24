@@ -120,7 +120,7 @@ run_algo_tests()
 
     // Run tests on <std::vector::iterator> + <all_host_policies>
     // dpl::merge, dpl::inplace_merge -> __parallel_merge
-    test_algo_three_sequences<ValueType, test_merge<ValueType, PermItIndexTag, KernelName>>(2, kZeroOffset, kZeroOffset, kZeroOffset);
+    test_algo_three_sequences<ValueType, test_merge<ValueType, PermItIndexTag>>(2, kZeroOffset, kZeroOffset, kZeroOffset);
 }
 
 int

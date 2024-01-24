@@ -98,7 +98,7 @@ run_algo_tests()
 
     // Run tests on <std::vector::iterator> + <all_host_policies>
     // dpl::remove_if -> __parallel_transform_scan (only for random_access_iterator)
-    test_algo_one_sequence<ValueType, test_remove_if<ValueType, PermItIndexTag, KernelName>>(kZeroOffset);
+    test_algo_one_sequence<ValueType, test_remove_if<ValueType, PermItIndexTag>>(kZeroOffset);
 }
 
 int

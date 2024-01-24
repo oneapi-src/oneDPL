@@ -90,7 +90,7 @@ run_algo_tests()
 
     // Run tests on <std::vector::iterator> + <all_host_policies>
     // dpl::find, dpl::find_if, dpl::find_if_not -> __parallel_find -> _parallel_find_or
-    test_algo_one_sequence<ValueType, test_find<ValueType, PermItIndexTag, KernelName>>(kZeroOffset);
+    test_algo_one_sequence<ValueType, test_find<ValueType, PermItIndexTag>>(kZeroOffset);
 }
 
 int

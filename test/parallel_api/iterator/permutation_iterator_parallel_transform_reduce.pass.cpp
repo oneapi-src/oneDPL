@@ -83,7 +83,7 @@ run_algo_tests()
 
     // Run tests on <std::vector::iterator> + <all_host_policies>
     // dpl::reduce, dpl::transform_reduce -> __parallel_transform_reduce (only for random_access_iterator)
-    test_algo_one_sequence<ValueType, test_transform_reduce<ValueType, PermItIndexTag, KernelName>>(kZeroOffset);
+    test_algo_one_sequence<ValueType, test_transform_reduce<ValueType, PermItIndexTag>>(kZeroOffset);
 }
 
 int
