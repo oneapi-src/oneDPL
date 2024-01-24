@@ -262,8 +262,7 @@ struct transform_reduce
 
     // For non-SPIR-V targets, we check if the operator is commutative before selecting the appropriate codepath.
     // On SPIRV targets, we force the non-commutative implementation as this is currently more performant.
-    static constexpr bool __use_nonseq_impl =
-        !oneapi::dpl::__internal::__is_spirv_target_v && _Commutative::type::value;
+    static constexpr bool __use_nonseq_impl = !oneapi::dpl::__internal::__is_spirv_target_v && _Commutative::value;
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     inline void
