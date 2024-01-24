@@ -396,16 +396,49 @@ make_zip_iterator(std::tuple<_Tp...> __arg)
     return zip_iterator<_Tp...>(__arg);
 }
 
+template <typename TPredicate>
+struct NotCopyableWrapper
+{
+    TPredicate pred;
+
+    using TNotCopyableWrapper = NotCopyableWrapper<TPredicate>;
+
+    NotCopyableWrapper() = default;
+    NotCopyableWrapper(TPredicate pred) : pred(pred) {}
+    NotCopyableWrapper(const TNotCopyableWrapper&)
+    {
+        // do nothing
+    }
+    NotCopyableWrapper(TNotCopyableWrapper&&)
+    {
+        // do nothing
+    }
+
+    TNotCopyableWrapper&
+    operator=(const TNotCopyableWrapper&)
+    {
+        // do nothing
+        return *this;
+    }
+
+    TNotCopyableWrapper&
+    operator=(TNotCopyableWrapper&&)
+    {
+        // do nothing
+        return *this;
+    }
+};
+
 template <typename _Iter, typename _UnaryFunc>
 class transform_iterator
 {
   private:
     _Iter __my_it_;
-    _UnaryFunc __my_unary_func_;
+    NotCopyableWrapper<_UnaryFunc> __my_unary_func_not_copiable; // __my_unary_func_ -> __my_unary_func_not_copiable
 
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
-    typedef decltype(__my_unary_func_(::std::declval<typename ::std::iterator_traits<_Iter>::reference>())) reference;
+    typedef decltype(__my_unary_func_not_copiable.pred(::std::declval<typename ::std::iterator_traits<_Iter>::reference>())) reference;
     typedef ::std::remove_reference_t<reference> value_type;
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
@@ -416,11 +449,11 @@ class transform_iterator
     {
     }
     transform_iterator(_Iter __it, _UnaryFunc __unary_func)
-        : __my_it_(__it), __my_unary_func_(__unary_func)
+        : __my_it_(__it), __my_unary_func_not_copiable(__unary_func)
     {
     }
 
-    reference operator*() const { return __my_unary_func_(*__my_it_); }
+    reference operator*() const { return __my_unary_func_not_copiable.pred(*__my_it_); }
     reference operator[](difference_type __i) const { return *(*this + __i); }
     transform_iterator&
     operator++()
@@ -451,12 +484,12 @@ class transform_iterator
     transform_iterator
     operator+(difference_type __forward) const
     {
-        return {__my_it_ + __forward, __my_unary_func_};
+        return {__my_it_ + __forward, __my_unary_func_not_copiable.pred};
     }
     transform_iterator
     operator-(difference_type __backward) const
     {
-        return {__my_it_ - __backward, __my_unary_func_};
+        return {__my_it_ - __backward, __my_unary_func_not_copiable.pred};
     }
     transform_iterator&
     operator+=(difference_type __forward)
@@ -519,7 +552,7 @@ class transform_iterator
     _UnaryFunc
     functor() const
     {
-        return __my_unary_func_;
+        return __my_unary_func_not_copiable.pred;
     }
 };
 
