@@ -430,7 +430,6 @@ class transform_iterator
         __my_it_ = __input.__my_it_;
         return *this;
     }
-
     reference operator*() const { return __my_unary_func_(*__my_it_); }
     reference operator[](difference_type __i) const { return *(*this + __i); }
     transform_iterator&
