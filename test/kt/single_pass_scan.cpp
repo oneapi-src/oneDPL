@@ -42,7 +42,8 @@ generate_scan_data(T* input, std::size_t size, std::uint32_t seed)
     std::default_random_engine gen{seed};
     if constexpr (std::is_integral_v<T>)
     {
-        std::uniform_int_distribution<T> dist(-1000, 1000);
+        const T start = std::is_signed_v<T> ? -1000 : 0;
+        std::uniform_int_distribution<T> dist(start, 1000);
         std::generate(input, input + size, [&] { return dist(gen); });
     }
     else
@@ -118,19 +119,20 @@ test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
     std::cout << "\t\ttest_sycl_iterators<" << TypeInfo().name<T>() << ">(" << size << ");" << std::endl;
 #endif
     std::vector<T> input(size);
+    std::vector<T> output(size);
     generate_scan_data(input.data(), size, 42);
     std::vector<T> ref(input);
     std::inclusive_scan(std::begin(ref), std::end(ref), std::begin(ref), bin_op);
     {
         sycl::buffer<T> buf(input.data(), input.size());
-        sycl::buffer<T> buf_out(input.size());
+        sycl::buffer<T> buf_out(output.data(), output.size());
         oneapi::dpl::experimental::kt::inclusive_scan(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
                                                       oneapi::dpl::begin(buf_out), bin_op, param)
             .wait();
     }
 
     std::string msg = "wrong results with oneapi::dpl::begin/end, n: " + std::to_string(size);
-    EXPECT_EQ_RANGES(ref, input, msg.c_str());
+    EXPECT_EQ_RANGES(ref, output, msg.c_str());
 }
 
 template <typename T, typename BinOp, typename KernelParam>
