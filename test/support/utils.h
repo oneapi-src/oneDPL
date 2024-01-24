@@ -614,17 +614,17 @@ struct multiply_matrix
 };
 
 template <typename F>
-struct NonConstAdapter
+struct NonConstAdapter: public F
 {
-    F my_f;
-    NonConstAdapter(const F& f) : my_f(f) {}
+    template<typename Op>
+    NonConstAdapter(const Op& f): F(f) {}
 
     template <typename... Types>
     auto
     operator()(Types&&... args) -> decltype(::std::declval<F>().
                                             operator()(::std::forward<Types>(args)...))
     {
-        return my_f(::std::forward<Types>(args)...);
+        return (*this)(::std::forward<Types>(args)...);
     }
 };
 
