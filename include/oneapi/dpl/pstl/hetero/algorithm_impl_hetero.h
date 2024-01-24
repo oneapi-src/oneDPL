@@ -435,8 +435,8 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
                                                                              /*_NonSpirvT*/ ::std::true_type>;
     auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
         using ::std::get;
-        //TODO: Develop a long-term solution to the commutativity property, or remove the non commutative implementation for SPIRV
-        //when we no longer always use sequential loads.
+        // TODO: Consider removing the non-commutative operator for SPIR-V targets when we see improved performance with the
+        // non-sequential load path in transform_reduce.
         if constexpr (oneapi::dpl::__internal::__is_spirv_target_v)
         {
             // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
