@@ -29,17 +29,25 @@ namespace dpl
 {
 namespace unseq_backend
 {
-namespace
-{
+
 #if _USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 //This optimization depends on Intel(R) oneAPI DPC++ Compiler implementation such as support of binary operators from std namespace.
 //We need to use defined(SYCL_IMPLEMENTATION_INTEL) macro as a guard.
+
+template <typename _Tp>
+inline constexpr bool __can_use_known_identity =
+#    if ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+    // When ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION is defined as non-zero, we avoid using known identity for 64-bit arithmetic data types
+    !(::std::is_arithmetic_v<_Tp> && sizeof(_Tp) == sizeof(::std::uint64_t));
+#   else
+    true;
+#   endif // ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
 
 //TODO: To change __has_known_identity implementation as soon as the Intel(R) oneAPI DPC++ Compiler implementation issues related to
 //std::multiplies, std::bit_or, std::bit_and and std::bit_xor operations will be fixed.
 //std::logical_and and std::logical_or are not supported in Intel(R) oneAPI DPC++ Compiler to be used in sycl::inclusive_scan_over_group and sycl::reduce_over_group
 template <typename _BinaryOp, typename _Tp>
-using __has_known_identity_src =
+using __has_known_identity = ::std::conditional_t<__can_use_known_identity,
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::disjunction<
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
@@ -51,41 +59,23 @@ using __has_known_identity_src =
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<_Tp>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
-                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>;
+                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>,
 #    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>;
+                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>,
 #    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
+    ::std::false_type>;
 
 #else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 
 template <typename _BinaryOp, typename _Tp>
-using __has_known_identity_src = std::false_type;
+using __has_known_identity = std::false_type;
 
 #endif //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
-
-template <typename _Tp>
-using __able_to_use_known_identity_src =
-#if ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
-    // disable for arithmetic 64-bit data types
-    typename ::std::negation<typename ::std::conjunction<
-        typename ::std::is_arithmetic<_Tp>::type,
-        typename ::std::bool_constant<sizeof(_Tp) == sizeof(::std::uint64_t)>::type>::type>::type;
-#else
-    ::std::true_type;
-#endif // ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
-
-} // namespace
-
-// If _ONEDPL_ICPX_AVOID_KNOWN_IDENTITY_FOR_FOR_64BIT_DATA_TYPES is defined,
-// we avoid using known identity for 64-bit arithmetic data types
-template <typename _BinaryOp, typename _Tp>
-using __has_known_identity = typename ::std::conjunction<typename __able_to_use_known_identity_src<_Tp>::type,
-                                                         typename __has_known_identity_src<_BinaryOp, _Tp>::type>;
 
 template <typename _BinaryOp, typename _Tp>
 struct __known_identity_for_plus
