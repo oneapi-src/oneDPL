@@ -117,7 +117,7 @@ class auto_tune_policy
         void
         add_new_timing(resource_with_index_t r, timing_t t)
         {
-            std::unique_lock<std::mutex> l(m_);
+            std::lock_guard<std::mutex> l(m_);
             auto index = r.index_;
             timing_t new_value = t;
             if (time_by_index_.count(index) == 0)
@@ -217,7 +217,7 @@ class auto_tune_policy
         static_assert(sizeof...(KeyArgs) == sizeof...(Args));
         if (state_)
         {
-            std::unique_lock<std::mutex> l(state_->m_);
+            std::lock_guard<std::mutex> l(state_->m_);
             auto k = make_task_key(std::forward<Function>(f), std::forward<Args>(args)...);
             auto t = state_->tuner_by_key_[k];
             auto index = t->get_resource_to_profile();
