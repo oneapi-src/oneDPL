@@ -13,9 +13,6 @@
 #include <iostream>
 #include "oneapi/dpl/dynamic_selection"
 #include "support/test_dynamic_selection_utils.h"
-#if TEST_DYNAMIC_SELECTION_AVAILABLE
-#    include "support/sycl_sanity.h"
-#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 
 int
 main()

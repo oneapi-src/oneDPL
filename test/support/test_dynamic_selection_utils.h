@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace TestUtils
+/*namespace TestUtils
 {
   template <sycl::usm::alloc alloc_type>
   constexpr ::std::size_t
@@ -27,7 +27,7 @@ namespace TestUtils
 
   template <typename Op, ::std::size_t CallNumber>
   struct unique_kernel_name;
-}
+}*/
 
 static inline void
 build_universe(std::vector<sycl::queue> &u) {
