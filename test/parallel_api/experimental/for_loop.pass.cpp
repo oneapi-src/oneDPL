@@ -230,37 +230,31 @@ struct test_for_loop_impl
 };
 
 template <typename Policy, typename Iterator, typename Size, typename S>
-::std::enable_if_t<
-    !::std::is_same_v<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>>
+void
 test_body_for_loop_strided_neg(Policy&& exec, Iterator first, Iterator /* last */, Iterator expected_first,
                                Iterator /* expected_last */, Size n, S loop_stride)
 {
-    assert(loop_stride < 0);
+    if constexpr (!::std::is_same_v<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>)
+    {
+        assert(loop_stride < 0);
 
-    using Ssize = ::std::make_signed_t<Size>;
+        using Ssize = ::std::make_signed_t<Size>;
 
-    // Test negative stride value with non-forward iterators on range (first - 1, first)
-    auto new_first = first;
-    ::std::advance(new_first, ::std::max(Ssize(0), Ssize(n) - 1));
+        // Test negative stride value with non-forward iterators on range (first - 1, first)
+        auto new_first = first;
+        ::std::advance(new_first, ::std::max(Ssize(0), Ssize(n) - 1));
 
-    auto new_last = first;
+        auto new_last = first;
 
-    auto new_expected_first = expected_first;
-    ::std::advance(new_expected_first, ::std::max(Ssize(0), Ssize(n) - 1));
+        auto new_expected_first = expected_first;
+        ::std::advance(new_expected_first, ::std::max(Ssize(0), Ssize(n) - 1));
 
-    auto new_expected_last = expected_first;
+        auto new_expected_last = expected_first;
 
-    test_body_for_loop_strided(::std::forward<Policy>(exec), new_first, new_last, new_expected_first, new_expected_last,
-                               n > 0 ? n - 1 : 0, loop_stride);
-}
+        test_body_for_loop_strided(::std::forward<Policy>(exec), new_first, new_last, new_expected_first, new_expected_last,
+                                   n > 0 ? n - 1 : 0, loop_stride);
 
-template <typename Policy, typename Iterator, typename Size, typename S>
-::std::enable_if_t<
-    ::std::is_same_v<typename ::std::iterator_traits<Iterator>::iterator_category, ::std::forward_iterator_tag>>
-test_body_for_loop_strided_neg(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Iterator /* expected_first */,
-                               Iterator /* expected_last */, Size /* n */, S /* loop_stride */)
-{
-    // no-op for forward iterators. As it's not possible to iterate backwards.
+    }
 }
 
 struct test_for_loop_strided_impl
