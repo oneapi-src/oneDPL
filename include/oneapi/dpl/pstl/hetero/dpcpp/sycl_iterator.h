@@ -118,6 +118,12 @@ struct sycl_iterator
     {
         return buffer;
     }
+
+    Size
+    get_buffer_offset() const
+    {
+        return idx;
+    }
 };
 
 // mode converter when property::noinit present
