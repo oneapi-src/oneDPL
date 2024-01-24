@@ -14,6 +14,7 @@
 #include <chrono>
 #include <random>
 #include <algorithm>
+#include <iostream>
 
 namespace TestUtils
 {

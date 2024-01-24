@@ -1030,12 +1030,16 @@ DEFINE_TEST(test_adjacent_difference)
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 #if TEST_DPCPP_BACKEND_PRESENT
+
+using ValueType = ::std::int32_t;
+
+template<>
+struct sycl::is_device_copyable<SyclTypeWrapper<ValueType>> : std::true_type {};
+
 template <sycl::usm::alloc alloc_type>
 void
 test_usm_and_buffer()
 {
-    using ValueType = ::std::int32_t;
-
     // test1buffer
     PRINT_DEBUG("test_for_each");
     test1buffer<alloc_type, test_for_each<ValueType>>();

@@ -10,12 +10,11 @@
 #ifndef _ONEDPL_TEST_DYNAMIC_LOAD_UTILS_H
 #define _ONEDPL_TEST_DYNAMIC_LOAD_UTILS_H
 
-
 #include <thread>
 #include <chrono>
 #include <random>
 #include <algorithm>
-#include<iostream>
+#include <iostream>
 #include "support/test_config.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
 
@@ -170,8 +169,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
                         auto accessorA = bufferA.get_access<sycl::access::mode::read>(cgh);
                         auto accessorB = bufferB.get_access<sycl::access::mode::read>(cgh);
                         auto accessorResultMatrix = bufferResultMatrix.get_access<sycl::access::mode::write>(cgh);
-                        cgh.parallel_for<TestUtils::unique_kernel_name<
-                            class load2, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                        cgh.parallel_for<TestUtils::unique_kernel_name<class load2, 0>>(
                             sycl::range<1>(N), [=](sycl::item<1> item) {
                                 for (size_t j = 0; j < N; ++j)
                                 {
@@ -217,8 +215,7 @@ test_submit_and_wait_on_group(UniverseContainer u, ResourceFunction&& f)
                             auto accessorA = bufferA.get_access<sycl::access::mode::read>(cgh);
                             auto accessorB = bufferB.get_access<sycl::access::mode::read>(cgh);
                             auto accessorResultMatrix = bufferResultMatrix.get_access<sycl::access::mode::write>(cgh);
-                            cgh.parallel_for<TestUtils::unique_kernel_name<
-                                class load1, TestUtils::uniq_kernel_index<sycl::usm::alloc::shared>()>>(
+                            cgh.parallel_for<TestUtils::unique_kernel_name<class load1, 0>>(
                                 sycl::range<1>(N), [=](sycl::item<1> item) {
                                     for (size_t j = 0; j < N; ++j)
                                     {

@@ -85,7 +85,7 @@ kernel_test1(sycl::queue& deviceQueue)
             }
 
             {
-                constexpr dpl::array<int, 0> empty_array;
+                constexpr dpl::array<int, 0> empty_array = {};
                 constexpr dpl::tuple<> t = dpl::tuple_cat(empty_array);
             }
 
