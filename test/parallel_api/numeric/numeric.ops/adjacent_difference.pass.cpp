@@ -62,36 +62,35 @@ compare(const wrapper<T>& a, const wrapper<T>& b)
 }
 
 template <typename Iterator1, typename Iterator2, typename T, typename Function>
-::std::enable_if_t<!::std::is_floating_point_v<T>, bool>
+bool
 compute_and_check(Iterator1 first, Iterator1 last, Iterator2 d_first, T, Function f)
 {
-    using T2 = typename ::std::iterator_traits<Iterator2>::value_type;
-
-    if (first == last)
-        return true;
-
-    T2 temp(*first);
-    if (!compare(temp, *d_first))
-        return false;
-    Iterator1 second = ::std::next(first);
-
-    ++d_first;
-    for (; second != last; ++first, ++second, ++d_first)
+    if constexpr (!::std::is_floating_point_v<T>)
     {
-        T2 temp(f(*second, *first));
+        using T2 = typename ::std::iterator_traits<Iterator2>::value_type;
+
+        if (first == last)
+            return true;
+
+        T2 temp(*first);
         if (!compare(temp, *d_first))
             return false;
+        Iterator1 second = ::std::next(first);
+
+        ++d_first;
+        for (; second != last; ++first, ++second, ++d_first)
+        {
+            T2 temp(f(*second, *first));
+            if (!compare(temp, *d_first))
+                return false;
+        }
+    }
+    else
+    {
+        // we don't want to check equality here
+        // because we can't be sure it will be strictly equal for floating point types
     }
 
-    return true;
-}
-
-// we don't want to check equality here
-// because we can't be sure it will be strictly equal for floating point types
-template <typename Iterator1, typename Iterator2, typename T, typename Function>
-::std::enable_if_t<::std::is_floating_point_v<T>, bool>
-compute_and_check(Iterator1 /* first */, Iterator1 /* last */, Iterator2 /* d_first */, T, Function)
-{
     return true;
 }
 
