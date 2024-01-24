@@ -39,15 +39,16 @@ inline constexpr bool __can_use_known_identity =
 #    if ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
     // When ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION is defined as non-zero, we avoid using known identity for 64-bit arithmetic data types
     !(::std::is_arithmetic_v<_Tp> && sizeof(_Tp) == sizeof(::std::uint64_t));
-#   else
+#    else
     true;
-#   endif // ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+#    endif // ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
 
 //TODO: To change __has_known_identity implementation as soon as the Intel(R) oneAPI DPC++ Compiler implementation issues related to
 //std::multiplies, std::bit_or, std::bit_and and std::bit_xor operations will be fixed.
 //std::logical_and and std::logical_or are not supported in Intel(R) oneAPI DPC++ Compiler to be used in sycl::inclusive_scan_over_group and sycl::reduce_over_group
 template <typename _BinaryOp, typename _Tp>
-using __has_known_identity = ::std::conditional_t<__can_use_known_identity,
+using __has_known_identity = ::std::conditional_t<
+    __can_use_known_identity,
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::disjunction<
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
