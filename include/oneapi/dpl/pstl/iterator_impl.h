@@ -412,7 +412,7 @@ class transform_iterator
 
     transform_iterator() = default;
     transform_iterator(_Iter __it)
-        : __my_it_(__it)
+        : __my_it_(__it), __my_unary_func_()
     {
     }
     transform_iterator(_Iter __it, _UnaryFunc __unary_func)
