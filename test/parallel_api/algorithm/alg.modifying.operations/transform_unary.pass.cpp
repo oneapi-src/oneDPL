@@ -33,24 +33,49 @@ struct test_one_policy
     {
         auto orr = ::std::transform(exec, first, last, out_first, op);
         EXPECT_TRUE(out_last == orr, "transform returned wrong iterator");
-        check_and_reset(first, last, out_first, op);
+        check_and_reset(first, last, out_first);
     }
 
 private:
-    template <typename InputIterator, typename OutputIterator, typename Op>
+    template <typename InputIterator, typename OutputIterator>
     void
-    check_and_reset(InputIterator first, InputIterator last, OutputIterator out_first, Op op)
+    check_and_reset(InputIterator first, InputIterator last, OutputIterator out_first)
     {
         typename ::std::iterator_traits<OutputIterator>::difference_type k = 0;
         for (; first != last; ++first, ++out_first, ++k)
         {
             // check
-            const auto expected = op.get_expected(*first);
-            auto& actual = op.get_actual(*out_first);
+            const auto expected = get_expected(*first);
+            auto& actual = get_actual(*out_first);
             EXPECT_EQ(expected, actual, "wrong value in output sequence");
             // reset
             actual = k % 7 != 4 ? 7 * k - 5 : 0;
         }
+    }
+    template <typename InputT>
+    auto
+    get_expected(InputT val)
+    {
+        return 1 - val;
+    }
+    template <typename OutputT>
+    auto&
+    get_actual(OutputT& val)
+    {
+        return val;
+    }
+
+    template <typename T>
+    auto
+    get_expected(oneapi::dpl::__internal::tuple<T&>&& t)
+    {
+        return 1 - std::get<0>(t);
+    }
+    template <typename T>
+    auto&
+    get_actual(oneapi::dpl::__internal::tuple<T&>&& t)
+    {
+        return std::get<0>(t);
     }
 };
 
