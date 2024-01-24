@@ -70,15 +70,14 @@ using __has_known_identity_src = std::false_type;
 
 template <typename _Tp>
 using __able_to_use_known_identity_src =
-#if !defined(_ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES) ||                                       \
-    _ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES
-    ::std::true_type;
-#else
+#if ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
     // disable for arithmetic 64-bit data types
     typename ::std::negation<typename ::std::conjunction<
         typename ::std::is_arithmetic<_Tp>::type,
         typename ::std::bool_constant<sizeof(_Tp) == sizeof(::std::uint64_t)>::type>::type>::type;
-#endif // _ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES
+#else
+    ::std::true_type;
+#endif // ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
 
 } // namespace
 

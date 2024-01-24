@@ -13,14 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES 0
+#define ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION 1
 
 #include "reduce_by_segment.h"
 
 int
 main()
 {
-    static_assert(_ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES == 0);
+    static_assert(ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION == 1);
 
     using ValueType = float;
     using BinaryPredicate = ::std::equal_to<ValueType>;

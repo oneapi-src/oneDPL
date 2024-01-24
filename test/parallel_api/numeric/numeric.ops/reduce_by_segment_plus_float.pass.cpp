@@ -18,8 +18,8 @@
 int
 main()
 {
-#if defined(_ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES)
-    static_assert(_ONEDPL_ICPX_USE_KNOWN_IDENTITY_FOR_ARITHMETIC_64BIT_DATA_TYPES == 1);
+#if defined(ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
+    static_assert(false);
 #endif
 
     using ValueType = float;
