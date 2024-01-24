@@ -120,7 +120,7 @@ struct sycl_iterator
     }
 
     Size
-    get_buffer_offset() const
+    get_idx() const
     {
         return idx;
     }
