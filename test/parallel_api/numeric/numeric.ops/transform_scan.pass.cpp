@@ -45,27 +45,21 @@ struct test_transform_exclusive_scan
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator>>
+    void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator expected_first, OutputIterator /* expected_last */, Size n,
                UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
     {
-        using namespace std;
+        if constexpr (!TestUtils::is_reverse_v<InputIterator>)
+        {
+            using namespace std;
 
-        transform_exclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, init, binary_op, unary_op);
-        auto orr2 = transform_exclusive_scan(exec, first, last, out_first, init, binary_op, unary_op);
-        EXPECT_TRUE(out_last == orr2, "transform_exclusive_scan returned wrong iterator");
-        EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_exclusive_scan");
-        ::std::fill_n(out_first, n, trash);
-    }
-
-    template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
-              typename T, typename BinaryOp>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator>>
-    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, OutputIterator /* out_first */,
-               OutputIterator /* out_last */, OutputIterator /* expected_first */, OutputIterator /* expected_last */, Size /* n */,
-               UnaryOp /* unary_op */, T /* init */, BinaryOp /* binary_op */, T /* trash */)
-    {
+            transform_exclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, init, binary_op, unary_op);
+            auto orr2 = transform_exclusive_scan(exec, first, last, out_first, init, binary_op, unary_op);
+            EXPECT_TRUE(out_last == orr2, "transform_exclusive_scan returned wrong iterator");
+            EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_exclusive_scan");
+            ::std::fill_n(out_first, n, trash);
+        }
     }
 };
 
@@ -74,27 +68,21 @@ struct test_transform_inclusive_scan_init
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator>>
+    void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator expected_first, OutputIterator /* expected_last */, Size n,
                UnaryOp unary_op, T init, BinaryOp binary_op, T trash)
     {
-        using namespace std;
+        if constexpr (!TestUtils::is_reverse_v<InputIterator>)
+        {
+            using namespace std;
 
-        transform_inclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, binary_op, unary_op, init);
-        auto orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op, init);
-        EXPECT_TRUE(out_last == orr2, "transform_inclusive_scan returned wrong iterator");
-        EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_inclusive_scan");
-        ::std::fill_n(out_first, n, trash);
-    }
-
-    template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
-              typename T, typename BinaryOp>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator>>
-    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, OutputIterator /* out_first */,
-               OutputIterator /* out_last */, OutputIterator /* expected_first */, OutputIterator /* expected_last */, Size /* n */,
-               UnaryOp /* unary_op */, T /* init */, BinaryOp /* binary_op */, T /* trash */)
-    {
+            transform_inclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, binary_op, unary_op, init);
+            auto orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op, init);
+            EXPECT_TRUE(out_last == orr2, "transform_inclusive_scan returned wrong iterator");
+            EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_inclusive_scan");
+            ::std::fill_n(out_first, n, trash);
+        }
     }
 };
 
@@ -103,30 +91,24 @@ struct test_transform_inclusive_scan
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
               typename T, typename BinaryOp>
-    ::std::enable_if_t<!TestUtils::is_reverse_v<InputIterator>>
+    void
     operator()(Policy&& exec, InputIterator first, InputIterator last, OutputIterator out_first,
                OutputIterator out_last, OutputIterator expected_first, OutputIterator /* expected_last */, Size n,
                UnaryOp unary_op, T /* init */, BinaryOp binary_op, T trash)
     {
-        using namespace std;
-
-        if (n > 0)
+        if constexpr (!TestUtils::is_reverse_v<InputIterator>)
         {
-            transform_inclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, binary_op, unary_op);
-            auto orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op);
-            EXPECT_TRUE(out_last == orr2, "transform_inclusive_scan returned wrong iterator");
-            EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_inclusive_scan");
-            ::std::fill_n(out_first, n, trash);
-        }
-    }
+            using namespace std;
 
-    template <typename Policy, typename InputIterator, typename OutputIterator, typename Size, typename UnaryOp,
-              typename T, typename BinaryOp>
-    ::std::enable_if_t<TestUtils::is_reverse_v<InputIterator>>
-    operator()(Policy&& /* exec */, InputIterator /* first */, InputIterator /* last */, OutputIterator /* out_first */,
-               OutputIterator /* out_last */, OutputIterator /* expected_first */, OutputIterator /* expected_last */, Size /* n */,
-               UnaryOp /* unary_op */, T /* init */, BinaryOp /* binary_op */, T /* trash */)
-    {
+            if (n > 0)
+            {
+                transform_inclusive_scan(oneapi::dpl::execution::seq, first, last, expected_first, binary_op, unary_op);
+                auto orr2 = transform_inclusive_scan(exec, first, last, out_first, binary_op, unary_op);
+                EXPECT_TRUE(out_last == orr2, "transform_inclusive_scan returned wrong iterator");
+                EXPECT_EQ_N(expected_first, out_first, n, "wrong result from transform_inclusive_scan");
+                ::std::fill_n(out_first, n, trash);
+            }
+        }
     }
 };
 
