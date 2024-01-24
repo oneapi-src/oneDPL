@@ -349,17 +349,42 @@ struct Complement
     {
         return U(val - x);
     }
+    template <typename X>
+    auto
+    get_expected(X x)
+    {
+        return 1 - x;
+    }
+    template <typename X>
+    auto&
+    get_actual(X& x)
+    {
+        return x;
+    }
 };
 
 struct ComplementZip
 {
     std::int32_t val = 1;
 
-    template<typename T>
+    template<typename TupleType>
     auto
-    operator()(const oneapi::dpl::__internal::tuple<T&>& t) const
+    operator()(TupleType t) const
     {
-        return oneapi::dpl::__internal::tuple<T>(val - std::get<0>(t));
+        using T = std::decay_t<decltype(std::get<0>(t))>;
+        return std::tuple<T>(val - std::get<0>(t));
+    }
+    template <typename TupleType>
+    auto
+    get_expected(TupleType t)
+    {
+        return val - std::get<0>(t);
+    }
+    template <typename TupleType>
+    auto&
+    get_actual(TupleType t)
+    {
+        return std::get<0>(t);
     }
 };
 
@@ -375,6 +400,19 @@ class TheOperation
     {
         return Out(val + x - y);
     }
+    
+    template <typename InputT1, typename InputT2>
+    Out
+    get_expected(InputT1 x, InputT2 y)
+    {
+        return val + x - y;
+    }
+    template <typename OutputT>
+    auto&
+    get_actual(OutputT& x)
+    {
+        return x;
+    }
 };
 
 template <typename Out>
@@ -385,11 +423,24 @@ class TheOperationZip
   public:
     TheOperationZip(Out v) : val(v) {}
 
-    template <typename T1, typename T2>
+    template <typename TupleType1, typename TupleType2>
     auto
-    operator()(const oneapi::dpl::__internal::tuple<T1&>& t1, const oneapi::dpl::__internal::tuple<T2&>& t2) const
+    operator()(TupleType1 t1, TupleType2 t2) const
     {
         return oneapi::dpl::__internal::tuple<Out>(val + std::get<0>(t1) - std::get<0>(t2));
+    }
+    template <typename TupleType1, typename TupleType2>
+    auto
+    get_expected(TupleType1 t1, TupleType2 t2)
+    {
+        return val + std::get<0>(t1) - std::get<0>(t2);
+    }
+    
+    template <typename TupleType2>
+    auto&
+    get_actual(TupleType2 t)
+    {
+        return std::get<0>(t);
     }
 };
 

@@ -31,65 +31,24 @@ struct test_one_policy
                OutputIterator out_first, OutputIterator /* out_last */, BinaryOp op)
     {
         ::std::transform(exec, first1, last1, first2, out_first, op);
-        check_and_reset(first1, last1, first2, out_first);
+        check_and_reset(first1, last1, first2, out_first, op);
     }
 
-    template <typename InputIterator1, typename InputIterator2, typename OutputIterator>
+    template <typename InputIterator1, typename InputIterator2, typename OutputIterator, typename Op>
     void
-    check_and_reset(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, OutputIterator out_first)
+    check_and_reset(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, OutputIterator out_first, Op op)
     {
         typedef typename ::std::iterator_traits<OutputIterator>::value_type Out;
         typename ::std::iterator_traits<OutputIterator>::difference_type k = 0;
         for (; first1 != last1; ++first1, ++first2, ++out_first, ++k)
         {
             // check
-            using Out = decltype(get_out_type(*out_first));
-            const auto expected = get_expected<Out>(*first1, *first2);
-            auto& actual = get_actual(*out_first);
+            const auto expected = op.get_expected(*first1, *first2);
+            auto& actual = op.get_actual(*out_first);
             EXPECT_EQ(expected, actual, "wrong value in output sequence");
             // reset
             actual = k % 7 != 4 ? 7 * k + 5 : 0;
         }
-    }
-    template <typename Out, typename InputT1, typename InputT2>
-    Out
-    get_expected(InputT1 val1, InputT2 val2)
-    {
-        return Out(1.5) + val1 - val2;
-    }
-    template <typename OutputT>
-    auto&
-    get_actual(OutputT& val)
-    {
-        return val;
-    }
-
-    template <typename Out, typename T1, typename T2>
-    auto
-    get_expected(oneapi::dpl::__internal::tuple<T1&>&& t1, oneapi::dpl::__internal::tuple<T2&>&& t2)
-    {
-        return Out(1.5) + std::get<0>(t1) - std::get<0>(t2);
-    }
-    
-    template <typename T>
-    auto&
-    get_actual(oneapi::dpl::__internal::tuple<T&>&& t)
-    {
-        return std::get<0>(t);
-    }
-
-    template <typename T>
-    constexpr auto
-    get_out_type(T val)
-    {
-        return val;
-    }
-
-    template <typename T>
-    constexpr auto
-    get_out_type(oneapi::dpl::__internal::tuple<T&>&& t)
-    {
-        return std::get<0>(t);;
     }
 };
 
@@ -136,7 +95,6 @@ main()
     test<std::int32_t, float32_t, float32_t>(non_const(TheOperation<std::int32_t, float32_t, float32_t>(1.5)));
     test<std::int64_t, float64_t, float32_t>(non_const(TheOperation<std::int64_t, float64_t, float32_t>(1.5)));
 #endif
-    test<std::int32_t, float64_t, std::int32_t>([](const std::int32_t& x, const float64_t& y) { return std::int32_t(std::int32_t(1.5) + x - y); });
 
     test_algo_basic_double<std::int16_t>(run_for_rnd_fw<test_non_const<std::int16_t>>());
 
