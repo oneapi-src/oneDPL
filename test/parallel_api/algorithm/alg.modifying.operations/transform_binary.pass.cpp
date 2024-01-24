@@ -92,8 +92,8 @@ main()
     test<float32_t, float32_t, float32_t>(TheOperation<float32_t, float32_t, float32_t>(1.5));
     //non-const operator()
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test<std::int32_t, float32_t, float32_t>(non_const_ex(TheOperation<std::int32_t, float32_t, float32_t>(1.5)));
-    test<std::int64_t, float64_t, float32_t>(non_const_ex(TheOperation<std::int64_t, float64_t, float32_t>(1.5)));
+    test<std::int32_t, float32_t, float32_t>(non_const(TheOperation<std::int32_t, float32_t, float32_t>(1.5)));
+    test<std::int64_t, float64_t, float32_t>(non_const(TheOperation<std::int64_t, float64_t, float32_t>(1.5)));
 #endif
 
     test_algo_basic_double<std::int16_t>(run_for_rnd_fw<test_non_const<std::int16_t>>());
