@@ -48,7 +48,7 @@ inline constexpr bool __can_use_known_identity =
 //std::logical_and and std::logical_or are not supported in Intel(R) oneAPI DPC++ Compiler to be used in sycl::inclusive_scan_over_group and sycl::reduce_over_group
 template <typename _BinaryOp, typename _Tp>
 using __has_known_identity = ::std::conditional_t<
-    __can_use_known_identity,
+    __can_use_known_identity<_Tp>,
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::disjunction<
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
