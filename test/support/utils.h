@@ -405,7 +405,8 @@ class TheOperation
     Out
     get_expected(InputT1 x, InputT2 y)
     {
-        return val + x - y;
+        //TODO: to get rid of hardcoded constant
+        return Out(1.5) + x - y;
     }
     template <typename OutputT>
     auto&
@@ -433,7 +434,8 @@ class TheOperationZip
     auto
     get_expected(TupleType1 t1, TupleType2 t2)
     {
-        return val + std::get<0>(t1) - std::get<0>(t2);
+        //TODO: to get rid of hardcoded constant
+        return Out(1.5) + std::get<0>(t1) - std::get<0>(t2);
     }
     
     template <typename TupleType2>
@@ -614,10 +616,32 @@ struct multiply_matrix
 };
 
 template <typename F>
-struct NonConstAdapter: public F
+struct NonConstAdapter
+{
+    F my_f;
+    NonConstAdapter(const F& f) : my_f(f) {}
+
+    template <typename... Types>
+    auto
+    operator()(Types&&... args) -> decltype(::std::declval<F>().
+                                            operator()(::std::forward<Types>(args)...))
+    {
+        return my_f(::std::forward<Types>(args)...);
+    }
+};
+
+template <typename F>
+NonConstAdapter<F>
+non_const(const F& f)
+{
+    return NonConstAdapter<F>(f);
+}
+
+template <typename F>
+struct NonConstAdapterEx: public F
 {
     template<typename Op>
-    NonConstAdapter(const Op& f): F(f) {}
+    NonConstAdapterEx(const Op& f): F(f) {}
 
     template <typename... Types>
     auto
@@ -629,10 +653,10 @@ struct NonConstAdapter: public F
 };
 
 template <typename F>
-NonConstAdapter<F>
-non_const(const F& f)
+NonConstAdapterEx<F>
+non_const_ex(F f)
 {
-    return NonConstAdapter<F>(f);
+    return NonConstAdapterEx<F>(f);
 }
 
 // Wrapper for types. It's need for counting of constructing and destructing objects
