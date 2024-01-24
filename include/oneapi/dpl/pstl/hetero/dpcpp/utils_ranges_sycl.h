@@ -257,6 +257,11 @@ struct is_sycl_iterator<oneapi::dpl::__internal::sycl_iterator<Mode, Types...>> 
 {
 };
 
+template <typename Iter, typename Void = void>
+struct is_hetero_legacy_trait : ::std::false_type
+{
+};
+
 template <typename Iter>
 struct is_hetero_legacy_trait<Iter, ::std::enable_if_t<Iter::is_hetero::value>> : ::std::true_type
 {
@@ -510,8 +515,8 @@ struct __get_sycl_range
         auto __n = __last - __first;
         assert(__n > 0);
 
-        auto res_src =
-            __process_input_iter<_LocalAccMode>(__first.base(), oneapi::dpl::end(__first.base().get_buffer()));
+        auto res_src = __process_input_iter<_LocalAccMode>(oneapi::dpl::begin(__first.base().get_buffer()),
+                                                           oneapi::dpl::end(__first.base().get_buffer()));
 
         //_Map is handled by recursively calling __get_sycl_range() in __get_permutation_view.
         auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
