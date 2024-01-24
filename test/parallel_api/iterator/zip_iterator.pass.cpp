@@ -121,6 +121,8 @@ DEFINE_TEST(test_for_each)
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(std::make_tuple(first1, first1));
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (for_each) not properly copyable");
@@ -157,6 +159,8 @@ DEFINE_TEST(test_for_each_structured_binding)
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, 
@@ -197,6 +201,8 @@ DEFINE_TEST(test_transform_reduce_unary)
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (reduce_unary) not properly copyable");
@@ -228,6 +234,8 @@ DEFINE_TEST(test_transform_reduce_binary)
 
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (reduce_binary) not properly copyable");
@@ -268,6 +276,8 @@ DEFINE_TEST(test_min_element)
 
         auto tuple_first = oneapi::dpl::make_zip_iterator(first, first);
         auto tuple_last = oneapi::dpl::make_zip_iterator(last, last);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first)>, "zip_iterator (min_element) not properly copyable");
@@ -306,6 +316,8 @@ DEFINE_TEST(test_count_if)
 
         auto tuple_first = oneapi::dpl::make_zip_iterator(first, first);
         auto tuple_last = oneapi::dpl::make_zip_iterator(last, last);
+
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first)>, "zip_iterator (count_if) not properly copyable");
@@ -346,6 +358,7 @@ DEFINE_TEST(test_equal)
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (equal1) not properly copyable");
@@ -395,6 +408,7 @@ DEFINE_TEST(test_equal_structured_binding)
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>,
@@ -452,6 +466,7 @@ DEFINE_TEST(test_find_if)
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (find_if) not properly copyable");
@@ -510,6 +525,7 @@ DEFINE_TEST(test_transform_inclusive_scan)
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
         auto tuple_last2 = oneapi::dpl::make_zip_iterator(last2, last2);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (inclusive_scan1) not properly copyable");
@@ -550,6 +566,7 @@ DEFINE_TEST(test_unique)
         auto tuple_first1 = oneapi::dpl::make_zip_iterator(first1, first1);
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (unique) not properly copyable");
@@ -597,6 +614,7 @@ DEFINE_TEST(test_unique_copy)
         auto tuple_last1 = oneapi::dpl::make_zip_iterator(last1, last1);
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (unique_copy1) not properly copyable");
@@ -662,6 +680,7 @@ DEFINE_TEST(test_merge)
         auto tuple_last2 = oneapi::dpl::make_zip_iterator(first2 + size2, first2 + size2);
         auto tuple_first3 = oneapi::dpl::make_zip_iterator(first3, first3);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>, "zip_iterator (merge1) not properly copyable");
@@ -716,6 +735,7 @@ DEFINE_TEST(test_stable_sort)
         auto tuple_first = oneapi::dpl::make_zip_iterator(first1, first2);
         auto tuple_last = oneapi::dpl::make_zip_iterator(last1, last2);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first)>, "zip_iterator (stable_sort) not properly copyable");
@@ -764,6 +784,7 @@ DEFINE_TEST(test_lexicographical_compare)
         auto tuple_first2 = oneapi::dpl::make_zip_iterator(first2, first2);
         auto tuple_last2 = oneapi::dpl::make_zip_iterator(last2, last2);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(tuple_first1)>,
@@ -822,6 +843,7 @@ DEFINE_TEST(test_counting_zip_transform)
         auto idx = oneapi::dpl::counting_iterator<ValueType>(0);
         auto start = oneapi::dpl::make_zip_iterator(idx, first1);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(start)>, "zip_iterator (counting_iterator1) not properly copyable");
@@ -877,6 +899,7 @@ DEFINE_TEST(test_counting_zip_discard)
         auto discard = oneapi::dpl::discard_iterator();
         auto out = oneapi::dpl::make_zip_iterator(first2, discard);
 
+        //check device copyable only for usm iterator based data, it is not required or expected for sycl buffer data
         if (!this->host_buffering_required())
         {
             EXPECT_TRUE(sycl::is_device_copyable_v<decltype(start)>, "zip_iterator (discard_iterator1) not properly copyable");
