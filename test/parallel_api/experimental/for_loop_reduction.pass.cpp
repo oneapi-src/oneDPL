@@ -129,45 +129,40 @@ struct test_body_predefined
 struct test_body_predefined_bits
 {
     template <typename Policy, typename Iterator, typename Size>
-    ::std::enable_if_t<!::std::is_floating_point_v<typename ::std::iterator_traits<Iterator>::value_type>>
+    void
     operator()(Policy&& exec, Iterator first, Iterator last, Iterator /*expected_first*/, Iterator /*expected_last*/,
                Size /* n */)
     {
-        using T = typename ::std::iterator_traits<Iterator>::value_type;
-        static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
-
-        // Initialize with arbitrary values
-        T bit_or_var = 10, bit_or_exp = 10;
-        T bit_xor_var = 4, bit_xor_exp = 4;
-        T bit_and_var = 15, bit_and_exp = 15;
-
-        ::std::experimental::for_loop(
-            ::std::forward<Policy>(exec), first, last, ::std::experimental::reduction_bit_or(bit_or_var),
-            ::std::experimental::reduction_bit_and(bit_and_var), ::std::experimental::reduction_bit_xor(bit_xor_var),
-            [](Iterator iter, T& bit_or_acc, T& bit_and_acc, T& bit_xor_acc) {
-                bit_or_acc |= *iter;
-                bit_and_acc &= *iter;
-                bit_xor_acc ^= *iter;
-            });
-
-        for (auto iter = first; iter != last; ++iter)
+        if constexpr (!::std::is_floating_point_v<typename ::std::iterator_traits<Iterator>::value_type>)
         {
-            bit_or_exp |= *iter;
-            bit_and_exp &= *iter;
-            bit_xor_exp ^= *iter;
+            using T = typename ::std::iterator_traits<Iterator>::value_type;
+            static_assert(::std::is_arithmetic_v<T>, "Currently the testcase only works with arithmetic types");
+
+            // Initialize with arbitrary values
+            T bit_or_var = 10, bit_or_exp = 10;
+            T bit_xor_var = 4, bit_xor_exp = 4;
+            T bit_and_var = 15, bit_and_exp = 15;
+
+            ::std::experimental::for_loop(
+                ::std::forward<Policy>(exec), first, last, ::std::experimental::reduction_bit_or(bit_or_var),
+                ::std::experimental::reduction_bit_and(bit_and_var), ::std::experimental::reduction_bit_xor(bit_xor_var),
+                [](Iterator iter, T& bit_or_acc, T& bit_and_acc, T& bit_xor_acc) {
+                    bit_or_acc |= *iter;
+                    bit_and_acc &= *iter;
+                    bit_xor_acc ^= *iter;
+                });
+
+            for (auto iter = first; iter != last; ++iter)
+            {
+                bit_or_exp |= *iter;
+                bit_and_exp &= *iter;
+                bit_xor_exp ^= *iter;
+            }
+
+            EXPECT_TRUE(bit_or_exp == bit_or_var, "wrong result of reduction_bit_or");
+            EXPECT_TRUE(bit_and_exp == bit_and_var, "wrong result of reduction_bit_and");
+            EXPECT_TRUE(bit_xor_exp == bit_xor_var, "wrong result of reduction_bit_xor");
         }
-
-        EXPECT_TRUE(bit_or_exp == bit_or_var, "wrong result of reduction_bit_or");
-        EXPECT_TRUE(bit_and_exp == bit_and_var, "wrong result of reduction_bit_and");
-        EXPECT_TRUE(bit_xor_exp == bit_xor_var, "wrong result of reduction_bit_xor");
-    }
-
-    template <typename Policy, typename Iterator, typename Size>
-    ::std::enable_if_t<::std::is_floating_point_v<typename ::std::iterator_traits<Iterator>::value_type>>
-    operator()(Policy&& /* exec */, Iterator /* first */, Iterator /* last */, Iterator /*expected_first*/, Iterator /*expected_last*/,
-               Size /* n */)
-    {
-        // no-op for floats
     }
 };
 
