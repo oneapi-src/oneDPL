@@ -195,8 +195,14 @@ struct is_permutation<Iter, ::std::enable_if_t<Iter::is_permutation::value>> : :
 
 //is_passed_directly trait definition; specializations for the oneDPL iterators
 
-template <typename Iter>
+template <typename Iter, typename Void = void>
 struct is_passed_directly : ::std::is_pointer<Iter>
+{
+};
+
+//support legacy "is_passed_directly" trait
+template <typename Iter>
+struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::value>> : ::std::true_type
 {
 };
 
@@ -231,19 +237,8 @@ struct is_passed_directly<zip_iterator<Iters...>> : ::std::conjunction<is_passed
 {
 };
 
-template <typename Iter, typename Void = void>
-struct is_passed_directly_legacy_trait : ::std::false_type
-{
-};
-
 template <typename Iter>
-struct is_passed_directly_legacy_trait<Iter, ::std::enable_if_t<Iter::is_passed_directly::value>> : ::std::true_type
-{
-};
-
-template <typename Iter>
-inline constexpr bool is_passed_directly_v =
-    is_passed_directly<Iter>::value || is_passed_directly_legacy_trait<Iter>::value;
+inline constexpr bool is_passed_directly_v = is_passed_directly<Iter>::value;
 
 // A trait for checking if iterator is heterogeneous or not
 
@@ -257,8 +252,18 @@ struct is_sycl_iterator<oneapi::dpl::__internal::sycl_iterator<Mode, Types...>> 
 {
 };
 
+template <typename Iter, typename Void = void>
+struct is_hetero_legacy_trait : ::std::false_type
+{
+};
+
 template <typename Iter>
-inline constexpr bool is_sycl_iterator_v = is_sycl_iterator<Iter>::value;
+struct is_hetero_legacy_trait<Iter, ::std::enable_if_t<Iter::is_hetero::value>> : ::std::true_type
+{
+};
+
+template <typename Iter>
+inline constexpr bool is_sycl_iterator_v = is_sycl_iterator<Iter>::value || is_hetero_legacy_trait<Iter>::value;
 
 //A trait for checking if it needs to create a temporary SYCL buffer or not
 
@@ -505,8 +510,17 @@ struct __get_sycl_range
         auto __n = __last - __first;
         assert(__n > 0);
 
-        auto res_src =
-            __process_input_iter<_LocalAccMode>(__first.base(), oneapi::dpl::end(__first.base().get_buffer()));
+        // Types for which oneapi::dpl::__ranges::is_sycl_iterator_v = true should have both:
+        //  "get_buffer()" to return the buffer they are base upon and
+        //  "get_idx()" to return the buffer offset
+
+        //  __first.base() is not guaranteed to be a sycl_iterator, it may be another type which sets the trait
+        //   is_hetero = ::std::true_type.  Therefore, to make sure our types match, we use get_idx() to get the buffer
+        //   offset, and use that to recurse as a sycl_iterator over the __base_buffer.
+        auto __base_iter = __first.base();
+        auto __base_buffer = __base_iter.get_buffer();
+        auto res_src = __process_input_iter<_LocalAccMode>(oneapi::dpl::begin(__base_buffer) + __base_iter.get_idx(),
+                                                           oneapi::dpl::end(__base_buffer));
 
         //_Map is handled by recursively calling __get_sycl_range() in __get_permutation_view.
         auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
@@ -531,20 +545,26 @@ struct __get_sycl_range
         return __range_holder<decltype(rng)>{rng};
     }
 
+    // specialization for general case, permutation_iterator with base iterator that is not sycl_iterator or
+    // passed directly.
     template <sycl::access::mode _LocalAccMode, typename _Iter, typename _Map,
               ::std::enable_if_t<!is_sycl_iterator_v<_Iter> && !is_passed_directly_v<_Iter>, int> = 0>
     auto
-    __process_input_iter(oneapi::dpl::permutation_iterator<_Iter, _Map>, oneapi::dpl::permutation_iterator<_Iter, _Map>)
+    __process_input_iter(oneapi::dpl::permutation_iterator<_Iter, _Map> __first,
+                         oneapi::dpl::permutation_iterator<_Iter, _Map> __last)
     {
-        static_assert(std::is_same_v<oneapi::dpl::permutation_iterator<_Iter, _Map>, void>,
-                      "error: the iterator type is not supported with a device policy");
+        auto __n = __last - __first;
+        assert(__n > 0);
 
-        //To make the dummy return data of a proper type for diagnostic reasons:
-        //To avoid "error: variable has incomplete type 'void'" message;
-        //static_assert mentined above should be shown as first compile time error.
-        using _T = val_t<_Iter>;
-        return __range_holder<oneapi::dpl::__ranges::all_view<_T, _LocalAccMode>>{
-            oneapi::dpl::__ranges::all_view<_T, _LocalAccMode>(sycl::buffer<_T, 1>{})};
+        //TODO: investigate better method of handling this specifically for fancy_iterators which are composed fully
+        //      of a combination of fancy_iterators, sycl_iterators, and is_passed_directly types.
+        //      Currently this relies on UB because the size of the accessor when handling sycl_iterators
+        //      in recursion below this level is incorrect.
+        auto res_src = this->operator()(__first.base(), __first.base() + 1 /*source size*/);
+
+        auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
+
+        return __range_holder<decltype(rng)>{rng};
     }
 
     //specialization for permutation discard iterator
@@ -581,7 +601,14 @@ struct __get_sycl_range
         assert(__first < __last);
         using value_type = val_t<_Iter>;
 
-        const auto __offset = __first - oneapi::dpl::begin(__first.get_buffer());
+        // Types for which oneapi::dpl::__ranges::is_sycl_iterator_v = true should have both:
+        //  "get_buffer()" to return the buffer they are base upon and
+        //  "get_idx()" to return the buffer offset
+
+        //  __first is not guaranteed to be a sycl_iterator, it may be another type which sets the trait
+        //   is_hetero = ::std::true_type. We use get_idx() to get the buffer offset, use get_buffer() to get the
+        //   buffer and use those to create the range.
+        const auto __offset = __first.get_idx();
         const auto __size = __dpl_sycl::__get_buffer_size(__first.get_buffer());
         const auto __n = ::std::min(decltype(__size)(__last - __first), __size);
         assert(__offset + __n <= __size);
