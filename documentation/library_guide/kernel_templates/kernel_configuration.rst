@@ -14,7 +14,7 @@ A synopsis of the ``kernel_param`` struct is provided below:
 
 .. code:: cpp
 
-   // defined in header <oneapi/dpl/experimental/kernel_templates>
+   // defined in <oneapi/dpl/experimental/kernel_templates>
 
    namespace oneapi::dpl::experimental::kt {
 

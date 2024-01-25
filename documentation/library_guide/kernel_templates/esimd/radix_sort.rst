@@ -13,7 +13,7 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
 
 .. code:: cpp
 
-   // defined in header <oneapi/dpl/experimental/kernel_templates>
+   // defined in <oneapi/dpl/experimental/kernel_templates>
 
    namespace oneapi::dpl::experimental::kt::esimd {
 
