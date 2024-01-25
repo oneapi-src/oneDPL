@@ -43,9 +43,10 @@ Static Member Constants
 .. note::
 
    The ``data_per_workitem`` parameter has a special meaning in ESIMD-based kernel templates.
-   Usually, each work-item processes ``data_per_workitem`` sequentially.
+   Usually, each work-item processes ``data_per_workitem`` input elements sequentially.
    However, work-items in ESIMD-based kernel templates perform vectorization,
-   so the sequential work is ``data_per_workitem / vector_length``, where ``vector_length`` is an implementation-defined vectorization factor.
+   so the sequential work is ``data_per_workitem / vector_length`` elements, where ``vector_length``
+   is an implementation-defined vectorization factor.
 
 
 Member Types
@@ -55,7 +56,14 @@ Member Types
 | Type            | Definition     | Description                                                                      |
 +=================+================+==================================================================================+
 | ``kernel_name`` | ``KernelName`` | An optional parameter that is used to set a kernel name.                         |
-|                 |                | The behavior is different whether the parameter is provided or not.              |
+|                 |                |                                                                                  |
+|                 |                | .. note::                                                                        |
+|                 |                |                                                                                  |
+|                 |                |     The ``KernelName`` parameter might be required in case an implementation of  |
+|                 |                |     SYCL is not fully compliant with the SYCL 2020 Specification and             |
+|                 |                |     does not support optional kernel names.                                      |
+|                 |                |                                                                                  |
+|                 |                | If omitted, SYCL kernel name(s) will be automatically generated.                 |
 |                 |                |                                                                                  |
 |                 |                | If provided, it must be a unique C++ typename that satisfies the requirements    |
 |                 |                | for SYCL kernel names (see `SYCL 2020 Specification                              |
@@ -66,13 +74,5 @@ Member Types
 |                 |                |                                                                                  |
 |                 |                |    The provided name can be augmented by oneDPL when used with                   |
 |                 |                |    a template that creates multiple SYCL kernels.                                |
-|                 |                |                                                                                  |
-|                 |                | If omitted, unique SYCL kernel name(s) will be automatically generated.          |
-|                 |                |                                                                                  |
-|                 |                | .. note::                                                                        |
-|                 |                |                                                                                  |
-|                 |                |     The ``KernelName`` parameter might be required in case an implementation of  |
-|                 |                |     SYCL is not fully compliant with the SYCL 2020 Specification and             |
-|                 |                |     does not support optional kernel names.                                      |
 |                 |                |                                                                                  |
 +-----------------+----------------+----------------------------------------------------------------------------------+

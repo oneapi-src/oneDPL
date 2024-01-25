@@ -12,7 +12,7 @@ or for a specific device (for example, based on the available local memory).
 
 
 * :doc:`Kernel Configuration <kernel_templates/kernel_configuration>`. Generic structure for configuring a kernel template.
-* :doc:`ESIMD-based kernel templates <kernel_templates/esimd_main>`. Kernel templates based on Intel "Explicit SIMD" SYCL extension.
+* :doc:`ESIMD-based kernel templates <kernel_templates/esimd_main>`. Algorithms implemented with "Explicit SIMD" SYCL extension.
 
 .. toctree::
    :maxdepth: 2
