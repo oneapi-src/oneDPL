@@ -15,6 +15,7 @@
 #include <random>
 #include <algorithm>
 #include <iostream>
+#if TEST_DYNAMIC_SELECTION_AVAILABLE
 
 namespace TestUtils
 {
@@ -364,5 +365,7 @@ test_submit_and_wait(UniverseContainer u, ResourceFunction&& f, int offset = 0)
     std::cout << "submit_and_wait: OK\n";
     return 0;
 }
+
+#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 
 #endif /* _ONEDPL_TEST_DYNAMIC_SELECTION_UTILS_H */
