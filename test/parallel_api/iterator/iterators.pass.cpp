@@ -313,7 +313,6 @@ struct test_permutation_iterator
         auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), [n] (auto i) { return n - i - 1;}, 1);
         EXPECT_TRUE(*++perm_it_fun_rev == *(in1.end()-3), "wrong result from permutation_iterator(base_iterator, functor)");
 
-        // Permutation iterator with a lambda is not default constructible because lambas are not default constructible
         test_random_iterator(perm_it_fun_rev);
 
         ::std::vector<T1> res(n);
