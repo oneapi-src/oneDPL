@@ -17,21 +17,27 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
 
    namespace oneapi::dpl::experimental::kt::esimd {
 
-   template <bool IsAscending = true, std::uint8_t RadixBits = 8, typename KernelParam, typename Range>
+   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
+             typename KernelParam, typename Range>
    sycl::event
    radix_sort(sycl::queue q, Range&& rng, KernelParam param); // (1)
 
-   template <bool IsAscending = true,  std::uint8_t RadixBits = 8, typename KernelParam, typename Iter>
+   template <bool IsAscending = true,  std::uint8_t RadixBits = 8,
+             typename KernelParam, typename Iter>
    sycl::event
    radix_sort(sycl::queue q, Iter first, Iter last, KernelParam param); // (2)
 
-   template <bool IsAscending = true, std::uint8_t RadixBits = 8, typename KernelParam, typename KeysRng, typename ValsRng>
+   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
+             typename KernelParam, typename KeysRng, typename ValsRng>
    sycl::event
-   radix_sort_by_key(sycl::queue q, KeysRng&& keys_rng, ValsRng&& vals_rng, KernelParam param); // (3)
+   radix_sort_by_key(sycl::queue q, KeysRng&& keys_rng,
+                     ValsRng&& vals_rng, KernelParam param); // (3)
 
-   template <bool IsAscending = true, std::uint8_t RadixBits = 8, typename KernelParam, typename KeysIter, typename ValsIter>
+   template <bool IsAscending = true, std::uint8_t RadixBits = 8,
+             typename KernelParam, typename KeysIter, typename ValsIter>
    sycl::event
-   radix_sort_by_key(sycl::queue q, KeysIter keys_first, KeysIter keys_last, ValsIter vals_first, KernelParam param); // (4)
+   radix_sort_by_key(sycl::queue q, KeysIter keys_first, KeysIter keys_last,
+                     ValsIter vals_first, KernelParam param); // (4)
 
    }
 
