@@ -236,20 +236,24 @@ struct transform_reduce
         auto __local_idx = __item_id.get_local_id(0);
         const _Size __stride = __item_id.get_local_range(0);
 
-        const _Size __adjusted_global_id =
-            __global_offset + __item_id.get_group_linear_id() * __stride * __iters_per_work_item + __local_idx;
+        const _Size __offset = __global_offset + __item_id.get_group_linear_id() * __stride * __iters_per_work_item;
+        const _Size __adjusted_global_id = __offset + __local_idx;
         const _Size __adjusted_n = __global_offset + __n;
 
         // Coalesced load and reduce from global memory
         auto sg = __item_id.get_sub_group();
-        auto sg_size = sg.get_group_linear_range();
-        if (__adjusted_global_id + __stride * __iters_per_work_item < __adjusted_n)
+        auto sg_size = sg.get_local_range()[0];
+        auto sg_group_id = sg.get_group_id();
+        if ((__local_idx/sg_size + 1) * sg_size + __offset + __stride * __iters_per_work_item < __adjusted_n) // All threads in sub_group must be calling sg_load
         {
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc);
             _ONEDPL_PRAGMA_UNROLL
-            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
-                __res = __binary_op(__res, sg.load(__acc.begin() + (__adjusted_global_id + __stride * __i)/sg_size));
-                //__res = __binary_op(__res, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
+            for (_Size __i = 1; __i < __iters_per_work_item; ++__i) {
+                if constexpr (std::is_arithmetic_v<typename _AccLocal::value_type>)
+                    __res = __binary_op(__res, sg.load(__acc.get_pointer() + sg_group_id * sg_size + __offset + __stride * __i));
+                else
+                    __res = __binary_op(__res, __unary_op(__adjusted_global_id + __stride * __i, __acc));
+             }
             __local_mem[__local_idx] = __res;
         }
         else if (__adjusted_global_id < __adjusted_n)
