@@ -15,6 +15,7 @@
 #include <random>
 #include <algorithm>
 #include <iostream>
+#if TEST_DYNAMIC_SELECTION_AVAILABLE
 
 namespace TestUtils
 {
@@ -62,6 +63,7 @@ build_universe(std::vector<sycl::queue>& u)
     }
 }
 
+#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 template <typename Policy, typename T>
 int
 test_initialization(const std::vector<T>& u)
@@ -364,5 +366,6 @@ test_submit_and_wait(UniverseContainer u, ResourceFunction&& f, int offset = 0)
     std::cout << "submit_and_wait: OK\n";
     return 0;
 }
+
 
 #endif /* _ONEDPL_TEST_DYNAMIC_SELECTION_UTILS_H */
