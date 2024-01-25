@@ -510,6 +510,9 @@ struct __get_sycl_range
         auto __n = __last - __first;
         assert(__n > 0);
 
+        // Types for which oneapi::dpl::__ranges::is_sycl_iterator_v = true should have both:
+        //  "get_buffer()" to return the buffer they are base upon and 
+        //  "get_idx()" to return the buffer offset
         auto __base_iter = __first.base();
         auto __base_buffer = __base_iter.get_buffer();
         auto res_src = __process_input_iter<_LocalAccMode>(oneapi::dpl::begin(__base_buffer) + __base_iter.get_idx(),
@@ -594,6 +597,9 @@ struct __get_sycl_range
         assert(__first < __last);
         using value_type = val_t<_Iter>;
 
+        // Types for which oneapi::dpl::__ranges::is_sycl_iterator_v = true should have both:
+        //  "get_buffer()" to return the buffer they are base upon and 
+        //  "get_idx()" to return the buffer offset
         const auto __offset = __first.get_idx();
         const auto __size = __dpl_sycl::__get_buffer_size(__first.get_buffer());
         const auto __n = ::std::min(decltype(__size)(__last - __first), __size);
