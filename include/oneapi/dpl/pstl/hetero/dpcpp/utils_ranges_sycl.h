@@ -538,20 +538,26 @@ struct __get_sycl_range
         return __range_holder<decltype(rng)>{rng};
     }
 
+    // specialization for general case, permutation_iterator with base iterator that is not sycl_iterator or
+    // passed directly.
     template <sycl::access::mode _LocalAccMode, typename _Iter, typename _Map,
               ::std::enable_if_t<!is_sycl_iterator_v<_Iter> && !is_passed_directly_v<_Iter>, int> = 0>
     auto
-    __process_input_iter(oneapi::dpl::permutation_iterator<_Iter, _Map>, oneapi::dpl::permutation_iterator<_Iter, _Map>)
+    __process_input_iter(oneapi::dpl::permutation_iterator<_Iter, _Map> __first,
+                         oneapi::dpl::permutation_iterator<_Iter, _Map> __last)
     {
-        static_assert(std::is_same_v<oneapi::dpl::permutation_iterator<_Iter, _Map>, void>,
-                      "error: the iterator type is not supported with a device policy");
+        auto __n = __last - __first;
+        assert(__n > 0);
 
-        //To make the dummy return data of a proper type for diagnostic reasons:
-        //To avoid "error: variable has incomplete type 'void'" message;
-        //static_assert mentined above should be shown as first compile time error.
-        using _T = val_t<_Iter>;
-        return __range_holder<oneapi::dpl::__ranges::all_view<_T, _LocalAccMode>>{
-            oneapi::dpl::__ranges::all_view<_T, _LocalAccMode>(sycl::buffer<_T, 1>{})};
+        //TODO: investigate better method of handling this specifically for fancy_iterators which are composed fully
+        //      of a combination of fancy_iterators, sycl_iterators, and is_passed_directly types.
+        //      Currently this relies on UB because the size of the accessor when handling sycl_iterators
+        //      in recursion below this level is incorrect.
+        auto res_src = this->operator()(__first.base(), __first.base() + 1 /*source size*/);
+
+        auto rng = __get_permutation_view(res_src.all_view(), __first.map(), __n);
+
+        return __range_holder<decltype(rng)>{rng};
     }
 
     //specialization for permutation discard iterator
