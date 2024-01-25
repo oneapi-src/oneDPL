@@ -32,7 +32,7 @@
 using namespace TestUtils;
 
 //common checks of a random access iterator functionality
-template <bool expect_default_constructible = true, typename RandomIt>
+template <typename RandomIt>
 void test_random_iterator(const RandomIt& it) {
     // check that RandomIt has all necessary publicly accessible member types
     {
@@ -43,7 +43,7 @@ void test_random_iterator(const RandomIt& it) {
         [[maybe_unused]] auto t4 = typename RandomIt::iterator_category{};
     }
 
-    static_assert(!expect_default_constructible || ::std::is_default_constructible_v<RandomIt>, "iterator is not default constructible");
+    static_assert(::std::is_default_constructible_v<RandomIt>, "iterator is not default constructible");
 
     EXPECT_TRUE(  it == it,      "== returned false negative");
     EXPECT_TRUE(!(it == it + 1), "== returned false positive");
@@ -245,7 +245,6 @@ struct ref_transform_functor {
 
 //We need this functor to pass operator* test for transform iterator
 struct transform_functor {
-    transform_functor() = default;
     template<typename T>
     T operator()(T& x) const {
         return x + 1;
@@ -315,7 +314,7 @@ struct test_permutation_iterator
         EXPECT_TRUE(*++perm_it_fun_rev == *(in1.end()-3), "wrong result from permutation_iterator(base_iterator, functor)");
 
         // Permutation iterator with a lambda is not default constructible because lambas are not default constructible
-        test_random_iterator</*expect_default_constructible = */false>(perm_it_fun_rev);
+        test_random_iterator(perm_it_fun_rev);
 
         ::std::vector<T1> res(n);
         perm_it_fun_rev -= 2;

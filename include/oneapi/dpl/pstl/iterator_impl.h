@@ -89,7 +89,7 @@ class zip_forward_iterator
     typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
     typedef ::std::forward_iterator_tag iterator_category;
 
-    zip_forward_iterator() = default;
+    zip_forward_iterator() : __my_it_() {}
     explicit zip_forward_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
 
     reference operator*() const
@@ -153,7 +153,7 @@ class counting_iterator
     typedef _Ip reference;
     typedef ::std::random_access_iterator_tag iterator_category;
 
-    counting_iterator() = default;
+    counting_iterator() : __my_counter_() {}
     explicit counting_iterator(_Ip __init) : __my_counter_(__init) {}
 
     reference operator*() const { return __my_counter_; }
@@ -268,7 +268,7 @@ class zip_iterator
     typedef ::std::random_access_iterator_tag iterator_category;
     using is_zip = ::std::true_type;
 
-    zip_iterator() = default;
+    zip_iterator() : __my_it_() {}
     explicit zip_iterator(_Types... __args) : __my_it_(::std::make_tuple(__args...)) {}
     explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
 
@@ -410,9 +410,7 @@ class transform_iterator
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
-    transform_iterator() = default;
-    transform_iterator(_Iter __it) : __my_it_(__it), __my_unary_func_() {}
-    transform_iterator(_Iter __it, _UnaryFunc __unary_func) : __my_it_(__it), __my_unary_func_(__unary_func) {}
+    transform_iterator(_Iter __it = _Iter(), _UnaryFunc __unary_func = _UnaryFunc()) : __my_it_(__it), __my_unary_func_(__unary_func) {}
     transform_iterator(const transform_iterator& __input) = default;
     transform_iterator&
     operator=(const transform_iterator& __input)
