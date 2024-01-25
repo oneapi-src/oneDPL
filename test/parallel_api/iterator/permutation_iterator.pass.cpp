@@ -39,7 +39,7 @@ main()
     //transform_iterator is not trivially_copyable, as it defines a copy assignment operator which does not copy
     // its unary functor.  permutation_iterator is based on transform_iterator and therefore is also not
     // trivially_copyable.  This makes permutation_iterator's device_copyable trait deprecated with sycl 2020.
-    EXPECT_TRUE(check_device_copyable_w_deprecrated_sycl2020<decltype(permItBegin)>,
+    EXPECT_TRUE(check_if_device_copyable_by_sycl2020_or_by_old_definition <decltype(permItBegin)>,
                 "permutation_iterator (counting_iterator) is not properly copyable");
 
     const std::size_t perm_size_result = std::distance(permItBegin, permItEnd);

@@ -81,7 +81,7 @@ auto async_handler = [](sycl::exception_list ex_list) {
 
 //Check that type is device copyable including types which are deprecated in sycl 2020
 template <typename T>
-static constexpr bool check_device_copyable_w_deprecrated_sycl2020 =
+static constexpr bool check_if_device_copyable_by_sycl2020_or_by_old_definition  =
     sycl::is_device_copyable_v<T> || (std::is_trivially_copy_constructible_v<T> && std::is_trivially_destructible_v<T>);
 
 //function is needed to wrap kernel name into another class

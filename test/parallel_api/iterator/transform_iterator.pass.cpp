@@ -168,16 +168,16 @@ test_copyable()
     //transform_iterator is not trivially_copyable, as it defines a copy assignment operator which does not copy
     // its unary functor. This makes transform_iterator's device_copyable trait deprecated with sycl 2020.
 
-    EXPECT_TRUE(check_device_copyable_w_deprecrated_sycl2020<oneapi::dpl::counting_iterator<int>>,
+    EXPECT_TRUE(check_if_device_copyable_by_sycl2020_or_by_old_definition <oneapi::dpl::counting_iterator<int>>,
                 "counting_iterator is not device copyable");
 
     auto trans_count = ::dpl::make_transform_iterator(oneapi::dpl::counting_iterator<int>(0), [](auto i) { return i; });
-    EXPECT_TRUE(check_device_copyable_w_deprecrated_sycl2020<decltype(trans_count)>,
+    EXPECT_TRUE(check_if_device_copyable_by_sycl2020_or_by_old_definition <decltype(trans_count)>,
                 "transform_iterator(counting_iterator) is not device copyable");
 
     std::vector<int> array(10, 0);
     auto trans_array = ::dpl::make_transform_iterator(array.begin(), [](auto i) { return i; });
-    EXPECT_TRUE(check_device_copyable_w_deprecrated_sycl2020<decltype(trans_array)>,
+    EXPECT_TRUE(check_if_device_copyable_by_sycl2020_or_by_old_definition <decltype(trans_array)>,
                 "transform_iterator(host_iterator) is not device copyable");
 }
 #endif // TEST_DPCPP_BACKEND_PRESENT
