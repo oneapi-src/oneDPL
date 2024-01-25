@@ -72,13 +72,13 @@ Parameters
 +===============================================+=====================================================================+
 |  ``q``                                        | SYCL* queue to submit the kernel template to.                       |
 +-----------------------------------------------+---------------------------------------------------------------------+
-|                                               | The sequences(s) of elements to apply the algorithm to.             |
-|  - ``rng`` (1)                                | They can be provided as:                                            |
+|                                               | The sequences of elements to apply the algorithm to.                |
+|  - ``rng`` (1)                                | Supported sequence types:                                           |
 |  - ``first``, ``last`` (2)                    |                                                                     |
 |  - ``keys_rng``, ``vals_rng`` (3)             | - ``sycl::buffer`` (1,3),                                           |
 |  - ``keys_first``, ``keys_last``,             | - ``oneapi::dpl::experimental::ranges::views::all`` (1,3)           |
 |    ``vals_first`` (4)                         | - ``oneapi::dpl::experimental::ranges::views::subrange`` (1,3)      |
-|                                               | - USM pointer (2,4)                                                 |
+|                                               | - USM pointers (2,4)                                                |
 |                                               | - ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` (2,4)             |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
@@ -93,7 +93,7 @@ Parameters
 Return Value
 ------------
 
-``sycl::event`` object representing a status of the algorithm execution.
+A ``sycl::event`` object representing the status of the algorithm execution.
 
 -------------------
 Memory Requirements
