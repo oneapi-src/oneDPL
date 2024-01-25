@@ -28,6 +28,7 @@
 #include "parallel_backend_sycl_utils.h"
 // workaround until we implement more performant optimization for patterns
 #include "parallel_backend_sycl.h"
+#include "parallel_backend_sycl_histogram.h"
 #include "../../execution_impl.h"
 #include "execution_sycl_defs.h"
 #include "../../iterator_impl.h"
@@ -274,12 +275,12 @@ template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
-                     _BinHashMgr&& __binhash_manager)
+                     const _BinHashMgr& __binhash_manager)
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_histogram(
-        __device_policy(__exec), __init_event, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
-        ::std::forward<_BinHashMgr>(__binhash_manager));
+    return oneapi::dpl::__par_backend_hetero::__parallel_histogram(__exec.__device_policy(), __init_event,
+                                                                   ::std::forward<_Range1>(__input),
+                                                                   ::std::forward<_Range2>(__bins), __binhash_manager);
 }
 
 } // namespace __par_backend_hetero

@@ -27,7 +27,6 @@
 #include "utils_ranges_sycl.h"
 
 #include "../../histogram_binhash_utils.h"
-#include "../../../internal/async_impl/async_impl_hetero.h"
 #include "../../utils.h"
 
 namespace oneapi
@@ -105,8 +104,8 @@ struct __binhash_SLM_wrapper<__custom_boundary_range_binhash<_Range>, _ExtraMemA
     get_bin(_T __value) const
     {
         auto __size = __slm_mem.size();
-        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__slm_mem.begin(), __size, __value,
-                                                                         __slm_mem[0], __slm_mem[__size - 1]);
+        return oneapi::dpl::__internal::__custom_boundary_get_bin_helper(__slm_mem, __size, __value, __slm_mem[0],
+                                                                         __slm_mem[__size - 1]);
     }
 };
 
