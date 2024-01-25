@@ -332,13 +332,14 @@ run_test()
 #endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
 }
 
-template <template <typename T> typename BinaryOperation>
+template <template <typename T> typename BinaryPredicate, 
+          template <typename T> typename BinaryOperation>
 void
 run_test()
 {
-    run_test<int,    ::std::equal_to<int>,    BinaryOperation<int>>();
-    run_test<float,  ::std::equal_to<float>,  BinaryOperation<float>>();
-    run_test<double, ::std::equal_to<double>, BinaryOperation<double>>();
+    run_test<int,    BinaryPredicate<int>,    BinaryOperation<int>>();
+    run_test<float,  BinaryPredicate<float>,  BinaryOperation<float>>();
+    run_test<double, BinaryPredicate<double>, BinaryOperation<double>>();
 }
 
 int
@@ -353,8 +354,8 @@ main()
     run_test<::std::uint64_t,       UserBinaryPredicate<::std::uint64_t>,       MaxFunctor<::std::uint64_t>>();
     run_test<::std::complex<float>, UserBinaryPredicate<::std::complex<float>>, MaxFunctor<::std::complex<float>>>();
 
-    run_test<::std::plus>();
-    run_test<::std::multiplies>();
+    run_test<::std::equal_to, ::std::plus>();
+    run_test<::std::equal_to, ::std::multiplies>();
 
     return TestUtils::done();
 }
