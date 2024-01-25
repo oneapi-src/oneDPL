@@ -96,7 +96,7 @@ class __sycl_device_shared_ptr
         return *this;
     }
 
-    __sycl_device_shared_ptr(__sycl_device_shared_ptr& other)
+    __sycl_device_shared_ptr(const __sycl_device_shared_ptr& other)
     {
         _M_shared_device = other._M_shared_device;
         ++_M_shared_device->_M_cnt;
