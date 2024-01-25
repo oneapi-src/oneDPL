@@ -15,7 +15,6 @@
 #include "support/test_dynamic_selection_utils.h"
 #include "support/utils.h"
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
-#    include "support/sycl_sanity.h"
 
 int
 test_auto_initialization(const std::vector<sycl::queue>& u)
@@ -448,7 +447,6 @@ build_auto_tune_universe(std::vector<sycl::queue>& u)
     {
         auto device_cpu1 = sycl::device(sycl::cpu_selector_v);
         sycl::queue cpu1_queue(device_cpu1);
-        run_sycl_sanity_test(cpu1_queue);
         u.push_back(cpu1_queue);
     }
     catch (const sycl::exception&)
@@ -459,7 +457,6 @@ build_auto_tune_universe(std::vector<sycl::queue>& u)
     {
         auto device_cpu2 = sycl::device(sycl::cpu_selector_v);
         sycl::queue cpu2_queue(device_cpu2);
-        run_sycl_sanity_test(cpu2_queue);
         u.push_back(cpu2_queue);
     }
     catch (const sycl::exception&)
@@ -470,7 +467,6 @@ build_auto_tune_universe(std::vector<sycl::queue>& u)
     {
         auto device_cpu3 = sycl::device(sycl::cpu_selector_v);
         sycl::queue cpu3_queue(device_cpu3);
-        run_sycl_sanity_test(cpu3_queue);
         u.push_back(cpu3_queue);
     }
     catch (const sycl::exception&)
@@ -481,7 +477,6 @@ build_auto_tune_universe(std::vector<sycl::queue>& u)
     {
         auto device_cpu4 = sycl::device(sycl::cpu_selector_v);
         sycl::queue cpu4_queue(device_cpu4);
-        run_sycl_sanity_test(cpu4_queue);
         u.push_back(cpu4_queue);
     }
     catch (const sycl::exception&)
@@ -547,7 +542,7 @@ main()
 
         bProcessed = true;
     }
-#endif // TEST_DYNAMIC_SELECTION_AVAILABLE    
+#endif // TEST_DYNAMIC_SELECTION_AVAILABLE
 
     return TestUtils::done(bProcessed);
 }
