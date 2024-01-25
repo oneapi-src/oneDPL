@@ -513,6 +513,10 @@ struct __get_sycl_range
         // Types for which oneapi::dpl::__ranges::is_sycl_iterator_v = true should have both:
         //  "get_buffer()" to return the buffer they are base upon and
         //  "get_idx()" to return the buffer offset
+
+        //  __first.base() is not guaranteed to be a sycl_iterator, it may be another type which sets the trait
+        //   is_hetero = ::std::true_type.  Therefore, to make sure our types match, we use get_idx() to get the buffer
+        //   offset, and use that to recurse as a sycl_iterator over the __base_buffer.
         auto __base_iter = __first.base();
         auto __base_buffer = __base_iter.get_buffer();
         auto res_src = __process_input_iter<_LocalAccMode>(oneapi::dpl::begin(__base_buffer) + __base_iter.get_idx(),
@@ -600,6 +604,10 @@ struct __get_sycl_range
         // Types for which oneapi::dpl::__ranges::is_sycl_iterator_v = true should have both:
         //  "get_buffer()" to return the buffer they are base upon and
         //  "get_idx()" to return the buffer offset
+
+        //  __first is not guaranteed to be a sycl_iterator, it may be another type which sets the trait
+        //   is_hetero = ::std::true_type. We use get_idx() to get the buffer offset, use get_buffer() to get the
+        //   buffer and use those to create the range.
         const auto __offset = __first.get_idx();
         const auto __size = __dpl_sycl::__get_buffer_size(__first.get_buffer());
         const auto __n = ::std::min(decltype(__size)(__last - __first), __size);
