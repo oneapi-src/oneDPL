@@ -245,6 +245,7 @@ struct ref_transform_functor {
 
 //We need this functor to pass operator* test for transform iterator
 struct transform_functor {
+    transform_functor() = default;
     template<typename T>
     T operator()(T& x) const {
         return x + 1;
