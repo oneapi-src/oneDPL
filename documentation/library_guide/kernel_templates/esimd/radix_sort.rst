@@ -325,23 +325,6 @@ Limitations
 - Local memory is always used to rank keys, reorder keys, or key-value pairs, which limits possible values of ``param.data_per_workitem`` and ``param.workgroup_size``
 - ``radix_sort_by_key`` does not have single-work-group implementation yet.
 
-
-.. _system-requirements:
-
--------------------
-System Requirements
--------------------
-
-- Hardware: Intel® Data Center GPU Max Series.
-- Compiler: Intel® oneAPI DPC++/C++ Compiler 2023.2 and newer.
-- Operating Systems:
-
-  - Red Hat Enterprise Linux* 9.2,
-  - SUSE Linux Enterprise Server* 15 SP5,
-  - Ubuntu* 22.04.
-  - Other distributions and their versions listed in `<https://dgpu-docs.intel.com/driver/installation.html>`_ should be supported accordingly, however they have not been tested.
-
-
 ------------
 Known Issues
 ------------

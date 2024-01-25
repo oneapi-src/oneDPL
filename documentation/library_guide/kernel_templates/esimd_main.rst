@@ -17,3 +17,16 @@ These templates are available in the ``oneapi::dpl::experimental::kt::esimd`` na
    :hidden:
 
    esimd/radix_sort
+
+-------------------
+System Requirements
+-------------------
+
+- Hardware: Intel® Data Center GPU Max Series.
+- Compiler: Intel® oneAPI DPC++/C++ Compiler 2023.2 and newer.
+- Operating Systems:
+
+  - Red Hat Enterprise Linux* 9.2,
+  - SUSE Linux Enterprise Server* 15 SP5,
+  - Ubuntu* 22.04.
+  - Other distributions and their versions listed in `<https://dgpu-docs.intel.com/driver/installation.html>`_ should be supported accordingly, however they have not been tested.
