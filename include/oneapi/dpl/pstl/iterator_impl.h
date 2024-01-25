@@ -396,16 +396,99 @@ make_zip_iterator(std::tuple<_Tp...> __arg)
     return zip_iterator<_Tp...>(__arg);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// struct UnaryFuncWrapperImplBaseTrviallyConstructible - predicate storage
+// if it's trivially constructible.
+template <typename _UnaryFunc>
+struct UnaryFuncWrapperImplBaseTrviallyConstructible
+{
+    _UnaryFunc pred;
+
+    UnaryFuncWrapperImplBaseTrviallyConstructible() = default;
+    UnaryFuncWrapperImplBaseTrviallyConstructible(_UnaryFunc _unary_func) : pred(_unary_func) {}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// struct UnaryFuncWrapperImplBaseNonrviallyConstructible - predicate storage
+// if it's not trivially constructible.
+template <typename _UnaryFunc>
+struct UnaryFuncWrapperImplBaseNonrviallyConstructible
+{
+    _UnaryFunc pred;
+
+    UnaryFuncWrapperImplBaseNonrviallyConstructible() : pred{}
+    {
+    }
+
+    UnaryFuncWrapperImplBaseNonrviallyConstructible(_UnaryFunc _unary_func) : pred(_unary_func)
+    {
+    }
+};
+
+template <typename _UnaryFunc>
+using UnaryFuncWrapperImplBase = ::std::conditional_t<
+    ::std::is_trivially_constructible_v<_UnaryFunc>,
+    UnaryFuncWrapperImplBaseTrviallyConstructible<_UnaryFunc>,
+    UnaryFuncWrapperImplBaseNonrviallyConstructible<_UnaryFunc>>;
+
+////////////////////////////////////////////////////////////////////////////////
+// struct UnaryFuncWrapperImplCopyable - predicat storage
+// if it's trivially copyable
+template <typename _UnaryFunc>
+struct UnaryFuncWrapperImplCopyable : UnaryFuncWrapperImplBase<_UnaryFunc>
+{
+    UnaryFuncWrapperImplCopyable() = default;
+    UnaryFuncWrapperImplCopyable(_UnaryFunc __unary_func) : UnaryFuncWrapperImplBase<_UnaryFunc>(__unary_func) {}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// struct UnaryFuncWrapperImplNotCopyable - predicat storage
+// if it's not trivially copyable
+template <typename _UnaryFunc>
+struct UnaryFuncWrapperImplNotCopyable : UnaryFuncWrapperImplBase<_UnaryFunc>
+{
+    UnaryFuncWrapperImplNotCopyable() = default;
+    UnaryFuncWrapperImplNotCopyable(_UnaryFunc __unary_func) : UnaryFuncWrapperImplBase<_UnaryFunc>(__unary_func) {}
+
+    UnaryFuncWrapperImplNotCopyable(const UnaryFuncWrapperImplNotCopyable<_UnaryFunc>&)
+    {
+        // do nothing
+    }
+    UnaryFuncWrapperImplNotCopyable(UnaryFuncWrapperImplNotCopyable<_UnaryFunc>&&)
+    {
+        // do nothing
+    }
+
+    UnaryFuncWrapperImplNotCopyable&
+    operator=(const UnaryFuncWrapperImplNotCopyable<_UnaryFunc>&)
+    {
+        // do nothing
+        return *this;
+    }
+
+    UnaryFuncWrapperImplNotCopyable&
+    operator=(UnaryFuncWrapperImplNotCopyable<_UnaryFunc>&&)
+    {
+        // do nothing
+        return *this;
+    }
+};
+
+template <typename _UnaryFunc>
+using UnaryFuncWrapper =
+    ::std::conditional_t<::std::is_trivially_copyable_v<_UnaryFunc>, UnaryFuncWrapperImplCopyable<_UnaryFunc>,
+                         UnaryFuncWrapperImplNotCopyable<_UnaryFunc>>;
+
 template <typename _Iter, typename _UnaryFunc>
 class transform_iterator
 {
   private:
     _Iter __my_it_;
-    _UnaryFunc __my_unary_func_;
+    UnaryFuncWrapper<_UnaryFunc> __my_unary_func_storage;
 
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
-    typedef decltype(__my_unary_func_(::std::declval<typename ::std::iterator_traits<_Iter>::reference>())) reference;
+    typedef decltype(__my_unary_func_storage.pred(::std::declval<typename ::std::iterator_traits<_Iter>::reference>())) reference;
     typedef ::std::remove_reference_t<reference> value_type;
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
@@ -416,11 +499,11 @@ class transform_iterator
     {
     }
     transform_iterator(_Iter __it, _UnaryFunc __unary_func)
-        : __my_it_(__it), __my_unary_func_(__unary_func)
+        : __my_it_(__it), __my_unary_func_storage(__unary_func)
     {
     }
 
-    reference operator*() const { return __my_unary_func_(*__my_it_); }
+    reference operator*() const { return __my_unary_func_storage.pred(*__my_it_); }
     reference operator[](difference_type __i) const { return *(*this + __i); }
     transform_iterator&
     operator++()
@@ -451,12 +534,12 @@ class transform_iterator
     transform_iterator
     operator+(difference_type __forward) const
     {
-        return {__my_it_ + __forward, __my_unary_func_};
+        return {__my_it_ + __forward, __my_unary_func_storage.pred};
     }
     transform_iterator
     operator-(difference_type __backward) const
     {
-        return {__my_it_ - __backward, __my_unary_func_};
+        return {__my_it_ - __backward, __my_unary_func_storage.pred};
     }
     transform_iterator&
     operator+=(difference_type __forward)
@@ -519,7 +602,7 @@ class transform_iterator
     _UnaryFunc
     functor() const
     {
-        return __my_unary_func_;
+        return __my_unary_func_storage.pred;
     }
 };
 
