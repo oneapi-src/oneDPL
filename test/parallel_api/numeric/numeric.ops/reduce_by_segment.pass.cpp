@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- reduce_by_segment.h ------------------------------------------------===//
+//===-- reduce_by_segment.pass.cpp ----------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -13,14 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "support/test_config.h"
-
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/numeric"
 #include "oneapi/dpl/iterator"
 #include "oneapi/dpl/complex"
 
+#include "support/test_config.h"
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 #include "support/reduce_serial_impl.h"
@@ -331,4 +330,26 @@ run_test()
         test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
 #    endif // TEST_DPCPP_BACKEND_PRESENT
 #endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
+}
+
+int
+main()
+{
+#if TEST_DPCPP_BACKEND_PRESENT
+    // test with flag pred
+    test_flag_pred<sycl::usm::alloc::device, class KernelName1, std::uint64_t>();
+    test_flag_pred<sycl::usm::alloc::device, class KernelName2, dpl::complex<float>>();
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+    run_test<::std::uint64_t,       UserBinaryPredicate<::std::uint64_t>,       MaxFunctor<::std::uint64_t>>();
+    run_test<::std::complex<float>, UserBinaryPredicate<::std::complex<float>>, MaxFunctor<::std::complex<float>>>();
+
+    run_test<int,    ::std::equal_to<int>,    ::std::plus<int>>();
+    run_test<int,    ::std::equal_to<int>,    ::std::multiplies<int>>();
+    run_test<float,  ::std::equal_to<float>,  ::std::plus<float>>();
+    run_test<float,  ::std::equal_to<float>,  ::std::multiplies<float>>();
+    run_test<double, ::std::equal_to<double>, ::std::plus<double>>();
+    run_test<double, ::std::equal_to<double>, ::std::multiplies<double>>();
+
+    return TestUtils::done();
 }
