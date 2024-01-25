@@ -34,14 +34,9 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag, KernelName)
     {
         if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
-            auto exec = create_new_policy<KernelName>(::std::forward<Policy>(exec_src));
-#if TEST_DPCPP_BACKEND_PRESENT
-            auto exec1 = create_new_policy<TestUtils::new_kernel_name<KernelName, 1>>(::std::forward<Policy>(exec_src));
-            auto exec2 = create_new_policy<TestUtils::new_kernel_name<KernelName, 2>>(::std::forward<Policy>(exec_src));
-#else
-            auto exec1 = exec_src;
-            auto exec2 = exec_src;
-#endif // TEST_DPCPP_BACKEND_PRESENT
+            auto exec  = create_new_policy_idx<KernelName, 0>(::std::forward<Policy>(exec_src));
+            auto exec1 = create_new_policy_idx<KernelName, 1>(::std::forward<Policy>(exec_src));
+            auto exec2 = create_new_policy_idx<KernelName, 2>(::std::forward<Policy>(exec_src));
 
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);                                 // source data(1) for merge
             TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);                                 // source data(2) for merge
