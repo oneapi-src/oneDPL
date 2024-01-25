@@ -29,6 +29,7 @@
 #include <cstring>
 #include <iostream>
 #include <iterator>
+#include <cmath>
 #include <complex>
 #include <type_traits>
 #include <memory>
@@ -97,11 +98,22 @@ expect(bool expected, bool condition, const char* file, std::int32_t line, const
 
 // Do not change signature to const T&.
 // Function must be able to detect const differences between expected and actual.
-template <typename T>
+template <typename T1, typename T2>
 void
-expect_equal_val(const T& expected, const T& actual, const char* file, std::int32_t line, const char* message)
+expect_equal_val(const T1& expected, const T2& actual, const char* file, std::int32_t line, const char* message)
 {
-    if (!(expected == actual))
+    using T = std::common_type_t<T1, T2>;
+
+    bool __is_error = false;
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        const auto eps = std::numeric_limits<T>::epsilon();
+        __is_error = std::fabs(T(expected) - T(actual)) >= eps;
+    }
+    else
+        __is_error = !(T(expected) == T(actual));
+
+    if (__is_error)
     {
         ::std::stringstream outstr;
         outstr << "error at " << file << ":" << line << " - " << message << ", expected " << expected << " got "
@@ -328,16 +340,56 @@ HashBits(size_t i, size_t bits)
 
 // Stateful unary op
 template <typename T, typename U>
-class Complement
+struct Complement
 {
-    std::int32_t val;
+    std::int32_t val = 1;
 
-  public:
-    Complement(T v) : val(v) {}
     U
     operator()(const T& x) const
     {
         return U(val - x);
+    }
+};
+
+struct ComplementZip
+{
+    std::int32_t val = 1;
+
+    template<typename T>
+    auto
+    operator()(const oneapi::dpl::__internal::tuple<T&>& t) const
+    {
+        return oneapi::dpl::__internal::tuple<T>(val - std::get<0>(t));
+    }
+};
+
+template <typename In1, typename In2, typename Out>
+class TheOperation
+{
+    Out val;
+
+  public:
+    TheOperation(Out v) : val(v) {}
+    Out
+    operator()(const In1& x, const In2& y) const
+    {
+        return Out(val + x - y);
+    }
+};
+
+template <typename Out>
+class TheOperationZip
+{
+    Out val;
+
+  public:
+    TheOperationZip(Out v) : val(v) {}
+
+    template <typename T1, typename T2>
+    auto
+    operator()(const oneapi::dpl::__internal::tuple<T1&>& t1, const oneapi::dpl::__internal::tuple<T2&>& t2) const
+    {
+        return oneapi::dpl::__internal::tuple<Out>(val + std::get<0>(t1) - std::get<0>(t2));
     }
 };
 
@@ -779,6 +831,24 @@ struct TupleAddFunctor
         using ::std::get;
         Tup1 tup_sum = ::std::make_tuple(get<0>(lhs) + get<0>(rhs), get<1>(lhs) + get<1>(rhs));
         return tup_sum;
+    }
+};
+
+struct _Identity
+{
+    template< class T >
+    constexpr T&& operator()(T&& t) const noexcept
+    {
+        return std::forward<T>(t);
+    }
+};
+
+struct _ZipIteratorAdapter
+{
+    template< class T >
+    constexpr auto operator()(T&& t) const noexcept
+    {
+        return dpl::make_zip_iterator(std::forward<T>(t));
     }
 };
 
