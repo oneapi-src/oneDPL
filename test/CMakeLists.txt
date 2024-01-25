@@ -77,7 +77,7 @@ macro(onedpl_construct_exec test_source_file _test_name switch_off_checked_itera
     target_compile_definitions(${_test_name} PRIVATE _PSTL_TEST_SUCCESSFUL_KEYWORD=1)
 
     if (NOT ${custom_define} STREQUAL "")
-        target_compile_definitions(${_test_name} PRIVATE custom_define)
+        target_compile_definitions(${_test_name} PRIVATE ${custom_define})
     endif()
     if (MSVC)
         target_compile_options(${_test_name} PRIVATE /bigobj)

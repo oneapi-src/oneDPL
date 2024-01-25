@@ -259,24 +259,27 @@ struct transform_reduce
             __local_mem[__local_idx] = __res;
         }
     }
+
+    // For non-SPIR-V targets, we check if the operator is commutative before selecting the appropriate codepath.
+    // On SPIR-V targets, the sequential implementation with the non-commutative operator is currently more performant.
+    static constexpr bool __use_nonseq_impl = !oneapi::dpl::__internal::__is_spirv_target_v && _Commutative::value;
+
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     inline void
     operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __global_offset, const _AccLocal& __local_mem,
                const _Acc&... __acc) const
     {
-#ifndef _ONEDPL_DETECT_SPIRV_COMPILATION
-        if constexpr (_Commutative::value)
+        if constexpr (__use_nonseq_impl)
             return nonseq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
-#endif // _ONEDPL_DETECT_SPIRV_COMPILATION
-        return seq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
+        else
+            return seq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
     }
 
     template <typename _Size>
     _Size
     output_size(const _Size& __n, const ::std::uint16_t& __work_group_size) const
     {
-#ifndef _ONEDPL_DETECT_SPIRV_COMPILATION
-        if constexpr (_Commutative::value)
+        if constexpr (__use_nonseq_impl)
         {
             _Size __items_per_work_group = __work_group_size * __iters_per_work_item;
             _Size __full_group_contrib = (__n / __items_per_work_group) * __work_group_size;
@@ -285,9 +288,8 @@ struct transform_reduce
             _Size __last_wg_contrib = ::std::min(__last_wg_remainder, static_cast<_Size>(__work_group_size));
             return __full_group_contrib + __last_wg_contrib;
         }
-#endif // _ONEDPL_DETECT_SPIRV_COMPILATION
-
-        return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
+        else
+            return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
     }
 };
 
