@@ -271,10 +271,8 @@ struct transform_reduce
     operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __global_offset, const _AccLocal& __local_mem,
                const _Acc&... __acc) const
     {
-#if !_ONEDPL_DETECT_SPIRV_COMPILATION
         if constexpr (_Commutative::value)
             return nonseq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
-#endif // _ONEDPL_DETECT_SPIRV_COMPILATION
         return seq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
     }
 
@@ -282,7 +280,6 @@ struct transform_reduce
     _Size
     output_size(const _Size& __n, const ::std::uint16_t& __work_group_size) const
     {
-#if !_ONEDPL_DETECT_SPIRV_COMPILATION
         if constexpr (_Commutative::value)
         {
             _Size __items_per_work_group = __work_group_size * __iters_per_work_item;
@@ -292,7 +289,6 @@ struct transform_reduce
             _Size __last_wg_contrib = ::std::min(__last_wg_remainder, static_cast<_Size>(__work_group_size));
             return __full_group_contrib + __last_wg_contrib;
         }
-#endif // _ONEDPL_DETECT_SPIRV_COMPILATION
 
         return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
     }

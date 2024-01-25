@@ -430,16 +430,6 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     using _ReduceValueType = tuple<_IndexValueType, _IteratorValueType>;
     using _Commutative = ::std::true_type;
     auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
-#if _ONEDPL_DETECT_SPIRV_COMPILATION
-        // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
-        // not commutative.
-        using ::std::get;
-        if (__comp(get<1>(__b), get<1>(__a)))
-        {
-            return __b;
-        }
-        return __a;
-#else
         // This operator keeps track of the lowest found index in case of equal min. or max. values. Thus, this operator is
         // commutative.
         bool _is_a_lt_b = __comp(get<1>(__a), get<1>(__b));
@@ -450,7 +440,6 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
             return __b;
         }
         return __a;
-#endif
     };
     auto __transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
 

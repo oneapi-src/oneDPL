@@ -103,6 +103,13 @@ class all_view
         return __m_acc;
     }
 
+    // TODO: Rename and force all data types to become ranges for inputs
+    const _T*
+    get_pointer() const
+    {
+        return __m_acc.get_pointer();
+    }
+
   private:
     __accessor_t __m_acc;
 };

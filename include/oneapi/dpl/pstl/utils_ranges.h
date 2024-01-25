@@ -231,6 +231,12 @@ class guard_view
         return begin() + size();
     }
 
+    _Iterator
+    get_pointer() const
+    {
+        return m_p;
+    }
+
     //TODO: to be consistent with C++ standard, this Idx should be changed to diff_type of underlying iterator
     template <typename Idx>
     auto operator[](Idx i) const -> decltype(begin()[i])
