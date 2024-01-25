@@ -41,7 +41,7 @@ class sycl_backend
         sycl::event e_;
 
       public:
-        async_waiter(sycl::event e) : e_(e) {}
+        async_waiter(const sycl::event& e) : e_(e) {}
         sycl::event
         unwrap()
         {
@@ -114,12 +114,12 @@ class sycl_backend
             auto e2 = q.submit([=](sycl::handler& h) {
                 h.depends_on(e1);
                 h.host_task([=]() {
+                    if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t>)
+                        s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
                     if constexpr (report_info_v<SelectionHandle, execution_info::task_completion_t>)
                     {
                         s.report(execution_info::task_completion);
                     }
-                    if constexpr (report_value_v<SelectionHandle, execution_info::task_time_t>)
-                        s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
                 });
             });
             return async_waiter{e2};
