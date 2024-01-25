@@ -42,7 +42,7 @@ Static Member Constants
 
 .. note::
 
-   The ``data_per_workitem`` parameter has a special meaning in ESIMD-based kernel templates.
+   The ``data_per_workitem`` parameter has a special meaning in :doc:`ESIMD-based kernel templates <esimd_main>`.
    Usually, each work-item processes ``data_per_workitem`` input elements sequentially.
    However, work-items in ESIMD-based kernel templates perform vectorization,
    so the sequential work is ``data_per_workitem / vector_length`` elements, where ``vector_length``

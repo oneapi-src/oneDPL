@@ -1,7 +1,7 @@
 Kernel Templates API
 ####################
 
-Kernel templates is an experimental API that provides algorithms built on top of SYCL* kernels and customizable with various parameters.
+Kernel templates is an experimental API that provides algorithms built on top of SYCL* kernels and customizable with various parameters,
 such as the number of elements to be processed by a work-item and the size of a work-group.
 These algorithms aim to deliver optimal performance. However, they may depend on assumptions
 that are not satisfied by all devices, prioritizing efficiency over generality.
