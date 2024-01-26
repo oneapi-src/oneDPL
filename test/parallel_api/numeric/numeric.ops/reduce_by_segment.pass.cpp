@@ -41,6 +41,9 @@
 #endif // TEST_DPCPP_BACKEND_PRESENT
 using namespace TestUtils;
 
+// Please uncomment this define investigation issues in this test
+//#define LOG_TEST_INFO 1
+
 // This macro may be used to analyze source data and test results in test_reduce_by_segment
 // WARNING: in the case of using this macro debug output is very large.
 // #define DUMP_CHECK_RESULTS
