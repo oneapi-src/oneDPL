@@ -413,6 +413,7 @@ main()
 #if LOG_TEST_INFO
     std::cout << "run_test<::std::equal_to, ::std::multiplies>();" << std::endl;
 #endif
+    // TODO investigate possible overflow
     run_test<::std::equal_to, ::std::multiplies>();
 
     return TestUtils::done();
