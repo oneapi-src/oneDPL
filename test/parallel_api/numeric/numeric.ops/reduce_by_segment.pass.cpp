@@ -13,6 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if defined(ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
+#undef ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+#endif
+
+#if defined(_ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION_TEST_GENERATION)
+#    define ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION _ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION_TEST_GENERATION
+#endif
+
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/numeric"
