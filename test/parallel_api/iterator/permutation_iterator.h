@@ -26,38 +26,35 @@
 #include <vector>
 #include <iterator>
 
-/// struct perm_it_index_tags - describe indexes of permutation iterator
-struct perm_it_index_tags
-{
-    // Index of permutation iterator is based on counting iterator
-    struct counting { };
+// Index of permutation iterator is based on counting iterator
+struct perm_it_index_tags_counting { };
 
-    // Index of permutation iterator is based on host iterator
-    struct host { };
+// Index of permutation iterator is based on host iterator
+struct perm_it_index_tags_host { };
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    // Index of permutation iterator is based on USM shared memory
-    struct usm_shared { };
-    // Test case is for USM device memory is unavailable to implement due to indexes
-    // cannot be initialized on the host (USM device is not accessible on the host)
+// Index of permutation iterator is based on USM shared memory
+struct perm_it_index_tags_usm_shared { };
+// Test case is for USM device memory is unavailable to implement due to indexes
+// cannot be initialized on the host (USM device is not accessible on the host)
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    // Index of permutation iterator is based on transform iterator
-    struct transform_iterator { };
+// Index of permutation iterator is based on transform iterator
+struct perm_it_index_tags_transform_iterator { };
 
-    // Index of permutation iterator is based on callable object
-    struct callable_object { };
-};
+// Index of permutation iterator is based on callable object
+struct perm_it_index_tags_callable_object { };
+
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
  * @param template typename TSourceIterator - source iterator type
  * @param typename TSourceDataSize - type of source data size
  * @param typename PermItIndexTag - tag permutation iterator base kind:
- *          - perm_it_index_tags::counting;
- *          - perm_it_index_tags::host;
- *          - perm_it_index_tags::usm_shared;
- *          - perm_it_index_tags::transform_iterator.
+ *          - perm_it_index_tags_counting;
+ *          - perm_it_index_tags_host;
+ *          - perm_it_index_tags_usm_shared;
+ *          - perm_it_index_tags_transform_iterator.
  */
 template <typename TSourceIterator, typename TSourceDataSize>
 struct test_through_permutation_iterator_data
@@ -92,7 +89,7 @@ struct test_through_permutation_iterator
 
 ////////////////////////////////////////////////////////////////////////////////
 template <typename TSourceIterator, typename TSourceDataSize>
-struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags::counting>
+struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags_counting>
 {
     test_through_permutation_iterator_data<TSourceIterator, TSourceDataSize> data;
 
@@ -116,7 +113,7 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
 
 ////////////////////////////////////////////////////////////////////////////////
 template <typename TSourceIterator, typename TSourceDataSize>
-struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags::host>
+struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags_host>
 {
     test_through_permutation_iterator_data<TSourceIterator, TSourceDataSize> data;
 
@@ -150,7 +147,7 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
 
 ////////////////////////////////////////////////////////////////////////////////
 template <typename TSourceIterator, typename TSourceDataSize>
-struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags::usm_shared>
+struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags_usm_shared>
 {
     test_through_permutation_iterator_data<TSourceIterator, TSourceDataSize> data;
 
@@ -191,7 +188,7 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
 
 ////////////////////////////////////////////////////////////////////////////////
 template <typename TSourceIterator, typename TSourceDataSize>
-struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags::transform_iterator>
+struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags_transform_iterator>
 {
     test_through_permutation_iterator_data<TSourceIterator, TSourceDataSize> data;
 
@@ -227,7 +224,7 @@ struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_
 
 ////////////////////////////////////////////////////////////////////////////////
 template <typename TSourceIterator, typename TSourceDataSize>
-struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags::callable_object>
+struct test_through_permutation_iterator<TSourceIterator, TSourceDataSize, perm_it_index_tags_callable_object>
 {
     test_through_permutation_iterator_data<TSourceIterator, TSourceDataSize> data;
 
