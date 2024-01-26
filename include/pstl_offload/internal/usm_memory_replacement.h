@@ -28,7 +28,7 @@
 namespace __pstl_offload
 {
 
-// allocation can be requested before static ctor run, have a flag for that
+// allocation can be requested before static ctor or after static dtor runs, have a flag for that
 static std::atomic_bool __device_ready;
 
 static void
