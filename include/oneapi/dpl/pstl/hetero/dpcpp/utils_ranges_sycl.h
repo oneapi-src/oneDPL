@@ -296,6 +296,11 @@ __get_first_range_size(const _Range& __rng, const _Ranges&...) -> decltype(__rng
     return __rng.size();
 }
 
+//forward declaration required for _require_access_args
+template <typename _Range, typename... _Ranges>
+void
+__require_access(sycl::handler& __cgh, _Range&& __rng, _Ranges&&... __rest);
+
 template <typename _Cgh>
 struct _require_access_args
 {

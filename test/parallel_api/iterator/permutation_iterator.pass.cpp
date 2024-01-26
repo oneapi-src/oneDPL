@@ -35,6 +35,13 @@ main()
     const std::size_t perm_size_expected = kDefaultIndexStepOp.eval_items_count(countingItDistanceResult);
     auto permItBegin = dpl::make_permutation_iterator(countingItBegin, kDefaultIndexStepOp);
     auto permItEnd = permItBegin + perm_size_expected;
+
+    //transform_iterator is not trivially_copyable, as it defines a copy assignment operator which does not copy
+    // its unary functor.  permutation_iterator is based on transform_iterator and therefore is also not
+    // trivially_copyable.  This makes permutation_iterator's device_copyable trait deprecated with sycl 2020.
+    EXPECT_TRUE(check_if_device_copyable_by_sycl2020_or_by_old_definition <decltype(permItBegin)>,
+                "permutation_iterator (counting_iterator) is not properly copyable");
+
     const std::size_t perm_size_result = std::distance(permItBegin, permItEnd);
     EXPECT_EQ(perm_size_expected, perm_size_result,
               "Wrong result of std::distance<permutationIterator1, permutationIterator2)");
