@@ -18,7 +18,7 @@ The following variables are provided for oneDPL configuration:
 | ONEDPL_AOT_ARCH              | STRING | Architecture options for ahead-of-time compilation, supported values can be found [here](https://software.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html)                                                                                            | "*" for GPU device and "avx" for CPU device |
 | ONEDPL_TEST_EXPLICIT_KERNEL_NAMES   | STRING | Control kernel naming. Affects only oneDPL test targets. Supported values: AUTO, ALWAYS. AUTO: rely on the compiler if "Unnamed SYCL lambda kernels" feature is on, otherwise provide kernel names explicitly; ALWAYS: provide kernel names explicitly | AUTO          |
 | ONEDPL_TEST_WIN_ICX_FIXES     | BOOL   | Affects only oneDPL test targets.  Enable icx, icx-cl workarounds to fix issues in CMake for Windows.                      | ON            |
-| ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION | BOOL | Pass `-DONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=1` for workaround incorrect results which may be produced by ``reduce``, ``reduce_by_segment`` and ``transform_reduce`` with 64-bit types when compiled by Intel® C++ Compiler 2021.3 and newer and executed on GPU devices. |               |
+| ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION | BOOL | Use as a workaround for incorrect results which may be produced by reduction algorithms with 64-bit data types compiled by oneAPI DPC++ Compiler and executed on GPU devices. |               |
 
 Some useful CMake variables ([here](https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html) you can find a full list of CMake variables for the latest version):
 
