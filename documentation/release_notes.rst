@@ -60,8 +60,6 @@ New in This Release
 - Incorrect results may be produced by ``reduce``, ``reduce_by_segment`` and ``transform_reduce``
   with 64-bit data types when compiled by Intel oneAPI DPC++/C++ Compiler 2021.3 and newer
   and executed on GPU devices.
-  For a workaround, define the ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION macro to 1
-  before including oneDPL header files.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
