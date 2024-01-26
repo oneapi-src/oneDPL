@@ -852,6 +852,43 @@ struct _ZipIteratorAdapter
     }
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// Implementation of create_new_policy for all policies (host + hetero)
+template <typename Policy>
+using __is_able_to_create_new_policy =
+#if TEST_DPCPP_BACKEND_PRESENT
+    oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>;
+#else
+    ::std::false_type;
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+#if TEST_DPCPP_BACKEND_PRESENT
+template <typename _NewKernelName, typename Policy, ::std::enable_if_t<__is_able_to_create_new_policy<Policy>::value, int> = 0>
+auto
+create_new_policy(Policy&& policy)
+{
+    return TestUtils::make_new_policy<_NewKernelName>(::std::forward<Policy>(policy));
+}
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+template <typename _NewKernelName, typename Policy, ::std::enable_if_t<!__is_able_to_create_new_policy<Policy>::value, int> = 0>
+auto
+create_new_policy(Policy&& policy)
+{
+    return ::std::forward<Policy>(policy);
+}
+
+template <typename _NewKernelName, int idx, typename Policy>
+auto
+create_new_policy_idx(Policy&& policy)
+{
+#if TEST_DPCPP_BACKEND_PRESENT
+    return create_new_policy<TestUtils::new_kernel_name<_NewKernelName, idx>>(::std::forward<Policy>(policy));
+#else
+    return ::std::forward<Policy>(policy);
+#endif
+}
+
 } /* namespace TestUtils */
 
 #endif // _UTILS_H
