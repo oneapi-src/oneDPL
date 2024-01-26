@@ -76,10 +76,12 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
 
                     // Copy data back
                     std::vector<TestValueType> sourceData(testing_n);
-                    dpl::copy(TestUtils::create_new_policy_idx<Policy, 0>(exec), permItBegin, permItEnd, sourceData.begin());
+                    dpl::copy(TestUtils::create_new_policy_idx<Policy, 0>(exec), permItBegin, permItEnd,
+                              sourceData.begin());
                     wait_and_throw(exec);
                     std::vector<TestValueType> transformedDataResult(testing_n);
-                    dpl::copy(TestUtils::create_new_policy_idx<Policy, 1>(exec), first2, itResultEnd, transformedDataResult.begin());
+                    dpl::copy(TestUtils::create_new_policy_idx<Policy, 1>(exec), first2, itResultEnd,
+                              transformedDataResult.begin());
                     wait_and_throw(exec);
 
                     // Check results

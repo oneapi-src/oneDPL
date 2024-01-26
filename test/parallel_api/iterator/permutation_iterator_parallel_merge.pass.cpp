@@ -75,11 +75,13 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 
                             // Copy data back
                             std::vector<TestValueType> srcData2(testing_n2);
-                            dpl::copy(exec, permItBegin2, permItEnd2, srcData2.begin());
+                            dpl::copy(TestUtils::create_new_policy_idx<Policy, 0>(exec), permItBegin2, permItEnd2,
+                                      srcData2.begin());
                             wait_and_throw(exec);
 
                             std::vector<TestValueType> mergedDataResult(resultSize);
-                            dpl::copy(exec, first3, resultEnd, mergedDataResult.begin());
+                            dpl::copy(TestUtils::create_new_policy_idx<Policy, 1>(exec), first3, resultEnd,
+                                      mergedDataResult.begin());
                             wait_and_throw(exec);
 
                             // Check results
