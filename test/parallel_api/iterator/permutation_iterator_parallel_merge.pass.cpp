@@ -34,6 +34,10 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
     {
         if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
+            auto exec1 = TestUtils::create_new_policy_idx<Policy, 0>(exec);
+            auto exec2 = TestUtils::create_new_policy_idx<Policy, 1>(exec);
+            auto exec3 = TestUtils::create_new_policy_idx<Policy, 2>(exec);
+
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);                                 // source data(1) for merge
             TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);                                 // source data(2) for merge
             TestDataTransfer<UDTKind::eRes,  Size> host_res (*this, ::std::distance(first3, last3));    // merge results
@@ -61,14 +65,12 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 
                     // Copy data back
                     std::vector<TestValueType> srcData1(testing_n1);
-                    dpl::copy(exec, permItBegin1, permItEnd1, srcData1.begin());
-                    wait_and_throw(exec);
+                    dpl::copy(exec1, permItBegin1, permItEnd1, srcData1.begin());
+                    wait_and_throw(exec1);
 
                     test_through_permutation_iterator<Iterator2, Size, PermItIndexTag>{first2, n}(
                         [&](auto permItBegin2, auto permItEnd2)
                         {
-                            auto exec1 = TestUtils::create_new_policy_idx<Policy, 0>(exec);
-                            auto exec2 = TestUtils::create_new_policy_idx<Policy, 1>(exec);
 
                             const auto testing_n2 = ::std::distance(permItBegin2, permItEnd2);
 
@@ -78,12 +80,12 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 
                             // Copy data back
                             std::vector<TestValueType> srcData2(testing_n2);
-                            dpl::copy(exec1, permItBegin2, permItEnd2, srcData2.begin());
-                            wait_and_throw(exec1);
+                            dpl::copy(exec2, permItBegin2, permItEnd2, srcData2.begin());
+                            wait_and_throw(exec2);
 
                             std::vector<TestValueType> mergedDataResult(resultSize);
-                            dpl::copy(exec2, first3, resultEnd, mergedDataResult.begin());
-                            wait_and_throw(exec2);
+                            dpl::copy(exec3, first3, resultEnd, mergedDataResult.begin());
+                            wait_and_throw(exec3);
 
                             // Check results
                             std::vector<TestValueType> mergedDataExpected(testing_n1 + testing_n2);

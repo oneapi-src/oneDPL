@@ -51,6 +51,9 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
     {
         if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
+            auto exec1 = TestUtils::create_new_policy_idx<Policy, 0>(exec);
+            auto exec2 = TestUtils::create_new_policy_idx<Policy, 1>(exec);
+
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for transform
             TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);     // result data of transform
 
@@ -64,9 +67,6 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
             test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
-                    auto exec1 = TestUtils::create_new_policy_idx<Policy, 0>(exec);
-                    auto exec2 = TestUtils::create_new_policy_idx<Policy, 1>(exec);
-
                     const auto testing_n = ::std::distance(permItBegin, permItEnd);
 
                     clear_output_data(host_vals_ptr, host_vals_ptr + n);
