@@ -59,8 +59,7 @@ New in This Release
   To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
 - Incorrect results may be produced by ``reduce``, ``reduce_by_segment`` and ``transform_reduce`` with 64-bit types
   when compiled by Intel® C++ Compiler 2021.3 and newer and executed on GPU devices.
-  The macro ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION may be defined to 1
-  to void using known identity for 64-bit arithmetic data types in these cases.
+  The macro ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION should define to 1 for workaround of this issue.
 
 Existing Issues
 ^^^^^^^^^^^^^^^
