@@ -51,6 +51,9 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
     {
         if constexpr (is_base_of_iterator_category_v<::std::random_access_iterator_tag, Iterator1>)
         {
+            auto exec1 = TestUtils::create_new_policy_idx<Policy, 0>(exec);
+            auto exec2 = TestUtils::create_new_policy_idx<Policy, 1>(exec);
+
             TestDataTransfer<UDTKind::eKeys, Size> host_keys(*this, n);     // source data for transform
             TestDataTransfer<UDTKind::eVals, Size> host_vals(*this, n);     // result data of transform
 
@@ -76,11 +79,11 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
 
                     // Copy data back
                     std::vector<TestValueType> sourceData(testing_n);
-                    dpl::copy(exec, permItBegin, permItEnd, sourceData.begin());
-                    wait_and_throw(exec);
+                    dpl::copy(exec1, permItBegin, permItEnd, sourceData.begin());
+                    wait_and_throw(exec1);
                     std::vector<TestValueType> transformedDataResult(testing_n);
-                    dpl::copy(exec, first2, itResultEnd, transformedDataResult.begin());
-                    wait_and_throw(exec);
+                    dpl::copy(exec2, first2, itResultEnd, transformedDataResult.begin());
+                    wait_and_throw(exec2);
 
                     // Check results
                     std::vector<TestValueType> transformedDataExpected(testing_n);
@@ -117,13 +120,13 @@ main()
     using ValueType = ::std::uint32_t;
 
 #if TEST_DPCPP_BACKEND_PRESENT
-    run_algo_tests<ValueType, perm_it_index_tags::usm_shared>();
+    run_algo_tests<ValueType, perm_it_index_tags_usm_shared>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-    run_algo_tests<ValueType, perm_it_index_tags::counting>();
-    run_algo_tests<ValueType, perm_it_index_tags::host>();
-    run_algo_tests<ValueType, perm_it_index_tags::transform_iterator>();
-    run_algo_tests<ValueType, perm_it_index_tags::callable_object>();
+    run_algo_tests<ValueType, perm_it_index_tags_counting>();
+    run_algo_tests<ValueType, perm_it_index_tags_host>();
+    run_algo_tests<ValueType, perm_it_index_tags_transform_iterator>();
+    run_algo_tests<ValueType, perm_it_index_tags_callable_object>();
 
     return TestUtils::done();
 }
