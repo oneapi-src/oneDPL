@@ -64,6 +64,9 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
             test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
+                    auto exec1 = TestUtils::create_new_policy_idx<Policy, 0>(exec);
+                    auto exec2 = TestUtils::create_new_policy_idx<Policy, 1>(exec);
+
                     const auto testing_n = ::std::distance(permItBegin, permItEnd);
 
                     clear_output_data(host_vals_ptr, host_vals_ptr + n);
@@ -76,13 +79,11 @@ DEFINE_TEST_PERM_IT(test_transform, PermItIndexTag)
 
                     // Copy data back
                     std::vector<TestValueType> sourceData(testing_n);
-                    dpl::copy(TestUtils::create_new_policy_idx<Policy, 0>(exec), permItBegin, permItEnd,
-                              sourceData.begin());
-                    wait_and_throw(exec);
+                    dpl::copy(exec1, permItBegin, permItEnd, sourceData.begin());
+                    wait_and_throw(exec1);
                     std::vector<TestValueType> transformedDataResult(testing_n);
-                    dpl::copy(TestUtils::create_new_policy_idx<Policy, 1>(exec), first2, itResultEnd,
-                              transformedDataResult.begin());
-                    wait_and_throw(exec);
+                    dpl::copy(exec2, first2, itResultEnd, transformedDataResult.begin());
+                    wait_and_throw(exec2);
 
                     // Check results
                     std::vector<TestValueType> transformedDataExpected(testing_n);
