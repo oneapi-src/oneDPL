@@ -17,4 +17,4 @@ D: Improved performance of the nth_element algorithm when input contains large n
 N: Qually Jiang
 W: https://github.com/Quallyjiang
 E: qually.jiang@intel.com
-D: Implemented a prototype of ESIMD-based radix sort, which was later adapted into oneapi::dpl::experimental::kt::esimd::radix_sort and oneapi::dpl::experimental::kt::esimd::radix_sort_by_key.
+D: Implemented a prototype of ESIMD-based radix sort, which was adapted into oneDPL radix sort kernel templates.
