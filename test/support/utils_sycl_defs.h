@@ -59,6 +59,17 @@ using fpga_selector = sycl::INTEL::fpga_selector;
 #    endif
 #endif // ONEDPL_FPGA_DEVICE
 
+template <typename Buf>
+auto
+get_host_access(Buf&& buf)
+{
+#if TEST_LIBSYCL_VERSION >= 60200
+    return ::std::forward<Buf>(buf).get_host_access(sycl::read_only);
+#else
+    return ::std::forward<_Buf>(buf).template get_access<sycl::access::mode::read>();
+#endif
+}
+
 } // TestUtils
 
 #endif //  _UTILS_SYCL_DEFS_H
