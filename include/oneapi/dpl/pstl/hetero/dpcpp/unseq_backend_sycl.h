@@ -69,7 +69,7 @@ using __has_known_identity = ::std::conditional_t<
                            ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>,
 #    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
-    ::std::false_type>;
+    ::std::false_type>;     // This is for the case of __can_use_known_identity<_Tp>==false
 
 #else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 
