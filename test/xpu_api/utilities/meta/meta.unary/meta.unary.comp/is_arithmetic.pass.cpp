@@ -22,7 +22,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class KernelTest, class T>
 void
 test_is_arithmetic(sycl::queue& deviceQueue)
@@ -67,7 +66,8 @@ class Empty
 {
 };
 
-union Union {
+union Union
+{
 };
 
 struct bit_zero
@@ -113,7 +113,7 @@ class KernelTest26;
 void
 kernel_test()
 {
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_is_arithmetic<KernelTest1, short>(deviceQueue);
     test_is_arithmetic<KernelTest2, unsigned short>(deviceQueue);
     test_is_arithmetic<KernelTest3, int>(deviceQueue);
@@ -145,14 +145,11 @@ kernel_test()
     test_is_not_arithmetic<KernelTest25, incomplete_type>(deviceQueue);
     test_is_not_arithmetic<KernelTest26, bit_zero>(deviceQueue);
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

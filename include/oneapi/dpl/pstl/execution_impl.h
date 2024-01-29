@@ -96,9 +96,6 @@ struct __policy_traits<oneapi::dpl::execution::parallel_unsequenced_policy>
 };
 
 template <typename _ExecutionPolicy>
-using __collector_t = typename __internal::__policy_traits<::std::decay_t<_ExecutionPolicy>>::__collector_type;
-
-template <typename _ExecutionPolicy>
 using __allow_vector = typename __internal::__policy_traits<::std::decay_t<_ExecutionPolicy>>::__allow_vector;
 
 template <typename _ExecutionPolicy>

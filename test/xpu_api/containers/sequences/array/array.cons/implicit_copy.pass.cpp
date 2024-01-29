@@ -23,20 +23,17 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-#    define TEST_NOT_COPY_ASSIGNABLE(T) static_assert(!dpl::is_copy_assignable<T>::value)
+#define TEST_NOT_COPY_ASSIGNABLE(T) static_assert(!dpl::is_copy_assignable<T>::value)
 
 struct NoDefault
 {
     NoDefault() {}
     NoDefault(int) {}
 };
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     {
         sycl::queue q = TestUtils::get_test_queue();
         q.submit([&](sycl::handler& cgh) {
@@ -92,7 +89,6 @@ main()
             });
         });
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

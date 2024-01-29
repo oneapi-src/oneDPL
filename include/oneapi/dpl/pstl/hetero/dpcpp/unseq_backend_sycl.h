@@ -34,11 +34,21 @@ namespace unseq_backend
 //This optimization depends on Intel(R) oneAPI DPC++ Compiler implementation such as support of binary operators from std namespace.
 //We need to use defined(SYCL_IMPLEMENTATION_INTEL) macro as a guard.
 
+template <typename _Tp>
+inline constexpr bool __can_use_known_identity =
+#    if ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+    // When ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION is defined as non-zero, we avoid using known identity for 64-bit arithmetic data types
+    !(::std::is_arithmetic_v<_Tp> && sizeof(_Tp) == sizeof(::std::uint64_t));
+#    else
+    true;
+#    endif // ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+
 //TODO: To change __has_known_identity implementation as soon as the Intel(R) oneAPI DPC++ Compiler implementation issues related to
 //std::multiplies, std::bit_or, std::bit_and and std::bit_xor operations will be fixed.
 //std::logical_and and std::logical_or are not supported in Intel(R) oneAPI DPC++ Compiler to be used in sycl::inclusive_scan_over_group and sycl::reduce_over_group
 template <typename _BinaryOp, typename _Tp>
-using __has_known_identity =
+using __has_known_identity = ::std::conditional_t<
+    __can_use_known_identity<_Tp>,
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::disjunction<
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
@@ -50,15 +60,16 @@ using __has_known_identity =
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<_Tp>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
-                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>;
+                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>,
 #    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>;
+                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>,
 #    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
+    ::std::false_type>;     // This is for the case of __can_use_known_identity<_Tp>==false
 
 #else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 
@@ -191,7 +202,8 @@ struct __init_processing
 
 // Load elements consecutively from global memory, transform them, and apply a local reduction. Each local result is
 // stored in local memory.
-template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2>
+template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
+          typename _Commutative>
 struct transform_reduce
 {
     _Operation1 __binary_op;
@@ -199,14 +211,14 @@ struct transform_reduce
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     void
-    operator()(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, const _AccLocal& __local_mem,
-               const _Acc&... __acc) const
+    seq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, const _AccLocal& __local_mem,
+             const _Acc&... __acc) const
     {
         auto __global_idx = __item_id.get_global_id(0);
         auto __local_idx = __item_id.get_local_id(0);
         const _Size __adjusted_global_id = __global_offset + __iters_per_work_item * __global_idx;
         const _Size __adjusted_n = __global_offset + __n;
-        // Add neighbour to the current __local_mem
+        // Sequential load and reduce from global memory
         if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
         {
             // Keep these statements in the same scope to allow for better memory alignment
@@ -225,6 +237,70 @@ struct transform_reduce
                 __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
             __local_mem[__local_idx] = __res;
         }
+    }
+
+    template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
+    void
+    nonseq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, const _AccLocal& __local_mem,
+                const _Acc&... __acc) const
+    {
+        auto __local_idx = __item_id.get_local_id(0);
+        const _Size __stride = __item_id.get_local_range(0);
+
+        const _Size __adjusted_global_id =
+            __global_offset + __item_id.get_group_linear_id() * __stride * __iters_per_work_item + __local_idx;
+        const _Size __adjusted_n = __global_offset + __n;
+
+        // Coalesced load and reduce from global memory
+        if (__adjusted_global_id + __stride * __iters_per_work_item < __adjusted_n)
+        {
+            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+            _ONEDPL_PRAGMA_UNROLL
+            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
+                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
+            __local_mem[__local_idx] = __res;
+        }
+        else if (__adjusted_global_id < __adjusted_n)
+        {
+            const _Size __items_to_process =
+                std::max(((__adjusted_n - __adjusted_global_id - 1) / __stride) + 1, static_cast<_Size>(0));
+            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+            for (_Size __i = 1; __i < __items_to_process; ++__i)
+                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
+            __local_mem[__local_idx] = __res;
+        }
+    }
+
+    // For non-SPIR-V targets, we check if the operator is commutative before selecting the appropriate codepath.
+    // On SPIR-V targets, the sequential implementation with the non-commutative operator is currently more performant.
+    static constexpr bool __use_nonseq_impl = !oneapi::dpl::__internal::__is_spirv_target_v && _Commutative::value;
+
+    template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
+    inline void
+    operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __global_offset, const _AccLocal& __local_mem,
+               const _Acc&... __acc) const
+    {
+        if constexpr (__use_nonseq_impl)
+            return nonseq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
+        else
+            return seq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
+    }
+
+    template <typename _Size>
+    _Size
+    output_size(const _Size& __n, const ::std::uint16_t& __work_group_size) const
+    {
+        if constexpr (__use_nonseq_impl)
+        {
+            _Size __items_per_work_group = __work_group_size * __iters_per_work_item;
+            _Size __full_group_contrib = (__n / __items_per_work_group) * __work_group_size;
+            _Size __last_wg_remainder = __n % __items_per_work_group;
+
+            _Size __last_wg_contrib = ::std::min(__last_wg_remainder, static_cast<_Size>(__work_group_size));
+            return __full_group_contrib + __last_wg_contrib;
+        }
+        else
+            return oneapi::dpl::__internal::__dpl_ceiling_div(__n, __iters_per_work_item);
     }
 };
 

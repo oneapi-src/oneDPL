@@ -268,8 +268,7 @@ template <typename _ExecutionPolicy, typename _Fp, typename _Index,
 auto
 __parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using _CustomName = typename _Policy::kernel_name;
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
     return __parallel_for_submitter<_ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
@@ -551,7 +550,6 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     }
                     else
                     {
-                        _ONEDPL_PRAGMA_UNROLL
                         for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                         {
                             __lacc[__idx] = __unary_op(__in_rng[__idx]);
@@ -573,7 +571,6 @@ struct __parallel_transform_scan_static_single_group_submitter<_Inclusive, _Elem
                     }
                     else
                     {
-                        _ONEDPL_PRAGMA_UNROLL
                         for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                         {
                             __out_rng[__idx] = __lacc[__idx];
@@ -656,7 +653,6 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                     }
                     else
                     {
-                        _ONEDPL_PRAGMA_UNROLL
                         for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                         {
                             __lacc[__idx] = __unary_op(__in_rng[__idx]);
@@ -667,7 +663,6 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
                         __group, __lacc_ptr, __lacc_ptr + __elems_per_wg, __lacc_ptr + __elems_per_wg, __bin_op,
                          __init);
 
-                    _ONEDPL_PRAGMA_UNROLL
                     for (::std::uint16_t __idx = __item_id; __idx < __n; __idx += _WGSize)
                     {
                         if (__lacc[__idx])
@@ -701,7 +696,7 @@ __parallel_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_
                                        ::std::size_t __n, _UnaryOperation __unary_op, _InitType __init,
                                        _BinaryOperation __binary_op, _Inclusive)
 {
-    using _CustomName = typename std::decay_t<_ExecutionPolicy>::kernel_name;
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     ::std::size_t __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
 
@@ -780,8 +775,7 @@ __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _R
                                _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
                                _GroupScan __group_scan, _GlobalScan __global_scan)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using _CustomName = typename _Policy::kernel_name;
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     using _PropagateKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__scan_propagate_kernel<_CustomName>>;
@@ -864,7 +858,7 @@ struct __invoke_single_group_copy_if
         constexpr ::std::uint16_t __num_elems_per_item = ::oneapi::dpl::__internal::__dpl_ceiling_div(_Size, __wg_size);
         const bool __is_full_group = __n == __wg_size;
 
-        using _CustomName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
+        using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _InitType = unseq_backend::__no_init_value<::std::uint16_t>;
         using _ReduceOp = ::std::plus<::std::uint16_t>;
         if (__is_full_group)
@@ -1117,8 +1111,7 @@ oneapi::dpl::__internal::__enable_if_device_execution_policy<
                              typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>>
 __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using _CustomName = typename _Policy::kernel_name;
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _AtomicType = typename _BrickTag::_AtomicType;
     using _FindOrKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
@@ -1457,7 +1450,6 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
     {
         //copying a residual of the second seq
         const auto __n = ::std::min<_Index2>(__n2 - __start2, __chunk);
-        _ONEDPL_PRAGMA_UNROLL
         for (::std::uint8_t __i = 0; __i < __n; ++__i)
             __rng3[__start3 + __i] = __rng2[__start2 + __i];
     }
@@ -1465,14 +1457,12 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
     {
         //copying a residual of the first seq
         const auto __n = ::std::min<_Index1>(__n1 - __start1, __chunk);
-        _ONEDPL_PRAGMA_UNROLL
         for (::std::uint8_t __i = 0; __i < __n; ++__i)
             __rng3[__start3 + __i] = __rng1[__start1 + __i];
     }
     else
     {
         ::std::uint8_t __n = __chunk;
-        _ONEDPL_PRAGMA_UNROLL
         for (::std::uint8_t __i = 0; __i < __n && __start1 < __n1 && __start2 < __n2; ++__i)
         {
             const auto& __val1 = __rng1[__start1];
@@ -1483,7 +1473,6 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
                   if (++__start2 == __n2)
                   {
                       //copying a residual of the first seq
-                      _ONEDPL_PRAGMA_UNROLL
                       for (++__i; __i < __n && __start1 < __n1; ++__i, ++__start1)
                           __rng3[__start3 + __i] = __rng1[__start1];
                   }
@@ -1494,7 +1483,6 @@ __serial_merge(const _Rng1& __rng1, const _Rng2& __rng2, _Rng3& __rng3, _Index1 
                 if (++__start1 == __n1)
                 {
                     //copying a residual of the second seq
-                    _ONEDPL_PRAGMA_UNROLL
                     for (++__i; __i < __n && __start2 < __n2; ++__i, ++__start2)
                         __rng3[__start3 + __i] = __rng2[__start2];
                 }
@@ -1549,8 +1537,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 auto
 __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using _CustomName = typename _Policy::kernel_name;
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     const auto __n = __rng1.size() + __rng2.size();
     if (__n <= std::numeric_limits<::std::uint32_t>::max())
@@ -1695,7 +1682,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
             });
         }
 
-        return __future(__event1, __temp);
+        return __future(__event1);
     }
 };
 
@@ -1704,8 +1691,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare,
 auto
 __parallel_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using _CustomName = typename _Policy::kernel_name;
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     const auto __n = __rng.size();
     if (__n <= std::numeric_limits<::std::uint32_t>::max())
@@ -1803,7 +1789,7 @@ struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_Glo
             });
         }
         // return future and extend lifetime of temporary buffer
-        return __future(__event1, __temp);
+        return __future(__event1);
     }
 };
 
@@ -1812,8 +1798,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename 
 auto
 __parallel_partial_sort_impl(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using _CustomName = typename _Policy::kernel_name;
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _GlobalSortKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName>>;
     using _CopyBackKernel =

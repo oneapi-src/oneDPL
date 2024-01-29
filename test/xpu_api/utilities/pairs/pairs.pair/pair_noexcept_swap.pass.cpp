@@ -19,7 +19,6 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct NoexceptMoveAssignClass
 {
 };
@@ -47,7 +46,7 @@ struct NonNoexceptMoveAssignClass
 };
 
 template <typename T>
-void 
+void
 test_is_nothrow_swappable()
 {
     static_assert(std::is_nothrow_swappable_v<T>);
@@ -108,14 +107,11 @@ kernel_test()
         });
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

@@ -62,6 +62,7 @@ struct mutable_check_mod3_is_0
     }
 };
 
+template <typename T1>
 struct test_transform_if_binary
 {
     template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename Size>
@@ -95,6 +96,7 @@ struct test_transform_if_binary
     }
 };
 
+template <typename T1>
 struct test_transform_if_unary
 {
     template <typename Policy, typename InputIterator1, typename OutputIterator, typename Size>
@@ -125,6 +127,7 @@ struct test_transform_if_unary
     }
 };
 
+template <typename T1>
 struct test_transform_if_unary_inplace
 {
     template <typename Policy, typename InputIterator1, typename OutputIterator, typename Size>
@@ -167,22 +170,22 @@ test()
 
             Sequence<_Type> out(n, [=](size_t) { return init_val; });
 
-            invoke_on_all_policies<0>()(test_transform_if_binary(), in1.begin(), in1.end(), in2.begin(), in2.end(),
-                                        out.begin(), out.end(), n, init_val);
+            invoke_on_all_policies<0>()(test_transform_if_binary<_Type>(), in1.begin(), in1.end(), in2.begin(),
+                                        in2.end(), out.begin(), out.end(), n, init_val);
 #if !ONEDPL_FPGA_DEVICE
-            invoke_on_all_policies<1>()(test_transform_if_binary(), in1.cbegin(), in1.cend(), in2.cbegin(), in2.cend(),
-                                        out.begin(), out.end(), n, init_val);
+            invoke_on_all_policies<1>()(test_transform_if_binary<_Type>(), in1.cbegin(), in1.cend(), in2.cbegin(),
+                                        in2.cend(), out.begin(), out.end(), n, init_val);
 #endif
         }
         {
             Sequence<_Type> in1(n, [=](size_t k) { return k; });
             Sequence<_Type> out(n, [=](size_t) { return init_val; });
 
-            invoke_on_all_policies<0>()(test_transform_if_unary(), in1.begin(), in1.end(), out.begin(), out.end(), n,
-                                        init_val);
+            invoke_on_all_policies<2>()(test_transform_if_unary<_Type>(), in1.begin(), in1.end(), out.begin(),
+                                        out.end(), n, init_val);
 #if !ONEDPL_FPGA_DEVICE
-            invoke_on_all_policies<1>()(test_transform_if_unary(), in1.cbegin(), in1.cend(), out.begin(), out.end(), n,
-                                        init_val);
+            invoke_on_all_policies<3>()(test_transform_if_unary<_Type>(), in1.cbegin(), in1.cend(), out.begin(),
+                                        out.end(), n, init_val);
 #endif
         }
     }
@@ -199,7 +202,7 @@ test_inplace()
             Sequence<_Type> in1(n, [=](size_t k) { return k; });
             Sequence<_Type> out(n, [=](size_t) { return 0; });
 
-            invoke_on_all_policies<0>()(test_transform_if_unary_inplace(), in1.begin(), in1.end(), out.begin(),
+            invoke_on_all_policies<4>()(test_transform_if_unary_inplace<_Type>(), in1.begin(), in1.end(), out.begin(),
                                         out.end(), n);
         }
     }

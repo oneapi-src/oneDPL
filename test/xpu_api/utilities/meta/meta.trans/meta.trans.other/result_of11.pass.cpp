@@ -22,10 +22,13 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct wat
 {
-    wat& operator*() { return *this; }
+    wat&
+    operator*()
+    {
+        return *this;
+    }
     void
     foo();
 };
@@ -57,8 +60,10 @@ template <class T, class U>
 void
 test_result_of_imp()
 {
+#if TEST_STD_VER == 17
     ASSERT_SAME_TYPE(U, typename dpl::result_of<T>::type);
     ASSERT_SAME_TYPE(U, dpl::result_of_t<T>);
+#endif // TEST_STD_VER
     test_invoke_result<T, U>::call();
 }
 
@@ -175,12 +180,9 @@ kernel_test()
 
 class KernelTest;
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     bool ret = false;
     sycl::range<1> numOfItems{1};
@@ -193,7 +195,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result of work with dpl::is_invocable");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

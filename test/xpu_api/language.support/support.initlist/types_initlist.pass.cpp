@@ -35,16 +35,13 @@
 
 #include <initializer_list>
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
 };
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     bool ret = true;
     {
         sycl::buffer<bool, 1> buf(&ret, sycl::range<1>{1});
@@ -64,7 +61,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result with initializer list");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

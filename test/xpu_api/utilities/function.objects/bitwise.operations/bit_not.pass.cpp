@@ -20,7 +20,6 @@
 
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class KernelBitNotTest;
 
 void
@@ -33,7 +32,7 @@ kernel_test()
     deviceQueue.submit([&](sycl::handler& cgh) {
         auto ret_access = buffer1.get_access<sycl::access::mode::write>(cgh);
         cgh.single_task<class KernelBitNotTest>([=]() {
-            typedef dpl::bit_not<int> F; 
+            typedef dpl::bit_not<int> F;
             const F f = F();
             static_assert(dpl::is_same<F::argument_type, int>::value);
             static_assert(dpl::is_same<F::result_type, int>::value);
@@ -53,14 +52,11 @@ kernel_test()
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Error in work with dpl::bit_not");
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

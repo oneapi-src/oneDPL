@@ -21,7 +21,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class T>
 void
 test_floating_point_imp(sycl::queue& deviceQueue)
@@ -52,21 +51,18 @@ test_floating_point(sycl::queue& deviceQueue)
 void
 kernel_test()
 {
-    sycl::queue deviceQueue = TestUtils::get_test_queue();;
+    sycl::queue deviceQueue = TestUtils::get_test_queue();
     test_floating_point<float>(deviceQueue);
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         test_floating_point<double>(deviceQueue);
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
     return 0;
 }

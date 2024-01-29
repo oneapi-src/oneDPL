@@ -25,7 +25,6 @@
 
 #include "misc_data_structs.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class KernelSwapTest;
 
 void
@@ -67,8 +66,8 @@ kernel_test()
                     ret_access[0] &= (c1.real() == 1.5f && c1.imag() == 2.5f);
                     ret_access[0] &= (c2.real() == 1.f && c2.imag() == 5.5f);
                     dpl::swap(c1, c2);
-                    ret_access[0] &= (c2.real() == 1.5 && c2.imag() == 2.5);
-                    ret_access[0] &= (c1.real() == 1 && c1.imag() == 5.5);
+                    ret_access[0] &= (c2.real() == 1.5f && c2.imag() == 2.5f);
+                    ret_access[0] &= (c1.real() == 1.f && c1.imag() == 5.5f);
                 }
 
                 {
@@ -98,14 +97,11 @@ kernel_test()
 
     EXPECT_TRUE(ret && acc[0] == 2 && acc[1] == 1, "Wrong result of dpl::swap check");
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

@@ -27,7 +27,6 @@
 
 #include <initializer_list>
 
-#if TEST_DPCPP_BACKEND_PRESENT
 struct A
 {
     A(std::initializer_list<int> il)
@@ -45,12 +44,10 @@ struct A
     dpl::size_t size;
     int data[10];
 };
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     const dpl::size_t N = 4;
     bool rs[N] = {false};
     {
@@ -72,7 +69,6 @@ main()
     {
         EXPECT_TRUE(rs[i], "Wrong result of work with begin / end in Kernel");
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

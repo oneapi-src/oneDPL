@@ -42,8 +42,6 @@
 namespace TestUtils
 {
 
-constexpr int kDefaultMultValue = 1;
-
 #define PRINT_DEBUG(message) ::TestUtils::print_debug(message)
 
 inline void
@@ -80,6 +78,11 @@ auto async_handler = [](sycl::exception_list ex_list) {
         }
     }
 };
+
+//Check that type is device copyable including types which are deprecated in sycl 2020
+template <typename T>
+static constexpr bool check_if_device_copyable_by_sycl2020_or_by_old_definition  =
+    sycl::is_device_copyable_v<T> || (std::is_trivially_copy_constructible_v<T> && std::is_trivially_destructible_v<T>);
 
 //function is needed to wrap kernel name into another class
 template <typename _NewKernelName, typename _Policy,
@@ -272,7 +275,7 @@ test3buffers(int mult = kDefaultMultValue)
             invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n,
+                                               inout3_offset_first, inout3_offset_first + n * mult,
                                                n);
         }
     }
@@ -298,7 +301,7 @@ test3buffers(int mult = kDefaultMultValue)
             invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n,
+                                               inout3_offset_first, inout3_offset_first + n * mult,
                                                n);
         }
     }
@@ -335,8 +338,8 @@ test4buffers(int mult = kDefaultMultValue)
             invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n,
-                                               inout4_offset_first, inout4_offset_first + n,
+                                               inout3_offset_first, inout3_offset_first + n * mult,
+                                               inout4_offset_first, inout4_offset_first + n * mult,
                                                n);
         }
     }
@@ -364,8 +367,8 @@ test4buffers(int mult = kDefaultMultValue)
             invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
                                                inout1_offset_first, inout1_offset_first + n,
                                                inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n,
-                                               inout4_offset_first, inout4_offset_first + n,
+                                               inout3_offset_first, inout3_offset_first + n * mult,
+                                               inout4_offset_first, inout4_offset_first + n * mult,
                                                n);
         }
     }

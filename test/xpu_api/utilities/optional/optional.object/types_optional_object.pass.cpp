@@ -22,7 +22,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
 
 template <class KernelTest, class Opt, class T>
@@ -43,12 +42,9 @@ class KernelTest2;
 class KernelTest3;
 class KernelTest4;
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     test<KernelTest1, optional<int>, int>();
     test<KernelTest2, optional<const int>, const int>();
@@ -57,7 +53,6 @@ main()
         test<KernelTest3, optional<double>, double>();
         test<KernelTest4, optional<const double>, const double>();
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

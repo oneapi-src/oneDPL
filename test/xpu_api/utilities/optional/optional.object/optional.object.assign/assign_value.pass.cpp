@@ -21,7 +21,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
 
 template <class T, class Arg = T, bool Expect = true>
@@ -156,19 +155,15 @@ class KernelTest1;
 class KernelTest2;
 class KernelTest3;
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     test_sfinae();
     // Test with various scalar types
     auto ret = test_with_type<KernelTest1, int>();
     ret &= test_with_type<KernelTest2, MyEnum, MyEnum>();
     ret &= test_with_type<KernelTest3, int, MyEnum>();
     EXPECT_TRUE(ret, "Wrong result of assign value check");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

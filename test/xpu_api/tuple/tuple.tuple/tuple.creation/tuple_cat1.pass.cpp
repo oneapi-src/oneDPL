@@ -22,8 +22,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
-
 struct MoveOnlyData
 {
     int idx_ = 0;
@@ -32,8 +30,10 @@ struct MoveOnlyData
     MoveOnlyData(MoveOnlyData&& x) = default;
     MoveOnlyData(const MoveOnlyData&) = delete;
 
-    MoveOnlyData& operator=(MoveOnlyData&& x) = default;
-    MoveOnlyData& operator=(const MoveOnlyData&) = delete;
+    MoveOnlyData&
+    operator=(MoveOnlyData&& x) = default;
+    MoveOnlyData&
+    operator=(const MoveOnlyData&) = delete;
 
     bool
     operator==(const MoveOnlyData& x) const
@@ -64,7 +64,6 @@ kernel_test1(sycl::queue& deviceQueue)
                 [[maybe_unused]] dpl::tuple<> t2 = dpl::tuple_cat(t1);
             }
 
-
             {
                 dpl::array<int, 0> empty_array;
                 [[maybe_unused]] dpl::tuple<> t = dpl::tuple_cat(empty_array);
@@ -86,7 +85,7 @@ kernel_test1(sycl::queue& deviceQueue)
             }
 
             {
-                constexpr dpl::array<int, 0> empty_array;
+                constexpr dpl::array<int, 0> empty_array = {};
                 constexpr dpl::tuple<> t = dpl::tuple_cat(empty_array);
             }
 
@@ -131,7 +130,6 @@ kernel_test1(sycl::queue& deviceQueue)
                 ret_access[0] &= (dpl::get<0>(t3) == 2);
             }
 
-
             {
                 dpl::tuple<int*> t1;
                 dpl::tuple<int> t2(2);
@@ -149,33 +147,37 @@ kernel_test1(sycl::queue& deviceQueue)
             {
                 dpl::tuple<MoveOnlyData, MoveOnlyData> t1(1, 2);
                 dpl::tuple<int*, MoveOnlyData> t2(nullptr, 4);
-                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 = dpl::tuple_cat(dpl::move(t1), dpl::move(t2));
-                ret_access[0] &=
-                    (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr && dpl::get<3>(t3) == 4);
+                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 =
+                    dpl::tuple_cat(dpl::move(t1), dpl::move(t2));
+                ret_access[0] &= (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr &&
+                                  dpl::get<3>(t3) == 4);
             }
 
             {
                 dpl::tuple<MoveOnlyData, MoveOnlyData> t1(1, 2);
                 dpl::tuple<int*, MoveOnlyData> t2(nullptr, 4);
-                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 = dpl::tuple_cat(dpl::tuple<>(), dpl::move(t1), dpl::move(t2));
-                ret_access[0] &=
-                    (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr && dpl::get<3>(t3) == 4);
+                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 =
+                    dpl::tuple_cat(dpl::tuple<>(), dpl::move(t1), dpl::move(t2));
+                ret_access[0] &= (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr &&
+                                  dpl::get<3>(t3) == 4);
             }
 
             {
                 dpl::tuple<MoveOnlyData, MoveOnlyData> t1(1, 2);
                 dpl::tuple<int*, MoveOnlyData> t2(nullptr, 4);
-                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 = dpl::tuple_cat(dpl::move(t1), dpl::tuple<>(), dpl::move(t2));
-                ret_access[0] &=
-                    (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr && dpl::get<3>(t3) == 4);
+                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 =
+                    dpl::tuple_cat(dpl::move(t1), dpl::tuple<>(), dpl::move(t2));
+                ret_access[0] &= (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr &&
+                                  dpl::get<3>(t3) == 4);
             }
 
             {
                 dpl::tuple<MoveOnlyData, MoveOnlyData> t1(1, 2);
                 dpl::tuple<int*, MoveOnlyData> t2(nullptr, 4);
-                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 = dpl::tuple_cat(dpl::move(t1), dpl::move(t2), dpl::tuple<>());
-                ret_access[0] &=
-                    (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr && dpl::get<3>(t3) == 4);
+                dpl::tuple<MoveOnlyData, MoveOnlyData, int*, MoveOnlyData> t3 =
+                    dpl::tuple_cat(dpl::move(t1), dpl::move(t2), dpl::tuple<>());
+                ret_access[0] &= (dpl::get<0>(t3) == 1 && dpl::get<1>(t3) == 2 && dpl::get<2>(t3) == nullptr &&
+                                  dpl::get<3>(t3) == 4);
             }
 
             {
@@ -220,16 +222,16 @@ kernel_test2(sycl::queue& deviceQueue)
                 dpl::tuple<int*, MoveOnlyData> t1(nullptr, 1);
                 dpl::tuple<int, double> t2(2, 3.5);
                 dpl::tuple<int*, MoveOnlyData, int, double> t3 = dpl::tuple_cat(dpl::move(t1), t2);
-                ret_access[0] &=
-                    (dpl::get<0>(t3) == nullptr && dpl::get<1>(t3) == 1 && dpl::get<2>(t3) == 2 && dpl::get<3>(t3) == 3.5);
+                ret_access[0] &= (dpl::get<0>(t3) == nullptr && dpl::get<1>(t3) == 1 && dpl::get<2>(t3) == 2 &&
+                                  dpl::get<3>(t3) == 3.5);
             }
 
             {
                 dpl::tuple<int*, MoveOnlyData> t1(nullptr, 1);
                 dpl::tuple<int, double> t2(2, 3.5);
                 dpl::tuple<int, double, int*, MoveOnlyData> t3 = dpl::tuple_cat(t2, dpl::move(t1));
-                ret_access[0] &=
-                    (dpl::get<0>(t3) == 2 && dpl::get<1>(t3) == 3.5 && dpl::get<2>(t3) == nullptr && dpl::get<3>(t3) == 1);
+                ret_access[0] &= (dpl::get<0>(t3) == 2 && dpl::get<1>(t3) == 3.5 && dpl::get<2>(t3) == nullptr &&
+                                  dpl::get<3>(t3) == 1);
             }
         });
     });
@@ -237,19 +239,16 @@ kernel_test2(sycl::queue& deviceQueue)
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::tuple_cat check in kernel_test2");
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         kernel_test2(deviceQueue);
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

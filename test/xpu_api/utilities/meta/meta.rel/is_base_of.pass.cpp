@@ -20,7 +20,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 template <class T, class U>
 void
 test_is_base_of()
@@ -90,12 +89,9 @@ kernel_test()
 
 class KernelTest;
 
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     bool ret = false;
     sycl::range<1> numOfItems{1};
@@ -108,7 +104,6 @@ main()
     }
 
     EXPECT_TRUE(ret, "Wrong result of work with dpl::is_base_of");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

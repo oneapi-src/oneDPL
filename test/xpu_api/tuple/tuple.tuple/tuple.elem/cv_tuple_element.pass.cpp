@@ -22,7 +22,6 @@
 #include "support/utils.h"
 #include "support/utils_invoke.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 void
 kernel_test1(sycl::queue& deviceQueue)
 {
@@ -32,8 +31,9 @@ kernel_test1(sycl::queue& deviceQueue)
                 using tuple_type = dpl::tuple<float, short, int>;
                 static_assert(dpl::is_same_v<std::tuple_element<0, const tuple_type>::type, const float>);
                 static_assert(dpl::is_same_v<std::tuple_element<1, volatile tuple_type>::type, volatile short>);
-                static_assert(dpl::is_same_v<std::tuple_element<2, const volatile tuple_type>::type, const volatile int>);
-                
+                static_assert(
+                    dpl::is_same_v<std::tuple_element<2, const volatile tuple_type>::type, const volatile int>);
+
                 static_assert(dpl::is_same_v<std::tuple_element_t<0, const tuple_type>, const float>);
                 static_assert(dpl::is_same_v<std::tuple_element_t<1, volatile tuple_type>, volatile short>);
                 static_assert(dpl::is_same_v<std::tuple_element_t<2, const volatile tuple_type>, const volatile int>);
@@ -54,19 +54,17 @@ kernel_test2(sycl::queue& deviceQueue)
         });
     });
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
+
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
     if (TestUtils::has_type_support<double>(deviceQueue.get_device()))
     {
         kernel_test2(deviceQueue);
     }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

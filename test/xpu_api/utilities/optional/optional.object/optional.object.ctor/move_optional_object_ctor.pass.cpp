@@ -22,7 +22,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 using dpl::optional;
 
 class KernelTest1;
@@ -82,17 +81,14 @@ kernel_test2()
     }
     return ret;
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     auto ret = kernel_test1<KernelTest1, int>();
     ret &= kernel_test1<KernelTest2, int>(3);
     ret &= kernel_test2();
     EXPECT_TRUE(ret, "Wrong result of dpl::optional and dpl::move check");
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

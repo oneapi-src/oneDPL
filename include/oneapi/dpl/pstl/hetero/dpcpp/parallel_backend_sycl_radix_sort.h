@@ -630,7 +630,7 @@ struct __parallel_radix_sort_iteration
     submit(_ExecutionPolicy&& __exec, ::std::size_t __segments, ::std::uint32_t __radix_iter, _InRange&& __in_rng,
            _OutRange&& __out_rng, _TmpBuf& __tmp_buf, sycl::event __dependency_event, _Proj __proj)
     {
-        using _CustomName = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
+        using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
         using _RadixCountKernel =
             __internal::__kernel_name_generator<__count_phase, _CustomName, _ExecutionPolicy, ::std::decay_t<_InRange>,
                                                 ::std::decay_t<_TmpBuf>>;
@@ -755,9 +755,6 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     // radix bits represent number of processed bits in each value during one iteration
     constexpr ::std::uint32_t __radix_bits = 4;
 
-    //sycl::buffer doesn't have a default constructor; so, we have to pass zero-range to create an empty buffer
-    sycl::buffer<::std::uint32_t, 1> __tmp_buf(sycl::range<1>(0));
-    sycl::buffer<_ValueT, 1> __val_buf(sycl::range<1>(0));
     sycl::event __event{};
 
     const auto __max_wg_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
@@ -766,7 +763,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
     constexpr auto __wg_size = 64;
 
     //TODO: with _RadixSortKernel also the following a couple of compile time constants is used for unique kernel name
-    using _RadixSortKernel = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
+    using _RadixSortKernel = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     if (__n <= 64 && __wg_size <= __max_wg_size)
         __event = __subgroup_radix_sort<_RadixSortKernel, __wg_size, 1, __radix_bits, __is_ascending>{}(
@@ -812,13 +809,12 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
         // 'No operation' flag specifies whether to skip re-order phase if the all keys are the same (lie in one bin)
         const ::std::size_t __tmp_buf_size = __segments * __radix_states + __radix_states + 1 /*no_op flag*/;
         // memory for storing count and offset values
-        __tmp_buf = sycl::buffer<::std::uint32_t, 1>(sycl::range<1>(__tmp_buf_size));
+        sycl::buffer<::std::uint32_t, 1> __tmp_buf{sycl::range<1>(__tmp_buf_size)};
 
         // memory for storing values sorted for an iteration
         oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueT> __out_buffer_holder{__exec, __n};
-        __val_buf = __out_buffer_holder.get_buffer();
-        auto __out_rng =
-            oneapi::dpl::__ranges::all_view<_ValueT, __par_backend_hetero::access_mode::read_write>(__val_buf);
+        auto __out_rng = oneapi::dpl::__ranges::all_view<_ValueT, __par_backend_hetero::access_mode::read_write>(
+            __out_buffer_holder.get_buffer());
 
         // iterations per each bucket
         assert("Number of iterations must be even" && __radix_iters % 2 == 0);
@@ -835,7 +831,7 @@ __parallel_radix_sort(_ExecutionPolicy&& __exec, _Range&& __in_rng, _Proj __proj
         }
     }
 
-    return __future(__event, __tmp_buf, __val_buf);
+    return __future(__event);
 }
 
 } // namespace __par_backend_hetero

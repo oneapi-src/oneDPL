@@ -21,7 +21,6 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 void
 kernel_test()
 {
@@ -33,7 +32,7 @@ kernel_test()
                 using dpl::optional;
                 {
                     constexpr optional<int> opt;
-                    
+
                     static_assert(!opt);
                     ASSERT_NOEXCEPT(bool(opt));
                     static_assert(!dpl::is_convertible<optional<int>, bool>::value);
@@ -46,14 +45,11 @@ kernel_test()
         });
     }
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done();
 }

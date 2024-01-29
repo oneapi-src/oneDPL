@@ -161,11 +161,9 @@ template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_Policy, int> = 0>
 auto
 make_wrapped_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_device_policy<
-                _NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(::std::forward<_Policy>(__policy)))
 {
-    return oneapi::dpl::execution::make_device_policy<_NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy));
+    return oneapi::dpl::execution::make_device_policy<
+        _NewKernelName<oneapi::dpl::__internal::__policy_kernel_name<_Policy>>>(::std::forward<_Policy>(__policy));
 }
 
 #if _ONEDPL_FPGA_DEVICE
@@ -173,13 +171,10 @@ template <template <typename> class _NewKernelName, typename _Policy,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
 auto
 make_wrapped_policy(_Policy&& __policy)
-    -> decltype(oneapi::dpl::execution::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor,
-                                                         _NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy)))
 {
-    return oneapi::dpl::execution::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor,
-                                                    _NewKernelName<typename ::std::decay_t<_Policy>::kernel_name>>(
-        ::std::forward<_Policy>(__policy));
+    return oneapi::dpl::execution::make_fpga_policy<
+        oneapi::dpl::__internal::__policy_unroll_factor<_Policy>,
+        _NewKernelName<oneapi::dpl::__internal::__policy_kernel_name<_Policy>>>(::std::forward<_Policy>(__policy));
 }
 #endif
 
@@ -485,24 +480,14 @@ struct __usm_host_or_buffer_accessor
     bool __usm = false;
 
   public:
-// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
-#if _ONEDPL_SYCL_USM_HOST_PRESENT
-    __usm_host_or_buffer_accessor(sycl::handler& __cgh, bool __u, ::std::shared_ptr<sycl::buffer<_T, 1>> __sycl_buf,
-                                  ::std::shared_ptr<_T> __usm_buf)
-        : __usm(__u)
-    {
-        if (__usm)
-            __ptr = __usm_buf.get();
-        else
-            __acc = sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{});
-    }
-#else
-    __usm_host_or_buffer_accessor(sycl::handler& __cgh, bool, ::std::shared_ptr<sycl::buffer<_T, 1>> __sycl_buf,
-                                  ::std::shared_ptr<_T> __usm_buf)
-        : __usm(false), __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{}))
+    // Buffer accessor
+    __usm_host_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})), __usm(false)
     {
     }
-#endif
+
+    // USM pointer
+    __usm_host_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf) : __ptr(__usm_buf), __usm(true) {}
 
     auto
     __get_pointer() const // should be cached within a kernel
@@ -520,9 +505,29 @@ struct __usm_host_or_buffer_storage
     ::std::shared_ptr<_T> __usm_buf;
     bool __usm;
 
-  public:
-    __usm_host_or_buffer_storage(_ExecutionPolicy& __exec, bool __u, ::std::size_t __n) : __usm(__u)
+    // Only use USM host allocations on L0 GPUs. Other devices show significant slowdowns and will use a buffer instead.
+    inline bool
+    __use_USM_host_allocations(sycl::queue __queue)
     {
+// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
+#if _ONEDPL_SYCL_USM_HOST_PRESENT
+        auto __device = __queue.get_device();
+        if (!__device.is_gpu())
+            return false;
+        if (!__device.has(sycl::aspect::usm_host_allocations))
+            return false;
+        if (__device.get_backend() != sycl::backend::ext_oneapi_level_zero)
+            return false;
+        return true;
+#else
+        return false;
+#endif
+    }
+
+  public:
+    __usm_host_or_buffer_storage(_ExecutionPolicy& __exec, ::std::size_t __n)
+    {
+        __usm = __use_USM_host_allocations(__exec.queue());
         if (__usm)
         {
             __usm_buf = std::shared_ptr<_T>(
@@ -530,17 +535,20 @@ struct __usm_host_or_buffer_storage
                 __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
         }
         else
+        {
             __sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__n));
+        }
     }
 
     auto
     __get_acc(sycl::handler& __cgh)
     {
-        return __usm_host_or_buffer_accessor<_T>(__cgh, __usm, __sycl_buf, __usm_buf);
+        return __usm ? __usm_host_or_buffer_accessor<_T>(__cgh, __usm_buf.get())
+                     : __usm_host_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
     }
 
-    auto
-    __get_value(size_t idx = 0)
+    _T
+    __get_value(size_t idx = 0) const
     {
         return __usm ? *(__usm_buf.get() + idx) : __sycl_buf->get_host_access(sycl::read_only)[idx];
     }
@@ -626,25 +634,6 @@ class __future : private std::tuple<_Args...>
         return __future<_Event, _T, _Args...>(__my_event, new_tuple);
     }
 };
-
-// Only use USM host allocations on L0 GPUs. Other devices show significant slowdowns and will use a buffer instead.
-inline bool
-__use_USM_host_allocations(sycl::queue __queue)
-{
-// A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
-#if _ONEDPL_SYCL_USM_HOST_PRESENT
-    auto __device = __queue.get_device();
-    if (!__device.is_gpu())
-        return false;
-    if (!__device.has(sycl::aspect::usm_host_allocations))
-        return false;
-    if (__device.get_backend() != sycl::backend::ext_oneapi_level_zero)
-        return false;
-    return true;
-#else
-    return false;
-#endif
-}
 
 // Invoke a callable and pass a compile-time integer based on a provided run-time integer.
 // The compile-time integer that will be provided to the callable is defined as the smallest

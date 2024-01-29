@@ -22,9 +22,9 @@
 #include "support/test_macros.h"
 #include "support/utils.h"
 
-#if TEST_DPCPP_BACKEND_PRESENT
 class KernelGetConstRvTest;
 
+#if !_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
 void
 kernel_test()
 {
@@ -48,14 +48,14 @@ kernel_test()
     auto ret_access_host = buffer1.get_host_access(sycl::read_only);
     EXPECT_TRUE(ret_access_host[0], "Wrong result of dpl::get(dpl::tuple&&) check");
 }
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // !_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
 
 int
 main()
 {
-#if TEST_DPCPP_BACKEND_PRESENT
+#if !_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
     kernel_test();
-#endif // TEST_DPCPP_BACKEND_PRESENT
+#endif // !_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN
 
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
+    return TestUtils::done(!_PSTL_TEST_GCC7_RVALUE_TUPLE_GET_BROKEN);
 }

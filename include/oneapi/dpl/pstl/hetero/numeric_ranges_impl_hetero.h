@@ -93,6 +93,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Rang
 {
     if (__rng1.empty())
         return 0;
+    oneapi::dpl::__internal::__difference_t<_Range2> __rng1_size = __rng1.size();
 
     using _Type = typename _InitType::__value_type;
     using _Assigner = unseq_backend::__scan_assigner;
@@ -118,7 +119,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Rang
         // global scan
         unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
         .wait();
-    return __rng1.size();
+    return __rng1_size;
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _Type,

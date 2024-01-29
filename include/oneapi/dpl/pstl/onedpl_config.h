@@ -24,7 +24,7 @@
 #endif
 
 #define ONEDPL_VERSION_MAJOR 2022
-#define ONEDPL_VERSION_MINOR 4
+#define ONEDPL_VERSION_MINOR 5
 #define ONEDPL_VERSION_PATCH 0
 
 #if defined(ONEDPL_FPGA_DEVICE)
@@ -117,7 +117,8 @@
 
 // Enable loop unrolling pragmas where supported
 #if (__INTEL_LLVM_COMPILER || __INTEL_COMPILER ||                                                                      \
-     (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) && _ONEDPL_GCC_VERSION >= 80000))
+     (!defined(__INTEL_LLVM_COMPILER) && !defined(__INTEL_COMPILER) &&                                                 \
+      ((_ONEDPL_GCC_VERSION >= 80000) || (_ONEDPL_CLANG_VERSION >= 30700))))
 #    define _ONEDPL_PRAGMA_UNROLL _ONEDPL_PRAGMA(unroll)
 #else //no pragma unroll
 #    define _ONEDPL_PRAGMA_UNROLL

@@ -209,8 +209,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                          _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
                          ::std::true_type /* has_known_identity */)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using _CustomName = typename _Policy::kernel_name;
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
     using _SegReduceCountKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
         _SegReduceCountPhase, _CustomName, _ExecutionPolicy, _Range1, _Range2, _Range3, _Range4, _BinaryPredicate,
@@ -364,7 +363,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
 
                 ::std::size_t __max_end = 0;
                 ::std::size_t __item_segments = 0;
-                auto __identity = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
+                auto __identity = unseq_backend::__known_identity<_BinaryOperator, __val_type>;
 
                 __val_type __accumulator = __identity;
                 for (::std::size_t __i = __start; __i < __end; ++__i)
@@ -480,7 +479,7 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                     ::std::size_t __item_segments = 0;
 
                     ::std::int64_t __wg_agg_idx = __group_id - 1;
-                    __val_type __agg_collector = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
+                    __val_type __agg_collector = unseq_backend::__known_identity<_BinaryOperator, __val_type>;
 
                     bool __ag_exists = false;
                     // 3a. Check to see if an aggregate exists and compute that value in the first
@@ -492,11 +491,11 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
                         constexpr ::std::int32_t __vals_to_explore = 16;
                         bool __last_it = false;
                         __loc_seg_ends_acc[__local_id] = false;
-                        __loc_partials_acc[__local_id] = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
+                        __loc_partials_acc[__local_id] = unseq_backend::__known_identity<_BinaryOperator, __val_type>;
                         for (::std::int32_t __i = __wg_agg_idx - __vals_to_explore * __local_id; !__last_it;
                              __i -= __wgroup_size * __vals_to_explore)
                         {
-                            __val_type __local_collector = __dpl_sycl::__known_identity_v<_BinaryOperator, __val_type>;
+                            __val_type __local_collector = unseq_backend::__known_identity<_BinaryOperator, __val_type>;
                             // exploration phase
                             for (::std::int32_t __j = __i;
                                  __j > __dpl_sycl::__maximum<::std::int32_t>{}(-1L, __i - __vals_to_explore); --__j)
@@ -606,8 +605,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     auto value_output_buf = keep_value_outputs(result2, result2 + n);
 
     using has_known_identity =
-        typename __dpl_sycl::__has_known_identity<BinaryOperator,
-                                                  typename ::std::iterator_traits<InputIterator2>::value_type>::type;
+        typename unseq_backend::__has_known_identity<BinaryOperator,
+                                                     typename ::std::iterator_traits<InputIterator2>::value_type>::type;
 
     // number of unique keys
     _CountType __n = __sycl_reduce_by_segment(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),

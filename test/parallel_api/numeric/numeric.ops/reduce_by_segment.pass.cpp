@@ -13,6 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if defined(ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
+#undef ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+#endif
+
+#if defined(_ONEDPL_TEST_FORCE_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
+#    define ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION _ONEDPL_TEST_FORCE_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+#endif
+
 #include "oneapi/dpl/execution"
 #include "oneapi/dpl/algorithm"
 #include "oneapi/dpl/numeric"
@@ -21,6 +29,7 @@
 
 #include "support/test_config.h"
 #include "support/utils.h"
+#include "support/utils_invoke.h"
 #include "support/reduce_serial_impl.h"
 
 #include <iostream>
@@ -31,6 +40,9 @@
 #    include "support/sycl_alloc_utils.h"
 #endif // TEST_DPCPP_BACKEND_PRESENT
 using namespace TestUtils;
+
+// Please uncomment this define investigation issues in this test
+//#define LOG_TEST_INFO 1
 
 // This macro may be used to analyze source data and test results in test_reduce_by_segment
 // WARNING: in the case of using this macro debug output is very large.
@@ -308,53 +320,101 @@ test_flag_pred()
 }
 #endif
 
+template <typename ValueType, typename BinaryPredicate, typename BinaryOperation>
+void
+run_test()
+{
+#if TEST_DPCPP_BACKEND_PRESENT
+    if (TestUtils::has_type_support<ValueType>(TestUtils::get_test_queue().get_device()))
+    {
+        // Run tests for USM shared memory
+#if LOG_TEST_INFO
+        std::cout << "\t\t" << "test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();" << std::endl;
+#endif        
+        test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+        // Run tests for USM device memory
+#if LOG_TEST_INFO
+        std::cout << "\t\t" << "test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();" << std::endl;
+#endif
+        test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+    }
+#endif // TEST_DPCPP_BACKEND_PRESENT
+
+#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
+#    if TEST_DPCPP_BACKEND_PRESENT
+#if LOG_TEST_INFO
+        std::cout << "\t\ttest_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();" << "" << std::endl;
+#endif
+        test_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+#    else
+#if LOG_TEST_INFO
+        std::cout << "\t\ttest_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();" << "" << std::endl;
+#endif
+        test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
+#    endif // TEST_DPCPP_BACKEND_PRESENT
+#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
+}
+
+template <template <typename T> typename BinaryPredicate, 
+          template <typename T> typename BinaryOperation>
+void
+run_test()
+{
+#if LOG_TEST_INFO
+    std::cout << "\t" << "run_test<int,    BinaryPredicate<int>,    BinaryOperation<int>>();" << std::endl;
+#endif
+    run_test<int,    BinaryPredicate<int>,    BinaryOperation<int>>();
+#if LOG_TEST_INFO
+    std::cout << "\t" << "run_test<float,  BinaryPredicate<float>,  BinaryOperation<float>>();" << std::endl;
+#endif
+    run_test<float,  BinaryPredicate<float>,  BinaryOperation<float>>();
+#if LOG_TEST_INFO
+    std::cout << "\t" << "run_test<double, BinaryPredicate<double>, BinaryOperation<double>>();" << std::endl;
+#endif
+    run_test<double, BinaryPredicate<double>, BinaryOperation<double>>();
+}
+
 int
 main()
 {
-    {
-        using ValueType = ::std::uint64_t;
-        using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = MaxFunctor<ValueType>;
+#if LOG_TEST_INFO
+#if ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+    std::cout << "ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION is defined to " << ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION << std::endl;
+#else
+    std::cout << "ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION is not defined" << std::endl;
+#endif
+#endif
 
 #if TEST_DPCPP_BACKEND_PRESENT
-        // Run tests for USM shared memory
-        test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-        // Run tests for USM device memory
-        test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
+    // test with flag pred
+#if LOG_TEST_INFO
+    std::cout << "test_flag_pred<sycl::usm::alloc::device, class KernelName1, std::uint64_t>();" << std::endl;
+#endif
+    test_flag_pred<sycl::usm::alloc::device, class KernelName1, std::uint64_t>();
+#if LOG_TEST_INFO
+    std::cout << "test_flag_pred<sycl::usm::alloc::device, class KernelName2, dpl::complex<float>>();" << std::endl;
+#endif
+    test_flag_pred<sycl::usm::alloc::device, class KernelName2, dpl::complex<float>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
-#    if TEST_DPCPP_BACKEND_PRESENT
-        test_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-#    else
-        test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
-#    endif // TEST_DPCPP_BACKEND_PRESENT
-#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
-    }
+#if LOG_TEST_INFO
+    std::cout << "run_test<::std::uint64_t,       UserBinaryPredicate<::std::uint64_t>,       MaxFunctor<::std::uint64_t>>();" << std::endl;
+#endif
+    run_test<::std::uint64_t,       UserBinaryPredicate<::std::uint64_t>,       MaxFunctor<::std::uint64_t>>();
+#if LOG_TEST_INFO
+    std::cout << "run_test<::std::complex<float>, UserBinaryPredicate<::std::complex<float>>, MaxFunctor<::std::complex<float>>>();" << std::endl;
+#endif
+    run_test<::std::complex<float>, UserBinaryPredicate<::std::complex<float>>, MaxFunctor<::std::complex<float>>>();
 
-    {
-        using ValueType = ::std::complex<float>;
-        using BinaryPredicate = UserBinaryPredicate<ValueType>;
-        using BinaryOperation = MaxAbsFunctor<ValueType>;
-
-#if TEST_DPCPP_BACKEND_PRESENT
-        // Run tests for USM shared memory
-        test4buffers<sycl::usm::alloc::shared, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-        // Run tests for USM device memory
-        test4buffers<sycl::usm::alloc::device, test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-        // test with flag pred
-        test_flag_pred<sycl::usm::alloc::device, class KernelName7, std::uint64_t>();
-        test_flag_pred<sycl::usm::alloc::device, class KernelName8, dpl::complex<float>>();
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-#if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
-#    if TEST_DPCPP_BACKEND_PRESENT
-        test_algo_four_sequences<test_reduce_by_segment<ValueType, BinaryPredicate, BinaryOperation>>();
-#    else
-        test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
-#    endif // TEST_DPCPP_BACKEND_PRESENT
-#endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
-    }
+#if LOG_TEST_INFO
+    std::cout << "run_test<::std::equal_to, ::std::plus>();" << std::endl;
+#endif
+    run_test<::std::equal_to, ::std::plus>();
+#if LOG_TEST_INFO
+    std::cout << "run_test<::std::equal_to, ::std::multiplies>();" << std::endl;
+#endif
+    // TODO investigate possible overflow
+    run_test<::std::equal_to, ::std::multiplies>();
 
     return TestUtils::done();
 }
