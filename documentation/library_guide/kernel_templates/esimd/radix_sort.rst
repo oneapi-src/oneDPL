@@ -85,9 +85,20 @@ Parameters
 |  ``param``                                    | A :doc:`kernel_param <../kernel_configuration>` object.             |
 |                                               | Its ``data_per_workitem`` can be any value among                    |
 |                                               | ``32``, ``64``, ``96``,..., ``k * 32``.                             |
-|                                               | Its ``workgroup_size`` can only be ``64``.                          |
+|                                               |                                                                     |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
+
+.. note::
+
+   - Number of elements to sort must not exceed `2^30`.
+   - ``RadixBits`` can only be `8`.
+   - ``param.workgroup_size`` can only be `64`.
+
+*Type requirements*:
+
+ - The element type of sequence(s) to sort must be any
+   C++ integral and floating-point type with a width of up to 64 bits, except for ``bool``.
 
 
 Return Value
@@ -113,6 +124,9 @@ Otherwise, undefined behavior will occur and the algorithm may fail.
 
 Local Memory Requirements
 -------------------------
+
+Local memory is used to rank keys, reorder keys, or key-value pairs,
+which limits possible values of ``data_per_workitem`` and ``workgroup_size``.
 
 - ``radix_sort`` (1,2):
 
@@ -310,20 +324,6 @@ The initial configuration may be selected according to these high-level guidelin
    ``param.data_per_workitem`` is the only available parameter to tune the performance,
    since ``param.workgroup_size`` currently supports only one value (``64``).
 
-
-.. _limitations:
-
------------
-Limitations
------------
-
-- Algorithms can only process C++ integral and floating-point types with a width of up to 64 bits (except for ``bool``).
-- Number of elements to sort must not exceed `2^30`.
-- ``RadixBits`` can only be `8`.
-- ``param.data_per_workitem`` has discreteness of `32`.
-- ``param.workgroup_size`` can only be `64`.
-- Local memory is always used to rank keys, reorder keys, or key-value pairs, which limits possible values of ``param.data_per_workitem`` and ``param.workgroup_size``
-- ``radix_sort_by_key`` does not have single-work-group implementation yet.
 
 ------------
 Known Issues
