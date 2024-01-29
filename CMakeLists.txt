@@ -287,6 +287,16 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             endif()
         endif()
 
+        if (DEFINED ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
+            if(ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
+                message(STATUS "Adding -DONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=1 option")
+                target_compile_options(oneDPL INTERFACE "-DONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=1")
+            else()
+                message(STATUS "Adding -DONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=0 option")
+                target_compile_options(oneDPL INTERFACE "-DONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=0")
+            endif()
+        endif()
+
         # DPC++ specific macro
         target_compile_definitions(oneDPL INTERFACE
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:ONEDPL_FPGA_DEVICE>

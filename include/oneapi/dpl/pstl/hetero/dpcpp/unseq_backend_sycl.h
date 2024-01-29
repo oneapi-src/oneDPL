@@ -34,11 +34,21 @@ namespace unseq_backend
 //This optimization depends on Intel(R) oneAPI DPC++ Compiler implementation such as support of binary operators from std namespace.
 //We need to use defined(SYCL_IMPLEMENTATION_INTEL) macro as a guard.
 
+template <typename _Tp>
+inline constexpr bool __can_use_known_identity =
+#    if ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+    // When ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION is defined as non-zero, we avoid using known identity for 64-bit arithmetic data types
+    !(::std::is_arithmetic_v<_Tp> && sizeof(_Tp) == sizeof(::std::uint64_t));
+#    else
+    true;
+#    endif // ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
+
 //TODO: To change __has_known_identity implementation as soon as the Intel(R) oneAPI DPC++ Compiler implementation issues related to
 //std::multiplies, std::bit_or, std::bit_and and std::bit_xor operations will be fixed.
 //std::logical_and and std::logical_or are not supported in Intel(R) oneAPI DPC++ Compiler to be used in sycl::inclusive_scan_over_group and sycl::reduce_over_group
 template <typename _BinaryOp, typename _Tp>
-using __has_known_identity =
+using __has_known_identity = ::std::conditional_t<
+    __can_use_known_identity<_Tp>,
 #    if _ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::disjunction<
         __dpl_sycl::__has_known_identity<_BinaryOp, _Tp>,
@@ -50,15 +60,16 @@ using __has_known_identity =
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<_Tp>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__minimum<void>>,
                                               ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<_Tp>>,
-                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>;
+                                              ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__maximum<void>>>>>,
 #    else  //_ONEDPL_LIBSYCL_VERSION >= 50200
     typename ::std::conjunction<
         ::std::is_arithmetic<_Tp>,
         ::std::disjunction<::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<_Tp>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, ::std::plus<void>>,
                            ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<_Tp>>,
-                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>;
+                           ::std::is_same<::std::decay_t<_BinaryOp>, __dpl_sycl::__plus<void>>>>,
 #    endif //_ONEDPL_LIBSYCL_VERSION >= 50200
+    ::std::false_type>;     // This is for the case of __can_use_known_identity<_Tp>==false
 
 #else //_USE_GROUP_ALGOS && defined(SYCL_IMPLEMENTATION_INTEL)
 
