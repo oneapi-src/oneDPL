@@ -113,17 +113,13 @@ class __sycl_device_shared_ptr
         ++_M_shared_device->_M_cnt;
     }
 
-    void
-    __reset()
+    ~__sycl_device_shared_ptr()
     {
         if (0 == --_M_shared_device->_M_cnt)
         {
             delete _M_shared_device;
         }
-        _M_shared_device = nullptr;
     }
-
-    ~__sycl_device_shared_ptr() { __reset(); }
 };
 
 inline constexpr std::size_t __uniq_type_const = 0x23499abc405a9bccLLU;
@@ -191,7 +187,7 @@ __allocate_shared_for_device(__sycl_device_shared_ptr __device_ptr, std::size_t 
         __ptr = static_cast<char*>(__ptr) + __base_offset;
         __block_header* __header = static_cast<__block_header*>(__ptr) - 1;
         assert(__same_memory_page(__ptr, __header));
-        *__header = __block_header{__uniq_type_const, __original_pointer, __device_ptr, __size};
+        new(__header) __block_header{__uniq_type_const, __original_pointer, __device_ptr, __size};
     }
 
     return __ptr;
@@ -212,7 +208,7 @@ __free_usm_pointer(__block_header* __header)
     assert(__header != nullptr);
     __header->_M_uniq_const = 0;
     sycl::context __context = __header->_M_device.__get_context();
-    __header->_M_device.__reset();
+    __header->~__block_header();
     sycl::free(__header->_M_original_pointer, __context);
 }
 
