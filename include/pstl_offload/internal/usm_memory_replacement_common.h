@@ -53,7 +53,8 @@ class __sycl_device_shared_ptr
     template <typename _DeviceSelector>
     __sycl_device_shared_ptr(const _DeviceSelector& __device_selector)
     {
-        _M_shared_device = (__shared_device*)__original_aligned_alloc(alignof(std::max_align_t), sizeof(__shared_device));
+        _M_shared_device =
+            (__shared_device*)__original_aligned_alloc(alignof(std::max_align_t), sizeof(__shared_device));
         if (!_M_shared_device)
         {
             throw std::bad_alloc();
