@@ -89,17 +89,17 @@ Parameters
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
 
+
+**Type Requirements**:
+
+- The element type of sequence(s) to sort must be any
+  C++ integral and floating-point type with a width of up to 64 bits, except for ``bool``.
+
 .. note::
 
    - Number of elements to sort must not exceed `2^30`.
    - ``RadixBits`` can only be `8`.
    - ``param.workgroup_size`` can only be `64`.
-
-*Type requirements*:
-
- - The element type of sequence(s) to sort must be any
-   C++ integral and floating-point type with a width of up to 64 bits, except for ``bool``.
-
 
 Return Value
 ------------
