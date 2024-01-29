@@ -59,7 +59,7 @@ class __sycl_device_shared_ptr
         {
             throw std::bad_alloc();
         }
-        new (_M_shared_device) __shared_device{std::nullopt, std::nullopt, 1};
+        new(_M_shared_device) __shared_device{std::nullopt, std::nullopt, 1};
         try
         {
             _M_shared_device->_M_device.emplace(__device_selector);
