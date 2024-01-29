@@ -23,6 +23,15 @@ New Features
   that use correspondingly unary and binary operations and predicates.
 - Optimizations used with Intel® oneAPI DPC++/C++ Compiler are expanded to the open source oneAPI DPC++ compiler.
 
+Known Issues and Limitations
+----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- ``radix_sort`` and ``radix_sort_by_key`` _kernel templates_ lead to compilation issues when a program is built with -g, -O0, -O1 compiler options.
+- ``radix_sort_by_key`` _kernel template_ produces wrong results with the following combinations of ``kernel_param`` and types of keys and values:
+    - ``sizeof(key_type) + sizeof(val_type) = 12``, ``kernel_param::workgroup_size = 64`` and ``kernel_param::data_per_workitem = 96``
+    - ``sizeof(key_type) + sizeof(val_type) = 16``, ``kernel_param::workgroup_size = 64`` and ``kernel_param::data_per_workitem = 64``
+
 New in 2022.3.0
 ===============
 
