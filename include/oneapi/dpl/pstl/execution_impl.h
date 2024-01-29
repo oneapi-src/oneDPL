@@ -113,12 +113,10 @@ __is_vectorization_preferred()
 }
 
 template <typename _ExecutionPolicy, typename... _IteratorTypes>
-auto
-__is_parallelization_preferred(_ExecutionPolicy& __exec)
-    -> decltype(__internal::__lazy_and(__exec.__allow_parallel(),
-                                       __internal::__is_random_access_iterator_t<_IteratorTypes...>()))
+constexpr decltype(auto)
+__is_parallelization_preferred()
 {
-    return __internal::__lazy_and(__exec.__allow_parallel(),
+    return __internal::__lazy_and(::std::decay_t<_ExecutionPolicy>::__allow_parallel(),
                                   __internal::__is_random_access_iterator_t<_IteratorTypes...>());
 }
 

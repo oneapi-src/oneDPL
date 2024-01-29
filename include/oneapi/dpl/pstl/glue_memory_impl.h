@@ -45,9 +45,8 @@ uninitialized_copy(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(
-            __exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
     constexpr auto __is_vector =
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
@@ -74,9 +73,8 @@ uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(
-            __exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
     constexpr auto __is_vector =
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
@@ -105,9 +103,8 @@ uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(
-            __exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
     constexpr auto __is_vector =
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
@@ -134,9 +131,8 @@ uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>(
-            __exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
     constexpr auto __is_vector =
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
@@ -164,8 +160,8 @@ uninitialized_fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forward
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
     constexpr auto __is_vector =
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>();
 
@@ -192,8 +188,8 @@ uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size 
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
     constexpr auto __is_vector =
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>();
 
@@ -222,8 +218,8 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
     using _is_vector_type =
 #if (_PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN)
         ::std::conditional_t<
@@ -250,8 +246,8 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
     using _is_vector_type =
 #if (_PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN)
         ::std::conditional_t<
@@ -284,8 +280,8 @@ uninitialized_default_construct(_ExecutionPolicy&& __exec, _ForwardIterator __fi
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
     constexpr auto __is_vector =
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>();
 
@@ -305,8 +301,8 @@ uninitialized_default_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
     constexpr auto __is_vector =
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>();
 
@@ -332,8 +328,8 @@ uninitialized_value_construct(_ExecutionPolicy&& __exec, _ForwardIterator __firs
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
     constexpr auto __is_vector =
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>();
 
@@ -360,8 +356,8 @@ uninitialized_value_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __fi
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    const auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec);
+    constexpr auto __is_parallel =
+        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
     constexpr auto __is_vector =
         oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>();
 
