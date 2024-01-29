@@ -128,23 +128,26 @@ struct __scan_status_flag
     _AtomicValueT __atomic_full_value;
 };
 
-template <typename _FlagType, typename _KernelName>
+template <typename _FlagType, typename _Type, typename _BinaryOp, typename _KernelName>
 struct __lookback_init_submitter;
 
-template <typename _FlagType, typename... _Name>
-struct __lookback_init_submitter<_FlagType,
+template <typename _FlagType, typename _Type, typename _BinaryOp, typename... _Name>
+struct __lookback_init_submitter<_FlagType, _Type, _BinaryOp,
                                  oneapi::dpl::__par_backend_hetero::__internal::__optional_kernel_name<_Name...>>
 {
-    template <typename _StatusFlags>
+    template <typename _StatusFlags, typename _PartialValues>
     sycl::event
-    operator()(sycl::queue __q, _StatusFlags&& __status_flags, ::std::size_t __status_flags_size,
+    operator()(sycl::queue __q, _StatusFlags&& __status_flags, _PartialValues&& __partial_values, ::std::size_t __status_flags_size,
                ::std::uint16_t __status_flag_padding) const
     {
+        using _KernelName = __lookback_init_kernel<_Name..., _Type, _BinaryOp>;
+
         return __q.submit([&](sycl::handler& __hdl) {
-            __hdl.parallel_for<_Name...>(sycl::range<1>{__status_flags_size}, [=](const sycl::item<1>& __item) {
+            __hdl.parallel_for<_KernelName>(sycl::range<1>{__status_flags_size}, [=](const sycl::item<1>& __item) {
                 auto __id = __item.get_linear_id();
                 __status_flags[__id] =
                     __id < __status_flag_padding ? _FlagType::__oob_status : _FlagType::__initialized_status;
+                __partial_values[__id] = oneapi::dpl::unseq_backend::__known_identity<_BinaryOp, _Type>;
             });
         });
     }
@@ -240,12 +243,16 @@ struct __lookback_kernel_func
             _FlagType __flag(__status_flags, __status_vals_full, __status_vals_partial, __tile_id);
 
             if (__group.leader())
+            {
                 __flag.set_partial(__local_reduction);
+            }
 
             __prev_tile_reduction = __flag.cooperative_lookback(__subgroup, __binary_op);
 
             if (__group.leader())
+            {
                 __flag.set_full(__binary_op(__prev_tile_reduction, __local_reduction));
+            }
         }
 
         __prev_tile_reduction = sycl::group_broadcast(__group, __prev_tile_reduction, 0);
@@ -286,7 +293,8 @@ struct __lookback_submitter<__data_per_workitem, __workgroup_size, _Type, _FlagT
             __hdl.parallel_for<_KernelName>(sycl::nd_range<1>(__current_num_items, __workgroup_size),
                                             _KernelFunc{__in_rng, __out_rng, __binary_op, __n, __status_flags,
                                                         __status_flags_size, __status_vals_full, __status_vals_partial,
-                                                        __current_num_items, __tile_vals});
+                                                        __current_num_items, __tile_vals
+                                                        });
         });
     }
 };
@@ -331,8 +339,8 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     _Type* __status_vals_full = sycl::malloc_device<_Type>(__status_flags_size, __queue);
     _Type* __status_vals_partial = sycl::malloc_device<_Type>(__status_flags_size, __queue);
 
-    auto __fill_event = __lookback_init_submitter<_FlagType, _LookbackInitKernel>{}(
-        __queue, __status_flags, __status_flags_size, __status_flag_padding);
+    auto __fill_event = __lookback_init_submitter<_FlagType, _Type, _BinaryOp, _LookbackInitKernel>{}(
+        __queue, __status_flags, __status_vals_partial, __status_flags_size, __status_flag_padding);
 
     ::std::size_t __current_num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
     ::std::size_t __current_num_items = __current_num_wgs * __workgroup_size;

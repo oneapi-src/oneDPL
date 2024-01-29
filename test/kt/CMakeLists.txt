@@ -154,7 +154,7 @@ endfunction()
 function(_generate_igpu_scan_tests)
     set(_data_per_work_item_all "1" "2" "4" "8" "16" "32")
     set(_work_group_size_all "64" "128" "256" "512" "1024")
-    set(_type_all "uint32_t" "int32_t" "float" "int64_t" "uint64_t")
+    set(_type_all "uint32_t" "int32_t" "float" "int64_t" "uint64_t" "double")
 
     foreach (_data_per_work_item ${_data_per_work_item_all})
         foreach (_work_group_size ${_work_group_size_all})
