@@ -304,6 +304,10 @@ The initial configuration may be selected according to these high-level guidelin
   Increase the ``param`` values, so ``N <= param.data_per_workitem * param.workgroup_size``,
   where ``N`` is the number of elements to sort.
 
+.. note::
+
+   ``radix_sort_by_key`` does not have single-work-group implementation yet.
+
 - When the number of elements to sort is medium (between ~16K and ~1M),
   then all the work-groups can execute simultaneously.
   Make sure the device is saturated: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``.
