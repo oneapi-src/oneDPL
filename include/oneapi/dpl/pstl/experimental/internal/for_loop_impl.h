@@ -479,9 +479,9 @@ struct __use_par_vec_helper<_Ip, ::std::enable_if_t<::std::is_integral_v<_Ip>>>
 {
     template <typename _ExecutionPolicy>
     static constexpr auto
-    __use_vector(_ExecutionPolicy&& __exec) -> decltype(__exec.__allow_vector())
+    __use_vector()
     {
-        return __exec.__allow_vector();
+        return ::std::decay_t<_ExecutionPolicy>::__allow_vector();
     }
 
     template <typename _ExecutionPolicy>
@@ -497,12 +497,9 @@ struct __use_par_vec_helper<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
 {
     template <typename _ExecutionPolicy>
     static constexpr auto
-    __use_vector(_ExecutionPolicy&& __exec)
-        -> decltype(oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _Ip>(
-            ::std::forward<_ExecutionPolicy>(__exec)))
+    __use_vector()
     {
-        return oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _Ip>(
-            ::std::forward<_ExecutionPolicy>(__exec));
+        return oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _Ip>();
     }
 
     template <typename _ExecutionPolicy>
@@ -519,10 +516,10 @@ struct __use_par_vec_helper<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
 // Special versions for for_loop: handles both iterators and integral types(treated as random access iterators)
 template <typename _ExecutionPolicy, typename _Ip>
 auto
-__use_vectorization(_ExecutionPolicy&& __exec)
-    -> decltype(__use_par_vec_helper<_Ip>::__use_vector(::std::forward<_ExecutionPolicy>(__exec)))
+__use_vectorization()
+    -> decltype(__use_par_vec_helper<_Ip>::template __use_vector<_ExecutionPolicy>())
 {
-    return __use_par_vec_helper<_Ip>::__use_vector(::std::forward<_ExecutionPolicy>(__exec));
+    return __use_par_vec_helper<_Ip>::template __use_vector<_ExecutionPolicy>();
 }
 
 template <typename _ExecutionPolicy, typename _Ip>
@@ -541,7 +538,7 @@ __for_loop_impl(_ExecutionPolicy&& __exec, _Ip __start, _Ip __finish, _Fp&& __f,
 {
     oneapi::dpl::__internal::__pattern_for_loop(
         ::std::forward<_ExecutionPolicy>(__exec), __start, __finish, __f, __stride,
-        oneapi::dpl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(__exec),
+        oneapi::dpl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(),
         oneapi::dpl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>(__exec),
         ::std::get<_Is>(::std::move(__t))...);
 }
@@ -554,7 +551,7 @@ __for_loop_n_impl(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Fp&& __f, 
 {
     oneapi::dpl::__internal::__pattern_for_loop_n(
         ::std::forward<_ExecutionPolicy>(__exec), __start, __n, __f, __stride,
-        oneapi::dpl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(__exec),
+        oneapi::dpl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(),
         oneapi::dpl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>(__exec),
         ::std::get<_Is>(::std::move(__t))...);
 }

@@ -45,7 +45,7 @@ any_of(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __l
 {
     return oneapi::dpl::__internal::__pattern_any_of(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -77,7 +77,7 @@ for_each(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator _
 {
     oneapi::dpl::__internal::__pattern_walk1(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __f,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         __exec.__allow_parallel());
 }
 
@@ -87,7 +87,7 @@ for_each_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n, _Func
 {
     return oneapi::dpl::__internal::__pattern_walk1_n(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __f,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -131,8 +131,7 @@ find_end(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1
 {
     return oneapi::dpl::__internal::__pattern_find_end(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __s_first, __s_last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -154,8 +153,7 @@ find_first_of(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIter
 {
     return oneapi::dpl::__internal::__pattern_find_first_of(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __s_first, __s_last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -178,7 +176,7 @@ adjacent_find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardItera
     return oneapi::dpl::__internal::__pattern_adjacent_find(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, ::std::equal_to<_ValueType>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__first_semantic());
 }
 
@@ -189,7 +187,7 @@ adjacent_find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardItera
     return oneapi::dpl::__internal::__pattern_adjacent_find(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__first_semantic());
 }
 
@@ -208,7 +206,7 @@ count(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __la
         oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
             __value),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>());
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
@@ -219,7 +217,7 @@ count_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator _
     return oneapi::dpl::__internal::__pattern_count(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>());
 }
 
 // [alg.search]
@@ -231,8 +229,7 @@ search(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 _
 {
     return oneapi::dpl::__internal::__pattern_search(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __s_first, __s_last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -253,7 +250,7 @@ search_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator _
 {
     return oneapi::dpl::__internal::__pattern_search_n(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __count, __value, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -299,8 +296,7 @@ copy_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 
 {
     return oneapi::dpl::__internal::__pattern_copy_if(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -320,8 +316,7 @@ swap_ranges(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardItera
             using ::std::swap;
             swap(__x, __y);
         },
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -336,8 +331,7 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator
     return oneapi::dpl::__internal::__pattern_walk2(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
         oneapi::dpl::__internal::__transform_functor<_UnaryOperation>{::std::move(__op)},
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         __exec.__allow_parallel());
 }
 
@@ -351,8 +345,7 @@ transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterato
     return oneapi::dpl::__internal::__pattern_walk3(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
         oneapi::dpl::__internal::__transform_functor<_BinaryOperation>(::std::move(__op)),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
-                                                              _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _ForwardIterator>(),
         __exec.__allow_parallel());
 }
 
@@ -368,8 +361,7 @@ transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardItera
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
         oneapi::dpl::__internal::__transform_if_unary_functor<_UnaryOperation, _UnaryPredicate>(::std::move(__op),
                                                                                                 ::std::move(__pred)),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -384,8 +376,7 @@ transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIter
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
         oneapi::dpl::__internal::__transform_if_binary_functor<_BinaryOperation, _BinaryPredicate>(::std::move(__op),
                                                                                                    ::std::move(__pred)),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
-                                                              _ForwardIterator3>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _ForwardIterator3>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
                                                                 _ForwardIterator3>(__exec));
 }
@@ -427,8 +418,7 @@ replace_copy_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIt
                                  _UnaryPredicate,
                                  oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _UnaryPredicate>>>(
             __new_value, __pred),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -454,7 +444,7 @@ fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __las
     oneapi::dpl::__internal::__pattern_fill(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __value,
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>());
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp>
@@ -467,7 +457,7 @@ fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __count, const
     return oneapi::dpl::__internal::__pattern_fill_n(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __count, __value,
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>());
 }
 
 // [alg.generate]
@@ -478,7 +468,7 @@ generate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator _
     oneapi::dpl::__internal::__pattern_generate(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __g,
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>());
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Generator>
@@ -491,7 +481,7 @@ generate_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __count, _
     return oneapi::dpl::__internal::__pattern_generate_n(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __count, __g,
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>());
 }
 
 // [alg.remove]
@@ -524,7 +514,7 @@ remove_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator 
 {
     return oneapi::dpl::__internal::__pattern_remove_if(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -546,7 +536,7 @@ unique(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __l
 {
     return oneapi::dpl::__internal::__pattern_unique(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -565,8 +555,7 @@ unique_copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterat
 {
     return oneapi::dpl::__internal::__pattern_unique_copy(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -587,7 +576,7 @@ reverse(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _Bidirectiona
 {
     oneapi::dpl::__internal::__pattern_reverse(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec));
 }
 
@@ -598,8 +587,7 @@ reverse_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _Bidirec
 {
     return oneapi::dpl::__internal::__pattern_reverse_copy(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator,
-                                                              _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _BidirectionalIterator,
                                                                 _ForwardIterator>(__exec));
 }
@@ -612,7 +600,7 @@ rotate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __m
 {
     return oneapi::dpl::__internal::__pattern_rotate(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -623,8 +611,7 @@ rotate_copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterat
 {
     return oneapi::dpl::__internal::__pattern_rotate_copy(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last, __result,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -637,7 +624,7 @@ is_partitioned(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIter
 {
     return oneapi::dpl::__internal::__pattern_is_partitioned(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -647,7 +634,7 @@ partition(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator 
 {
     return oneapi::dpl::__internal::__pattern_partition(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -658,7 +645,7 @@ stable_partition(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _Bid
 {
     return oneapi::dpl::__internal::__pattern_stable_partition(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec));
 }
 
@@ -671,8 +658,7 @@ partition_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIter
 {
     return oneapi::dpl::__internal::__pattern_partition_copy(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __out_true, __out_false, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator, _ForwardIterator1,
-                                                              _ForwardIterator2>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator, _ForwardIterator1,
                                                                 _ForwardIterator2>(__exec));
 }
@@ -686,7 +672,7 @@ sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIter
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _InputType;
     oneapi::dpl::__internal::__pattern_sort(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
         typename ::std::is_move_constructible<_InputType>::type());
 }
@@ -707,7 +693,7 @@ stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcc
 {
     oneapi::dpl::__internal::__pattern_stable_sort(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec));
 }
 
@@ -729,8 +715,7 @@ sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first, _Ran
 {
     oneapi::dpl::__internal::__pattern_sort_by_key(
         ::std::forward<_ExecutionPolicy>(__exec), __keys_first, __keys_last, __values_first, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator1,
-            _RandomAccessIterator2>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator1,
             _RandomAccessIterator2>(__exec));
 }
@@ -754,8 +739,7 @@ mismatch(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator
 {
     return oneapi::dpl::__internal::__pattern_mismatch(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -800,7 +784,7 @@ equal(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 _
 {
     return oneapi::dpl::__internal::__pattern_equal(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __p,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1>(__exec));
 }
 
@@ -819,7 +803,7 @@ equal(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 _
 {
     return oneapi::dpl::__internal::__pattern_equal(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __p,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1>(__exec));
 }
 
@@ -855,7 +839,7 @@ partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAc
 {
     oneapi::dpl::__internal::__pattern_partial_sort(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec));
 }
 
@@ -877,8 +861,7 @@ partial_sort_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
 {
     return oneapi::dpl::__internal::__pattern_partial_sort_copy(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first, __d_last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator,
-                                                              _RandomAccessIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator, _RandomAccessIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator,
                                                                 _RandomAccessIterator>(__exec));
 }
@@ -901,7 +884,7 @@ is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIte
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
         oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__first_semantic());
     return __res == __last ? __last : oneapi::dpl::__internal::__pstl_next(__res);
 }
@@ -922,7 +905,7 @@ is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator 
                ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
                oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
-               oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+               oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
                oneapi::dpl::__internal::__or_semantic()) == __last;
 }
 
@@ -943,8 +926,7 @@ merge(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 _
 {
     return oneapi::dpl::__internal::__pattern_merge(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __d_first, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
-                                                              _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
                                                                 _ForwardIterator>(__exec));
 }
@@ -965,7 +947,7 @@ inplace_merge(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _Bidire
 {
     oneapi::dpl::__internal::__pattern_inplace_merge(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec));
 }
 
@@ -987,8 +969,7 @@ includes(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator
 {
     return oneapi::dpl::__internal::__pattern_includes(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -1012,8 +993,7 @@ set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterato
 {
     return oneapi::dpl::__internal::__pattern_set_union(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
-                                                              _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
                                                                 _ForwardIterator>(__exec));
 }
@@ -1037,8 +1017,7 @@ set_intersection(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forward
 {
     return oneapi::dpl::__internal::__pattern_set_intersection(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
-                                                              _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
                                                                 _ForwardIterator>(__exec));
 }
@@ -1062,8 +1041,7 @@ set_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
 {
     return oneapi::dpl::__internal::__pattern_set_difference(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
-                                                              _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
                                                                 _ForwardIterator>(__exec));
 }
@@ -1088,8 +1066,7 @@ set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, 
 {
     return oneapi::dpl::__internal::__pattern_set_symmetric_difference(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
-                                                              _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2,
                                                                 _ForwardIterator>(__exec));
 }
@@ -1110,7 +1087,7 @@ is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomA
 {
     return oneapi::dpl::__internal::__pattern_is_heap_until(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec));
 }
 
@@ -1128,7 +1105,7 @@ is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessI
 {
     return oneapi::dpl::__internal::__pattern_is_heap(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec));
 }
 
@@ -1148,7 +1125,7 @@ min_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterato
 {
     return oneapi::dpl::__internal::__pattern_min_element(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -1183,7 +1160,7 @@ minmax_element(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIter
 {
     return oneapi::dpl::__internal::__pattern_minmax_element(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -1204,7 +1181,7 @@ nth_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAcc
 {
     oneapi::dpl::__internal::__pattern_nth_element(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __nth, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>(__exec));
 }
 
@@ -1226,8 +1203,7 @@ lexicographical_compare(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
 {
     return oneapi::dpl::__internal::__pattern_lexicographical_compare(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -1250,7 +1226,7 @@ shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator
 {
     return oneapi::dpl::__internal::__pattern_shift_left(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __n,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -1263,7 +1239,7 @@ shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _Bidirect
 {
     return oneapi::dpl::__internal::__pattern_shift_right(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __n,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _BidirectionalIterator>(__exec));
 }
 

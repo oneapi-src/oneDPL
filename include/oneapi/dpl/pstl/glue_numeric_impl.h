@@ -73,8 +73,7 @@ transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forward
     return oneapi::dpl::__internal::__pattern_transform_reduce(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, ::std::plus<_InputType>(),
         ::std::multiplies<_InputType>(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -87,8 +86,7 @@ transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forward
 {
     return oneapi::dpl::__internal::__pattern_transform_reduce(
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1, __binary_op2,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -100,7 +98,7 @@ transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIt
 {
     return oneapi::dpl::__internal::__pattern_transform_reduce(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op, __unary_op,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(__exec));
 }
 
@@ -228,8 +226,7 @@ transform_exclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _
     return oneapi::dpl::__internal::__pattern_transform_scan(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result, __unary_op, __init, __binary_op,
         /*inclusive=*/::std::false_type(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -246,8 +243,7 @@ transform_inclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _
     return oneapi::dpl::__internal::__pattern_transform_scan(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result, __unary_op, __init, __binary_op,
         /*inclusive=*/::std::true_type(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -261,8 +257,7 @@ transform_inclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _
     return oneapi::dpl::__internal::__pattern_transform_scan(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result, __unary_op, __binary_op,
         /*inclusive=*/::std::true_type(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
@@ -280,8 +275,7 @@ adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _Forwa
 
     return oneapi::dpl::__internal::__pattern_adjacent_difference(
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first, __op,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
-            __exec),
+        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(
             __exec));
 }
