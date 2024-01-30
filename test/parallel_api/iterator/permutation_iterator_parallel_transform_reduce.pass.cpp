@@ -56,7 +56,7 @@ DEFINE_TEST_PERM_IT(test_transform_reduce, PermItIndexTag)
                     dpl::copy(exec, permItBegin, permItEnd, sourceData.begin());
                     wait_and_throw(exec);
 
-                    const auto expected = ::std::transform_reduce(sourceData.begin(), sourceData.end(), TestValueType{},
+                    const auto expected = transform_reduce_serial(sourceData.begin(), sourceData.end(), TestValueType{},
                                                                   ::std::plus<TestValueType>(), ::std::negate<TestValueType>());
                     EXPECT_EQ(expected, result, "Wrong result of dpl::transform_reduce");
                 });
