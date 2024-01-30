@@ -79,8 +79,8 @@ private:
     }
 };
 
-template <typename Tin, typename Tout, typename _Op = Complement<Tin, Tout>,
-          typename _IteratorAdapter = _Identity, ::std::size_t CallNumber = 0>
+template <::std::size_t CallNumber, typename Tin, typename Tout, typename _Op = Complement<Tin, Tout>,
+          typename _IteratorAdapter = _Identity>
 void
 test()
 {
@@ -95,7 +95,7 @@ test()
                                              adap(out.end()), _Op{});
 
 #if !ONEDPL_FPGA_DEVICE
-        invoke_on_all_policies<CallNumber + 10>()(test_one_policy(), adap(in.cbegin()), adap(in.cend()),
+        invoke_on_all_policies<CallNumber + 1>()(test_one_policy(), adap(in.cbegin()), adap(in.cend()),
                                                  adap(out.begin()), adap(out.end()), _Op{});
 #endif
     }
@@ -115,16 +115,16 @@ struct test_non_const
 int
 main()
 {
-    test<std::int32_t, std::int32_t>();
-    test<std::int32_t, float32_t>();
-    test<std::uint16_t, float32_t>();
-    test<float64_t, float64_t>();
+    test<0, std::int32_t, std::int32_t>();
+    test<10, std::int32_t, float32_t>();
+    test<20, std::uint16_t, float32_t>();
+    test<30, float64_t, float64_t>();
 
     test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
     test_algo_basic_double<std::int64_t>(run_for_rnd_fw<test_non_const<std::int32_t>>());
 
     //test case for zip iterator
-    test<std::int32_t, std::int32_t, ComplementZip, _ZipIteratorAdapter, 1>();
+    test<40, std::int32_t, std::int32_t, ComplementZip, _ZipIteratorAdapter>();
 
     return done();
 }
