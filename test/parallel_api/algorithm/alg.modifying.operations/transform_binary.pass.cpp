@@ -93,8 +93,8 @@ struct test_one_policy
     }
 };
 
-template <::std::size_t CallNumber, typename In1, typename In2, typename Out, typename Predicate,
-          typename _IteratorAdapter = _Identity>
+template <typename In1, typename In2, typename Out, typename Predicate,
+          typename _IteratorAdapter = _Identity, ::std::size_t CallNumber = 0>
 void
 test(Predicate pred, _IteratorAdapter adap = {})
 {
@@ -107,7 +107,7 @@ test(Predicate pred, _IteratorAdapter adap = {})
 
         invoke_on_all_policies<CallNumber>()(test_one_policy(), adap(in1.begin()), adap(in1.end()), adap(in2.begin()),
                                              adap(in2.end()), adap(out.begin()), adap(out.end()), pred);
-        invoke_on_all_policies<CallNumber + 1>()(test_one_policy(), adap(in1.cbegin()), adap(in1.cend()),
+        invoke_on_all_policies<CallNumber + 10>()(test_one_policy(), adap(in1.cbegin()), adap(in1.cend()),
                                                  adap(in2.cbegin()), adap(in2.cend()), adap(out.begin()),
                                                  adap(out.end()), pred);
     }
@@ -131,19 +131,19 @@ int
 main()
 {
     //const operator()
-    test<0, std::int32_t, std::int32_t, std::int32_t>(TheOperation<std::int32_t, std::int32_t, std::int32_t>(1));
-    test<10, float32_t, float32_t, float32_t>(TheOperation<float32_t, float32_t, float32_t>(1.5));
+    test<std::int32_t, std::int32_t, std::int32_t>(TheOperation<std::int32_t, std::int32_t, std::int32_t>(1));
+    test<float32_t, float32_t, float32_t>(TheOperation<float32_t, float32_t, float32_t>(1.5));
     //non-const operator()
 #if !TEST_DPCPP_BACKEND_PRESENT
-    test<20, std::int32_t, float32_t, float32_t>(non_const(TheOperation<std::int32_t, float32_t, float32_t>(1.5)));
-    test<30, std::int64_t, float64_t, float32_t>(non_const(TheOperation<std::int64_t, float64_t, float32_t>(1.5)));
+    test<std::int32_t, float32_t, float32_t>(non_const(TheOperation<std::int32_t, float32_t, float32_t>(1.5)));
+    test<std::int64_t, float64_t, float32_t>(non_const(TheOperation<std::int64_t, float64_t, float32_t>(1.5)));
 #endif
-    test<40, std::int32_t, float64_t, std::int32_t>([](const std::int32_t& x, const float64_t& y) { return std::int32_t(std::int32_t(1.5) + x - y); });
+    test<std::int32_t, float64_t, std::int32_t>([](const std::int32_t& x, const float64_t& y) { return std::int32_t(std::int32_t(1.5) + x - y); });
 
     test_algo_basic_double<std::int16_t>(run_for_rnd_fw<test_non_const<std::int16_t>>());
 
     //test case for zip iterator
-    test<50, std::int32_t, std::int32_t, std::int32_t>(TheOperationZip<std::int32_t>(1), _ZipIteratorAdapter{});
+    test<std::int32_t, std::int32_t, std::int32_t, 1>(TheOperationZip<std::int32_t>(1), _ZipIteratorAdapter{});
 
     return done();
 }
