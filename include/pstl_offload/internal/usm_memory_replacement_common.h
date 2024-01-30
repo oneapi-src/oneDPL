@@ -59,7 +59,7 @@ class __sycl_device_shared_ptr
         {
             throw std::bad_alloc();
         }
-        new(_M_shared_device) __shared_device{std::nullopt, std::nullopt, 1};
+        new (_M_shared_device) __shared_device{std::nullopt, std::nullopt, 1};
         try
         {
             _M_shared_device->_M_device.emplace(__device_selector);
@@ -187,7 +187,7 @@ __allocate_shared_for_device(__sycl_device_shared_ptr __device_ptr, std::size_t 
         __ptr = static_cast<char*>(__ptr) + __base_offset;
         __block_header* __header = static_cast<__block_header*>(__ptr) - 1;
         assert(__same_memory_page(__ptr, __header));
-        new(__header) __block_header{__uniq_type_const, __original_pointer, __device_ptr, __size};
+        new (__header) __block_header{__uniq_type_const, __original_pointer, __device_ptr, __size};
     }
 
     return __ptr;
