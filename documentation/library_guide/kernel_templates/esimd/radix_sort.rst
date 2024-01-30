@@ -22,7 +22,7 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Range>
    sycl::event
-   radix_sort (sycl::queue q, Range&& rng, KernelParam param); // (1)
+   radix_sort (sycl::queue q, Range&& r, KernelParam param); // (1)
 
    template <bool IsAscending = true,  std::uint8_t RadixBits = 8,
              typename KernelParam, typename Iterator>
@@ -34,10 +34,10 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    // Sort a sequence of keys and apply the same order to a sequence of values
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
-             typename KernelParam, typename KeysRng, typename ValsRng>
+             typename KernelParam, typename KeysRng, typename ValuesRng>
    sycl::event
-   radix_sort_by_key (sycl::queue q, KeysRng&& keys_rng,
-                      ValsRng&& vals_rng, KernelParam param); // (3)
+   radix_sort_by_key (sycl::queue q, KeysRng&& keys,
+                      ValuesRng&& values, KernelParam param); // (3)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
              typename KernelParam, typename Iterator1, typename Iterator2>
@@ -129,9 +129,9 @@ The used amount depends on many parameters; below is an upper bound approximatio
 - ``radix_sort``:
     max (36KB, sizeof(``key_type``) * ``param.data_per_workitem`` * ``param.workgroup_size`` + 2KB)
 - ``radix_sort_by_key``:
-    max (36KB, (sizeof(``key_type``) + sizeof(``val_type``)) * ``param.data_per_workitem`` * ``param.workgroup_size`` + 2KB)
+    max (36KB, (sizeof(``key_type``) + sizeof(``value_type``)) * ``param.data_per_workitem`` * ``param.workgroup_size`` + 2KB)
 
-where ``key_type``, ``val_type`` are the types of the input keys, values respectively.
+where ``key_type``, ``value_type`` are the types of the input keys, values respectively.
 
   ..
      This is an upper bound approximation, which is close to the real value.
@@ -300,7 +300,7 @@ The initial configuration may be selected according to these high-level guidelin
 - When the number of elements to sort is large (more than ~1M), then the work-groups preempt each other.
   Increase the occupancy to hide the latency with ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``.
   The occupancy depends on the local memory usage, which is determined by
-  ``key_type``, ``val_type``, ``RadixBits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters.
+  ``key_type``, ``value_type``, ``RadixBits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters.
   Refer to :ref:`Local Memory Requirements <local-memory>` section for the calculation.
 
 .. note::
