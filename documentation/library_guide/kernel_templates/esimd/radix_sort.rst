@@ -127,17 +127,20 @@ The algorithms require local memory to rank keys, reorder keys, or key-value pai
 The used amount depends on many parameters; below is an upper bound approximation:
 
 - ``radix_sort``:
-    max (36KB, sizeof(``key_type``) * ``param.data_per_workitem`` * ``param.workgroup_size`` + 2KB)
+
+  max (36KB, sizeof(``key_type``) * ``param.data_per_workitem`` * ``param.workgroup_size`` + 2KB)
+
 - ``radix_sort_by_key``:
-    max (36KB, (sizeof(``key_type``) + sizeof(``value_type``)) * ``param.data_per_workitem`` * ``param.workgroup_size`` + 2KB)
+
+  max (36KB, (sizeof(``key_type``) + sizeof(``value_type``)) * ``param.data_per_workitem`` * ``param.workgroup_size`` + 2KB)
 
 where ``key_type``, ``value_type`` are the types of the input keys, values respectively.
 
-  ..
-     This is an upper bound approximation, which is close to the real value.
-     High precision is essential as SLM usage has high impact on performance.
-     It works for RadixBits = 8, the data_per_workitem >= 32 and workgroup_size >= 64.
-     Reevaluate it, once bigger RadixBits, or smaller data_per_workitem and workgroup_size are supported.
+..
+   This is an upper bound approximation, which is close to the real value.
+   High precision is essential as SLM usage has high impact on performance.
+   It works for RadixBits = 8, the data_per_workitem >= 32 and workgroup_size >= 64.
+   Reevaluate it, once bigger RadixBits, or smaller data_per_workitem and workgroup_size are supported.
 
 Global Memory Requirements
 --------------------------
@@ -146,16 +149,19 @@ The algorithms require memory for copying the input sequence(s) and some additio
 The used amount depends on many parameters; below is an upper bound approximation:
 
 - ``radix_sort``:
-   N\ :sub:`1` + max (16KB, N\ :sub:`1`)
+
+  N\ :sub:`1` + max (16KB, N\ :sub:`1`)
+
 - ``radix_sort_by_key``:
-   N\ :sub:`1` + N\ :sub:`2` + max (16KB, N\ :sub:`1`)
+
+  N\ :sub:`1` + N\ :sub:`2` + max (16KB, N\ :sub:`1`)
 
 where the sequence with keys takes N\ :sub:`1` space and the sequence with values takes N\ :sub:`2` space.
 
-  ..
-     This is a rough upper bound approximation. High precision seems to be not necessary for global memory.
-     It works for RadixBits <= 8, the data_per_workitem >= 32 and workgroup_size >= 64.
-     Reevaluate it, once bigger RadixBits, or smaller data_per_workitem and workgroup_size are supported.
+..
+   This is a rough upper bound approximation. High precision seems to be not necessary for global memory.
+   It works for RadixBits <= 8, the data_per_workitem >= 32 and workgroup_size >= 64.
+   Reevaluate it, once bigger RadixBits, or smaller data_per_workitem and workgroup_size are supported.
 
 .. note::
 
