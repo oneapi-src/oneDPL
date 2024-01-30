@@ -97,6 +97,8 @@ Parameters
 
 .. note::
 
+   Current limitations:
+
    - Number of elements to sort must not exceed `2^30`.
    - ``RadixBits`` can only be `8`.
    - ``param.workgroup_size`` can only be `64`.
