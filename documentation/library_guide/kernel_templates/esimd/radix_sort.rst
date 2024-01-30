@@ -126,9 +126,9 @@ The algorithms require local memory to rank keys, reorder keys, or key-value pai
 The used amount depends on many parameters; below is an upper bound approximation:
 
 - ``radix_sort``:
-    max (36KB, sizeof(``key_type``) * ``param.data_per_workitem`` * ``param.workgroup_size``) + 2KB)
+    max (36KB, sizeof(``key_type``) * ``param.data_per_workitem`` * ``param.workgroup_size`` + 2KB)
 - ``radix_sort_by_key``:
-    max (36KB, (sizeof(``key_type``) + sizeof(``val_type``) * ``param.data_per_workitem`` * ``param.workgroup_size``) + 2KB)
+    max (36KB, (sizeof(``key_type``) + sizeof(``val_type``)) * ``param.data_per_workitem`` * ``param.workgroup_size`` + 2KB)
 
 where ``key_type``, ``val_type`` are the types of the input keys, values respectively.
 
