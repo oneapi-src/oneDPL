@@ -34,6 +34,11 @@ class sequenced_policy
   public:
     // For internal use only
     static constexpr ::std::false_type
+    __allow_unsequenced()
+    {
+        return ::std::false_type{};
+    }
+    static constexpr ::std::false_type
     __allow_vector()
     {
         return ::std::false_type{};
@@ -50,6 +55,11 @@ class parallel_policy
 {
   public:
     // For internal use only
+    static constexpr ::std::false_type
+    __allow_unsequenced()
+    {
+        return ::std::false_type{};
+    }
     static constexpr ::std::false_type
     __allow_vector()
     {
@@ -68,6 +78,11 @@ class parallel_unsequenced_policy
   public:
     // For internal use only
     static constexpr ::std::true_type
+    __allow_unsequenced()
+    {
+        return ::std::true_type{};
+    }
+    static constexpr ::std::true_type
     __allow_vector()
     {
         return ::std::true_type{};
@@ -83,6 +98,11 @@ class unsequenced_policy
 {
   public:
     // For internal use only
+    static constexpr ::std::true_type
+    __allow_unsequenced()
+    {
+        return ::std::true_type{};
+    }
     static constexpr ::std::true_type
     __allow_vector()
     {

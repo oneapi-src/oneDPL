@@ -47,6 +47,7 @@ using type_identity_t = typename type_identity<_Tp>::type;
 // struct __policy_traits<oneapi::dpl::execution::vector_policy>
 // {
 //     typedef ::std::false_type __allow_parallel;
+//     typedef ::std::false_type __allow_unsequenced;
 //     typedef ::std::true_type __allow_vector;
 // };
 

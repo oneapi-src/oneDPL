@@ -60,6 +60,11 @@ class device_policy
     }
 
     // For internal use only
+    static constexpr ::std::true_type
+    __allow_unsequenced()
+    {
+        return ::std::true_type{};
+    }
     // __allow_vector is needed for __is_vectorization_preferred
     static constexpr ::std::true_type
     __allow_vector()
