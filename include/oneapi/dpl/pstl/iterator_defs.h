@@ -93,6 +93,9 @@ struct __is_iterator_of_category : __is_iterator_of_move_dispatch<_IteratorTag, 
 {
 };
 
+template <typename _IteratorTag, typename _IteratorType>
+inline constexpr bool __is_iterator_of_category_v = __is_iterator_of_category<_IteratorTag, _IteratorType>::value;
+
 /* iterator */
 template <typename _IteratorType, typename... _OtherIteratorTypes>
 struct __is_random_access_iterator
