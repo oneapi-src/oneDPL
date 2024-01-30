@@ -158,29 +158,22 @@ which limits possible values of ``data_per_workitem`` and ``workgroup_size``.
 Global Memory Requirements
 --------------------------
 
-- ``radix_sort`` (1,2):
+The algorithms require memory for copying the input sequence(s) and some additional space to distribute elements.
+Let's assume that the sequence with keys takes N\ :sub:`1` space and the sequence with values takes N\ :sub:`2` space.
+Then the total required extra space would be N\ :sub:`1` + max(16MB, N\ :sub:`1`) for ``radix_sort`` and 
+N\ :sub:`1` + N\ :sub:`2` + max(16MB, N\ :sub:`1`) for ``radix_sort_by_key``.
 
-  multiple-work-group case (``N > data_per_workitem * workgroup_size``):
+Failure to allocate such amount of memory might result in undefined behavior and algorithm failure.
 
-  .. code:: python
+  ..
+     This is an upper bound estimation considering that the supported RadixBits <= 8, 
+     and the data_per_workitem >= 32 and workgroup_size >= 64.
+     Reevaluate it, once bigger RadixBits, or smaller data_per_workitem and workgroup_size are supported.
 
-     histogram_bytes = (2 ^ RadixBits) * ceiling_division(sizeof(key_type) * 8, RadixBits)
-     tmp_buffer_bytes = N * sizeof(key_type)
-     allocated_bytes = tmp_buffer_bytes + histogram_bytes
+.. note::
 
-  .. note::
-
-     single-work-group case (``N <= data_per_workitem * workgroup_size``)
-     does not impose any global memory requirements.
-
-- ``radix_sort_by_key`` (3,4):
-
-  .. code:: python
-
-     histogram_bytes = (2 ^ RadixBits) * ceiling_division(sizeof(key_type) * 8, RadixBits)
-     tmp_buffer_bytes = N * (sizeof(key_type) + sizeof(val_type))
-     allocated_bytes = tmp_buffer_bytes + histogram_bytes
-
+   ``radix_sort`` has a single-work-group case (``N <= data_per_workitem * workgroup_size``), which
+   does not impose any global memory requirements.
 
 --------------
 Usage Examples
