@@ -124,12 +124,11 @@ The algorithms require local memory to rank keys, reorder keys, or key-value pai
 The used amount depends on many parameters; below is an upper bound approximation:
 
 - ``radix_sort``:
-    max (36KB, sizeof(key_type) * data_per_workitem * workgroup_size) + 2KB)
+    max (36KB, sizeof(``key_type``) * ``param.data_per_workitem`` * ``param.workgroup_size``) + 2KB)
 - ``radix_sort_by_key``:
-    max (36KB, (sizeof(key_type) + sizeof(val_type) * data_per_workitem * workgroup_size) + 2KB)
+    max (36KB, (sizeof(``key_type``) + sizeof(``val_type``) * ``param.data_per_workitem`` * ``param.workgroup_size``) + 2KB)
 
-where ``workgroup_size`` and ``data_per_workitem`` are a part of the ``param`` :ref:`parameter <parameters>` and
-``key_type``, ``val_type`` are the types of the input keys, values respectively.
+where ``key_type``, ``val_type`` are the types of the input keys, values respectively.
 
   ..
      This is an upper bound approximation, which is close to the real value.
@@ -157,7 +156,7 @@ where the sequence with keys takes N\ :sub:`1` space and the sequence with value
 
 .. note::
 
-   For ``N <= data_per_workitem * workgroup_size``, ``radix_sort`` is executed by a single work-group
+   For ``N <= param.data_per_workitem * param.workgroup_size``, ``radix_sort`` is executed by a single work-group
    and does not use any global memory.
 
 --------------
@@ -304,7 +303,7 @@ The initial configuration may be selected according to these high-level guidelin
 .. note::
 
    ``param.data_per_workitem`` is the only available parameter to tune the performance,
-   since ``param.workgroup_size`` currently supports only one value (``64``).
+   since ``param.workgroup_size`` currently supports only one value (`64`).
 
 
 .. [#fnote1] Andy Adinets and Duane Merrill (2022). Onesweep: A Faster Least Significant Digit Radix Sort for GPUs. Retrieved from https://arxiv.org/abs/2206.01784.
