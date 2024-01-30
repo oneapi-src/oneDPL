@@ -25,9 +25,10 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    radix_sort (sycl::queue q, Range&& rng, KernelParam param); // (1)
 
    template <bool IsAscending = true,  std::uint8_t RadixBits = 8,
-             typename KernelParam, typename Iter>
+             typename KernelParam, typename Iterator>
    sycl::event
-   radix_sort (sycl::queue q, Iter first, Iter last, KernelParam param); // (2)
+   radix_sort (sycl::queue q, Iterator first, Iterator last,
+               KernelParam param); // (2)
 
 
    // Sort a sequence of keys and apply the same order to a sequence of values
@@ -39,10 +40,10 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
                       ValsRng&& vals_rng, KernelParam param); // (3)
 
    template <bool IsAscending = true, std::uint8_t RadixBits = 8,
-             typename KernelParam, typename KeysIter, typename ValsIter>
+             typename KernelParam, typename Iterator1, typename Iterator2>
    sycl::event
-   radix_sort_by_key (sycl::queue q, KeysIter keys_first, KeysIter keys_last,
-                      ValsIter vals_first, KernelParam param); // (4)
+   radix_sort_by_key (sycl::queue q, Iterator1 keys_first, Iterator1 keys_last,
+                      Iterator2 values_first, KernelParam param); // (4)
 
    }
 
@@ -73,11 +74,11 @@ Parameters
 |  ``q``                                        | SYCL* queue to submit the kernel template to.                       |
 +-----------------------------------------------+---------------------------------------------------------------------+
 |                                               | The sequences of elements to apply the algorithm to.                |
-|  - ``rng`` (1)                                | Supported sequence types:                                           |
+|  - ``r`` (1)                                  | Supported sequence types:                                           |
 |  - ``first``, ``last`` (2)                    |                                                                     |
-|  - ``keys_rng``, ``vals_rng`` (3)             | - ``sycl::buffer`` (1,3),                                           |
+|  - ``keys``, ``values`` (3)                   | - ``sycl::buffer`` (1,3),                                           |
 |  - ``keys_first``, ``keys_last``,             | - ``oneapi::dpl::experimental::ranges::views::all`` (1,3)           |
-|    ``vals_first`` (4)                         | - ``oneapi::dpl::experimental::ranges::views::subrange`` (1,3)      |
+|    ``values_first`` (4)                       | - ``oneapi::dpl::experimental::ranges::views::subrange`` (1,3)      |
 |                                               | - USM pointers (2,4)                                                |
 |                                               | - ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` (2,4)             |
 |                                               |                                                                     |
