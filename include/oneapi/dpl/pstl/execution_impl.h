@@ -29,34 +29,6 @@ namespace dpl
 namespace __internal
 {
 
-/* predicate */
-
-template <typename _Tp>
-::std::false_type __lazy_and(_Tp, ::std::false_type)
-{
-    return ::std::false_type{};
-}
-
-template <typename _Tp>
-inline _Tp
-__lazy_and(_Tp __a, ::std::true_type)
-{
-    return __a;
-}
-
-template <typename _Tp>
-::std::true_type __lazy_or(_Tp, ::std::true_type)
-{
-    return ::std::true_type{};
-}
-
-template <typename _Tp>
-inline _Tp
-__lazy_or(_Tp __a, ::std::false_type)
-{
-    return __a;
-}
-
 /* policy */
 template <typename Policy>
 struct __policy_traits
@@ -105,19 +77,19 @@ template <typename _ExecutionPolicy>
 using __allow_parallel = typename __internal::__policy_traits<::std::decay_t<_ExecutionPolicy>>::__allow_parallel;
 
 template <typename _ExecutionPolicy, typename... _IteratorTypes>
-constexpr decltype(auto)
+constexpr auto
 __is_vectorization_preferred()
 {
-    return __internal::__lazy_and(::std::decay_t<_ExecutionPolicy>::__allow_vector(),
-                                  __internal::__is_random_access_iterator_t<_IteratorTypes...>());
+    return ::std::conjunction<decltype(::std::decay_t<_ExecutionPolicy>::__allow_vector()),
+                              __internal::__is_random_access_iterator_t<_IteratorTypes...>>();
 }
 
 template <typename _ExecutionPolicy, typename... _IteratorTypes>
-constexpr decltype(auto)
+constexpr auto
 __is_parallelization_preferred()
 {
-    return __internal::__lazy_and(::std::decay_t<_ExecutionPolicy>::__allow_parallel(),
-                                  __internal::__is_random_access_iterator_t<_IteratorTypes...>());
+    return ::std::conjunction<decltype(::std::decay_t<_ExecutionPolicy>::__allow_parallel()),
+                              __internal::__is_random_access_iterator_t<_IteratorTypes...>>();
 }
 
 //------------------------------------------------------------------------
