@@ -160,13 +160,13 @@ Global Memory Requirements
 
 The algorithms require memory for copying the input sequence(s) and some additional space to distribute elements.
 Let's assume that the sequence with keys takes N\ :sub:`1` space and the sequence with values takes N\ :sub:`2` space.
-Then the total required extra space would be N\ :sub:`1` + max(16MB, N\ :sub:`1`) for ``radix_sort`` and 
-N\ :sub:`1` + N\ :sub:`2` + max(16MB, N\ :sub:`1`) for ``radix_sort_by_key``.
+Then the total required extra space would be N\ :sub:`1` + max(16KB, N\ :sub:`1`) for ``radix_sort`` and
+N\ :sub:`1` + N\ :sub:`2` + max(16KB, N\ :sub:`1`) for ``radix_sort_by_key``.
 
-Failure to allocate such amount of memory might result in undefined behavior and algorithm failure.
+Failure to allocate such amount of memory will result in undefined behavior.
 
   ..
-     This is an upper bound estimation considering that the supported RadixBits <= 8, 
+     This is an upper bound estimation considering that the supported RadixBits <= 8,
      and the data_per_workitem >= 32 and workgroup_size >= 64.
      Reevaluate it, once bigger RadixBits, or smaller data_per_workitem and workgroup_size are supported.
 
