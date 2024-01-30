@@ -19,7 +19,6 @@
 #include <iterator>
 #include <type_traits>
 #include "utils.h"
-#include "onedpl_config.h"
 
 namespace oneapi
 {
