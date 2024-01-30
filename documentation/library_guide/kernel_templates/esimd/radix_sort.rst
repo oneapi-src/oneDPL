@@ -124,9 +124,9 @@ The algorithms require local memory to rank keys, reorder keys, or key-value pai
 The used amount depends on many parameters; below is an upper bound approximation:
 
 - ``radix_sort``:
-  max (36KB, sizeof(key_type) * data_per_workitem * workgroup_size) + 2KB)
+    max (36KB, sizeof(key_type) * data_per_workitem * workgroup_size) + 2KB)
 - ``radix_sort_by_key``:
-  max (36KB, (sizeof(key_type) + sizeof(val_type) * data_per_workitem * workgroup_size) + 2KB)
+    max (36KB, (sizeof(key_type) + sizeof(val_type) * data_per_workitem * workgroup_size) + 2KB)
 
 where ``workgroup_size`` and ``data_per_workitem`` are a part of the ``param`` :ref:`parameter <parameters>` and
 ``key_type``, ``val_type`` are the types of the input keys, values respectively.
@@ -144,9 +144,9 @@ The algorithms require memory for copying the input sequence(s) and some additio
 The used amount depends on many parameters; below is an upper bound approximation:
 
 - ``radix_sort``:
-  N\ :sub:`1` + max (16KB, N\ :sub:`1`)
+   N\ :sub:`1` + max (16KB, N\ :sub:`1`)
 - ``radix_sort_by_key``:
-  N\ :sub:`1` + N\ :sub:`2` + max (16KB, N\ :sub:`1`)
+   N\ :sub:`1` + N\ :sub:`2` + max (16KB, N\ :sub:`1`)
 
 where the sequence with keys takes N\ :sub:`1` space and the sequence with values takes N\ :sub:`2` space.
 
