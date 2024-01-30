@@ -151,4 +151,12 @@
 #   define _PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH 0
 #endif
 
+// If the workaround macro for the 64-bit type bug is not defined by the user, then exclude 64-bit type testing
+// in reduce_by_segment.pass.cpp.
+// TODO: When a driver fix is provided to resolve this issue, consider altering this macro or checking the driver version at runtime
+// of the underlying sycl::device to determine whether to include or exclude 64-bit type tests.
+#if !_ONEDPL_TEST_FORCE_WORKAROUND_FOR_IGPU_64BIT_REDUCTION && defined(__INTEL_LLVM_COMPILER)
+#    define _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES
+#endif
+
 #endif // _TEST_CONFIG_H
