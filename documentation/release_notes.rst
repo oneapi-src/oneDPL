@@ -13,8 +13,8 @@ New in 2022.4.0
 
 New Features
 ------------
-- Added experimental ``radix_sort`` and ``radix_sort_by_key`` algorithms residing in
-  the ``oneapi::dpl::experimental::kt::esimd`` namespace. These algorithms are first
+- Added experimental ``esimd::radix_sort`` and ``esimd::radix_sort_by_key`` algorithms residing in
+  the ``oneapi::dpl::experimental::kt`` namespace. These algorithms are first
   in the family of _kernel templates_ that allow configuring a variety of parameters
   including the number of elements to process by a work item, and the size of a workgroup.
   The algorithms only work with Intel® Data Center GPU Max Series.
@@ -27,10 +27,12 @@ Known Issues and Limitations
 ----------------------------
 New in This Release
 ^^^^^^^^^^^^^^^^^^^
-- ``radix_sort`` and ``radix_sort_by_key`` _kernel templates_ lead to compilation issues when a program is built with -g, -O0, -O1 compiler options.
-- ``radix_sort_by_key`` _kernel template_ produces wrong results with the following combinations of ``kernel_param`` and types of keys and values:
-    - ``sizeof(key_type) + sizeof(val_type) = 12``, ``kernel_param::workgroup_size = 64`` and ``kernel_param::data_per_workitem = 96``
-    - ``sizeof(key_type) + sizeof(val_type) = 16``, ``kernel_param::workgroup_size = 64`` and ``kernel_param::data_per_workitem = 64``
+- ``esimd::radix_sort`` and ``esimd::radix_sort_by_key`` kernel templates fail to compile when a program
+  is built with -g, -O0, -O1 compiler options.
+- ``esimd::radix_sort_by_key`` kernel template produces wrong results with the following combinations
+  of ``kernel_param`` and types of keys and values:
+    - ``sizeof(key_type) + sizeof(val_type) == 12``, ``kernel_param::workgroup_size == 64``, and ``kernel_param::data_per_workitem == 96``
+    - ``sizeof(key_type) + sizeof(val_type) == 16``, ``kernel_param::workgroup_size == 64``, and ``kernel_param::data_per_workitem == 64``
 
 New in 2022.3.0
 ===============

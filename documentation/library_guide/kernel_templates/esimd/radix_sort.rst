@@ -157,8 +157,8 @@ where the sequence with keys takes N\ :sub:`1` space and the sequence with value
 
 .. note::
 
-   ``radix_sort`` has a single-work-group case (``N <= data_per_workitem * workgroup_size``), which
-   does not impose any global memory requirements.
+   For ``N <= data_per_workitem * workgroup_size``, ``radix_sort`` is executed by a single work-group
+   and does not use any global memory.
 
 --------------
 Usage Examples
@@ -284,7 +284,7 @@ The initial configuration may be selected according to these high-level guidelin
 
 .. note::
 
-   ``radix_sort_by_key`` does not have single-work-group implementation yet.
+   ``radix_sort_by_key`` does not have a single-work-group implementation yet.
 
 - When the number of elements to sort is medium (between ~16K and ~1M),
   then all the work-groups can execute simultaneously.
