@@ -113,61 +113,46 @@ Memory Requirements
 The device must have enough global (USM device) and local (SLM) memory.
 Otherwise, undefined behavior will occur and the algorithm may fail.
 
-``radix_sort`` and ``radix_sort_by_key`` allocate this memory according to the formulas in the sub-sections below, where:
-
-- ``workgroup_size`` and ``data_per_workitem`` are a part of the ``param`` :ref:`parameter <parameters>`,
-- ``RadixBits`` is a :ref:`template parameter <template-parameters>`,
-- ``key_type``, ``val_type`` are the types of the input keys, values respectively,
-- ``N`` is the number of elements to sort.
+The algorithms allocate the memory according to the rules in the subsections below.
 
 .. _local-memory:
 
 Local Memory Requirements
 -------------------------
 
-Local memory is used to rank keys, reorder keys, or key-value pairs,
-which limits possible values of ``data_per_workitem`` and ``workgroup_size``.
+The algorithms require local memory to rank keys, reorder keys, or key-value pairs.
+The used amount depends on many parameters; below is an upper bound approximation:
 
-- ``radix_sort`` (1,2):
+- ``radix_sort``:
+  max (36KB, sizeof(key_type) * data_per_workitem * workgroup_size) + 2KB)
+- ``radix_sort_by_key``:
+  max (36KB, (sizeof(key_type) + sizeof(val_type) * data_per_workitem * workgroup_size) + 2KB)
 
-  single-work-group case (``N <= data_per_workitem * workgroup_size``):
+where ``workgroup_size`` and ``data_per_workitem`` are a part of the ``param`` :ref:`parameter <parameters>` and
+``key_type``, ``val_type`` are the types of the input keys, values respectively.
 
-  .. code:: python
-
-     rank_bytes = 2 * (2 ^ RadixBits) * workgroup_size + 2 * ((2 ^ RadixBits) + 1)
-     reorder_bytes = sizeof(key_type) * data_per_workitem * workgroup_size
-     allocated_bytes = rank_bytes + reorder_bytes
-
-  multiple-work-group case (``N > data_per_workitem * workgroup_size``):
-
-  .. code:: python
-
-      rank_bytes = 2 * (2 ^ RadixBits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ RadixBits)
-      reorder_bytes = sizeof(key_type) * data_per_workitem * workgroup_size + 4 * (2 ^ RadixBits)
-      allocated_bytes = round_up_to_nearest_multiple(max(rank_bytes, reorder_bytes), 2048)
-
-- ``radix_sort_by_key`` (3,4):
-
-  .. code:: python
-
-     rank_bytes = 2 * (2 ^ RadixBits) * workgroup_size + (2 * workgroup_size) + 4 * (2 ^ RadixBits)
-     reorder_bytes = (sizeof(key_type) + sizeof(val_type)) * data_per_workitem * workgroup_size + 4 * (2 ^ RadixBits)
-     allocated_bytes = round_up_to_nearest_multiple(max(rank_bytes, reorder_bytes), 2048)
-
+  ..
+     This is an upper bound approximation, which is close to the real value.
+     High precision is essential as SLM usage has high impact on performance.
+     It works for RadixBits = 8, the data_per_workitem >= 32 and workgroup_size >= 64.
+     Reevaluate it, once bigger RadixBits, or smaller data_per_workitem and workgroup_size are supported.
 
 Global Memory Requirements
 --------------------------
 
 The algorithms require memory for copying the input sequence(s) and some additional space to distribute elements.
-Let's assume that the sequence with keys takes N\ :sub:`1` space and the sequence with values takes N\ :sub:`2` space.
-Then the total required extra space would be N\ :sub:`1` + max(16KB, N\ :sub:`1`) for ``radix_sort`` and
-N\ :sub:`1` + N\ :sub:`2` + max(16KB, N\ :sub:`1`) for ``radix_sort_by_key``.
+The used amount depends on many parameters; below is an upper bound approximation:
 
-Failure to allocate such amount of memory will result in undefined behavior.
+- ``radix_sort``:
+  N\ :sub:`1` + max (16KB, N\ :sub:`1`)
+- ``radix_sort_by_key``:
+  N\ :sub:`1` + N\ :sub:`2` + max (16KB, N\ :sub:`1`)
+
+where the sequence with keys takes N\ :sub:`1` space and the sequence with values takes N\ :sub:`2` space.
 
   ..
-     This is an upper bound estimation considering that the supported RadixBits <= 8,
-     and the data_per_workitem >= 32 and workgroup_size >= 64.
+     This is a rough upper bound approximation. High precision seems to be not necessary for global memory.
+     It works for RadixBits <= 8, the data_per_workitem >= 32 and workgroup_size >= 64.
      Reevaluate it, once bigger RadixBits, or smaller data_per_workitem and workgroup_size are supported.
 
 .. note::
