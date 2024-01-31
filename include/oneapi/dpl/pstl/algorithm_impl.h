@@ -753,6 +753,7 @@ __pattern_find_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _F
                   _ForwardIterator __last, _Predicate __pred)
 {
     using __backend_tag = typename decltype(__tag)::__backend_tag;
+
     return __except_handler([&]() {
         return __parallel_find(
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
