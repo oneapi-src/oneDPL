@@ -36,9 +36,4 @@
 #    define TEST_LIBSYCL_VERSION 0
 #endif
 
-#if ONEDPL_FPGA_DEVICE
-#    include <sycl/ext/intel/fpga_extensions.hpp>
-#endif // ONEDPL_FPGA_DEVICE
-
-
 #endif //  _UTILS_SYCL_DEFS_H
