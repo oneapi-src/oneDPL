@@ -138,6 +138,8 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Fun
 void
 __pattern_walk1(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Function __f) noexcept
 {
+    static_assert(__is_backend_tag_serial_v<_Tag>);
+
     __internal::__brick_walk1(__first, __last, __f, typename _Tag::__is_vector{});
 }
 
@@ -155,20 +157,23 @@ void
 __pattern_walk1(__parallel_forward_tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                 _Function __f)
 {
+    using __backend_tag = typename __parallel_forward_tag::__backend_tag;
+
     typedef typename ::std::iterator_traits<_ForwardIterator>::reference _ReferenceType;
     auto __func = [&__f](_ReferenceType arg) { __f(arg); };
     __internal::__except_handler([&]() {
-        __par_backend::__parallel_for_each(__parallel_forward_tag::__backend_tag{},
-                                           ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __func);
+        __par_backend::__parallel_for_each(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                           __func);
     });
 }
 
 template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator, class _Function>
 void
-__pattern_walk1(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+__pattern_walk1(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _ForwardIterator __first,
                 _ForwardIterator __last, _Function __f)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     __internal::__except_handler([&]() {
         __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                       [__f](_ForwardIterator __i, _ForwardIterator __j) {
