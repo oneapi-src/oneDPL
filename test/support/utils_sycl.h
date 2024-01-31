@@ -103,9 +103,9 @@ make_new_policy(_Policy&& __policy)
 #if ONEDPL_FPGA_DEVICE
 inline auto default_selector =
 #    if ONEDPL_FPGA_EMULATOR
-        fpga_emulator_selector{};
+        sycl::ext::intel::fpga_emulator_selector{};
 #    else
-        fpga_selector{};
+        sycl::ext::intel::fpga_selector{};
 #    endif // ONEDPL_FPGA_EMULATOR
 
 inline auto&& default_dpcpp_policy =
