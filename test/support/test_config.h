@@ -155,7 +155,7 @@
 // in reduce_by_segment.pass.cpp.
 // TODO: When a driver fix is provided to resolve this issue, consider altering this macro or checking the driver version at runtime
 // of the underlying sycl::device to determine whether to include or exclude 64-bit type tests.
-#if !ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION && defined(__INTEL_LLVM_COMPILER)
+#if !defined(ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION) && defined(__INTEL_LLVM_COMPILER)
 #    define _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES
 #endif
 
