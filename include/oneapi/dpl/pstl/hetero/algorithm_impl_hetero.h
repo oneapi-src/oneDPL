@@ -174,10 +174,15 @@ __pattern_swap(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
                _ForwardIterator2 __first2, _Function __f, /*is_vector=*/::std::true_type,
                /*is_parallel=*/::std::true_type)
 {
-    return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
-                           __par_backend_hetero::access_mode::read_write>(::std::forward<_ExecutionPolicy>(__exec),
-                                                                          __first1, __last1, __first2, __f,
-                                                                          ::std::true_type(), ::std::true_type());
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
+    return __pattern_walk2<__backend_tag, /*_IsSync=*/::std::true_type,
+                           __par_backend_hetero::access_mode::read_write,
+                           __par_backend_hetero::access_mode::read_write>(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __f);
 }
 
 //------------------------------------------------------------------------
@@ -311,14 +316,18 @@ __pattern_walk2_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __firs
                              /*vector=*/::std::true_type,
                              /*parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     // Require `read_write` access mode for output sequence to force a copy in for host iterators to capture incoming
     // values of the output sequence for elements where the predicate is false.
-    return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read,
+    return __pattern_walk2<__backend_tag, /*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read,
                            __par_backend_hetero::access_mode::read_write>(
         __par_backend_hetero::make_wrapped_policy<__walk2_transform_if_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)),
-        __first1, __last1, __first2, __func,
-        /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec)),
+        __first1, __last1, __first2, __func);
 }
 
 template <typename _Name>
@@ -1098,11 +1107,17 @@ __pattern_unique(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
     auto __copy_last = __pattern_unique_copy(__exec, __first, __last, __copy_first, __pred,
                                              /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
 
+    constexpr auto __dispatch_tag1 =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__copy_first), decltype(__copy_last),
+                                                  decltype(__first)>();
+    using __backend_tag1 = typename decltype(__dispatch_tag1)::__backend_tag;
+
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
-    return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
+    return __pattern_walk2<__backend_tag1, /*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
                            __par_backend_hetero::access_mode::read_write>(
+        __dispatch_tag1,
         __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
-        __copy_first, __copy_last, __first, __brick_copy<_ExecutionPolicy>{}, ::std::true_type{}, ::std::true_type{});
+        __copy_first, __copy_last, __first, __brick_copy<_ExecutionPolicy>{});
 }
 
 //------------------------------------------------------------------------
@@ -1363,14 +1378,21 @@ __pattern_stable_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterat
     auto true_count = copy_result.first - __true_result;
 
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
-    __pattern_walk2</*_IsSync=*/::std::false_type>(
-        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec),
-        __true_result, copy_result.first, __first, __brick_move<_ExecutionPolicy>{}, ::std::true_type{},
-        ::std::true_type{});
+    constexpr auto __dispatch_tag1 =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__true_result),
+                                                  decltype(copy_result.first), decltype(__first)>();
+    using __backend_tag1 = typename decltype(__dispatch_tag1)::__backend_tag;
+    __pattern_walk2<__backend_tag1, /*_IsSync=*/::std::false_type>(
+        __dispatch_tag1, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result,
+        copy_result.first, __first, __brick_move<_ExecutionPolicy>{});
+
+    constexpr auto __dispatch_tag2 =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__false_result),
+                                                  decltype(copy_result.second), decltype(__first + true_count)>();
     __pattern_walk2(
+        __dispatch_tag2,
         __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
-        __false_result, copy_result.second, __first + true_count, __brick_move<_ExecutionPolicy>{}, ::std::true_type{},
-        ::std::true_type{});
+        __false_result, copy_result.second, __first + true_count, __brick_move<_ExecutionPolicy>{});
 
     return __first + true_count;
 }

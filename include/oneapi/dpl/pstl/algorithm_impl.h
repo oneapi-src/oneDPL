@@ -474,8 +474,10 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Ra
 __pattern_walk2_n(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Size __n,
                   _RandomAccessIterator2 __first2, _Function __f, _IsVector __is_vector, /*parallel=*/::std::true_type)
 {
-    return __internal::__pattern_walk2(::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n, __first2,
-                                       __f, __is_vector, ::std::true_type());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
+
+    return __internal::__pattern_walk2(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                       __first1 + __n, __first2, __f);
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Brick>
