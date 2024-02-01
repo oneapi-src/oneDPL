@@ -368,7 +368,7 @@ run_test()
     std::cout << "\t" << "run_test<float,  BinaryPredicate<float>,  BinaryOperation<float>>();" << std::endl;
 #endif
     run_test<float,  BinaryPredicate<float>,  BinaryOperation<float>>();
-#ifndef _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES
+#if !_PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES || ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
 #if LOG_TEST_INFO
     std::cout << "\t" << "run_test<double, BinaryPredicate<double>, BinaryOperation<double>>();" << std::endl;
 #endif
@@ -389,19 +389,17 @@ main()
 
 #if TEST_DPCPP_BACKEND_PRESENT
     // test with flag pred
-#ifndef _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES
 #if LOG_TEST_INFO
     std::cout << "test_flag_pred<sycl::usm::alloc::device, class KernelName1, std::uint64_t>();" << std::endl;
 #endif
     test_flag_pred<sycl::usm::alloc::device, class KernelName1, std::uint64_t>();
-#endif
 #if LOG_TEST_INFO
     std::cout << "test_flag_pred<sycl::usm::alloc::device, class KernelName2, dpl::complex<float>>();" << std::endl;
 #endif
     test_flag_pred<sycl::usm::alloc::device, class KernelName2, dpl::complex<float>>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
-#ifndef _PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES
+#if !_PSTL_ICPX_TEST_RED_BY_SEG_BROKEN_64BIT_TYPES || ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION
 #if LOG_TEST_INFO
     std::cout << "run_test<::std::uint64_t,       UserBinaryPredicate<::std::uint64_t>,       MaxFunctor<::std::uint64_t>>();" << std::endl;
 #endif
