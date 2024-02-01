@@ -75,10 +75,10 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Function>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 for_each(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f)
 {
-    oneapi::dpl::__internal::__pattern_walk1(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __f,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        __exec.__allow_parallel());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    oneapi::dpl::__internal::__pattern_walk1(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                             __f);
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Function>

@@ -280,8 +280,10 @@ __pattern_walk1_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Siz
                   _IsVector __is_vector,
                   /*is_parallel=*/::std::true_type)
 {
-    oneapi::dpl::__internal::__pattern_walk1(::std::forward<_ExecutionPolicy>(__exec), __first, __first + __n, __f,
-                                             __is_vector, ::std::true_type());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+
+    oneapi::dpl::__internal::__pattern_walk1(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+                                             __first + __n, __f);
     return __first + __n;
 }
 

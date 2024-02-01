@@ -85,8 +85,9 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_walk1_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n, _Function __f,
                   /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
-    __pattern_walk1(::std::forward<_ExecutionPolicy>(__exec), __first, __first + __n, __f,
-                    /*vector=*/::std::true_type(), /*parallel=*/::std::true_type());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    __pattern_walk1(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __first + __n, __f);
     return __first + __n;
 }
 
@@ -201,10 +202,12 @@ __pattern_walk_brick(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
     if (__last - __first <= 0)
         return;
 
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
     __pattern_walk1(
+        __dispatch_tag,
         __par_backend_hetero::make_wrapped_policy<__walk_brick_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
-        __first, __last, __f,
-        /*vector=*/::std::true_type{}, /*parallel=*/::std::true_type{});
+        __first, __last, __f);
 }
 
 template <typename _Name>
@@ -217,10 +220,12 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_walk_brick_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n, _Function __f,
                        /*parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
     __pattern_walk1(
+        __dispatch_tag,
         __par_backend_hetero::make_wrapped_policy<__walk_brick_n_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
-        __first, __first + __n, __f,
-        /*vector=*/::std::true_type{}, /*parallel=*/::std::true_type{});
+        __first, __first + __n, __f);
     return __first + __n;
 }
 
@@ -332,10 +337,12 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _T& __value,
                /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
-    __pattern_walk1(::std::forward<_ExecutionPolicy>(__exec),
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    __pattern_walk1(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                     __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
                     __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
-                    fill_functor<_T>{__value}, ::std::true_type{}, ::std::true_type{});
+                    fill_functor<_T>{__value});
     return __last;
 }
 
@@ -361,10 +368,12 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_generate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Generator __g,
                    /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
-    __pattern_walk1(::std::forward<_ExecutionPolicy>(__exec),
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    __pattern_walk1(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                     __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
                     __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
-                    generate_functor<_Generator>{__g}, ::std::true_type{}, ::std::true_type{});
+                    generate_functor<_Generator>{__g});
     return __last;
 }
 
