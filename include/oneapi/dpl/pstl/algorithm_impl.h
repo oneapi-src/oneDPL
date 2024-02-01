@@ -600,6 +600,17 @@ __pattern_walk3(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator
     return __internal::__brick_walk3(__first1, __last1, __first2, __first3, __f, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator3,
+          class _Function>
+_ForwardIterator3
+__pattern_walk3(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f) noexcept
+{
+    static_assert(__is_backend_tag_serial_v<_Tag>);
+
+    return __internal::__brick_walk3(__first1, __last1, __first2, __first3, __f, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _RandomAccessIterator3, class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
@@ -616,6 +627,23 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Ran
             [__f, __first1, __first2, __first3, __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 __internal::__brick_walk3(__i, __j, __first2 + (__i - __first1), __first3 + (__i - __first1), __f,
                                           __is_vector);
+            });
+        return __first3 + (__last1 - __first1);
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _RandomAccessIterator3, class _Function>
+_RandomAccessIterator3
+__pattern_walk3(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
+                _RandomAccessIterator2 __first2, _RandomAccessIterator3 __first3, _Function __f)
+{
+    return __internal::__except_handler([&]() {
+        __par_backend::__parallel_for(
+            ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+            [__f, __first1, __first2, __first3](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
+                __internal::__brick_walk3(__i, __j, __first2 + (__i - __first1), __first3 + (__i - __first1), __f,
+                                          _IsVector{});
             });
         return __first3 + (__last1 - __first1);
     });
@@ -641,6 +669,37 @@ __pattern_walk3(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
         typedef typename ::std::iterator_traits<_ForwardIterator3>::reference _ReferenceType3;
 
         __par_backend::__parallel_for_each(::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
+                                           [&](::std::tuple<_ReferenceType1, _ReferenceType2, _ReferenceType3> __val) {
+                                               __f(::std::get<0>(__val), ::std::get<1>(__val), ::std::get<2>(__val));
+                                           });
+
+        //TODO: parallel_for_each does not allow to return correct iterator value according to the ::std::transform
+        // implementation. Therefore, iterator value is calculated separately.
+        for (; __begin != __end; ++__begin)
+            ;
+        return ::std::get<2>(__begin.base());
+    });
+}
+
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator3,
+          class _Function>
+_ForwardIterator3
+__pattern_walk3(__parallel_forward_tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f)
+{
+    using __backend_tag = typename __parallel_forward_tag::__backend_tag;
+
+    return __internal::__except_handler([&]() {
+        using _iterator_tuple = zip_forward_iterator<_ForwardIterator1, _ForwardIterator2, _ForwardIterator3>;
+        auto __begin = _iterator_tuple(__first1, __first2, __first3);
+        auto __end = _iterator_tuple(__last1, /*dummy parameter*/ _ForwardIterator2(),
+                                     /*dummy parameter*/ _ForwardIterator3());
+
+        typedef typename ::std::iterator_traits<_ForwardIterator1>::reference _ReferenceType1;
+        typedef typename ::std::iterator_traits<_ForwardIterator2>::reference _ReferenceType2;
+        typedef typename ::std::iterator_traits<_ForwardIterator3>::reference _ReferenceType3;
+
+        __par_backend::__parallel_for_each(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
                                            [&](::std::tuple<_ReferenceType1, _ReferenceType2, _ReferenceType3> __val) {
                                                __f(::std::get<0>(__val), ::std::get<1>(__val), ::std::get<2>(__val));
                                            });
