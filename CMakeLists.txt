@@ -287,6 +287,16 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             endif()
         endif()
 
+        if (DEFINED ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
+            if(ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION)
+                message(STATUS "Adding -DONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=1 option")
+                target_compile_options(oneDPL INTERFACE "-DONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=1")
+            else()
+                message(STATUS "Adding -DONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=0 option")
+                target_compile_options(oneDPL INTERFACE "-DONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION=0")
+            endif()
+        endif()
+
         # DPC++ specific macro
         target_compile_definitions(oneDPL INTERFACE
             $<$<OR:$<BOOL:${ONEDPL_USE_DEVICE_FPGA_HW}>,$<BOOL:${ONEDPL_USE_DEVICE_FPGA_EMU}>>:ONEDPL_FPGA_DEVICE>
@@ -358,7 +368,7 @@ if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
         message(FATAL_ERROR "Unknown value of _ONEDPL_PSTL_OFFLOAD = ${_ONEDPL_PSTL_OFFLOAD}")
     endif()
 
-    check_cxx_compiler_flag(${FSYCL_PSTL_OFFLOAD_OPTION}, _fsycl_pstl_offload_option)
+    check_cxx_compiler_flag("${FSYCL_PSTL_OFFLOAD_OPTION}" _fsycl_pstl_offload_option)
     if (_fsycl_pstl_offload_option)
         message(STATUS "Adding ${FSYCL_PSTL_OFFLOAD_OPTION} compiler option")
         target_compile_options(oneDPL INTERFACE ${FSYCL_PSTL_OFFLOAD_OPTION})
@@ -382,10 +392,10 @@ if (NOT _ONEDPL_PSTL_OFFLOAD STREQUAL off)
     endif()
 
     add_subdirectory(src)
-    add_dependencies(oneDPL pstloffload)
 
     # TODO remove explicit linkage with libpstloffload
     if (NOT _fsycl_pstl_offload_option)
+        add_dependencies(oneDPL pstloffload)
         target_link_libraries(oneDPL INTERFACE pstloffload)
     endif()
 endif()

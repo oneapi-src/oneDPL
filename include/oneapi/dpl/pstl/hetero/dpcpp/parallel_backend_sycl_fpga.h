@@ -28,6 +28,7 @@
 #include "parallel_backend_sycl_utils.h"
 // workaround until we implement more performant optimization for patterns
 #include "parallel_backend_sycl.h"
+#include "parallel_backend_sycl_histogram.h"
 #include "../../execution_impl.h"
 #include "execution_sycl_defs.h"
 #include "../../iterator_impl.h"
@@ -263,6 +264,23 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_partial_sort(__exec.__device_policy(), __first, __mid, __last,
                                                                       __comp);
+}
+
+//------------------------------------------------------------------------
+// parallel_histogram
+//-----------------------------------------------------------------------
+
+// TODO: check if it makes sense to move these wrappers out of backend to a common place
+template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename _Range2, typename _BinHashMgr,
+          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
+auto
+__parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
+                     const _BinHashMgr& __binhash_manager)
+{
+    // workaround until we implement more performant version for patterns
+    return oneapi::dpl::__par_backend_hetero::__parallel_histogram(__exec.__device_policy(), __init_event,
+                                                                   ::std::forward<_Range1>(__input),
+                                                                   ::std::forward<_Range2>(__bins), __binhash_manager);
 }
 
 } // namespace __par_backend_hetero
