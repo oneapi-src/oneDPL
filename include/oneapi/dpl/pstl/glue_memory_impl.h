@@ -188,11 +188,11 @@ uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size 
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    constexpr auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
-
     if constexpr (::std::is_arithmetic_v<_ValueType>)
     {
+        constexpr auto __is_parallel =
+            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
+
         return oneapi::dpl::__internal::__pattern_walk_brick_n(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
             oneapi::dpl::__internal::__brick_fill_n<_ValueType, _DecayedExecutionPolicy>{_ValueType(__value)},
@@ -200,13 +200,11 @@ uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size 
     }
     else
     {
-        constexpr auto __is_vector =
-            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>();
+        constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
 
         return oneapi::dpl::__internal::__pattern_walk1_n(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
-            oneapi::dpl::__internal::__op_uninitialized_fill<_Tp, _DecayedExecutionPolicy>{__value}, __is_vector,
-            __is_parallel);
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
+            oneapi::dpl::__internal::__op_uninitialized_fill<_Tp, _DecayedExecutionPolicy>{__value});
     }
 }
 
@@ -269,22 +267,19 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
     }
     else
     {
-        constexpr auto __is_parallel =
-            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
-        using _is_vector_type =
+        using _ExecutionPolicyDest =
 #if (_PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN)
-            ::std::conditional_t<
-                oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value,
-                ::std::false_type,
-                decltype(oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>())>;
+            typename EvaDestroylWorkaroundPolicy<::std::decay_t<_ExecutionPolicy>>::ExecutionPolicy;
 #else
-            decltype(oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>());
+            _ExecutionPolicy;
 #endif // _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN
-        constexpr _is_vector_type __is_vector;
 
-        return oneapi::dpl::__internal::__pattern_walk1_n(::std::forward<_ExecutionPolicy>(__exec), __first, __n,
-                                                          [](_ReferenceType __val) { __val.~_ValueType(); },
-                                                          __is_vector, __is_parallel);
+        constexpr auto __dispatch_tag =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicyDest, _ForwardIterator>();
+
+        return oneapi::dpl::__internal::__pattern_walk1_n(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                          __first, __n,
+                                                          [](_ReferenceType __val) { __val.~_ValueType(); });
     }
 }
 
@@ -320,15 +315,11 @@ uninitialized_default_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __
     }
     else
     {
-        constexpr auto __is_parallel =
-            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
-        constexpr auto __is_vector =
-            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>();
+        constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
 
         return oneapi::dpl::__internal::__pattern_walk1_n(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
-            oneapi::dpl::__internal::__op_uninitialized_default_construct<_DecayedExecutionPolicy>{}, __is_vector,
-            __is_parallel);
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
+            oneapi::dpl::__internal::__op_uninitialized_default_construct<_DecayedExecutionPolicy>{});
     }
 }
 
@@ -368,11 +359,11 @@ uninitialized_value_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __fi
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    constexpr auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
-
     if constexpr (::std::is_trivial_v<_ValueType>)
     {
+        constexpr auto __is_parallel =
+            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>();
+
         return oneapi::dpl::__internal::__pattern_walk_brick_n(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
             oneapi::dpl::__internal::__brick_fill_n<_ValueType, _DecayedExecutionPolicy>{_ValueType()},
@@ -380,13 +371,11 @@ uninitialized_value_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __fi
     }
     else
     {
-        constexpr auto __is_vector =
-            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>();
+        constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
 
         return oneapi::dpl::__internal::__pattern_walk1_n(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
-            oneapi::dpl::__internal::__op_uninitialized_value_construct<_DecayedExecutionPolicy>{}, __is_vector,
-            __is_parallel);
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
+            oneapi::dpl::__internal::__op_uninitialized_value_construct<_DecayedExecutionPolicy>{});
     }
 }
 
