@@ -60,8 +60,8 @@ __pattern_walk1(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIte
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
 void
-__pattern_walk1(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
-                _ForwardIterator __last, _Function __f)
+__pattern_walk1(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+                _Function __f)
 {
     auto __n = __last - __first;
     if (__n <= 0)
@@ -88,6 +88,16 @@ __pattern_walk1_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n
     constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
 
     __pattern_walk1(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __first + __n, __f);
+    return __first + __n;
+}
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Size,
+          typename _Function>
+_ForwardIterator
+__pattern_walk1_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n,
+                  _Function __f)
+{
+    __pattern_walk1(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __first + __n, __f);
     return __first + __n;
 }
 
