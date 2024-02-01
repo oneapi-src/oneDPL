@@ -336,11 +336,12 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 transform(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
           _ForwardIterator __result, _BinaryOperation __op)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _ForwardIterator>();
+
     return oneapi::dpl::__internal::__pattern_walk3(
+        __dispatch_tag,
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
-        oneapi::dpl::__internal::__transform_functor<_BinaryOperation>(::std::move(__op)),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _ForwardIterator>(),
-        __exec.__allow_parallel());
+        oneapi::dpl::__internal::__transform_functor<_BinaryOperation>(::std::move(__op)));
 }
 
 // [alg.transform_if]
