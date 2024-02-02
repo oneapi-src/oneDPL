@@ -234,6 +234,16 @@ __pattern_walk_brick(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
     __brick(__first, __last, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Brick>
+void
+__pattern_walk_brick(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
+                     _Brick __brick) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    __brick(__first, __last, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Brick>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_walk_brick(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
@@ -246,6 +256,20 @@ __pattern_walk_brick(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _
                                       [__brick, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                                           __brick(__i, __j, __is_vector);
                                       });
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Brick>
+void
+__pattern_walk_brick(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                     _RandomAccessIterator __last, _Brick __brick)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    __internal::__except_handler([&]() {
+        __par_backend::__parallel_for(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            [__brick](_RandomAccessIterator __i, _RandomAccessIterator __j) { __brick(__i, __j, _IsVector{}); });
     });
 }
 

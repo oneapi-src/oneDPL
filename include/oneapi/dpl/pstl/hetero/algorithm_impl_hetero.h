@@ -282,6 +282,20 @@ __pattern_walk_brick(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
         __first, __last, __f);
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
+void
+__pattern_walk_brick(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+                     _ForwardIterator __last, _Function __f)
+{
+    if (__last - __first <= 0)
+        return;
+
+    __pattern_walk1(
+        __tag,
+        __par_backend_hetero::make_wrapped_policy<__walk_brick_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __first, __last, __f);
+}
+
 template <typename _Name>
 struct __walk_brick_n_wrapper
 {
