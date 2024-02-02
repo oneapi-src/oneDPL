@@ -72,6 +72,8 @@ uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
+     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
+
     constexpr auto __is_parallel =
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
@@ -83,13 +85,9 @@ uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     }
     else
     {
-        constexpr auto __is_vector =
-            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
-
         return oneapi::dpl::__internal::__pattern_walk2_n(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
-            oneapi::dpl::__internal::__op_uninitialized_copy<_DecayedExecutionPolicy>{}, __is_vector,
-            __is_parallel);
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
+            oneapi::dpl::__internal::__op_uninitialized_copy<_DecayedExecutionPolicy>{});
     }
 }
 
@@ -130,6 +128,8 @@ uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
+
     constexpr auto __is_parallel =
         oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
@@ -141,13 +141,9 @@ uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     }
     else
     {
-        constexpr auto __is_vector =
-            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
-
         return oneapi::dpl::__internal::__pattern_walk2_n(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
-            oneapi::dpl::__internal::__op_uninitialized_move<_DecayedExecutionPolicy>{}, __is_vector,
-            __is_parallel);
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
+            oneapi::dpl::__internal::__op_uninitialized_move<_DecayedExecutionPolicy>{});
     }
 }
 
