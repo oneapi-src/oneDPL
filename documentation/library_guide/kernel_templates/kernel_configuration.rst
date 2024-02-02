@@ -68,7 +68,7 @@ Member Types
 |                 |                | If provided, it must be a unique C++ typename that satisfies the requirements    |
 |                 |                | for SYCL kernel names (see `SYCL 2020 Specification                              |
 |                 |                | <https://registry.khronos.org/SYCL/specs/                                        |
-|                 |                | sycl-2020/html/sycl-2020.html#sec:naming.kernels>`_)                             |
+|                 |                | sycl-2020/html/sycl-2020.html#sec:naming.kernels>`_).                            |
 |                 |                |                                                                                  |
 |                 |                | .. note::                                                                        |
 |                 |                |                                                                                  |

@@ -59,7 +59,6 @@ Template Parameters
 | ``bool IsAscending``        | The sort order. Ascending: ``true``; Descending: ``false``.                           |
 +-----------------------------+---------------------------------------------------------------------------------------+
 | ``std::uint8_t RadixBits``  | The number of bits to sort per a radix sort algorithm pass.                           |
-|                             | Only ``8`` is currently supported.                                                    |
 +-----------------------------+---------------------------------------------------------------------------------------+
 
 
@@ -71,16 +70,16 @@ Parameters
 +-----------------------------------------------+---------------------------------------------------------------------+
 | Name                                          | Description                                                         |
 +===============================================+=====================================================================+
-|  ``q``                                        | SYCL* queue to submit the kernel template to.                       |
+|  ``q``                                        | SYCL* queue to submit the kernels to.                               |
 +-----------------------------------------------+---------------------------------------------------------------------+
 |                                               | The sequences of elements to apply the algorithm to.                |
 |  - ``r`` (1)                                  | Supported sequence types:                                           |
 |  - ``first``, ``last`` (2)                    |                                                                     |
 |  - ``keys``, ``values`` (3)                   | - ``sycl::buffer`` (1,3),                                           |
-|  - ``keys_first``, ``keys_last``,             | - ``oneapi::dpl::experimental::ranges::views::all`` (1,3)           |
-|    ``values_first`` (4)                       | - ``oneapi::dpl::experimental::ranges::views::subrange`` (1,3)      |
-|                                               | - USM pointers (2,4)                                                |
-|                                               | - ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` (2,4)             |
+|  - ``keys_first``, ``keys_last``,             | - ``oneapi::dpl::experimental::ranges::views::all`` (1,3),          |
+|    ``values_first`` (4)                       | - ``oneapi::dpl::experimental::ranges::views::subrange`` (1,3),     |
+|                                               | - USM pointers (2,4),                                               |
+|                                               | - ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` (2,4).            |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
 |  ``param``                                    | A :doc:`kernel_param <../kernel_configuration>` object.             |
