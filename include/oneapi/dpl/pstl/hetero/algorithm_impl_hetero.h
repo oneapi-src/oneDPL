@@ -324,6 +324,19 @@ __pattern_walk_brick_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Siz
     return __first + __n;
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Size,
+          typename _Function>
+_ForwardIterator
+__pattern_walk_brick_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n,
+                       _Function __f)
+{
+    __pattern_walk1(
+        __tag,
+        __par_backend_hetero::make_wrapped_policy<__walk_brick_n_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __first, __first + __n, __f);
+    return __first + __n;
+}
+
 //------------------------------------------------------------------------
 // walk2_brick, walk2_brick_n
 //------------------------------------------------------------------------

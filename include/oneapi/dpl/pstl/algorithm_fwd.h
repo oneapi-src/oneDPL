@@ -154,10 +154,18 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Fo
 __pattern_walk_brick_n(_ExecutionPolicy&&, _ForwardIterator, _Size, _Brick,
                        /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Brick>
+_ForwardIterator
+__pattern_walk_brick_n(_Tag, _ExecutionPolicy&&, _ForwardIterator, _Size, _Brick) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Brick>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_walk_brick_n(_ExecutionPolicy&&, _RandomAccessIterator, _Size, _Brick,
                        /*is_parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Brick>
+_RandomAccessIterator
+__pattern_walk_brick_n(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _Size, _Brick);
 
 //------------------------------------------------------------------------
 // walk2 (pseudo)
