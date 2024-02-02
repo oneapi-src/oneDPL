@@ -3523,6 +3523,8 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
 {
     typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _DifferenceType;
 
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _OutputIterator>();
+
     const auto __n1 = __last1 - __first1;
     const auto __n2 = __last2 - __first2;
 
@@ -3530,13 +3532,13 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
 
     // {1} {}: parallel copying just first sequence
     if (__n2 == 0)
-        return __internal::__pattern_walk2_brick(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __result,
-                                                 __copy_range, ::std::true_type());
+        return __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                 __last1, __result, __copy_range);
 
     // {} {2}: parallel copying justmake  second sequence
     if (__n1 == 0)
-        return __internal::__pattern_walk2_brick(::std::forward<_ExecutionPolicy>(__exec), __first2, __last2, __result,
-                                                 __copy_range, ::std::true_type());
+        return __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first2,
+                                                 __last2, __result, __copy_range);
 
     // testing  whether the sequences are intersected
     _ForwardIterator1 __left_bound_seq_1 = ::std::lower_bound(__first1, __last1, *__first2, __comp);
@@ -3547,12 +3549,12 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
         __par_backend::__parallel_invoke(
             ::std::forward<_ExecutionPolicy>(__exec),
             [=] {
-                __internal::__pattern_walk2_brick(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __result,
-                                                  __copy_range, ::std::true_type());
+                __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                  __last1, __result, __copy_range);
             },
             [=] {
-                __internal::__pattern_walk2_brick(::std::forward<_ExecutionPolicy>(__exec), __first2, __last2,
-                                                  __result + __n1, __copy_range, ::std::true_type());
+                __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first2,
+                                                  __last2, __result + __n1, __copy_range);
             });
         return __result + __n1 + __n2;
     }
@@ -3566,12 +3568,12 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
         __par_backend::__parallel_invoke(
             ::std::forward<_ExecutionPolicy>(__exec),
             [=] {
-                __internal::__pattern_walk2_brick(::std::forward<_ExecutionPolicy>(__exec), __first2, __last2, __result,
-                                                  __copy_range, ::std::true_type());
+                __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first2,
+                                                  __last2, __result, __copy_range);
             },
             [=] {
-                __internal::__pattern_walk2_brick(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
-                                                  __result + __n2, __copy_range, ::std::true_type());
+                __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                  __last1, __result + __n2, __copy_range);
             });
         return __result + __n1 + __n2;
     }
@@ -3585,8 +3587,8 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
             ::std::forward<_ExecutionPolicy>(__exec),
             //do parallel copying of [first1; left_bound_seq_1)
             [=] {
-                __internal::__pattern_walk2_brick(::std::forward<_ExecutionPolicy>(__exec), __first1,
-                                                  __left_bound_seq_1, __res_or, __copy_range, ::std::true_type());
+                __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                  __left_bound_seq_1, __res_or, __copy_range);
             },
             [=, &__result] {
                 __result = __internal::__parallel_set_op(
@@ -3607,8 +3609,8 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
             ::std::forward<_ExecutionPolicy>(__exec),
             //do parallel copying of [first2; left_bound_seq_2)
             [=] {
-                __internal::__pattern_walk2_brick(::std::forward<_ExecutionPolicy>(__exec), __first2,
-                                                  __left_bound_seq_2, __res_or, __copy_range, ::std::true_type());
+                __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first2,
+                                                  __left_bound_seq_2, __res_or, __copy_range);
             },
             [=, &__result] {
                 __result = __internal::__parallel_set_op(
@@ -3838,6 +3840,8 @@ __pattern_set_difference(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __fir
     typedef typename ::std::iterator_traits<_RandomAccessIterator3>::value_type _T;
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType;
 
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3>();
+
     const auto __n1 = __last1 - __first1;
     const auto __n2 = __last2 - __first2;
 
@@ -3847,22 +3851,22 @@ __pattern_set_difference(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __fir
 
     // {1} \ {}: parallel copying just first sequence
     if (__n2 == 0)
-        return __pattern_walk2_brick(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __result,
-                                     __internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+        return __pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+                                     __result, __internal::__brick_copy<_ExecutionPolicy>{});
 
     // testing  whether the sequences are intersected
     _RandomAccessIterator1 __left_bound_seq_1 = ::std::lower_bound(__first1, __last1, *__first2, __comp);
     //{1} < {2}: seq 2 is wholly greater than seq 1, so, parallel copying just first sequence
     if (__left_bound_seq_1 == __last1)
-        return __pattern_walk2_brick(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __result,
-                                     __internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+        return __pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+                                     __result, __internal::__brick_copy<_ExecutionPolicy>{});
 
     // testing  whether the sequences are intersected
     _RandomAccessIterator2 __left_bound_seq_2 = ::std::lower_bound(__first2, __last2, *__first1, __comp);
     //{2} < {1}: seq 1 is wholly greater than seq 2, so, parallel copying just first sequence
     if (__left_bound_seq_2 == __last2)
-        return __internal::__pattern_walk2_brick(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __result,
-                                                 __brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+        return __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                 __last1, __result, __brick_copy<_ExecutionPolicy>{});
 
     if (__n1 + __n2 > __set_algo_cut_off)
         return __parallel_set_op(

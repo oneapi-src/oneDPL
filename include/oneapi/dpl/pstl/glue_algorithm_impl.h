@@ -266,10 +266,11 @@ template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterato
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result)
 {
-    return oneapi::dpl::__internal::__pattern_walk2_brick(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-        oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
+    return oneapi::dpl::__internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                          __first, __last, __result,
+                                                          oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _Size, class _ForwardIterator2>
@@ -810,10 +811,11 @@ move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __l
 {
     using _DecayedExecutionPolicy = ::std::decay_t<_ExecutionPolicy>;
 
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
     return oneapi::dpl::__internal::__pattern_walk2_brick(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
-        oneapi::dpl::__internal::__brick_move<_DecayedExecutionPolicy>{},
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>());
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
+        oneapi::dpl::__internal::__brick_move<_DecayedExecutionPolicy>{});
 }
 
 // [partial.sort]

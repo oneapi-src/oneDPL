@@ -1320,19 +1320,21 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
     if (__n == 0)
         return __d_first;
 
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2, _Iterator3>();
+
     //To consider the direct copying pattern call in case just one of sequences is empty.
     if (__n1 == 0)
         oneapi::dpl::__internal::__pattern_walk2_brick(
+            __dispatch_tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
-            __first2, __last2, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
-            ::std::true_type());
+            __first2, __last2, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
     else if (__n2 == 0)
         oneapi::dpl::__internal::__pattern_walk2_brick(
+            __dispatch_tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
-            __first1, __last1, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
-            ::std::true_type());
+            __first1, __last1, __d_first, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
     else
     {
         auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
@@ -1930,10 +1932,13 @@ __pattern_set_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, 
     // {1} \ {}: the difference is {1}
     if (__first2 == __last2)
     {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _OutputIterator>();
+
         return oneapi::dpl::__internal::__pattern_walk2_brick(
+            __dispatch_tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_difference_copy_case_1>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
-            __first1, __last1, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+            __first1, __last1, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
     }
 
     return __pattern_hetero_set_op(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2,
@@ -1961,22 +1966,26 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forw
     if (__first1 == __last1 && __first2 == __last2)
         return __result;
 
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _OutputIterator>();
+
     //{1} is empty
     if (__first1 == __last1)
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick(
+            __dispatch_tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_union_copy_case_1>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
-            __first2, __last2, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+            __first2, __last2, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
     }
 
     //{2} is empty
     if (__first2 == __last2)
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick(
+            __dispatch_tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_union_copy_case_2>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
-            __first1, __last1, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+            __first1, __last1, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
     }
 
     typedef typename ::std::iterator_traits<_OutputIterator>::value_type _ValueType;
@@ -2037,22 +2046,26 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
     if (__first1 == __last1 && __first2 == __last2)
         return __result;
 
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _OutputIterator>();
+
     //{1} is empty
     if (__first1 == __last1)
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick(
+            __dispatch_tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_copy_case_1>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
-            __first2, __last2, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+            __first2, __last2, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
     }
 
     //{2} is empty
     if (__first2 == __last2)
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick(
+            __dispatch_tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_copy_case_2>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
-            __first1, __last1, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::true_type());
+            __first1, __last1, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
     }
 
     typedef typename ::std::iterator_traits<_OutputIterator>::value_type _ValueType;

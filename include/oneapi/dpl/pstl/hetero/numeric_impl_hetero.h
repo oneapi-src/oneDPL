@@ -131,6 +131,8 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     if (__first == __last)
         return __result;
 
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+
     const auto __n = __last - __first;
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
@@ -173,9 +175,9 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
             .wait();
 
         // Move data from temporary buffer into results
-        oneapi::dpl::__internal::__pattern_walk2_brick(::std::move(__policy), __first_tmp, __last_tmp, __result,
-                                                       oneapi::dpl::__internal::__brick_move<_NewExecutionPolicy>{},
-                                                       ::std::true_type{});
+        oneapi::dpl::__internal::__pattern_walk2_brick(__dispatch_tag, ::std::move(__policy), __first_tmp, __last_tmp,
+                                                       __result,
+                                                       oneapi::dpl::__internal::__brick_move<_NewExecutionPolicy>{});
 
         //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
     }
@@ -233,6 +235,8 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
     if (__n <= 0)
         return __d_first;
 
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
     using _It1ValueT = typename ::std::iterator_traits<_ForwardIterator1>::value_type;
     using _It2ValueTRef = typename ::std::iterator_traits<_ForwardIterator2>::reference;
 
@@ -246,9 +250,8 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
             auto __wrapped_policy = __par_backend_hetero::make_wrapped_policy<adjacent_difference_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec));
 
-            __internal::__pattern_walk2_brick(__wrapped_policy, __first, __last, __d_first,
-                                              __internal::__brick_copy<decltype(__wrapped_policy)>{},
-                                              ::std::true_type{});
+            __internal::__pattern_walk2_brick(__dispatch_tag, __wrapped_policy, __first, __last, __d_first,
+                                              __internal::__brick_copy<decltype(__wrapped_policy)>{});
 
             return __d_last;
         });
