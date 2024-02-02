@@ -251,6 +251,11 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Fo
 __pattern_walk2_brick(_ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _ForwardIterator2, _Brick,
                       /*parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Brick>
+_ForwardIterator2
+__pattern_walk2_brick(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1, _ForwardIterator2,
+                      _Brick) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Brick>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
     _ExecutionPolicy, __is_random_access_iterator_v<_RandomAccessIterator1, _RandomAccessIterator2>,
@@ -258,12 +263,23 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
 __pattern_walk2_brick(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
                       _RandomAccessIterator2 __first2, _Brick __brick, /*parallel=*/::std::true_type);
 
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _Brick>
+_RandomAccessIterator2
+__pattern_walk2_brick(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
+                      _RandomAccessIterator2, _Brick);
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Brick>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
     _ExecutionPolicy, !__is_random_access_iterator_v<_RandomAccessIterator1, _RandomAccessIterator2>,
     _RandomAccessIterator2>
 __pattern_walk2_brick(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
                       _RandomAccessIterator2 __first2, _Brick __brick, /*parallel=*/::std::true_type);
+
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Brick>
+_ForwardIterator2
+__pattern_walk2_brick(__parallel_forward_tag, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1,
+                      _ForwardIterator2, _Brick);
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _Size, class _ForwardIterator2, class _Brick>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator2>

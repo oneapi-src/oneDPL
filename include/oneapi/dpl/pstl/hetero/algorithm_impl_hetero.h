@@ -357,6 +357,18 @@ __pattern_walk2_brick(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
         /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _Brick>
+_ForwardIterator2
+__pattern_walk2_brick(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                      _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Brick __brick)
+{
+    return __pattern_walk2(
+        __tag,
+        __par_backend_hetero::make_wrapped_policy<__walk2_brick_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __first1, __last1, __first2, __brick);
+}
+
 template <typename _Name>
 struct __walk2_brick_n_wrapper
 {

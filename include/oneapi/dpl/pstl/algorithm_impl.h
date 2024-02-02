@@ -580,6 +580,16 @@ __pattern_walk2_brick(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
     return __brick(__first1, __last1, __first2, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Brick>
+_ForwardIterator2
+__pattern_walk2_brick(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                      _ForwardIterator2 __first2, _Brick __brick) noexcept
+{
+    static_assert(__is_backend_tag_serial_v<_Tag>);
+
+    return __brick(__first1, __last1, __first2, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Brick>
 oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
     _ExecutionPolicy, __is_random_access_iterator_v<_RandomAccessIterator1, _RandomAccessIterator2>,
@@ -595,6 +605,24 @@ __pattern_walk2_brick(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1
             ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
             [&__is_vector, __first1, __first2, __brick](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 __brick(__i, __j, __first2 + (__i - __first1), __is_vector);
+            });
+        return __first2 + (__last1 - __first1);
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _Brick>
+_RandomAccessIterator2
+__pattern_walk2_brick(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+                      _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Brick __brick)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    return __except_handler([&]() {
+        __par_backend::__parallel_for(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+            [__first1, __first2, __brick](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
+                __brick(__i, __j, __first2 + (__i - __first1), _IsVector{});
             });
         return __first2 + (__last1 - __first1);
     });
@@ -616,6 +644,36 @@ __pattern_walk2_brick(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
 
     return __except_handler([&]() {
         __par_backend::__parallel_for_each(::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
+                                           [__brick](::std::tuple<_ReferenceType1, _ReferenceType2> __val) {
+                                               __brick(::std::get<0>(__val),
+                                                       ::std::forward<_ReferenceType2>(::std::get<1>(__val)));
+                                           });
+
+        //TODO: parallel_for_each does not allow to return correct iterator value according to the ::std::transform
+        // implementation. Therefore, iterator value is calculated separately.
+        for (; __begin != __end; ++__begin)
+            ;
+        return ::std::get<1>(__begin.base());
+    });
+}
+
+//TODO: it postponed till adding more or less effective parallel implementation
+template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Brick>
+_ForwardIterator2
+__pattern_walk2_brick(__parallel_forward_tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                      _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Brick __brick)
+{
+    using __backend_tag = typename __parallel_forward_tag::__backend_tag;
+
+    using _iterator_tuple = zip_forward_iterator<_ForwardIterator1, _ForwardIterator2>;
+    auto __begin = _iterator_tuple(__first1, __first2);
+    auto __end = _iterator_tuple(__last1, /*dummy parameter*/ _ForwardIterator2());
+
+    typedef typename ::std::iterator_traits<_ForwardIterator1>::reference _ReferenceType1;
+    typedef typename ::std::iterator_traits<_ForwardIterator2>::reference _ReferenceType2;
+
+    return __except_handler([&]() {
+        __par_backend::__parallel_for_each(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __begin, __end,
                                            [__brick](::std::tuple<_ReferenceType1, _ReferenceType2> __val) {
                                                __brick(::std::get<0>(__val),
                                                        ::std::forward<_ReferenceType2>(::std::get<1>(__val)));
