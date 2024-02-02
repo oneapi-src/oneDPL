@@ -513,6 +513,17 @@ __pattern_walk2_n(_ExecutionPolicy&&, _ForwardIterator1 __first1, _Size __n, _Fo
     return __internal::__brick_walk2_n(__first1, __n, __first2, __f, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _Size, class _ForwardIterator2,
+          class _Function>
+_ForwardIterator2
+__pattern_walk2_n(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _Size __n, _ForwardIterator2 __first2,
+                  _Function __f) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_walk2_n(__first1, __n, __first2, __f, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _Size, class _RandomAccessIterator2,
           class _Function, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
@@ -523,6 +534,16 @@ __pattern_walk2_n(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _S
 
     return __internal::__pattern_walk2(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
                                        __first1 + __n, __first2, __f);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _Size,
+          class _RandomAccessIterator2, class _Function>
+_RandomAccessIterator2
+__pattern_walk2_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+                  _Size __n, _RandomAccessIterator2 __first2, _Function __f)
+{
+    return __internal::__pattern_walk2(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
+                                       __first2, __f);
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Brick>

@@ -174,6 +174,15 @@ __pattern_walk2_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Size _
                            ::std::true_type(), ::std::true_type());
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _Size,
+          typename _ForwardIterator2, typename _Function>
+_ForwardIterator2
+__pattern_walk2_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Size __n,
+                  _ForwardIterator2 __first2, _Function __f)
+{
+    return __pattern_walk2(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n, __first2, __f);
+}
+
 //------------------------------------------------------------------------
 // swap
 //------------------------------------------------------------------------
