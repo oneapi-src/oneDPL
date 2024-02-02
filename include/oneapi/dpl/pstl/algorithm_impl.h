@@ -705,6 +705,24 @@ __pattern_walk2_brick_n(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __firs
     });
 }
 
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _Size, class _RandomAccessIterator2, class _Brick>
+_RandomAccessIterator2
+__pattern_walk2_brick_n(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+                        _Size __n, _RandomAccessIterator2 __first2, _Brick __brick)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    return __except_handler([&]() {
+        __par_backend::__parallel_for(
+            __backend_tag{},
+            ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
+            [__first1, __first2, __brick](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
+                __brick(__i, __j - __i, __first2 + (__i - __first1), _IsVector{});
+            });
+        return __first2 + __n;
+    });
+}
+
 template <class _ExecutionPolicy, class _ForwardIterator1, class _Size, class _ForwardIterator2, class _Brick>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 __pattern_walk2_brick_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Size __n, _ForwardIterator2 __first2,
@@ -713,6 +731,17 @@ __pattern_walk2_brick_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
     constexpr auto __is_vector =
         __internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
     return __brick(__first1, __n, __first2, __is_vector);
+}
+
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _Size, class _ForwardIterator2,
+          class _Brick>
+_ForwardIterator2
+__pattern_walk2_brick_n(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Size __n,
+                        _ForwardIterator2 __first2, _Brick __brick) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __brick(__first1, __n, __first2, typename _Tag::__is_vector{});
 }
 
 //------------------------------------------------------------------------

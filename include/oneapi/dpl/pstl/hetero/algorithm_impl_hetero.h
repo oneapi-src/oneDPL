@@ -387,6 +387,18 @@ __pattern_walk2_brick_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
         /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _Size,
+          typename _ForwardIterator2, typename _Brick>
+_ForwardIterator2
+__pattern_walk2_brick_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                        _Size __n, _ForwardIterator2 __first2, _Brick __brick)
+{
+    return __pattern_walk2(
+        __tag,
+        __par_backend_hetero::make_wrapped_policy<__walk2_brick_n_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __first1, __first1 + __n, __first2, __brick);
+}
+
 //------------------------------------------------------------------------
 // transform_if
 //------------------------------------------------------------------------
