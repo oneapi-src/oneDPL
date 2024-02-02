@@ -71,14 +71,11 @@ uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
 
     constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
-    constexpr auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
-
     if constexpr (::std::is_trivial_v<_ValueType1> && ::std::is_trivial_v<_ValueType2>)
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick_n(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
-            oneapi::dpl::__internal::__brick_copy_n<_DecayedExecutionPolicy>{}, __is_parallel);
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
+            oneapi::dpl::__internal::__brick_copy_n<_DecayedExecutionPolicy>{});
     }
     else
     {
@@ -124,14 +121,11 @@ uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
 
     constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
-    constexpr auto __is_parallel =
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
-
     if constexpr (::std::is_trivial_v<_ValueType1> && ::std::is_trivial_v<_ValueType2>)
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick_n(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
-            oneapi::dpl::__internal::__brick_copy_n<_DecayedExecutionPolicy>{}, __is_parallel);
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
+            oneapi::dpl::__internal::__brick_copy_n<_DecayedExecutionPolicy>{});
     }
     else
     {

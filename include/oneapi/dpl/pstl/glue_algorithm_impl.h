@@ -279,10 +279,12 @@ copy_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _Size __n, _Forward
 {
     using _DecayedExecutionPolicy = ::std::decay_t<_ExecutionPolicy>;
 
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
     return oneapi::dpl::__internal::__pattern_walk2_brick_n(
+        __dispatch_tag,
         ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
-        oneapi::dpl::__internal::__brick_copy_n<_DecayedExecutionPolicy>{},
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>());
+        oneapi::dpl::__internal::__brick_copy_n<_DecayedExecutionPolicy>{});
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Predicate>
