@@ -1437,6 +1437,13 @@ struct __brick_move<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_host_
     {
         return ::std::move(__first, __last, __result);
     }
+
+    template <typename _ReferenceType1, typename _ReferenceType2>
+    void
+    operator()(_ReferenceType1&& __val, _ReferenceType2&& __result) const
+    {
+        ::std::forward<_ReferenceType2>(__result) = ::std::move(::std::forward<_ReferenceType1>(__val));
+    }
 };
 
 template <typename _ExecutionPolicy, typename _Dummy = void>
