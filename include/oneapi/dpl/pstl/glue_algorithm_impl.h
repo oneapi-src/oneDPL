@@ -467,10 +467,10 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Generator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 generate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Generator __g)
 {
-    oneapi::dpl::__internal::__pattern_generate(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __g,
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    oneapi::dpl::__internal::__pattern_generate(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+                                                __last, __g);
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Generator>
