@@ -201,12 +201,12 @@ oneapi::dpl::__internal::__enable_if_execution_policy<
     _ExecutionPolicy, typename ::std::iterator_traits<_ForwardIterator>::difference_type>
 count(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
     return oneapi::dpl::__internal::__pattern_count(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
         oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>>(
-            __value),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>());
+            __value));
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
@@ -214,10 +214,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<
     _ExecutionPolicy, typename ::std::iterator_traits<_ForwardIterator>::difference_type>
 count_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Predicate __pred)
 {
-    return oneapi::dpl::__internal::__pattern_count(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    return oneapi::dpl::__internal::__pattern_count(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+                                                    __last, __pred);
 }
 
 // [alg.search]
