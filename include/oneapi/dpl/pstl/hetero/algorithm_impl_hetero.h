@@ -511,6 +511,20 @@ __pattern_fill(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Forw
     return __last;
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, class _Size, typename _T>
+_ForwardIterator
+__pattern_fill_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __count,
+                 const _T& __value)
+{
+    // TODO: is this new implementation are correct?
+    // Previously we hadn't hetero impl for __pattern_fill_n
+
+    return __pattern_walk1_n(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+                             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
+                             __count, fill_functor<_T>{__value});
+}
+
+
 //------------------------------------------------------------------------
 // generate
 //------------------------------------------------------------------------
