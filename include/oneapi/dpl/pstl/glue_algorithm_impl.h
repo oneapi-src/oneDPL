@@ -480,10 +480,10 @@ generate_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __count, _
     if (__count <= 0)
         return __first;
 
-    return oneapi::dpl::__internal::__pattern_generate_n(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __count, __g,
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    return oneapi::dpl::__internal::__pattern_generate_n(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                         __first, __count, __g);
 }
 
 // [alg.remove]
