@@ -982,6 +982,17 @@ __pattern_equal(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator
     return __internal::__brick_equal(__first1, __last1, __first2, __last2, __p, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
+bool
+__pattern_equal(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                _ForwardIterator2 __first2,
+                _ForwardIterator2 __last2, _BinaryPredicate __p) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_equal(__first1, __last1, __first2, __last2, __p, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _BinaryPredicate,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, bool>
@@ -1001,6 +1012,27 @@ __pattern_equal(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Ran
             });
     });
 }
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _BinaryPredicate>
+bool
+__pattern_equal(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+                _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
+                _BinaryPredicate __p)
+{
+    if (__last1 - __first1 != __last2 - __first2)
+        return false;
+
+    return __internal::__except_handler([&]() {
+        return !__internal::__parallel_or(
+            ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+            [__first1, __first2, __p](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
+                return !__internal::__brick_equal(__i, __j, __first2 + (__i - __first1), __first2 + (__j - __first1),
+                                                  __p, _IsVector{});
+            });
+    });
+}
+
 
 //------------------------------------------------------------------------
 // equal version for sequences with equal length
@@ -1032,6 +1064,16 @@ __pattern_equal(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator
     return __internal::__brick_equal(__first1, __last1, __first2, __p, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
+bool
+__pattern_equal(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                _ForwardIterator2 __first2, _BinaryPredicate __p) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_equal(__first1, __last1, __first2, __p, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _BinaryPredicate,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, bool>
@@ -1044,6 +1086,21 @@ __pattern_equal(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Ran
             ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
             [__first1, __first2, __p, __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 return !__internal::__brick_equal(__i, __j, __first2 + (__i - __first1), __p, __is_vector);
+            });
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _BinaryPredicate>
+bool
+__pattern_equal(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+                _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _BinaryPredicate __p)
+{
+    return __internal::__except_handler([&]() {
+        return !__internal::__parallel_or(
+            ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+            [__first1, __first2, __p](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
+                return !__internal::__brick_equal(__i, __j, __first2 + (__i - __first1), __p, _IsVector{});
             });
     });
 }

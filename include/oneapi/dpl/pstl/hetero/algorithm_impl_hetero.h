@@ -999,6 +999,30 @@ __pattern_equal(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
+bool
+__pattern_equal(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
+                _Iterator2 __first2, _Iterator2 __last2, _Pred __pred)
+{
+    if (__last1 == __first1 || __last2 == __first2 || __last1 - __first1 != __last2 - __first2)
+        return false;
+
+    using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, equal_predicate<_Pred>>;
+
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
+    auto __buf1 = __keep1(__first1, __last1);
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
+    auto __buf2 = __keep2(__first2, __last2);
+
+    // TODO: in case of confilicting names
+    // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
+    return !__par_backend_hetero::__parallel_find_or(
+        ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
+        __par_backend_hetero::__parallel_or_tag{},
+        oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
+}
+
+
 //------------------------------------------------------------------------
 // equal version for sequences with equal length
 //------------------------------------------------------------------------
@@ -1011,6 +1035,15 @@ __pattern_equal(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
     return oneapi::dpl::__internal::__pattern_equal(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
                                                     __first2, __first2 + (__last1 - __first1), __pred,
                                                     /*vector=*/::std::true_type{}, /*parallel=*/::std::true_type{});
+}
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
+bool
+__pattern_equal(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
+                _Iterator2 __first2, _Pred __pred)
+{
+    return oneapi::dpl::__internal::__pattern_equal(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+                                                    __first2, __first2 + (__last1 - __first1), __pred);
 }
 
 //------------------------------------------------------------------------
