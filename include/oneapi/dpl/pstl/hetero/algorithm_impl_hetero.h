@@ -429,6 +429,23 @@ __pattern_walk2_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __firs
         __first1, __last1, __first2, __func);
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _Function>
+_ForwardIterator2
+__pattern_walk2_transform_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                             _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __func)
+{
+    // Require `read_write` access mode for output sequence to force a copy in for host iterators to capture incoming
+    // values of the output sequence for elements where the predicate is false.
+    return __pattern_walk2<_BackendTag, /*_IsSync=*/::std::true_type,
+                           __par_backend_hetero::access_mode::read,
+                           __par_backend_hetero::access_mode::read_write>(
+        __tag,
+        __par_backend_hetero::make_wrapped_policy<__walk2_transform_if_wrapper>(
+            ::std::forward<_ExecutionPolicy>(__exec)),
+        __first1, __last1, __first2, __func);
+}
+
 template <typename _Name>
 struct __walk3_transform_if_wrapper
 {

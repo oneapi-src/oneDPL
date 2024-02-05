@@ -904,6 +904,17 @@ __pattern_walk2_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __firs
                            __is_parallel);
 }
 
+template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _Function>
+_ForwardIterator2
+__pattern_walk2_transform_if(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                             _ForwardIterator2 __first2, _Function __func) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __pattern_walk2(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __func);
+}
+
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
           typename _Function, class _IsVector, class _IsParallel>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator3>
