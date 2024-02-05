@@ -1282,6 +1282,17 @@ __pattern_find_end(_ExecutionPolicy&&, _ForwardIterator1 __first, _ForwardIterat
     return __internal::__brick_find_end(__first, __last, __s_first, __s_last, __pred, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
+_ForwardIterator1
+__pattern_find_end(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __s_first,
+                   _ForwardIterator2 __s_last, _BinaryPredicate __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_find_end(__first, __last, __s_first, __s_last, __pred, typename _Tag::__is_vector{});
+}
+
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _BinaryPredicate,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator1>
@@ -1314,6 +1325,37 @@ __pattern_find_end(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _R
         });
     }
 }
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _BinaryPredicate>
+_RandomAccessIterator1
+__pattern_find_end(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
+                   _RandomAccessIterator1 __last,
+                   _RandomAccessIterator2 __s_first, _RandomAccessIterator2 __s_last, _BinaryPredicate __pred)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    if (__last - __first == __s_last - __s_first)
+    {
+        const bool __res = __internal::__pattern_equal(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                       __first, __last, __s_first, __pred);
+        return __res ? __first : __last;
+    }
+    else
+    {
+        return __internal::__except_handler([&]() {
+            return __internal::__parallel_find(
+                __backend_tag{},
+                ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                [__last, __s_first, __s_last, __pred](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
+                    return __internal::__find_subrange(__i, __j, __last, __s_first, __s_last, __pred, false,
+                                                       _IsVector{});
+                },
+                ::std::false_type{});
+        });
+    }
+}
+
 
 //------------------------------------------------------------------------
 // find_first_of
