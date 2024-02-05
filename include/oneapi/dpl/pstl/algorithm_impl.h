@@ -3732,6 +3732,16 @@ __pattern_inplace_merge(_ExecutionPolicy&&, _BidirectionalIterator __first, _Bid
     __internal::__brick_inplace_merge(__first, __middle, __last, __comp, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _BidirectionalIterator, class _Compare>
+void
+__pattern_inplace_merge(_Tag, _ExecutionPolicy&&, _BidirectionalIterator __first, _BidirectionalIterator __middle,
+                        _BidirectionalIterator __last, _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    __internal::__brick_inplace_merge(__first, __middle, __last, __comp, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_inplace_merge(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
@@ -3771,6 +3781,50 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
             ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n, [__r, __first, __is_vector](_Tp* __i, _Tp* __j) {
                 __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __r), __is_vector);
             });
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+void
+__pattern_inplace_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                        _RandomAccessIterator __middle, _RandomAccessIterator __last, _Compare __comp)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    if (__first == __last || __first == __middle || __middle == __last)
+    {
+        return;
+    }
+
+    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _Tp;
+    auto __n = __last - __first;
+    __par_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__n);
+    _Tp* __r = __buf.get();
+    __internal::__except_handler([&]() {
+        auto __move_values = [](_RandomAccessIterator __x, _Tp* __z) {
+            if constexpr (::std::is_trivial_v<_Tp>)
+                *__z = ::std::move(*__x);
+            else
+                ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
+        };
+
+        auto __move_sequences = [](_RandomAccessIterator __first1, _RandomAccessIterator __last1, _Tp* __first2) {
+            return __internal::__brick_uninitialized_move(__first1, __last1, __first2, _IsVector{});
+        };
+
+        __par_backend::__parallel_merge(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __middle, __last, __r, __comp,
+            [__n, __move_values, __move_sequences](_RandomAccessIterator __f1, _RandomAccessIterator __l1,
+                                                   _RandomAccessIterator __f2, _RandomAccessIterator __l2, _Tp* __f3,
+                                                   _Compare __comp) {
+                (__utils::__serial_move_merge(__n))(__f1, __l1, __f2, __l2, __f3, __comp, __move_values, __move_values,
+                                                    __move_sequences, __move_sequences);
+                return __f3 + (__l1 - __f1) + (__l2 - __f2);
+            });
+        __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n,
+                                      [__r, __first](_Tp* __i, _Tp* __j) {
+                                          __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __r), _IsVector{});
+                                      });
     });
 }
 

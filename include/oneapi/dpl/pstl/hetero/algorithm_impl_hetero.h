@@ -1691,6 +1691,36 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
         __copy_first, __copy_last, __first, __brick_move<_ExecutionPolicy>{}, ::std::true_type{}, ::std::true_type{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+void
+__pattern_inplace_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
+                        _Iterator __middle, _Iterator __last, _Compare __comp)
+{
+    using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
+
+    if (__first == __middle || __middle == __last || __first == __last)
+        return;
+
+    assert(__first < __middle && __middle < __last);
+
+    auto __n = __last - __first;
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __n);
+    auto __copy_first = __buf.get();
+    auto __copy_last = __copy_first + __n;
+
+    __pattern_merge(__exec, __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__copy_first),
+                    __comp, ::std::true_type{}, ::std::true_type{});
+
+    //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
+    __pattern_walk2(
+        __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __copy_first, __copy_last, __first, __brick_move<_ExecutionPolicy>{});
+}
+
 //------------------------------------------------------------------------
 // sort
 //------------------------------------------------------------------------
