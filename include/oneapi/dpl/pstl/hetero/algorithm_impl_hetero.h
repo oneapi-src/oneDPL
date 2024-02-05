@@ -1032,9 +1032,12 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, b
 __pattern_equal(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1, _Iterator2 __first2, _Pred __pred,
                 /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
-    return oneapi::dpl::__internal::__pattern_equal(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
-                                                    __first2, __first2 + (__last1 - __first1), __pred,
-                                                    /*vector=*/::std::true_type{}, /*parallel=*/::std::true_type{});
+    // TODO is it correct that we check _Iterator2 in __select_backend ?
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+
+    return oneapi::dpl::__internal::__pattern_equal(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                    __last1, __first2, __first2 + (__last1 - __first1), __pred);
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
@@ -1081,8 +1084,12 @@ __pattern_find_end(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __l
 
     if (__last - __first == __s_last - __s_first)
     {
-        const bool __res = __pattern_equal(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __s_first, __pred,
-                                           ::std::true_type(), ::std::true_type());
+        // TODO is it correct that we check _Iterator2 in __select_backend ?
+        constexpr auto __dispatch_tag =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+
+        const bool __res = __pattern_equal(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                           __s_first, __pred);
         return __res ? __first : __last;
     }
     else
@@ -1146,9 +1153,14 @@ __pattern_search(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __las
 
     if (__last - __first == __s_last - __s_first)
     {
+        // TODO is it correct that we check _Iterator2 in __select_backend ?
+        constexpr auto __dispatch_tag =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+
         const bool __res = __pattern_equal(
+            __dispatch_tag,
             __par_backend_hetero::make_wrapped_policy<equal_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __first,
-            __last, __s_first, __pred, ::std::true_type(), ::std::true_type());
+            __last, __s_first, __pred);
         return __res ? __first : __last;
     }
 

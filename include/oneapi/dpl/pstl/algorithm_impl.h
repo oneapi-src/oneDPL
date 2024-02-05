@@ -1291,8 +1291,13 @@ __pattern_find_end(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _R
 {
     if (__last - __first == __s_last - __s_first)
     {
-        const bool __res = __internal::__pattern_equal(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                                       __s_first, __pred, __is_vector, ::std::true_type());
+        // TODO is it correct that we check _RandomAccessIterator2 in __select_backend ?
+        constexpr auto __dispatch_tag =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1,
+                                                      _RandomAccessIterator2>();
+
+        const bool __res = __internal::__pattern_equal(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                       __first, __last, __s_first, __pred);
         return __res ? __first : __last;
     }
     else
@@ -1395,8 +1400,13 @@ __pattern_search(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _Ran
 {
     if (__last - __first == __s_last - __s_first)
     {
-        const bool __res = __internal::__pattern_equal(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                                       __s_first, __pred, __is_vector, ::std::true_type());
+        // TODO is it correct that we check _RandomAccessIterator2 in __select_backend ?
+        constexpr auto __dispatch_tag =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1,
+                                                      _RandomAccessIterator2>();
+
+        const bool __res = __internal::__pattern_equal(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                       __first, __last, __s_first, __pred);
         return __res ? __first : __last;
     }
     else
