@@ -3787,6 +3787,16 @@ __pattern_includes(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardItera
     return ::std::includes(__first1, __last1, __first2, __last2, __comp);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Compare>
+bool
+__pattern_includes(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                   _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return ::std::includes(__first1, __last1, __first2, __last2, __comp);
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Compare,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, bool>
@@ -3822,6 +3832,67 @@ __pattern_includes(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _
                 //1. moving boundaries to "consume" subsequence of equal elements
                 auto __is_equal_sorted = [&__comp](_RandomAccessIterator2 __a, _RandomAccessIterator2 __b) -> bool {
                     //enough one call of __comp due to compared couple belongs to one sorted sequience
+                    return !__comp(*__a, *__b);
+                };
+
+                //1.1 left bound, case "aaa[aaaxyz...]" - searching "x"
+                if (__i > __first2 && __is_equal_sorted(__i - 1, __i))
+                {
+                    //whole subrange continues to have equal elements - return "no op"
+                    if (__is_equal_sorted(__i, __j - 1))
+                        return false;
+
+                    __i = ::std::upper_bound(__i, __last2, *__i, __comp);
+                }
+
+                //1.2 right bound, case "[...aaa]aaaxyz" - searching "x"
+                if (__j < __last2 && __is_equal_sorted(__j - 1, __j))
+                    __j = ::std::upper_bound(__j, __last2, *__j, __comp);
+
+                //2. testing is __a subsequence of the second range included into the first range
+                auto __b = ::std::lower_bound(__first1, __last1, *__i, __comp);
+
+                assert(!__comp(*(__last1 - 1), *__b));
+                assert(!__comp(*(__j - 1), *__i));
+                return !::std::includes(__b, __last1, __i, __j, __comp);
+            });
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Compare>
+bool
+__pattern_includes(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+                   _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
+                   _Compare __comp)
+{
+    if (__first2 == __last2)
+        return true;
+
+    //optimization; {1} - the first sequence, {2} - the second sequence
+    //{1} is empty or size_of{2} > size_of{1}
+    if (__first1 == __last1 || __last2 - __first2 > __last1 - __first1 ||
+        // {1}:     [**********]     or   [**********]
+        // {2}: [***********]                   [***********]
+        __comp(*__first2, *__first1) || __comp(*(__last1 - 1), *(__last2 - 1)))
+        return false;
+
+    __first1 = ::std::lower_bound(__first1, __last1, *__first2, __comp);
+    if (__first1 == __last1)
+        return false;
+
+    if (__last2 - __first2 == 1)
+        return !__comp(*__first1, *__first2) && !__comp(*__first2, *__first1);
+
+    return __internal::__except_handler([&]() {
+        return !__internal::__parallel_or(
+            ::std::forward<_ExecutionPolicy>(__exec), __first2, __last2,
+            [__first1, __last1, __first2, __last2, &__comp](_RandomAccessIterator2 __i, _RandomAccessIterator2 __j) {
+                assert(__j > __i);
+                //assert(__j - __i > 1);
+
+                //1. moving boundaries to "consume" subsequence of equal elements
+                auto __is_equal_sorted = [&__comp](_RandomAccessIterator2 __a, _RandomAccessIterator2 __b) -> bool {
+                    //enough one call of __comp due to compared couple belongs to one sorted sequence
                     return !__comp(*__a, *__b);
                 };
 

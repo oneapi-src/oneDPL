@@ -1887,6 +1887,34 @@ __pattern_includes(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwa
         __brick_include_type(__comp, __last1 - __first1, __last2 - __first2));
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _Compare>
+bool
+__pattern_includes(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                   _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp)
+{
+    //according to the spec
+    if (__first2 == __last2)
+        return true;
+
+    //optimization; {1} - the first sequence, {2} - the second sequence
+    //{1} is empty or size_of{2} > size_of{1}
+    if (__first1 == __last1 || __last2 - __first2 > __last1 - __first1)
+        return false;
+
+    typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _Size1;
+    typedef typename ::std::iterator_traits<_ForwardIterator2>::difference_type _Size2;
+
+    using __brick_include_type = unseq_backend::__brick_includes<_ExecutionPolicy, _Compare, _Size1, _Size2>;
+    return !__par_backend_hetero::__parallel_or(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first2),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last2),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first1),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last1),
+        __brick_include_type(__comp, __last1 - __first1, __last2 - __first2));
+}
+
 //------------------------------------------------------------------------
 // partial_sort
 //------------------------------------------------------------------------
