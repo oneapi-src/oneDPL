@@ -171,21 +171,23 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 adjacent_find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last)
 {
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
-    return oneapi::dpl::__internal::__pattern_adjacent_find(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, ::std::equal_to<_ValueType>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__first_semantic());
+
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    return oneapi::dpl::__internal::__pattern_adjacent_find(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                            __first, __last, ::std::equal_to<_ValueType>(),
+                                                            oneapi::dpl::__internal::__first_semantic());
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 adjacent_find(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _BinaryPredicate __pred)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
     return oneapi::dpl::__internal::__pattern_adjacent_find(
+        __dispatch_tag,
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
         oneapi::dpl::__internal::__first_semantic());
 }
 
@@ -871,12 +873,11 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 is_sorted_until(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
     const _ForwardIterator __res = oneapi::dpl::__internal::__pattern_adjacent_find(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__first_semantic());
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp), oneapi::dpl::__internal::__first_semantic());
     return __res == __last ? __last : oneapi::dpl::__internal::__pstl_next(__res);
 }
 
@@ -892,12 +893,12 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 is_sorted(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Compare __comp)
 {
-    return oneapi::dpl::__internal::__pattern_adjacent_find(
-               ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-               oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
-               oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-               oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-               oneapi::dpl::__internal::__or_semantic()) == __last;
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    return oneapi::dpl::__internal::__pattern_adjacent_find(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                            __first, __last,
+                                                            oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
+                                                            oneapi::dpl::__internal::__or_semantic()) == __last;
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator>
