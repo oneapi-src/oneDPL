@@ -355,12 +355,13 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result,
              _UnaryOperation __op, _UnaryPredicate __pred)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
     return oneapi::dpl::__internal::__pattern_walk2_transform_if(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
         oneapi::dpl::__internal::__transform_if_unary_functor<_UnaryOperation, _UnaryPredicate>(::std::move(__op),
-                                                                                                ::std::move(__pred)),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>());
+                                                                                                ::std::move(__pred)));
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator3,
