@@ -3163,10 +3163,12 @@ __pattern_fill_n(_ExecutionPolicy&&, _OutputIterator __first, _Size __count, con
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Tp, class _IsVector>
 _RandomAccessIterator
 __pattern_fill_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Size __count, const _Tp& __value,
-                 /*is_parallel=*/::std::true_type, _IsVector __is_vector)
+                 /*is_parallel=*/::std::true_type, _IsVector /*__is_vector*/)
 {
-    return __internal::__pattern_fill(::std::forward<_ExecutionPolicy>(__exec), __first, __first + __count, __value,
-                                      ::std::true_type(), __is_vector);
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+
+    return __internal::__pattern_fill(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+                                      __first + __count, __value);
 }
 
 //------------------------------------------------------------------------
