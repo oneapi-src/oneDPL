@@ -1667,6 +1667,16 @@ __pattern_copy_if(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator
     return __internal::__brick_copy_if(__first, __last, __result, __pred, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator, class _UnaryPredicate>
+_OutputIterator
+__pattern_copy_if(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _OutputIterator __result,
+                  _UnaryPredicate __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_copy_if(__first, __last, __result, __pred, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _UnaryPredicate,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
@@ -1701,6 +1711,41 @@ __pattern_copy_if(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _Ra
     }
     // trivial sequence - use serial algorithm
     return __internal::__brick_copy_if(__first, __last, __result, __pred, __is_vector);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _UnaryPredicate>
+_RandomAccessIterator2
+__pattern_copy_if(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
+                  _RandomAccessIterator1 __last, _RandomAccessIterator2 __result, _UnaryPredicate __pred)
+{
+    typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType;
+    const _DifferenceType __n = __last - __first;
+    if (_DifferenceType(1) < __n)
+    {
+        __par_backend::__buffer<_ExecutionPolicy, bool> __mask_buf(__n);
+        return __internal::__except_handler([&__exec, __n, __first, __result, __pred, &__mask_buf]() {
+            bool* __mask = __mask_buf.get();
+            _DifferenceType __m{};
+            __par_backend::__parallel_strict_scan(
+                ::std::forward<_ExecutionPolicy>(__exec), __n, _DifferenceType(0),
+                [=](_DifferenceType __i, _DifferenceType __len) { // Reduce
+                    return __internal::__brick_calc_mask_1<_DifferenceType>(__first + __i, __first + (__i + __len),
+                                                                            __mask + __i, __pred, _IsVector{})
+                        .first;
+                },
+                ::std::plus<_DifferenceType>(),                                              // Combine
+                [=](_DifferenceType __i, _DifferenceType __len, _DifferenceType __initial) { // Scan
+                    __internal::__brick_copy_by_mask(
+                        __first + __i, __first + (__i + __len), __result + __initial, __mask + __i,
+                        [](_RandomAccessIterator1 __x, _RandomAccessIterator2 __z) { *__z = *__x; }, _IsVector{});
+                },
+                [&__m](_DifferenceType __total) { __m = __total; });
+            return __result + __m;
+        });
+    }
+    // trivial sequence - use serial algorithm
+    return __internal::__brick_copy_if(__first, __last, __result, __pred, _IsVector{});
 }
 
 //------------------------------------------------------------------------
