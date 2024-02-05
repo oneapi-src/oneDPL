@@ -71,6 +71,15 @@ __pattern_any_of(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator 
     return __internal::__brick_any_of(__first, __last, __pred, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Pred>
+bool
+__pattern_any_of(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Pred __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_any_of(__first, __last, __pred, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Pred, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, bool>
 __pattern_any_of(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Pred __pred,
@@ -80,6 +89,19 @@ __pattern_any_of(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rand
         return __internal::__parallel_or(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                          [__pred, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                                              return __internal::__brick_any_of(__i, __j, __pred, __is_vector);
+                                         });
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Pred>
+bool
+__pattern_any_of(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                 _RandomAccessIterator __last, _Pred __pred)
+{
+    return __internal::__except_handler([&]() {
+        return __internal::__parallel_or(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                         [__pred](_RandomAccessIterator __i, _RandomAccessIterator __j) {
+                                             return __internal::__brick_any_of(__i, __j, __pred, _IsVector{});
                                          });
     });
 }

@@ -50,10 +50,18 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, boo
 __pattern_any_of(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Pred, _IsVector,
                  /*parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Pred>
+bool
+__pattern_any_of(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Pred) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Pred, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, bool>
 __pattern_any_of(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Pred, _IsVector,
                  /*parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Pred>
+bool
+__pattern_any_of(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Pred);
 
 //------------------------------------------------------------------------
 // walk1 (pseudo)

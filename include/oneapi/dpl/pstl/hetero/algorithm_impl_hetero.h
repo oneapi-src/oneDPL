@@ -924,6 +924,25 @@ __pattern_any_of(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
         _Predicate{__pred}, __par_backend_hetero::__parallel_or_tag{}, __buf.all_view());
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
+bool
+__pattern_any_of(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                 _Pred __pred)
+{
+    if (__first == __last)
+        return false;
+
+    using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
+
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+        __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>(
+            ::std::forward<_ExecutionPolicy>(__exec)),
+        _Predicate{__pred}, __par_backend_hetero::__parallel_or_tag{}, __buf.all_view());
+}
+
 //------------------------------------------------------------------------
 // equal
 //------------------------------------------------------------------------
