@@ -1050,10 +1050,18 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_fill(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, const _Tp&,
                /*is_parallel=*/::std::false_type, _IsVector) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Tp>
+void
+__pattern_fill(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, const _Tp&) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Tp, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_fill(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, const _Tp&,
                /*is_parallel=*/::std::true_type, _IsVector);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Tp>
+_RandomAccessIterator
+__pattern_fill(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, const _Tp&);
 
 template <typename _Tp, typename _ExecutionPolicy, typename = void>
 struct __brick_fill_n;

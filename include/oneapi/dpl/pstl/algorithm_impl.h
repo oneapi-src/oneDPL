@@ -3087,6 +3087,15 @@ __pattern_fill(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __
     __internal::__brick_fill<_Tp, _ExecutionPolicy>{__value}(__first, __last, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Tp>
+void
+__pattern_fill(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    __internal::__brick_fill<_Tp, _ExecutionPolicy>{__value}(__first, __last, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Tp, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_fill(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
@@ -3099,6 +3108,23 @@ __pattern_fill(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Random
             [&__value, __is_vector](_RandomAccessIterator __begin, _RandomAccessIterator __end) {
                 __internal::__brick_fill<_Tp, _ExecutionPolicy>{__value}(__begin, __end, __is_vector);
             });
+        return __last;
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Tp>
+_RandomAccessIterator
+__pattern_fill(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+               _RandomAccessIterator __last, const _Tp& __value)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    return __internal::__except_handler([&__exec, __first, __last, &__value]() {
+        __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                      [&__value](_RandomAccessIterator __begin, _RandomAccessIterator __end) {
+                                          __internal::__brick_fill<_Tp, _ExecutionPolicy>{__value}(__begin, __end,
+                                                                                                   _IsVector{});
+                                      });
         return __last;
     });
 }
