@@ -3506,6 +3506,15 @@ __pattern_generate(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterato
     __internal::__brick_generate(__first, __last, __g, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Generator>
+void
+__pattern_generate(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Generator __g) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    __internal::__brick_generate(__first, __last, __g, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Generator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_generate(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
@@ -3516,6 +3525,22 @@ __pattern_generate(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ra
         __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                       [__g, __is_vector](_RandomAccessIterator __begin, _RandomAccessIterator __end) {
                                           __internal::__brick_generate(__begin, __end, __g, __is_vector);
+                                      });
+        return __last;
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Generator>
+_RandomAccessIterator
+__pattern_generate(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                   _RandomAccessIterator __last, _Generator __g)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    return __internal::__except_handler([&]() {
+        __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                      [__g](_RandomAccessIterator __begin, _RandomAccessIterator __end) {
+                                          __internal::__brick_generate(__begin, __end, __g, _IsVector{});
                                       });
         return __last;
     });

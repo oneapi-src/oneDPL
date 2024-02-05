@@ -1183,10 +1183,19 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_generate(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Generator,
                    /*is_parallel=*/::std::false_type, _IsVector) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Generator>
+void
+__pattern_generate(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Generator) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Generator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_generate(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Generator,
                    /*is_parallel=*/::std::true_type, _IsVector);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Generator>
+_RandomAccessIterator
+__pattern_generate(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                   _Generator);
 
 template <class _RandomAccessIterator, class Size, class _Generator>
 _RandomAccessIterator __brick_generate_n(_RandomAccessIterator, Size, _Generator,

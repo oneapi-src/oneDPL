@@ -556,6 +556,18 @@ __pattern_generate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forward
     return __last;
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Generator>
+_ForwardIterator
+__pattern_generate(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+                   _ForwardIterator __last, _Generator __g)
+{
+    __pattern_walk1(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
+                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
+                    generate_functor<_Generator>{__g});
+    return __last;
+}
+
 //------------------------------------------------------------------------
 // brick_copy, brick_move
 //------------------------------------------------------------------------
