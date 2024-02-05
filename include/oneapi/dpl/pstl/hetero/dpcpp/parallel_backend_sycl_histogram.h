@@ -130,7 +130,8 @@ void
 __clear_wglocal_histograms(const _HistAccessor& __local_histogram, const _OffsetT& __offset, _Size __num_bins,
                            const sycl::nd_item<1>& __self_item)
 {
-    ::std::uint32_t __gSize = __self_item.get_local_range()[0];
+    using _BinUint_t = ::std::conditional_t<(sizeof(_Size) >= sizeof(::std::uint32_t)), ::std::uint64_t, std::uint32_t>;
+    _BinUint_t __gSize = __self_item.get_local_range()[0];
     ::std::uint32_t __self_lidx = __self_item.get_local_id(0);
     ::std::uint8_t __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, __gSize);
     ::std::uint8_t __k = 0;
@@ -179,7 +180,8 @@ void
 __reduce_out_histograms(const _HistAccessorIn& __in_histogram, const _OffsetT& __offset,
                         const _HistAccessorOut& __out_histogram, _Size __num_bins, const sycl::nd_item<1>& __self_item)
 {
-    ::std::uint32_t __gSize = __self_item.get_local_range()[0];
+    using _BinUint_t = ::std::conditional_t<(sizeof(_Size) >= sizeof(::std::uint32_t)), ::std::uint64_t, std::uint32_t>;
+    _BinUint_t __gSize = __self_item.get_local_range()[0];
     ::std::uint32_t __self_lidx = __self_item.get_local_id(0);
     _FactorType __factor = oneapi::dpl::__internal::__dpl_ceiling_div(__num_bins, __gSize);
     _FactorType __k = 0;
