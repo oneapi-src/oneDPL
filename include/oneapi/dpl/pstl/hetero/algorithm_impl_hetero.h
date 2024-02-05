@@ -1234,10 +1234,12 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __la
 
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
+
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
     auto __copy_first = __buf.get();
-    auto __copy_last = __pattern_copy_if(__exec, __first, __last, __copy_first, __not_pred<_Predicate>{__pred},
-                                         /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
+    auto __copy_last =
+        __pattern_copy_if(__dispatch_tag, __exec, __first, __last, __copy_first, __not_pred<_Predicate>{__pred});
 
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
     return __pattern_walk2(
