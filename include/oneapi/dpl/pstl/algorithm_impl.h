@@ -2997,6 +2997,16 @@ __pattern_adjacent_find(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIt
     return __internal::__brick_adjacent_find(__first, __last, __pred, __is_vector, _Semantic::value);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _BinaryPredicate, class _Semantic>
+_ForwardIterator
+__pattern_adjacent_find(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
+                        _BinaryPredicate __pred, _Semantic) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_adjacent_find(__first, __last, __pred, typename _Tag::__is_vector{}, _Semantic::value);
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _BinaryPredicate, class _IsVector, class _Semantic>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_adjacent_find(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
@@ -3030,6 +3040,50 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
                     //correct the global result iterator if the "brick" returns a local "__last"
                     const _RandomAccessIterator __res =
                         __internal::__brick_adjacent_find(__begin, __end, __pred, __is_vector, __or_semantic);
+                    if (__res < __end)
+                        __value = __res;
+                }
+                return __value;
+            },
+            [](_RandomAccessIterator __x, _RandomAccessIterator __y) -> _RandomAccessIterator {
+                return __x < __y ? __x : __y;
+            } //reduce a __value
+        );
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _BinaryPredicate, class _Semantic>
+_RandomAccessIterator
+__pattern_adjacent_find(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                        _RandomAccessIterator __last, _BinaryPredicate __pred, _Semantic __or_semantic)
+{
+    if (__last - __first < 2)
+        return __last;
+
+    return __internal::__except_handler([&]() {
+        return __par_backend::__parallel_reduce(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __last,
+            [__last, __pred, __or_semantic](_RandomAccessIterator __begin, _RandomAccessIterator __end,
+                                            _RandomAccessIterator __value) -> _RandomAccessIterator {
+                // TODO: investigate performance benefits from the use of shared variable for the result,
+                // checking (compare_and_swap idiom) its __value at __first.
+                if (__or_semantic && __value < __last)
+                { //found
+                    return __value;
+                }
+
+                if (__value > __begin)
+                {
+                    // modify __end to check the predicate on the boundary __values;
+                    // TODO: to use a custom range with boundaries overlapping
+                    // TODO: investigate what if we remove "if" below and run algorithm on range [__first, __last-1)
+                    // then check the pair [__last-1, __last)
+                    if (__end != __last)
+                        ++__end;
+
+                    //correct the global result iterator if the "brick" returns a local "__last"
+                    const _RandomAccessIterator __res =
+                        __internal::__brick_adjacent_find(__begin, __end, __pred, _IsVector{}, __or_semantic);
                     if (__res < __end)
                         __value = __res;
                 }

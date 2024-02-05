@@ -1030,10 +1030,20 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Fo
 __pattern_adjacent_find(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _BinaryPredicate,
                         /* is_parallel */ ::std::false_type, _IsVector, _Semantic) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _BinaryPredicate, class _Semantic>
+_ForwardIterator
+__pattern_adjacent_find(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _BinaryPredicate,
+                        _Semantic) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _BinaryPredicate, class _IsVector, class _Semantic>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_adjacent_find(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _BinaryPredicate,
                         /* is_parallel */ ::std::true_type, _IsVector, _Semantic);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _BinaryPredicate, class _Semantic>
+_RandomAccessIterator
+__pattern_adjacent_find(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                        _BinaryPredicate, _Semantic);
 
 //------------------------------------------------------------------------
 // nth_element

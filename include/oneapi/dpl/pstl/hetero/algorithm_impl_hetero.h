@@ -782,10 +782,67 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
     return result ? __first : __last;
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _BinaryPredicate>
+_Iterator
+__pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                        _BinaryPredicate __predicate, oneapi::dpl::__internal::__or_semantic)
+{
+    if (__last - __first < 2)
+        return __last;
+
+    using _Predicate =
+        oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, adjacent_find_fn<_BinaryPredicate>>;
+
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf1 = __keep1(__first, __last - 1);
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf2 = __keep2(__first + 1, __last);
+
+    // TODO: in case of confilicting names
+    // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
+    bool result = __par_backend_hetero::__parallel_find_or(
+        ::std::forward<_ExecutionPolicy>(__exec), _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}},
+        __par_backend_hetero::__parallel_or_tag{},
+        oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
+
+    // inverted conditional because of
+    // reorder_predicate in glue_algorithm_impl.h
+    return result ? __first : __last;
+}
+
 template <typename _ExecutionPolicy, typename _Iterator, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
 __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _BinaryPredicate __predicate,
                         /*parallel*/ ::std::true_type, /*vector*/ ::std::true_type,
+                        oneapi::dpl::__internal::__first_semantic)
+{
+    if (__last - __first < 2)
+        return __last;
+
+    using _Predicate =
+        oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, adjacent_find_fn<_BinaryPredicate>>;
+
+    auto __result = __par_backend_hetero::__parallel_find(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        __par_backend_hetero::zip(
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1)),
+        __par_backend_hetero::zip(
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last - 1),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last)),
+        _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, ::std::true_type{});
+
+    auto __zip_at_first = __par_backend_hetero::zip(
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1));
+    _Iterator __result_iterator = __first + (__result - __zip_at_first);
+    return (__result_iterator == __last - 1) ? __last : __result_iterator;
+}
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _BinaryPredicate>
+_Iterator
+__pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                        _BinaryPredicate __predicate,
                         oneapi::dpl::__internal::__first_semantic)
 {
     if (__last - __first < 2)
