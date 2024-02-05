@@ -129,10 +129,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 find_end(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __s_first,
          _ForwardIterator2 __s_last, _BinaryPredicate __pred)
 {
-    return oneapi::dpl::__internal::__pattern_find_end(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __s_first, __s_last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>());
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
+    return oneapi::dpl::__internal::__pattern_find_end(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                       __first, __last, __s_first, __s_last, __pred);
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
