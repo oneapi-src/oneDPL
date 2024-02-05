@@ -1159,6 +1159,28 @@ __pattern_find_first_of(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator
         ::std::true_type{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
+_Iterator1
+__pattern_find_first_of(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first,
+                        _Iterator1 __last, _Iterator2 __s_first, _Iterator2 __s_last, _Pred __pred)
+{
+    if (__first == __last || __s_last == __s_first)
+        return __last;
+
+    using _Predicate = unseq_backend::first_match_pred<_ExecutionPolicy, _Pred>;
+
+    // TODO: To check whether it makes sense to iterate over the second sequence in case of
+    // distance(__first, __last) < distance(__s_first, __s_last).
+    return __par_backend_hetero::__parallel_find(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_last), _Predicate{__pred},
+        ::std::true_type{});
+}
+
+
 //------------------------------------------------------------------------
 // search
 //------------------------------------------------------------------------

@@ -1378,12 +1378,23 @@ __brick_find_first_of(_ForwardIterator1 __first, _ForwardIterator1 __last, _Forw
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate,
           class _IsVector>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator1>
+_ForwardIterator1
 __pattern_find_first_of(_ExecutionPolicy&&, _ForwardIterator1 __first, _ForwardIterator1 __last,
                         _ForwardIterator2 __s_first, _ForwardIterator2 __s_last, _BinaryPredicate __pred,
                         _IsVector __is_vector, /*is_parallel=*/::std::false_type) noexcept
 {
     return __internal::__brick_find_first_of(__first, __last, __s_first, __s_last, __pred, __is_vector);
+}
+
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate>
+_ForwardIterator1
+__pattern_find_first_of(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first, _ForwardIterator1 __last,
+                        _ForwardIterator2 __s_first, _ForwardIterator2 __s_last, _BinaryPredicate __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_find_first_of(__first, __last, __s_first, __s_last, __pred,
+                                             typename _Tag::__is_vector{});
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _BinaryPredicate,
@@ -1398,6 +1409,25 @@ __pattern_find_first_of(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _F
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             [__s_first, __s_last, &__pred, __is_vector](_ForwardIterator1 __i, _ForwardIterator1 __j) {
                 return __internal::__brick_find_first_of(__i, __j, __s_first, __s_last, __pred, __is_vector);
+            },
+            ::std::true_type{});
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2,
+          class _BinaryPredicate>
+_ForwardIterator1
+__pattern_find_first_of(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _ForwardIterator1 __first,
+                        _ForwardIterator1 __last, _ForwardIterator2 __s_first, _ForwardIterator2 __s_last,
+                        _BinaryPredicate __pred)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    return __internal::__except_handler([&]() {
+        return __internal::__parallel_find(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            [__s_first, __s_last, &__pred](_ForwardIterator1 __i, _ForwardIterator1 __j) {
+                return __internal::__brick_find_first_of(__i, __j, __s_first, __s_last, __pred, _IsVector{});
             },
             ::std::true_type{});
     });
