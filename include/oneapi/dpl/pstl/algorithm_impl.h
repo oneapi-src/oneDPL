@@ -1798,6 +1798,15 @@ __pattern_count(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator _
     return __internal::__brick_count(__first, __last, __pred, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
+typename ::std::iterator_traits<_ForwardIterator>::difference_type
+__pattern_count(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Predicate __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_count(__first, __last, __pred, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Predicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<
     _ExecutionPolicy, typename ::std::iterator_traits<_RandomAccessIterator>::difference_type>
@@ -1816,6 +1825,27 @@ __pattern_count(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rando
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, _SizeType(0),
             [__pred, __is_vector](_RandomAccessIterator __begin, _RandomAccessIterator __end, _SizeType __value)
                 -> _SizeType { return __value + __internal::__brick_count(__begin, __end, __pred, __is_vector); },
+            ::std::plus<_SizeType>());
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Predicate>
+typename ::std::iterator_traits<_RandomAccessIterator>::difference_type
+__pattern_count(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                _RandomAccessIterator __last, _Predicate __pred)
+{
+    typedef typename ::std::iterator_traits<_RandomAccessIterator>::difference_type _SizeType;
+
+    //trivial pre-checks
+    if (__first == __last)
+        return _SizeType(0);
+
+    return __internal::__except_handler([&]() {
+        return __par_backend::__parallel_reduce(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, _SizeType(0),
+            [__pred](_RandomAccessIterator __begin, _RandomAccessIterator __end, _SizeType __value) -> _SizeType {
+                return __value + __internal::__brick_count(__begin, __end, __pred, _IsVector{});
+            },
             ::std::plus<_SizeType>());
     });
 }

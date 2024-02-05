@@ -901,6 +901,34 @@ __pattern_count(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, 
         .get();
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Predicate>
+typename ::std::iterator_traits<_Iterator>::difference_type
+__pattern_count(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                _Predicate __predicate)
+{
+    if (__first == __last)
+        return 0;
+
+    using _ReduceValueType = typename ::std::iterator_traits<_Iterator>::difference_type;
+
+    auto __reduce_fn = ::std::plus<_ReduceValueType>{};
+    // int is being implicitly casted to difference_type
+    // otherwise we can only pass the difference_type as a functor template parameter
+    auto __transform_fn = [__predicate](auto __gidx, auto __acc) -> int {
+        return (__predicate(__acc[__gidx]) ? 1 : 0);
+    };
+
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                          ::std::true_type /*is_commutative*/>(
+               ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+               unseq_backend::__no_init_value{}, // no initial value
+               __buf.all_view())
+        .get();
+}
+
 //------------------------------------------------------------------------
 // any_of
 //------------------------------------------------------------------------

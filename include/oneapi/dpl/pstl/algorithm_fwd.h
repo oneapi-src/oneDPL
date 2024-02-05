@@ -677,11 +677,20 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<
 __pattern_count(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Predicate,
                 /* is_parallel */ ::std::false_type, _IsVector) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
+typename ::std::iterator_traits<_ForwardIterator>::difference_type
+__pattern_count(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Predicate) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Predicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<
     _ExecutionPolicy, typename ::std::iterator_traits<_RandomAccessIterator>::difference_type>
 __pattern_count(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Predicate,
                 /* is_parallel */ ::std::true_type, _IsVector);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Predicate>
+typename ::std::iterator_traits<_RandomAccessIterator>::difference_type
+__pattern_count(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                _Predicate);
 
 //------------------------------------------------------------------------
 // unique
