@@ -568,6 +568,19 @@ __pattern_generate(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     return __last;
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, class _Size, typename _Generator>
+_ForwardIterator
+__pattern_generate_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+                     _Size __count, _Generator __g)
+{
+    // TODO: is this new implementation are correct?
+    // Previously we hadn't hetero impl for __pattern_generate_n
+
+    return __pattern_walk1_n(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+                             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
+                             __count, generate_functor<_Generator>{__g});
+}
+
 //------------------------------------------------------------------------
 // brick_copy, brick_move
 //------------------------------------------------------------------------
