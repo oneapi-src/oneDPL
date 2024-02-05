@@ -3569,6 +3569,15 @@ __pattern_generate_n(_ExecutionPolicy&&, _OutputIterator __first, _Size __count,
     return __internal::__brick_generate_n(__first, __count, __g, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _OutputIterator, class _Size, class _Generator>
+_OutputIterator
+__pattern_generate_n(_Tag, _ExecutionPolicy&&, _OutputIterator __first, _Size __count, _Generator __g) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_generate_n(__first, __count, __g, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Generator, class _IsVector>
 _RandomAccessIterator
 __pattern_generate_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Size __count, _Generator __g,
@@ -3578,6 +3587,17 @@ __pattern_generate_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _
                   "Pattern-brick error. Should be a random access iterator.");
     return __internal::__pattern_generate(::std::forward<_ExecutionPolicy>(__exec), __first, __first + __count, __g,
                                           ::std::true_type(), __is_vector);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Generator>
+_RandomAccessIterator
+__pattern_generate_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                     _Size __count, _Generator __g)
+{
+    static_assert(__is_random_access_iterator_v<_RandomAccessIterator>,
+                  "Pattern-brick error. Should be a random access iterator.");
+    return __internal::__pattern_generate(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __first + __count,
+                                          __g);
 }
 
 //------------------------------------------------------------------------
