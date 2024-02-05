@@ -942,10 +942,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 inplace_merge(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __middle,
               _BidirectionalIterator __last, _Compare __comp)
 {
-    oneapi::dpl::__internal::__pattern_inplace_merge(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _BidirectionalIterator>());
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _BidirectionalIterator>();
+
+    oneapi::dpl::__internal::__pattern_inplace_merge(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+                                                     __middle, __last, __comp);
 }
 
 template <class _ExecutionPolicy, class _BidirectionalIterator>
