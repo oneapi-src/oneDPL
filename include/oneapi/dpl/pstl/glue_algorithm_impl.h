@@ -43,10 +43,10 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 any_of(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Predicate __pred)
 {
-    return oneapi::dpl::__internal::__pattern_any_of(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    return oneapi::dpl::__internal::__pattern_any_of(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+                                                     __last, __pred);
 }
 
 // [alg.all_of]

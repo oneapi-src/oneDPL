@@ -1132,9 +1132,10 @@ __pattern_search_n(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __las
 
     if (__last - __first == __count)
     {
-        return (!__internal::__pattern_any_of(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                              __search_n_unary_predicate<_Tp, _BinaryPredicate>{__value, __pred},
-                                              ::std::true_type{}, ::std::true_type{}))
+        constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
+
+        return (!__internal::__pattern_any_of(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                              __search_n_unary_predicate<_Tp, _BinaryPredicate>{__value, __pred}))
                    ? __first
                    : __last;
     }
@@ -1606,10 +1607,13 @@ __pattern_stable_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterat
     if (__last == __first)
         return __last;
     else if (__last - __first < 2)
-        return __pattern_any_of(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred, ::std::true_type(),
-                                ::std::true_type())
+    {
+        constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
+
+        return __pattern_any_of(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred)
                    ? __last
                    : __first;
+    }
 
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
