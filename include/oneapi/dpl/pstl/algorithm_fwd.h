@@ -1071,10 +1071,18 @@ _OutputIterator
 __pattern_fill_n(_ExecutionPolicy&&, _OutputIterator, _Size, const _Tp&,
                  /*is_parallel=*/::std::false_type, _IsVector) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _OutputIterator, class _Size, class _Tp>
+_OutputIterator
+__pattern_fill_n(_Tag, _ExecutionPolicy&&, _OutputIterator, _Size, const _Tp&) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Tp, class _IsVector>
 _RandomAccessIterator
 __pattern_fill_n(_ExecutionPolicy&&, _RandomAccessIterator, _Size, const _Tp&,
                  /*is_parallel=*/::std::true_type, _IsVector);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Tp>
+_RandomAccessIterator
+__pattern_fill_n(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _Size, const _Tp&);
 
 //------------------------------------------------------------------------
 // generate, generate_n

@@ -3160,6 +3160,15 @@ __pattern_fill_n(_ExecutionPolicy&&, _OutputIterator __first, _Size __count, con
     return __internal::__brick_fill_n<_Tp, _ExecutionPolicy>{__value}(__first, __count, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _OutputIterator, class _Size, class _Tp>
+_OutputIterator
+__pattern_fill_n(_Tag, _ExecutionPolicy&&, _OutputIterator __first, _Size __count, const _Tp& __value) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_fill_n<_Tp, _ExecutionPolicy>{__value}(__first, __count, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Tp, class _IsVector>
 _RandomAccessIterator
 __pattern_fill_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Size __count, const _Tp& __value,
@@ -3169,6 +3178,15 @@ __pattern_fill_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Size
 
     return __internal::__pattern_fill(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
                                       __first + __count, __value);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Tp>
+_RandomAccessIterator
+__pattern_fill_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                 _Size __count, const _Tp& __value)
+{
+    return __internal::__pattern_fill(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __first + __count,
+                                      __value);
 }
 
 //------------------------------------------------------------------------
