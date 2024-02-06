@@ -832,6 +832,56 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
     return ::std::make_pair<_Iterator, _Iterator>(__first + ::std::get<0>(__ret), __first + ::std::get<1>(__ret));
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+::std::pair<_Iterator, _Iterator>
+__pattern_minmax_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
+                         _Iterator __last, _Compare __comp)
+{
+    if (__first == __last)
+        return ::std::make_pair(__first, __first);
+
+    using _IteratorValueType = typename ::std::iterator_traits<_Iterator>::value_type;
+    using _IndexValueType = ::std::make_unsigned_t<typename ::std::iterator_traits<_Iterator>::difference_type>;
+    using _ReduceValueType = ::std::tuple<_IndexValueType, _IndexValueType, _IteratorValueType, _IteratorValueType>;
+
+    // This operator doesn't track the lowest found index in case of equal min. values and the highest found index in
+    // case of equal max. values. Thus, this operator is not commutative.
+    auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
+        using ::std::get;
+        auto __chosen_for_min = __a;
+        auto __chosen_for_max = __b;
+
+        assert(get<0>(__a) < get<0>(__b));
+        assert(get<1>(__a) < get<1>(__b));
+
+        if (__comp(get<2>(__b), get<2>(__a)))
+            __chosen_for_min = ::std::move(__b);
+        if (__comp(get<3>(__b), get<3>(__a)))
+            __chosen_for_max = ::std::move(__a);
+        return _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
+                                get<3>(__chosen_for_max)};
+    };
+
+    // TODO: Doesn't work with `zip_iterator`.
+    //       In that case the first and the second arguments of `_ReduceValueType` will be
+    //       a `tuple` of `difference_type`, not the `difference_type` itself.
+    auto __transform_fn = [](auto __gidx, auto __acc) {
+        return _ReduceValueType{__gidx, __gidx, __acc[__gidx], __acc[__gidx]};
+    };
+
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    auto __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                                ::std::false_type /*is_commutative*/>(
+                     ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                     unseq_backend::__no_init_value{}, // no initial value
+                     __buf.all_view())
+                     .get();
+
+    return ::std::make_pair<_Iterator, _Iterator>(__first + ::std::get<0>(__ret), __first + ::std::get<1>(__ret));
+}
+
 //------------------------------------------------------------------------
 // adjacent_find
 //------------------------------------------------------------------------

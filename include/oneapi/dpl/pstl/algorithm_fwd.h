@@ -1575,11 +1575,20 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy,
 __pattern_minmax_element(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Compare, _IsVector,
                          /* is_parallel = */ ::std::false_type) noexcept;
 
+template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Compare>
+::std::pair<_ForwardIterator, _ForwardIterator>
+__pattern_minmax_element(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Compare) noexcept;
+
 template <typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy,
                                                            ::std::pair<_RandomAccessIterator, _RandomAccessIterator>>
 __pattern_minmax_element(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare, _IsVector,
                          /* is_parallel = */ ::std::true_type);
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare>
+::std::pair<_RandomAccessIterator, _RandomAccessIterator>
+__pattern_minmax_element(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                         _Compare);
 
 //------------------------------------------------------------------------
 // mismatch

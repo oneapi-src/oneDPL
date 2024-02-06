@@ -4947,6 +4947,16 @@ __pattern_minmax_element(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardI
     return __internal::__brick_minmax_element(__first, __last, __comp, __is_vector);
 }
 
+template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Compare>
+::std::pair<_ForwardIterator, _ForwardIterator>
+__pattern_minmax_element(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
+                         _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_minmax_element(__first, __last, __comp, typename _Tag::__is_vector{});
+}
+
 template <typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy,
                                                            ::std::pair<_RandomAccessIterator, _RandomAccessIterator>>
@@ -4965,6 +4975,47 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
             /*identity*/ ::std::make_pair(__last, __last),
             [=, &__comp](_RandomAccessIterator __begin, _RandomAccessIterator __end, _Result __init) -> _Result {
                 const _Result __subresult = __internal::__brick_minmax_element(__begin, __end, __comp, __is_vector);
+                if (__init.first == __last) // = identity
+                    return __subresult;
+                return ::std::make_pair(
+                    __internal::__cmp_iterators_by_values(__init.first, __subresult.first, __comp,
+                                                          oneapi::dpl::__internal::__pstl_less()),
+                    __internal::__cmp_iterators_by_values(__init.second, __subresult.second,
+                                                          oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
+                                                          oneapi::dpl::__internal::__pstl_greater()));
+            },
+            [=, &__comp](_Result __p1, _Result __p2) -> _Result {
+                if (__p1.first == __last)
+                    return __p2;
+                if (__p2.first == __last)
+                    return __p1;
+                return ::std::make_pair(
+                    __internal::__cmp_iterators_by_values(__p1.first, __p2.first, __comp,
+                                                          oneapi::dpl::__internal::__pstl_less()),
+                    __internal::__cmp_iterators_by_values(__p1.second, __p2.second,
+                                                          oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
+                                                          oneapi::dpl::__internal::__pstl_greater()));
+            });
+    });
+}
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare>
+::std::pair<_RandomAccessIterator, _RandomAccessIterator>
+__pattern_minmax_element(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                         _RandomAccessIterator __last, _Compare __comp)
+{
+    // a trivial case pre-check
+    if (__last - __first < 2)
+        return ::std::make_pair(__first, __first);
+
+    return __internal::__except_handler([&]() {
+        typedef ::std::pair<_RandomAccessIterator, _RandomAccessIterator> _Result;
+
+        return __par_backend::__parallel_reduce(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            /*identity*/ ::std::make_pair(__last, __last),
+            [=, &__comp](_RandomAccessIterator __begin, _RandomAccessIterator __end, _Result __init) -> _Result {
+                const _Result __subresult = __internal::__brick_minmax_element(__begin, __end, __comp, _IsVector{});
                 if (__init.first == __last) // = identity
                     return __subresult;
                 return ::std::make_pair(
