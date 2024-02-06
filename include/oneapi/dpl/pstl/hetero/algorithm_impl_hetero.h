@@ -1612,6 +1612,23 @@ __pattern_is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ran
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare>
+bool
+__pattern_is_heap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                  _RandomAccessIterator __last, _Compare __comp)
+{
+    if (__last - __first < 2)
+        return true;
+
+    using _Predicate =
+        oneapi::dpl::unseq_backend::single_match_pred_by_idx<_ExecutionPolicy, __is_heap_check<_Compare>>;
+
+    return !__par_backend_hetero::__parallel_or(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp});
+}
+
 //------------------------------------------------------------------------
 // merge
 //------------------------------------------------------------------------

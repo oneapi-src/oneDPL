@@ -4615,6 +4615,15 @@ __pattern_is_heap(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAcce
     return __internal::__brick_is_heap(__first, __last, __comp, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+bool
+__pattern_is_heap(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_is_heap(__first, __last, __comp, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, bool>
 __pattern_is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
@@ -4625,6 +4634,20 @@ __pattern_is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ran
                               [__first, __comp, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                                   return !__internal::__is_heap_local(__first, __i - __first, __j - __first, __comp,
                                                                       __is_vector);
+                              });
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+bool
+__pattern_is_heap(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                  _RandomAccessIterator __last, _Compare __comp)
+{
+    return __internal::__except_handler([&]() {
+        return !__parallel_or(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                              [__first, __comp](_RandomAccessIterator __i, _RandomAccessIterator __j) {
+                                  return !__internal::__is_heap_local(__first, __i - __first, __j - __first, __comp,
+                                                                      _IsVector{});
                               });
     });
 }
