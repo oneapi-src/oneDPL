@@ -2368,11 +2368,12 @@ __pattern_nth_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     if (__first == __last || __nth == __last)
         return;
 
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
+
     // TODO: check partition-based implementation
     // - try to avoid host dereference issue
     // - measure performance of the issue-free implementation
-    __pattern_partial_sort(::std::forward<_ExecutionPolicy>(__exec), __first, __nth + 1, __last, __comp,
-                           /*vector*/ ::std::true_type{}, /*parallel*/ ::std::true_type{});
+    __pattern_partial_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __nth + 1, __last, __comp);
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
@@ -2386,8 +2387,7 @@ __pattern_nth_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
     // TODO: check partition-based implementation
     // - try to avoid host dereference issue
     // - measure performance of the issue-free implementation
-    __pattern_partial_sort(::std::forward<_ExecutionPolicy>(__exec), __first, __nth + 1, __last, __comp,
-                           /*vector*/ ::std::true_type{}, /*parallel*/ ::std::true_type{});
+    __pattern_partial_sort(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __nth + 1, __last, __comp);
 }
 
 //------------------------------------------------------------------------
