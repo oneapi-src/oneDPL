@@ -1459,10 +1459,19 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Ra
 __pattern_is_heap_until(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare, _IsVector,
                         /* is_parallel = */ ::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+_RandomAccessIterator
+__pattern_is_heap_until(_Tag, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_is_heap_until(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Compare, _IsVector,
                         /* is_parallel = */ ::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+_RandomAccessIterator
+__pattern_is_heap_until(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                        _Compare);
 
 //------------------------------------------------------------------------
 // is_heap

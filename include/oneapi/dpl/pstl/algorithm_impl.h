@@ -4529,6 +4529,16 @@ __pattern_is_heap_until(_ExecutionPolicy&&, _RandomAccessIterator __first, _Rand
     return __internal::__brick_is_heap_until(__first, __last, __comp, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+_RandomAccessIterator
+__pattern_is_heap_until(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last,
+                        _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_is_heap_until(__first, __last, __comp, typename _Tag::__is_vector{});
+}
+
 template <class _RandomAccessIterator, class _DifferenceType, class _Compare>
 _RandomAccessIterator
 __is_heap_until_local(_RandomAccessIterator __first, _DifferenceType __begin, _DifferenceType __end, _Compare __comp,
@@ -4565,6 +4575,22 @@ __pattern_is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
             ::std::true_type{});
     });
 }
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+_RandomAccessIterator
+__pattern_is_heap_until(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                        _RandomAccessIterator __last, _Compare __comp)
+{
+    return __internal::__except_handler([&]() {
+        return __parallel_find(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            [__first, __comp](_RandomAccessIterator __i, _RandomAccessIterator __j) {
+                return __internal::__is_heap_until_local(__first, __i - __first, __j - __first, __comp, _IsVector{});
+            },
+            ::std::true_type{});
+    });
+}
+
 
 //------------------------------------------------------------------------
 // is_heap

@@ -1595,6 +1595,24 @@ __pattern_is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
         ::std::true_type{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare>
+_RandomAccessIterator
+__pattern_is_heap_until(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                        _RandomAccessIterator __last, _Compare __comp)
+{
+    if (__last - __first < 2)
+        return __last;
+
+    using _Predicate =
+        oneapi::dpl::unseq_backend::single_match_pred_by_idx<_ExecutionPolicy, __is_heap_check<_Compare>>;
+
+    return __par_backend_hetero::__parallel_find(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp},
+        ::std::true_type{});
+}
+
 template <typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, bool>
 __pattern_is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
