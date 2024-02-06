@@ -202,8 +202,7 @@ struct __init_processing
 
 // Load elements consecutively from global memory, transform them, and apply a local reduction. Each local result is
 // stored in local memory.
-template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
-          typename _Commutative>
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Commutative>
 struct transform_reduce
 {
     _Operation1 __binary_op;
@@ -211,8 +210,8 @@ struct transform_reduce
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     void
-    seq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, const _AccLocal& __local_mem,
-             const _Acc&... __acc) const
+    seq_impl(const _NDItemId __item_id, const _Size __n, ::std::uint8_t __iters_per_work_item,
+             const _Size __global_offset, const _AccLocal& __local_mem, const _Acc&... __acc) const
     {
         auto __global_idx = __item_id.get_global_id(0);
         auto __local_idx = __item_id.get_local_id(0);
@@ -223,7 +222,6 @@ struct transform_reduce
         {
             // Keep these statements in the same scope to allow for better memory alignment
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
-            _ONEDPL_PRAGMA_UNROLL
             for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
                 __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
             __local_mem[__local_idx] = __res;
@@ -241,8 +239,8 @@ struct transform_reduce
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     void
-    nonseq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, const _AccLocal& __local_mem,
-                const _Acc&... __acc) const
+    nonseq_impl(const _NDItemId __item_id, const _Size __n, ::std::uint8_t __iters_per_work_item,
+                const _Size __global_offset, const _AccLocal& __local_mem, const _Acc&... __acc) const
     {
         auto __local_idx = __item_id.get_local_id(0);
         const _Size __stride = __item_id.get_local_range(0);
@@ -255,7 +253,6 @@ struct transform_reduce
         if (__adjusted_global_id + __stride * __iters_per_work_item < __adjusted_n)
         {
             typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
-            _ONEDPL_PRAGMA_UNROLL
             for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
                 __res = __binary_op(__res, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
             __local_mem[__local_idx] = __res;
@@ -277,18 +274,23 @@ struct transform_reduce
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     inline void
-    operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __global_offset, const _AccLocal& __local_mem,
-               const _Acc&... __acc) const
+    operator()(const _NDItemId& __item_id, const _Size& __n, const ::std::uint8_t& __iters_per_work_item,
+               const _Size& __global_offset, const _AccLocal& __local_mem, const _Acc&... __acc) const
     {
         if constexpr (__use_nonseq_impl)
-            return nonseq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
+        {
+            return nonseq_impl(__item_id, __n, __iters_per_work_item, __global_offset, __local_mem, __acc...);
+        }
         else
-            return seq_impl(__item_id, __n, __global_offset, __local_mem, __acc...);
+        {
+            return seq_impl(__item_id, __n, __iters_per_work_item, __global_offset, __local_mem, __acc...);
+        }
     }
 
     template <typename _Size>
     _Size
-    output_size(const _Size& __n, const ::std::uint16_t& __work_group_size) const
+    output_size(const _Size& __n, const ::std::uint16_t& __work_group_size,
+                const ::std::uint8_t& __iters_per_work_item) const
     {
         if constexpr (__use_nonseq_impl)
         {
@@ -319,7 +321,7 @@ struct reduce_over_group
                 std::true_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
-        auto __global_idx = __item_id.get_global_id(0);
+        const _Size __global_idx = __item_id.get_global_id(0);
         if (__global_idx >= __n)
         {
             // Fill the rest of local buffer with init elements so each of inclusive_scan method could correctly work
@@ -335,7 +337,7 @@ struct reduce_over_group
                 std::false_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
-        auto __global_idx = __item_id.get_global_id(0);
+        const _Size __global_idx = __item_id.get_global_id(0);
         auto __group_size = __item_id.get_local_range().size();
 
         for (::std::uint32_t __power_2 = 1; __power_2 < __group_size; __power_2 *= 2)
