@@ -2294,6 +2294,15 @@ __pattern_reverse(_ExecutionPolicy&&, _BidirectionalIterator __first, _Bidirecti
     __internal::__brick_reverse(__first, __last, _is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _BidirectionalIterator>
+void
+__pattern_reverse(_Tag, _ExecutionPolicy&&, _BidirectionalIterator __first, _BidirectionalIterator __last) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    __internal::__brick_reverse(__first, __last, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_reverse(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
@@ -2303,6 +2312,18 @@ __pattern_reverse(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ran
         ::std::forward<_ExecutionPolicy>(__exec), __first, __first + (__last - __first) / 2,
         [__is_vector, __first, __last](_RandomAccessIterator __inner_first, _RandomAccessIterator __inner_last) {
             __internal::__brick_reverse(__inner_first, __inner_last, __last - (__inner_first - __first), __is_vector);
+        });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator>
+void
+__pattern_reverse(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                  _RandomAccessIterator __last)
+{
+    __par_backend::__parallel_for(
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __first + (__last - __first) / 2,
+        [__first, __last](_RandomAccessIterator __inner_first, _RandomAccessIterator __inner_last) {
+            __internal::__brick_reverse(__inner_first, __inner_last, __last - (__inner_first - __first), _IsVector{});
         });
 }
 
