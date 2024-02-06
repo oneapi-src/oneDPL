@@ -1357,6 +1357,35 @@ __pattern_search(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __las
         ::std::true_type{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
+_Iterator1
+__pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
+                 _Iterator2 __s_first, _Iterator2 __s_last, _Pred __pred)
+{
+    if (__s_last == __s_first)
+        return __first;
+
+    if (__last - __first < __s_last - __s_first)
+        return __last;
+
+    if (__last - __first == __s_last - __s_first)
+    {
+        const bool __res = __pattern_equal(
+            __tag, __par_backend_hetero::make_wrapped_policy<equal_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+            __first, __last, __s_first, __pred);
+        return __res ? __first : __last;
+    }
+
+    using _Predicate = unseq_backend::multiple_match_pred<_ExecutionPolicy, _Pred>;
+    return __par_backend_hetero::__parallel_find(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_last), _Predicate{__pred},
+        ::std::true_type{});
+}
+
 //------------------------------------------------------------------------
 // search_n
 //------------------------------------------------------------------------
