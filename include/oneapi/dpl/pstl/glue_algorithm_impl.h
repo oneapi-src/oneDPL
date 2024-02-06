@@ -1197,10 +1197,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 lexicographical_compare(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                         _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
     return oneapi::dpl::__internal::__pattern_lexicographical_compare(
-        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>());
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __comp);
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
