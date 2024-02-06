@@ -1564,6 +1564,16 @@ __pattern_search_n(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterato
     return __internal::__brick_search_n(__first, __last, __count, __value, __pred, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp, class _BinaryPredicate>
+_ForwardIterator
+__pattern_search_n(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Size __count,
+                   const _Tp& __value, _BinaryPredicate __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_search_n(__first, __last, __count, __value, __pred, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Tp, class _BinaryPredicate,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
@@ -1591,6 +1601,35 @@ __pattern_search_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ra
         });
     }
 }
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Tp,
+          class _BinaryPredicate>
+_RandomAccessIterator
+__pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                   _RandomAccessIterator __last, _Size __count, const _Tp& __value, _BinaryPredicate __pred)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    if (static_cast<_Size>(__last - __first) == __count)
+    {
+        const bool __result =
+            !__internal::__pattern_any_of(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                          [&__value, &__pred](const _Tp& __val) { return !__pred(__val, __value); });
+        return __result ? __first : __last;
+    }
+    else
+    {
+        return __internal::__except_handler([&__exec, __first, __last, __count, &__value, __pred]() {
+            return __internal::__parallel_find(
+                __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                [__last, __count, &__value, __pred](_RandomAccessIterator __i, _RandomAccessIterator __j) {
+                    return __internal::__find_subrange(__i, __j, __last, __count, __value, __pred, _IsVector{});
+                },
+                ::std::true_type{});
+        });
+    }
+}
+
 
 //------------------------------------------------------------------------
 // copy_n

@@ -616,12 +616,23 @@ __pattern_search_n(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Size
                    IsVector,
                    /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp, class _BinaryPredicate>
+_ForwardIterator
+__pattern_search_n(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Size, const _Tp&,
+                   _BinaryPredicate) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Tp, class _BinaryPredicate,
           class IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_search_n(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Size, const _Tp&,
                    _BinaryPredicate, IsVector,
                    /*is_parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Tp,
+          class _BinaryPredicate>
+_RandomAccessIterator
+__pattern_search_n(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Size,
+                   const _Tp&, _BinaryPredicate);
 
 //------------------------------------------------------------------------
 // copy_n

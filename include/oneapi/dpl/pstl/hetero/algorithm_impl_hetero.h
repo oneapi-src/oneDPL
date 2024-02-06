@@ -1433,6 +1433,34 @@ __pattern_search_n(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __las
         _Predicate{__pred, __value, __count}, ::std::true_type{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Size, typename _Tp,
+          typename _BinaryPredicate>
+_Iterator
+__pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                   _Size __count, const _Tp& __value, _BinaryPredicate __pred)
+{
+    if (__count <= 0)
+        return __first;
+
+    if (__last - __first < __count)
+        return __last;
+
+    if (__last - __first == __count)
+    {
+        return (!__internal::__pattern_any_of(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                              __search_n_unary_predicate<_Tp, _BinaryPredicate>{__value, __pred}))
+                   ? __first
+                   : __last;
+    }
+
+    using _Predicate = unseq_backend::n_elem_match_pred<_ExecutionPolicy, _BinaryPredicate, _Tp, _Size>;
+    return __par_backend_hetero::__parallel_find(
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
+        _Predicate{__pred, __value, __count}, ::std::true_type{});
+}
+
 //------------------------------------------------------------------------
 // mismatch
 //------------------------------------------------------------------------
