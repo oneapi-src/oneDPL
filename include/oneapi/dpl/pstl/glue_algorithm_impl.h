@@ -600,10 +600,10 @@ template <class _ExecutionPolicy, class _ForwardIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 rotate(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last)
 {
-    return oneapi::dpl::__internal::__pattern_rotate(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    return oneapi::dpl::__internal::__pattern_rotate(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+                                                     __middle, __last);
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2>
