@@ -5078,6 +5078,16 @@ __pattern_mismatch(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardItera
     return __internal::__brick_mismatch(__first1, __last1, __first2, __last2, __pred, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Predicate>
+::std::pair<_ForwardIterator1, _ForwardIterator2>
+__pattern_mismatch(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                   _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Predicate __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_mismatch(__first1, __last1, __first2, __last2, __pred, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Predicate,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy,
@@ -5093,6 +5103,29 @@ __pattern_mismatch(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _
             [__first1, __first2, __pred, __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 return __internal::__brick_mismatch(__i, __j, __first2 + (__i - __first1), __first2 + (__j - __first1),
                                                     __pred, __is_vector)
+                    .first;
+            },
+            ::std::true_type{});
+        return ::std::make_pair(__result, __first2 + (__result - __first1));
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _Predicate>
+::std::pair<_RandomAccessIterator1, _RandomAccessIterator2>
+__pattern_mismatch(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+                   _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
+                   _Predicate __pred)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    return __internal::__except_handler([&]() {
+        auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
+        auto __result = __internal::__parallel_find(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
+            [__first1, __first2, __pred](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
+                return __internal::__brick_mismatch(__i, __j, __first2 + (__i - __first1), __first2 + (__j - __first1),
+                                                    __pred, _IsVector{})
                     .first;
             },
             ::std::true_type{});

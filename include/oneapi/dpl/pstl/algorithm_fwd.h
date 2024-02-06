@@ -1612,12 +1612,23 @@ __pattern_mismatch(_ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _Fo
                    _Predicate, _IsVector,
                    /* is_parallel = */ ::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Predicate>
+::std::pair<_ForwardIterator1, _ForwardIterator2>
+__pattern_mismatch(_Tag, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _ForwardIterator2, _ForwardIterator2,
+                   _Predicate) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Predicate,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy,
                                                            ::std::pair<_RandomAccessIterator1, _RandomAccessIterator2>>
 __pattern_mismatch(_ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1, _RandomAccessIterator2,
                    _RandomAccessIterator2, _Predicate, _IsVector, /* is_parallel = */ ::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _Predicate>
+::std::pair<_RandomAccessIterator1, _RandomAccessIterator2>
+__pattern_mismatch(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
+                   _RandomAccessIterator2, _RandomAccessIterator2, _Predicate);
 
 //------------------------------------------------------------------------
 // lexicographical_compare

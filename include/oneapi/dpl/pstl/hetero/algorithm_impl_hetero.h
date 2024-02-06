@@ -1429,6 +1429,27 @@ __pattern_mismatch(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __
     return ::std::make_pair(__first1 + __n, __first2 + __n);
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
+::std::pair<_Iterator1, _Iterator2>
+__pattern_mismatch(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
+                   _Iterator2 __first2, _Iterator2 __last2, _Pred __pred)
+{
+    auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
+    if (__n <= 0)
+        return ::std::make_pair(__first1, __first2);
+
+    using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, equal_predicate<_Pred>>;
+
+    auto __first_zip = __par_backend_hetero::zip(
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first1),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first2));
+    auto __result =
+        __par_backend_hetero::__parallel_find(::std::forward<_ExecutionPolicy>(__exec), __first_zip, __first_zip + __n,
+                                              _Predicate{equal_predicate<_Pred>{__pred}}, ::std::true_type{});
+    __n = __result - __first_zip;
+    return ::std::make_pair(__first1 + __n, __first2 + __n);
+}
+
 //------------------------------------------------------------------------
 // copy_if
 //------------------------------------------------------------------------
