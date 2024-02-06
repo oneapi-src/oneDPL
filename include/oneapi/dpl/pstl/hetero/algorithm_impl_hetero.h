@@ -2075,6 +2075,16 @@ __pattern_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __la
                                       ::std::true_type(), ::std::true_type());
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _UnaryPredicate>
+_Iterator
+__pattern_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                    _UnaryPredicate __pred)
+{
+    //TODO: consider nonstable approaches
+    return __pattern_stable_partition(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
+                                      ::std::true_type(), ::std::true_type());
+}
+
 //------------------------------------------------------------------------
 // lexicographical_compare
 //------------------------------------------------------------------------

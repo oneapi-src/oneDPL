@@ -2818,6 +2818,16 @@ __pattern_partition(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterat
     return __internal::__brick_partition(__first, __last, __pred, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate>
+_ForwardIterator
+__pattern_partition(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
+                    _UnaryPredicate __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_partition(__first, __last, __pred, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_partition(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
@@ -2877,6 +2887,81 @@ __pattern_partition(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _R
                                               _PartitionRange __value) -> _PartitionRange {
                 //1. serial partition
                 _RandomAccessIterator __pivot = __internal::__brick_partition(__i, __j, __pred, __is_vector);
+
+                // 2. merging of two ranges (left and right respectively)
+                return __reductor(__value, {__i, __pivot, __j});
+            },
+            __reductor);
+        return __result.__pivot;
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
+_RandomAccessIterator
+__pattern_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                    _RandomAccessIterator __last, _UnaryPredicate __pred)
+{
+    // partitioned range: elements before pivot satisfy pred (true part),
+    //                    elements after pivot don't satisfy pred (false part)
+    struct _PartitionRange
+    {
+        _RandomAccessIterator __begin;
+        _RandomAccessIterator __pivot;
+        _RandomAccessIterator __end;
+    };
+
+    return __internal::__except_handler([&]() {
+        _PartitionRange __init{__last, __last, __last};
+
+        // lambda for merging two partitioned ranges to one partitioned range
+        auto __reductor = [&__exec](_PartitionRange __val1, _PartitionRange __val2) -> _PartitionRange {
+            auto __size1 = __val1.__end - __val1.__pivot;
+            auto __size2 = __val2.__pivot - __val2.__begin;
+            auto __new_begin = __val2.__begin - (__val1.__end - __val1.__begin);
+
+            // if all elements in left range satisfy pred then we can move new pivot to pivot of right range
+            if (__val1.__end == __val1.__pivot)
+            {
+                return {__new_begin, __val2.__pivot, __val2.__end};
+            }
+            // if true part of right range greater than false part of left range
+            // then we should swap the false part of left range and last part of true part of right range
+            else if (__size2 > __size1)
+            {
+                constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__val1.__pivot), decltype(__val1.__pivot + __size1)>();
+                using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
+                __par_backend::__parallel_for(
+                    __backend_tag{},
+                    ::std::forward<_ExecutionPolicy>(__exec), __val1.__pivot, __val1.__pivot + __size1,
+                    [__val1, __val2, __size1](_RandomAccessIterator __i, _RandomAccessIterator __j) {
+                        __internal::__brick_swap_ranges(__i, __j, (__val2.__pivot - __size1) + (__i - __val1.__pivot),
+                                                        _IsVector{});
+                    });
+                return {__new_begin, __val2.__pivot - __size1, __val2.__end};
+            }
+            // else we should swap the first part of false part of left range and true part of right range
+            else
+            {
+                constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__val1.__pivot), decltype(__val1.__pivot + __size2)>();
+                using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
+                __par_backend::__parallel_for(
+                    __backend_tag{},
+                    ::std::forward<_ExecutionPolicy>(__exec), __val1.__pivot, __val1.__pivot + __size2,
+                    [__val1, __val2](_RandomAccessIterator __i, _RandomAccessIterator __j) {
+                        __internal::__brick_swap_ranges(__i, __j, __val2.__begin + (__i - __val1.__pivot), _IsVector{});
+                    });
+                return {__new_begin, __val1.__pivot + __size2, __val2.__end};
+            }
+        };
+
+        _PartitionRange __result = __par_backend::__parallel_reduce(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init,
+            [__pred, __reductor](_RandomAccessIterator __i, _RandomAccessIterator __j,
+                                 _PartitionRange __value) -> _PartitionRange {
+                //1. serial partition
+                _RandomAccessIterator __pivot = __internal::__brick_partition(__i, __j, __pred, _IsVector{});
 
                 // 2. merging of two ranges (left and right respectively)
                 return __reductor(__value, {__i, __pivot, __j});
