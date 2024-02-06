@@ -3793,6 +3793,18 @@ __pattern_merge(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator
     return __internal::__brick_merge(__first1, __last1, __first2, __last2, __d_first, __comp, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _OutputIterator,
+          class _Compare>
+_OutputIterator
+__pattern_merge(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
+                _ForwardIterator2 __last2, _OutputIterator __d_first, _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_merge(__first1, __last1, __first2, __last2, __d_first, __comp,
+                                     typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _RandomAccessIterator3, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator3>
@@ -3806,6 +3818,21 @@ __pattern_merge(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Ran
                       _RandomAccessIterator2 __l2, _RandomAccessIterator3 __f3, _Compare __comp) {
             return __internal::__brick_merge(__f1, __l1, __f2, __l2, __f3, __comp, __is_vector);
         });
+    return __d_first + (__last1 - __first1) + (__last2 - __first2);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _RandomAccessIterator3, class _Compare>
+_RandomAccessIterator3
+__pattern_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+                _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
+                _RandomAccessIterator3 __d_first, _Compare __comp)
+{
+    __par_backend::__parallel_merge(
+        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __d_first, __comp,
+        [](_RandomAccessIterator1 __f1, _RandomAccessIterator1 __l1, _RandomAccessIterator2 __f2,
+           _RandomAccessIterator2 __l2, _RandomAccessIterator3 __f3,
+           _Compare __comp) { return __internal::__brick_merge(__f1, __l1, __f2, __l2, __f3, __comp, _IsVector{}); });
     return __d_first + (__last1 - __first1) + (__last2 - __first2);
 }
 
