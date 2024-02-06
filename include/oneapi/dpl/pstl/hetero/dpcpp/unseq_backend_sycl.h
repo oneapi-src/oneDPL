@@ -202,17 +202,16 @@ struct __init_processing
 
 // Load elements consecutively from global memory, transform them, and apply a local reduction. Each local result is
 // stored in local memory.
-template <typename _ExecutionPolicy, ::std::uint8_t __iters_per_work_item, typename _Operation1, typename _Operation2,
-          typename _Tp, typename _Commutative>
+template <typename _ExecutionPolicy, typename _Operation1, typename _Operation2, typename _Tp, typename _Commutative>
 struct transform_reduce
 {
     _Operation1 __binary_op;
     _Operation2 __unary_op;
 
-    template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
+    template <typename _NDItemId, typename _Size, typename _AccLocal, typename _Res, typename... _Acc>
     void
-    seq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, _Res& __res,
-             const _Acc&... __acc) const
+    seq_impl(const _NDItemId __item_id, const _Size __n, ::std::uint8_t __iters_per_work_item,
+             const _Size __global_offset, const _AccLocal& __local_mem, _Res& __res, const _Acc&... __acc) const
     {
         auto __global_idx = __item_id.get_global_id(0);
         auto __local_idx = __item_id.get_local_id(0);
@@ -223,7 +222,6 @@ struct transform_reduce
         {
             // Keep these statements in the same scope to allow for better memory alignment
             new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
-            _ONEDPL_PRAGMA_UNROLL
             for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
                 __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __i, __acc...));
         }
@@ -238,10 +236,10 @@ struct transform_reduce
         return;
     }
 
-    template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
+    template <typename _NDItemId, typename _Size, typename _Res, typename _AccLocal, typename... _Acc>
     void
-    nonseq_impl(const _NDItemId __item_id, const _Size __n, const _Size __global_offset, _Res& __res,
-                const _Acc&... __acc) const
+    nonseq_impl(const _NDItemId __item_id, const _Size __n, ::std::uint8_t __iters_per_work_item,
+                const _Size __global_offset, const _AccLocal& __local_mem, _Res& __res, const _Acc&... __acc) const
     {
         auto __local_idx = __item_id.get_local_id(0);
         const _Size __stride = __item_id.get_local_range(0);
@@ -254,7 +252,6 @@ struct transform_reduce
         if (__adjusted_global_id + __stride * __iters_per_work_item < __adjusted_n)
         {
             new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
-            _ONEDPL_PRAGMA_UNROLL
             for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
                 __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
         }
@@ -273,20 +270,25 @@ struct transform_reduce
     // On SPIR-V targets, the sequential implementation with the non-commutative operator is currently more performant.
     static constexpr bool __use_nonseq_impl = !oneapi::dpl::__internal::__is_spirv_target_v && _Commutative::value;
 
-    template <typename _NDItemId, typename _Size, typename _Res, typename... _Acc>
+    template <typename _NDItemId, typename _Size, typename _AccLocal, typename _Res, typename... _Acc>
     inline void
-    operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __global_offset, _Res& __res,
-               const _Acc&... __acc) const
+    operator()(const _NDItemId& __item_id, const _Size& __n, const ::std::uint8_t& __iters_per_work_item,
+               const _Size& __global_offset, const _AccLocal& __local_mem, _Res& __res, const _Acc&... __acc) const
     {
         if constexpr (__use_nonseq_impl)
-            return nonseq_impl(__item_id, __n, __global_offset, __res, __acc...);
+        {
+            return nonseq_impl(__item_id, __n, __iters_per_work_item, __global_offset, __local_mem, __res, __acc...);
+        }
         else
-            return seq_impl(__item_id, __n, __global_offset, __res, __acc...);
+        {
+            return seq_impl(__item_id, __n, __iters_per_work_item, __global_offset, __local_mem, __res, __acc...);
+        }
     }
 
     template <typename _Size>
     _Size
-    output_size(const _Size& __n, const ::std::uint16_t& __work_group_size) const
+    output_size(const _Size& __n, const ::std::uint16_t& __work_group_size,
+                const ::std::uint8_t& __iters_per_work_item) const
     {
         if constexpr (__use_nonseq_impl)
         {
@@ -317,7 +319,7 @@ struct reduce_over_group
                 std::true_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
-        auto __global_idx = __item_id.get_global_id(0);
+        const _Size __global_idx = __item_id.get_global_id(0);
         return __dpl_sycl::__reduce_over_group(
             __item_id.get_group(), __global_idx >= __n ? __known_identity<_BinaryOperation1, _Tp> : __val, __bin_op1);
     }
@@ -328,7 +330,7 @@ struct reduce_over_group
                 std::false_type /*has_known_identity*/) const
     {
         auto __local_idx = __item_id.get_local_id(0);
-        auto __global_idx = __item_id.get_global_id(0);
+        const _Size __global_idx = __item_id.get_global_id(0);
         auto __group_size = __item_id.get_local_range().size();
 
         __local_mem[__local_idx] = __val;
