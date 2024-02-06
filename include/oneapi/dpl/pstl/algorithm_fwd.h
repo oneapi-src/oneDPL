@@ -1057,11 +1057,21 @@ __pattern_partial_sort(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessI
                        _Compare, _IsVector,
                        /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+void
+__pattern_partial_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _RandomAccessIterator,
+                       _Compare) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_partial_sort(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _RandomAccessIterator,
                        _Compare, _IsVector,
                        /*is_parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+void
+__pattern_partial_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                       _RandomAccessIterator, _Compare);
 
 //------------------------------------------------------------------------
 // partial_sort_copy

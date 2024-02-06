@@ -2251,6 +2251,22 @@ __pattern_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator _
         .wait();
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
+__pattern_partial_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid,
+                       _Iterator __last, _Compare __comp)
+{
+    if (__last - __first < 2)
+        return;
+
+    __par_backend_hetero::__parallel_partial_sort(
+        ::std::forward<_ExecutionPolicy>(__exec),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__mid),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__last), __comp)
+        .wait();
+}
+
 //------------------------------------------------------------------------
 // partial_sort_copy
 //------------------------------------------------------------------------

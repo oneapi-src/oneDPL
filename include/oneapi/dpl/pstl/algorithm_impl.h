@@ -3158,10 +3158,42 @@ __pattern_partial_sort(_ExecutionPolicy&&, _RandomAccessIterator __first, _Rando
     ::std::partial_sort(__first, __middle, __last, __comp);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+void
+__pattern_partial_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __middle,
+                       _RandomAccessIterator __last, _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    ::std::partial_sort(__first, __middle, __last, __comp);
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
                        _RandomAccessIterator __last, _Compare __comp, _IsVector, /*is_parallel=*/::std::true_type)
+{
+    const auto __n = __middle - __first;
+    if (__n == 0)
+        return;
+
+    __except_handler([&]() {
+        __par_backend::__parallel_stable_sort(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
+            [__n](_RandomAccessIterator __begin, _RandomAccessIterator __end, _Compare __comp) {
+                if (__n < __end - __begin)
+                    ::std::partial_sort(__begin, __begin + __n, __end, __comp);
+                else
+                    ::std::sort(__begin, __end, __comp);
+            },
+            __n);
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+void
+__pattern_partial_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                       _RandomAccessIterator __middle, _RandomAccessIterator __last, _Compare __comp)
 {
     const auto __n = __middle - __first;
     if (__n == 0)
