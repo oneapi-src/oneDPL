@@ -2359,6 +2359,21 @@ __pattern_nth_element(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
                            /*vector*/ ::std::true_type{}, /*parallel*/ ::std::true_type{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+void
+__pattern_nth_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __nth,
+                      _Iterator __last, _Compare __comp)
+{
+    if (__first == __last || __nth == __last)
+        return;
+
+    // TODO: check partition-based implementation
+    // - try to avoid host dereference issue
+    // - measure performance of the issue-free implementation
+    __pattern_partial_sort(::std::forward<_ExecutionPolicy>(__exec), __first, __nth + 1, __last, __comp,
+                           /*vector*/ ::std::true_type{}, /*parallel*/ ::std::true_type{});
+}
+
 //------------------------------------------------------------------------
 // reverse
 //------------------------------------------------------------------------

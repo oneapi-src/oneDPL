@@ -3406,6 +3406,16 @@ __pattern_nth_element(_ExecutionPolicy&&, _RandomAccessIterator __first, _Random
     ::std::nth_element(__first, __nth, __last, __comp);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+void
+__pattern_nth_element(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __nth,
+                      _RandomAccessIterator __last, _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    ::std::nth_element(__first, __nth, __last, __comp);
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_nth_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __nth,
@@ -3425,6 +3435,49 @@ __pattern_nth_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, 
         __x = __internal::__pattern_partition(
             ::std::forward<_ExecutionPolicy>(__exec), __first + 1, __last,
             [&__comp, __first](const _Tp& __x) { return __comp(__x, *__first); }, __is_vector,
+            /*is_parallel=*/::std::true_type());
+        --__x;
+        if (__x != __first)
+        {
+            iter_swap(__first, __x);
+        }
+        // if x > nth then our new range for partition is [first, x)
+        if (__x - __nth > 0)
+        {
+            __last = __x;
+        }
+        // if x < nth then our new range for partition is [x, last)
+        else if (__x - __nth < 0)
+        {
+            // if *x == *nth then we start the new partition at the next index where *x != *nth
+            while (!__comp(*__nth, *__x) && !__comp(*__x, *__nth) && __x - __nth < 0)
+            {
+                ++__x;
+            }
+            iter_swap(__nth, __x);
+            __first = __x;
+        }
+    } while (__x != __nth);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+void
+__pattern_nth_element(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                      _RandomAccessIterator __nth, _RandomAccessIterator __last, _Compare __comp)
+{
+    if (__first == __last || __nth == __last)
+    {
+        return;
+    }
+
+    using ::std::iter_swap;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _Tp;
+    _RandomAccessIterator __x;
+    do
+    {
+        __x = __internal::__pattern_partition(
+            ::std::forward<_ExecutionPolicy>(__exec), __first + 1, __last,
+            [&__comp, __first](const _Tp& __x) { return __comp(__x, *__first); }, _IsVector{},
             /*is_parallel=*/::std::true_type());
         --__x;
         if (__x != __first)
