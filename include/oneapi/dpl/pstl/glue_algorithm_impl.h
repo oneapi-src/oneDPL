@@ -575,10 +575,11 @@ template <class _ExecutionPolicy, class _BidirectionalIterator>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 reverse(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last)
 {
-    oneapi::dpl::__internal::__pattern_reverse(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _BidirectionalIterator>());
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _BidirectionalIterator>();
+
+    oneapi::dpl::__internal::__pattern_reverse(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+                                               __last);
 }
 
 template <class _ExecutionPolicy, class _BidirectionalIterator, class _ForwardIterator>
