@@ -2526,11 +2526,13 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forw
                                                                            __buf,__comp, unseq_backend::_DifferenceTag()
                                                                           ) - __buf;
     //2. Merge {1} and the difference
+    const auto __dispatch_tag1 = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first1),
+                                                                           decltype(__buf), decltype(__result)>();
     return oneapi::dpl::__internal::__pattern_merge(
+        __dispatch_tag1,
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_union_copy_case_2>(
             ::std::forward<_ExecutionPolicy>(__exec)),
-        __first1, __last1, __buf, __buf + __n_diff, __result, __comp,
-        /*vector=*/::std::true_type(), /*parallel=*/::std::true_type());
+        __first1, __last1, __buf, __buf + __n_diff, __result, __comp);
 }
 
 //Dummy names to avoid kernel problems
@@ -2619,7 +2621,9 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
         __buf_2;
 
     //3. Merge the differences
-    return oneapi::dpl::__internal::__pattern_merge(::std::forward<_ExecutionPolicy>(__exec), __buf_1,
+    constexpr auto __dispatch_tag1 = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__buf_1),
+                                                                               decltype(__buf_2), decltype(__result)>();
+    return oneapi::dpl::__internal::__pattern_merge(__dispatch_tag1, ::std::forward<_ExecutionPolicy>(__exec), __buf_1,
                                                     __buf_1 + __n_diff_1, __buf_2, __buf_2 + __n_diff_2, __result,
                                                     __comp, ::std::true_type(), ::std::true_type());
 }
