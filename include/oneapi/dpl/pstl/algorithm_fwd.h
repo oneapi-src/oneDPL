@@ -1084,12 +1084,22 @@ __pattern_partial_sort_copy(_ExecutionPolicy&&, _RandomAccessIterator1, _RandomA
                             _RandomAccessIterator2, _Compare, _IsVector,
                             /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
+_RandomAccessIterator
+__pattern_partial_sort_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _RandomAccessIterator,
+                            _RandomAccessIterator, _Compare) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Compare,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
 __pattern_partial_sort_copy(_ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1, _RandomAccessIterator2,
                             _RandomAccessIterator2, _Compare, _IsVector,
                             /*is_parallel=*/::std::true_type);
+
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
+_RandomAccessIterator
+__pattern_partial_sort_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _RandomAccessIterator,
+                            _RandomAccessIterator, _Compare) noexcept;
 
 //------------------------------------------------------------------------
 // adjacent_find

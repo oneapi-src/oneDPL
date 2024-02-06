@@ -3225,6 +3225,16 @@ __pattern_partial_sort_copy(_ExecutionPolicy&&, _ForwardIterator __first, _Forwa
     return ::std::partial_sort_copy(__first, __last, __d_first, __d_last, __comp);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _RandomAccessIterator, class _Compare>
+_RandomAccessIterator
+__pattern_partial_sort_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
+                            _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return ::std::partial_sort_copy(__first, __last, __d_first, __d_last, __comp);
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Compare,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
@@ -3293,6 +3303,81 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __
                 __par_backend::__parallel_for(
                     ::std::forward<_ExecutionPolicy>(__exec), __r + __n2, __r + __n1,
                     [__is_vector](_T1* __i, _T1* __j) { __brick_destroy(__i, __j, __is_vector); });
+
+            return __d_first + __n2;
+        }
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _Compare>
+_RandomAccessIterator2
+__pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
+                            _RandomAccessIterator1 __last, _RandomAccessIterator2 __d_first,
+                            _RandomAccessIterator2 __d_last, _Compare __comp)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    if (__last == __first || __d_last == __d_first)
+    {
+        return __d_first;
+    }
+    auto __n1 = __last - __first;
+    auto __n2 = __d_last - __d_first;
+    return __internal::__except_handler([&]() {
+        if (__n2 >= __n1)
+        {
+            __par_backend::__parallel_stable_sort(
+                ::std::forward<_ExecutionPolicy>(__exec), __d_first, __d_first + __n1, __comp,
+                [__first, __d_first](_RandomAccessIterator2 __i, _RandomAccessIterator2 __j, _Compare __comp) {
+                    _RandomAccessIterator1 __i1 = __first + (__i - __d_first);
+                    _RandomAccessIterator1 __j1 = __first + (__j - __d_first);
+
+                    // 1. Copy elements from input to output
+                    __brick_copy<_ExecutionPolicy>{}(__i1, __j1, __i, _IsVector{});
+                    // 2. Sort elements in output sequence
+                    ::std::sort(__i, __j, __comp);
+                },
+                __n1);
+            return __d_first + __n1;
+        }
+        else
+        {
+            typedef typename ::std::iterator_traits<_RandomAccessIterator1>::value_type _T1;
+            typedef typename ::std::iterator_traits<_RandomAccessIterator2>::value_type _T2;
+            __par_backend::__buffer<_ExecutionPolicy, _T1> __buf(__n1);
+            _T1* __r = __buf.get();
+
+            __par_backend::__parallel_stable_sort(
+                ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n1, __comp,
+                [__n2, __first, __r](_T1* __i, _T1* __j, _Compare __comp) {
+                    _RandomAccessIterator1 __it = __first + (__i - __r);
+
+                    // 1. Copy elements from input to raw memory
+                    for (_T1* __k = __i; __k != __j; ++__k, ++__it)
+                    {
+                        ::new (__k) _T2(*__it);
+                    }
+
+                    // 2. Sort elements in temporary buffer
+                    if (__n2 < __j - __i)
+                        ::std::partial_sort(__i, __i + __n2, __j, __comp);
+                    else
+                        ::std::sort(__i, __j, __comp);
+                },
+                __n2);
+
+            // 3. Move elements from temporary buffer to output
+            __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n2,
+                                          [__r, __d_first](_T1* __i, _T1* __j) {
+                                              __brick_move_destroy<_ExecutionPolicy>{}(
+                                                  __i, __j, __d_first + (__i - __r), _IsVector{});
+                                          });
+
+            if constexpr (!::std::is_trivially_destructible_v<_T1>)
+                __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __r + __n2,
+                                              __r + __n1,
+                                              [](_T1* __i, _T1* __j) { __brick_destroy(__i, __j, _IsVector{}); });
 
             return __d_first + __n2;
         }

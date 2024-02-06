@@ -2315,13 +2315,93 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
     // as it uses a similar mechanism.
     if (__in_size <= __out_size)
     {
+        constexpr auto __dispatch_tag1 =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first), decltype(__last),
+                                                      decltype(__out_first)>();
+        using __backend_tag1 = typename decltype(__dispatch_tag1)::__backend_tag;
+
         // If our output buffer is larger than the input buffer, simply copy elements to the output and use
         // full sort on them.
-        auto __out_end = __pattern_walk2</*_IsSync=*/::std::false_type>(
-            __par_backend_hetero::make_wrapped_policy<__initial_copy_1>(__exec), __first, __last, __out_first,
-            __brick_copy<_ExecutionPolicy>{}, ::std::true_type{}, ::std::true_type{});
+        auto __out_end = __pattern_walk2<__backend_tag1, /*_IsSync=*/::std::false_type>(
+            __dispatch_tag1, __par_backend_hetero::make_wrapped_policy<__initial_copy_1>(__exec), __first, __last,
+            __out_first, __brick_copy<_ExecutionPolicy>{});
+
+        constexpr auto __dispatch_tag2 =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__out_first), decltype(__out_end),
+                                                      decltype(__out_first)>();
 
         // Use reqular sort as partial_sort isn't required to be stable
+        __pattern_sort(
+            __dispatch_tag2,
+            __par_backend_hetero::make_wrapped_policy<__partial_sort_1>(::std::forward<_ExecutionPolicy>(__exec)),
+            __out_first, __out_end, __comp, ::std::true_type{});
+
+        return __out_end;
+    }
+    else
+    {
+        // If our input buffer is smaller than the input buffer do the following:
+        // - create a temporary buffer and copy all the elements from the input buffer there
+        // - run partial sort on the temporary buffer
+        // - copy k elements from the temporary buffer to the output buffer.
+        oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __in_size);
+
+        auto __buf_first = __buf.get();
+
+        constexpr auto __dispatch_tag1 =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first), decltype(__last),
+                                                      decltype(__buf_first)>();
+        using __backend_tag1 = typename decltype(__dispatch_tag1)::__backend_tag;
+
+        auto __buf_last = __pattern_walk2<__backend_tag1, /*_IsSync=*/::std::false_type>(
+            __par_backend_hetero::make_wrapped_policy<__initial_copy_2>(__exec), __first, __last, __buf_first,
+            __brick_copy<_ExecutionPolicy>{});
+
+        auto __buf_mid = __buf_first + __out_size;
+
+        __par_backend_hetero::__parallel_partial_sort(
+            __par_backend_hetero::make_wrapped_policy<__partial_sort_2>(__exec),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_first),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_mid),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_last), __comp);
+
+        constexpr auto __dispatch_tag2 =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__buf_first), decltype(__buf_mid),
+                                                      decltype(__out_first)>();
+
+        return __pattern_walk2(
+            __dispatch_tag2,
+            __par_backend_hetero::make_wrapped_policy<__copy_back>(::std::forward<_ExecutionPolicy>(__exec)),
+            __buf_first, __buf_mid, __out_first, __brick_copy<_ExecutionPolicy>{});
+    }
+}
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _InIterator, typename _OutIterator,
+          typename _Compare>
+_OutIterator
+__pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InIterator __first,
+                            _InIterator __last, _OutIterator __out_first, _OutIterator __out_last, _Compare __comp)
+{
+    using _ValueType = typename ::std::iterator_traits<_InIterator>::value_type;
+
+    auto __in_size = __last - __first;
+    auto __out_size = __out_last - __out_first;
+
+    if (__in_size == 0 || __out_size == 0)
+        return __out_first;
+
+    // TODO: we can avoid a separate __pattern_walk2 for initial copy: it can be done during sort itself
+    // like it's done for CPU version, but it's better to be done together with merge cutoff implementation
+    // as it uses a similar mechanism.
+    if (__in_size <= __out_size)
+    {
+        // If our output buffer is larger than the input buffer, simply copy elements to the output and use
+        // full sort on them.
+        auto __out_end = __pattern_walk2<_BackendTag, /*_IsSync=*/::std::false_type>(
+            __tag, __par_backend_hetero::make_wrapped_policy<__initial_copy_1>(__exec), __first, __last, __out_first,
+            __brick_copy<_ExecutionPolicy>{});
+
+        // Use regular sort as partial_sort isn't required to be stable
         __pattern_sort(
             __par_backend_hetero::make_wrapped_policy<__partial_sort_1>(::std::forward<_ExecutionPolicy>(__exec)),
             __out_first, __out_end, __comp, ::std::true_type{}, ::std::true_type{}, ::std::true_type{});
@@ -2337,9 +2417,15 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
         oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __in_size);
 
         auto __buf_first = __buf.get();
-        auto __buf_last = __pattern_walk2</*_IsSync=*/::std::false_type>(
-            __par_backend_hetero::make_wrapped_policy<__initial_copy_2>(__exec), __first, __last, __buf_first,
-            __brick_copy<_ExecutionPolicy>{}, ::std::true_type{}, ::std::true_type{});
+
+        constexpr auto __dispatch_tag1 =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first), decltype(__last),
+                                                      decltype(__buf_first)>();
+        using __backend_tag1 = typename decltype(__dispatch_tag1)::__backend_tag;
+
+        auto __buf_last = __pattern_walk2<__backend_tag1, /*_IsSync=*/::std::false_type>(
+            __dispatch_tag1, __par_backend_hetero::make_wrapped_policy<__initial_copy_2>(__exec), __first, __last,
+            __buf_first, __brick_copy<_ExecutionPolicy>{});
 
         auto __buf_mid = __buf_first + __out_size;
 
@@ -2349,10 +2435,14 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _InIterator __first, _InI
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_mid),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_last), __comp);
 
+        constexpr auto __dispatch_tag2 =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__buf_first), decltype(__buf_mid),
+                                                      decltype(__out_first)>();
+
         return __pattern_walk2(
+            __dispatch_tag2,
             __par_backend_hetero::make_wrapped_policy<__copy_back>(::std::forward<_ExecutionPolicy>(__exec)),
-            __buf_first, __buf_mid, __out_first, __brick_copy<_ExecutionPolicy>{}, ::std::true_type{},
-            ::std::true_type{});
+            __buf_first, __buf_mid, __out_first, __brick_copy<_ExecutionPolicy>{});
     }
 }
 
