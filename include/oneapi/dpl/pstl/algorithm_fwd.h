@@ -1299,10 +1299,19 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Fo
 __pattern_remove_if(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _UnaryPredicate, _IsVector,
                     /*is_parallel*/ ::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate>
+_ForwardIterator
+__pattern_remove_if(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _UnaryPredicate) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_remove_if(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _UnaryPredicate, _IsVector,
                     /*is_parallel*/ ::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
+_RandomAccessIterator
+__pattern_remove_if(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                    _UnaryPredicate);
 
 //------------------------------------------------------------------------
 // merge

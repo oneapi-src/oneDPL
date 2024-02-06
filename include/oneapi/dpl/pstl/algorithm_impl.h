@@ -4042,6 +4042,16 @@ __pattern_remove_if(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterat
     return __internal::__brick_remove_if(__first, __last, __pred, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate>
+_ForwardIterator
+__pattern_remove_if(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
+                    _UnaryPredicate __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_remove_if(__first, __last, __pred, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_remove_if(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
@@ -4062,6 +4072,28 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _R
                 __b, __e, __it, [&__pred](bool& __x, _ReferenceType __y) { __x = !__pred(__y); }, __is_vector);
         },
         __is_vector);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
+_RandomAccessIterator
+__pattern_remove_if(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                    _RandomAccessIterator __last, _UnaryPredicate __pred)
+{
+    typedef typename ::std::iterator_traits<_RandomAccessIterator>::reference _ReferenceType;
+
+    if (__first == __last || __first + 1 == __last)
+    {
+        // Trivial sequence - use serial algorithm
+        return __internal::__brick_remove_if(__first, __last, __pred, _IsVector{});
+    }
+
+    return __internal::__remove_elements(
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        [&__pred](bool* __b, bool* __e, _RandomAccessIterator __it) {
+            __internal::__brick_walk2(
+                __b, __e, __it, [&__pred](bool& __x, _ReferenceType __y) { __x = !__pred(__y); }, _IsVector{});
+        },
+        _IsVector{});
 }
 
 //------------------------------------------------------------------------

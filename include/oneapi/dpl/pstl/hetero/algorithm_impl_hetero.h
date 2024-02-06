@@ -1640,6 +1640,37 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __la
         __copy_first, __copy_last, __first, __brick_copy<_ExecutionPolicy>{}, ::std::true_type{}, ::std::true_type{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Predicate>
+_Iterator
+__pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                    _Predicate __pred)
+{
+    if (__last == __first)
+        return __last;
+
+    using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
+
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
+    auto __copy_first = __buf.get();
+
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first), decltype(__last),
+                                                  decltype(__copy_first)>();
+
+    auto __copy_last =
+        __pattern_copy_if(__dispatch_tag, __exec, __first, __last, __copy_first, __not_pred<_Predicate>{__pred});
+
+    constexpr auto __dispatch_tag1 =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__copy_first), decltype(__copy_last),
+                                                  decltype(__first)>();
+
+    //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
+    return __pattern_walk2(
+        __dispatch_tag1,
+        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __copy_first, __copy_last, __first, __brick_copy<_ExecutionPolicy>{});
+}
+
 template <typename _ExecutionPolicy, typename _Iterator, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
 __pattern_unique(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _BinaryPredicate __pred,
