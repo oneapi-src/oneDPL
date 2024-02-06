@@ -250,10 +250,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 search_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Size __count,
          const _Tp& __value, _BinaryPredicate __pred)
 {
-    return oneapi::dpl::__internal::__pattern_search_n(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __count, __value, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    return oneapi::dpl::__internal::__pattern_search_n(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                       __first, __last, __count, __value, __pred);
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Size, class _Tp>
