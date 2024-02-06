@@ -1079,10 +1079,11 @@ template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp)
 {
-    return oneapi::dpl::__internal::__pattern_is_heap_until(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _RandomAccessIterator>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _RandomAccessIterator>());
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+
+    return oneapi::dpl::__internal::__pattern_is_heap_until(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                            __first, __last, __comp);
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator>
