@@ -999,6 +999,12 @@ __pattern_partition_copy(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
                          _UnaryPredicate, _IsVector,
                          /*is_parallelization=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator1, class _OutputIterator2,
+          class _UnaryPredicate>
+::std::pair<_OutputIterator1, _OutputIterator2>
+__pattern_partition_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _OutputIterator1,
+                         _OutputIterator2, _UnaryPredicate) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator1, class _OutputIterator2,
           class _UnaryPredicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy,
@@ -1006,6 +1012,12 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy,
 __pattern_partition_copy(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _OutputIterator1,
                          _OutputIterator2, _UnaryPredicate, _IsVector,
                          /*is_parallelization=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _RandomAccessIterator3, class _UnaryPredicate>
+::std::pair<_RandomAccessIterator2, _RandomAccessIterator3>
+__pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
+                         _RandomAccessIterator2, _RandomAccessIterator3, _UnaryPredicate);
 
 //------------------------------------------------------------------------
 // sort

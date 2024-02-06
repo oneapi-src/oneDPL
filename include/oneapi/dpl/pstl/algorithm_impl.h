@@ -3090,6 +3090,18 @@ __pattern_partition_copy(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardI
     return __internal::__brick_partition_copy(__first, __last, __out_true, __out_false, __pred, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator1, class _OutputIterator2,
+          class _UnaryPredicate>
+::std::pair<_OutputIterator1, _OutputIterator2>
+__pattern_partition_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
+                         _OutputIterator1 __out_true, _OutputIterator2 __out_false, _UnaryPredicate __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_partition_copy(__first, __last, __out_true, __out_false, __pred,
+                                              typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _RandomAccessIterator3, class _UnaryPredicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy,
@@ -3128,6 +3140,44 @@ __pattern_partition_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __fir
     }
     // trivial sequence - use serial algorithm
     return __internal::__brick_partition_copy(__first, __last, __out_true, __out_false, __pred, __is_vector);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _RandomAccessIterator3, class _UnaryPredicate>
+::std::pair<_RandomAccessIterator2, _RandomAccessIterator3>
+__pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
+                         _RandomAccessIterator1 __last, _RandomAccessIterator2 __out_true,
+                         _RandomAccessIterator3 __out_false, _UnaryPredicate __pred)
+{
+    typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType;
+    typedef ::std::pair<_DifferenceType, _DifferenceType> _ReturnType;
+    const _DifferenceType __n = __last - __first;
+    if (_DifferenceType(1) < __n)
+    {
+        __par_backend::__buffer<_ExecutionPolicy, bool> __mask_buf(__n);
+        return __internal::__except_handler([&__exec, __n, __first, __out_true, __out_false, __pred, &__mask_buf]() {
+            bool* __mask = __mask_buf.get();
+            _ReturnType __m{};
+            __par_backend::__parallel_strict_scan(
+                ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::make_pair(_DifferenceType(0), _DifferenceType(0)),
+                [=](_DifferenceType __i, _DifferenceType __len) { // Reduce
+                    return __internal::__brick_calc_mask_1<_DifferenceType>(__first + __i, __first + (__i + __len),
+                                                                            __mask + __i, __pred, _IsVector{});
+                },
+                [](const _ReturnType& __x, const _ReturnType& __y) -> _ReturnType {
+                    return ::std::make_pair(__x.first + __y.first, __x.second + __y.second);
+                },                                                                       // Combine
+                [=](_DifferenceType __i, _DifferenceType __len, _ReturnType __initial) { // Scan
+                    __internal::__brick_partition_by_mask(__first + __i, __first + (__i + __len),
+                                                          __out_true + __initial.first, __out_false + __initial.second,
+                                                          __mask + __i, _IsVector{});
+                },
+                [&__m](_ReturnType __total) { __m = __total; });
+            return ::std::make_pair(__out_true + __m.first, __out_false + __m.second);
+        });
+    }
+    // trivial sequence - use serial algorithm
+    return __internal::__brick_partition_copy(__first, __last, __out_true, __out_false, __pred, _IsVector{});
 }
 
 //------------------------------------------------------------------------

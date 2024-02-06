@@ -1561,6 +1561,31 @@ __pattern_partition_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterato
     return ::std::make_pair(__result1 + __result.second, __result2 + (__last - __first - __result.second));
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
+          typename _Iterator3, typename _UnaryPredicate>
+::std::pair<_Iterator2, _Iterator3>
+__pattern_partition_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first,
+                         _Iterator1 __last, _Iterator2 __result1, _Iterator3 __result2, _UnaryPredicate __pred)
+{
+    if (__first == __last)
+        return ::std::make_pair(__result1, __result2);
+
+    using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
+    using _ReduceOp = ::std::plus<_It1DifferenceType>;
+
+    unseq_backend::__create_mask<_UnaryPredicate, _It1DifferenceType> __create_mask_op{__pred};
+    unseq_backend::__partition_by_mask<_ReduceOp, /*inclusive*/ ::std::true_type> __copy_by_mask_op{_ReduceOp{}};
+
+    auto __result = __pattern_scan_copy(
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        __par_backend_hetero::zip(
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result1),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result2)),
+        __create_mask_op, __copy_by_mask_op);
+
+    return ::std::make_pair(__result1 + __result.second, __result2 + (__last - __first - __result.second));
+}
+
 //------------------------------------------------------------------------
 // unique_copy
 //------------------------------------------------------------------------
