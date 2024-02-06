@@ -1558,6 +1558,38 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator
     return __broken != __reduce_fn(_ReduceValueType{__all_true}, __res);
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Predicate>
+bool
+__pattern_is_partitioned(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
+                         _Iterator __last, _Predicate __predicate)
+{
+    if (__last - __first < 2)
+        return true;
+
+    using _ReduceValueType = _IsPartitionedReduceType;
+    auto __reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b) {
+        _ReduceValueType __table[] = {__broken,     __broken,     __broken,     __broken, __broken,    __all_true,
+                                      __true_false, __true_false, __broken,     __broken, __all_false, __broken,
+                                      __broken,     __broken,     __true_false, __broken};
+        return __table[__a * 4 + __b];
+    };
+    auto __transform_fn = [__predicate](auto __gidx, auto __acc) {
+        return (__predicate(__acc[__gidx]) ? __all_true : __all_false);
+    };
+
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                                ::std::false_type /*is_commutative*/>(
+                     ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                     unseq_backend::__no_init_value{}, // no initial value
+                     __buf.all_view())
+                     .get();
+
+    return __broken != __reduce_fn(_ReduceValueType{__all_true}, __res);
+}
+
 //------------------------------------------------------------------------
 // is_heap / is_heap_until
 //------------------------------------------------------------------------

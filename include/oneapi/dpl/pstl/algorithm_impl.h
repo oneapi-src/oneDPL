@@ -2586,6 +2586,15 @@ __pattern_is_partitioned(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardI
     return __internal::__brick_is_partitioned(__first, __last, __pred, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate>
+bool
+__pattern_is_partitioned(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _UnaryPredicate __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_is_partitioned(__first, __last, __pred, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, bool>
 __pattern_is_partitioned(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
@@ -2659,6 +2668,103 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
                     // then we should find the first element that satisfy pred.
                     // If we found it then range isn't partitioned by pred
                     if (__internal::__brick_find_if(__i + 1, __j, __pred, __is_vector) != __j)
+                        return _ReduceType{__broken, __i};
+
+                    __res = _ReduceType{__all_false, __i};
+                }
+                // if we have value from left range then we should calculate the result
+                return (__value.__val == __not_init) ? __res : __combine(__value, __res);
+            },
+
+            [__combine](_ReduceType __val1, _ReduceType __val2) -> _ReduceType {
+                if (__val1.__val == __not_init)
+                    return __val2;
+                if (__val2.__val == __not_init)
+                    return __val1;
+                assert(__val1.__val != __not_init && __val2.__val != __not_init);
+
+                if (__val1.__val == __broken || __val2.__val == __broken)
+                    return _ReduceType{__broken, __val1.__pos};
+                // calculate the result for new big range
+                return __combine(__val1, __val2);
+            });
+        return __result.__val != __broken;
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
+bool
+__pattern_is_partitioned(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                         _RandomAccessIterator __last, _UnaryPredicate __pred)
+{
+    //trivial pre-checks
+    if (__first == __last)
+        return true;
+
+    return __internal::__except_handler([&]() {
+        // State of current range:
+        // broken     - current range is not partitioned by pred
+        // all_true   - all elements in current range satisfy pred
+        // all_false  - all elements in current range don't satisfy pred
+        // true_false - elements satisfy pred are placed before elements that don't satisfy pred
+        enum _ReduceRes
+        {
+            __not_init = -1,
+            __broken,
+            __all_true,
+            __all_false,
+            __true_false
+        };
+        // Array with states that we'll have when state from the left branch is merged with state from the right branch.
+        // State is calculated by formula: new_state = table[left_state * 4 + right_state]
+        const _ReduceRes __table[] = {__broken,     __broken,     __broken,     __broken, __broken,    __all_true,
+                                      __true_false, __true_false, __broken,     __broken, __all_false, __broken,
+                                      __broken,     __broken,     __true_false, __broken};
+        struct _ReduceType
+        {
+            _ReduceRes __val;
+            _RandomAccessIterator __pos;
+        };
+        //a commutative combiner
+        auto __combine = [&__table](_ReduceType __x, _ReduceType __y) {
+            return __x.__pos > __y.__pos ? _ReduceType{__table[__y.__val * 4 + __x.__val], __y.__pos}
+                                         : _ReduceType{__table[__x.__val * 4 + __y.__val], __x.__pos};
+        };
+
+        const _ReduceType __identity{__not_init, __last};
+
+        _ReduceType __result = __par_backend::__parallel_reduce(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __identity,
+            [&__pred, __combine](_RandomAccessIterator __i, _RandomAccessIterator __j,
+                                              _ReduceType __value) -> _ReduceType {
+                if (__value.__val == __broken)
+                    return _ReduceType{__broken, __i};
+
+                _ReduceType __res{__not_init, __i};
+                // if first element satisfy pred
+                if (__pred(*__i))
+                {
+                    // find first element that don't satisfy pred
+                    _RandomAccessIterator __x =
+                        __internal::__brick_find_if(__i + 1, __j, __not_pred<_UnaryPredicate&>(__pred), _IsVector{});
+                    if (__x != __j)
+                    {
+                        // find first element after "x" that satisfy pred
+                        _RandomAccessIterator __y = __internal::__brick_find_if(__x + 1, __j, __pred, _IsVector{});
+                        // if it was found then range isn't partitioned by pred
+                        if (__y != __j)
+                            return _ReduceType{__broken, __i};
+
+                        __res = _ReduceType{__true_false, __i};
+                    }
+                    else
+                        __res = _ReduceType{__all_true, __i};
+                }
+                else
+                { // if first element doesn't satisfy pred
+                    // then we should find the first element that satisfy pred.
+                    // If we found it then range isn't partitioned by pred
+                    if (__internal::__brick_find_if(__i + 1, __j, __pred, _IsVector{}) != __j)
                         return _ReduceType{__broken, __i};
 
                     __res = _ReduceType{__all_false, __i};
