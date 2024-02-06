@@ -2755,6 +2755,36 @@ __pattern_rotate_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
     return __result + __n;
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _BidirectionalIterator, typename _ForwardIterator>
+_ForwardIterator
+__pattern_rotate_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _BidirectionalIterator __first,
+                      _BidirectionalIterator __new_first, _BidirectionalIterator __last, _ForwardIterator __result)
+{
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
+
+    auto __n = __last - __first;
+    if (__n <= 0)
+        return __result;
+
+    auto __keep1 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _BidirectionalIterator>();
+    auto __buf1 = __keep1(__first, __last);
+    auto __keep2 =
+        oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator>();
+    auto __buf2 = __keep2(__result, __result + __n);
+
+    const auto __shift = __new_first - __first;
+
+    oneapi::dpl::__par_backend_hetero::__parallel_for(
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        unseq_backend::__rotate_copy<typename ::std::iterator_traits<_BidirectionalIterator>::difference_type>{__n,
+                                                                                                               __shift},
+        __n, __buf1.all_view(), __buf2.all_view())
+        .wait();
+
+    return __result + __n;
+}
+
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator,
           typename _Compare, typename _IsOpDifference>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _OutputIterator>

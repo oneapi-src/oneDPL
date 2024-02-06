@@ -2629,6 +2629,17 @@ __pattern_rotate_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forw
                                            __result, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator>
+_OutputIterator
+__pattern_rotate_copy(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __middle,
+                      _ForwardIterator __last, _OutputIterator __result) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_rotate_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last,
+                                           __result, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
 __pattern_rotate_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __middle,
@@ -2654,6 +2665,39 @@ __pattern_rotate_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
                 {
                     __copy(__b, __middle, __new_result, __is_vector);
                     __copy(__middle, __e, __result, __is_vector);
+                }
+            }
+        });
+    return __result + (__last - __first);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2>
+_RandomAccessIterator2
+__pattern_rotate_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
+                      _RandomAccessIterator1 __middle, _RandomAccessIterator1 __last, _RandomAccessIterator2 __result)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    __par_backend::__parallel_for(
+        __backend_tag{},
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        [__first, __last, __middle, __result](_RandomAccessIterator1 __b, _RandomAccessIterator1 __e) {
+            __internal::__brick_copy<_ExecutionPolicy> __copy{};
+            if (__b > __middle)
+            {
+                __copy(__b, __e, __result + (__b - __middle), _IsVector{});
+            }
+            else
+            {
+                _RandomAccessIterator2 __new_result = __result + ((__last - __middle) + (__b - __first));
+                if (__e < __middle)
+                {
+                    __copy(__b, __e, __new_result, _IsVector{});
+                }
+                else
+                {
+                    __copy(__b, __middle, __new_result, _IsVector{});
+                    __copy(__middle, __e, __result, _IsVector{});
                 }
             }
         });

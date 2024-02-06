@@ -912,11 +912,21 @@ __pattern_rotate_copy(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _F
                       _IsVector,
                       /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator>
+_OutputIterator
+__pattern_rotate_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _ForwardIterator,
+                      _OutputIterator) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _OutputIterator>
 __pattern_rotate_copy(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _RandomAccessIterator,
                       _OutputIterator, _IsVector,
                       /*is_parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2>
+_RandomAccessIterator2
+__pattern_rotate_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
+                      _RandomAccessIterator1, _RandomAccessIterator2);
 
 //------------------------------------------------------------------------
 // is_partitioned
