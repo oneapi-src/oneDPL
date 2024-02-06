@@ -847,10 +847,20 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Ou
 __pattern_reverse_copy(_ExecutionPolicy&&, _BidirectionalIterator, _BidirectionalIterator, _OutputIterator, _IsVector,
                        /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _BidirectionalIterator, class _OutputIterator>
+_OutputIterator
+__pattern_reverse_copy(_Tag, _ExecutionPolicy&&, _BidirectionalIterator, _BidirectionalIterator,
+                       _OutputIterator) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _OutputIterator>
 __pattern_reverse_copy(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _OutputIterator, _IsVector,
                        /*is_parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2>
+_RandomAccessIterator2
+__pattern_reverse_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
+                       _RandomAccessIterator2);
 
 //------------------------------------------------------------------------
 // rotate

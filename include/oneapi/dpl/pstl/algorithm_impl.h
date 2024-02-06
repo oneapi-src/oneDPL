@@ -2359,6 +2359,16 @@ __pattern_reverse_copy(_ExecutionPolicy&&, _BidirectionalIterator __first, _Bidi
     return __internal::__brick_reverse_copy(__first, __last, __d_first, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _BidirectionalIterator, class _OutputIterator>
+_OutputIterator
+__pattern_reverse_copy(_Tag, _ExecutionPolicy&&, _BidirectionalIterator __first, _BidirectionalIterator __last,
+                       _OutputIterator __d_first) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_reverse_copy(__first, __last, __d_first, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator2>
 __pattern_reverse_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
@@ -2372,6 +2382,23 @@ __pattern_reverse_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first
                                                                        __d_first + (__len - (__inner_last - __first)),
                                                                        __is_vector);
                                   });
+    return __d_first + __len;
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2>
+_RandomAccessIterator2
+__pattern_reverse_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
+                       _RandomAccessIterator1 __last, _RandomAccessIterator2 __d_first)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    auto __len = __last - __first;
+    __par_backend::__parallel_for(
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        [__first, __len, __d_first](_RandomAccessIterator1 __inner_first, _RandomAccessIterator1 __inner_last) {
+            __internal::__brick_reverse_copy(__inner_first, __inner_last,
+                                             __d_first + (__len - (__inner_last - __first)), _IsVector{});
+        });
     return __d_first + __len;
 }
 
