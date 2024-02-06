@@ -363,7 +363,7 @@ struct __parallel_transform_reduce_impl
                         // 1. Initialization (transform part). Fill local memory
                         _Size __n_items;
 
-                        _Tp __result = *std::launder(reinterpret_cast<_Tp*>(alloca(sizeof(_Tp))));
+                        _Tp __result = *::std::launder(reinterpret_cast<_Tp*>(alloca(sizeof(_Tp))));
                         if (__is_first)
                         {
                             __result = __transform_pattern1(__item_id, __n, /*global_offset*/ (_Size)0, __rngs...);

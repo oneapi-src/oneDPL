@@ -236,7 +236,7 @@ struct transform_reduce
                 __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
             return __res;
         }
-        return *std::launder(reinterpret_cast<_Tp*>(alloca(sizeof(_Tp))));
+        return *::std::launder(reinterpret_cast<_Tp*>(alloca(sizeof(_Tp))));
     }
 
     template <typename _NDItemId, typename _Size, typename... _Acc>
