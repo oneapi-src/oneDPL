@@ -2687,6 +2687,42 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __new_f
     return __first + (__last - __new_first);
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator>
+_Iterator
+__pattern_rotate(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __new_first,
+                 _Iterator __last)
+{
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
+
+    auto __n = __last - __first;
+    if (__n <= 0)
+        return __first;
+
+    using _Tp = typename ::std::iterator_traits<_Iterator>::value_type;
+
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+    auto __buf = __keep(__first, __last);
+    auto __temp_buf = oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _Tp>(__exec, __n);
+
+    auto __temp_rng =
+        oneapi::dpl::__ranges::all_view<_Tp, __par_backend_hetero::access_mode::write>(__temp_buf.get_buffer());
+
+    const auto __shift = __new_first - __first;
+    oneapi::dpl::__par_backend_hetero::__parallel_for(
+        __backend_tag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__rotate_wrapper>(__exec),
+        unseq_backend::__rotate_copy<typename ::std::iterator_traits<_Iterator>::difference_type>{__n, __shift}, __n,
+        __buf.all_view(), __temp_rng);
+
+    using _Function = __brick_move<_ExecutionPolicy>;
+    auto __brick = unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
+
+    oneapi::dpl::__par_backend_hetero::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                      __brick, __n, __temp_rng, __buf.all_view())
+        .wait();
+
+    return __first + (__last - __new_first);
+}
+
 //------------------------------------------------------------------------
 // rotate_copy
 //------------------------------------------------------------------------

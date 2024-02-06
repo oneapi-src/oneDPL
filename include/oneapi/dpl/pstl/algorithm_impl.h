@@ -2462,6 +2462,15 @@ __pattern_rotate(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator 
     return __internal::__brick_rotate(__first, __middle, __last, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator>
+_ForwardIterator
+__pattern_rotate(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_rotate(__first, __middle, __last, typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_rotate(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __middle,
@@ -2517,6 +2526,70 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rand
                                           [__n, __m, __first, __result, __is_vector](_Tp* __b, _Tp* __e) {
                                               __brick_move_destroy<_ExecutionPolicy>{}(
                                                   __b, __e, __first + ((__n - __m) + (__b - __result)), __is_vector);
+                                          });
+
+            return __first + (__last - __middle);
+        });
+    }
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator>
+_RandomAccessIterator
+__pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                 _RandomAccessIterator __middle, _RandomAccessIterator __last)
+{
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _Tp;
+    auto __n = __last - __first;
+    auto __m = __middle - __first;
+    if (__m <= __n / 2)
+    {
+        __par_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__n - __m);
+        return __internal::__except_handler([&__exec, __n, __m, __first, __middle, __last, &__buf]() {
+            _Tp* __result = __buf.get();
+            __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __middle, __last,
+                                          [__middle, __result](_RandomAccessIterator __b, _RandomAccessIterator __e) {
+                                              __internal::__brick_uninitialized_move(
+                                                  __b, __e, __result + (__b - __middle), _IsVector{});
+                                          });
+
+            __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __middle,
+                                          [__last, __middle](_RandomAccessIterator __b, _RandomAccessIterator __e) {
+                                              __internal::__brick_move<_ExecutionPolicy>{}(
+                                                  __b, __e, __b + (__last - __middle), _IsVector{});
+                                          });
+
+            __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __result,
+                                          __result + (__n - __m), [__first, __result](_Tp* __b, _Tp* __e) {
+                                              __brick_move_destroy<_ExecutionPolicy>{}(
+                                                  __b, __e, __first + (__b - __result), _IsVector{});
+                                          });
+
+            return __first + (__last - __middle);
+        });
+    }
+    else
+    {
+        __par_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__m);
+        return __internal::__except_handler([&__exec, __n, __m, __first, __middle, __last, &__buf]() {
+            _Tp* __result = __buf.get();
+            __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __middle,
+                                          [__first, __result](_RandomAccessIterator __b, _RandomAccessIterator __e) {
+                                              __internal::__brick_uninitialized_move(
+                                                  __b, __e, __result + (__b - __first), _IsVector{});
+                                          });
+
+            __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __middle, __last,
+                                          [__first, __middle](_RandomAccessIterator __b, _RandomAccessIterator __e) {
+                                              __internal::__brick_move<_ExecutionPolicy>{}(
+                                                  __b, __e, __first + (__b - __middle), _IsVector{});
+                                          });
+
+            __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __result,
+                                          __result + __m, [__n, __m, __first, __result](_Tp* __b, _Tp* __e) {
+                                              __brick_move_destroy<_ExecutionPolicy>{}(
+                                                  __b, __e, __first + ((__n - __m) + (__b - __result)), _IsVector{});
                                           });
 
             return __first + (__last - __middle);

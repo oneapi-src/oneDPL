@@ -879,10 +879,19 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Fo
 __pattern_rotate(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _ForwardIterator, _IsVector,
                  /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator>
+_ForwardIterator
+__pattern_rotate(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _ForwardIterator) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_rotate(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _RandomAccessIterator, _IsVector,
                  /*is_parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator>
+_RandomAccessIterator
+__pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                 _RandomAccessIterator);
 
 //------------------------------------------------------------------------
 // rotate_copy
