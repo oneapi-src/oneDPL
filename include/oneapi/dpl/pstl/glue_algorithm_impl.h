@@ -655,10 +655,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 partition_copy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                _ForwardIterator1 __out_true, _ForwardIterator2 __out_false, _UnaryPredicate __pred)
 {
-    return oneapi::dpl::__internal::__pattern_partition_copy(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __out_true, __out_false, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator, _ForwardIterator1, _ForwardIterator2>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator, _ForwardIterator1, _ForwardIterator2>());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator,
+                                                                              _ForwardIterator1, _ForwardIterator2>();
+
+    return oneapi::dpl::__internal::__pattern_partition_copy(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                             __first, __last, __out_true, __out_false, __pred);
 }
 
 // [alg.sort]

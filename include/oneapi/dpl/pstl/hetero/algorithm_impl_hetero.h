@@ -2066,8 +2066,10 @@ __pattern_stable_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterat
     auto __true_result = __true_buf.get();
     auto __false_result = __false_buf.get();
 
-    auto copy_result = __pattern_partition_copy(__exec, __first, __last, __true_result, __false_result, __pred,
-                                                /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
+    constexpr auto __dispatch_tag = __select_backend<_ExecutionPolicy, decltype(__first), decltype(__last),
+                                                     decltype(__true_result), decltype(__false_result)>();
+    auto copy_result =
+        __pattern_partition_copy(__dispatch_tag, __exec, __first, __last, __true_result, __false_result, __pred);
     auto true_count = copy_result.first - __true_result;
 
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
