@@ -587,10 +587,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 reverse_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
              _ForwardIterator __d_first)
 {
-    return oneapi::dpl::__internal::__pattern_reverse_copy(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _BidirectionalIterator, _ForwardIterator>());
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _BidirectionalIterator, _ForwardIterator>();
+
+    return oneapi::dpl::__internal::__pattern_reverse_copy(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                           __first, __last, __d_first);
 }
 
 // [alg.rotate]
