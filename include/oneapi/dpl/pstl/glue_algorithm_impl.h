@@ -631,10 +631,10 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator>
 partition(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _UnaryPredicate __pred)
 {
-    return oneapi::dpl::__internal::__pattern_partition(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    return oneapi::dpl::__internal::__pattern_partition(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                        __first, __last, __pred);
 }
 
 template <class _ExecutionPolicy, class _BidirectionalIterator, class _UnaryPredicate>

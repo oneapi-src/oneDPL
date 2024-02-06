@@ -3629,15 +3629,16 @@ __pattern_nth_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, 
         return;
     }
 
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+
     using ::std::iter_swap;
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _Tp;
     _RandomAccessIterator __x;
     do
     {
-        __x = __internal::__pattern_partition(
-            ::std::forward<_ExecutionPolicy>(__exec), __first + 1, __last,
-            [&__comp, __first](const _Tp& __x) { return __comp(__x, *__first); }, __is_vector,
-            /*is_parallel=*/::std::true_type());
+        __x = __internal::__pattern_partition(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first + 1,
+                                              __last,
+                                              [&__comp, __first](const _Tp& __x) { return __comp(__x, *__first); });
         --__x;
         if (__x != __first)
         {
@@ -3677,10 +3678,8 @@ __pattern_nth_element(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec
     _RandomAccessIterator __x;
     do
     {
-        __x = __internal::__pattern_partition(
-            ::std::forward<_ExecutionPolicy>(__exec), __first + 1, __last,
-            [&__comp, __first](const _Tp& __x) { return __comp(__x, *__first); }, _IsVector{},
-            /*is_parallel=*/::std::true_type());
+        __x = __internal::__pattern_partition(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first + 1, __last,
+                                              [&__comp, __first](const _Tp& __x) { return __comp(__x, *__first); });
         --__x;
         if (__x != __first)
         {
