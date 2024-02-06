@@ -5032,6 +5032,17 @@ __brick_lexicographical_compare(_RandomAccessIterator1 __first1, _RandomAccessIt
     }
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Compare>
+bool
+__pattern_lexicographical_compare(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                                  _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_lexicographical_compare(__first1, __last1, __first2, __last2, __comp,
+                                                       typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, bool>
 __pattern_lexicographical_compare(_ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
@@ -5039,6 +5050,15 @@ __pattern_lexicographical_compare(_ExecutionPolicy&&, _ForwardIterator1 __first1
                                   _IsVector __is_vector, /* is_parallel = */ ::std::false_type) noexcept
 {
     return __internal::__brick_lexicographical_compare(__first1, __last1, __first2, __last2, __comp, __is_vector);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Compare>
+bool
+__pattern_lexicographical_compare(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _ForwardIterator1 __first1,
+                                  _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+                                  _Compare __comp) noexcept
+{
+    return __internal::__brick_lexicographical_compare(__first1, __last1, __first2, __last2, __comp, _IsVector{});
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Compare,

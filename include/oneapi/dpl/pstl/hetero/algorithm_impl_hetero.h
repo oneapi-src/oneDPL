@@ -1956,6 +1956,54 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _Iterator1 __first1
     return __ret_idx ? __ret_idx == 1 : (__last1 - __first1) < (__last2 - __first2);
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Compare>
+bool
+__pattern_lexicographical_compare(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first1,
+                                  _Iterator1 __last1, _Iterator2 __first2, _Iterator2 __last2, _Compare __comp)
+{
+    //trivial pre-checks
+    if (__first2 == __last2)
+        return false;
+    if (__first1 == __last1)
+        return true;
+
+    using _Iterator1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
+    using _ReduceValueType = int32_t;
+
+    auto __reduce_fn = [](_ReduceValueType __a, _ReduceValueType __b) {
+        bool __is_mismatched = __a != 0;
+        return __a * __is_mismatched + __b * !__is_mismatched;
+    };
+    auto __transform_fn = [__comp](auto __gidx, auto __acc1, auto __acc2) {
+        auto const& __s1_val = __acc1[__gidx];
+        auto const& __s2_val = __acc2[__gidx];
+
+        ::std::int32_t __is_s1_val_less = __comp(__s1_val, __s2_val);
+        ::std::int32_t __is_s1_val_greater = __comp(__s2_val, __s1_val);
+
+        // 1 if __s1_val <  __s2_val, -1 if __s1_val <  __s2_val, 0 if __s1_val == __s2_val
+        return _ReduceValueType{1 * __is_s1_val_less - 1 * __is_s1_val_greater};
+    };
+
+    auto __shared_size = ::std::min(__last1 - __first1, (_Iterator1DifferenceType)(__last2 - __first2));
+
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
+    auto __buf1 = __keep1(__first1, __first1 + __shared_size);
+
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
+    auto __buf2 = __keep2(__first2, __first2 + __shared_size);
+
+    auto __ret_idx =
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                       ::std::false_type /*is_commutative*/>(
+            ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+            unseq_backend::__no_init_value{}, // no initial value
+            __buf1.all_view(), __buf2.all_view())
+            .get();
+
+    return __ret_idx ? __ret_idx == 1 : (__last1 - __first1) < (__last2 - __first2);
+}
+
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, bool>
 __pattern_includes(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
