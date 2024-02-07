@@ -252,6 +252,21 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterato
                                          __unary_op, _InitType{__init}, __binary_op, _Inclusive{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
+          typename _UnaryOperation, typename _Type,
+          typename _BinaryOperation, typename _Inclusive>
+_Iterator2
+__pattern_transform_scan(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first,
+                         _Iterator1 __last, _Iterator2 __result,
+                         _UnaryOperation __unary_op, _Type __init, _BinaryOperation __binary_op, _Inclusive)
+{
+    using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
+    using _InitType = unseq_backend::__init_value<_RepackedType>;
+
+    return __pattern_transform_scan_base(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+                                         __unary_op, _InitType{__init}, __binary_op, _Inclusive{});
+}
+
 // scan without initial element
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
           typename _BinaryOperation, typename _Inclusive>
@@ -259,6 +274,21 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_transform_scan(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result,
                          _UnaryOperation __unary_op, _BinaryOperation __binary_op, _Inclusive,
                          /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
+{
+    using _Type = typename ::std::iterator_traits<_Iterator1>::value_type;
+    using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
+    using _InitType = unseq_backend::__no_init_value<_RepackedType>;
+
+    return __pattern_transform_scan_base(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+                                         __unary_op, _InitType{}, __binary_op, _Inclusive{});
+}
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
+          typename _UnaryOperation, typename _BinaryOperation, typename _Inclusive>
+_Iterator2
+__pattern_transform_scan(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first,
+                         _Iterator1 __last, _Iterator2 __result, _UnaryOperation __unary_op,
+                         _BinaryOperation __binary_op, _Inclusive)
 {
     using _Type = typename ::std::iterator_traits<_Iterator1>::value_type;
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
