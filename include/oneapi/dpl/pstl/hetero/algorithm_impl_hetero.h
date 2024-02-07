@@ -1770,8 +1770,10 @@ __pattern_unique(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
 
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
     auto __copy_first = __buf.get();
-    auto __copy_last = __pattern_unique_copy(__exec, __first, __last, __copy_first, __pred,
-                                             /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
+    auto __copy_last =
+        __pattern_unique_copy(oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first),
+                                                                        decltype(__last), decltype(__copy_first)>(),
+                              __exec, __first, __last, __copy_first, __pred);
 
     constexpr auto __dispatch_tag1 =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__copy_first), decltype(__copy_last),
@@ -1798,8 +1800,10 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
 
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
     auto __copy_first = __buf.get();
-    auto __copy_last = __pattern_unique_copy(__exec, __first, __last, __copy_first, __pred,
-                                             /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
+    auto __copy_last =
+        __pattern_unique_copy(oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first),
+                                                                        decltype(__last), decltype(__copy_first)>(),
+                              __exec, __first, __last, __copy_first, __pred);
 
     constexpr auto __dispatch_tag1 =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__copy_first), decltype(__copy_last),
