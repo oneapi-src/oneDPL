@@ -1248,10 +1248,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Bidirec
 shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
             typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n)
 {
-    return oneapi::dpl::__internal::__pattern_shift_right(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __n,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _BidirectionalIterator>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _BidirectionalIterator>());
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _BidirectionalIterator>();
+
+    return oneapi::dpl::__internal::__pattern_shift_right(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                          __first, __last, __n);
 }
 
 } // namespace dpl
