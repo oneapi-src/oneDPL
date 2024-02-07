@@ -775,10 +775,19 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Fo
 __pattern_unique(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _BinaryPredicate, _IsVector,
                  /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _BinaryPredicate>
+_ForwardIterator
+__pattern_unique(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _BinaryPredicate) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _BinaryPredicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_unique(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _BinaryPredicate, _IsVector,
                  /*is_parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _BinaryPredicate>
+_RandomAccessIterator
+__pattern_unique(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                 _BinaryPredicate);
 
 //------------------------------------------------------------------------
 // unique_copy

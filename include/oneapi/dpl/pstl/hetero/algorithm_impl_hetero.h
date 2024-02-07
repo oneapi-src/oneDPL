@@ -1767,6 +1767,34 @@ __pattern_unique(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
         __copy_first, __copy_last, __first, __brick_copy<_ExecutionPolicy>{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _BinaryPredicate>
+_Iterator
+__pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                 _BinaryPredicate __pred)
+{
+    if (__last - __first < 2)
+        return __last;
+
+    using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
+
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
+    auto __copy_first = __buf.get();
+    auto __copy_last = __pattern_unique_copy(__exec, __first, __last, __copy_first, __pred,
+                                             /*vector=*/::std::true_type{}, /*parallel*/ ::std::true_type{});
+
+    constexpr auto __dispatch_tag1 =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__copy_first), decltype(__copy_last),
+                                                  decltype(__first)>();
+    using __backend_tag1 = typename decltype(__dispatch_tag1)::__backend_tag;
+
+    //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
+    return __pattern_walk2<__backend_tag1, /*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
+                           __par_backend_hetero::access_mode::read_write>(
+        __dispatch_tag1,
+        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __copy_first, __copy_last, __first, __brick_copy<_ExecutionPolicy>{});
+}
+
 //------------------------------------------------------------------------
 // is_partitioned
 //------------------------------------------------------------------------

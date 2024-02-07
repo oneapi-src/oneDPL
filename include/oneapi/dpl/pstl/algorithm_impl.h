@@ -2096,6 +2096,15 @@ __pattern_unique(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator 
     return __internal::__brick_unique(__first, __last, __pred, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _BinaryPredicate>
+_ForwardIterator
+__pattern_unique(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _BinaryPredicate __pred) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_unique(__first, __last, __pred, typename _Tag::__is_vector{});
+}
+
 // That function is shared between two algorithms - remove_if (__pattern_remove_if) and unique (pattern unique). But a mask calculation is different.
 // So, a caller passes _CalcMask brick into remove_elements.
 template <class _ExecutionPolicy, class _ForwardIterator, class _CalcMask, class _IsVector>
@@ -2202,6 +2211,32 @@ __pattern_unique(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rand
                 [&__pred](bool& __x, _ReferenceType __y, _ReferenceType __z) { __x = !__pred(__y, __z); }, __is_vector);
         },
         __is_vector);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _BinaryPredicate>
+_RandomAccessIterator
+__pattern_unique(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+                 _RandomAccessIterator __last, _BinaryPredicate __pred)
+{
+    typedef typename ::std::iterator_traits<_RandomAccessIterator>::reference _ReferenceType;
+
+    if (__first == __last)
+    {
+        return __last;
+    }
+    if (__first + 1 == __last || __first + 2 == __last)
+    {
+        // Trivial sequence - use serial algorithm
+        return __internal::__brick_unique(__first, __last, __pred, _IsVector{});
+    }
+    return __internal::__remove_elements(
+        ::std::forward<_ExecutionPolicy>(__exec), ++__first, __last,
+        [&__pred](bool* __b, bool* __e, _RandomAccessIterator __it) {
+            __internal::__brick_walk3(
+                __b, __e, __it - 1, __it,
+                [&__pred](bool& __x, _ReferenceType __y, _ReferenceType __z) { __x = !__pred(__y, __z); }, _IsVector{});
+        },
+        _IsVector{});
 }
 
 //------------------------------------------------------------------------
