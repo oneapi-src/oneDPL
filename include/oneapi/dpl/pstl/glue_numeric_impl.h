@@ -70,11 +70,13 @@ transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forward
                  _ForwardIterator2 __first2, _Tp __init)
 {
     typedef typename ::std::iterator_traits<_ForwardIterator1>::value_type _InputType;
+
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
     return oneapi::dpl::__internal::__pattern_transform_reduce(
-        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, ::std::plus<_InputType>(),
-        ::std::multiplies<_InputType>(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>());
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init,
+        ::std::plus<_InputType>(), ::std::multiplies<_InputType>());
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp, class _BinaryOperation1,
@@ -83,10 +85,12 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
 transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                  _ForwardIterator2 __first2, _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
-    return oneapi::dpl::__internal::__pattern_transform_reduce(
-        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1, __binary_op2,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>());
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
+    return oneapi::dpl::__internal::__pattern_transform_reduce(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                               __first1, __last1, __first2, __init, __binary_op1,
+                                                               __binary_op2);
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryOperation, class _UnaryOperation>
@@ -94,10 +98,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
 transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
                  _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
-    return oneapi::dpl::__internal::__pattern_transform_reduce(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op, __unary_op,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    return oneapi::dpl::__internal::__pattern_transform_reduce(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                               __first, __last, __init, __binary_op, __unary_op);
 }
 
 // [exclusive.scan]
