@@ -2121,6 +2121,15 @@ __pattern_stable_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
                                   oneapi::dpl::identity{});
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+void
+__pattern_stable_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                      _Compare __comp)
+{
+    __stable_sort_with_projection(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
+                                  oneapi::dpl::identity{});
+}
+
 template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Compare>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_sort_by_key(_ExecutionPolicy&& __exec, _Iterator1 __keys_first, _Iterator1 __keys_last,
