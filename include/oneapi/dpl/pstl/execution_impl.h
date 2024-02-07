@@ -131,8 +131,6 @@ __is_parallelization_preferred(_ExecutionPolicy& __exec)
 struct __tbb_backend_tag
 {
 };
-// KSATODO required create tag for dpcpp -> already implemented: __device_backend_tag, __fpga_backend_tag
-// KSATODO required create tag for omp
 
 template <class _IsVector>
 struct __serial_tag
