@@ -3436,10 +3436,36 @@ __pattern_sort(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessI
     ::std::sort(__first, __last, __comp);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsMoveConstructible>
+void
+__pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
+               _IsMoveConstructible) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    ::std::sort(__first, __last, __comp);
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
                _IsVector /*is_vector*/, /*is_parallel=*/::std::true_type, /*is_move_constructible=*/::std::true_type)
+{
+    __internal::__except_handler([&]() {
+        __par_backend::__parallel_stable_sort(
+            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
+            [](_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) {
+                ::std::sort(__first, __last, __comp);
+            },
+            __last - __first);
+    });
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
+void
+__pattern_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+               _RandomAccessIterator __last, _Compare __comp,
+               /*is_move_constructible=*/::std::true_type)
 {
     __internal::__except_handler([&]() {
         __par_backend::__parallel_stable_sort(
