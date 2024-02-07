@@ -1235,10 +1235,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 shift_left(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
            typename ::std::iterator_traits<_ForwardIterator>::difference_type __n)
 {
-    return oneapi::dpl::__internal::__pattern_shift_left(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __n,
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator>());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+
+    return oneapi::dpl::__internal::__pattern_shift_left(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                         __first, __last, __n);
 }
 
 // [shift.right]
