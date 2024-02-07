@@ -50,12 +50,24 @@ __pattern_transform_reduce(_ExecutionPolicy&&, _ForwardIterator1, _ForwardIterat
                            _BinaryOperation1, _BinaryOperation2, _IsVector,
                            /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp,
+          class _BinaryOperation1, class _BinaryOperation2>
+_Tp
+__pattern_transform_reduce(_Tag, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _ForwardIterator2, _Tp,
+                           _BinaryOperation1, _BinaryOperation2) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Tp,
           class _BinaryOperation1, class _BinaryOperation2, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Tp>
 __pattern_transform_reduce(_ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1, _RandomAccessIterator2,
                            _Tp, _BinaryOperation1, _BinaryOperation2, _IsVector __is_vector,
                            /*is_parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _Tp, class _BinaryOperation1, class _BinaryOperation2>
+_Tp
+__pattern_transform_reduce(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
+                           _RandomAccessIterator1, _RandomAccessIterator2, _Tp, _BinaryOperation1, _BinaryOperation2);
 
 //------------------------------------------------------------------------
 // transform_reduce (version with unary and binary functions)
@@ -76,12 +88,36 @@ __pattern_transform_reduce(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterato
                            _UnaryOperation, _IsVector,
                            /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Tp,
+          class _BinaryOperation1, class _BinaryOperation2>
+_Tp
+__pattern_transform_reduce(_Tag, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _ForwardIterator2, _Tp,
+                           _BinaryOperation1, _BinaryOperation2 __bnary_op2) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _Tp, class _BinaryOperation, class _UnaryOperation,
           class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Tp>
 __pattern_transform_reduce(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Tp, _BinaryOperation,
                            _UnaryOperation, _IsVector,
                            /*is_parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _Tp, class _BinaryOperation1, class _BinaryOperation2>
+_Tp
+__pattern_transform_reduce(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
+                           _RandomAccessIterator1, _RandomAccessIterator2, _Tp, _BinaryOperation1, _BinaryOperation2);
+
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Tp, class _BinaryOperation,
+          class _UnaryOperation>
+_Tp
+__pattern_transform_reduce(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Tp, _BinaryOperation,
+                           _UnaryOperation) noexcept;
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Tp, class _BinaryOperation,
+          class _UnaryOperation>
+_Tp
+__pattern_transform_reduce(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                           _Tp, _BinaryOperation, _UnaryOperation);
 
 //------------------------------------------------------------------------
 // transform_exclusive_scan
