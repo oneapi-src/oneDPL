@@ -2922,6 +2922,21 @@ __pattern_set_intersection(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1
                                    __result, __comp, unseq_backend::_IntersectionTag());
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _OutputIterator, typename _Compare>
+_OutputIterator
+__pattern_set_intersection(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                           _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+                           _OutputIterator __result, _Compare __comp)
+{
+    // intersection is empty
+    if (__first1 == __last1 || __first2 == __last2)
+        return __result;
+
+    return __pattern_hetero_set_op(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2,
+                                   __result, __comp, unseq_backend::_IntersectionTag());
+}
+
 //Dummy names to avoid kernel problems
 template <typename Name>
 class __set_difference_copy_case_1

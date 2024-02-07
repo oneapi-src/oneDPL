@@ -4996,6 +4996,19 @@ __pattern_set_intersection(_ExecutionPolicy&&, _ForwardIterator1 __first1, _Forw
     return __internal::__brick_set_intersection(__first1, __last1, __first2, __last2, __result, __comp, __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _OutputIterator,
+          class _Compare>
+_OutputIterator
+__pattern_set_intersection(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                           _ForwardIterator2 __first2, _ForwardIterator2 __last2, _OutputIterator __result,
+                           _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_set_intersection(__first1, __last1, __first2, __last2, __result, __comp,
+                                                typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _RandomAccessIterator3, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator3>
@@ -5054,6 +5067,70 @@ __pattern_set_intersection(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __f
                                                                           __result, __comp);
             },
             __is_vector);
+        return __result;
+    }
+
+    // [left_bound_seq_1; last1) and [left_bound_seq_2; last2) - use serial algorithm
+    return ::std::set_intersection(__left_bound_seq_1, __last1, __left_bound_seq_2, __last2, __result, __comp);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _RandomAccessIterator3, class _Compare>
+_RandomAccessIterator3
+__pattern_set_intersection(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+                           _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
+                           _RandomAccessIterator2 __last2, _RandomAccessIterator3 __result, _Compare __comp)
+{
+    typedef typename ::std::iterator_traits<_RandomAccessIterator3>::value_type _T;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType;
+
+    const auto __n1 = __last1 - __first1;
+    const auto __n2 = __last2 - __first2;
+
+    // intersection is empty
+    if (__n1 == 0 || __n2 == 0)
+        return __result;
+
+    // testing  whether the sequences are intersected
+    _RandomAccessIterator1 __left_bound_seq_1 = ::std::lower_bound(__first1, __last1, *__first2, __comp);
+    //{1} < {2}: seq 2 is wholly greater than seq 1, so, the intersection is empty
+    if (__left_bound_seq_1 == __last1)
+        return __result;
+
+    // testing  whether the sequences are intersected
+    _RandomAccessIterator2 __left_bound_seq_2 = ::std::lower_bound(__first2, __last2, *__first1, __comp);
+    //{2} < {1}: seq 1 is wholly greater than seq 2, so, the intersection is empty
+    if (__left_bound_seq_2 == __last2)
+        return __result;
+
+    const auto __m1 = __last1 - __left_bound_seq_1 + __n2;
+    if (__m1 > __set_algo_cut_off)
+    {
+        //we know proper offset due to [first1; left_bound_seq_1) < [first2; last2)
+        return __internal::__parallel_set_op(
+            ::std::forward<_ExecutionPolicy>(__exec), __left_bound_seq_1, __last1, __first2, __last2, __result, __comp,
+            [](_DifferenceType __n, _DifferenceType __m) { return ::std::min(__n, __m); },
+            [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
+               _RandomAccessIterator2 __last2, _T* __result, _Compare __comp) {
+                return oneapi::dpl::__utils::__set_intersection_construct(__first1, __last1, __first2, __last2,
+                                                                          __result, __comp);
+            },
+            _IsVector{});
+    }
+
+    const auto __m2 = __last2 - __left_bound_seq_2 + __n1;
+    if (__m2 > __set_algo_cut_off)
+    {
+        //we know proper offset due to [first2; left_bound_seq_2) < [first1; last1)
+        __result = __internal::__parallel_set_op(
+            ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __left_bound_seq_2, __last2, __result, __comp,
+            [](_DifferenceType __n, _DifferenceType __m) { return ::std::min(__n, __m); },
+            [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
+               _RandomAccessIterator2 __last2, _T* __result, _Compare __comp) {
+                return oneapi::dpl::__utils::__set_intersection_construct(__first2, __last2, __first1, __last1,
+                                                                          __result, __comp);
+            },
+            _IsVector{});
         return __result;
     }
 

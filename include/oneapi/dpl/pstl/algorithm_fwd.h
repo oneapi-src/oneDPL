@@ -1520,12 +1520,25 @@ __pattern_set_intersection(_ExecutionPolicy&&, _ForwardIterator1, _ForwardIterat
                            _ForwardIterator2, _OutputIterator, _Compare, _IsVector,
                            /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _OutputIterator,
+          class _Compare>
+_OutputIterator
+__pattern_set_intersection(_Tag, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _ForwardIterator2,
+                           _ForwardIterator2, _OutputIterator, _Compare) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _OutputIterator,
           class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _OutputIterator>
 __pattern_set_intersection(_ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1, _RandomAccessIterator2,
                            _RandomAccessIterator2, _OutputIterator, _Compare, _IsVector,
                            /*is_parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _RandomAccessIterator3, class _Compare>
+_RandomAccessIterator3
+__pattern_set_intersection(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
+                           _RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator2,
+                           _RandomAccessIterator3, _Compare);
 
 //------------------------------------------------------------------------
 // set_difference
