@@ -377,12 +377,13 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
              _ForwardIterator2 __first2, _ForwardIterator3 __result, _BinaryOperation __op, _BinaryPredicate __pred)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1,
+                                                                              _ForwardIterator2, _ForwardIterator3>();
+
     return oneapi::dpl::__internal::__pattern_walk3_transform_if(
-        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
-        oneapi::dpl::__internal::__transform_if_binary_functor<_BinaryOperation, _BinaryPredicate>(::std::move(__op),
-                                                                                                   ::std::move(__pred)),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _ForwardIterator3>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _ForwardIterator3>());
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
+        oneapi::dpl::__internal::__transform_if_binary_functor<_BinaryOperation, _BinaryPredicate>(
+            ::std::move(__op), ::std::move(__pred)));
 }
 
 // [alg.replace]
