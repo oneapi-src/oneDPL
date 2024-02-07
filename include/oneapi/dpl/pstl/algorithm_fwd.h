@@ -394,6 +394,12 @@ __pattern_walk3_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __firs
                              _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __func,
                              _IsVector __is_vector, _IsParallel __is_parallel) noexcept;
 
+template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _ForwardIterator3, typename _Function>
+_ForwardIterator3
+__pattern_walk3_transform_if(_Tag, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _ForwardIterator2,
+                             _ForwardIterator3, _Function) noexcept;
+
 //------------------------------------------------------------------------
 // equal
 //------------------------------------------------------------------------

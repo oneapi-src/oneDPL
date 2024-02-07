@@ -948,6 +948,19 @@ __pattern_walk3_transform_if(_ExecutionPolicy&& __exec, _ForwardIterator1 __firs
                            __is_vector, __is_parallel);
 }
 
+template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _ForwardIterator3, typename _Function>
+_ForwardIterator3
+__pattern_walk3_transform_if(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                             _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator3 __first3,
+                             _Function __func) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __pattern_walk3(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __first3,
+                           __func);
+}
+
 //------------------------------------------------------------------------
 // equal
 //------------------------------------------------------------------------
