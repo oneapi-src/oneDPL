@@ -1862,11 +1862,21 @@ __pattern_shift_left(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
                      typename ::std::iterator_traits<_ForwardIterator>::difference_type, _IsVector,
                      /*is_parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator>
+_ForwardIterator
+__pattern_shift_left(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
+                     typename ::std::iterator_traits<_ForwardIterator>::difference_type) noexcept;
+
 template <class _ExecutionPolicy, class _ForwardIterator, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _ForwardIterator>
 __pattern_shift_left(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
                      typename ::std::iterator_traits<_ForwardIterator>::difference_type, _IsVector,
                      /*is_parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator>
+_ForwardIterator
+__pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
+                     typename ::std::iterator_traits<_ForwardIterator>::difference_type);
 
 template <class _ExecutionPolicy, class _BidirectionalIterator, class _IsVector, class _IsParallel>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _BidirectionalIterator>

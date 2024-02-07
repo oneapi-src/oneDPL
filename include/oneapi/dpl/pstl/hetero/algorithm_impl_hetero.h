@@ -3358,6 +3358,26 @@ __pattern_shift_right(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
     return __last - __res;
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator>
+_Iterator
+__pattern_shift_left(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                     typename ::std::iterator_traits<_Iterator>::difference_type __n)
+{
+    //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
+    auto __size = __last - __first;
+    if (__n <= 0)
+        return __last;
+    if (__n >= __size)
+        return __first;
+
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    auto __res =
+        oneapi::dpl::__internal::__pattern_shift_left(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(), __n);
+    return __first + __res;
+}
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
