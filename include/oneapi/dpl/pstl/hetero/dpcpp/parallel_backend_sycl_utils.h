@@ -471,15 +471,56 @@ using __repacked_tuple_t = typename __repacked_tuple<T>::type;
 template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
+template <typename _T>
+struct __usm_host_or_buffer_accessor
+{
+  private:
+    using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
+                                        sycl::access::placeholder::false_t>;
+    __accessor_t __acc;
+    _T* __ptr = nullptr;
+    bool __usm = false;
+    size_t __offset;
+
+  public:
+    // Buffer accessor
+    __usm_host_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})), __usm(false),
+        __offset(0)
+    {
+    }
+    __usm_host_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf, size_t __acc_offset)
+        : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})), __usm(false),
+        __offset(__acc_offset)
+    {
+    }
+
+    // USM pointer
+    __usm_host_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf) : __ptr(__usm_buf), __usm(true), __offset(0) {}
+    __usm_host_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf, size_t __ptr_offset) : __ptr(__usm_buf),
+    __usm(true), __offset(__ptr_offset) {}
+
+    auto
+    __get_pointer() const // should be cached within a kernel
+    {
+        return __usm ? __ptr + __offset : &__acc[__offset];
+    }
+};
+
 template <typename _ExecutionPolicy, typename _T>
 struct __usm_host_or_unified_storage
 {
   private:
+    using __sycl_buffer_t = sycl::buffer<_T, 1>;
+
     _ExecutionPolicy __exec;
     ::std::shared_ptr<_T> __scratch_buf;
     ::std::shared_ptr<_T> __result_buf;
+    ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
+
     ::std::size_t __scratch_n;
     bool __host;
+    bool __supports_USM;
 
     // Only use USM host allocations on L0 GPUs. Other devices show significant slowdowns and will use a device allocation instead.
     inline bool
@@ -500,9 +541,19 @@ struct __usm_host_or_unified_storage
 #endif
     }
 
+    inline bool
+    __use_USM_allocations(sycl::queue __queue)
+    {
+        auto __device = __queue.get_device();
+        if (!__device.has(sycl::aspect::usm_device_allocations))
+            return false;
+        return true;
+    }
+
   public:
     __usm_host_or_unified_storage(_ExecutionPolicy& __exec, ::std::size_t __scratch_n)
-        : __exec{__exec}, __scratch_n{__scratch_n}, __host{__use_USM_host_allocations(__exec.queue())}
+        : __exec{__exec}, __scratch_n{__scratch_n}, __host{__use_USM_host_allocations(__exec.queue())},
+        __supports_USM{__use_USM_allocations(__exec.queue())}
     {
         if (__host)
         {
@@ -514,15 +565,21 @@ struct __usm_host_or_unified_storage
                 __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(1),
                 __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
         }
-        else
+        else if (__supports_USM)
         {
             // If we don't use host memory, malloc only a single unified device allocation
             __scratch_buf = std::shared_ptr<_T>(
                 __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::device>{__exec}(__scratch_n + 1),
                 __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
         }
+        else
+        {
+            // If we don't have USM support allocate memory here
+            __sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(__scratch_n + 1));
+        }
     }
 
+<<<<<<< HEAD
     template <typename _Acc>
     static auto
     __get_usm_host_or_buffer_accessor_ptr(const _Acc& __acc)
@@ -543,17 +600,22 @@ struct __usm_host_or_unified_storage
 #else
         return sycl::accessor(*__sycl_buf.get(), __cgh, sycl::read_write, __dpl_sycl::__no_init{});
 #endif
-    _T*
-    __get_scratch_ptr()
+    auto
+    __get_result_acc(sycl::handler& __cgh)
     {
-        assert(__scratch_n > 0);
-        return __scratch_buf.get();
+        if (__host)
+            return __usm_host_or_buffer_accessor<_T>(__cgh, __result_buf.get());
+        else if (__supports_USM)
+            return __usm_host_or_buffer_accessor<_T>(__cgh, __scratch_buf.get(), __scratch_n);
+        return __usm_host_or_buffer_accessor<_T>(__cgh, __sycl_buf.get(), __scratch_n);
     }
 
-    _T*
-    __get_result_ptr()
+    auto
+    __get_scratch_acc(sycl::handler& __cgh)
     {
-        return __host ? __result_buf.get() : __scratch_buf.get() + __scratch_n;
+        if (__host || __supports_USM)
+            return __usm_host_or_buffer_accessor<_T>(__cgh, __scratch_buf.get());
+        return __usm_host_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
     }
 
     // Note: this member function assumes the result is *ready*, since the __future has already
@@ -565,16 +627,20 @@ struct __usm_host_or_unified_storage
         {
             return *(__result_buf.get() + idx);
         }
-        else
+        else if (__supports_USM)
         {
             _T __tmp;
             __exec.queue().memcpy(&__tmp, __scratch_buf.get() + __scratch_n + idx, 1 * sizeof(_T)).wait();
             return __tmp;
         }
+        else {
+            return __sycl_buf->get_host_access(sycl::read_only)[__scratch_n];
+        }
     }
 };
 
 //A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __usm_host_or_buffer_storage>
+
 //Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
 template <typename _Event, typename... _Args>
 class __future : private std::tuple<_Args...>
