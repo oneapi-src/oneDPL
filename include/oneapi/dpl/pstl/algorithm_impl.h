@@ -5325,6 +5325,19 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&&, _ForwardIterator1 __first
                                                         __is_vector);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _OutputIterator,
+          class _Compare>
+_OutputIterator
+__pattern_set_symmetric_difference(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+                                   _ForwardIterator2 __first2, _ForwardIterator2 __last2, _OutputIterator __result,
+                                   _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __internal::__brick_set_symmetric_difference(__first1, __last1, __first2, __last2, __result, __comp,
+                                                        typename _Tag::__is_vector{});
+}
+
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _RandomAccessIterator3, class _Compare, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator3>
@@ -5350,6 +5363,32 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _RandomAccessItera
                 __first1, __last1, __first2, __last2, __result, __comp, __BrickCopyConstruct<_IsVector>());
         },
         __is_vector);
+}
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _RandomAccessIterator3, class _Compare>
+_RandomAccessIterator3
+__pattern_set_symmetric_difference(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec,
+                                   _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
+                                   _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
+                                   _RandomAccessIterator3 __result, _Compare __comp)
+{
+    const auto __n1 = __last1 - __first1;
+    const auto __n2 = __last2 - __first2;
+
+    // use serial algorithm
+    if (__n1 + __n2 <= __set_algo_cut_off)
+        return ::std::set_symmetric_difference(__first1, __last1, __first2, __last2, __result, __comp);
+
+    typedef typename ::std::iterator_traits<_RandomAccessIterator3>::value_type _T;
+    return __internal::__parallel_set_union_op(
+        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
+        [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
+           _RandomAccessIterator2 __last2, _T* __result, _Compare __comp) {
+            return oneapi::dpl::__utils::__set_symmetric_difference_construct(
+                __first1, __last1, __first2, __last2, __result, __comp, __BrickCopyConstruct<_IsVector>());
+        },
+        _IsVector{});
 }
 
 //------------------------------------------------------------------------

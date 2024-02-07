@@ -3150,7 +3150,69 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 
                                                                                decltype(__buf_2), decltype(__result)>();
     return oneapi::dpl::__internal::__pattern_merge(__dispatch_tag1, ::std::forward<_ExecutionPolicy>(__exec), __buf_1,
                                                     __buf_1 + __n_diff_1, __buf_2, __buf_2 + __n_diff_2, __result,
-                                                    __comp, ::std::true_type(), ::std::true_type());
+                                                    __comp);
+}
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _OutputIterator, typename _Compare>
+_OutputIterator
+__pattern_set_symmetric_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec,
+                                   _ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
+                                   _ForwardIterator2 __last2, _OutputIterator __result, _Compare __comp)
+{
+    if (__first1 == __last1 && __first2 == __last2)
+        return __result;
+
+    //{1} is empty
+    if (__first1 == __last1)
+    {
+        return oneapi::dpl::__internal::__pattern_walk2_brick(
+            __tag,
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_copy_case_1>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            __first2, __last2, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+    }
+
+    //{2} is empty
+    if (__first2 == __last2)
+    {
+        return oneapi::dpl::__internal::__pattern_walk2_brick(
+            __tag,
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_copy_case_2>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            __first1, __last1, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+    }
+
+    typedef typename ::std::iterator_traits<_OutputIterator>::value_type _ValueType;
+
+    // temporary buffers to store intermediate result
+    const auto __n1 = __last1 - __first1;
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __diff_1(__exec, __n1);
+    auto __buf_1 = __diff_1.get();
+    const auto __n2 = __last2 - __first2;
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __diff_2(__exec, __n2);
+    auto __buf_2 = __diff_2.get();
+
+    //1. Calc difference {1} \ {2}
+    const auto __n_diff_1 =
+        oneapi::dpl::__internal::__pattern_hetero_set_op(
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_1>(__exec),
+            __first1, __last1, __first2, __last2, __buf_1, __comp, unseq_backend::_DifferenceTag()) -
+        __buf_1;
+
+    //2. Calc difference {2} \ {1}
+    const auto __n_diff_2 =
+        oneapi::dpl::__internal::__pattern_hetero_set_op(
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_2>(__exec),
+            __first2, __last2, __first1, __last1, __buf_2, __comp, unseq_backend::_DifferenceTag()) -
+        __buf_2;
+
+    //3. Merge the differences
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__buf_1),
+                                                                              decltype(__buf_2), decltype(__result)>();
+    return oneapi::dpl::__internal::__pattern_merge(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __buf_1,
+                                                    __buf_1 + __n_diff_1, __buf_2, __buf_2 + __n_diff_2, __result,
+                                                    __comp);
 }
 
 template <typename _Name>
