@@ -807,6 +807,11 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Ou
 __pattern_unique_copy(_ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _OutputIterator, _BinaryPredicate,
                       _IsVector, /*parallel=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator, class _BinaryPredicate>
+_OutputIterator
+__pattern_unique_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _OutputIterator,
+                      _BinaryPredicate) noexcept;
+
 template <class _ExecutionPolicy, class _DifferenceType, class _RandomAccessIterator, class _BinaryPredicate>
 _DifferenceType
 __brick_calc_mask_2(_RandomAccessIterator, _RandomAccessIterator, bool* __restrict, _BinaryPredicate,
@@ -822,6 +827,12 @@ template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIter
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _OutputIterator>
 __pattern_unique_copy(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _OutputIterator,
                       _BinaryPredicate, _IsVector, /*parallel=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _BinaryPredicate>
+_RandomAccessIterator2
+__pattern_unique_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
+                      _RandomAccessIterator2, _BinaryPredicate);
 
 //------------------------------------------------------------------------
 // reverse

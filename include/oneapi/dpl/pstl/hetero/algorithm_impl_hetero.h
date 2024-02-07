@@ -1676,6 +1676,25 @@ __pattern_unique_copy(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 
     return __result_first + __result.second;
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
+          typename _BinaryPredicate>
+_Iterator2
+__pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
+                      _Iterator2 __result_first, _BinaryPredicate __pred)
+{
+    using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
+    unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, oneapi::dpl::__internal::__pstl_assign,
+                                  /*inclusive*/ ::std::true_type, 1>
+        __copy_by_mask_op;
+    __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
+        __not_pred<_BinaryPredicate>{__pred}};
+
+    auto __result = __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first,
+                                        __create_mask_op, __copy_by_mask_op);
+
+    return __result_first + __result.second;
+}
+
 template <typename _Name>
 class copy_back_wrapper
 {
