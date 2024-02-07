@@ -2254,9 +2254,10 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _UnaryPredicate __pred,
                     /*vector*/ ::std::true_type, /*parallel*/ ::std::true_type)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
+
     //TODO: consider nonstable approaches
-    return __pattern_stable_partition(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-                                      ::std::true_type(), ::std::true_type());
+    return __pattern_stable_partition(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred);
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _UnaryPredicate>
@@ -2264,9 +2265,10 @@ _Iterator
 __pattern_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                     _UnaryPredicate __pred)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
+
     //TODO: consider nonstable approaches
-    return __pattern_stable_partition(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-                                      ::std::true_type(), ::std::true_type());
+    return __pattern_stable_partition(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred);
 }
 
 //------------------------------------------------------------------------
