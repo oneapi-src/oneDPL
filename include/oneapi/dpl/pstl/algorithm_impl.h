@@ -6224,6 +6224,16 @@ __pattern_swap(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
                            __is_parallel);
 }
 
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Function>
+_ForwardIterator2
+__pattern_swap(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
+               _ForwardIterator2 __first2, _Function __f)
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    return __pattern_walk2(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __f);
+}
+
 //------------------------------------------------------------------------
 // shift_left
 //------------------------------------------------------------------------

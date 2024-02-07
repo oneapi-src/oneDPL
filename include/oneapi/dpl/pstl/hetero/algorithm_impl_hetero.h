@@ -204,6 +204,17 @@ __pattern_swap(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIt
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __f);
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _Function>
+_ForwardIterator2
+__pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+               _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __f)
+{
+    return __pattern_walk2<_BackendTag, /*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
+                           __par_backend_hetero::access_mode::read_write>(
+        __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __f);
+}
+
 //------------------------------------------------------------------------
 // walk3
 //------------------------------------------------------------------------
