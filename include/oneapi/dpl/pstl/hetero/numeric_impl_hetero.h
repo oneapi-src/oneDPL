@@ -365,6 +365,61 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
     }
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _BinaryOperation>
+_ForwardIterator2
+__pattern_adjacent_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first,
+                              _ForwardIterator1 __last, _ForwardIterator2 __d_first, _BinaryOperation __op)
+{
+    auto __n = __last - __first;
+    if (__n <= 0)
+        return __d_first;
+
+    using _It1ValueT = typename ::std::iterator_traits<_ForwardIterator1>::value_type;
+    using _It2ValueTRef = typename ::std::iterator_traits<_ForwardIterator2>::reference;
+
+    _ForwardIterator2 __d_last = __d_first + __n;
+
+#if !__SYCL_UNNAMED_LAMBDA__
+    // if we have the only element, just copy it according to the specification
+    if (__n == 1)
+    {
+        return __internal::__except_handler([&__exec, __first, __last, __d_first, __d_last, &__op, __tag]() {
+            auto __wrapped_policy = __par_backend_hetero::make_wrapped_policy<adjacent_difference_wrapper>(
+                ::std::forward<_ExecutionPolicy>(__exec));
+
+            __internal::__pattern_walk2_brick(__tag, __wrapped_policy, __first, __last, __d_first,
+                                              __internal::__brick_copy<decltype(__wrapped_policy)>{});
+
+            return __d_last;
+        });
+    }
+    else
+#endif
+    {
+        return __internal::__except_handler([&__exec, __first, __last, __d_first, __d_last, &__op, __n]() {
+            auto __fn = [__op](_It1ValueT __in1, _It1ValueT __in2, _It2ValueTRef __out1) {
+                __out1 = __op(__in2, __in1); // This move assignment is allowed by the C++ standard draft N4810
+            };
+
+            auto __keep1 =
+                oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>();
+            auto __buf1 = __keep1(__first, __last);
+            auto __keep2 =
+                oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator2>();
+            auto __buf2 = __keep2(__d_first, __d_last);
+
+            using _Function = unseq_backend::walk_adjacent_difference<_ExecutionPolicy, decltype(__fn)>;
+
+            oneapi::dpl::__par_backend_hetero::__parallel_for(__exec, _Function{__fn}, __n, __buf1.all_view(),
+                                                              __buf2.all_view())
+                .wait();
+
+            return __d_last;
+        });
+    }
+}
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
