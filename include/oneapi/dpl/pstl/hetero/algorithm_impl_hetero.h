@@ -2203,6 +2203,52 @@ __pattern_stable_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterat
     return __first + true_count;
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _UnaryPredicate>
+_Iterator
+__pattern_stable_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
+                           _Iterator __last, _UnaryPredicate __pred)
+{
+    if (__last == __first)
+        return __last;
+    else if (__last - __first < 2)
+        return __pattern_any_of(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred) ? __last
+                                                                                                          : __first;
+
+    using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
+
+    auto __n = __last - __first;
+
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __true_buf(__exec, __n);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __false_buf(__exec, __n);
+    auto __true_result = __true_buf.get();
+    auto __false_result = __false_buf.get();
+
+    constexpr auto __dispatch_tag = __select_backend<_ExecutionPolicy, decltype(__first), decltype(__last),
+                                                     decltype(__true_result), decltype(__false_result)>();
+    auto copy_result =
+        __pattern_partition_copy(__dispatch_tag, __exec, __first, __last, __true_result, __false_result, __pred);
+    auto true_count = copy_result.first - __true_result;
+
+    //TODO: optimize copy back if possible (inplace, decrease number of submits)
+    constexpr auto __dispatch_tag1 =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__true_result),
+                                                  decltype(copy_result.first), decltype(__first)>();
+    using __backend_tag1 = typename decltype(__dispatch_tag1)::__backend_tag;
+    __pattern_walk2<__backend_tag1, /*_IsSync=*/::std::false_type>(
+        __dispatch_tag1, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result,
+        copy_result.first, __first, __brick_move<_ExecutionPolicy>{});
+
+    constexpr auto __dispatch_tag2 =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__false_result),
+                                                  decltype(copy_result.second), decltype(__first + true_count)>();
+    __pattern_walk2(
+        __dispatch_tag2,
+        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
+        __false_result, copy_result.second, __first + true_count, __brick_move<_ExecutionPolicy>{});
+
+    return __first + true_count;
+}
+
 template <typename _ExecutionPolicy, typename _Iterator, typename _UnaryPredicate>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Iterator>
 __pattern_partition(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _UnaryPredicate __pred,

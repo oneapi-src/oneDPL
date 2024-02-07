@@ -1030,10 +1030,20 @@ __pattern_stable_partition(_ExecutionPolicy&&, _BidirectionalIterator, _Bidirect
                            _IsVector,
                            /*is_parallelization=*/::std::false_type) noexcept;
 
+template <class _Tag, class _ExecutionPolicy, class _BidirectionalIterator, class _UnaryPredicate>
+_BidirectionalIterator
+__pattern_stable_partition(_Tag, _ExecutionPolicy&&, _BidirectionalIterator, _BidirectionalIterator,
+                           _UnaryPredicate) noexcept;
+
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate, class _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _RandomAccessIterator>
 __pattern_stable_partition(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _UnaryPredicate, _IsVector,
                            /*is_parallelization=*/::std::true_type);
+
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
+_RandomAccessIterator
+__pattern_stable_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                           _UnaryPredicate);
 
 //------------------------------------------------------------------------
 // partition_copy
