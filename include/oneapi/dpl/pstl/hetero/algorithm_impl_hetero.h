@@ -2956,6 +2956,31 @@ __pattern_set_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, 
                                    __result, __comp, unseq_backend::_DifferenceTag());
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _OutputIterator, typename _Compare>
+_OutputIterator
+__pattern_set_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                         _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+                         _OutputIterator __result, _Compare __comp)
+{
+    // {} \ {2}: the difference is empty
+    if (__first1 == __last1)
+        return __result;
+
+    // {1} \ {}: the difference is {1}
+    if (__first2 == __last2)
+    {
+        return oneapi::dpl::__internal::__pattern_walk2_brick(
+            __tag,
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_difference_copy_case_1>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            __first1, __last1, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+    }
+
+    return __pattern_hetero_set_op(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2,
+                                   __result, __comp, unseq_backend::_DifferenceTag());
+}
+
 //Dummy names to avoid kernel problems
 template <typename Name>
 class __set_union_copy_case_1
