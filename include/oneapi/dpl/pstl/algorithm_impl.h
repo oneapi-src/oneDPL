@@ -6261,6 +6261,26 @@ __pattern_shift_right(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
     return __res.base();
 }
 
+template <class _Tag, class _ExecutionPolicy, class _BidirectionalIterator>
+_BidirectionalIterator
+__pattern_shift_right(_Tag, _ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
+                      typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n)
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    using _ReverseIterator = typename ::std::reverse_iterator<_BidirectionalIterator>;
+
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(_ReverseIterator(__last)),
+                                                  decltype(_ReverseIterator(__first))>();
+
+    auto __res =
+        oneapi::dpl::__internal::__pattern_shift_left(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                      _ReverseIterator(__last), _ReverseIterator(__first), __n);
+
+    return __res.base();
+}
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi

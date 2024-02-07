@@ -3360,6 +3360,28 @@ __pattern_shift_right(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator>
 _Iterator
+__pattern_shift_right(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                      typename ::std::iterator_traits<_Iterator>::difference_type __n)
+{
+    //If (n > 0 && n < m), returns first + n. Otherwise, if n  > 0, returns last. Otherwise, returns first.
+    auto __size = __last - __first;
+    if (__n <= 0)
+        return __first;
+    if (__n >= __size)
+        return __last;
+
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    //A shift right is the shift left with a reverse logic.
+    auto __rng = oneapi::dpl::__ranges::reverse_view_simple<decltype(__buf.all_view())>{__buf.all_view()};
+    auto __res = oneapi::dpl::__internal::__pattern_shift_left(::std::forward<_ExecutionPolicy>(__exec), __rng, __n);
+
+    return __last - __res;
+}
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator>
+_Iterator
 __pattern_shift_left(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                      typename ::std::iterator_traits<_Iterator>::difference_type __n)
 {
