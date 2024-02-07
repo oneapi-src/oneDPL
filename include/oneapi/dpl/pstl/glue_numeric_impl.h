@@ -225,11 +225,12 @@ transform_exclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _
                          _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op,
                          _UnaryOperation __unary_op)
 {
-    return oneapi::dpl::__internal::__pattern_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result, __unary_op, __init, __binary_op,
-        /*inclusive=*/::std::false_type(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>());
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
+    return oneapi::dpl::__internal::__pattern_transform_scan(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                             __first, __last, __result, __unary_op, __init, __binary_op,
+                                                             /*inclusive=*/::std::false_type());
 }
 
 // [transform.inclusive.scan]
@@ -241,11 +242,12 @@ transform_inclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _
                          _ForwardIterator2 __result, _BinaryOperation __binary_op, _UnaryOperation __unary_op,
                          _Tp __init)
 {
-    return oneapi::dpl::__internal::__pattern_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result, __unary_op, __init, __binary_op,
-        /*inclusive=*/::std::true_type(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>());
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
+    return oneapi::dpl::__internal::__pattern_transform_scan(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                             __first, __last, __result, __unary_op, __init, __binary_op,
+                                                             /*inclusive=*/::std::true_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _UnaryOperation,
@@ -254,11 +256,12 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 transform_inclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
                          _ForwardIterator2 __result, _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
-    return oneapi::dpl::__internal::__pattern_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result, __unary_op, __binary_op,
-        /*inclusive=*/::std::true_type(),
-        oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>(),
-        oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>());
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+
+    return oneapi::dpl::__internal::__pattern_transform_scan(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                             __first, __last, __result, __unary_op, __binary_op,
+                                                             /*inclusive=*/::std::true_type());
 }
 
 // [adjacent.difference]

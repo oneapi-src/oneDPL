@@ -466,8 +466,13 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _ForwardIterator __first, _F
     {
         _ValueType __tmp = __unary_op(*__first);
         *__result = __tmp;
-        return __pattern_transform_scan(::std::forward<_ExecutionPolicy>(__exec), ++__first, __last, ++__result,
-                                        __unary_op, __tmp, __binary_op, _Inclusive(), __is_vector, __is_parallel);
+
+        constexpr auto __dispatch_tag =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator, _OutputIterator>();
+
+        return __pattern_transform_scan(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), ++__first, __last,
+                                        ++__result,
+                                        __unary_op, __tmp, __binary_op, _Inclusive());
     }
     else
     {
@@ -488,8 +493,9 @@ __pattern_transform_scan(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator
     {
         _ValueType __tmp = __unary_op(*__first);
         *__result = __tmp;
-        return __pattern_transform_scan(::std::forward<_ExecutionPolicy>(__exec), ++__first, __last, ++__result,
-                                        __unary_op, __tmp, __binary_op, _Inclusive(), __is_vector, __is_parallel);
+
+        return __pattern_transform_scan(__tag, ::std::forward<_ExecutionPolicy>(__exec), ++__first, __last, ++__result,
+                                        __unary_op, __tmp, __binary_op, _Inclusive());
     }
     else
     {
