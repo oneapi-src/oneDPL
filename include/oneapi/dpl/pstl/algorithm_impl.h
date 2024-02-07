@@ -3524,12 +3524,54 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_f
     ::std::sort(__beg, __end, __cmp_f);
 }
 
+template <class _Tag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
+          typename _Compare>
+void
+__pattern_sort_by_key(_Tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
+                      _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first,
+                      _Compare __comp) noexcept
+{
+    static_assert(__is_backend_tag_v<_Tag>);
+
+    auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
+    auto __end = __beg + (__keys_last - __keys_first);
+    auto __cmp_f = [__comp](const auto& __a, const auto& __b) {
+        return __comp(::std::get<0>(__a), ::std::get<0>(__b));
+    };
+
+    ::std::sort(__beg, __end, __cmp_f);
+}
+
 template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _Compare, typename _IsVector>
 oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
                       _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp,
                       _IsVector /*vector=*/, /*is_parallel=*/::std::true_type)
+{
+    static_assert(
+        ::std::is_move_constructible_v<typename ::std::iterator_traits<_RandomAccessIterator1>::value_type> &&
+            ::std::is_move_constructible_v<typename ::std::iterator_traits<_RandomAccessIterator2>::value_type>,
+        "The keys and values should be move constructible in case of parallel execution.");
+
+    auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
+    auto __end = __beg + (__keys_last - __keys_first);
+    auto __cmp_f = [__comp](const auto& __a, const auto& __b) {
+        return __comp(::std::get<0>(__a), ::std::get<0>(__b));
+    };
+
+    __internal::__except_handler([&]() {
+        __par_backend::__parallel_stable_sort(
+            ::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __cmp_f,
+            [](auto __first, auto __last, auto __cmp) { ::std::sort(__first, __last, __cmp); }, __end - __beg);
+    });
+}
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _RandomAccessIterator1,
+          typename _RandomAccessIterator2, typename _Compare>
+void
+__pattern_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_first,
+                      _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first, _Compare __comp)
 {
     static_assert(
         ::std::is_move_constructible_v<typename ::std::iterator_traits<_RandomAccessIterator1>::value_type> &&
