@@ -242,19 +242,61 @@ struct __is_random_access_or_integral<_Ip,
 {
 };
 
+template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
+::std::enable_if_t<
+    ::std::is_same_v<typename ::std::iterator_traits<_Ip>::iterator_category, ::std::bidirectional_iterator_tag>,
+    _IndexType>
+__execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept;
+
+template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
+::std::enable_if_t<
+    ::std::is_same_v<typename ::std::iterator_traits<_Ip>::iterator_category, ::std::forward_iterator_tag> ||
+        ::std::is_same_v<typename ::std::iterator_traits<_Ip>::iterator_category, ::std::input_iterator_tag>,
+    _IndexType>
+__execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept;
+
 template <typename _Ip>
 inline constexpr bool __is_random_access_or_integral_v = __is_random_access_or_integral<_Ip>::value;
 
 // Sequenced version of for_loop for RAI and integral types
-template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp, typename... _Rest>
-::std::enable_if_t<__is_random_access_or_integral_v<_Ip>>
-__pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
-                   /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
+// Vectorized version of for_loop
+template <class _Tag, typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp, typename... _Rest>
+void
+__pattern_for_loop(_Tag __tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, _Sp __stride, _Rest&&... __rest) noexcept
 {
-    oneapi::dpl::__internal::__pattern_for_loop_n(
-        __serial_tag<::std::false_type>{}, ::std::forward<_ExecutionPolicy>(__exec), __first,
-        oneapi::dpl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
-        ::std::forward<_Rest>(__rest)...);
+    static_assert(__is_backend_tag_serial_v<_Tag>);
+
+    if constexpr (__is_random_access_or_integral_v<_Ip>)
+    {
+        oneapi::dpl::__internal::__pattern_for_loop_n(
+            __tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+            oneapi::dpl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
+            ::std::forward<_Rest>(__rest)...);
+    }
+    else
+    {
+        __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
+
+        // Make sure that our index type is able to hold all the possible values
+        using __index_type = typename __difference<_Ip>::__type;
+        __index_type __ordinal_position = 0;
+
+        if (__stride == 1)
+        {
+            // Avoid check for i % stride on each iteration for the most common case.
+            for (; __first != __last; ++__first, ++__ordinal_position)
+                __pack.__apply_func(__f, __first, __ordinal_position);
+        }
+        else
+        {
+            __ordinal_position =
+                oneapi::dpl::__internal::__execute_loop_strided(__first, __last, __f, __stride, __pack,
+                                                                // Only passed to deduce the type for internal counter
+                                                                __index_type{});
+        }
+
+        __pack.__finalize(__ordinal_position);
+    }
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
@@ -318,11 +360,12 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 }
 
 // Sequenced version of for_loop for non-RAI and non-integral types
-template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename... _Rest>
+template <class _Tag, typename _ExecutionPolicy, typename _Ip, typename _Function, typename... _Rest>
 ::std::enable_if_t<!__is_random_access_or_integral_v<_Ip>>
-__pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, __single_stride_type,
-                   /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
+__pattern_for_loop(_Tag, _ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, __single_stride_type, _Rest&&... __rest) noexcept
 {
+    static_assert(__is_backend_tag_serial_v<_Tag>);
+
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
     // Make sure that our index type is able to hold all the possible values
@@ -334,46 +377,6 @@ __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, _
         __pack.__apply_func(__f, __first, __ordinal_position);
 
     __pack.__finalize(__ordinal_position);
-}
-
-template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp, typename... _Rest>
-::std::enable_if_t<!__is_random_access_or_integral_v<_Ip>>
-__pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
-                   /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
-{
-    __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
-
-    // Make sure that our index type is able to hold all the possible values
-    using __index_type = typename __difference<_Ip>::__type;
-    __index_type __ordinal_position = 0;
-
-    if (__stride == 1)
-    {
-        // Avoid check for i % stride on each iteration for the most common case.
-        for (; __first != __last; ++__first, ++__ordinal_position)
-            __pack.__apply_func(__f, __first, __ordinal_position);
-    }
-    else
-    {
-        __ordinal_position =
-            oneapi::dpl::__internal::__execute_loop_strided(__first, __last, __f, __stride, __pack,
-                                                            // Only passed to deduce the type for internal counter
-                                                            __index_type{});
-    }
-
-    __pack.__finalize(__ordinal_position);
-}
-
-// Vectorized version of for_loop
-template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp, typename... _Rest>
-void
-__pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
-                   /*vector=*/::std::true_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
-{
-    oneapi::dpl::__internal::__pattern_for_loop_n(
-        __serial_tag<::std::true_type>{}, ::std::forward<_ExecutionPolicy>(__exec), __first,
-        oneapi::dpl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
-        ::std::forward<_Rest>(__rest)...);
 }
 
 // Parallel version of for_loop_n
@@ -452,15 +455,14 @@ __pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec,
     });
 }
 
-template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp, typename _IsVector,
+template <typename _IsVector, typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp,
           typename... _Rest>
 void
-__pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
-                   _IsVector __is_vector,
-                   /*parallel=*/::std::true_type, _Rest&&... __rest)
+__pattern_for_loop(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f,
+                   _Sp __stride, _Rest&&... __rest)
 {
     oneapi::dpl::__internal::__pattern_for_loop_n(
-        __parallel_tag<_IsVector>{}, ::std::forward<_ExecutionPolicy>(__exec), __first,
+        __tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
         oneapi::dpl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
         ::std::forward<_Rest>(__rest)...);
 }
