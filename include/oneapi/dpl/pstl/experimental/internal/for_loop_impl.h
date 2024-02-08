@@ -252,9 +252,9 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
                    /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
 {
     oneapi::dpl::__internal::__pattern_for_loop_n(
-        ::std::forward<_ExecutionPolicy>(__exec), __first,
+        __serial_tag<::std::false_type>{}, ::std::forward<_ExecutionPolicy>(__exec), __first,
         oneapi::dpl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
-        ::std::false_type{}, ::std::false_type{}, ::std::forward<_Rest>(__rest)...);
+        ::std::forward<_Rest>(__rest)...);
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
@@ -371,9 +371,9 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
                    /*vector=*/::std::true_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
 {
     oneapi::dpl::__internal::__pattern_for_loop_n(
-        ::std::forward<_ExecutionPolicy>(__exec), __first,
+        __serial_tag<::std::true_type>{}, ::std::forward<_ExecutionPolicy>(__exec), __first,
         oneapi::dpl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
-        ::std::true_type{}, ::std::false_type{}, ::std::forward<_Rest>(__rest)...);
+        ::std::forward<_Rest>(__rest)...);
 }
 
 // Parallel version of for_loop_n
@@ -460,9 +460,9 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
                    /*parallel=*/::std::true_type, _Rest&&... __rest)
 {
     oneapi::dpl::__internal::__pattern_for_loop_n(
-        ::std::forward<_ExecutionPolicy>(__exec), __first,
+        __parallel_tag<_IsVector>{}, ::std::forward<_ExecutionPolicy>(__exec), __first,
         oneapi::dpl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
-        __is_vector, ::std::true_type{}, ::std::forward<_Rest>(__rest)...);
+        ::std::forward<_Rest>(__rest)...);
 }
 
 // Helper structure to split code functions for integral and iterator types so the return
@@ -508,7 +508,7 @@ struct __use_par_vec_helper<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
 
 // Special versions for for_loop: handles both iterators and integral types(treated as random access iterators)
 template <typename _ExecutionPolicy, typename _Ip>
-auto
+constexpr auto
 __use_vectorization()
     -> decltype(__use_par_vec_helper<_Ip>::template __use_vector<_ExecutionPolicy>())
 {
@@ -516,7 +516,7 @@ __use_vectorization()
 }
 
 template <typename _ExecutionPolicy, typename _Ip>
-auto
+constexpr auto
 __use_parallelization()
     -> decltype(__use_par_vec_helper<_Ip>::template __use_parallel<_ExecutionPolicy>())
 {
@@ -542,11 +542,20 @@ void
 __for_loop_n_impl(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Fp&& __f, _Sp __stride,
                   ::std::tuple<_Rest...>&& __t, ::std::index_sequence<_Is...>)
 {
-    oneapi::dpl::__internal::__pattern_for_loop_n(
-        ::std::forward<_ExecutionPolicy>(__exec), __start, __n, __f, __stride,
-        oneapi::dpl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(),
-        oneapi::dpl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>(),
-        ::std::get<_Is>(::std::move(__t))...);
+    using _IsVector = decltype(oneapi::dpl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>());
+
+    if constexpr (oneapi::dpl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>())
+    {
+        oneapi::dpl::__internal::__pattern_for_loop_n(__parallel_tag<_IsVector>{},
+                                                      ::std::forward<_ExecutionPolicy>(__exec), __start, __n, __f,
+                                                      __stride, ::std::get<_Is>(::std::move(__t))...);
+    }
+    else
+    {
+        oneapi::dpl::__internal::__pattern_for_loop_n(__serial_tag<_IsVector>{},
+                                                      ::std::forward<_ExecutionPolicy>(__exec), __start, __n, __f,
+                                                      __stride, ::std::get<_Is>(::std::move(__t))...);
+    }
 }
 
 template <typename _ExecutionPolicy, typename _Ip, typename _Sp, typename... _Rest>
