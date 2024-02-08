@@ -25,6 +25,8 @@ namespace dpl
 {
 namespace __internal
 {
+template <class _IsVector>
+struct __parallel_tag;
 
 //------------------------------------------------------------------------
 // transform_reduce (version with two binary functions, according to draft N4659)
