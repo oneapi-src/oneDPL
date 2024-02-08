@@ -32,12 +32,14 @@ namespace dpl
 namespace __internal
 {
 
-template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _IdxHashFunc,
+template <class _Tag, typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _Size, typename _IdxHashFunc,
           typename _RandomAccessIterator2>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
-__pattern_histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
+void
+__pattern_histogram(_Tag, _ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                     _Size __num_bins, _IdxHashFunc __func, _RandomAccessIterator2 __histogram_first)
 {
+    static_assert(__is_backend_tag_v<_Tag>);
+
     static_assert(sizeof(_Size) == 0 /*false*/,
                   "Histogram API is currently unsupported for policies other than device execution policies");
 }
