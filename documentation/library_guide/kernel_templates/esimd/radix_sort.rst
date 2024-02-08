@@ -297,16 +297,16 @@ The initial configuration may be selected according to these high-level guidelin
   compute cores is key for better performance. Allow creating enough work chunks to feed all
   Xe-cores on a GPU: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``.
 
-  ..
-     TODO: add this part when param.workgroup_size supports more than one value:
-     A larger ``param.workgroup_size`` in ``param.data_per_workitem * param.workgroup_size``
-     combination is preferred to reduce the number of work-groups and the synchronization overhead.
-
 - When the number of elements to sort is large (more than ~1M), then the work-groups preempt each other.
   Increase the occupancy to hide the latency with ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``.
   The occupancy depends on the local memory usage, which is determined by
   ``key_type``, ``value_type``, ``RadixBits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters.
   Refer to :ref:`Local Memory Requirements <local-memory>` section for the calculation.
+
+  ..
+     TODO: add this part when param.workgroup_size supports more than one value:
+     A larger ``param.data_per_workitem`` in ``param.data_per_workitem * param.workgroup_size``
+     combination is preferred to reduce the number of work-items and synchronization overhead within a work-group.
 
 .. note::
 
