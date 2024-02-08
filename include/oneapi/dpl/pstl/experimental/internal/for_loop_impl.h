@@ -162,37 +162,63 @@ class __reduction_pack
 };
 
 // Sequenced version of for_loop_n
-template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename... _Rest>
+template <class _Tag, typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename... _Rest>
 void
-__pattern_for_loop_n(_ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, __single_stride_type,
-                     /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
+__pattern_for_loop_n(_Tag, _ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, __single_stride_type,
+                     _Rest&&... __rest) noexcept
 {
+    static_assert(__is_backend_tag_serial_v<_Tag>);
+
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
-    for (_Size __i = 0; __i < __n; ++__i, ++__first)
-        __pack.__apply_func(__f, __first, __i);
+    if constexpr (!typename _Tag::__is_vector{})
+    {
+        for (_Size __i = 0; __i < __n; ++__i, ++__first)
+            __pack.__apply_func(__f, __first, __i);
+    }
+    else
+    {
+        oneapi::dpl::__internal::__brick_walk1(
+            __n, [&__pack, __first, __f](_Size __idx) { __pack.__apply_func(__f, __first + __idx, __idx); },
+            ::std::true_type{});
+    }
 
     __pack.__finalize(__n);
 }
 
-template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename _Sp, typename... _Rest>
+template <class _Tag, typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename _Sp,
+          typename... _Rest>
 void
-__pattern_for_loop_n(_ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, _Sp __stride,
-                     /*vector=*/::std::false_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
+__pattern_for_loop_n(_Tag, _ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, _Sp __stride,
+                     _Rest&&... __rest) noexcept
 {
+    static_assert(__is_backend_tag_serial_v<_Tag>);
+
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
-    // Simple loop from 0 to __n is not suitable here as we need to ensure that __first is always
-    // <= than the end iterator, even if it's not dereferenced. Some implementation might place
-    // validation checks to enforce this invariant.
-    if (__n > 0)
+    if constexpr (!typename _Tag::__is_vector{})
     {
-        for (_Size __i = 0; __i < __n - 1; ++__i, oneapi::dpl::__internal::__advance(__first, __stride))
+        // Simple loop from 0 to __n is not suitable here as we need to ensure that __first is always
+        // <= than the end iterator, even if it's not dereferenced. Some implementation might place
+        // validation checks to enforce this invariant.
+        if (__n > 0)
         {
-            __pack.__apply_func(__f, __first, __i);
-        }
+            for (_Size __i = 0; __i < __n - 1; ++__i, oneapi::dpl::__internal::__advance(__first, __stride))
+            {
+                __pack.__apply_func(__f, __first, __i);
+            }
 
-        __pack.__apply_func(__f, __first, __n - 1);
+            __pack.__apply_func(__f, __first, __n - 1);
+        }
+    }
+    else
+    {
+        oneapi::dpl::__internal::__brick_walk1(
+            __n,
+            [&__pack, __first, __f, __stride](_Size __idx) {
+                __pack.__apply_func(__f, __first + __idx * __stride, __idx);
+            },
+            ::std::true_type{});
     }
 
     __pack.__finalize(__n);
@@ -338,36 +364,6 @@ __pattern_for_loop(_ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, _
     __pack.__finalize(__ordinal_position);
 }
 
-// Vectorized version of for_loop_n
-template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename... _Rest>
-void
-__pattern_for_loop_n(_ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, __single_stride_type,
-                     /*vector=*/::std::true_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
-{
-    __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
-
-    oneapi::dpl::__internal::__brick_walk1(
-        __n, [&__pack, __first, __f](_Size __idx) { __pack.__apply_func(__f, __first + __idx, __idx); },
-        ::std::true_type{});
-
-    __pack.__finalize(__n);
-}
-
-template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename _Sp, typename... _Rest>
-void
-__pattern_for_loop_n(_ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, _Sp __stride,
-                     /*vector=*/::std::true_type, /*parallel=*/::std::false_type, _Rest&&... __rest) noexcept
-{
-    __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
-
-    oneapi::dpl::__internal::__brick_walk1(
-        __n,
-        [&__pack, __first, __f, __stride](_Size __idx) { __pack.__apply_func(__f, __first + __idx * __stride, __idx); },
-        ::std::true_type{});
-
-    __pack.__finalize(__n);
-}
-
 // Vectorized version of for_loop
 template <typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp, typename... _Rest>
 void
@@ -386,46 +382,11 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
 // perhaps it's better to check for presence of reduction object and call parallel_for routine instead.
 // TODO: need to add a static_assert for match between rest and f's arguments, currently there is a lot
 // of unclear error in cast of mismatch.
-template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename _IsVector,
+template <typename _IsVector, typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function,
           typename... _Rest>
 void
-__pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Function __f, __single_stride_type,
-                     _IsVector __is_vector, /*parallel=*/::std::true_type, _Rest&&... __rest)
-{
-    using __pack_type = __reduction_pack<_Rest...>;
-
-    // Create an identity pack object, operations are done on copies of it.
-    const __pack_type __identity{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
-
-    oneapi::dpl::__internal::__except_handler([&]() {
-        return __par_backend::__parallel_reduce(::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
-                                                [__is_vector, __first, __f](_Size __i, _Size __j, __pack_type __value) {
-                                                    const auto __subseq_start = __first + __i;
-                                                    const auto __length = __j - __i;
-
-                                                    oneapi::dpl::__internal::__brick_walk1(
-                                                        __length,
-                                                        [&__value, __f, __i, __subseq_start](_Size __idx) {
-                                                            __value.__apply_func(__f, __subseq_start + __idx,
-                                                                                 __i + __idx);
-                                                        },
-                                                        __is_vector);
-
-                                                    return __value;
-                                                },
-                                                [](__pack_type __lhs, const __pack_type& __rhs) {
-                                                    __lhs.__combine(__rhs);
-                                                    return __lhs;
-                                                })
-            .__finalize(__n);
-    });
-}
-
-template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename _Sp, typename _IsVector,
-          typename... _Rest>
-void
-__pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Function __f, _Sp __stride,
-                     _IsVector __is_vector, /*parallel=*/::std::true_type, _Rest&&... __rest)
+__pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Function __f,
+                     __single_stride_type, _Rest&&... __rest)
 {
     using __pack_type = __reduction_pack<_Rest...>;
 
@@ -435,7 +396,42 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
     oneapi::dpl::__internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
                    ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
-                   [__is_vector, __first, __f, __stride](_Size __i, _Size __j, __pack_type __value) {
+                   [__first, __f](_Size __i, _Size __j, __pack_type __value) {
+                       const auto __subseq_start = __first + __i;
+                       const auto __length = __j - __i;
+
+                       oneapi::dpl::__internal::__brick_walk1(
+                           __length,
+                           [&__value, __f, __i, __subseq_start](_Size __idx) {
+                               __value.__apply_func(__f, __subseq_start + __idx, __i + __idx);
+                           },
+                           _IsVector{});
+
+                       return __value;
+                   },
+                   [](__pack_type __lhs, const __pack_type& __rhs) {
+                       __lhs.__combine(__rhs);
+                       return __lhs;
+                   })
+            .__finalize(__n);
+    });
+}
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename _Sp,
+          typename... _Rest>
+void
+__pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Function __f,
+                     _Sp __stride, _Rest&&... __rest)
+{
+    using __pack_type = __reduction_pack<_Rest...>;
+
+    // Create an identity pack object, operations are done on copies of it.
+    const __pack_type __identity{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
+
+    oneapi::dpl::__internal::__except_handler([&]() {
+        return __par_backend::__parallel_reduce(
+                   ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
+                   [__first, __f, __stride](_Size __i, _Size __j, __pack_type __value) {
                        const auto __subseq_start = __first + __i * __stride;
                        const auto __length = __j - __i;
 
@@ -444,7 +440,7 @@ __pattern_for_loop_n(_ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Functio
                            [&__value, __f, __i, __subseq_start, __stride](_Size __idx) {
                                __value.__apply_func(__f, __subseq_start + __idx * __stride, __i + __idx);
                            },
-                           __is_vector);
+                           _IsVector{});
 
                        return __value;
                    },
