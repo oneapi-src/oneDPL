@@ -283,8 +283,8 @@ The general advice is to choose kernel parameters based on performance measureme
 The initial configuration may be selected according to these high-level guidelines:
 
 - When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``,
-  then the elements can be processed by a single-work-group sort, which generally outperforms multiple-work-group sort.
-  Increase the ``param`` values, so ``N <= param.data_per_workitem * param.workgroup_size``,
+  generally sorting is done more efficiently by a single work-group.
+  Increase the ``param`` values to make ``N <= param.data_per_workitem * param.workgroup_size``,
   where ``N`` is the number of elements to sort.
 
 .. note::
