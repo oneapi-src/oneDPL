@@ -222,10 +222,11 @@ Usage Examples
 Memory Requirements
 -------------------
 
-The device must have enough global (USM device) and local (SLM) memory.
-Otherwise, undefined behavior will occur and the algorithm may fail.
-
-The algorithms allocate the memory according to the rules in the subsections below.
+The algorithms use global and local device memory (see `SYCL 2020 Specification
+<https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`_)
+for intermediate data storage. For the algorithms to operate correctly, there must be enough memory
+on the device; otherwise, the behavior is undefined. How much memory is needed depends on input data
+and configuration parameters, as described below.
 
 Global Memory Requirements
 --------------------------
