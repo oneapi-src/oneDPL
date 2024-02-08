@@ -83,8 +83,7 @@ Parameters
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
 |  ``param``                                    | A :doc:`kernel_param <../kernel_configuration>` object.             |
-|                                               | Its ``data_per_workitem`` can be any value among                    |
-|                                               | ``32``, ``64``, ``96``,..., ``k * 32``.                             |
+|                                               | Its ``data_per_workitem`` must be a positive multiple of 32.        |
 |                                               |                                                                     |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
@@ -282,7 +281,7 @@ where ``key_type``, ``value_type`` are the types of the input keys, values respe
 Recommended Settings for Best Performance
 -----------------------------------------
 
-The general advice is to set your configuration according to the performance measurements and profiling information.
+The general advice is to choose kernel parameters based on performance measurements and profiling information.
 The initial configuration may be selected according to these high-level guidelines:
 
 - When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``,
@@ -294,9 +293,9 @@ The initial configuration may be selected according to these high-level guidelin
 
    ``radix_sort_by_key`` does not have a single-work-group implementation yet.
 
-- When the number of elements to sort is medium (between ~16K and ~1M),
-  then all the work-groups can execute simultaneously.
-  Make sure the device is saturated: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``.
+- When the number of elements to sort ``N`` is between 16K and 1M, utilizing all available
+  compute cores is key for better performance. Allow creating enough work chunks to feed all
+  Xe-cores on a GPU: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``.
 
   ..
      TODO: add this part when param.workgroup_size supports more than one value:
