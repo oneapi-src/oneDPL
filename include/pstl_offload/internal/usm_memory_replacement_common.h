@@ -32,6 +32,9 @@ __is_power_of_two(std::size_t __number)
     return (__number != 0) && ((__number & __number - 1) == 0);
 }
 
+// can't use std::shared_ptr, because sizeof(std::shared_ptr) is 2*sizeof(void*) while
+// sizeof(__block_header) must be power of 2 and with std::shared_ptr instead of
+// __sycl_device_shared_ptr memory fragmentation increases drastically
 class __sycl_device_shared_ptr
 {
     struct __shared_device
@@ -53,19 +56,26 @@ class __sycl_device_shared_ptr
         try
         {
             _M_shared_device->_M_device.emplace(__device_selector);
-            _M_shared_device->_M_default_context.emplace(
-                _M_shared_device->_M_device->get_platform().ext_oneapi_get_default_context());
         }
         catch (const sycl::exception& e)
         {
             // __device_selector call throws with e.code() == sycl::errc::runtime when device selection unable
             // to get offload device with required type. Do not pass an exception, as ctor is called for
             // a static object and the exception can't be processed.
-            // Remember the situation and re-throw exception when asked for the policy from user's code.
-            // Re-throw in every other case, as we don't know the reason.
-            if (e.code() != sycl::errc::runtime)
+            // Remember the situation as empty _M_device and re-throw exception when asked for
+            // the policy from user's code.
+            // Re-throw in every other case, as we don't know the reason of an exception.
+            if (e.code() == sycl::errc::runtime)
+            {
+                return;
+            }
+            else
+            {
                 throw;
+            }
         }
+        _M_shared_device->_M_default_context.emplace(
+            _M_shared_device->_M_device->get_platform().ext_oneapi_get_default_context());
     }
 
     bool

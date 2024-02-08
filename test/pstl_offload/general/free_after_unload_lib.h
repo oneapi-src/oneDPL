@@ -13,6 +13,3 @@
 void register_mem_to_later_release(void *);
 
 #endif // _FREE_AFTER_UNLOAD_LIB_HEADERS_H
-
-
-

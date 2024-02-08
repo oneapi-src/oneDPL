@@ -25,7 +25,6 @@ struct CallAllocInDtor
 
 static CallAllocInDtor call_alloc_in_dtor;
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <malloc.h>
