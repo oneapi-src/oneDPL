@@ -52,7 +52,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _RandomA
 histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIterator1 last, _Size num_bins,
           _ValueType first_bin_min_val, _ValueType last_bin_max_val, _RandomAccessIterator2 histogram_first)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
+
     oneapi::dpl::__internal::__pattern_histogram(
+        __dispatch_tag,
         ::std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
         oneapi::dpl::__internal::__evenly_divided_binhash<_ValueType>(first_bin_min_val, last_bin_max_val, num_bins),
         histogram_first);
@@ -66,9 +70,13 @@ histogram(_ExecutionPolicy&& exec, _RandomAccessIterator1 first, _RandomAccessIt
           _RandomAccessIterator2 boundary_first, _RandomAccessIterator2 boundary_last,
           _RandomAccessIterator3 histogram_first)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2,
+                                                  _RandomAccessIterator3>();
+
     ::std::ptrdiff_t num_bins = boundary_last - boundary_first - 1;
     oneapi::dpl::__internal::__pattern_histogram(
-        ::std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(exec), first, last, num_bins,
         oneapi::dpl::__internal::__custom_boundary_binhash{boundary_first, boundary_last}, histogram_first);
     return histogram_first + num_bins;
 }
