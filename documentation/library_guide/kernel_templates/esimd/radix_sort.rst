@@ -282,6 +282,16 @@ Recommended Settings for Best Performance
 The general advice is to choose kernel parameters based on performance measurements and profiling information.
 The initial configuration may be selected according to these high-level guidelines:
 
+ .. note::
+
+    ``param.data_per_workitem`` is the only available parameter to tune the performance,
+    since ``param.workgroup_size`` currently supports only one value (`64`).
+
+..
+   TODO: add this part when param.workgroup_size supports more than one value:
+   A larger ``param.data_per_workitem`` in ``param.data_per_workitem * param.workgroup_size``
+   combination is preferred to reduce the number of work-items and synchronization overhead within a work-group.
+
 - When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``,
   generally sorting is done more efficiently by a single work-group.
   Increase the ``param`` values to make ``N <= param.data_per_workitem * param.workgroup_size``,
@@ -289,7 +299,7 @@ The initial configuration may be selected according to these high-level guidelin
 
 .. note::
 
-   ``radix_sort_by_key`` does not have a single-work-group implementation yet.
+   ``radix_sort_by_key`` does not have a single work-group implementation yet.
 
 - When the number of elements to sort ``N`` is between 16K and 1M, utilizing all available
   compute cores is key for better performance. Allow creating enough work chunks to feed all
@@ -300,11 +310,6 @@ The initial configuration may be selected according to these high-level guidelin
   The occupancy depends on the local memory usage, which is determined by
   ``key_type``, ``value_type``, ``RadixBits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters.
   Refer to :ref:`Local Memory Requirements <local-memory>` section for the calculation.
-
-  ..
-     TODO: add this part when param.workgroup_size supports more than one value:
-     A larger ``param.data_per_workitem`` in ``param.data_per_workitem * param.workgroup_size``
-     combination is preferred to reduce the number of work-items and synchronization overhead within a work-group.
 
 .. note::
 
