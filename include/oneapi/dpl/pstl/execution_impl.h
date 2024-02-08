@@ -156,30 +156,38 @@ using __tag_type = ::std::conditional_t<
     __internal::__is_random_access_iterator_v<_IteratorTypes...>, __parallel_tag<_IsVector>,
     ::std::conditional_t<__is_forward_iterator_v<_IteratorTypes...>, __parallel_forward_tag, __serial_tag<_IsVector>>>;
 
-template <class... _IteratorTypes>
-__serial_tag<std::false_type>
-__select_backend(oneapi::dpl::execution::sequenced_policy, _IteratorTypes&&...)
+template <class _ExecutionPolicy, class... _IteratorTypes>
+constexpr ::std::enable_if_t<
+    ::std::is_same_v<::std::decay_t<_ExecutionPolicy>, oneapi::dpl::execution::sequenced_policy>,
+    __serial_tag<std::false_type>>
+__select_backend()
 {
     return {};
 }
 
-template <class... _IteratorTypes>
-__serial_tag<__internal::__is_random_access_iterator<_IteratorTypes...>>
-__select_backend(oneapi::dpl::execution::unsequenced_policy, _IteratorTypes&&...)
+template <class _ExecutionPolicy, class... _IteratorTypes>
+constexpr ::std::enable_if_t<
+    ::std::is_same_v<::std::decay_t<_ExecutionPolicy>, oneapi::dpl::execution::unsequenced_policy>,
+    __serial_tag<__internal::__is_random_access_iterator<_IteratorTypes...>>>
+__select_backend()
 {
     return {};
 }
 
-template <class... _IteratorTypes>
-__tag_type<std::false_type, _IteratorTypes...>
-__select_backend(oneapi::dpl::execution::parallel_policy, _IteratorTypes&&...)
+template <class _ExecutionPolicy, class... _IteratorTypes>
+constexpr ::std::enable_if_t<
+    ::std::is_same_v<::std::decay_t<_ExecutionPolicy>, oneapi::dpl::execution::parallel_policy>,
+    __tag_type<std::false_type, _IteratorTypes...>>
+__select_backend()
 {
     return {};
 }
 
-template <class... _IteratorTypes>
-__tag_type<__internal::__is_random_access_iterator<_IteratorTypes...>, _IteratorTypes...>
-__select_backend(oneapi::dpl::execution::parallel_unsequenced_policy, _IteratorTypes&&...)
+template <class _ExecutionPolicy, class... _IteratorTypes>
+constexpr ::std::enable_if_t<
+    ::std::is_same_v<::std::decay_t<_ExecutionPolicy>, oneapi::dpl::execution::parallel_unsequenced_policy>,
+    __tag_type<__internal::__is_random_access_iterator<_IteratorTypes...>, _IteratorTypes...>>
+__select_backend()
 {
     return {};
 }
