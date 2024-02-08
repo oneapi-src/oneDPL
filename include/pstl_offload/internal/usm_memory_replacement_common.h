@@ -26,11 +26,6 @@
 namespace __pstl_offload
 {
 
-using __aligned_alloc_func_type = void* (*)(std::size_t, std::size_t);
-
-inline void*
-__original_aligned_alloc(std::size_t __alignment, std::size_t __size);
-
 constexpr bool
 __is_power_of_two(std::size_t __number)
 {
@@ -52,14 +47,9 @@ class __sycl_device_shared_ptr
   public:
     template <typename _DeviceSelector>
     __sycl_device_shared_ptr(const _DeviceSelector& __device_selector)
+        // new always allocates system memory at this point
+        : _M_shared_device(new __shared_device{std::nullopt, std::nullopt, 1})
     {
-        _M_shared_device =
-            (__shared_device*)__original_aligned_alloc(alignof(std::max_align_t), sizeof(__shared_device));
-        if (!_M_shared_device)
-        {
-            throw std::bad_alloc();
-        }
-        new (_M_shared_device) __shared_device{std::nullopt, std::nullopt, 1};
         try
         {
             _M_shared_device->_M_device.emplace(__device_selector);

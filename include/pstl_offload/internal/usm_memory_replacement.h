@@ -109,6 +109,8 @@ static __offload_policy_holder_type __offload_policy_holder{__get_offload_device
 inline void*
 __original_aligned_alloc(std::size_t __alignment, std::size_t __size)
 {
+    using __aligned_alloc_func_type = void* (*)(std::size_t, std::size_t);
+
     static __aligned_alloc_func_type __orig_aligned_alloc =
         __aligned_alloc_func_type(dlsym(RTLD_NEXT, "aligned_alloc"));
     return __orig_aligned_alloc(__alignment, __size);
