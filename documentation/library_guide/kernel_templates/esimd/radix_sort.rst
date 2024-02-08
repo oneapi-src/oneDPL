@@ -233,20 +233,18 @@ Global Memory Requirements
 The algorithms require memory for copying the input sequence(s) and some additional space to distribute elements.
 The used amount depends on many parameters; below is an upper bound approximation:
 
-- ``radix_sort``:
+- ``radix_sort``: N\ :sub:`1` + k*N\ :sub:`1`
 
-  N\ :sub:`1` + max (16KB, N\ :sub:`1`)
+- ``radix_sort_by_key``: N\ :sub:`1` + N\ :sub:`2` + k*N\ :sub:`1`
 
-- ``radix_sort_by_key``:
+where the sequence with keys takes N\ :sub:`1` space, the sequence with values takes N\ :sub:`2` space,
+and the additional space is k*N\ :sub:`1`.
 
-  N\ :sub:`1` + N\ :sub:`2` + max (16KB, N\ :sub:`1`)
-
-where the sequence with keys takes N\ :sub:`1` space and the sequence with values takes N\ :sub:`2` space.
-
-..
-   This is a rough upper bound approximation. High precision seems to be not necessary for global memory.
-   It works for RadixBits <= 8, the data_per_workitem >= 32 and workgroup_size >= 64.
-   Reevaluate it, once bigger RadixBits, or smaller data_per_workitem and workgroup_size are supported.
+The value of `k` is determined by ``param.data_per_workitem``, ``param.workgroup_size``, and ``RadixBits``.
+For instance, when ``param.data_per_workitem`` is set to `32`, ``param.workgroup_size`` to `64`,
+and ``RadixBits`` to `8`, the coefficient `k` is `1`.
+Incrementing the value of ``RadixBits`` results in a doubling of `k`,
+while doubling the values of ``param.data_per_workitem`` or ``param.workgroup_size`` leads to a halving of `k`.
 
 .. note::
 
