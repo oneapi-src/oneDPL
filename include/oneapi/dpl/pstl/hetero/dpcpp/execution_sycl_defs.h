@@ -342,6 +342,15 @@ __select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _IteratorT
 }
 #endif
 
+
+template <class _Tag>
+struct __is_backend_tag;
+
+template <typename _BackendTag>
+struct __is_backend_tag<__hetero_tag<_BackendTag>> : ::std::true_type
+{
+};
+
 } // namespace __internal
 
 } // namespace dpl

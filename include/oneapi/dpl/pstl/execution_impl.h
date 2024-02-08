@@ -188,6 +188,42 @@ __select_backend(oneapi::dpl::execution::parallel_unsequenced_policy, _IteratorT
     return {};
 }
 
+template <class _Tag>
+struct __is_backend_tag : ::std::false_type
+{
+};
+
+template <class _Tag>
+struct __is_backend_tag_serial : ::std::false_type
+{
+};
+
+template <class _IsVector>
+struct __is_backend_tag<__serial_tag<_IsVector>> : ::std::true_type
+{
+};
+
+template <class _IsVector>
+struct __is_backend_tag_serial<__serial_tag<_IsVector>> : ::std::true_type
+{
+};
+
+template <class _IsVector>
+struct __is_backend_tag<__parallel_tag<_IsVector>> : ::std::true_type
+{
+};
+
+template <>
+struct __is_backend_tag<__parallel_forward_tag> : ::std::true_type
+{
+};
+
+template <class _Tag>
+inline constexpr bool __is_backend_tag_serial_v = __is_backend_tag_serial<::std::decay_t<_Tag>>::value;
+
+template <class _Tag>
+inline constexpr bool __is_backend_tag_v = __is_backend_tag<::std::decay_t<_Tag>>::value;
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
