@@ -232,7 +232,7 @@ and configuration parameters, as described below.
 Global Memory Requirements
 --------------------------
 
-The algorithms require memory for copying the input sequence(s) and some additional space to distribute elements.
+Global memory is used for copying the input sequence(s) and storing internal data such as radix value counters.
 The used amount depends on many parameters; below is an upper bound approximation:
 
 - ``radix_sort``: N\ :sub:`1` + k*N\ :sub:`1`
@@ -242,16 +242,17 @@ The used amount depends on many parameters; below is an upper bound approximatio
 where the sequence with keys takes N\ :sub:`1` space, the sequence with values takes N\ :sub:`2` space,
 and the additional space is k*N\ :sub:`1`.
 
-The value of `k` is determined by ``param.data_per_workitem``, ``param.workgroup_size``, and ``RadixBits``.
-For instance, when ``param.data_per_workitem`` is set to `32`, ``param.workgroup_size`` to `64`,
-and ``RadixBits`` to `8`, the coefficient `k` is `1`.
-Incrementing the value of ``RadixBits`` results in a doubling of `k`,
-while doubling the values of ``param.data_per_workitem`` or ``param.workgroup_size`` leads to a halving of `k`.
+The value of `k` depends on ``param.data_per_workitem``, ``param.workgroup_size``, and ``RadixBits``.
+For ``param.data_per_workitem`` set to `32`, ``param.workgroup_size`` to `64`, and ``RadixBits`` to `8`,
+`k` approximately equals to `1`.
+Incrementing ``RadixBits`` increases `k` up to twice, while doubling either
+``param.data_per_workitem`` or ``param.workgroup_size`` leads to a halving of `k`.
 
 .. note::
 
-   For ``N <= param.data_per_workitem * param.workgroup_size``, where ``N`` is a number of elements to sort,
+   If the number of elements to sort does not exceed ``param.data_per_workitem * param.workgroup_size``,
    ``radix_sort`` is executed by a single work-group and does not use any global memory.
+   For ``radix_sort_by_key`` there is no single work-group implementation yet.
 
 .. _local-memory:
 
@@ -287,8 +288,8 @@ The initial configuration may be selected according to these high-level guidelin
 
 ..
    TODO: add this part when param.workgroup_size supports more than one value:
-   A larger ``param.data_per_workitem`` in ``param.data_per_workitem * param.workgroup_size``
-   combination is preferred to reduce the number of work-items and synchronization overhead within a work-group.
+   Increasing ``param.data_per_workitem`` should usually be preferred to increasing ``param.workgroup_size``,
+   to avoid extra synchronization overhead within a work-group.
 
 - When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort`` (``radix_sort_by_key`` does not have a single work-group implementation yet),
   generally sorting is done more efficiently by a single work-group.
@@ -299,9 +300,9 @@ The initial configuration may be selected according to these high-level guidelin
   compute cores is key for better performance. Allow creating enough work chunks to feed all
   X\ :sup:`e`-cores [#fnote2]_ on a GPU: ``param.data_per_workitem * param.workgroup_size ≈ N / xe_core_count``.
 
-- When the number of elements to sort is large (more than ~1M),
-  maximizing a number of elements processed by a work-group, which is determined by ``param.data_per_workitem * param.workgroup_size`` product,
-  reduces synchronization overheads between the work-groups, and usually benefits the overall performance.
+- When the number of elements to sort is large (more than ~1M), maximizing the number of elements
+  processed by a work-group, which equals to ``param.data_per_workitem * param.workgroup_size``,
+  reduces synchronization overheads between work-groups and usually benefits the overall performance.
 
 .. warning::
 
@@ -315,5 +316,7 @@ The initial configuration may be selected according to these high-level guidelin
 
 
 .. [#fnote1] Andy Adinets and Duane Merrill (2022). Onesweep: A Faster Least Significant Digit Radix Sort for GPUs. Retrieved from https://arxiv.org/abs/2206.01784.
-.. [#fnote2] X\ :sup:`e`-core term is descirbed in `oneAPI GPU Optimization Guide <https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-0/intel-xe-gpu-architecture.html#XE-CORE>`_.
-  Their count can be found in a device specification. For example, `Intel Data Center GPU Max specification <https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/max-series/products.html>`_.
+.. [#fnote2] The X\ :sup:`e`-core term is described in the `oneAPI GPU Optimization Guide
+   <https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-0/intel-xe-gpu-architecture.html#XE-CORE>`_.
+   Check the number of cores in the device specification, such as `Intel&reg; Data Center GPU Max specification
+   <https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/max-series/products.html>`_.
