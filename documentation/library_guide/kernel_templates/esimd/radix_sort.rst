@@ -235,24 +235,33 @@ Global Memory Requirements
 Global memory is used for copying the input sequence(s) and storing internal data such as radix value counters.
 The used amount depends on many parameters; below is an upper bound approximation:
 
-- ``radix_sort``: N\ :sub:`1` + k*N\ :sub:`1`
+:``radix_sort``: N\ :sub:`keys` + C * N\ :sub:`keys`
 
-- ``radix_sort_by_key``: N\ :sub:`1` + N\ :sub:`2` + k*N\ :sub:`1`
+:``radix_sort_by_key``: N\ :sub:`keys` + N\ :sub:`values` + C * N\ :sub:`keys`
 
-where the sequence with keys takes N\ :sub:`1` space, the sequence with values takes N\ :sub:`2` space,
-and the additional space is k*N\ :sub:`1`.
+where the sequence with keys takes N\ :sub:`keys` space, the sequence with values takes N\ :sub:`values` space,
+and the additional space is C * N\ :sub:`keys`.
 
-The value of `k` depends on ``param.data_per_workitem``, ``param.workgroup_size``, and ``RadixBits``.
+The value of `C` depends on ``param.data_per_workitem``, ``param.workgroup_size``, and ``RadixBits``.
 For ``param.data_per_workitem`` set to `32`, ``param.workgroup_size`` to `64`, and ``RadixBits`` to `8`,
-`k` approximately equals to `1`.
-Incrementing ``RadixBits`` increases `k` up to twice, while doubling either
-``param.data_per_workitem`` or ``param.workgroup_size`` leads to a halving of `k`.
+`C` approximately equals to `1`.
+Incrementing ``RadixBits`` increases `C` up to twice, while doubling either
+``param.data_per_workitem`` or ``param.workgroup_size`` leads to a halving of `C`.
 
 .. note::
 
    If the number of elements to sort does not exceed ``param.data_per_workitem * param.workgroup_size``,
    ``radix_sort`` is executed by a single work-group and does not use any global memory.
    For ``radix_sort_by_key`` there is no single work-group implementation yet.
+
+..
+   The estimation above is not very precise and it seems it is not necessary for the global memory.
+   The C coefficient base is actually 0.53 instead of 1.
+   An increment of RadixBits multiplies C by the factor of ~1.5 on average.
+
+   Additionally, C exceeds 1 for radix_sort_by_key,
+   when N is small and the global histogram takes more space than the sequences.
+   This space is small, single WG implementation will be added, therefore this is neglected.
 
 .. _local-memory:
 
