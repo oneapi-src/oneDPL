@@ -326,7 +326,7 @@ __pattern_transform_scan(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
     using _InitType = unseq_backend::__init_value<_RepackedType>;
 
-    return __pattern_transform_scan_base(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+    return __pattern_transform_scan_base(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
                                          __unary_op, _InitType{__init}, __binary_op, _Inclusive{});
 }
 
@@ -357,7 +357,7 @@ __pattern_transform_scan(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
     using _InitType = unseq_backend::__no_init_value<_RepackedType>;
 
-    return __pattern_transform_scan_base(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+    return __pattern_transform_scan_base(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
                                          __unary_op, _InitType{}, __binary_op, _Inclusive{});
 }
 
