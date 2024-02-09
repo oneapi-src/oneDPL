@@ -61,6 +61,26 @@ __parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterat
     }
 }
 
+template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
+void
+__parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _ForwardIterator __first,
+                    _ForwardIterator __last, _Fp __f)
+{
+    if (omp_in_parallel())
+    {
+        // we don't create a nested parallel region in an existing parallel
+        // region: just create tasks
+        oneapi::dpl::__omp_backend::__parallel_for_each_body(__first, __last, __f);
+    }
+    else
+    {
+        // in any case (nested or non-nested) one parallel region is created and
+        // only one thread creates a set of tasks
+        _PSTL_PRAGMA(omp parallel)
+        _PSTL_PRAGMA(omp single nowait) { oneapi::dpl::__omp_backend::__parallel_for_each_body(__first, __last, __f); }
+    }
+}
+
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
