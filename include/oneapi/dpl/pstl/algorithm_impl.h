@@ -178,7 +178,7 @@ __pattern_walk1(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _For
 }
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate, class _Tp>
-oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, void>
+void
 __pattern_replace_if(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                      _UnaryPredicate __pred, const _Tp& __new_value)
 {
