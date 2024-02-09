@@ -3187,8 +3187,8 @@ __pattern_set_intersection(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& _
     if (__first1 == __last1 || __first2 == __last2)
         return __result;
 
-    return __pattern_hetero_set_op(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2,
-                                   __result, __comp, unseq_backend::_IntersectionTag());
+    return __pattern_hetero_set_op(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+                                   __last2, __result, __comp, unseq_backend::_IntersectionTag());
 }
 
 //Dummy names to avoid kernel problems
@@ -3246,8 +3246,8 @@ __pattern_set_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
             __first1, __last1, __result, oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
     }
 
-    return __pattern_hetero_set_op(::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2,
-                                   __result, __comp, unseq_backend::_DifferenceTag());
+    return __pattern_hetero_set_op(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+                                   __last2, __result, __comp, unseq_backend::_DifferenceTag());
 }
 
 //Dummy names to avoid kernel problems
@@ -3353,8 +3353,10 @@ __pattern_set_union(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 
     //1. Calc difference {2} \ {1}
     const auto __n_diff =
-        oneapi::dpl::__internal::__pattern_hetero_set_op(__exec, __first2, __last2, __first1, __last1, __buf, __comp,
-                                                         unseq_backend::_DifferenceTag()) -
+        oneapi::dpl::__internal::__pattern_hetero_set_op(
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first2), decltype(__last2),
+                                                      decltype(__first1), decltype(__last1), decltype(__buf)>(),
+            __exec, __first2, __last2, __first1, __last1, __buf, __comp, unseq_backend::_DifferenceTag()) -
         __buf;
 
     //2. Merge {1} and the difference
@@ -3503,6 +3505,8 @@ __pattern_set_symmetric_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPo
     //1. Calc difference {1} \ {2}
     const auto __n_diff_1 =
         oneapi::dpl::__internal::__pattern_hetero_set_op(
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first1), decltype(__last1),
+                                                      decltype(__first2), decltype(__last2), decltype(__buf_1)>(),
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_1>(__exec),
             __first1, __last1, __first2, __last2, __buf_1, __comp, unseq_backend::_DifferenceTag()) -
         __buf_1;
@@ -3510,6 +3514,8 @@ __pattern_set_symmetric_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPo
     //2. Calc difference {2} \ {1}
     const auto __n_diff_2 =
         oneapi::dpl::__internal::__pattern_hetero_set_op(
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first2), decltype(__last2),
+                                                      decltype(__first1), decltype(__last1), decltype(__buf_2)>(),
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_2>(__exec),
             __first2, __last2, __first1, __last1, __buf_2, __comp, unseq_backend::_DifferenceTag()) -
         __buf_2;
