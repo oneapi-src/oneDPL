@@ -291,10 +291,9 @@ The initial configuration may be selected according to these high-level guidelin
    Increasing ``param.data_per_workitem`` should usually be preferred to increasing ``param.workgroup_size``,
    to avoid extra synchronization overhead within a work-group.
 
-- When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``,
+- When the number of elements to sort (N) is small (~16K or less) and the algorithm is ``radix_sort``,
   generally sorting is done more efficiently by a single work-group.
-  Increase the ``param`` values to make ``N <= param.data_per_workitem * param.workgroup_size``,
-  where ``N`` is the number of elements to sort.
+  Increase the ``param`` values to make ``N <= param.data_per_workitem * param.workgroup_size``.
 
 - When the number of elements to sort ``N`` is between 16K and 1M, utilizing all available
   compute cores is key for better performance. Allow creating enough work chunks to feed all
