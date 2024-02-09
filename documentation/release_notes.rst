@@ -14,7 +14,7 @@ New in 2022.4.0
 New Features
 ------------
 - Added experimental ``radix_sort`` and ``radix_sort_by_key`` algorithms residing in
-  the ``oneapi::dpl::experimental::kt::esimd`` namespace. These algorithms are first
+  the ``oneapi::dpl::experimental::kt`` namespace. These algorithms are first
   in the family of _kernel templates_ that allow configuring a variety of parameters
   including the number of elements to process by a work item, and the size of a workgroup.
   The algorithms only work with Intel® Data Center GPU Max Series.
