@@ -268,24 +268,33 @@ Incrementing ``RadixBits`` increases `C` up to twice, while doubling either
 Local Memory Requirements
 -------------------------
 
-The algorithms require local memory to rank keys, reorder keys, or key-value pairs.
+Local memory is used for reordering keys or key-value pairs within a work-group,
+and for storing internal data such as radix value counters.
 The used amount depends on many parameters; below is an upper bound approximation:
 
-- ``radix_sort``:
+:``radix_sort``: N\ :sub:`keys_per_workgroup` + C
 
-  max (36KB, sizeof(``key_type``) * ``param.data_per_workitem`` * ``param.workgroup_size`` + 2KB)
+:``radix_sort_by_key``: N\ :sub:`keys_per_workgroup` + N\ :sub:`values_per_workgroup` + C
 
-- ``radix_sort_by_key``:
+where N\ :sub:`keys_per_workgroup` and N\ :sub:`values_per_workgroup` are the amounts of memory
+to store keys and values, respectively.  `C` is some additional space for storing internal data.
 
-  max (36KB, (sizeof(``key_type``) + sizeof(``value_type``)) * ``param.data_per_workitem`` * ``param.workgroup_size`` + 2KB)
-
-where ``key_type``, ``value_type`` are the types of the input keys, values respectively.
+N\ :sub:`keys_per_workgroup` equals to ``sizeof(key_type) * param.data_per_workitem * param.workgroup_size``,
+N\ :sub:`values_per_workgroup` equals to ``sizeof(value_type) * param.data_per_workitem * param.workgroup_size``,
+`C` does not exceed `4KB`.
 
 ..
-   This is an upper bound approximation, which is close to the real value.
-   High precision is essential as SLM usage has high impact on performance.
-   It works for RadixBits = 8, the data_per_workitem >= 32 and workgroup_size >= 64.
-   Reevaluate it, once bigger RadixBits, or smaller data_per_workitem and workgroup_size are supported.
+   C as 4KB stands on these points:
+   1) Extra space is needed to store a histogram to distribute keys. It's size is 4 * (2^RadixBits).
+   The estimation is correct for RadixBits 9 (2KB) and smaller. Support of larger RadixBits is not expected.
+   2) N_keys + N_values is rounded up at 2KB border (temporarily as a workaround for a GPU driver bug).
+
+..
+   The estimation assumes that the space needed for reordering keys/pairs takes more for ranking keys.
+   The ranking takes approximatelly "2 * workgroup_size * (2^RadixBits)" bytes.
+   It suprpasses Intel Data Center GPU Max SLM capacity in only marginal cases,
+   e.g., when RadixBits is 10 and workgroup_size is 64, or when RadixBits is 9 and workgroup_size is 128.
+   It is ingored as an unrealistic case.
 
 -----------------------------------------
 Recommended Settings for Best Performance
