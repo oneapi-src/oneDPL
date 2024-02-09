@@ -1689,7 +1689,7 @@ __pattern_partition_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
     unseq_backend::__partition_by_mask<_ReduceOp, /*inclusive*/ ::std::true_type> __copy_by_mask_op{_ReduceOp{}};
 
     auto __result = __pattern_scan_copy(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
         __par_backend_hetero::zip(
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result1),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__result2)),
@@ -1733,8 +1733,8 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
     __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
         __not_pred<_BinaryPredicate>{__pred}};
 
-    auto __result = __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result_first,
-                                        __create_mask_op, __copy_by_mask_op);
+    auto __result = __pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                        __result_first, __create_mask_op, __copy_by_mask_op);
 
     return __result_first + __result.second;
 }
