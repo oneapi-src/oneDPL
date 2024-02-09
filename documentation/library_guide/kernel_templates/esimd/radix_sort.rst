@@ -303,7 +303,6 @@ Recommended Settings for Best Performance
 The general advice is to choose kernel parameters based on performance measurements and profiling information.
 The initial configuration may be selected according to these high-level guidelines:
 
-
 ..
    TODO: add this part when param.workgroup_size supports more than one value:
    Increasing ``param.data_per_workitem`` should usually be preferred to increasing ``param.workgroup_size``,
@@ -335,5 +334,5 @@ The initial configuration may be selected according to these high-level guidelin
 .. [#fnote1] Andy Adinets and Duane Merrill (2022). Onesweep: A Faster Least Significant Digit Radix Sort for GPUs. Retrieved from https://arxiv.org/abs/2206.01784.
 .. [#fnote2] The X\ :sup:`e`-core term is described in the `oneAPI GPU Optimization Guide
    <https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-0/intel-xe-gpu-architecture.html#XE-CORE>`_.
-   Check the number of cores in the device specification, such as `Intel&reg; Data Center GPU Max specification
+   Check the number of cores in the device specification, such as `Intel® Data Center GPU Max specification
    <https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/max-series/products.html>`_.
