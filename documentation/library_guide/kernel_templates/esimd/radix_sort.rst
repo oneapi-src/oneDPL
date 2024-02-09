@@ -284,24 +284,16 @@ Recommended Settings for Best Performance
 The general advice is to choose kernel parameters based on performance measurements and profiling information.
 The initial configuration may be selected according to these high-level guidelines:
 
-.. note::
-
-   ``param.data_per_workitem`` is the only available parameter to tune the performance,
-   since ``param.workgroup_size`` currently supports only one value (`64`).
 
 ..
    TODO: add this part when param.workgroup_size supports more than one value:
    A larger ``param.data_per_workitem`` in ``param.data_per_workitem * param.workgroup_size``
    combination is preferred to reduce the number of work-items and synchronization overhead within a work-group.
 
-- When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort``,
+- When the number of elements to sort is small (~16K or less) and the algorithm is ``radix_sort`` (``radix_sort_by_key`` does not have a single work-group implementation yet),
   generally sorting is done more efficiently by a single work-group.
   Increase the ``param`` values to make ``N <= param.data_per_workitem * param.workgroup_size``,
   where ``N`` is the number of elements to sort.
-
-.. note::
-
-   ``radix_sort_by_key`` does not have a single work-group implementation yet.
 
 - When the number of elements to sort ``N`` is between 16K and 1M, utilizing all available
   compute cores is key for better performance. Allow creating enough work chunks to feed all
@@ -315,6 +307,12 @@ The initial configuration may be selected according to these high-level guidelin
 
    Avoid setting too large ``param.data_per_workitem`` and ``param.workgroup_size`` values.
    Make sure that :ref:`Memory requirements <memory-requirements>` are satisfied.
+
+.. note::
+
+   ``param.data_per_workitem`` is the only available parameter to tune the performance,
+   since ``param.workgroup_size`` currently supports only one value (`64`).
+
 
 .. [#fnote1] Andy Adinets and Duane Merrill (2022). Onesweep: A Faster Least Significant Digit Radix Sort for GPUs. Retrieved from https://arxiv.org/abs/2206.01784.
 .. [#fnote2] X\ :sup:`e`-core term is descirbed in `oneAPI GPU Optimization Guide <https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-0/intel-xe-gpu-architecture.html#XE-CORE>`_.
