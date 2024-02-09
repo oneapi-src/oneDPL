@@ -126,6 +126,34 @@ __pattern_walk2(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     return __first2 + __n;
 }
 
+template <typename _BackendTag, typename _IsSync = ::std::true_type,
+          __par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
+          __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::write,
+          typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function>
+_ForwardIterator2
+__pattern_walk2(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __f)
+{
+    auto __n = __last1 - __first1;
+    if (__n <= 0)
+        return __first2;
+
+    auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>();
+    auto __buf1 = __keep1(__first1, __last1);
+
+    auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
+    auto __buf2 = __keep2(__first2, __first2 + __n);
+
+    auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+        __buf1.all_view(), __buf2.all_view());
+
+    if constexpr (_IsSync())
+        __future_obj.wait();
+
+    return __first2 + __n;
+}
+
 template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _Size, typename _ForwardIterator2,
           typename _Function>
 oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _ForwardIterator2>
