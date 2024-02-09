@@ -282,10 +282,10 @@ Recommended Settings for Best Performance
 The general advice is to choose kernel parameters based on performance measurements and profiling information.
 The initial configuration may be selected according to these high-level guidelines:
 
- .. note::
+.. note::
 
-    ``param.data_per_workitem`` is the only available parameter to tune the performance,
-    since ``param.workgroup_size`` currently supports only one value (`64`).
+   ``param.data_per_workitem`` is the only available parameter to tune the performance,
+   since ``param.workgroup_size`` currently supports only one value (`64`).
 
 ..
    TODO: add this part when param.workgroup_size supports more than one value:
@@ -310,11 +310,6 @@ The initial configuration may be selected according to these high-level guidelin
   The occupancy depends on the local memory usage, which is determined by
   ``key_type``, ``value_type``, ``RadixBits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters.
   Refer to :ref:`Local Memory Requirements <local-memory>` section for the calculation.
-
-.. note::
-
-   ``param.data_per_workitem`` is the only available parameter to tune the performance,
-   since ``param.workgroup_size`` currently supports only one value (`64`).
 
 
 .. [#fnote1] Andy Adinets and Duane Merrill (2022). Onesweep: A Faster Least Significant Digit Radix Sort for GPUs. Retrieved from https://arxiv.org/abs/2206.01784.
