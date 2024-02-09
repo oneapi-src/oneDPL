@@ -217,6 +217,8 @@ Usage Examples
    s o r t e d
 
 
+.. _memory-requirements:
+
 -------------------
 Memory Requirements
 -------------------
@@ -303,13 +305,17 @@ The initial configuration may be selected according to these high-level guidelin
 
 - When the number of elements to sort ``N`` is between 16K and 1M, utilizing all available
   compute cores is key for better performance. Allow creating enough work chunks to feed all
-  Xe-cores on a GPU: ``param.data_per_workitem * param.workgroup_size ≈ N / device_xe_core_count``.
+  X\ :sup:`e`-cores [#fnote2]_ on a GPU: ``param.data_per_workitem * param.workgroup_size ≈ N / xe_core_count``.
 
-- When the number of elements to sort is large (more than ~1M), then the work-groups preempt each other.
-  Increase the occupancy to hide the latency with ``param.data_per_workitem * param.workgroup_size ≈< N / (device_xe_core_count * desired_occupancy)``.
-  The occupancy depends on the local memory usage, which is determined by
-  ``key_type``, ``value_type``, ``RadixBits``, ``param.data_per_workitem`` and ``param.workgroup_size`` parameters.
-  Refer to :ref:`Local Memory Requirements <local-memory>` section for the calculation.
+- When the number of elements to sort is large (more than ~1M),
+  maximizing a number of elements processed by a work-group, which is determined by ``param.data_per_workitem * param.workgroup_size`` product,
+  reduces synchronization overheads between the work-groups, and usually benefits the overall performance.
 
+.. warning::
+
+   Avoid setting too large ``param.data_per_workitem`` and ``param.workgroup_size`` values.
+   Make sure that :ref:`Memory requirements <memory-requirements>` are satisfied.
 
 .. [#fnote1] Andy Adinets and Duane Merrill (2022). Onesweep: A Faster Least Significant Digit Radix Sort for GPUs. Retrieved from https://arxiv.org/abs/2206.01784.
+.. [#fnote2] X\ :sup:`e`-core term is descirbed in `oneAPI GPU Optimization Guide <https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-0/intel-xe-gpu-architecture.html#XE-CORE>`_.
+  Their count can be found in a device specification. For example, `Intel Data Center GPU Max specification <https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/max-series/products.html>`_.
