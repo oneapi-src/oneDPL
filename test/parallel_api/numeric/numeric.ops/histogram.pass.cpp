@@ -114,8 +114,12 @@ int
 main()
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    test_histogram<0, float, int64_t>(10000.0f, 110000.0f, 300.0f, int64_t(50), int64_t(99999));
-    test_histogram<1, std::int32_t, int64_t>(-50000, 50000, 10000, int64_t(5), int64_t(99999));
+    test_histogram<0, float, uint32_t>(10000.0f, 110000.0f, 300.0f, uint32_t(50), uint32_t(99999));
+
+#if !ONEDPL_FPGA_DEVICE
+    test_histogram<1, std::int32_t, uint64_t>(-50000, 50000, 10000, uint64_t(5), uint64_t(99999));
+#endif //!ONEDPL_FPGA_DEVICE
+
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return done(TEST_DPCPP_BACKEND_PRESENT);
