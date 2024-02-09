@@ -1205,6 +1205,109 @@ __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag,
         return __result != __init_value ? __result : __rng_n;
 }
 
+// Base pattern for __parallel_or and __parallel_find. The execution depends on tag type _BrickTag.
+template <typename _ExecutionPolicy, typename _Brick, typename _BrickTag, typename... _Ranges>
+::std::conditional_t<
+    ::std::is_same_v<_BrickTag, __parallel_or_tag>, bool,
+    oneapi::dpl::__internal::__difference_t<typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>
+__parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Brick __f,
+                   _BrickTag __brick_tag, _Ranges&&... __rngs)
+{
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
+    using _AtomicType = typename _BrickTag::_AtomicType;
+    using _FindOrKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<__find_or_kernel, _CustomName, _Brick,
+                                                                               _BrickTag, _Ranges...>;
+
+    constexpr bool __or_tag_check = ::std::is_same_v<_BrickTag, __parallel_or_tag>;
+    auto __rng_n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
+    assert(__rng_n > 0);
+
+    // TODO: find a way to generalize getting of reliable work-group size
+    auto __wgroup_size = oneapi::dpl::__internal::__max_work_group_size(__exec);
+#if _ONEDPL_COMPILE_KERNEL
+    auto __kernel = __internal::__kernel_compiler<_FindOrKernel>::__compile(__exec);
+    __wgroup_size = ::std::min(__wgroup_size, oneapi::dpl::__internal::__kernel_work_group_size(__exec, __kernel));
+#endif
+    auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
+
+    auto __n_groups = (__rng_n - 1) / __wgroup_size + 1;
+    // TODO: try to change __n_groups with another formula for more perfect load balancing
+    __n_groups = ::std::min(__n_groups, decltype(__n_groups)(__max_cu));
+
+    auto __n_iter = (__rng_n - 1) / (__n_groups * __wgroup_size) + 1;
+
+    _PRINT_INFO_IN_DEBUG_MODE(__exec, __wgroup_size, __max_cu);
+
+    _AtomicType __init_value = _BrickTag::__init_value(__rng_n);
+    auto __result = __init_value;
+
+    auto __pred = oneapi::dpl::__par_backend_hetero::__early_exit_find_or<_ExecutionPolicy, _Brick>{__f};
+
+    // scope is to copy data back to __result after destruction of temporary sycl:buffer
+    {
+        auto __temp = sycl::buffer<_AtomicType, 1>(&__result, 1); // temporary storage for global atomic
+
+        // main parallel_for
+        __exec.queue().submit([&](sycl::handler& __cgh) {
+            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
+            auto __temp_acc = __temp.template get_access<access_mode::read_write>(__cgh);
+
+            // create local accessor to connect atomic with
+            __dpl_sycl::__local_accessor<_AtomicType> __temp_local(1, __cgh);
+#if _ONEDPL_COMPILE_KERNEL && _ONEDPL_KERNEL_BUNDLE_PRESENT
+            __cgh.use_kernel_bundle(__kernel.get_kernel_bundle());
+#endif
+            __cgh.parallel_for<_FindOrKernel>(
+#if _ONEDPL_COMPILE_KERNEL && !_ONEDPL_KERNEL_BUNDLE_PRESENT
+                __kernel,
+#endif
+                sycl::nd_range</*dim=*/1>(sycl::range</*dim=*/1>(__n_groups * __wgroup_size),
+                                          sycl::range</*dim=*/1>(__wgroup_size)),
+                [=](sycl::nd_item</*dim=*/1> __item_id) {
+                    auto __local_idx = __item_id.get_local_id(0);
+
+                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::global_space> __found(
+                        *__dpl_sycl::__get_accessor_ptr(__temp_acc));
+                    __dpl_sycl::__atomic_ref<_AtomicType, sycl::access::address_space::local_space> __found_local(
+                        *__dpl_sycl::__get_accessor_ptr(__temp_local));
+
+                    // 1. Set initial value to local atomic
+                    if (__local_idx == 0)
+                        __found_local.store(__init_value);
+                    __dpl_sycl::__group_barrier(__item_id);
+
+                    // 2. Find any element that satisfies pred and set local atomic value to global atomic
+                    constexpr auto __comp = typename _BrickTag::_Compare{};
+                    __pred(__item_id, __n_iter, __wgroup_size, __comp, __found_local, __brick_tag, __rngs...);
+                    __dpl_sycl::__group_barrier(__item_id);
+
+                    // Set local atomic value to global atomic
+                    if (__local_idx == 0 && __comp(__found_local.load(), __found.load()))
+                    {
+                        if constexpr (__or_tag_check)
+                            __found.store(1);
+                        else
+                        {
+                            for (auto __old = __found.load(); __comp(__found_local.load(), __old);
+                                 __old = __found.load())
+                            {
+                                __found.compare_exchange_strong(__old, __found_local.load());
+                            }
+                        }
+                    }
+                });
+        });
+        //The end of the scope  -  a point of synchronization (on temporary sycl buffer destruction)
+    }
+
+    if constexpr (__or_tag_check)
+        return __result;
+    else
+        return __result != __init_value ? __result : __rng_n;
+}
+
+
 //------------------------------------------------------------------------
 // parallel_or - sync pattern
 //------------------------------------------------------------------------
@@ -1301,6 +1404,7 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&
         typename ::std::conditional<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
                                     __parallel_find_backward_tag<decltype(__buf.all_view())>>::type;
     return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+                         oneapi::dpl::__internal::__device_backend_tag{},
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
                              ::std::forward<_ExecutionPolicy>(__exec)),
                          __f, _TagType{}, __buf.all_view());
