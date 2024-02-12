@@ -48,8 +48,6 @@ A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided
    }
 
 
-.. _template-parameters:
-
 Template Parameters
 --------------------
 
@@ -58,11 +56,9 @@ Template Parameters
 +=============================+=======================================================================================+
 | ``bool IsAscending``        | The sort order. Ascending: ``true``; Descending: ``false``.                           |
 +-----------------------------+---------------------------------------------------------------------------------------+
-| ``std::uint8_t RadixBits``  | The number of bits to sort for each radix sort algorithm pass.                           |
+| ``std::uint8_t RadixBits``  | The number of bits to sort for each radix sort algorithm pass.                        |
 +-----------------------------+---------------------------------------------------------------------------------------+
 
-
-.. _parameters:
 
 Parameters
 ----------
@@ -76,10 +72,13 @@ Parameters
 |  - ``r`` (1)                                  | Supported sequence types:                                           |
 |  - ``first``, ``last`` (2)                    |                                                                     |
 |  - ``keys``, ``values`` (3)                   | - ``sycl::buffer`` (1,3),                                           |
-|  - ``keys_first``, ``keys_last``,             | - ``oneapi::dpl::experimental::ranges::views::all`` (1,3),          |
-|    ``values_first`` (4)                       | - ``oneapi::dpl::experimental::ranges::views::subrange`` (1,3),     |
-|                                               | - USM pointers (2,4),                                               |
-|                                               | - ``oneapi::dpl::begin`` and ``oneapi::dpl::end`` (2,4).            |
+|  - ``keys_first``, ``keys_last``,             | - :ref:`oneapi::dpl::experimental::ranges::views::all               |
+|                                               |   <viewable-ranges>` (1,3),                                         |
+|    ``values_first`` (4)                       | - :ref:`oneapi::dpl::experimental::ranges::views::subrange          |
+|                                               |   <viewable-ranges>` (1,3),                                         |
+|                                               | - :ref:`USM pointers <use-usm>` (2,4),                              |
+|                                               | - :ref:`oneapi::dpl::begin and oneapi::dpl::end                     |
+|                                               |   <use-buffer-wrappers>` (2,4).                                     |
 |                                               |                                                                     |
 +-----------------------------------------------+---------------------------------------------------------------------+
 |  ``param``                                    | A :doc:`kernel_param <../kernel_configuration>` object.             |
@@ -226,7 +225,7 @@ Memory Requirements
 The algorithms use global and local device memory (see `SYCL 2020 Specification
 <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`_)
 for intermediate data storage. For the algorithms to operate correctly, there must be enough memory
-on the device; otherwise, the behavior is undefined. The amount of memory that is required 
+on the device; otherwise, the behavior is undefined. The amount of memory that is required
 depends on input data and configuration parameters, as described below.
 
 Global Memory Requirements
@@ -287,10 +286,10 @@ N\ :sub:`values_per_workgroup` equals to ``sizeof(value_type) * param.data_per_w
    C as 4KB stands on these points:
    1) Extra space is needed to store a histogram to distribute keys. It's size is 4 * (2^RadixBits).
    The estimation is correct for RadixBits 9 (2KB) and smaller. Support of larger RadixBits is not expected.
-   2) N_keys + N_values is rounded up at 2KB border (temporarily as a workaround for a GPU driver bug).
+   1) N_keys + N_values is rounded up at 2KB border (temporarily as a workaround for a GPU driver bug).
 
 ..
-   The estimation assumes that the space needed for reordering keys/pairs takes more for ranking keys.
+   The estimation assumes that reordering keys/pairs takes more space than ranking keys.
    The ranking takes approximatelly "2 * workgroup_size * (2^RadixBits)" bytes.
    It suprpasses Intel Data Center GPU Max SLM capacity in only marginal cases,
    e.g., when RadixBits is 10 and workgroup_size is 64, or when RadixBits is 9 and workgroup_size is 128.
