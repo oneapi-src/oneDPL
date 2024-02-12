@@ -52,6 +52,7 @@ int main()
 
 void do_allocation()
 {
+    // linked with libsycl, so can safely use sycl in dtor
     sycl::context memory_context = TestUtils::get_pstl_offload_device().get_platform().ext_oneapi_get_default_context();
 
     constexpr std::size_t size = 1024;
