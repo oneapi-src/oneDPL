@@ -7,7 +7,7 @@ Radix Sort
 
 The ``radix_sort`` and ``radix_sort_by_key`` functions sort data using the radix sort algorithm.
 The sorting is stable, ensuring the preservation of the relative order of elements with equal keys.
-The functions implement Onesweep* [#fnote1]_ algorithm variant.
+The functions implement a Onesweep* [#fnote1]_ algorithm variant.
 
 A synopsis of the ``radix_sort`` and ``radix_sort_by_key`` functions is provided below:
 
@@ -58,7 +58,7 @@ Template Parameters
 +=============================+=======================================================================================+
 | ``bool IsAscending``        | The sort order. Ascending: ``true``; Descending: ``false``.                           |
 +-----------------------------+---------------------------------------------------------------------------------------+
-| ``std::uint8_t RadixBits``  | The number of bits to sort per a radix sort algorithm pass.                           |
+| ``std::uint8_t RadixBits``  | The number of bits to sort for each radix sort algorithm pass.                           |
 +-----------------------------+---------------------------------------------------------------------------------------+
 
 
@@ -226,8 +226,8 @@ Memory Requirements
 The algorithms use global and local device memory (see `SYCL 2020 Specification
 <https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#_sycl_device_memory_model>`_)
 for intermediate data storage. For the algorithms to operate correctly, there must be enough memory
-on the device; otherwise, the behavior is undefined. How much memory is needed depends on input data
-and configuration parameters, as described below.
+on the device; otherwise, the behavior is undefined. The amount of memory that is required 
+depends on input data and configuration parameters, as described below.
 
 Global Memory Requirements
 --------------------------
