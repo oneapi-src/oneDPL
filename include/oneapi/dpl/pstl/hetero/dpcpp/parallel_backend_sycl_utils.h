@@ -472,7 +472,7 @@ template <typename _ContainerOrIterable>
 using __value_t = typename __internal::__memobj_traits<_ContainerOrIterable>::value_type;
 
 template <typename _T>
-struct __usm_host_or_buffer_accessor
+struct __usm_or_buffer_accessor
 {
   private:
     using __accessor_t = sycl::accessor<_T, 1, sycl::access::mode::read_write, __dpl_sycl::__target_device,
@@ -484,21 +484,23 @@ struct __usm_host_or_buffer_accessor
 
   public:
     // Buffer accessor
-    __usm_host_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
+    __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf)
         : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})), __usm(false),
-        __offset(0)
+          __offset(0)
     {
     }
-    __usm_host_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf, size_t __acc_offset)
+    __usm_or_buffer_accessor(sycl::handler& __cgh, sycl::buffer<_T, 1>* __sycl_buf, size_t __acc_offset)
         : __acc(sycl::accessor(*__sycl_buf, __cgh, sycl::read_write, __dpl_sycl::__no_init{})), __usm(false),
-        __offset(__acc_offset)
+          __offset(__acc_offset)
     {
     }
 
     // USM pointer
-    __usm_host_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf) : __ptr(__usm_buf), __usm(true), __offset(0) {}
-    __usm_host_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf, size_t __ptr_offset) : __ptr(__usm_buf),
-    __usm(true), __offset(__ptr_offset) {}
+    __usm_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf) : __ptr(__usm_buf), __usm(true), __offset(0) {}
+    __usm_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf, size_t __ptr_offset)
+        : __ptr(__usm_buf), __usm(true), __offset(__ptr_offset)
+    {
+    }
 
     auto
     __get_pointer() const // should be cached within a kernel
@@ -508,7 +510,7 @@ struct __usm_host_or_buffer_accessor
 };
 
 template <typename _ExecutionPolicy, typename _T>
-struct __usm_host_or_unified_storage
+struct __result_and_scratch_storage
 {
   private:
     using __sycl_buffer_t = sycl::buffer<_T, 1>;
@@ -519,8 +521,8 @@ struct __usm_host_or_unified_storage
     ::std::shared_ptr<__sycl_buffer_t> __sycl_buf;
 
     ::std::size_t __scratch_n;
-    bool __host;
-    bool __supports_USM;
+    bool __use_USM_host;
+    bool __supports_USM_device;
 
     // Only use USM host allocations on L0 GPUs. Other devices show significant slowdowns and will use a device allocation instead.
     inline bool
@@ -551,11 +553,11 @@ struct __usm_host_or_unified_storage
     }
 
   public:
-    __usm_host_or_unified_storage(_ExecutionPolicy& __exec, ::std::size_t __scratch_n)
-        : __exec{__exec}, __scratch_n{__scratch_n}, __host{__use_USM_host_allocations(__exec.queue())},
-        __supports_USM{__use_USM_allocations(__exec.queue())}
+    __result_and_scratch_storage(_ExecutionPolicy& __exec, ::std::size_t __scratch_n)
+        : __exec{__exec}, __scratch_n{__scratch_n}, __use_USM_host{__use_USM_host_allocations(__exec.queue())},
+          __supports_USM_device{__use_USM_allocations(__exec.queue())}
     {
-        if (__host)
+        if (__use_USM_host && __supports_USM_device)
         {
             // Separate scratch (device) and result (host) allocations on performant backends (i.e. L0)
             __scratch_buf = std::shared_ptr<_T>(
@@ -565,7 +567,7 @@ struct __usm_host_or_unified_storage
                 __internal::__sycl_usm_alloc<_ExecutionPolicy, _T, sycl::usm::alloc::host>{__exec}(1),
                 __internal::__sycl_usm_free<_ExecutionPolicy, _T>{__exec});
         }
-        else if (__supports_USM)
+        else if (__supports_USM_device)
         {
             // If we don't use host memory, malloc only a single unified device allocation
             __scratch_buf = std::shared_ptr<_T>(
@@ -603,19 +605,19 @@ struct __usm_host_or_unified_storage
     auto
     __get_result_acc(sycl::handler& __cgh)
     {
-        if (__host)
-            return __usm_host_or_buffer_accessor<_T>(__cgh, __result_buf.get());
-        else if (__supports_USM)
-            return __usm_host_or_buffer_accessor<_T>(__cgh, __scratch_buf.get(), __scratch_n);
-        return __usm_host_or_buffer_accessor<_T>(__cgh, __sycl_buf.get(), __scratch_n);
+        if (__use_USM_host)
+            return __usm_or_buffer_accessor<_T>(__cgh, __result_buf.get());
+        else if (__supports_USM_device)
+            return __usm_or_buffer_accessor<_T>(__cgh, __scratch_buf.get(), __scratch_n);
+        return __usm_or_buffer_accessor<_T>(__cgh, __sycl_buf.get(), __scratch_n);
     }
 
     auto
     __get_scratch_acc(sycl::handler& __cgh)
     {
-        if (__host || __supports_USM)
-            return __usm_host_or_buffer_accessor<_T>(__cgh, __scratch_buf.get());
-        return __usm_host_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
+        if (__use_USM_host || __supports_USM_device)
+            return __usm_or_buffer_accessor<_T>(__cgh, __scratch_buf.get());
+        return __usm_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
     }
 
     // Note: this member function assumes the result is *ready*, since the __future has already
@@ -623,11 +625,11 @@ struct __usm_host_or_unified_storage
     _T
     __get_value(size_t idx = 0) const
     {
-        if (__host)
+        if (__use_USM_host)
         {
             return *(__result_buf.get() + idx);
         }
-        else if (__supports_USM)
+        else if (__supports_USM_device)
         {
             _T __tmp;
             __exec.queue().memcpy(&__tmp, __scratch_buf.get() + __scratch_n + idx, 1 * sizeof(_T)).wait();
@@ -657,7 +659,7 @@ class __future : private std::tuple<_Args...>
 
     template <typename _ExecutionPolicy, typename _T>
     constexpr auto
-    __wait_and_get_value(__usm_host_or_unified_storage<_ExecutionPolicy, _T>& __buf)
+    __wait_and_get_value(__result_and_scratch_storage<_ExecutionPolicy, _T>& __buf)
     {
         wait();
         return __buf.__get_value();
