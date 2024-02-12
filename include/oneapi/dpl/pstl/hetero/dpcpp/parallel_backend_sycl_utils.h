@@ -620,6 +620,12 @@ struct __result_and_scratch_storage
         return __usm_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
     }
 
+    bool
+    is_USM() const
+    {
+        return __supports_USM_device;
+    }
+
     // Note: this member function assumes the result is *ready*, since the __future has already
     // waited on the relevant event.
     _T
@@ -659,10 +665,11 @@ class __future : private std::tuple<_Args...>
 
     template <typename _ExecutionPolicy, typename _T>
     constexpr auto
-    __wait_and_get_value(__result_and_scratch_storage<_ExecutionPolicy, _T>& __buf)
+    __wait_and_get_value(__result_and_scratch_storage<_ExecutionPolicy, _T>& __storage)
     {
-        wait();
-        return __buf.__get_value();
+        if (__storage.is_USM())
+            wait();
+        return __storage.__get_value();
     }
 
     template <typename _T>
