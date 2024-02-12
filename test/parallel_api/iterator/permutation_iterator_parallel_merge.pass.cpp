@@ -64,8 +64,8 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
                     const auto testing_n1 = ::std::distance(permItBegin1, permItEnd1);
 
                     //ensure list is sorted (not necessarily true after permutation)
-                    dpl::sort(exec, permItBegin1, permItEnd1);
-                    wait_and_throw(exec);
+                    dpl::sort(exec1, permItBegin1, permItEnd1);
+                    wait_and_throw(exec1);
 
                     // Copy data back
                     std::vector<TestValueType> srcData1(testing_n1);
@@ -78,8 +78,8 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
                             const auto testing_n2 = ::std::distance(permItBegin2, permItEnd2);
 
                             //ensure list is sorted (not necessarily true after permutation)
-                            dpl::sort(exec, permItBegin2, permItEnd2);
-                            wait_and_throw(exec);
+                            dpl::sort(exec2, permItBegin2, permItEnd2);
+                            wait_and_throw(exec2);
 
                             const auto resultEnd = dpl::merge(exec, permItBegin1, permItEnd1, permItBegin2, permItEnd2, first3);
                             wait_and_throw(exec);
