@@ -90,8 +90,8 @@ Parameters
 
 **Type Requirements**:
 
-- The element type of sequence(s) to sort must be any
-  C++ integral and floating-point type with a width of up to 64 bits, except for ``bool``.
+- The element type of sequence(s) to sort must be a C++ integral or floating-point type
+  other than ``bool`` with a width of up to 64 bits.
 
 .. note::
 
