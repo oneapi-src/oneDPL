@@ -14,7 +14,7 @@ To use the API, include the ``oneapi/dpl/experimental/kernel_templates`` header 
 The primary API namespace is ``oneapi::dpl::experimental::kt``, and nested namespaces are used to further categorize the templates.
 
 * :doc:`Kernel Configuration <kernel_templates/kernel_configuration>`. Generic structure for configuring a kernel template.
-* :doc:`ESIMD-based kernel templates <kernel_templates/esimd_main>`. Algorithms implemented with "Explicit SIMD" SYCL extension.
+* :doc:`ESIMD-based kernel templates <kernel_templates/esimd_main>`. Algorithms implemented with the Explicit SIMD SYCL extension.
 
 .. toctree::
    :maxdepth: 2
