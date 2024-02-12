@@ -8,6 +8,23 @@ The Intel® oneAPI DPC++ Library (oneDPL) accompanies the Intel® oneAPI DPC++/C
 and provides high-productivity APIs aimed to minimize programming efforts of C++ developers
 creating efficient heterogeneous applications.
 
+New in 2022.5.0
+===============
+
+New Features
+------------
+- Added new ``histogram`` algorithms for generating a histogram from an input sequence into
+  an output sequence representing either equally spaced or user-defined bins.
+  These algorithms are currently only available for device execution policies.
+- Added ability to avoid group reduction operations for 64-bit arithmetic data types.
+- Supported zip_iterator for ``transform`` algorithm.
+
+Fixed Issues
+------------
+- Fixed handling of ``permutation_iterator`` as input to oneDPL algorithms for a variety of
+  source iterator and permutation types which caused issues.
+- Fixed ``zip_iterator`` to be `sycl device copyable`_ for trivially copyable source iterator types.
+
 New in 2022.4.0
 ===============
 
@@ -593,3 +610,4 @@ Known Issues and Limitations
 .. _`Tested Standard C++ API`: https://oneapi-src.github.io/oneDPL/api_for_sycl_kernels/tested_standard_cpp_api.html#tested-standard-c-api-reference
 .. _`Macros`: https://oneapi-src.github.io/oneDPL/macros.html
 .. _`2022.0 Changes`: https://oneapi-src.github.io/oneDPL/oneDPL_2022.0_changes.html
+.. _`sycl device copyable`: https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#sec::device.copyable
