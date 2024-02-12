@@ -641,7 +641,8 @@ struct __result_and_scratch_storage
             __exec.queue().memcpy(&__tmp, __scratch_buf.get() + __scratch_n + idx, 1 * sizeof(_T)).wait();
             return __tmp;
         }
-        else {
+        else
+        {
             return __sycl_buf->get_host_access(sycl::read_only)[__scratch_n];
         }
     }
