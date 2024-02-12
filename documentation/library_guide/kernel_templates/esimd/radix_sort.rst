@@ -294,7 +294,7 @@ N\ :sub:`values_per_workgroup` equals to ``sizeof(value_type) * param.data_per_w
    The ranking takes approximatelly "2 * workgroup_size * (2^RadixBits)" bytes.
    It suprpasses Intel Data Center GPU Max SLM capacity in only marginal cases,
    e.g., when RadixBits is 10 and workgroup_size is 64, or when RadixBits is 9 and workgroup_size is 128.
-   It is ingored as an unrealistic case.
+   It is ignored as an unrealistic case.
 
 -----------------------------------------
 Recommended Settings for Best Performance
