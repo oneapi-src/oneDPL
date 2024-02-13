@@ -119,6 +119,8 @@ main()
 {
     using ValueType = ::std::uint32_t;
 
+#if !_PSTL_MSVC_GREATER_EQUAL_CPP20_CAN_DEREF_CONCEPT_BROKEN
+
 #if TEST_DPCPP_BACKEND_PRESENT
     run_algo_tests<ValueType, perm_it_index_tags_usm_shared>();
 #endif // TEST_DPCPP_BACKEND_PRESENT
@@ -127,6 +129,8 @@ main()
     run_algo_tests<ValueType, perm_it_index_tags_host>();
     run_algo_tests<ValueType, perm_it_index_tags_transform_iterator>();
     run_algo_tests<ValueType, perm_it_index_tags_callable_object>();
+
+#endif //!_PSTL_MSVC_GREATER_EQUAL_CPP20_CAN_DEREF_CONCEPT_BROKEN
 
     return TestUtils::done();
 }
