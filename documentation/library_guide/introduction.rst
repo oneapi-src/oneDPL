@@ -128,9 +128,10 @@ Known Limitations
   (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
   for double precision. 
 * The initial value type for ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
-  ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan`` should satisfy
-  the ``DefaultConstructible`` requirements. Additionally, a default-constructed instance of that type should be
-  the identity element for the provided scan binary operation. 
+  ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``reduce_by_segment``
+  should satisfy the ``DefaultConstructible`` requirements for C++ standard policies.
+  Additionally, a default-constructed instance of that type should be
+  the identity element for the provided scan binary operation.
 * The initial value type for ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
   ``inclusive_scan_by_segment``, ``reduce``, ``reduce_by_segment``, ``transform_reduce``, ``transform_exclusive_scan``,
   ``transform_inclusive_scan`` should satisfy the ``MoveAssignable`` and the ``CopyConstructible`` requirements.
