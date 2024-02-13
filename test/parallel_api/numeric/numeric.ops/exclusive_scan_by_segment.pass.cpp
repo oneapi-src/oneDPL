@@ -230,14 +230,6 @@ DEFINE_TEST_2(test_exclusive_scan_by_segment, BinaryPredicate, BinaryOperation)
     }
 };
 
-template <typename ValueType, typename BinaryPredicate, typename BinaryOperation>
-void
-run_test()
-{
-    run_test_on_host<ValueType, BinaryPredicate, BinaryOperation>();
-    run_test_on_device<ValueType, BinaryPredicate, BinaryOperation>();
-}
-
 int
 main()
 {
