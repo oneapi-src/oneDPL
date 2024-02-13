@@ -546,10 +546,14 @@ struct __result_and_scratch_storage
     inline bool
     __use_USM_allocations(sycl::queue __queue)
     {
+#if _ONEDPL_SYCL_USM_HOST_PRESENT
         auto __device = __queue.get_device();
         if (!__device.has(sycl::aspect::usm_device_allocations))
             return false;
         return true;
+#else
+        return false;
+#endif
     }
 
   public:
