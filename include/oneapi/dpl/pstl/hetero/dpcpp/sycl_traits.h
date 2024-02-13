@@ -22,15 +22,20 @@
 
 #if __INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
 
-#define _ONEDPL_DEVICE_COPYABLE(TYPE) \
-template<typename... Ts > \
-struct sycl::is_device_copyable<TYPE<Ts...>, ::std::enable_if_t<!std::is_trivially_copyable_v<TYPE<Ts...>>>>: ::std::conjunction<sycl::is_device_copyable<Ts>...> {};
+#    define _ONEDPL_DEVICE_COPYABLE(TYPE)                                                                              \
+        template <typename... Ts>                                                                                      \
+        struct sycl::is_device_copyable<TYPE<Ts...>, ::std::enable_if_t<!std::is_trivially_copyable_v<TYPE<Ts...>>>>   \
+            : ::std::conjunction<sycl::is_device_copyable<Ts>...>                                                      \
+        {                                                                                                              \
+        };
 
 #else
 
-#define _ONEDPL_DEVICE_COPYABLE(TYPE) \
-template<typename... Ts > \
-struct sycl::is_device_copyable<TYPE<Ts...>>: ::std::conjunction<sycl::is_device_copyable<Ts>...> {};
+#    define _ONEDPL_DEVICE_COPYABLE(TYPE)                                                                              \
+        template <typename... Ts>                                                                                      \
+        struct sycl::is_device_copyable<TYPE<Ts...>> : ::std::conjunction<sycl::is_device_copyable<Ts>...>             \
+        {                                                                                                              \
+        };
 
 #endif
 
