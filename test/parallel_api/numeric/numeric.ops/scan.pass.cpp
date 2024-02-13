@@ -241,6 +241,29 @@ test_matrix(Out init, BinaryOp binary_op, Out trash)
     }
 }
 
+template <typename T>
+void
+test_with_multiplies()
+{
+#if TEST_DPCPP_BACKEND_PRESENT
+    std::size_t n = 10;
+    T trash = 666;
+    T init = 1;
+
+    Sequence<T> in(n, [](size_t k) { return T(k); });
+    Sequence<T> out(n, [&](size_t) { return trash; });
+    Sequence<T> expected(n, [&](size_t) { return trash; });
+#ifdef _PSTL_TEST_INCLUSIVE_SCAN
+    invoke_on_all_hetero_policies<20>()(test_inclusive_scan_with_binary_op<T>(), in.begin(), in.end(), out.begin(),
+                                  out.end(), expected.begin(), expected.end(), in.size(), init, std::multiplies{}, trash);
+#endif
+#ifdef _PSTL_TEST_EXCLUSIVE_SCAN
+    invoke_on_all_hetero_policies<21>()(test_exclusive_scan_with_binary_op<T>(), in.begin(), in.end(), out.begin(),
+                                  out.end(), expected.begin(), expected.end(), in.size(), init, std::multiplies{}, trash);
+#endif
+#endif // TEST_DPCPP_BACKEND_PRESENT
+}
+
 int
 main()
 {
@@ -254,6 +277,8 @@ main()
     // there's little point in using a highly restricted type, so just use double.
     test_with_plus<float64_t>(0.0, -666.0, [](std::uint32_t k) { return float64_t((k % 991 + 1) ^ (k % 997 + 2)); });
     test_with_plus<std::int32_t>(0.0, -666.0, [](std::uint32_t k) { return std::int32_t((k % 991 + 1) ^ (k % 997 + 2)); });
+
+    test_with_multiplies<std::uint64_t>();
 
     return done();
 }
