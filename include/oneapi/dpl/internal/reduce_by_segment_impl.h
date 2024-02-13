@@ -138,13 +138,12 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // Do not vectorise scan if a default-constructed value is not an identity of the binary operation.
     // This is a known limitation.
     auto scan_policy = [&policy]() {
-        constexpr bool is_identity = ::std::is_arithmetic_v<ValueType> &&
-                                     (::std::is_same_v<BinaryOperator, ::std::plus<ValueType>> ||
-                                      ::std::is_same_v<BinaryOperator, ::std::plus<void>>);
-        constexpr bool is_unseq = ::std::is_same_v<::std::decay_t<Policy>,
-                                                   oneapi::dpl::execution::unsequenced_policy>;
-        constexpr bool is_par_unseq = ::std::is_same_v<::std::decay_t<Policy>,
-                                                       oneapi::dpl::execution::parallel_unsequenced_policy>;
+        constexpr bool is_identity =
+            ::std::is_arithmetic_v<ValueType> && (::std::is_same_v<BinaryOperator, ::std::plus<ValueType>> ||
+                                                  ::std::is_same_v<BinaryOperator, ::std::plus<void>>);
+        constexpr bool is_unseq = ::std::is_same_v<::std::decay_t<Policy>, oneapi::dpl::execution::unsequenced_policy>;
+        constexpr bool is_par_unseq =
+            ::std::is_same_v<::std::decay_t<Policy>, oneapi::dpl::execution::parallel_unsequenced_policy>;
         if constexpr (!is_identity && is_unseq)
         {
             return oneapi::dpl::execution::seq;
