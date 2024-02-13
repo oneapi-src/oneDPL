@@ -48,6 +48,7 @@
 #include <algorithm>
 #include <array>
 
+#include "../pstl/execution_defs.h"
 #include "../pstl/iterator_impl.h"
 #include "function.h"
 #include "by_segment_extension_defs.h"
@@ -134,8 +135,31 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // in result2 needs to be written with the scanned_values element.
     oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _scanned_tail_flags(n);
 
+    // Scan with unseq policies requires a default-constructed value to be an identity of the binary operation.
+    //
+    auto scan_policy = [&policy]() {
+        constexpr bool is_identity = ::std::is_arithmetic_v<ValueType> &&
+                                     (::std::is_same_v<BinaryOperator, ::std::plus<ValueType>> ||
+                                      ::std::is_same_v<BinaryOperator, ::std::plus<void>>);
+        constexpr bool is_unseq = ::std::is_same_v<::std::decay_t<Policy>,
+                                                   oneapi::dpl::execution::unsequenced_policy>;
+        constexpr bool is_par_unseq = ::std::is_same_v<::std::decay_t<Policy>,
+                                                       oneapi::dpl::execution::parallel_unsequenced_policy>;
+        if constexpr (!is_identity && is_unseq)
+        {
+            return oneapi::dpl::execution::seq;
+        }
+        else if constexpr (!is_identity && is_par_unseq)
+        {
+            return oneapi::dpl::execution::par;
+        }
+        else
+        {
+            return policy;
+        }
+    };
     // Compute the sum of the segments. scanned_tail_flags values are not used.
-    inclusive_scan(policy, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
+    inclusive_scan(scan_policy(), make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
                    make_zip_iterator(_scanned_values.get(), _scanned_tail_flags.get()),
                    internal::segmented_scan_fun<ValueType, FlagType, BinaryOperator>(binary_op));
 
