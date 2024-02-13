@@ -13,9 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-// This file contains some specialization SYCL traits for some oneDPL types
+// This file contains some specialization SYCL traits for some oneDPL types.
 //
-// Include this header before a kernel submit SYCL code
+// Fancy iterators and internal functors which are device copyable when their
+// template arguments are also device copyable should be explicitly specialized
+// as such. This is important when template argument member variables may be
+// device copyable but not trivially copyable.
+// Include this header before a kernel submit SYCL code.
 
 #ifndef _ONEDPL_SYCL_TRAITS_H
 #define _ONEDPL_SYCL_TRAITS_H
