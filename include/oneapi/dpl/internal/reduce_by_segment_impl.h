@@ -135,8 +135,8 @@ reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 la
     // in result2 needs to be written with the scanned_values element.
     oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _scanned_tail_flags(n);
 
-    // Scan with unseq policies requires a default-constructed value to be an identity of the binary operation.
-    //
+    // Do not vectorise scan if a default-constructed value is not an identity of the binary operation.
+    // This is a known limitation.
     auto scan_policy = [&policy]() {
         constexpr bool is_identity = ::std::is_arithmetic_v<ValueType> &&
                                      (::std::is_same_v<BinaryOperator, ::std::plus<ValueType>> ||
