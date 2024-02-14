@@ -73,7 +73,8 @@ __parallel_for(_ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f)
 
 template <class _ExecutionPolicy, class _Index, class _Fp>
 void
-__parallel_for(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _Index __first, _Index __last, _Fp __f)
+__parallel_for(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&, _Index __first, _Index __last,
+               _Fp __f)
 {
     __f(__first, __last);
 }
@@ -157,7 +158,7 @@ __parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterat
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
 void
-__parallel_for_each(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _ForwardIterator __begin,
+__parallel_for_each(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&, _ForwardIterator __begin,
                     _ForwardIterator __end, _Fp __f)
 {
     for (auto __iter = __begin; __iter != __end; ++__iter)

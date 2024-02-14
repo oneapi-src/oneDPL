@@ -19,6 +19,7 @@
 #include <iterator>
 #include <type_traits>
 
+#include "parallel_backend.h"
 #include "execution_defs.h"
 #include "iterator_defs.h"
 
@@ -96,9 +97,27 @@ __is_parallelization_preferred()
 // backend selector with tags
 //------------------------------------------------------------------------
 
+struct __serial_backend_tag
+{
+};
+
 struct __tbb_backend_tag
 {
 };
+
+struct __omp_backend_tag
+{
+};
+
+#if _ONEDPL_PAR_BACKEND_TBB
+using __par_backend_tag = __tbb_backend_tag;
+#elif _ONEDPL_PAR_BACKEND_OPENMP
+using __par_backend_tag = __omp_backend_tag;
+#elif _ONEDPL_PAR_BACKEND_SERIAL
+using __par_backend_tag = __serial_backend_tag;
+#else
+#    error "Parallel backend was not specified"
+#endif
 
 template <class _IsVector>
 struct __serial_tag
@@ -112,7 +131,7 @@ struct __parallel_tag
     using __is_vector = _IsVector;
     // backend tag can be change depending on
     // TBB availability in the environment
-    using __backend_tag = __tbb_backend_tag;
+    using __backend_tag = __par_backend_tag;
 };
 
 struct __parallel_forward_tag
@@ -120,7 +139,7 @@ struct __parallel_forward_tag
     using __is_vector = ::std::false_type;
     // backend tag can be change depending on
     // TBB availability in the environment
-    using __backend_tag = __tbb_backend_tag;
+    using __backend_tag = __par_backend_tag;
 };
 
 template <class _IsVector, class... _IteratorTypes>
