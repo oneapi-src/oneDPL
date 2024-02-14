@@ -72,6 +72,9 @@ _ONEDPL_DEVICE_COPYABLE(__op_uninitialized_fill)
 
 using namespace oneapi::dpl::__par_backend_hetero;
 
+template <typename _ExecutionPolicy, typename _Pred>
+struct __early_exit_find_or;
+
 _ONEDPL_DEVICE_COPYABLE(__early_exit_find_or);
 
 using namespace oneapi::dpl::unseq_backend;
