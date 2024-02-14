@@ -4825,7 +4825,13 @@ __pattern_merge(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Ran
                 _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2, _RandomAccessIterator3 __d_first,
                 _Compare __comp, _IsVector __is_vector, /* is_parallel = */ ::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2,
+                                                  _RandomAccessIterator3>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     __par_backend::__parallel_merge(
+        __backend_tag{},
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __d_first, __comp,
         [__is_vector](_RandomAccessIterator1 __f1, _RandomAccessIterator1 __l1, _RandomAccessIterator2 __f2,
                       _RandomAccessIterator2 __l2, _RandomAccessIterator3 __f3, _Compare __comp) {
@@ -4841,7 +4847,10 @@ __pattern_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcc
                 _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
                 _RandomAccessIterator3 __d_first, _Compare __comp)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     __par_backend::__parallel_merge(
+        __backend_tag{},
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __d_first, __comp,
         [](_RandomAccessIterator1 __f1, _RandomAccessIterator1 __l1, _RandomAccessIterator2 __f2,
            _RandomAccessIterator2 __l2, _RandomAccessIterator3 __f3,
@@ -4920,6 +4929,7 @@ __pattern_inplace_merge(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
         };
 
         __par_backend::__parallel_merge(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __middle, __last, __r, __comp,
             [__n, __move_values, __move_sequences](_RandomAccessIterator __f1, _RandomAccessIterator __l1,
                                                    _RandomAccessIterator __f2, _RandomAccessIterator __l2, _Tp* __f3,
@@ -4965,6 +4975,7 @@ __pattern_inplace_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _R
         };
 
         __par_backend::__parallel_merge(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __middle, __last, __r, __comp,
             [__n, __move_values, __move_sequences](_RandomAccessIterator __f1, _RandomAccessIterator __l1,
                                                    _RandomAccessIterator __f2, _RandomAccessIterator __l2, _Tp* __f3,

@@ -2075,6 +2075,7 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
         return __d_first;
 
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2, _Iterator3>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     //To consider the direct copying pattern call in case just one of sequences is empty.
     if (__n1 == 0)
@@ -2099,7 +2100,7 @@ __pattern_merge(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
         auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator3>();
         auto __buf3 = __keep3(__d_first, __d_first + __n);
 
-        __par_backend_hetero::__parallel_merge(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
+        __par_backend_hetero::__parallel_merge(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
                                                __buf2.all_view(), __buf3.all_view(), __comp)
             .wait();
     }
@@ -2141,7 +2142,7 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ite
         auto __keep3 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator3>();
         auto __buf3 = __keep3(__d_first, __d_first + __n);
 
-        __par_backend_hetero::__parallel_merge(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
+        __par_backend_hetero::__parallel_merge(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
                                                __buf2.all_view(), __buf3.all_view(), __comp)
             .wait();
     }
