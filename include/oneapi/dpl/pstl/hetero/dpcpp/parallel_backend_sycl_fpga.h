@@ -339,6 +339,17 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __com
                                                                      ::std::forward<_Range>(__rng), __comp, __proj);
 }
 
+template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
+auto
+__parallel_stable_sort(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
+                       _Compare __comp, _Proj __proj)
+{
+    // workaround until we implement more performant version for patterns
+    return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag{},
+                                                                     __exec.__device_policy(),
+                                                                     ::std::forward<_Range>(__rng), __comp, __proj);
+}
+
 //------------------------------------------------------------------------
 // parallel_partial_sort
 //-----------------------------------------------------------------------
