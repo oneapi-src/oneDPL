@@ -2982,7 +2982,7 @@ __pattern_rotate(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __new_f
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator>
 _Iterator
-__pattern_rotate(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __new_first,
+__pattern_rotate(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __new_first,
                  _Iterator __last)
 {
     auto __n = __last - __first;
