@@ -382,6 +382,7 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
         return __d_first;
 
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     using _It1ValueT = typename ::std::iterator_traits<_ForwardIterator1>::value_type;
     using _It2ValueTRef = typename ::std::iterator_traits<_ForwardIterator2>::reference;
@@ -419,8 +420,8 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
 
             using _Function = unseq_backend::walk_adjacent_difference<_ExecutionPolicy, decltype(__fn)>;
 
-            oneapi::dpl::__par_backend_hetero::__parallel_for(__exec, _Function{__fn}, __n, __buf1.all_view(),
-                                                              __buf2.all_view())
+            oneapi::dpl::__par_backend_hetero::__parallel_for(__backend_tag{}, __exec, _Function{__fn}, __n,
+                                                              __buf1.all_view(), __buf2.all_view())
                 .wait();
 
             return __d_last;
@@ -474,8 +475,8 @@ __pattern_adjacent_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
 
             using _Function = unseq_backend::walk_adjacent_difference<_ExecutionPolicy, decltype(__fn)>;
 
-            oneapi::dpl::__par_backend_hetero::__parallel_for(__exec, _Function{__fn}, __n, __buf1.all_view(),
-                                                              __buf2.all_view())
+            oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, __exec, _Function{__fn}, __n,
+                                                              __buf1.all_view(), __buf2.all_view())
                 .wait();
 
             return __d_last;

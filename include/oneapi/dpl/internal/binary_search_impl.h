@@ -111,6 +111,10 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputItera
 lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2, OutputIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
 
@@ -128,7 +132,7 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(::std::forward<Policy>(policy),
+    __bknd::__parallel_for(__backend_tag{}, ::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size,
                            zip_vw)
         .wait();
@@ -141,6 +145,10 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputItera
 upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2, OutputIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
 
@@ -158,7 +166,7 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(::std::forward<Policy>(policy),
+    __bknd::__parallel_for(__backend_tag{}, ::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size,
                            zip_vw)
         .wait();
@@ -171,6 +179,10 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputItera
 binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                    InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2, OutputIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
 
@@ -188,7 +200,7 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(::std::forward<Policy>(policy),
+    __bknd::__parallel_for(__backend_tag{}, ::std::forward<Policy>(policy),
                            custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size,
                            zip_vw)
         .wait();

@@ -42,9 +42,12 @@ __pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forw
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
 
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-        __buf.all_view());
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf.all_view());
     return __future_obj;
 }
 
@@ -66,9 +69,13 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-        __buf1.all_view(), __buf2.all_view());
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf1.all_view(), __buf2.all_view());
 
     if constexpr (_IsSync::value)
         __future.wait();
@@ -95,9 +102,14 @@ __pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator3>();
     auto __buf3 = __keep3(__first3, __first3 + __n);
 
-    auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-        __buf1.all_view(), __buf2.all_view(), __buf3.all_view());
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1,
+                                                                              _ForwardIterator2, _ForwardIterator3>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
+    auto __future =
+        oneapi::dpl::__par_backend_hetero::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+                                                          __buf1.all_view(), __buf2.all_view(), __buf3.all_view());
 
     return __future.__make_future(__first3 + __n);
 }

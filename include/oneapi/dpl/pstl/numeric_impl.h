@@ -572,13 +572,17 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _RandomAccessIterator1 
                               _RandomAccessIterator2 __d_first, _BinaryOperation __op, _IsVector __is_vector,
                               /*is_parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     assert(__first != __last);
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::reference _ReferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::reference _ReferenceType2;
 
     *__d_first = *__first;
     __par_backend::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last - 1,
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last - 1,
         [&__op, __is_vector, __d_first, __first](_RandomAccessIterator1 __b, _RandomAccessIterator1 __e) {
             _RandomAccessIterator2 __d_b = __d_first + (__b - __first);
             __internal::__brick_walk3(
@@ -596,13 +600,17 @@ __pattern_adjacent_difference(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&
                               _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                               _RandomAccessIterator2 __d_first, _BinaryOperation __op)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     assert(__first != __last);
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::reference _ReferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::reference _ReferenceType2;
 
     *__d_first = *__first;
     __par_backend::__parallel_for(
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last - 1,
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last - 1,
         [&__op, __d_first, __first](_RandomAccessIterator1 __b, _RandomAccessIterator1 __e) {
             _RandomAccessIterator2 __d_b = __d_first + (__b - __first);
             __internal::__brick_walk3(
