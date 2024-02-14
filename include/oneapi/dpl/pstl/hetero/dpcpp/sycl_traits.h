@@ -24,12 +24,6 @@
 #ifndef _ONEDPL_SYCL_TRAITS_H
 #define _ONEDPL_SYCL_TRAITS_H
 
-#include "../../../internal/function.h"
-#include "../../../binary_search_impl.h"
-#include "unseq_backend_sycl.h"
-#include "../../utils.h"
-#include "../../iterator_impl.h"
-
 #if __INTEL_LLVM_COMPILER && (__INTEL_LLVM_COMPILER < 20240100)
 
 #    define _ONEDPL_DEVICE_COPYABLE(TYPE)                                                                              \
