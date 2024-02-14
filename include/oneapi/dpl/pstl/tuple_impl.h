@@ -670,6 +670,8 @@ get(const oneapi::dpl::__internal::tuple<_Tp...>&& __a)
     return ::std::move(__a).template get<_Idx>();
 }
 
+// To enable oneapi::dpl::zip_iterator to satisfy the requirements for the std::input_iterator concept in C++20,
+// we must provide a basic_common_reference specialization for our internal tuple implementation.
 #if __cplusplus >= 202002L
 template <typename... TTypes, typename... UTypes, template <typename> typename TQual,
           template <typename> typename UQual>
@@ -680,6 +682,10 @@ struct basic_common_reference<oneapi::dpl::__internal::tuple<TTypes...>, oneapi:
 };
 #endif
 
+// To enable oneapi::dpl::__internal::zip_forward_iterator to satisfy the requirements for the
+// std::input_iterator concept in C++20 which is a constraint imposed in the oneTBB backend,
+// we must provide a basic_common_reference specialization for std::tuple which is not provided
+// in the standard until C++23.
 #if __cplusplus >= 202002L && __cplusplus < 202302L
 template <typename... TTypes, typename... UTypes, template <typename> typename TQual,
           template <typename> typename UQual>
