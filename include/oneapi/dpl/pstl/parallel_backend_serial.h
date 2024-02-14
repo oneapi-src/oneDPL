@@ -138,6 +138,19 @@ __parallel_strict_scan(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __redu
         __scan(_Index(0), __n, __initial);
 }
 
+template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
+void
+__parallel_strict_scan(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&, _Index __n, _Tp __initial,
+                       _Rp __reduce, _Cp __combine, _Sp __scan, _Ap __apex)
+{
+    _Tp __sum = __initial;
+    if (__n)
+        __sum = __combine(__sum, __reduce(_Index(0), __n));
+    __apex(__sum);
+    if (__n)
+        __scan(_Index(0), __n, __initial);
+}
+
 template <class _ExecutionPolicy, class _Index, class _UnaryOp, class _Tp, class _BinaryOp, class _Reduce, class _Scan>
 _Tp
 __parallel_transform_scan(_ExecutionPolicy&&, _Index __n, _UnaryOp, _Tp __init, _BinaryOp, _Reduce, _Scan __scan)

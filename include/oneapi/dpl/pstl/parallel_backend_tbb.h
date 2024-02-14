@@ -456,6 +456,46 @@ __parallel_strict_scan(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __redu
     });
 }
 
+template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
+void
+__parallel_strict_scan(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _Index __n, _Tp __initial,
+                       _Rp __reduce, _Cp __combine, _Sp __scan, _Ap __apex)
+{
+    tbb::this_task_arena::isolate([=, &__combine]() {
+        if (__n > 1)
+        {
+            _Index __p = tbb::this_task_arena::max_concurrency();
+            const _Index __slack = 4;
+            _Index __tilesize = (__n - 1) / (__slack * __p) + 1;
+            _Index __m = (__n - 1) / __tilesize;
+            __tbb_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__m + 1);
+            _Tp* __r = __buf.get();
+            __tbb_backend::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __reduce,
+                                     __combine);
+
+            // When __apex is a no-op and __combine has no side effects, a good optimizer
+            // should be able to eliminate all code between here and __apex.
+            // Alternatively, provide a default value for __apex that can be
+            // recognized by metaprogramming that conditionlly executes the following.
+            size_t __k = __m + 1;
+            _Tp __t = __r[__k - 1];
+            while ((__k &= __k - 1))
+                __t = __combine(__r[__k - 1], __t);
+            __apex(__combine(__initial, __t));
+            __tbb_backend::__downsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __initial,
+                                       __combine, __scan);
+            return;
+        }
+        // Fewer than 2 elements in sequence, or out of memory.  Handle has single block.
+        _Tp __sum = __initial;
+        if (__n)
+            __sum = __combine(__sum, __reduce(_Index(0), __n));
+        __apex(__sum);
+        if (__n)
+            __scan(_Index(0), __n, __initial);
+    });
+}
+
 template <class _ExecutionPolicy, class _Index, class _Up, class _Tp, class _Cp, class _Rp, class _Sp>
 _Tp
 __parallel_transform_scan(_ExecutionPolicy&&, _Index __n, _Up __u, _Tp __init, _Cp __combine, _Rp __brick_reduce,
