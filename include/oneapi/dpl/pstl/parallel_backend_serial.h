@@ -210,6 +210,14 @@ __parallel_invoke(_ExecutionPolicy&&, _F1&& __f1, _F2&& __f2)
     ::std::forward<_F2>(__f2)();
 }
 
+template <class _ExecutionPolicy, typename _F1, typename _F2>
+void
+__parallel_invoke(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&, _F1&& __f1, _F2&& __f2)
+{
+    ::std::forward<_F1>(__f1)();
+    ::std::forward<_F2>(__f2)();
+}
+
 template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
 void
 __parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterator __end, _Fp __f)
