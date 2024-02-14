@@ -1416,6 +1416,36 @@ __parallel_merge(_ExecutionPolicy&&, _RandomAccessIterator1 __xs, _RandomAccessI
     }
 }
 
+template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
+          typename _RandomAccessIterator3, typename _Compare, typename _LeafMerge>
+void
+__parallel_merge(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _RandomAccessIterator1 __xs,
+                 _RandomAccessIterator1 __xe,
+                 _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye, _RandomAccessIterator3 __zs, _Compare __comp,
+                 _LeafMerge __leaf_merge)
+{
+    typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
+    typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;
+    typedef typename ::std::common_type_t<_DifferenceType1, _DifferenceType2> _SizeType;
+    const _SizeType __n = (__xe - __xs) + (__ye - __ys);
+    const _SizeType __merge_cut_off = _ONEDPL_MERGE_CUT_OFF;
+    if (__n <= __merge_cut_off)
+    {
+        // Fall back on serial merge
+        __leaf_merge(__xs, __xe, __ys, __ye, __zs, __comp);
+    }
+    else
+    {
+        tbb::this_task_arena::isolate([=]() {
+            typedef __merge_func_static<_RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator3,
+                                        _Compare, _LeafMerge>
+                _TaskType;
+            __root_task<_TaskType> __root{__xs, __xe, __ys, __ye, __zs, __comp, __leaf_merge};
+            __task::spawn_root_and_wait(__root);
+        });
+    }
+}
+
 //------------------------------------------------------------------------
 // parallel_invoke
 //------------------------------------------------------------------------

@@ -1741,6 +1741,34 @@ __parallel_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, 
     }
 }
 
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
+auto
+__parallel_merge(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range1&& __rng1,
+                 _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
+{
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
+
+    const auto __n = __rng1.size() + __rng2.size();
+    if (__n <= std::numeric_limits<::std::uint32_t>::max())
+    {
+        using _wi_index_type = ::std::uint32_t;
+        using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __merge_kernel_name<_CustomName, _wi_index_type>>;
+        return __parallel_merge_submitter<_wi_index_type, _MergeKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+            ::std::forward<_Range3>(__rng3), __comp);
+    }
+    else
+    {
+        using _wi_index_type = ::std::uint64_t;
+        using _MergeKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+            __merge_kernel_name<_CustomName, _wi_index_type>>;
+        return __parallel_merge_submitter<_wi_index_type, _MergeKernel>()(
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+            ::std::forward<_Range3>(__rng3), __comp);
+    }
+}
+
 //-----------------------------------------------------------------------
 // parallel_sort: general implementation
 //-----------------------------------------------------------------------
