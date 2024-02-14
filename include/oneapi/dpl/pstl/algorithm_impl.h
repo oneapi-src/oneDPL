@@ -1968,6 +1968,10 @@ __pattern_copy_if(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _Ra
                   _RandomAccessIterator2 __result, _UnaryPredicate __pred, _IsVector __is_vector,
                   /*parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType;
     const _DifferenceType __n = __last - __first;
     if (_DifferenceType(1) < __n)
@@ -1977,6 +1981,7 @@ __pattern_copy_if(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _Ra
             bool* __mask = __mask_buf.get();
             _DifferenceType __m{};
             __par_backend::__parallel_strict_scan(
+                __backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __n, _DifferenceType(0),
                 [=](_DifferenceType __i, _DifferenceType __len) { // Reduce
                     return __internal::__brick_calc_mask_1<_DifferenceType>(__first + __i, __first + (__i + __len),
@@ -2003,6 +2008,8 @@ _RandomAccessIterator2
 __pattern_copy_if(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
                   _RandomAccessIterator1 __last, _RandomAccessIterator2 __result, _UnaryPredicate __pred)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType;
     const _DifferenceType __n = __last - __first;
     if (_DifferenceType(1) < __n)
@@ -2012,6 +2019,7 @@ __pattern_copy_if(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
             bool* __mask = __mask_buf.get();
             _DifferenceType __m{};
             __par_backend::__parallel_strict_scan(
+                __backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __n, _DifferenceType(0),
                 [=](_DifferenceType __i, _DifferenceType __len) { // Reduce
                     return __internal::__brick_calc_mask_1<_DifferenceType>(__first + __i, __first + (__i + __len),
@@ -2212,6 +2220,7 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
         _DifferenceType __m{};
         // 2. Elements that doesn't satisfy pred are moved to result
         __par_backend::__parallel_strict_scan(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __n, _DifferenceType(0),
             [__mask, __is_vector](_DifferenceType __i, _DifferenceType __len) {
                 return __internal::__brick_count(
@@ -2365,6 +2374,10 @@ __pattern_unique_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
                       _RandomAccessIterator2 __result, _BinaryPredicate __pred, _IsVector __is_vector,
                       /*parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType;
     const _DifferenceType __n = __last - __first;
     if (_DifferenceType(2) < __n)
@@ -2376,6 +2389,7 @@ __pattern_unique_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
                 bool* __mask = __mask_buf.get();
                 _DifferenceType __m{};
                 __par_backend::__parallel_strict_scan(
+                    __backend_tag{},
                     ::std::forward<_ExecutionPolicy>(__exec), __n, _DifferenceType(0),
                     [=](_DifferenceType __i, _DifferenceType __len) -> _DifferenceType { // Reduce
                         _DifferenceType __extra = 0;
@@ -2414,6 +2428,8 @@ _RandomAccessIterator2
 __pattern_unique_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
                       _RandomAccessIterator1 __last, _RandomAccessIterator2 __result, _BinaryPredicate __pred)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType;
     const _DifferenceType __n = __last - __first;
     if (_DifferenceType(2) < __n)
@@ -2425,6 +2441,7 @@ __pattern_unique_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ran
                 bool* __mask = __mask_buf.get();
                 _DifferenceType __m{};
                 __par_backend::__parallel_strict_scan(
+                    __backend_tag{},
                     ::std::forward<_ExecutionPolicy>(__exec), __n, _DifferenceType(0),
                     [=](_DifferenceType __i, _DifferenceType __len) -> _DifferenceType { // Reduce
                         _DifferenceType __extra = 0;
@@ -3609,6 +3626,11 @@ __pattern_partition_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __fir
                          _RandomAccessIterator2 __out_true, _RandomAccessIterator3 __out_false, _UnaryPredicate __pred,
                          _IsVector __is_vector, /*is_parallelization=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2,
+                                                  _RandomAccessIterator3>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType;
     typedef ::std::pair<_DifferenceType, _DifferenceType> _ReturnType;
     const _DifferenceType __n = __last - __first;
@@ -3620,6 +3642,7 @@ __pattern_partition_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __fir
             bool* __mask = __mask_buf.get();
             _ReturnType __m{};
             __par_backend::__parallel_strict_scan(
+                __backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::make_pair(_DifferenceType(0), _DifferenceType(0)),
                 [=](_DifferenceType __i, _DifferenceType __len) { // Reduce
                     return __internal::__brick_calc_mask_1<_DifferenceType>(__first + __i, __first + (__i + __len),
@@ -3648,6 +3671,8 @@ __pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
                          _RandomAccessIterator1 __last, _RandomAccessIterator2 __out_true,
                          _RandomAccessIterator3 __out_false, _UnaryPredicate __pred)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType;
     typedef ::std::pair<_DifferenceType, _DifferenceType> _ReturnType;
     const _DifferenceType __n = __last - __first;
@@ -3658,6 +3683,7 @@ __pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
             bool* __mask = __mask_buf.get();
             _ReturnType __m{};
             __par_backend::__parallel_strict_scan(
+                __backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __n, ::std::make_pair(_DifferenceType(0), _DifferenceType(0)),
                 [=](_DifferenceType __i, _DifferenceType __len) { // Reduce
                     return __internal::__brick_calc_mask_1<_DifferenceType>(__first + __i, __first + (__i + __len),
@@ -5068,6 +5094,10 @@ __parallel_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwar
                   _ForwardIterator2 __first2, _ForwardIterator2 __last2, _OutputIterator __result, _Compare __comp,
                   _SizeFunction __size_func, _SetOP __set_op, _IsVector __is_vector)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1,
+                                                                              _ForwardIterator2, _OutputIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _DifferenceType;
     typedef typename ::std::iterator_traits<_OutputIterator>::value_type _T;
 
@@ -5097,6 +5127,7 @@ __parallel_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwar
                                                          __result + __s.__pos, __is_vector);
         };
         __par_backend::__parallel_strict_scan(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __n1, _SetRange{0, 0, 0}, //-1, 0},
             [=](_DifferenceType __i, _DifferenceType __len) {                   // Reduce
                 //[__b; __e) - a subrange of the first sequence, to reduce
