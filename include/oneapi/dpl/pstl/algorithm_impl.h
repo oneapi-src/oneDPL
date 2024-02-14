@@ -5245,6 +5245,7 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
     typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _DifferenceType;
 
     constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2, _OutputIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     const auto __n1 = __last1 - __first1;
     const auto __n2 = __last2 - __first2;
@@ -5268,7 +5269,7 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
     {
         //{1} < {2}: seq2 is wholly greater than seq1, so, do parallel copying seq1 and seq2
         __par_backend::__parallel_invoke(
-            ::std::forward<_ExecutionPolicy>(__exec),
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
             [=] {
                 __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
                                                   __last1, __result, __copy_range);
@@ -5287,7 +5288,7 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
     {
         //{2} < {1}: seq2 is wholly greater than seq1, so, do parallel copying seq1 and seq2
         __par_backend::__parallel_invoke(
-            ::std::forward<_ExecutionPolicy>(__exec),
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
             [=] {
                 __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first2,
                                                   __last2, __result, __copy_range);
@@ -5305,7 +5306,7 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
         auto __res_or = __result;
         __result += __m1; //we know proper offset due to [first1; left_bound_seq_1) < [first2; last2)
         __par_backend::__parallel_invoke(
-            ::std::forward<_ExecutionPolicy>(__exec),
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
             //do parallel copying of [first1; left_bound_seq_1)
             [=] {
                 __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
@@ -5327,7 +5328,7 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
         auto __res_or = __result;
         __result += __m2; //we know proper offset due to [first2; left_bound_seq_2) < [first1; last1)
         __par_backend::__parallel_invoke(
-            ::std::forward<_ExecutionPolicy>(__exec),
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
             //do parallel copying of [first2; left_bound_seq_2)
             [=] {
                 __internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first2,
