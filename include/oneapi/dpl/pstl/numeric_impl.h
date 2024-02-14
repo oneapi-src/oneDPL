@@ -92,9 +92,13 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __f
                            _RandomAccessIterator2 __first2, _Tp __init, _BinaryOperation1 __binary_op1,
                            _BinaryOperation2 __binary_op2, _IsVector __is_vector, /*is_parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_transform_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
             [__first1, __first2, __binary_op2](_RandomAccessIterator1 __i) mutable {
                 return __binary_op2(*__i, *(__first2 + (__i - __first1)));
             },
@@ -115,9 +119,11 @@ __pattern_transform_reduce(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& _
                            _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init,
                            _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_transform_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
             [__first1, __first2, __binary_op2](_RandomAccessIterator1 __i) mutable {
                 return __binary_op2(*__i, *(__first2 + (__i - __first1)));
             },
@@ -188,9 +194,13 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _RandomAccessIterator __fi
                            _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __unary_op, _IsVector __is_vector,
                            /*is_parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_transform_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             [__unary_op](_RandomAccessIterator __i) mutable { return __unary_op(*__i); }, __init, __binary_op,
             [__unary_op, __binary_op, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j, _Tp __init) {
                 return __internal::__brick_transform_reduce(__i, __j, __init, __binary_op, __unary_op, __is_vector);
@@ -201,13 +211,15 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _RandomAccessIterator __fi
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Tp, class _BinaryOperation,
           class _UnaryOperation>
 _Tp
-__pattern_transform_reduce(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_transform_reduce(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                            _RandomAccessIterator __last, _Tp __init, _BinaryOperation __binary_op,
                            _UnaryOperation __unary_op)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_transform_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             [__unary_op](_RandomAccessIterator __i) mutable { return __unary_op(*__i); }, __init, __binary_op,
             [__unary_op, __binary_op](_RandomAccessIterator __i, _RandomAccessIterator __j, _Tp __init) {
                 return __internal::__brick_transform_reduce(__i, __j, __init, __binary_op, __unary_op, _IsVector{});
