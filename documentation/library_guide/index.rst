@@ -23,6 +23,7 @@ For general information, refer to the `oneDPL GitHub* repository
    parallel_api_main
    api_for_sycl_kernels_main
    dynamic_selection_api_main
+   kernel_templates_main
    macros
    cmake_support
    oneDPL_2022.0_changes
