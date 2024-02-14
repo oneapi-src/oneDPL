@@ -991,11 +991,14 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
     if (__last - __first < 2)
         return __last;
 
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, adjacent_find_fn<_BinaryPredicate>>;
 
     auto __result = __par_backend_hetero::__parallel_find(
-        ::std::forward<_ExecutionPolicy>(__exec),
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::zip(
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1)),
@@ -1024,7 +1027,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
         oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, adjacent_find_fn<_BinaryPredicate>>;
 
     auto __result = __par_backend_hetero::__parallel_find(
-        ::std::forward<_ExecutionPolicy>(__exec),
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::zip(
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1)),
@@ -1254,12 +1257,13 @@ __pattern_find_end(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __l
     if (__first == __last || __s_last == __s_first || __last - __first < __s_last - __s_first)
         return __last;
 
+    // TODO is it correct that we check _Iterator2 in __select_backend ?
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     if (__last - __first == __s_last - __s_first)
     {
-        // TODO is it correct that we check _Iterator2 in __select_backend ?
-        constexpr auto __dispatch_tag =
-            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
-
         const bool __res = __pattern_equal(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                            __s_first, __pred);
         return __res ? __first : __last;
@@ -1269,7 +1273,7 @@ __pattern_find_end(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __l
         using _Predicate = unseq_backend::multiple_match_pred<_ExecutionPolicy, _Pred>;
 
         return __par_backend_hetero::__parallel_find(
-            ::std::forward<_ExecutionPolicy>(__exec),
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
@@ -1297,7 +1301,7 @@ __pattern_find_end(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
         using _Predicate = unseq_backend::multiple_match_pred<_ExecutionPolicy, _Pred>;
 
         return __par_backend_hetero::__parallel_find(
-            ::std::forward<_ExecutionPolicy>(__exec),
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
@@ -1318,12 +1322,16 @@ __pattern_find_first_of(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator
     if (__first == __last || __s_last == __s_first)
         return __last;
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     using _Predicate = unseq_backend::first_match_pred<_ExecutionPolicy, _Pred>;
 
     // TODO: To check whether it makes sense to iterate over the second sequence in case of
     // distance(__first, __last) < distance(__s_first, __s_last).
     return __par_backend_hetero::__parallel_find(
-        ::std::forward<_ExecutionPolicy>(__exec),
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
@@ -1344,7 +1352,7 @@ __pattern_find_first_of(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
     // TODO: To check whether it makes sense to iterate over the second sequence in case of
     // distance(__first, __last) < distance(__s_first, __s_last).
     return __par_backend_hetero::__parallel_find(
-        ::std::forward<_ExecutionPolicy>(__exec),
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
@@ -1373,12 +1381,13 @@ __pattern_search(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __las
     if (__last - __first < __s_last - __s_first)
         return __last;
 
+    // TODO is it correct that we check _Iterator2 in __select_backend ?
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     if (__last - __first == __s_last - __s_first)
     {
-        // TODO is it correct that we check _Iterator2 in __select_backend ?
-        constexpr auto __dispatch_tag =
-            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
-
         const bool __res = __pattern_equal(
             __dispatch_tag,
             __par_backend_hetero::make_wrapped_policy<equal_wrapper>(::std::forward<_ExecutionPolicy>(__exec)), __first,
@@ -1388,7 +1397,7 @@ __pattern_search(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __las
 
     using _Predicate = unseq_backend::multiple_match_pred<_ExecutionPolicy, _Pred>;
     return __par_backend_hetero::__parallel_find(
-        ::std::forward<_ExecutionPolicy>(__exec),
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
@@ -1398,7 +1407,7 @@ __pattern_search(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __las
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
 _Iterator1
-__pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
+__pattern_search(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
                  _Iterator2 __s_first, _Iterator2 __s_last, _Pred __pred)
 {
     if (__s_last == __s_first)
@@ -1417,7 +1426,7 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
 
     using _Predicate = unseq_backend::multiple_match_pred<_ExecutionPolicy, _Pred>;
     return __par_backend_hetero::__parallel_find(
-        ::std::forward<_ExecutionPolicy>(__exec),
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
@@ -1465,8 +1474,12 @@ __pattern_search_n(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __las
     }
 
     using _Predicate = unseq_backend::n_elem_match_pred<_ExecutionPolicy, _BinaryPredicate, _Tp, _Size>;
+
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     return __par_backend_hetero::__parallel_find(
-        ::std::forward<_ExecutionPolicy>(__exec),
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
         _Predicate{__pred, __value, __count}, ::std::true_type{});
@@ -1513,14 +1526,18 @@ __pattern_mismatch(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __
     if (__n <= 0)
         return ::std::make_pair(__first1, __first2);
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, equal_predicate<_Pred>>;
 
     auto __first_zip = __par_backend_hetero::zip(
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first1),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first2));
-    auto __result =
-        __par_backend_hetero::__parallel_find(::std::forward<_ExecutionPolicy>(__exec), __first_zip, __first_zip + __n,
-                                              _Predicate{equal_predicate<_Pred>{__pred}}, ::std::true_type{});
+    auto __result = __par_backend_hetero::__parallel_find(
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first_zip, __first_zip + __n,
+        _Predicate{equal_predicate<_Pred>{__pred}}, ::std::true_type{});
     __n = __result - __first_zip;
     return ::std::make_pair(__first1 + __n, __first2 + __n);
 }
@@ -1539,9 +1556,9 @@ __pattern_mismatch(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     auto __first_zip = __par_backend_hetero::zip(
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first1),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first2));
-    auto __result =
-        __par_backend_hetero::__parallel_find(::std::forward<_ExecutionPolicy>(__exec), __first_zip, __first_zip + __n,
-                                              _Predicate{equal_predicate<_Pred>{__pred}}, ::std::true_type{});
+    auto __result = __par_backend_hetero::__parallel_find(
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __first_zip, __first_zip + __n,
+        _Predicate{equal_predicate<_Pred>{__pred}}, ::std::true_type{});
     __n = __result - __first_zip;
     return ::std::make_pair(__first1 + __n, __first2 + __n);
 }
@@ -1976,11 +1993,15 @@ __pattern_is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
     if (__last - __first < 2)
         return __last;
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred_by_idx<_ExecutionPolicy, __is_heap_check<_Compare>>;
 
     return __par_backend_hetero::__parallel_find(
-        ::std::forward<_ExecutionPolicy>(__exec),
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp},
         ::std::true_type{});
@@ -1998,7 +2019,7 @@ __pattern_is_heap_until(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
         oneapi::dpl::unseq_backend::single_match_pred_by_idx<_ExecutionPolicy, __is_heap_check<_Compare>>;
 
     return __par_backend_hetero::__parallel_find(
-        ::std::forward<_ExecutionPolicy>(__exec),
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp},
         ::std::true_type{});

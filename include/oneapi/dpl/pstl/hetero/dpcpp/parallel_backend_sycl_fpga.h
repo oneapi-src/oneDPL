@@ -257,7 +257,8 @@ __parallel_find(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last
 {
 
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_find(__exec.__device_policy(), __first, __last, __s_first,
+    return oneapi::dpl::__par_backend_hetero::__parallel_find(oneapi::dpl::__internal::__device_backend_tag{},
+                                                              __exec.__device_policy(), __first, __last, __s_first,
                                                               __s_last, __f, __is_first);
 }
 
