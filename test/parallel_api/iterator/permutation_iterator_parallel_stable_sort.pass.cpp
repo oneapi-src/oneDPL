@@ -52,7 +52,7 @@ DEFINE_TEST_PERM_IT(test_sort, PermItIndexTag)
                 {
                     using ValueType = typename ::std::iterator_traits<decltype(permItBegin)>::value_type;
 
-                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
+                    const auto testing_n = permItEnd - permItBegin;
 
                     // Fill full source data set (not only values iterated by permutation iterator)
                     generate_data(host_keys_ptr, host_keys_ptr + n, n);

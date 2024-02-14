@@ -43,7 +43,7 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
             test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
-                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
+                    const auto testing_n = permItEnd - permItBegin;
 
                     // Fill full source data set (not only values iterated by permutation iterator)
                     generate_data(host_keys_ptr, host_keys_ptr + n, n);
@@ -59,7 +59,7 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
                     auto itEndNewRes = dpl::remove_if(exec, permItBegin, permItEnd, op);
                     wait_and_throw(exec);
 
-                    const auto newSizeResult = ::std::distance(permItBegin, itEndNewRes);
+                    const auto newSizeResult = itEndNewRes - permItBegin;
 
                     // Copy modified data back
                     std::vector<TestValueType> resultRemoveIf(newSizeResult);
@@ -69,7 +69,7 @@ DEFINE_TEST_PERM_IT(test_remove_if, PermItIndexTag)
                     // Eval expected result
                     auto expectedRemoveIf = sourceData;
                     auto itEndNewExpected = ::std::remove_if(expectedRemoveIf.begin(), expectedRemoveIf.end(), op);
-                    const auto newSizeExpected = ::std::distance(expectedRemoveIf.begin(), itEndNewExpected);
+                    const auto newSizeExpected = itEndNewExpected - expectedRemoveIf.begin();
 
                     // Check results
                     EXPECT_EQ(newSizeExpected, newSizeResult, "Wrong result size after dpl::remove_if");
