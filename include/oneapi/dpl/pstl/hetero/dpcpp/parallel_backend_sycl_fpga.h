@@ -173,6 +173,19 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2
         __unary_op, __init, __binary_op, _Inclusive{});
 }
 
+template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
+          typename _BinaryOperation, typename _Inclusive>
+auto
+__parallel_transform_scan(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Range1&& __in_rng,
+                          _Range2&& __out_rng, ::std::size_t __n, _UnaryOperation __unary_op, _InitType __init,
+                          _BinaryOperation __binary_op, _Inclusive)
+{
+    // workaround until we implement more performant version for patterns
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+        oneapi::dpl::__internal::__device_backend_tag{}, __exec.__device_policy(), ::std::forward<_Range1>(__in_rng),
+        ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
+}
+
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
           typename _LocalScan, typename _GroupScan, typename _GlobalScan,
           oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
