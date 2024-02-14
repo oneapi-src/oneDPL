@@ -3733,8 +3733,13 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
                _IsVector /*is_vector*/, /*is_parallel=*/::std::true_type, /*is_move_constructible=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     __internal::__except_handler([&]() {
         __par_backend::__parallel_stable_sort(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
             [](_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) {
                 ::std::sort(__first, __last, __comp);
@@ -3749,8 +3754,11 @@ __pattern_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcce
                _RandomAccessIterator __last, _Compare __comp,
                /*is_move_constructible=*/::std::true_type)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     __internal::__except_handler([&]() {
         __par_backend::__parallel_stable_sort(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
             [](_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) {
                 ::std::sort(__first, __last, __comp);
@@ -3785,8 +3793,13 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_stable_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
                       _Compare __comp, _IsVector /*is_vector*/, /*is_parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     __internal::__except_handler([&]() {
         __par_backend::__parallel_stable_sort(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
             [](_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) {
                 ::std::stable_sort(__first, __last, __comp);
@@ -3800,8 +3813,11 @@ void
 __pattern_stable_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                       _RandomAccessIterator __last, _Compare __comp)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     __internal::__except_handler([&]() {
         __par_backend::__parallel_stable_sort(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
             [](_RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp) {
                 ::std::stable_sort(__first, __last, __comp);
@@ -3866,8 +3882,13 @@ __pattern_sort_by_key(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __keys_f
         return __comp(::std::get<0>(__a), ::std::get<0>(__b));
     };
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     __internal::__except_handler([&]() {
         __par_backend::__parallel_stable_sort(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __cmp_f,
             [](auto __first, auto __last, auto __cmp) { ::std::sort(__first, __last, __cmp); }, __end - __beg);
     });
@@ -3890,8 +3911,11 @@ __pattern_sort_by_key(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ran
         return __comp(::std::get<0>(__a), ::std::get<0>(__b));
     };
 
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     __internal::__except_handler([&]() {
         __par_backend::__parallel_stable_sort(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __beg, __end, __cmp_f,
             [](auto __first, auto __last, auto __cmp) { ::std::sort(__first, __last, __cmp); }, __end - __beg);
     });
@@ -3929,8 +3953,13 @@ __pattern_partial_sort(_ExecutionPolicy&& __exec, _RandomAccessIterator __first,
     if (__n == 0)
         return;
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     __except_handler([&]() {
         __par_backend::__parallel_stable_sort(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
             [__n](_RandomAccessIterator __begin, _RandomAccessIterator __end, _Compare __comp) {
                 if (__n < __end - __begin)
@@ -3951,8 +3980,11 @@ __pattern_partial_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ra
     if (__n == 0)
         return;
 
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     __except_handler([&]() {
         __par_backend::__parallel_stable_sort(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __comp,
             [__n](_RandomAccessIterator __begin, _RandomAccessIterator __end, _Compare __comp) {
                 if (__n < __end - __begin)
@@ -3998,12 +4030,18 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __
     {
         return __d_first;
     }
+
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     auto __n1 = __last - __first;
     auto __n2 = __d_last - __d_first;
     return __internal::__except_handler([&]() {
         if (__n2 >= __n1)
         {
             __par_backend::__parallel_stable_sort(
+                __backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __d_first, __d_first + __n1, __comp,
                 [__first, __d_first, __is_vector](_RandomAccessIterator2 __i, _RandomAccessIterator2 __j,
                                                   _Compare __comp) {
@@ -4026,6 +4064,7 @@ __pattern_partial_sort_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __
             _T1* __r = __buf.get();
 
             __par_backend::__parallel_stable_sort(
+                __backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n1, __comp,
                 [__n2, __first, __r](_T1* __i, _T1* __j, _Compare __comp) {
                     _RandomAccessIterator1 __it = __first + (__i - __r);
@@ -4080,6 +4119,7 @@ __pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec
         if (__n2 >= __n1)
         {
             __par_backend::__parallel_stable_sort(
+                __backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __d_first, __d_first + __n1, __comp,
                 [__first, __d_first](_RandomAccessIterator2 __i, _RandomAccessIterator2 __j, _Compare __comp) {
                     _RandomAccessIterator1 __i1 = __first + (__i - __d_first);
@@ -4101,6 +4141,7 @@ __pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec
             _T1* __r = __buf.get();
 
             __par_backend::__parallel_stable_sort(
+                __backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __r, __r + __n1, __comp,
                 [__n2, __first, __r](_T1* __i, _T1* __j, _Compare __comp) {
                     _RandomAccessIterator1 __it = __first + (__i - __r);

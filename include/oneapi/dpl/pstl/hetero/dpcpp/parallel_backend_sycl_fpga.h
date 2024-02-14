@@ -335,7 +335,8 @@ auto
 __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(__exec.__device_policy(),
+    return oneapi::dpl::__par_backend_hetero::__parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag{},
+                                                                     __exec.__device_policy(),
                                                                      ::std::forward<_Range>(__rng), __comp, __proj);
 }
 
