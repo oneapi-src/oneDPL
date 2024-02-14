@@ -154,6 +154,21 @@ __parallel_reduce(_ExecutionPolicy&&, _Index __first, _Index __last, const _Valu
     });
 }
 
+template <class _ExecutionPolicy, class _Value, class _Index, typename _RealBody, typename _Reduction>
+_Value
+__parallel_reduce(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _Index __first, _Index __last,
+                  const _Value& __identity, const _RealBody& __real_body, const _Reduction& __reduction)
+{
+    return tbb::this_task_arena::isolate([__first, __last, &__identity, &__real_body, &__reduction]() -> _Value {
+        return tbb::parallel_reduce(
+            tbb::blocked_range<_Index>(__first, __last), __identity,
+            [__real_body](const tbb::blocked_range<_Index>& __r, const _Value& __value) -> _Value {
+                return __real_body(__r.begin(), __r.end(), __value);
+            },
+            __reduction);
+    });
+}
+
 //------------------------------------------------------------------------
 // parallel_transform_reduce
 //

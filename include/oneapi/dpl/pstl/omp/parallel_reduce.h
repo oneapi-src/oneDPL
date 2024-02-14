@@ -77,6 +77,33 @@ __parallel_reduce(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAcce
     return __res;
 }
 
+template <class _ExecutionPolicy, class _RandomAccessIterator, class _Value, typename _RealBody, typename _Reduction>
+_Value
+__parallel_reduce(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy&&, _RandomAccessIterator __first,
+                  _RandomAccessIterator __last, _Value __identity, _RealBody __real_body, _Reduction __reduction)
+{
+    // We don't create a nested parallel region in an existing parallel region:
+    // just create tasks.
+    if (omp_in_parallel())
+    {
+        return oneapi::dpl::__omp_backend::__parallel_reduce_body(__first, __last, __identity, __real_body,
+                                                                  __reduction);
+    }
+
+    // In any case (nested or non-nested) one parallel region is created and only
+    // one thread creates a set of tasks.
+    _Value __res = __identity;
+
+    _PSTL_PRAGMA(omp parallel)
+    _PSTL_PRAGMA(omp single nowait)
+    {
+        __res =
+            oneapi::dpl::__omp_backend::__parallel_reduce_body(__first, __last, __identity, __real_body, __reduction);
+    }
+
+    return __res;
+}
+
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi
