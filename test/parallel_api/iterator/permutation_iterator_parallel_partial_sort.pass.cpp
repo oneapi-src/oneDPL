@@ -54,7 +54,7 @@ DEFINE_TEST_PERM_IT(test_partial_sort, PermItIndexTag)
             test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin, auto permItEnd)
                 {
-                    const auto testing_n = ::std::distance(permItBegin, permItEnd);
+                    const auto testing_n = permItEnd - permItBegin;
 
                     for (::std::size_t p = 0; p < testing_n; p = p <= 16 ? p + 1 : ::std::size_t(31.415 * p))
                     {

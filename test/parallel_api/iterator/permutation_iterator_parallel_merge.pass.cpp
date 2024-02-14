@@ -61,7 +61,7 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
             test_through_permutation_iterator<Iterator1, Size, PermItIndexTag>{first1, n}(
                 [&](auto permItBegin1, auto permItEnd1)
                 {
-                    const auto testing_n1 = ::std::distance(permItBegin1, permItEnd1);
+                    const auto testing_n1 = permItEnd1 - permItBegin1;
 
                     //ensure list is sorted (not necessarily true after permutation)
                     dpl::sort(exec, permItBegin1, permItEnd1);
@@ -75,7 +75,7 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
                     test_through_permutation_iterator<Iterator2, Size, PermItIndexTag>{first2, n}(
                         [&](auto permItBegin2, auto permItEnd2)
                         {
-                            const auto testing_n2 = ::std::distance(permItBegin2, permItEnd2);
+                            const auto testing_n2 = permItEnd2 - permItBegin2;
 
                             //ensure list is sorted (not necessarily true after permutation)
                             dpl::sort(exec, permItBegin2, permItEnd2);
@@ -83,7 +83,7 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
 
                             const auto resultEnd = dpl::merge(exec, permItBegin1, permItEnd1, permItBegin2, permItEnd2, first3);
                             wait_and_throw(exec);
-                            const auto resultSize = ::std::distance(first3, resultEnd);
+                            const auto resultSize = resultEnd - first3;
 
                             // Copy data back
                             std::vector<TestValueType> srcData2(testing_n2);
@@ -97,7 +97,7 @@ DEFINE_TEST_PERM_IT(test_merge, PermItIndexTag)
                             // Check results
                             std::vector<TestValueType> mergedDataExpected(testing_n1 + testing_n2);
                             auto expectedEnd = std::merge(srcData1.begin(), srcData1.end(), srcData2.begin(), srcData2.end(), mergedDataExpected.begin());
-                            const auto expectedSize = ::std::distance(mergedDataExpected.begin(), expectedEnd);
+                            const auto expectedSize = expectedEnd - mergedDataExpected.begin();
                             EXPECT_EQ(expectedSize, resultSize, "Wrong size from dpl::merge");
                             EXPECT_EQ_N(mergedDataExpected.begin(), mergedDataResult.begin(), expectedSize, "Wrong result of dpl::merge");
                         });
