@@ -185,6 +185,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         return __result;
 
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     const auto __n = __last - __first;
 
@@ -198,9 +199,9 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
         auto __buf2 = __keep2(__result, __result + __n);
 
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(::std::forward<_ExecutionPolicy>(__exec),
-                                                                     __buf1.all_view(), __buf2.all_view(), __n,
-                                                                     __unary_op, __init, __binary_op, _Inclusive{})
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n,
+            __unary_op, __init, __binary_op, _Inclusive{})
             .wait();
     }
     else
@@ -223,8 +224,9 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         auto __buf2 = __keep2(__first_tmp, __last_tmp);
 
         // Run main algorithm and save data into temporary buffer
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__policy, __buf1.all_view(), __buf2.all_view(),
-                                                                     __n, __unary_op, __init, __binary_op, _Inclusive{})
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__backend_tag{}, __policy, __buf1.all_view(),
+                                                                     __buf2.all_view(), __n, __unary_op, __init,
+                                                                     __binary_op, _Inclusive{})
             .wait();
 
         // Move data from temporary buffer into results
@@ -263,6 +265,7 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
         return __result;
 
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     const auto __n = __last - __first;
 
@@ -276,9 +279,9 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
         auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
         auto __buf2 = __keep2(__result, __result + __n);
 
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(::std::forward<_ExecutionPolicy>(__exec),
-                                                                     __buf1.all_view(), __buf2.all_view(), __n,
-                                                                     __unary_op, __init, __binary_op, _Inclusive{})
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n,
+            __unary_op, __init, __binary_op, _Inclusive{})
             .wait();
     }
     else
@@ -301,8 +304,9 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
         auto __buf2 = __keep2(__first_tmp, __last_tmp);
 
         // Run main algorithm and save data into temporary buffer
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__policy, __buf1.all_view(), __buf2.all_view(),
-                                                                     __n, __unary_op, __init, __binary_op, _Inclusive{})
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__backend_tag{}, __policy, __buf1.all_view(),
+                                                                     __buf2.all_view(), __n, __unary_op, __init,
+                                                                     __binary_op, _Inclusive{})
             .wait();
 
         // Move data from temporary buffer into results
