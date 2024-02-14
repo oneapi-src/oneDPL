@@ -2082,9 +2082,13 @@ __pattern_count(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rando
     if (__first == __last)
         return _SizeType(0);
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, _SizeType(0),
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, _SizeType(0),
             [__pred, __is_vector](_RandomAccessIterator __begin, _RandomAccessIterator __end, _SizeType __value)
                 -> _SizeType { return __value + __internal::__brick_count(__begin, __end, __pred, __is_vector); },
             ::std::plus<_SizeType>());
@@ -2096,6 +2100,8 @@ typename ::std::iterator_traits<_RandomAccessIterator>::difference_type
 __pattern_count(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                 _RandomAccessIterator __last, _Predicate __pred)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::difference_type _SizeType;
 
     //trivial pre-checks
@@ -2104,7 +2110,7 @@ __pattern_count(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcc
 
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, _SizeType(0),
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, _SizeType(0),
             [__pred](_RandomAccessIterator __begin, _RandomAccessIterator __end, _SizeType __value) -> _SizeType {
                 return __value + __internal::__brick_count(__begin, __end, __pred, _IsVector{});
             },
@@ -2157,6 +2163,9 @@ _ForwardIterator
 __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _CalcMask __calc_mask,
                   _IsVector __is_vector)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     typedef typename ::std::iterator_traits<_ForwardIterator>::difference_type _DifferenceType;
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _Tp;
     _DifferenceType __n = __last - __first;
@@ -2165,7 +2174,7 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
     return __internal::__except_handler([&]() {
         bool* __mask = __mask_buf.get();
         _DifferenceType __min = __par_backend::__parallel_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), _DifferenceType(0), __n, __n,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), _DifferenceType(0), __n, __n,
             [__first, __mask, &__calc_mask, __is_vector](_DifferenceType __i, _DifferenceType __j,
                                                          _DifferenceType __local_min) -> _DifferenceType {
                 // Create mask
@@ -3002,6 +3011,10 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, boo
 __pattern_is_partitioned(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
                          _UnaryPredicate __pred, _IsVector __is_vector, /*is_parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     //trivial pre-checks
     if (__first == __last)
         return true;
@@ -3039,7 +3052,7 @@ __pattern_is_partitioned(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
         const _ReduceType __identity{__not_init, __last};
 
         _ReduceType __result = __par_backend::__parallel_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __identity,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __identity,
             [&__pred, __combine, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j,
                                               _ReduceType __value) -> _ReduceType {
                 if (__value.__val == __broken)
@@ -3103,6 +3116,10 @@ __pattern_is_partitioned(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
     if (__first == __last)
         return true;
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     return __internal::__except_handler([&]() {
         // State of current range:
         // broken     - current range is not partitioned by pred
@@ -3136,7 +3153,7 @@ __pattern_is_partitioned(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
         const _ReduceType __identity{__not_init, __last};
 
         _ReduceType __result = __par_backend::__parallel_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __identity,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __identity,
             [&__pred, __combine](_RandomAccessIterator __i, _RandomAccessIterator __j,
                                               _ReduceType __value) -> _ReduceType {
                 if (__value.__val == __broken)
@@ -3235,6 +3252,9 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Ra
 __pattern_partition(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
                     _UnaryPredicate __pred, _IsVector __is_vector, /*is_parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     // partitioned range: elements before pivot satisfy pred (true part),
     //                    elements after pivot don't satisfy pred (false part)
@@ -3286,6 +3306,7 @@ __pattern_partition(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _R
         };
 
         _PartitionRange __result = __par_backend::__parallel_reduce(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init,
             [__pred, __is_vector, __reductor](_RandomAccessIterator __i, _RandomAccessIterator __j,
                                               _PartitionRange __value) -> _PartitionRange {
@@ -3360,8 +3381,12 @@ __pattern_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
             }
         };
 
+        constexpr auto __dispatch_tag =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+        using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
         _PartitionRange __result = __par_backend::__parallel_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init,
             [__pred, __reductor](_RandomAccessIterator __i, _RandomAccessIterator __j,
                                  _PartitionRange __value) -> _PartitionRange {
                 //1. serial partition
@@ -3452,7 +3477,12 @@ __pattern_stable_partition(_ExecutionPolicy&& __exec, _RandomAccessIterator __fi
             }
         };
 
+        constexpr auto __dispatch_tag =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+        using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
         _PartitionRange __result = __par_backend::__parallel_reduce(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init,
             [&__pred, __is_vector, __reductor](_RandomAccessIterator __i, _RandomAccessIterator __j,
                                                _PartitionRange __value) -> _PartitionRange {
@@ -3503,8 +3533,12 @@ __pattern_stable_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec,
             }
         };
 
+        constexpr auto __dispatch_tag =
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+        using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
         _PartitionRange __result = __par_backend::__parallel_reduce(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init,
             [&__pred, __reductor](_RandomAccessIterator __i, _RandomAccessIterator __j,
                                   _PartitionRange __value) -> _PartitionRange {
                 //1. serial stable_partition
@@ -4122,8 +4156,13 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
     if (__last - __first < 2)
         return __last;
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __last,
             [__last, __pred, __is_vector, __or_semantic](_RandomAccessIterator __begin, _RandomAccessIterator __end,
                                                          _RandomAccessIterator __value) -> _RandomAccessIterator {
@@ -4166,8 +4205,13 @@ __pattern_adjacent_find(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _R
     if (__last - __first < 2)
         return __last;
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __last,
             [__last, __pred, __or_semantic](_RandomAccessIterator __begin, _RandomAccessIterator __end,
                                             _RandomAccessIterator __value) -> _RandomAccessIterator {
@@ -5992,8 +6036,13 @@ __pattern_min_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, 
     if (__last - __first < 2)
         return __first;
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, /*identity*/ __last,
             [=](_RandomAccessIterator __begin, _RandomAccessIterator __end,
                 _RandomAccessIterator __init) -> _RandomAccessIterator {
@@ -6023,8 +6072,11 @@ __pattern_min_element(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ran
     if (__last - __first < 2)
         return __first;
 
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last, /*identity*/ __last,
             [=](_RandomAccessIterator __begin, _RandomAccessIterator __end,
                 _RandomAccessIterator __init) -> _RandomAccessIterator {
@@ -6098,10 +6150,15 @@ __pattern_minmax_element(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
     if (__last - __first < 2)
         return ::std::make_pair(__first, __first);
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     return __internal::__except_handler([&]() {
         typedef ::std::pair<_RandomAccessIterator, _RandomAccessIterator> _Result;
 
         return __par_backend::__parallel_reduce(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             /*identity*/ ::std::make_pair(__last, __last),
             [=, &__comp](_RandomAccessIterator __begin, _RandomAccessIterator __end, _Result __init) -> _Result {
@@ -6139,10 +6196,13 @@ __pattern_minmax_element(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
     if (__last - __first < 2)
         return ::std::make_pair(__first, __first);
 
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     return __internal::__except_handler([&]() {
         typedef ::std::pair<_RandomAccessIterator, _RandomAccessIterator> _Result;
 
         return __par_backend::__parallel_reduce(
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             /*identity*/ ::std::make_pair(__last, __last),
             [=, &__comp](_RandomAccessIterator __begin, _RandomAccessIterator __end, _Result __init) -> _Result {

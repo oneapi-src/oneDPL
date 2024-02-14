@@ -391,6 +391,8 @@ void
 __pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Function __f,
                      __single_stride_type, _Rest&&... __rest)
 {
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
+
     using __pack_type = __reduction_pack<_Rest...>;
 
     // Create an identity pack object, operations are done on copies of it.
@@ -398,6 +400,7 @@ __pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec,
 
     oneapi::dpl::__internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
+                   __backend_tag{},
                    ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
                    [__first, __f](_Size __i, _Size __j, __pack_type __value) {
                        const auto __subseq_start = __first + __i;
@@ -426,6 +429,8 @@ void
 __pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Function __f,
                      _Sp __stride, _Rest&&... __rest)
 {
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
+
     using __pack_type = __reduction_pack<_Rest...>;
 
     // Create an identity pack object, operations are done on copies of it.
@@ -433,6 +438,7 @@ __pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec,
 
     oneapi::dpl::__internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
+                   __backend_tag{},
                    ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
                    [__first, __f, __stride](_Size __i, _Size __j, __pack_type __value) {
                        const auto __subseq_start = __first + __i * __stride;
