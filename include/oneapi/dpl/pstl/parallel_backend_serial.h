@@ -102,6 +102,14 @@ __parallel_transform_reduce(_ExecutionPolicy&&, _Index __first, _Index __last, _
     return __reduce(__first, __last, __init);
 }
 
+template <class _ExecutionPolicy, class _Index, class _UnaryOp, class _Tp, class _BinaryOp, class _Reduce>
+_Tp
+__parallel_transform_reduce(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&, _Index __first,
+                            _Index __last, _UnaryOp, _Tp __init, _BinaryOp, _Reduce __reduce)
+{
+    return __reduce(__first, __last, __init);
+}
+
 template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
 void
 __parallel_strict_scan(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan,

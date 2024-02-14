@@ -145,6 +145,17 @@ __parallel_transform_reduce(_ExecutionPolicy&& __exec, _ReduceOp __reduce_op, _T
         __exec.__device_policy(), __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
 }
 
+template <typename _Tp, typename _Commutative, typename _ExecutionPolicy, typename _ReduceOp, typename _TransformOp,
+          typename _InitType, typename... _Ranges>
+auto
+__parallel_transform_reduce(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec,
+                            _ReduceOp __reduce_op, _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
+{
+    // workaround until we implement more performant version for patterns
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_Tp, _Commutative>(
+        __exec.__device_policy(), __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
+}
+
 //------------------------------------------------------------------------
 // parallel_transform_scan
 //------------------------------------------------------------------------
