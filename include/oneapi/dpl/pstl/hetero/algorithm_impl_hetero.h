@@ -3053,7 +3053,7 @@ __pattern_rotate_copy(_ExecutionPolicy&& __exec, _BidirectionalIterator __first,
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _BidirectionalIterator, typename _ForwardIterator>
 _ForwardIterator
-__pattern_rotate_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _BidirectionalIterator __first,
+__pattern_rotate_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _BidirectionalIterator __first,
                       _BidirectionalIterator __new_first, _BidirectionalIterator __last, _ForwardIterator __result)
 {
     auto __n = __last - __first;
