@@ -69,12 +69,11 @@ __parallel_find(_ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick
     return __extremum != __initial_dist ? __first + __extremum : __last;
 }
 
-template <class _Tag, class _ExecutionPolicy, class _Index, class _Brick, class _IsFirst>
+template <class _IsVector, class _ExecutionPolicy, class _Index, class _Brick, class _IsFirst>
 _Index
-__parallel_find(_Tag __tag, _ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick __f, _IsFirst)
+__parallel_find(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick __f,
+                _IsFirst)
 {
-    static_assert(__is_backend_tag_v<_Tag>);
-
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     typedef typename ::std::iterator_traits<_Index>::difference_type _DifferenceType;
