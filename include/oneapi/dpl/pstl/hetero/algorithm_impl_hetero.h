@@ -1422,7 +1422,7 @@ __pattern_search(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __las
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
 _Iterator1
-__pattern_search(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
+__pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
                  _Iterator2 __s_first, _Iterator2 __s_last, _Pred __pred)
 {
     if (__s_last == __s_first)
