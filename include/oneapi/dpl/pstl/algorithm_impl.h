@@ -5250,6 +5250,100 @@ __parallel_set_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forwar
     });
 }
 
+template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2,
+          class _OutputIterator,
+          class _Compare, class _SizeFunction, class _SetOP>
+_OutputIterator
+__parallel_set_op(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                  _ForwardIterator1 __last1,
+                  _ForwardIterator2 __first2, _ForwardIterator2 __last2, _OutputIterator __result, _Compare __comp,
+                  _SizeFunction __size_func, _SetOP __set_op)
+{
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
+
+    typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _DifferenceType;
+    typedef typename ::std::iterator_traits<_OutputIterator>::value_type _T;
+
+    struct _SetRange
+    {
+        _DifferenceType __pos, __len, __buf_pos;
+        bool
+        empty() const
+        {
+            return __len == 0;
+        }
+    };
+
+    const _DifferenceType __n1 = __last1 - __first1;
+    const _DifferenceType __n2 = __last2 - __first2;
+
+    __par_backend::__buffer<_ExecutionPolicy, _T> __buf(__size_func(__n1, __n2));
+
+    return __internal::__except_handler([&__exec, __n1, __first1, __last1, __first2, __last2, __result,
+                                         __comp, __size_func, __set_op, &__buf]() {
+        auto __tmp_memory = __buf.get();
+        _DifferenceType __m{};
+        auto __scan = [=](_DifferenceType, _DifferenceType, const _SetRange& __s) { // Scan
+            if (!__s.empty())
+                __brick_move_destroy<_ExecutionPolicy>{}(__tmp_memory + __s.__buf_pos,
+                                                         __tmp_memory + (__s.__buf_pos + __s.__len),
+                                                         __result + __s.__pos, _IsVector{});
+        };
+        __par_backend::__parallel_strict_scan(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n1, _SetRange{0, 0, 0}, //-1, 0},
+            [=](_DifferenceType __i, _DifferenceType __len) {                                    // Reduce
+                //[__b; __e) - a subrange of the first sequence, to reduce
+                _ForwardIterator1 __b = __first1 + __i, __e = __first1 + (__i + __len);
+
+                //try searching for the first element which not equal to *__b
+                if (__b != __first1)
+                    __b = ::std::upper_bound(__b, __last1, *__b, __comp);
+
+                //try searching for the first element which not equal to *__e
+                if (__e != __last1)
+                    __e = ::std::upper_bound(__e, __last1, *__e, __comp);
+
+                //check is [__b; __e) empty
+                if (__e - __b < 1)
+                {
+                    _ForwardIterator2 __bb = __last2;
+                    if (__b != __last1)
+                        __bb = ::std::lower_bound(__first2, __last2, *__b, __comp);
+
+                    const _DifferenceType __buf_pos = __size_func((__b - __first1), (__bb - __first2));
+                    return _SetRange{0, 0, __buf_pos};
+                }
+
+                //try searching for "corresponding" subrange [__bb; __ee) in the second sequence
+                _ForwardIterator2 __bb = __first2;
+                if (__b != __first1)
+                    __bb = ::std::lower_bound(__first2, __last2, *__b, __comp);
+
+                _ForwardIterator2 __ee = __last2;
+                if (__e != __last1)
+                    __ee = ::std::lower_bound(__bb, __last2, *__e, __comp);
+
+                const _DifferenceType __buf_pos = __size_func((__b - __first1), (__bb - __first2));
+                auto __buffer_b = __tmp_memory + __buf_pos;
+                auto __res = __set_op(__b, __e, __bb, __ee, __buffer_b, __comp);
+
+                return _SetRange{0, __res - __buffer_b, __buf_pos};
+            },
+            [](const _SetRange& __a, const _SetRange& __b) { // Combine
+                if (__b.__buf_pos > __a.__buf_pos || ((__b.__buf_pos == __a.__buf_pos) && !__b.empty()))
+                    return _SetRange{__a.__pos + __a.__len + __b.__pos, __b.__len, __b.__buf_pos};
+                return _SetRange{__b.__pos + __b.__len + __a.__pos, __a.__len, __a.__buf_pos};
+            },
+            __scan,                                     // Scan
+            [&__m, &__scan](const _SetRange& __total) { // Apex
+                //final scan
+                __scan(0, 0, __total);
+                __m = __total.__pos + __total.__len;
+            });
+        return __result + __m;
+    });
+}
+
 //a shared parallel pattern for '__pattern_set_union' and '__pattern_set_symmetric_difference'
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _OutputIterator,
           class _Compare, class _SetUnionOp, class _IsVector>
