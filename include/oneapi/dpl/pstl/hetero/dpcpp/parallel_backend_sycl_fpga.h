@@ -75,33 +75,6 @@ struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...
         });
         return __future(__event);
     }
-
-// TODO is this define check really required here?
-#if _ONEDPL_FPGA_DEVICE
-    template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
-    auto
-    operator()(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count,
-               _Ranges&&... __rngs) const
-    {
-        auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
-        assert(__n > 0);
-
-        _PRINT_INFO_IN_DEBUG_MODE(__exec);
-        auto __event = __exec.queue().submit([&__rngs..., &__brick, __count](sycl::handler& __cgh) {
-            //get an access to data under SYCL buffer:
-            oneapi::dpl::__ranges::__require_access(__cgh, __rngs...);
-
-            __cgh.single_task<_Name...>([=]() {
-#    pragma unroll(::std::decay <_ExecutionPolicy>::type::unroll_factor)
-                for (auto __idx = 0; __idx < __count; ++__idx)
-                {
-                    __brick(__idx, __rngs...);
-                }
-            });
-        });
-        return __future(__event);
-    }
-#endif // _ONEDPL_FPGA_DEVICE
 };
 
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
@@ -112,8 +85,7 @@ __parallel_for(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& _
     using _Policy = ::std::decay_t<_ExecutionPolicy>;
     using __parallel_for_name = __internal::__kernel_name_provider<typename _Policy::kernel_name>;
 
-    return __parallel_for_fpga_submitter<__parallel_for_name>()(oneapi::dpl::__internal::__fpga_backend_tag{},
-                                                                std::forward<_ExecutionPolicy>(__exec), __brick,
+    return __parallel_for_fpga_submitter<__parallel_for_name>()(std::forward<_ExecutionPolicy>(__exec), __brick,
                                                                 __count, std::forward<_Ranges>(__rngs)...);
 }
 
