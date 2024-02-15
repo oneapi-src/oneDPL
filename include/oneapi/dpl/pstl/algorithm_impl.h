@@ -6206,7 +6206,7 @@ __pattern_is_heap_until(_ExecutionPolicy&& __exec, _RandomAccessIterator __first
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 _RandomAccessIterator
-__pattern_is_heap_until(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_is_heap_until(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                         _RandomAccessIterator __last, _Compare __comp)
 {
     return __internal::__except_handler([&]() {
