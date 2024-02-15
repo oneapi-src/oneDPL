@@ -381,6 +381,16 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
                                                                       __comp);
 }
 
+template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+auto
+__parallel_partial_sort(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Iterator __first,
+                        _Iterator __mid, _Iterator __last, _Compare __comp)
+{
+    // workaround until we implement more performant version for patterns
+    return oneapi::dpl::__par_backend_hetero::__parallel_partial_sort(
+        oneapi::dpl::__internal::__device_backend_tag{}, __exec.__device_policy(), __first, __mid, __last, __comp);
+}
+
 //------------------------------------------------------------------------
 // parallel_histogram
 //-----------------------------------------------------------------------

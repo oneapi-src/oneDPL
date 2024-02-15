@@ -2110,6 +2110,22 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
                                         __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
 }
 
+// TODO: check if it makes sense to move these wrappers out of backend to a common place
+// TODO: consider changing __partial_merge_kernel to make it compatible with
+//       __full_merge_kernel in order to use __parallel_sort_impl routine
+template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
+auto
+__parallel_partial_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Iterator __first,
+                        _Iterator __mid, _Iterator __last, _Compare __comp)
+{
+    const auto __mid_idx = __mid - __first;
+
+    auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
+    auto __buf = __keep(__first, __last);
+
+    return __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
+                                        __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
+}
 } // namespace __par_backend_hetero
 } // namespace dpl
 } // namespace oneapi
