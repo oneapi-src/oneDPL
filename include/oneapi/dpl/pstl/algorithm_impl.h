@@ -1189,14 +1189,12 @@ __pattern_find_if(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIt
 
 template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
 _ForwardIterator
-__pattern_find_if(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+__pattern_find_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
                   _ForwardIterator __last, _Predicate __pred)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     return __except_handler([&]() {
         return __parallel_find(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             [__pred](_ForwardIterator __i, _ForwardIterator __j) {
                 return __brick_find_if(__i, __j, __pred, _IsVector{});
             },
@@ -1353,7 +1351,6 @@ __pattern_find_end(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _R
     // TODO is it correct that we check _RandomAccessIterator2 in __select_backend ?
     constexpr auto __dispatch_tag =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     if (__last - __first == __s_last - __s_first)
     {
@@ -1365,7 +1362,7 @@ __pattern_find_end(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _R
     {
         return __internal::__except_handler([&]() {
             return __internal::__parallel_find(
-                __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                 [__last, __s_first, __s_last, __pred, __is_vector](_RandomAccessIterator1 __i,
                                                                    _RandomAccessIterator1 __j) {
                     return __internal::__find_subrange(__i, __j, __last, __s_first, __s_last, __pred, false,
@@ -1383,8 +1380,6 @@ __pattern_find_end(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
                    _RandomAccessIterator1 __last,
                    _RandomAccessIterator2 __s_first, _RandomAccessIterator2 __s_last, _BinaryPredicate __pred)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     if (__last - __first == __s_last - __s_first)
     {
         const bool __res = __internal::__pattern_equal(__tag, ::std::forward<_ExecutionPolicy>(__exec),
@@ -1395,7 +1390,7 @@ __pattern_find_end(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
     {
         return __internal::__except_handler([&]() {
             return __internal::__parallel_find(
-                __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                 [__last, __s_first, __s_last, __pred](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                     return __internal::__find_subrange(__i, __j, __last, __s_first, __s_last, __pred, false,
                                                        _IsVector{});
@@ -1455,11 +1450,10 @@ __pattern_find_first_of(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _F
 {
     constexpr auto __dispatch_tag =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     return __internal::__except_handler([&]() {
         return __internal::__parallel_find(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             [__s_first, __s_last, &__pred, __is_vector](_ForwardIterator1 __i, _ForwardIterator1 __j) {
                 return __internal::__brick_find_first_of(__i, __j, __s_first, __s_last, __pred, __is_vector);
             },
@@ -1470,7 +1464,7 @@ __pattern_find_first_of(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _F
 template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2,
           class _BinaryPredicate>
 _ForwardIterator1
-__pattern_find_first_of(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _ForwardIterator1 __first,
+__pattern_find_first_of(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first,
                         _ForwardIterator1 __last, _ForwardIterator2 __s_first, _ForwardIterator2 __s_last,
                         _BinaryPredicate __pred)
 {
@@ -1478,7 +1472,7 @@ __pattern_find_first_of(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _F
 
     return __internal::__except_handler([&]() {
         return __internal::__parallel_find(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             [__s_first, __s_last, &__pred](_ForwardIterator1 __i, _ForwardIterator1 __j) {
                 return __internal::__brick_find_first_of(__i, __j, __s_first, __s_last, __pred, _IsVector{});
             },
@@ -1536,7 +1530,6 @@ __pattern_search(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _Ran
     // TODO is it correct that we check _RandomAccessIterator2 in __select_backend ?
     constexpr auto __dispatch_tag =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     if (__last - __first == __s_last - __s_first)
     {
@@ -1548,7 +1541,7 @@ __pattern_search(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first, _Ran
     {
         return __internal::__except_handler([&]() {
             return __internal::__parallel_find(
-                __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                 [__last, __s_first, __s_last, __pred, __is_vector](_RandomAccessIterator1 __i,
                                                                    _RandomAccessIterator1 __j) {
                     return __internal::__find_subrange(__i, __j, __last, __s_first, __s_last, __pred, true,
@@ -1566,8 +1559,6 @@ __pattern_search(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ra
                  _RandomAccessIterator1 __last, _RandomAccessIterator2 __s_first, _RandomAccessIterator2 __s_last,
                  _BinaryPredicate __pred)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     if (__last - __first == __s_last - __s_first)
     {
         const bool __res = __internal::__pattern_equal(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
@@ -1578,7 +1569,7 @@ __pattern_search(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ra
     {
         return __internal::__except_handler([&]() {
             return __internal::__parallel_find(
-                __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                 [__last, __s_first, __s_last, __pred](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                     return __internal::__find_subrange(__i, __j, __last, __s_first, __s_last, __pred, true,
                                                        _IsVector{});
@@ -1636,7 +1627,6 @@ __pattern_search_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ra
 {
     constexpr auto __dispatch_tag =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     if (static_cast<_Size>(__last - __first) == __count)
     {
@@ -1650,7 +1640,7 @@ __pattern_search_n(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ra
     {
         return __internal::__except_handler([&__exec, __first, __last, __count, &__value, __pred, __is_vector]() {
             return __internal::__parallel_find(
-                __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                 [__last, __count, &__value, __pred, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                     return __internal::__find_subrange(__i, __j, __last, __count, __value, __pred, __is_vector);
                 },
@@ -1665,8 +1655,6 @@ _RandomAccessIterator
 __pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                    _RandomAccessIterator __last, _Size __count, const _Tp& __value, _BinaryPredicate __pred)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     if (static_cast<_Size>(__last - __first) == __count)
     {
         const bool __result =
@@ -1676,9 +1664,9 @@ __pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
     }
     else
     {
-        return __internal::__except_handler([&__exec, __first, __last, __count, &__value, __pred]() {
+        return __internal::__except_handler([&__exec, __first, __last, __count, &__value, __pred, __tag]() {
             return __internal::__parallel_find(
-                __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                 [__last, __count, &__value, __pred](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                     return __internal::__find_subrange(__i, __j, __last, __count, __value, __pred, _IsVector{});
                 },
@@ -6241,12 +6229,11 @@ __pattern_mismatch(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _
 {
     constexpr auto __dispatch_tag =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     return __internal::__except_handler([&]() {
         auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
         auto __result = __internal::__parallel_find(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
             [__first1, __first2, __pred, __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 return __internal::__brick_mismatch(__i, __j, __first2 + (__i - __first1), __first2 + (__j - __first1),
                                                     __pred, __is_vector)
@@ -6264,12 +6251,10 @@ __pattern_mismatch(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
                    _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
                    _Predicate __pred)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     return __internal::__except_handler([&]() {
         auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
         auto __result = __internal::__parallel_find(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
+            __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
             [__first1, __first2, __pred](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 return __internal::__brick_mismatch(__i, __j, __first2 + (__i - __first1), __first2 + (__j - __first1),
                                                     __pred, _IsVector{})
