@@ -2604,7 +2604,7 @@ __pattern_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator _
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
+void
 __pattern_partial_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid,
                        _Iterator __last, _Compare __comp)
 {
