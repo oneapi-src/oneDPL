@@ -97,18 +97,6 @@ __is_parallelization_preferred()
 // backend selector with tags
 //------------------------------------------------------------------------
 
-struct __serial_backend_tag
-{
-};
-
-struct __tbb_backend_tag
-{
-};
-
-struct __omp_backend_tag
-{
-};
-
 #if _ONEDPL_PAR_BACKEND_TBB
 using __par_backend_tag = __tbb_backend_tag;
 #elif _ONEDPL_PAR_BACKEND_OPENMP

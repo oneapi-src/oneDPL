@@ -213,6 +213,22 @@ __check_size(...) -> typename ::std::iterator_traits<_It>::difference_type;
 template <typename _R>
 using __difference_t = ::std::make_signed_t<decltype(__check_size<_R>(0))>;
 
+//------------------------------------------------------------------------
+// backend tags
+//------------------------------------------------------------------------
+
+struct __serial_backend_tag
+{
+};
+
+struct __tbb_backend_tag
+{
+};
+
+struct __omp_backend_tag
+{
+};
+
 } // namespace __internal
 
 } // namespace dpl
