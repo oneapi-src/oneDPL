@@ -25,6 +25,47 @@ Fixed Issues
   source iterator and permutation types which caused issues.
 - Fixed ``zip_iterator`` to be `sycl device copyable`_ for trivially copyable source iterator types.
 
+Known Issues and Limitations
+----------------------------
+Existing Issues
+^^^^^^^^^^^^^^^
+See oneDPL Guide for other `restrictions and known limitations`_.
+
+- When compiled with ``-fsycl-pstl-offload`` option of Intel oneAPI DPC++/C++ compiler and with
+  ``libstdc++`` version 8 or ``libc++``, ``oneapi::dpl::execution::par_unseq`` offloads
+  standard parallel algorithms to the SYCL device similarly to ``std::execution::par_unseq``
+  in accordance with the ``-fsycl-pstl-offload`` option value.
+- When using the dpl modulefile to initialize the user's environment and compiling with ``-fsycl-pstl-offload``
+  option of Intel® oneAPI DPC++/C++ compiler, a linking issue or program crash may be encountered due to the directory
+  containing libpstloffload.so not being included in the search path. Use the env/vars.sh to configure the working
+  environment to avoid the issue.
+- Compilation issues may be encountered when passing zip iterators to ``exclusive_scan_by_segment`` on Windows.
+- Incorrect results may be produced by ``set_intersection`` with a DPC++ execution policy,
+  where elements are copied from the second input range rather than the first input range. 
+- For ``transform_exclusive_scan`` and ``exclusive_scan`` to run in-place (that is, with the same data
+  used for both input and destination) and with an execution policy of ``unseq`` or ``par_unseq``, 
+  it is required that the provided input and destination iterators are equality comparable.
+  Furthermore, the equality comparison of the input and destination iterator must evaluate to true.
+  If these conditions are not met, the result of these algorithm calls is undefined.
+- ``sort``, ``stable_sort``, ``sort_by_key``, ``partial_sort_copy`` algorithms may work incorrectly or cause
+  a segmentation fault when used a DPC++ execution policy for CPU device, and built
+  on Linux with Intel® oneAPI DPC++/C++ Compiler and -O0 -g compiler options.
+  To avoid the issue, pass ``-fsycl-device-code-split=per_kernel`` option to the compiler.
+- Incorrect results may be produced by ``exclusive_scan``, ``inclusive_scan``, ``transform_exclusive_scan``,
+  ``transform_inclusive_scan``, ``exclusive_scan_by_segment``, ``inclusive_scan_by_segment``, ``reduce_by_segment``
+  with ``unseq`` or ``par_unseq`` policy when compiled by Intel® oneAPI DPC++/C++ Compiler
+  with ``-fiopenmp``, ``-fiopenmp-simd``, ``-qopenmp``, ``-qopenmp-simd`` options on Linux.
+  To avoid the issue, pass ``-fopenmp`` or ``-fopenmp-simd`` option instead.
+- Incorrect results may be produced by ``reduce``, ``reduce_by_segment``, and ``transform_reduce``
+  with 64-bit data types when compiled by Intel® oneAPI DPC++/C++ Compiler versions 2021.3 and newer
+  and executed on GPU devices.
+- ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
+- ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
+  in the Microsoft* Visual C++ standard library.
+- The ``oneapi::dpl::experimental::ranges::reverse`` algorithm is not available with ``-fno-sycl-unnamed-lambda`` option.
+- STL algorithm functions (such as ``std::for_each``) used in DPC++ kernels do not compile with the debug version of
+  the Microsoft* Visual C++ standard library.
+
 New in 2022.4.0
 ===============
 
