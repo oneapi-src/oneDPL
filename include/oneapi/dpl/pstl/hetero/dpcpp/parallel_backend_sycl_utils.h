@@ -489,9 +489,8 @@ struct __usm_host_or_buffer_accessor
     // USM pointer
     __usm_host_or_buffer_accessor(sycl::handler& __cgh, _T* __usm_buf) : __ptr(__usm_buf), __usm(true) {}
 
-    template <sycl::access::decorated> // Mirror sycl::accessor::get_multi_ptr
     auto
-    get_multi_ptr() const // should be cached within a kernel
+    __get_pointer() const // should be cached within a kernel
     {
         return __usm ? __ptr : &__acc[0];
     }
@@ -564,6 +563,17 @@ struct __usm_host_or_buffer_storage
         return __usm;
     }
 };
+
+template <typename _Acc>
+auto
+__get_usm_host_or_buffer_accessor_ptr(const _Acc& __acc)
+{
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+    return __acc.__get_pointer();
+#else
+    return &__acc[0];
+#endif
+}
 
 //A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __usm_host_or_buffer_storage>
 //Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
