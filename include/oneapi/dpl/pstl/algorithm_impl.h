@@ -5459,6 +5459,119 @@ __parallel_set_union_op(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _
         [](_DifferenceType __n, _DifferenceType __m) { return __n + __m; }, __set_union_op);
 }
 
+//a shared parallel pattern for '__pattern_set_union' and '__pattern_set_symmetric_difference'
+template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2,
+          class _OutputIterator, class _Compare, class _SetUnionOp>
+_OutputIterator
+__parallel_set_union_op(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                        _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
+                        _OutputIterator __result, _Compare __comp, _SetUnionOp __set_union_op)
+{
+    typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _DifferenceType;
+
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
+
+    const auto __n1 = __last1 - __first1;
+    const auto __n2 = __last2 - __first2;
+
+    __brick_copy<_ExecutionPolicy> __copy_range{};
+
+    // {1} {}: parallel copying just first sequence
+    if (__n2 == 0)
+        return __internal::__pattern_walk2_brick(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                 __last1, __result, __copy_range);
+
+    // {} {2}: parallel copying justmake  second sequence
+    if (__n1 == 0)
+        return __internal::__pattern_walk2_brick(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first2,
+                                                 __last2, __result, __copy_range);
+
+    // testing  whether the sequences are intersected
+    _ForwardIterator1 __left_bound_seq_1 = ::std::lower_bound(__first1, __last1, *__first2, __comp);
+
+    if (__left_bound_seq_1 == __last1)
+    {
+        //{1} < {2}: seq2 is wholly greater than seq1, so, do parallel copying seq1 and seq2
+        __par_backend::__parallel_invoke(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            [=] {
+                __internal::__pattern_walk2_brick(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                  __last1, __result, __copy_range);
+            },
+            [=] {
+                __internal::__pattern_walk2_brick(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first2,
+                                                  __last2, __result + __n1, __copy_range);
+            });
+        return __result + __n1 + __n2;
+    }
+
+    // testing  whether the sequences are intersected
+    _ForwardIterator2 __left_bound_seq_2 = ::std::lower_bound(__first2, __last2, *__first1, __comp);
+
+    if (__left_bound_seq_2 == __last2)
+    {
+        //{2} < {1}: seq2 is wholly greater than seq1, so, do parallel copying seq1 and seq2
+        __par_backend::__parallel_invoke(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            [=] {
+                __internal::__pattern_walk2_brick(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first2,
+                                                  __last2, __result, __copy_range);
+            },
+            [=] {
+                __internal::__pattern_walk2_brick(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                  __last1, __result + __n2, __copy_range);
+            });
+        return __result + __n1 + __n2;
+    }
+
+    const auto __m1 = __left_bound_seq_1 - __first1;
+    if (__m1 > __set_algo_cut_off)
+    {
+        auto __res_or = __result;
+        __result += __m1; //we know proper offset due to [first1; left_bound_seq_1) < [first2; last2)
+        __par_backend::__parallel_invoke(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            //do parallel copying of [first1; left_bound_seq_1)
+            [=] {
+                __internal::__pattern_walk2_brick(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                  __left_bound_seq_1, __res_or, __copy_range);
+            },
+            [=, &__result] {
+                __result = __internal::__parallel_set_op(
+                    __tag, ::std::forward<_ExecutionPolicy>(__exec), __left_bound_seq_1, __last1, __first2,
+                    __last2, __result, __comp, [](_DifferenceType __n, _DifferenceType __m) { return __n + __m; },
+                    __set_union_op);
+            });
+        return __result;
+    }
+
+    const auto __m2 = __left_bound_seq_2 - __first2;
+    assert(__m1 == 0 || __m2 == 0);
+    if (__m2 > __set_algo_cut_off)
+    {
+        auto __res_or = __result;
+        __result += __m2; //we know proper offset due to [first2; left_bound_seq_2) < [first1; last1)
+        __par_backend::__parallel_invoke(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            //do parallel copying of [first2; left_bound_seq_2)
+            [=] {
+                __internal::__pattern_walk2_brick(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first2,
+                                                  __left_bound_seq_2, __res_or, __copy_range);
+            },
+            [=, &__result] {
+                __result = __internal::__parallel_set_op(
+                    __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __left_bound_seq_2,
+                    __last2, __result, __comp, [](_DifferenceType __n, _DifferenceType __m) { return __n + __m; },
+                    __set_union_op);
+            });
+        return __result;
+    }
+
+    return __internal::__parallel_set_op(
+        __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result,
+        __comp, [](_DifferenceType __n, _DifferenceType __m) { return __n + __m; }, __set_union_op);
+}
+
 //------------------------------------------------------------------------
 // set_union
 //------------------------------------------------------------------------
