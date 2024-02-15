@@ -6260,7 +6260,7 @@ __pattern_mismatch(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _Predicate>
 ::std::pair<_RandomAccessIterator1, _RandomAccessIterator2>
-__pattern_mismatch(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+__pattern_mismatch(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                    _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
                    _Predicate __pred)
 {
@@ -6380,7 +6380,6 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _RandomAccessIterat
         constexpr auto __dispatch_tag =
             oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1,
                                                       _RandomAccessIterator2>();
-        using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
         typedef typename ::std::iterator_traits<_RandomAccessIterator1>::reference _RefType1;
         typedef typename ::std::iterator_traits<_RandomAccessIterator2>::reference _RefType2;
@@ -6388,7 +6387,7 @@ __pattern_lexicographical_compare(_ExecutionPolicy&& __exec, _RandomAccessIterat
         --__last2;
         auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
         auto __result = __internal::__parallel_find(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
             [__first1, __first2, &__comp, __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 return __internal::__brick_mismatch(
                            __i, __j, __first2 + (__i - __first1), __first2 + (__j - __first1),
