@@ -1062,7 +1062,8 @@ __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out
         using CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign,
                                                      /*inclusive*/ ::std::true_type, 1>;
 
-        return __parallel_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_InRng>(__in_rng),
+        return __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag{},
+                                    ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_InRng>(__in_rng),
                                     ::std::forward<_OutRng>(__out_rng), __n, CreateOp{__pred}, CopyOp{});
     }
 }

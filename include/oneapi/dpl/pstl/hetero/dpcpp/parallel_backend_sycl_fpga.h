@@ -220,6 +220,7 @@ __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __o
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_scan_copy(
+        oneapi::dpl::__internal::__device_backend_tag{},
         __exec.__device_policy(), ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n,
         __create_mask_op, __copy_by_mask_op);
 }
