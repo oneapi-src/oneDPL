@@ -1631,6 +1631,10 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _
 __pattern_copy_if(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, _Iterator2 __result_first,
                   _Predicate __pred, /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
 
     if (__first == __last)
@@ -1643,8 +1647,8 @@ __pattern_copy_if(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __la
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
     auto __buf2 = __keep2(__result_first, __result_first + __n);
 
-    auto __res = __par_backend_hetero::__parallel_copy_if(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
-                                                          __buf2.all_view(), __n, __pred);
+    auto __res = __par_backend_hetero::__parallel_copy_if(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                          __buf1.all_view(), __buf2.all_view(), __n, __pred);
 
     ::std::size_t __num_copied = __res.get();
     return __result_first + __num_copied;
@@ -1668,8 +1672,8 @@ __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _I
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
     auto __buf2 = __keep2(__result_first, __result_first + __n);
 
-    auto __res = __par_backend_hetero::__parallel_copy_if(::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(),
-                                                          __buf2.all_view(), __n, __pred);
+    auto __res = __par_backend_hetero::__parallel_copy_if(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                          __buf1.all_view(), __buf2.all_view(), __n, __pred);
 
     ::std::size_t __num_copied = __res.get();
     return __result_first + __num_copied;
