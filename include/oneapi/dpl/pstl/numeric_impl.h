@@ -382,8 +382,7 @@ __pattern_transform_scan(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __e
                                                             __unary_op,
                                                             /*__is_vector*/ ::std::false_type());
             },
-            [__first, __unary_op, __binary_op, __result](_DifferenceType __i, _DifferenceType __j,
-                                                                      _Tp __init) {
+            [__first, __unary_op, __binary_op, __result](_DifferenceType __i, _DifferenceType __j, _Tp __init) {
                 return __internal::__brick_transform_scan(__first + __i, __first + __j, __result + __i, __unary_op,
                                                           __init, __binary_op, _Inclusive(), _IsVector{})
                     .second;
@@ -414,8 +413,7 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
 
     return __internal::__except_handler([&]() {
         __par_backend::__parallel_strict_scan(
-            __backend_tag{},
-            ::std::forward<_ExecutionPolicy>(__exec), __n, __init,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n, __init,
             [__first, __unary_op, __binary_op, __result, __is_vector](_DifferenceType __i, _DifferenceType __len) {
                 return __internal::__brick_transform_scan(__first + __i, __first + (__i + __len), __result + __i,
                                                           __unary_op, _Tp{}, __binary_op, _Inclusive(), __is_vector)
@@ -454,8 +452,7 @@ __pattern_transform_scan(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
 
     return __internal::__except_handler([&]() {
         __par_backend::__parallel_strict_scan(
-            __backend_tag{},
-            ::std::forward<_ExecutionPolicy>(__exec), __n, __init,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n, __init,
             [__first, __unary_op, __binary_op, __result](_DifferenceType __i, _DifferenceType __len) {
                 return __internal::__brick_transform_scan(__first + __i, __first + (__i + __len), __result + __i,
                                                           __unary_op, _Tp{}, __binary_op, _Inclusive(), _IsVector{})
@@ -493,8 +490,7 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _ForwardIterator __first, _F
             oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator, _OutputIterator>();
 
         return __pattern_transform_scan(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), ++__first, __last,
-                                        ++__result,
-                                        __unary_op, __tmp, __binary_op, _Inclusive());
+                                        ++__result, __unary_op, __tmp, __binary_op, _Inclusive());
     }
     else
     {

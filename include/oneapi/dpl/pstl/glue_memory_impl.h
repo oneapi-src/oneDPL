@@ -45,7 +45,8 @@ uninitialized_copy(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
     if constexpr (::std::is_trivial_v<_ValueType1> && ::std::is_trivial_v<_ValueType2>)
     {
@@ -69,7 +70,8 @@ uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
     if constexpr (::std::is_trivial_v<_ValueType1> && ::std::is_trivial_v<_ValueType2>)
     {
@@ -95,7 +97,8 @@ uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
     if constexpr (::std::is_trivial_v<_ValueType1> && ::std::is_trivial_v<_ValueType2>)
     {
@@ -119,7 +122,8 @@ uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType2;
     typedef ::std::decay_t<_ExecutionPolicy> _DecayedExecutionPolicy;
 
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _InputIterator, _ForwardIterator>();
 
     if constexpr (::std::is_trivial_v<_ValueType1> && ::std::is_trivial_v<_ValueType2>)
     {
@@ -149,15 +153,13 @@ uninitialized_fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forward
     if constexpr (::std::is_arithmetic_v<_ValueType>)
     {
         oneapi::dpl::__internal::__pattern_walk_brick(
-            __dispatch_tag,
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             oneapi::dpl::__internal::__brick_fill<_ValueType, _DecayedExecutionPolicy>{_ValueType(__value)});
     }
     else
     {
         oneapi::dpl::__internal::__pattern_walk1(
-            __dispatch_tag,
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
             oneapi::dpl::__internal::__op_uninitialized_fill<_Tp, _DecayedExecutionPolicy>{__value});
     }
 }
@@ -224,7 +226,7 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
 #endif // _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN
 
         constexpr auto __dispatch_tag =
-                oneapi::dpl::__internal::__select_backend<_ExecutionPolicyDest, _ForwardIterator>();
+            oneapi::dpl::__internal::__select_backend<_ExecutionPolicyDest, _ForwardIterator>();
 
         oneapi::dpl::__internal::__pattern_walk1(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
                                                  __last, [](_ReferenceType __val) { __val.~_ValueType(); });

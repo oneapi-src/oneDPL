@@ -518,7 +518,6 @@ __parallel_transform_scan(oneapi::dpl::__internal::__tbb_backend_tag, _Execution
     return __body.sum();
 }
 
-
 //------------------------------------------------------------------------
 // parallel_stable_sort
 //------------------------------------------------------------------------
@@ -1420,9 +1419,8 @@ template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _Ran
           typename _RandomAccessIterator3, typename _Compare, typename _LeafMerge>
 void
 __parallel_merge(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _RandomAccessIterator1 __xs,
-                 _RandomAccessIterator1 __xe,
-                 _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye, _RandomAccessIterator3 __zs, _Compare __comp,
-                 _LeafMerge __leaf_merge)
+                 _RandomAccessIterator1 __xe, _RandomAccessIterator2 __ys, _RandomAccessIterator2 __ye,
+                 _RandomAccessIterator3 __zs, _Compare __comp, _LeafMerge __leaf_merge)
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::difference_type _DifferenceType1;
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::difference_type _DifferenceType2;

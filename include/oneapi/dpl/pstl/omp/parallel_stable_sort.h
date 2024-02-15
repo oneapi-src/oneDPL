@@ -204,7 +204,6 @@ __parallel_stable_sort(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPol
     }
 }
 
-
 } // namespace __omp_backend
 } // namespace dpl
 } // namespace oneapi

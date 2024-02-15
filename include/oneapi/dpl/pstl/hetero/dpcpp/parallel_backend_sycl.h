@@ -848,8 +848,8 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
           typename _BinaryOperation, typename _Inclusive>
 auto
 __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range1&& __in_rng,
-                          _Range2&& __out_rng, ::std::size_t __n,
-                          _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
+                          _Range2&& __out_rng, ::std::size_t __n, _UnaryOperation __unary_op, _InitType __init,
+                          _BinaryOperation __binary_op, _Inclusive)
 {
     using _Type = typename _InitType::__value_type;
 
@@ -1451,7 +1451,6 @@ __parallel_find_or(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPoli
         return __result != __init_value ? __result : __rng_n;
 }
 
-
 //------------------------------------------------------------------------
 // parallel_or - sync pattern
 //------------------------------------------------------------------------
@@ -1583,7 +1582,6 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&
                              ::std::forward<_ExecutionPolicy>(__exec)),
                          __f, _TagType{}, __buf.all_view(), __s_buf.all_view());
 }
-
 
 // Special overload for single sequence cases.
 // TODO: check if similar pattern may apply to other algorithms. If so, these overloads should be moved out of
@@ -2184,10 +2182,10 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare, _Pro
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
 }
 
-template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
-          ::std::enable_if_t<
-              __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value,
-              int> = 0>
+template <
+    typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
+    ::std::enable_if_t<
+        __is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
 auto
 __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
                        _Compare, _Proj __proj)
@@ -2211,10 +2209,10 @@ __parallel_stable_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __com
     return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __cmp_f);
 }
 
-template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
-          ::std::enable_if_t<
-              !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value,
-              int> = 0>
+template <
+    typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj,
+    ::std::enable_if_t<
+        !__is_radix_sort_usable_for_type<oneapi::dpl::__internal::__key_t<_Proj, _Range>, _Compare>::value, int> = 0>
 auto
 __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Range&& __rng,
                        _Compare __comp, _Proj __proj)

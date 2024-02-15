@@ -262,7 +262,8 @@ inline constexpr bool __is_random_access_or_integral_v = __is_random_access_or_i
 // Vectorized version of for_loop
 template <class _Tag, typename _ExecutionPolicy, typename _Ip, typename _Function, typename _Sp, typename... _Rest>
 void
-__pattern_for_loop(_Tag __tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, _Sp __stride, _Rest&&... __rest) noexcept
+__pattern_for_loop(_Tag __tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
+                   _Rest&&... __rest) noexcept
 {
     static_assert(__is_backend_tag_serial_v<_Tag>);
 
@@ -362,7 +363,8 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 // Sequenced version of for_loop for non-RAI and non-integral types
 template <class _Tag, typename _ExecutionPolicy, typename _Ip, typename _Function, typename... _Rest>
 ::std::enable_if_t<!__is_random_access_or_integral_v<_Ip>>
-__pattern_for_loop(_Tag, _ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, __single_stride_type, _Rest&&... __rest) noexcept
+__pattern_for_loop(_Tag, _ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, __single_stride_type,
+                   _Rest&&... __rest) noexcept
 {
     static_assert(__is_backend_tag_serial_v<_Tag>);
 
@@ -400,8 +402,7 @@ __pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec,
 
     oneapi::dpl::__internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
-                   __backend_tag{},
-                   ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
+                   __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
                    [__first, __f](_Size __i, _Size __j, __pack_type __value) {
                        const auto __subseq_start = __first + __i;
                        const auto __length = __j - __i;
@@ -438,8 +439,7 @@ __pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec,
 
     oneapi::dpl::__internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
-                   __backend_tag{},
-                   ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
+                   __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), _Size(0), __n, __identity,
                    [__first, __f, __stride](_Size __i, _Size __j, __pack_type __value) {
                        const auto __subseq_start = __first + __i * __stride;
                        const auto __length = __j - __i;
@@ -517,16 +517,14 @@ struct __use_par_vec_helper<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
 // Special versions for for_loop: handles both iterators and integral types(treated as random access iterators)
 template <typename _ExecutionPolicy, typename _Ip>
 constexpr auto
-__use_vectorization()
-    -> decltype(__use_par_vec_helper<_Ip>::template __use_vector<_ExecutionPolicy>())
+__use_vectorization() -> decltype(__use_par_vec_helper<_Ip>::template __use_vector<_ExecutionPolicy>())
 {
     return __use_par_vec_helper<_Ip>::template __use_vector<_ExecutionPolicy>();
 }
 
 template <typename _ExecutionPolicy, typename _Ip>
 constexpr auto
-__use_parallelization()
-    -> decltype(__use_par_vec_helper<_Ip>::template __use_parallel<_ExecutionPolicy>())
+__use_parallelization() -> decltype(__use_par_vec_helper<_Ip>::template __use_parallel<_ExecutionPolicy>())
 {
     return __use_par_vec_helper<_Ip>::template __use_parallel<_ExecutionPolicy>();
 }
@@ -547,9 +545,9 @@ __for_loop_impl(_ExecutionPolicy&& __exec, _Ip __start, _Ip __finish, _Fp&& __f,
     }
     else
     {
-        oneapi::dpl::__internal::__pattern_for_loop(__serial_tag<_IsVector>{},
-                                                    ::std::forward<_ExecutionPolicy>(__exec), __start, __finish, __f,
-                                                    __stride, ::std::get<_Is>(::std::move(__t))...);
+        oneapi::dpl::__internal::__pattern_for_loop(__serial_tag<_IsVector>{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                    __start, __finish, __f, __stride,
+                                                    ::std::get<_Is>(::std::move(__t))...);
     }
 }
 

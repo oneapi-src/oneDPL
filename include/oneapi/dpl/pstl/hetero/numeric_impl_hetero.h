@@ -320,12 +320,11 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
     return __result + __n;
 }
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
-          typename _UnaryOperation, typename _Type,
-          typename _BinaryOperation, typename _Inclusive>
+          typename _UnaryOperation, typename _Type, typename _BinaryOperation, typename _Inclusive>
 _Iterator2
 __pattern_transform_scan(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first,
-                         _Iterator1 __last, _Iterator2 __result,
-                         _UnaryOperation __unary_op, _Type __init, _BinaryOperation __binary_op, _Inclusive)
+                         _Iterator1 __last, _Iterator2 __result, _UnaryOperation __unary_op, _Type __init,
+                         _BinaryOperation __binary_op, _Inclusive)
 {
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
     using _InitType = unseq_backend::__init_value<_RepackedType>;
@@ -385,7 +384,8 @@ __pattern_adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __fir
     if (__n <= 0)
         return __d_first;
 
-    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+    const auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
     using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     using _It1ValueT = typename ::std::iterator_traits<_ForwardIterator1>::value_type;
