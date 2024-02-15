@@ -57,18 +57,36 @@ _ONEDPL_DEVICE_COPYABLE(__replace_functor)
 _ONEDPL_DEVICE_COPYABLE(__replace_copy_functor)
 _ONEDPL_DEVICE_COPYABLE(zip_forward_iterator)
 
+template <typename _SourceT>
+struct fill_functor;
+
+template <typename _Generator>
+struct generate_functor;
+
+template <typename _Pred>
+struct equal_predicate;
+
+template <typename _Tp, typename _Pred>
+struct __search_n_unary_predicate;
+
+template <typename _Predicate>
+struct adjacent_find_fn;
+
+template <class _Comp>
+struct __is_heap_check;
+
+template <typename _Predicate, typename _ValueType>
+struct __create_mask_unique_copy;
+
 _ONEDPL_DEVICE_COPYABLE(fill_functor)
 _ONEDPL_DEVICE_COPYABLE(generate_functor)
 _ONEDPL_DEVICE_COPYABLE(__brick_fill)
 _ONEDPL_DEVICE_COPYABLE(__brick_fill_n)
 _ONEDPL_DEVICE_COPYABLE(__search_n_unary_predicate)
 _ONEDPL_DEVICE_COPYABLE(__is_heap_check)
-
 _ONEDPL_DEVICE_COPYABLE(equal_predicate)
 _ONEDPL_DEVICE_COPYABLE(adjacent_find_fn)
 _ONEDPL_DEVICE_COPYABLE(__create_mask_unique_copy)
-
-_ONEDPL_DEVICE_COPYABLE(__op_uninitialized_fill)
 
 using namespace oneapi::dpl::__par_backend_hetero;
 
@@ -97,6 +115,24 @@ _ONEDPL_DEVICE_COPYABLE(__brick_set_op)
 _ONEDPL_DEVICE_COPYABLE(__brick_reduce_idx)
 
 using namespace oneapi::dpl::internal;
+
+template <typename Comp, typename T, int func>
+struct custom_brick;
+
+template <typename T, typename Predicate>
+struct replace_if_fun;
+
+template <typename T, typename Predicate, typename UnaryOperation>
+class transform_if_stencil_fun;
+
+template <typename ValueType, typename FlagType, typename BinaryOp>
+struct segmented_scan_fun;
+
+template <typename Output1, typename Output2>
+class scatter_and_accumulate_fun;
+
+template <typename ValueType, typename FlagType, typename BinaryOp>
+struct scan_by_key_fun;
 
 _ONEDPL_DEVICE_COPYABLE(custom_brick)
 _ONEDPL_DEVICE_COPYABLE(replace_if_fun)
