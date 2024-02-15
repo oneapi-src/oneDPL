@@ -7,6 +7,8 @@ You can use one of the following ways to pass data to an algorithm executed with
 * Unified shared memory (USM) pointers and ``std::vector`` with USM allocators
 * Iterators of host-side ``std::vector``
 
+.. _use-buffer-wrappers:
+
 Use oneapi::dpl::begin and oneapi::dpl::end Functions
 -----------------------------------------------------
 
@@ -48,6 +50,8 @@ To use the functions, add ``#include <oneapi/dpl/iterator>`` to your code. For e
     std::fill(oneapi::dpl::execution::dpcpp_default, buf_begin, buf_end, 42);
     return 0;
   }
+
+.. _use-usm:
 
 Use Unified Shared Memory
 -------------------------
