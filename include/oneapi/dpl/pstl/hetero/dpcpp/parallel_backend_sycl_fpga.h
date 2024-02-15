@@ -292,12 +292,33 @@ __parallel_or(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last, 
                                                             __s_last, __f);
 }
 
+template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick>
+bool
+__parallel_or(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Iterator1 __first,
+              _Iterator1 __last, _Iterator2 __s_first, _Iterator2 __s_last, _Brick __f)
+{
+    // workaround until we implement more performant version for patterns
+    return oneapi::dpl::__par_backend_hetero::__parallel_or(oneapi::dpl::__internal::__device_backend_tag{},
+                                                            __exec.__device_policy(), __first, __last, __s_first,
+                                                            __s_last, __f);
+}
+
 template <typename _ExecutionPolicy, typename _Iterator, typename _Brick>
 oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, bool>
 __parallel_or(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Brick __f)
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_or(__exec.__device_policy(), __first, __last, __f);
+}
+
+template <typename _ExecutionPolicy, typename _Iterator, typename _Brick>
+bool
+__parallel_or(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Iterator __first,
+              _Iterator __last, _Brick __f)
+{
+    // workaround until we implement more performant version for patterns
+    return oneapi::dpl::__par_backend_hetero::__parallel_or(oneapi::dpl::__internal::__device_backend_tag{},
+                                                            __exec.__device_policy(), __first, __last, __f);
 }
 
 //------------------------------------------------------------------------
