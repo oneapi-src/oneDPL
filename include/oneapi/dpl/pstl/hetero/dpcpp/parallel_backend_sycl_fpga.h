@@ -377,8 +377,8 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
                         _Compare __comp)
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_partial_sort(__exec.__device_policy(), __first, __mid, __last,
-                                                                      __comp);
+    return oneapi::dpl::__par_backend_hetero::__parallel_partial_sort(
+        oneapi::dpl::__internal::__device_backend_tag{}, __exec.__device_policy(), __first, __mid, __last, __comp);
 }
 
 template <typename _ExecutionPolicy, typename _Iterator, typename _Compare>
