@@ -5546,7 +5546,7 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _OutputIterator, class _Compare>
 _OutputIterator
-__pattern_set_union(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+__pattern_set_union(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                     _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
                     _OutputIterator __result, _Compare __comp)
 {
@@ -5980,7 +5980,7 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _RandomAccessItera
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _RandomAccessIterator3, class _Compare>
 _RandomAccessIterator3
-__pattern_set_symmetric_difference(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec,
+__pattern_set_symmetric_difference(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec,
                                    _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
                                    _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
                                    _RandomAccessIterator3 __result, _Compare __comp)
