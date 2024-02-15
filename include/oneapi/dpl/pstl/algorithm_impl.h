@@ -87,10 +87,9 @@ __pattern_any_of(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rand
 {
     constexpr auto __dispatch_tag =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     return __internal::__except_handler([&]() {
-        return __internal::__parallel_or(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        return __internal::__parallel_or(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                          [__pred, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                                              return __internal::__brick_any_of(__i, __j, __pred, __is_vector);
                                          });
@@ -99,13 +98,11 @@ __pattern_any_of(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rand
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Pred>
 bool
-__pattern_any_of(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_any_of(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                  _RandomAccessIterator __last, _Pred __pred)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     return __internal::__except_handler([&]() {
-        return __internal::__parallel_or(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        return __internal::__parallel_or(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                          [__pred](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                                              return __internal::__brick_any_of(__i, __j, __pred, _IsVector{});
                                          });
@@ -1058,14 +1055,13 @@ __pattern_equal(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Ran
 {
     constexpr auto __dispatch_tag =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     if (__last1 - __first1 != __last2 - __first2)
         return false;
 
     return __internal::__except_handler([&]() {
         return !__internal::__parallel_or(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
             [__first1, __first2, __p, __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 return !__internal::__brick_equal(__i, __j, __first2 + (__i - __first1), __first2 + (__j - __first1),
                                                   __p, __is_vector);
@@ -1076,18 +1072,16 @@ __pattern_equal(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Ran
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _BinaryPredicate>
 bool
-__pattern_equal(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+__pattern_equal(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                 _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
                 _BinaryPredicate __p)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     if (__last1 - __first1 != __last2 - __first2)
         return false;
 
     return __internal::__except_handler([&]() {
         return !__internal::__parallel_or(
-            __backend_tag{},
+            __tag,
             ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
             [__first1, __first2, __p](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 return !__internal::__brick_equal(__i, __j, __first2 + (__i - __first1), __first2 + (__j - __first1),
@@ -1146,11 +1140,10 @@ __pattern_equal(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Ran
 {
     constexpr auto __dispatch_tag =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     return __internal::__except_handler([&]() {
         return !__internal::__parallel_or(
-            __backend_tag{},
+            __dispatch_tag,
             ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
             [__first1, __first2, __p, __is_vector](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 return !__internal::__brick_equal(__i, __j, __first2 + (__i - __first1), __p, __is_vector);
@@ -1161,14 +1154,12 @@ __pattern_equal(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _Ran
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _BinaryPredicate>
 bool
-__pattern_equal(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+__pattern_equal(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                 _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _BinaryPredicate __p)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     return __internal::__except_handler([&]() {
         return !__internal::__parallel_or(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
+            __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
             [__first1, __first2, __p](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
                 return !__internal::__brick_equal(__i, __j, __first2 + (__i - __first1), __p, _IsVector{});
             });
@@ -5043,7 +5034,6 @@ __pattern_includes(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _
 {
     constexpr auto __dispatch_tag =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     if (__first2 == __last2)
         return true;
@@ -5065,7 +5055,7 @@ __pattern_includes(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _
 
     return __internal::__except_handler([&]() {
         return !__internal::__parallel_or(
-            __backend_tag{},
+            __dispatch_tag,
             ::std::forward<_ExecutionPolicy>(__exec), __first2, __last2,
             [__first1, __last1, __first2, __last2, &__comp](_RandomAccessIterator2 __i, _RandomAccessIterator2 __j) {
                 assert(__j > __i);
@@ -5103,12 +5093,10 @@ __pattern_includes(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, _
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _Compare>
 bool
-__pattern_includes(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+__pattern_includes(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                    _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
                    _Compare __comp)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     if (__first2 == __last2)
         return true;
 
@@ -5129,7 +5117,7 @@ __pattern_includes(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Random
 
     return __internal::__except_handler([&]() {
         return !__internal::__parallel_or(
-            __backend_tag{},
+            __tag,
             ::std::forward<_ExecutionPolicy>(__exec), __first2, __last2,
             [__first1, __last1, __first2, __last2, &__comp](_RandomAccessIterator2 __i, _RandomAccessIterator2 __j) {
                 assert(__j > __i);
@@ -6077,10 +6065,9 @@ __pattern_is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ran
 {
     constexpr auto __dispatch_tag =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     return __internal::__except_handler([&]() {
-        return !__parallel_or(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        return !__parallel_or(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                               [__first, __comp, __is_vector](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                                   return !__internal::__is_heap_local(__first, __i - __first, __j - __first, __comp,
                                                                       __is_vector);
@@ -6090,13 +6077,11 @@ __pattern_is_heap(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ran
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Compare>
 bool
-__pattern_is_heap(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_is_heap(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                   _RandomAccessIterator __last, _Compare __comp)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     return __internal::__except_handler([&]() {
-        return !__parallel_or(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        return !__parallel_or(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                               [__first, __comp](_RandomAccessIterator __i, _RandomAccessIterator __j) {
                                   return !__internal::__is_heap_local(__first, __i - __first, __j - __first, __comp,
                                                                       _IsVector{});
