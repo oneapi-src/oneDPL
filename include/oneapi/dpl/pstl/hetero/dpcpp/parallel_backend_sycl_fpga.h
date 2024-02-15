@@ -76,7 +76,7 @@ struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...
         return __future(__event);
     }
 
-// KSATODO is this define check really required here?
+// TODO is this define check really required here?
 #if _ONEDPL_FPGA_DEVICE
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
     auto
@@ -103,18 +103,6 @@ struct __parallel_for_fpga_submitter<__internal::__optional_kernel_name<_Name...
     }
 #endif // _ONEDPL_FPGA_DEVICE
 };
-
-template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges,
-          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
-auto
-__parallel_for(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs)
-{
-    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
-    using __parallel_for_name = __internal::__kernel_name_provider<_CustomName>;
-
-    return __parallel_for_fpga_submitter<__parallel_for_name>()(std::forward<_ExecutionPolicy>(__exec), __brick,
-                                                                __count, std::forward<_Ranges>(__rngs)...);
-}
 
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
 auto
