@@ -5637,6 +5637,9 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, 
                     _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2, _OutputIterator __result,
                     _Compare __comp, _IsVector __is_vector, /*__is_parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2,
+                                                  _OutputIterator>();
 
     const auto __n1 = __last1 - __first1;
     const auto __n2 = __last2 - __first2;
@@ -5647,13 +5650,13 @@ __pattern_set_union(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1, 
 
     typedef typename ::std::iterator_traits<_OutputIterator>::value_type _Tp;
     return __parallel_set_union_op(
+        __dispatch_tag,
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
         [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
            _RandomAccessIterator2 __last2, _Tp* __result, _Compare __comp) {
             return oneapi::dpl::__utils::__set_union_construct(__first1, __last1, __first2, __last2, __result, __comp,
                                                                __BrickCopyConstruct<_IsVector>());
-        },
-        __is_vector);
+        });
 }
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
@@ -5672,13 +5675,13 @@ __pattern_set_union(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
 
     typedef typename ::std::iterator_traits<_OutputIterator>::value_type _Tp;
     return __parallel_set_union_op(
+        __tag,
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
         [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
            _RandomAccessIterator2 __last2, _Tp* __result, _Compare __comp) {
             return oneapi::dpl::__utils::__set_union_construct(__first1, __last1, __first2, __last2, __result, __comp,
                                                                __BrickCopyConstruct<_IsVector>());
-        },
-        _IsVector{});
+        });
 }
 
 //------------------------------------------------------------------------
@@ -6071,6 +6074,9 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _RandomAccessItera
                                    _RandomAccessIterator2 __last2, _RandomAccessIterator3 __result, _Compare __comp,
                                    _IsVector __is_vector, /*is_parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2,
+                                                  _RandomAccessIterator3>();
 
     const auto __n1 = __last1 - __first1;
     const auto __n2 = __last2 - __first2;
@@ -6081,13 +6087,13 @@ __pattern_set_symmetric_difference(_ExecutionPolicy&& __exec, _RandomAccessItera
 
     typedef typename ::std::iterator_traits<_RandomAccessIterator3>::value_type _T;
     return __internal::__parallel_set_union_op(
+        __dispatch_tag,
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
         [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
            _RandomAccessIterator2 __last2, _T* __result, _Compare __comp) {
             return oneapi::dpl::__utils::__set_symmetric_difference_construct(
                 __first1, __last1, __first2, __last2, __result, __comp, __BrickCopyConstruct<_IsVector>());
-        },
-        __is_vector);
+        });
 }
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
@@ -6107,13 +6113,13 @@ __pattern_set_symmetric_difference(__parallel_tag<_IsVector> __tag, _ExecutionPo
 
     typedef typename ::std::iterator_traits<_RandomAccessIterator3>::value_type _T;
     return __internal::__parallel_set_union_op(
+        __tag,
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
         [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
            _RandomAccessIterator2 __last2, _T* __result, _Compare __comp) {
             return oneapi::dpl::__utils::__set_symmetric_difference_construct(
                 __first1, __last1, __first2, __last2, __result, __comp, __BrickCopyConstruct<_IsVector>());
-        },
-        _IsVector{});
+        });
 }
 
 //------------------------------------------------------------------------
