@@ -262,7 +262,8 @@ oneapi::dpl::__internal::__enable_if_fpga_execution_policy<
                              typename oneapi::dpl::__ranges::__get_first_range_type<_Ranges...>::type>>>
 __parallel_find_or(_ExecutionPolicy&& __exec, _Brick __f, _BrickTag __brick_tag, _Ranges&&... __rngs)
 {
-    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(__exec.__device_policy(), __f, __brick_tag,
+    return oneapi::dpl::__par_backend_hetero::__parallel_find_or(oneapi::dpl::__internal::__device_backend_tag{},
+                                                                 __exec.__device_policy(), __f, __brick_tag,
                                                                  ::std::forward<_Ranges>(__rngs)...);
 }
 

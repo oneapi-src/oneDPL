@@ -931,6 +931,9 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
                         /*parallel*/ ::std::true_type, /*vector*/ ::std::true_type,
                         oneapi::dpl::__internal::__or_semantic)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     if (__last - __first < 2)
         return __last;
 
@@ -945,8 +948,8 @@ __pattern_adjacent_find(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
     // TODO: in case of confilicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
     bool result = __par_backend_hetero::__parallel_find_or(
-        ::std::forward<_ExecutionPolicy>(__exec), _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}},
-        __par_backend_hetero::__parallel_or_tag{},
+        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, __par_backend_hetero::__parallel_or_tag{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
 
     // inverted conditional because of
@@ -973,6 +976,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
     // TODO: in case of confilicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
     bool result = __par_backend_hetero::__parallel_find_or(
+        _BackendTag{},
         ::std::forward<_ExecutionPolicy>(__exec), _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}},
         __par_backend_hetero::__parallel_or_tag{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
@@ -1113,6 +1117,9 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, b
 __pattern_any_of(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Pred __pred,
                  /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     if (__first == __last)
         return false;
 
@@ -1122,6 +1129,7 @@ __pattern_any_of(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
     auto __buf = __keep(__first, __last);
 
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+        __backend_tag{},
         __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
         _Predicate{__pred}, __par_backend_hetero::__parallel_or_tag{}, __buf.all_view());
@@ -1141,6 +1149,7 @@ __pattern_any_of(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
     auto __buf = __keep(__first, __last);
 
     return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
+        _BackendTag{},
         __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
         _Predicate{__pred}, __par_backend_hetero::__parallel_or_tag{}, __buf.all_view());
@@ -1156,6 +1165,10 @@ __pattern_equal(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
                 _Iterator2 __last2, _Pred __pred,
                 /*vector=*/::std::true_type, /*parallel=*/::std::true_type)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
     if (__last1 == __first1 || __last2 == __first2 || __last1 - __first1 != __last2 - __first2)
         return false;
 
@@ -1169,6 +1182,7 @@ __pattern_equal(_ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __las
     // TODO: in case of confilicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
     return !__par_backend_hetero::__parallel_find_or(
+        __backend_tag{},
         ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
         __par_backend_hetero::__parallel_or_tag{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
@@ -1192,6 +1206,7 @@ __pattern_equal(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ite
     // TODO: in case of confilicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
     return !__par_backend_hetero::__parallel_find_or(
+        _BackendTag{},
         ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
         __par_backend_hetero::__parallel_or_tag{},
         oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
