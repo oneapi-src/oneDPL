@@ -525,6 +525,14 @@ struct __usm_host_or_buffer_storage
     }
 
   public:
+    __usm_host_or_buffer_storage(_T&& __value) : __usm(false)
+    {
+        __sycl_buf = ::std::make_shared<__sycl_buffer_t>(__sycl_buffer_t(1));
+
+        sycl::host_accessor host_vals(*__sycl_buf, sycl::write_only);
+        host_vals[0] = std::forward<_T>(__value);
+    }
+
     __usm_host_or_buffer_storage(_ExecutionPolicy& __exec, ::std::size_t __n)
     {
         __usm = __use_USM_host_allocations(__exec.queue());
@@ -594,8 +602,24 @@ class __future : private std::tuple<_Args...>
     }
 
   public:
+    using __future_t = __future<_Event, _Args...>;
+    using __tuple_t = std::tuple<_Args...>;
+
     __future(_Event __e, _Args... __args) : std::tuple<_Args...>(__args...), __my_event(__e) {}
     __future(_Event __e, std::tuple<_Args...> __t) : std::tuple<_Args...>(__t), __my_event(__e) {}
+
+    static __future_t
+    create_empty(_Args&&... __args)
+    {
+        return __future_t(_Event(), std::forward<_Args>(__args)...);
+    }
+
+    template <typename... _InitArgs>
+    static __tuple_t
+    create_tuple(_InitArgs&&... __args)
+    {
+        return ::std::make_tuple(std::forward<_InitArgs>(__args)...);
+    }
 
     auto
     event() const

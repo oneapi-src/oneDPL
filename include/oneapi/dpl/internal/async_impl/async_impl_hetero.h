@@ -22,6 +22,7 @@
 #include "oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl.h"
 
 #include <cassert>
+#include <utility>
 
 namespace oneapi
 {
@@ -35,8 +36,17 @@ template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Functi
 auto
 __pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f)
 {
-    auto __n = __last - __first;
-    assert(__n > 0);
+    const auto __n = ::std::distance(__first, __last);
+
+    using __keep_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write,
+                                                                      _ForwardIterator>());
+    using __buf_t = decltype(__keep_t{}(__first, __last));
+    using __future_t = decltype(oneapi::dpl::__par_backend_hetero::__parallel_for(
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+        ::std::declval<__buf_t>().all_view()));
+
+    if (__n <= 0)
+        return __future_t::create_empty();
 
     auto __keep =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
@@ -57,8 +67,18 @@ auto
 __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                       _ForwardIterator2 __first2, _Function __f)
 {
-    auto __n = __last1 - __first1;
-    assert(__n > 0);
+    const auto __n = ::std::distance(__first1, __last1);
+
+    using __keep1_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>());
+    using __keep2_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>());
+    using __buf1_t = decltype(__keep1_t{}(__first1, __last1));
+    using __buf2_t = decltype(__keep2_t{}(__first2, __first2 + __n));
+    using __future_t = decltype(oneapi::dpl::__par_backend_hetero::__parallel_for(
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+        ::std::declval<__buf1_t>().all_view(), ::std::declval<__buf2_t>().all_view()));
+
+    if (__n <= 0)
+        return __future_t::create_empty().__make_future(__first2);
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode1, _ForwardIterator1>();
     auto __buf1 = __keep1(__first1, __last1);
@@ -82,8 +102,24 @@ auto
 __pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                       _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f)
 {
-    auto __n = __last1 - __first1;
-    assert(__n > 0);
+    const auto __n = ::std::distance(__first1, __last1);
+
+    using __keep1_t =
+        decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>());
+    using __keep2_t =
+        decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator2>());
+    using __keep3_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write,
+                                                                       _ForwardIterator3>());
+    using __buf1_t = decltype(__keep1_t{}(__first1, __last1));
+    using __buf2_t = decltype(__keep2_t{}(__first2, __first2 + __n));
+    using __buf3_t = decltype(__keep3_t{}(__first3, __first3 + __n));
+    using __future_t = decltype(oneapi::dpl::__par_backend_hetero::__parallel_for(
+        ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+        ::std::declval<__buf1_t>().all_view(), ::std::declval<__buf2_t>().all_view(),
+        ::std::declval<__buf3_t>().all_view()));
+
+    if (__n <= 0)
+        return __future_t::create_empty().__make_future(__first3);
 
     auto __keep1 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator1>();
@@ -125,13 +161,32 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
                                  _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init,
                                  _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
-    assert(__first1 < __last1);
+    const auto __n = ::std::distance(__first1, __last1);
 
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _BinaryOperation2>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
 
-    auto __n = __last1 - __first1;
+    using __keep1_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read,
+                                                                       _RandomAccessIterator1>());
+    using __keep2_t = decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read,
+                                                                       _RandomAccessIterator2>());
+    using __buf1_t = decltype(__keep1_t{}(__first1, __last1));
+    using __buf2_t = decltype(__keep2_t{}(__first2, __first2 + __n));
+    using __future_t =
+        decltype(oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, ::std::true_type>(
+            ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
+            unseq_backend::__init_value<_RepackedTp>{__init}, ::std::declval<__buf1_t>().all_view(),
+            ::std::declval<__buf2_t>().all_view()));
+
+    if (__n <= 0)
+    {
+        // TODO do we have some other way here?
+        auto param_tuple = __future_t::create_tuple(__init);
+        auto [param1] = param_tuple;
+        return __future_t::create_empty(std::move(param1));
+    }
+
     auto __keep1 =
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator1>();
     auto __buf1 = __keep1(__first1, __last1);
@@ -157,11 +212,27 @@ auto
 __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                                  _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
-    assert(__first < __last);
+    const auto __n = ::std::distance(__first, __last);
 
     using _Policy = _ExecutionPolicy;
     using _Functor = unseq_backend::walk_n<_Policy, _UnaryOperation>;
     using _RepackedTp = __par_backend_hetero::__repacked_tuple_t<_Tp>;
+
+    using __keep_t =
+        decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>());
+    using __buf_t = decltype(__keep_t{}(__first, __last));
+    using __future_t =
+        decltype(oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp, ::std::true_type>(
+            ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
+            unseq_backend::__init_value<_RepackedTp>{__init}, ::std::declval<__buf_t>().all_view()));
+
+    if (__n <= 0)
+    {
+        // TODO do we have some other way here?
+        auto param_tuple = __future_t::create_tuple(__init);
+        auto [param1] = param_tuple;
+        return __future_t::create_empty(std::move(param1));
+    }
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
@@ -197,9 +268,21 @@ __pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __firs
                                     _Iterator2 __result, _UnaryOperation __unary_op, _InitType __init,
                                     _BinaryOperation __binary_op, _Inclusive)
 {
-    assert(__first < __last);
+    const auto __n = ::std::distance(__first, __last);
 
-    auto __n = __last - __first;
+    using __keep1_t =
+        decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>());
+    using __keep2_t =
+        decltype(oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>());
+    using __buf1_t = decltype(__keep1_t{}(__first, __last));
+    using __buf2_t = decltype(__keep2_t{}(__result, __result + __n));
+    using __future_t = decltype(oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+        ::std::forward<_ExecutionPolicy>(__exec), ::std::declval<__buf1_t>().all_view(),
+        ::std::declval<__buf2_t>().all_view(), __n, __unary_op, __init, __binary_op, _Inclusive{}));
+
+    if (__n <= 0)
+        return __future_t::create_empty().__make_future(__result);
+
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first, __last);
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
