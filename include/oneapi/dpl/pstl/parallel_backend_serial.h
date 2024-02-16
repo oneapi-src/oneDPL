@@ -188,14 +188,6 @@ __parallel_invoke(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolic
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
 void
-__parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterator __end, _Fp __f)
-{
-    for (auto __iter = __begin; __iter != __end; ++__iter)
-        __f(*__iter);
-}
-
-template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
-void
 __parallel_for_each(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&, _ForwardIterator __begin,
                     _ForwardIterator __end, _Fp __f)
 {

@@ -1392,12 +1392,6 @@ __parallel_invoke(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&
 //------------------------------------------------------------------------
 // parallel_for_each
 //------------------------------------------------------------------------
-template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
-void
-__parallel_for_each(_ExecutionPolicy&&, _ForwardIterator __begin, _ForwardIterator __end, _Fp __f)
-{
-    tbb::this_task_arena::isolate([&]() { tbb::parallel_for_each(__begin, __end, __f); });
-}
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Fp>
 void
