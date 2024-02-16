@@ -129,10 +129,10 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
                               _Iterator1 __last, _Iterator2 __result, _UnaryOperation __unary_op, _InitType __init,
                               _BinaryOperation __binary_op, _Inclusive)
 {
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
+
     if (__first == __last)
         return __result;
-
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
 
     const auto __n = __last - __first;
 

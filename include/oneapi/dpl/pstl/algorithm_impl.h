@@ -2042,11 +2042,11 @@ bool
 __pattern_is_partitioned(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                          _RandomAccessIterator __last, _UnaryPredicate __pred)
 {
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
+
     //trivial pre-checks
     if (__first == __last)
         return true;
-
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
 
     return __internal::__except_handler([&]() {
         // State of current range:
@@ -2529,11 +2529,11 @@ void
 __pattern_partial_sort(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                        _RandomAccessIterator __middle, _RandomAccessIterator __last, _Compare __comp)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     const auto __n = __middle - __first;
     if (__n == 0)
         return;
-
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     __except_handler([&]() {
         __par_backend::__parallel_stable_sort(
@@ -3302,9 +3302,9 @@ __parallel_set_union_op(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __ex
                         _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
                         _OutputIterator __result, _Compare __comp, _SetUnionOp __set_union_op)
 {
-    typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _DifferenceType;
-
     using __backend_tag = typename decltype(__tag)::__backend_tag;
+
+    typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _DifferenceType;
 
     const auto __n1 = __last1 - __first1;
     const auto __n2 = __last2 - __first2;
@@ -3899,11 +3899,11 @@ _RandomAccessIterator
 __pattern_min_element(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                       _RandomAccessIterator __last, _Compare __comp)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     // a trivial case pre-check
     if (__last - __first < 2)
         return __first;
-
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
@@ -3966,11 +3966,11 @@ template <typename _IsVector, typename _ExecutionPolicy, typename _RandomAccessI
 __pattern_minmax_element(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                          _RandomAccessIterator __last, _Compare __comp)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     // a trivial case pre-check
     if (__last - __first < 2)
         return ::std::make_pair(__first, __first);
-
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     return __internal::__except_handler([&]() {
         typedef ::std::pair<_RandomAccessIterator, _RandomAccessIterator> _Result;

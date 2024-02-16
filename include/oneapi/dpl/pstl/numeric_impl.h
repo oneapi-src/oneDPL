@@ -287,6 +287,8 @@ __pattern_transform_scan(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
                          _RandomAccessIterator __last, _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init,
                          _BinaryOperation __binary_op, _Inclusive)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
     _DifferenceType __n = __last - __first;
 
@@ -294,8 +296,6 @@ __pattern_transform_scan(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
     {
         return __result;
     }
-
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     return __internal::__except_handler([&]() {
         __par_backend::__parallel_strict_scan(
