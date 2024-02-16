@@ -68,12 +68,14 @@ struct custom_brick
     }
 };
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
+template <class _Tag, typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename StrictWeakOrdering>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, OutputIterator>
-lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
+OutputIterator
+lower_bound_impl(_Tag, Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
+    static_assert(__is_backend_tag_v<_Tag>);
+
     return oneapi::dpl::transform(policy, value_start, value_end, result,
                                   [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
                                       return ::std::lower_bound(start, end, val, comp) - start;
@@ -105,11 +107,11 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
 }
 
 #if _ONEDPL_BACKEND_SYCL
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
-          typename StrictWeakOrdering>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
-lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
-                 InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename StrictWeakOrdering>
+OutputIterator
+lower_bound_impl(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 start, InputIterator1 end,
+                 InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
     constexpr auto __dispatch_tag =
         oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2, OutputIterator>();
