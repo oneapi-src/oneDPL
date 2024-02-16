@@ -234,10 +234,13 @@ auto
 inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _BinaryOperation __binary_op, _Events&&... __dependencies)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(
-        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, oneapi::dpl::__internal::__no_op(),
-        __binary_op, /*inclusive=*/::std::true_type());
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+        oneapi::dpl::__internal::__no_op(), __binary_op, /*inclusive=*/::std::true_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class _T,
@@ -248,10 +251,13 @@ auto
 inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _BinaryOperation __binary_op, _T __init, _Events&&... __dependencies)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(
-        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, oneapi::dpl::__internal::__no_op(),
-        __init, __binary_op, /*inclusive=*/::std::true_type());
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+        oneapi::dpl::__internal::__no_op(), __init, __binary_op, /*inclusive=*/::std::true_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events,
@@ -260,10 +266,13 @@ auto
 exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _T __init, _Events&&... __dependencies)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(
-        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, oneapi::dpl::__internal::__no_op(),
-        __init, ::std::plus<_T>(), /*exclusive=*/::std::false_type());
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+        oneapi::dpl::__internal::__no_op(), __init, ::std::plus<_T>(), /*exclusive=*/::std::false_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOperation,
@@ -274,10 +283,13 @@ auto
 exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _T __init, _BinaryOperation __binary_op, _Events&&... __dependencies)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(
-        ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, oneapi::dpl::__internal::__no_op(),
-        __init, __binary_op, /*exclusive=*/::std::false_type());
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+        oneapi::dpl::__internal::__no_op(), __init, __binary_op, /*exclusive=*/::std::false_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOperation,
@@ -288,8 +300,12 @@ transform_exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
                                _ForwardIt2 __first2, _T __init, _BinaryOperation __binary_op,
                                _UnaryOperation __unary_op, _Events&&... __dependencies)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-    return oneapi::dpl::__internal::__pattern_transform_scan_async(::std::forward<_ExecutionPolicy>(__exec), __first1,
+    return oneapi::dpl::__internal::__pattern_transform_scan_async(__dispatch_tag,
+                                                                   ::std::forward<_ExecutionPolicy>(__exec), __first1,
                                                                    __last1, __first2, __unary_op, __init, __binary_op,
                                                                    /*exclusive=*/::std::false_type());
 }
@@ -302,10 +318,13 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
                                _ForwardIt2 __first2, _BinaryOperation __binary_op, _UnaryOperation __unary_op,
                                _Events&&... __dependencies)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-    return oneapi::dpl::__internal::__pattern_transform_scan_async(::std::forward<_ExecutionPolicy>(__exec), __first1,
-                                                                   __last1, __first2, __unary_op, __binary_op,
-                                                                   /*inclusive=*/::std::true_type());
+    return oneapi::dpl::__internal::__pattern_transform_scan_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __unary_op, __binary_op,
+        /*inclusive=*/::std::true_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class _UnaryOperation,
@@ -317,8 +336,12 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
                                _ForwardIt2 __first2, _BinaryOperation __binary_op, _UnaryOperation __unary_op,
                                _T __init, _Events&&... __dependencies)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-    return oneapi::dpl::__internal::__pattern_transform_scan_async(::std::forward<_ExecutionPolicy>(__exec), __first1,
+    return oneapi::dpl::__internal::__pattern_transform_scan_async(__dispatch_tag,
+                                                                   ::std::forward<_ExecutionPolicy>(__exec), __first1,
                                                                    __last1, __first2, __unary_op, __init, __binary_op,
                                                                    /*inclusive=*/::std::true_type());
 }
