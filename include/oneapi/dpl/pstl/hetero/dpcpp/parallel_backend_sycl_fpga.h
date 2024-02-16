@@ -452,10 +452,10 @@ __parallel_partial_sort(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionP
 //-----------------------------------------------------------------------
 
 // TODO: check if it makes sense to move these wrappers out of backend to a common place
-template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename _Range2, typename _BinHashMgr,
-          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
+template <typename _ExecutionPolicy, typename _Event, typename _Range1, typename _Range2, typename _BinHashMgr>
 auto
-__parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
+__parallel_histogram(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, const _Event& __init_event,
+                     _Range1&& __input, _Range2&& __bins,
                      const _BinHashMgr& __binhash_manager)
 {
     if constexpr (sizeof(oneapi::dpl::__internal::__value_t<_Range2>) <= sizeof(::std::uint32_t))
