@@ -36,12 +36,15 @@ namespace internal
 template <typename Name>
 class InclusiveScan1;
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
+template <class _Tag, typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
           typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, OutputIterator>
-pattern_inclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                                  OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
+OutputIterator
+pattern_inclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+                                  InputIterator2 first2, OutputIterator result, BinaryPredicate binary_pred,
+                                  BinaryOperator binary_op)
 {
+    static_assert(__is_backend_tag_v<_Tag>);
+
     const auto n = ::std::distance(first1, last1);
 
     // Check for empty and single element ranges
@@ -123,11 +126,12 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
     return result + n;
 }
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
-          typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
-pattern_inclusive_scan_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                                  OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename BinaryPredicate, typename BinaryOperator>
+OutputIterator
+pattern_inclusive_scan_by_segment(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 first1,
+                                  InputIterator1 last1, InputIterator2 first2, OutputIterator result,
+                                  BinaryPredicate binary_pred, BinaryOperator binary_op)
 {
     return internal::inclusive_scan_by_segment_impl(
         ::std::forward<Policy>(policy), first1, last1, first2, result, binary_pred, binary_op,
