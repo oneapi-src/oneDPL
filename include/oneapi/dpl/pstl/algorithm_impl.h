@@ -2169,13 +2169,12 @@ __pattern_unique(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIte
 
 // That function is shared between two algorithms - remove_if (__pattern_remove_if) and unique (pattern unique). But a mask calculation is different.
 // So, a caller passes _CalcMask brick into remove_elements.
-template <class _ExecutionPolicy, class _ForwardIterator, class _CalcMask, class _IsVector>
+template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator, class _CalcMask>
 _ForwardIterator
-__remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _CalcMask __calc_mask,
-                  _IsVector __is_vector)
+__remove_elements(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+                  _ForwardIterator __last, _CalcMask __calc_mask)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
 
     typedef typename ::std::iterator_traits<_ForwardIterator>::difference_type _DifferenceType;
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _Tp;
@@ -2186,7 +2185,7 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
         bool* __mask = __mask_buf.get();
         _DifferenceType __min = __par_backend::__parallel_reduce(
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), _DifferenceType(0), __n, __n,
-            [__first, __mask, &__calc_mask, __is_vector](_DifferenceType __i, _DifferenceType __j,
+            [__first, __mask, &__calc_mask](_DifferenceType __i, _DifferenceType __j,
                                                          _DifferenceType __local_min) -> _DifferenceType {
                 // Create mask
                 __calc_mask(__mask + __i, __mask + __j, __first + __i);
@@ -2198,7 +2197,7 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
                 }
                 // find first iterator that should be removed
                 bool* __result = __internal::__brick_find_if(
-                    __mask + __i, __mask + __j, [](bool __val) { return !__val; }, __is_vector);
+                    __mask + __i, __mask + __j, [](bool __val) { return !__val; }, _IsVector{});
                 if (__result - __mask == __j)
                 {
                     return __local_min;
@@ -2224,9 +2223,9 @@ __remove_elements(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardI
         // 2. Elements that doesn't satisfy pred are moved to result
         __par_backend::__parallel_strict_scan(
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n, _DifferenceType(0),
-            [__mask, __is_vector](_DifferenceType __i, _DifferenceType __len) {
+            [__mask](_DifferenceType __i, _DifferenceType __len) {
                 return __internal::__brick_count(
-                    __mask + __i, __mask + __i + __len, [](bool __val) { return __val; }, __is_vector);
+                    __mask + __i, __mask + __i + __len, [](bool __val) { return __val; }, _IsVector{});
             },
             ::std::plus<_DifferenceType>(),
             [=](_DifferenceType __i, _DifferenceType __len, _DifferenceType __initial) {
