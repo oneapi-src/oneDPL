@@ -268,8 +268,7 @@ auto
 __parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count,
                _Ranges&&... __rngs)
 {
-    using _Policy = ::std::decay_t<_ExecutionPolicy>;
-    using _CustomName = typename _Policy::kernel_name;
+    using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
     return __parallel_for_submitter<_ForKernel>()(oneapi::dpl::__internal::__device_backend_tag{},
