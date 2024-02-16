@@ -1037,12 +1037,7 @@ __pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
     auto __copy_first = __buf.get();
 
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first), decltype(__last),
-                                                  decltype(__copy_first)>();
-
-    auto __copy_last =
-        __pattern_copy_if(__dispatch_tag, __exec, __first, __last, __copy_first, __not_pred<_Predicate>{__pred});
+    auto __copy_last = __pattern_copy_if(__tag, __exec, __first, __last, __copy_first, __not_pred<_Predicate>{__pred});
 
     constexpr auto __dispatch_tag1 =
         oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__copy_first), decltype(__copy_last),
@@ -1370,11 +1365,8 @@ _Iterator
 __pattern_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                     _UnaryPredicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
-
     //TODO: consider nonstable approaches
-    return __pattern_stable_partition(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                      __pred);
+    return __pattern_stable_partition(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred);
 }
 
 //------------------------------------------------------------------------

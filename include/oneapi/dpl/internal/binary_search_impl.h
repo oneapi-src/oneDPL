@@ -117,9 +117,7 @@ OutputIterator
 lower_bound_impl(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 start, InputIterator1 end,
                  InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2, OutputIterator>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
 
     namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);

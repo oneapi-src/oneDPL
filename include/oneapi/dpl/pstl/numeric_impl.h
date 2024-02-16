@@ -390,9 +390,7 @@ __pattern_adjacent_difference(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&
                               _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                               _RandomAccessIterator2 __d_first, _BinaryOperation __op)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
 
     assert(__first != __last);
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::reference _ReferenceType1;

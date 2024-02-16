@@ -125,15 +125,14 @@ __iterators_possibly_equal(const sycl_iterator<_Mode1, _T, _Allocator>& __it1,
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
           typename _UnaryOperation, typename _InitType, typename _BinaryOperation, typename _Inclusive>
 _Iterator2
-__pattern_transform_scan_base(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first,
+__pattern_transform_scan_base(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first,
                               _Iterator1 __last, _Iterator2 __result, _UnaryOperation __unary_op, _InitType __init,
                               _BinaryOperation __binary_op, _Inclusive)
 {
     if (__first == __last)
         return __result;
 
-    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
 
     const auto __n = __last - __first;
 
@@ -178,8 +177,7 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
             .wait();
 
         // Move data from temporary buffer into results
-        oneapi::dpl::__internal::__pattern_walk2_brick(__dispatch_tag, ::std::move(__policy), __first_tmp, __last_tmp,
-                                                       __result,
+        oneapi::dpl::__internal::__pattern_walk2_brick(__tag, ::std::move(__policy), __first_tmp, __last_tmp, __result,
                                                        oneapi::dpl::__internal::__brick_move<_NewExecutionPolicy>{});
 
         //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer

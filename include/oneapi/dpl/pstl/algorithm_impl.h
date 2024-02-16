@@ -2039,16 +2039,14 @@ __pattern_is_partitioned(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _Fo
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
 bool
-__pattern_is_partitioned(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_is_partitioned(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                          _RandomAccessIterator __last, _UnaryPredicate __pred)
 {
     //trivial pre-checks
     if (__first == __last)
         return true;
 
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
 
     return __internal::__except_handler([&]() {
         // State of current range:
@@ -2171,9 +2169,11 @@ __pattern_partition(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _Forward
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
 _RandomAccessIterator
-__pattern_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_partition(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                     _RandomAccessIterator __last, _UnaryPredicate __pred)
 {
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
+
     // partitioned range: elements before pivot satisfy pred (true part),
     //                    elements after pivot don't satisfy pred (false part)
     struct _PartitionRange
@@ -2201,11 +2201,6 @@ __pattern_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
             // then we should swap the false part of left range and last part of true part of right range
             else if (__size2 > __size1)
             {
-                constexpr auto __dispatch_tag =
-                    oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__val1.__pivot),
-                                                              decltype(__val1.__pivot + __size1)>();
-                using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
-
                 __par_backend::__parallel_for(
                     __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __val1.__pivot, __val1.__pivot + __size1,
                     [__val1, __val2, __size1](_RandomAccessIterator __i, _RandomAccessIterator __j) {
@@ -2217,11 +2212,6 @@ __pattern_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
             // else we should swap the first part of false part of left range and true part of right range
             else
             {
-                constexpr auto __dispatch_tag =
-                    oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__val1.__pivot),
-                                                              decltype(__val1.__pivot + __size2)>();
-                using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
-
                 __par_backend::__parallel_for(
                     __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __val1.__pivot, __val1.__pivot + __size2,
                     [__val1, __val2](_RandomAccessIterator __i, _RandomAccessIterator __j) {
@@ -2230,10 +2220,6 @@ __pattern_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
                 return {__new_begin, __val1.__pivot + __size2, __val2.__end};
             }
         };
-
-        constexpr auto __dispatch_tag =
-            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
-        using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
         _PartitionRange __result = __par_backend::__parallel_reduce(
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init,
@@ -2283,9 +2269,11 @@ __pattern_stable_partition(_Tag, _ExecutionPolicy&&, _BidirectionalIterator __fi
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
 _RandomAccessIterator
-__pattern_stable_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_stable_partition(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                            _RandomAccessIterator __last, _UnaryPredicate __pred)
 {
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
+
     // partitioned range: elements before pivot satisfy pred (true part),
     //                    elements after pivot don't satisfy pred (false part)
     struct _PartitionRange
@@ -2316,10 +2304,6 @@ __pattern_stable_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec,
                 return {__new_begin, __val2.__pivot - __size1, __val2.__end};
             }
         };
-
-        constexpr auto __dispatch_tag =
-            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
-        using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
         _PartitionRange __result = __par_backend::__parallel_reduce(
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init,
@@ -2684,15 +2668,13 @@ __pattern_adjacent_find(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _For
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _BinaryPredicate, class _Semantic>
 _RandomAccessIterator
-__pattern_adjacent_find(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_adjacent_find(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                         _RandomAccessIterator __last, _BinaryPredicate __pred, _Semantic __or_semantic)
 {
+    using __backend_tag = typename decltype(__tag)::__backend_tag;
+
     if (__last - __first < 2)
         return __last;
-
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     return __internal::__except_handler([&]() {
         return __par_backend::__parallel_reduce(
@@ -4290,20 +4272,15 @@ __pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forw
 
 template <class _Tag, class _ExecutionPolicy, class _BidirectionalIterator>
 _BidirectionalIterator
-__pattern_shift_right(_Tag, _ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
+__pattern_shift_right(_Tag __tag, _ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
                       typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n)
 {
     static_assert(__is_backend_tag_v<_Tag>);
 
     using _ReverseIterator = typename ::std::reverse_iterator<_BidirectionalIterator>;
 
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(_ReverseIterator(__last)),
-                                                  decltype(_ReverseIterator(__first))>();
-
-    auto __res =
-        oneapi::dpl::__internal::__pattern_shift_left(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                      _ReverseIterator(__last), _ReverseIterator(__first), __n);
+    auto __res = oneapi::dpl::__internal::__pattern_shift_left(
+        __tag, ::std::forward<_ExecutionPolicy>(__exec), _ReverseIterator(__last), _ReverseIterator(__first), __n);
 
     return __res.base();
 }
