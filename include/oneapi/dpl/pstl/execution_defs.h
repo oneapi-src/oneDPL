@@ -184,10 +184,6 @@ template <class _ExecPolicy, class _T = void>
 using __enable_if_host_execution_policy =
     ::std::enable_if_t<__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value, _T>;
 
-template <class _ExecPolicy, const bool __condition, class _T = void>
-using __enable_if_host_execution_policy_conditional =
-    ::std::enable_if_t<__is_host_execution_policy<::std::decay_t<_ExecPolicy>>::value && __condition, _T>;
-
 template <typename _ExecPolicy, typename _T>
 struct __ref_or_copy_impl
 {
