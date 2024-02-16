@@ -3236,6 +3236,7 @@ __pattern_hetero_set_op(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _F
 
     auto __result_size =
         __par_backend_hetero::__parallel_transform_scan_base(
+            _BackendTag{},
             ::std::forward<_ExecutionPolicy>(__exec),
             oneapi::dpl::__ranges::make_zip_view(
                 __buf1.all_view(), __buf2.all_view(),

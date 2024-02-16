@@ -889,6 +889,7 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag, _Execut
 
     return __future(
         __parallel_transform_scan_base(
+            oneapi::dpl::__internal::__device_backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
             ::std::forward<_Range2>(__out_rng), __binary_op, __init,
             // local scan
@@ -967,6 +968,7 @@ __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __o
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
 
     return __parallel_transform_scan_base(
+        oneapi::dpl::__internal::__device_backend_tag{},
         ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::make_zip_view(
             ::std::forward<_InRng>(__in_rng),
@@ -1007,6 +1009,7 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
 
     return __parallel_transform_scan_base(
+        oneapi::dpl::__internal::__device_backend_tag{},
         ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::make_zip_view(
             ::std::forward<_InRng>(__in_rng),

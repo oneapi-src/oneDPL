@@ -195,8 +195,8 @@ __parallel_transform_scan_base(oneapi::dpl::__internal::__fpga_backend_tag, _Exe
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_base(
-        __exec.__device_policy(), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2), __binary_op, __init,
-        __local_scan, __group_scan, __global_scan);
+        oneapi::dpl::__internal::__device_backend_tag{}, __exec.__device_policy(), ::std::forward<_Range1>(__rng1),
+        ::std::forward<_Range2>(__rng2), __binary_op, __init, __local_scan, __group_scan, __global_scan);
 }
 
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _Pred,
