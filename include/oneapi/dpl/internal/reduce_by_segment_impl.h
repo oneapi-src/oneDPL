@@ -85,7 +85,7 @@ reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterat
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
                        BinaryOperator binary_op)
 {
-    static_assert(__is_backend_tag_v<_Tag>);
+    static_assert(__internal::__is_backend_tag_v<_Tag>);
 
     // The algorithm reduces values in [first2, first2 + (last1-first1)) where the associated
     // keys for the values are equal to the adjacent key. This function's implementation is a derivative work
