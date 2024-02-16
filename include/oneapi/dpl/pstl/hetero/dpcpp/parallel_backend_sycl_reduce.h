@@ -532,36 +532,42 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag, _Exec
         if (__n <= 256)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 1, _Commutative>(
+                oneapi::dpl::__internal::__device_backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                 ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 512)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 2, _Commutative>(
+                oneapi::dpl::__internal::__device_backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                 ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 1024)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 4, _Commutative>(
+                oneapi::dpl::__internal::__device_backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                 ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 2048)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 8, _Commutative>(
+                oneapi::dpl::__internal::__device_backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                 ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 4096)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 16, _Commutative>(
+                oneapi::dpl::__internal::__device_backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                 ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 8192)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 32, _Commutative>(
+                oneapi::dpl::__internal::__device_backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
                 ::std::forward<_Ranges>(__rngs)...);
         }
