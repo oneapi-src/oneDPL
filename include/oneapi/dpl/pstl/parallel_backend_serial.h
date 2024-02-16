@@ -163,16 +163,6 @@ __parallel_stable_sort(oneapi::dpl::__internal::__serial_backend_tag, _Execution
 template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
           typename _RandomAccessIterator3, typename _Compare, typename _LeafMerge>
 void
-__parallel_merge(_ExecutionPolicy&&, _RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1,
-                 _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2, _RandomAccessIterator3 __outit,
-                 _Compare __comp, _LeafMerge __leaf_merge)
-{
-    __leaf_merge(__first1, __last1, __first2, __last2, __outit, __comp);
-}
-
-template <class _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2,
-          typename _RandomAccessIterator3, typename _Compare, typename _LeafMerge>
-void
 __parallel_merge(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&, _RandomAccessIterator1 __first1,
                  _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _RandomAccessIterator2 __last2,
                  _RandomAccessIterator3 __outit, _Compare __comp, _LeafMerge __leaf_merge)
