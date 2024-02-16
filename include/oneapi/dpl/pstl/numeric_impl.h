@@ -253,15 +253,17 @@ __pattern_transform_scan(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _Fo
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator,
           class _UnaryOperation, class _Tp, class _BinaryOperation, class _Inclusive>
 ::std::enable_if_t<!::std::is_floating_point_v<_Tp>, _OutputIterator>
-__pattern_transform_scan(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_transform_scan(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                          _RandomAccessIterator __last, _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init,
                          _BinaryOperation __binary_op, _Inclusive)
 {
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
 
     return __internal::__except_handler([&]() {
         __par_backend::__parallel_transform_scan(
-            oneapi::dpl::__internal::__serial_backend_tag{},
+            __backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __last - __first,
             [__first, __unary_op](_DifferenceType __i) mutable { return __unary_op(__first[__i]); }, __init,
             __binary_op,
