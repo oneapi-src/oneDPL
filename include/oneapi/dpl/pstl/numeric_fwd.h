@@ -113,27 +113,11 @@ _OutputIterator
 __pattern_transform_scan(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _OutputIterator, _UnaryOperation,
                          _Tp, _BinaryOperation, _Inclusive) noexcept;
 
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp,
-          class _BinaryOperation, class _Inclusive, class _IsVector>
-oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, !::std::is_floating_point_v<_Tp>, _OutputIterator>
-__pattern_transform_scan(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _OutputIterator,
-                         _UnaryOperation, _Tp, _BinaryOperation, _Inclusive, _IsVector,
-                         /*is_parallel=*/::std::true_type);
-
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator,
           class _UnaryOperation, class _Tp, class _BinaryOperation, class _Inclusive>
 ::std::enable_if_t<!::std::is_floating_point_v<_Tp>, _OutputIterator>
 __pattern_transform_scan(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
                          _OutputIterator, _UnaryOperation, _Tp, _BinaryOperation, _Inclusive);
-
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp,
-          class _BinaryOperation, class _Inclusive, class _IsVector>
-oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<_ExecutionPolicy,
-                                                                       ::std::is_floating_point_v<_Tp>, _OutputIterator>
-__pattern_transform_scan(_ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _OutputIterator,
-                         _UnaryOperation, _Tp, _BinaryOperation, _Inclusive, _IsVector,
-                         /*is_parallel=*/::std::true_type);
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator,
           class _UnaryOperation, class _Tp, class _BinaryOperation, class _Inclusive>

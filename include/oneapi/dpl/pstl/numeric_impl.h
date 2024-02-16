@@ -250,38 +250,6 @@ __pattern_transform_scan(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _Fo
         .first;
 }
 
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp,
-          class _BinaryOperation, class _Inclusive, class _IsVector>
-oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<
-    _ExecutionPolicy, !::std::is_floating_point_v<_Tp>, _OutputIterator>
-__pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
-                         _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op,
-                         _Inclusive, _IsVector __is_vector, /*is_parallel=*/::std::true_type)
-{
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
-
-    return __internal::__except_handler([&]() {
-        __par_backend::__parallel_transform_scan(
-            oneapi::dpl::__internal::__serial_backend_tag{},
-            ::std::forward<_ExecutionPolicy>(__exec), __last - __first,
-            [__first, __unary_op](_DifferenceType __i) mutable { return __unary_op(__first[__i]); }, __init,
-            __binary_op,
-            [__first, __unary_op, __binary_op](_DifferenceType __i, _DifferenceType __j, _Tp __init) {
-                // Execute serial __brick_transform_reduce, due to the explicit SIMD vectorization (reduction) requires a commutative operation for the guarantee of correct scan.
-                return __internal::__brick_transform_reduce(__first + __i, __first + __j, __init, __binary_op,
-                                                            __unary_op,
-                                                            /*__is_vector*/ ::std::false_type());
-            },
-            [__first, __unary_op, __binary_op, __result, __is_vector](_DifferenceType __i, _DifferenceType __j,
-                                                                      _Tp __init) {
-                return __internal::__brick_transform_scan(__first + __i, __first + __j, __result + __i, __unary_op,
-                                                          __init, __binary_op, _Inclusive(), __is_vector)
-                    .second;
-            });
-        return __result + (__last - __first);
-    });
-}
-
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator,
           class _UnaryOperation, class _Tp, class _BinaryOperation, class _Inclusive>
 ::std::enable_if_t<!::std::is_floating_point_v<_Tp>, _OutputIterator>
@@ -308,48 +276,6 @@ __pattern_transform_scan(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __e
                                                           __init, __binary_op, _Inclusive(), _IsVector{})
                     .second;
             });
-        return __result + (__last - __first);
-    });
-}
-
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _OutputIterator, class _UnaryOperation, class _Tp,
-          class _BinaryOperation, class _Inclusive, class _IsVector>
-oneapi::dpl::__internal::__enable_if_host_execution_policy_conditional<_ExecutionPolicy,
-                                                                       ::std::is_floating_point_v<_Tp>, _OutputIterator>
-__pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
-                         _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op,
-                         _Inclusive, _IsVector __is_vector, /*is_parallel=*/::std::true_type)
-{
-    typedef typename ::std::iterator_traits<_RandomAccessIterator>::difference_type _DifferenceType;
-    _DifferenceType __n = __last - __first;
-
-    if (__n <= 0)
-    {
-        return __result;
-    }
-
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator, _OutputIterator>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
-
-    return __internal::__except_handler([&]() {
-        __par_backend::__parallel_strict_scan(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n, __init,
-            [__first, __unary_op, __binary_op, __result, __is_vector](_DifferenceType __i, _DifferenceType __len) {
-                return __internal::__brick_transform_scan(__first + __i, __first + (__i + __len), __result + __i,
-                                                          __unary_op, _Tp{}, __binary_op, _Inclusive(), __is_vector)
-                    .second;
-            },
-            __binary_op,
-            [__result, &__binary_op](_DifferenceType __i, _DifferenceType __len, _Tp __initial) {
-                return *(::std::transform(__result + __i, __result + __i + __len, __result + __i,
-                                          [&__initial, &__binary_op](const _Tp& __x) {
-                                              _ONEDPL_PRAGMA_FORCEINLINE
-                                              return __binary_op(__initial, __x);
-                                          }) -
-                         1);
-            },
-            [](_Tp) {});
         return __result + (__last - __first);
     });
 }
