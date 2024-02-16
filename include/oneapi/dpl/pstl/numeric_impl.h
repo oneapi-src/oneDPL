@@ -343,6 +343,7 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _RandomAccessIterator __firs
 
     return __internal::__except_handler([&]() {
         __par_backend::__parallel_transform_scan(
+            oneapi::dpl::__internal::__serial_backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __last - __first,
             [__first, __unary_op](_DifferenceType __i) mutable { return __unary_op(__first[__i]); }, __init,
             __binary_op,
@@ -373,6 +374,7 @@ __pattern_transform_scan(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __e
 
     return __internal::__except_handler([&]() {
         __par_backend::__parallel_transform_scan(
+            oneapi::dpl::__internal::__serial_backend_tag{},
             ::std::forward<_ExecutionPolicy>(__exec), __last - __first,
             [__first, __unary_op](_DifferenceType __i) mutable { return __unary_op(__first[__i]); }, __init,
             __binary_op,
