@@ -94,23 +94,23 @@ pattern_exclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
 }
 
 #if _ONEDPL_BACKEND_SYCL
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
-          typename BinaryPredicate, typename Operator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
-exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                               OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op,
-                               ::std::true_type /* has_known_identity*/)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename T, typename BinaryPredicate, typename Operator>
+OutputIterator
+exclusive_scan_by_segment_impl(__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+                               InputIterator2 first2, OutputIterator result, T init, BinaryPredicate binary_pred,
+                               Operator binary_op, ::std::true_type /* has_known_identity*/)
 {
     return internal::__scan_by_segment_impl_common(::std::forward<Policy>(policy), first1, last1, first2, result, init,
                                                    binary_pred, binary_op, ::std::false_type{});
 }
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator, typename T,
-          typename BinaryPredicate, typename Operator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
-exclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                               OutputIterator result, T init, BinaryPredicate binary_pred, Operator binary_op,
-                               ::std::false_type /* has_known_identity*/)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename T, typename BinaryPredicate, typename Operator>
+OutputIterator
+exclusive_scan_by_segment_impl(__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+                               InputIterator2 first2, OutputIterator result, T init, BinaryPredicate binary_pred,
+                               Operator binary_op, ::std::false_type /* has_known_identity*/)
 {
 
     const auto n = ::std::distance(first1, last1);
