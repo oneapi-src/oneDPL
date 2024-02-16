@@ -513,6 +513,7 @@ __parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event&
     {
         return __future(
             __histogram_general_registers_local_reduction<__iters_per_work_item, __max_work_item_private_bins>(
+                oneapi::dpl::__internal::__device_backend_tag{},
                 ::std::forward<_ExecutionPolicy>(__exec), __init_event, __work_group_size,
                 ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
     }
