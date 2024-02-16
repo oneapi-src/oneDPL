@@ -624,9 +624,8 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, ::std::pair<Output
 reduce_by_segment(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                   OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred, BinaryOperator binary_op)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, InputIterator1, InputIterator2, OutputIterator1,
-                                                  OutputIterator2>();
+    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2,
+                                                                              OutputIterator1, OutputIterator2>();
 
     return internal::reduce_by_segment_impl(__dispatch_tag, ::std::forward<Policy>(policy), first1, last1, first2,
                                             result1, result2, binary_pred, binary_op);
