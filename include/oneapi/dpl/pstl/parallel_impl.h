@@ -110,25 +110,6 @@ __parallel_find(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Index __f
 // parallel_or
 //------------------------------------------------------------------------
 //! Return true if brick f[i,j) returns true for some subrange [i,j) of [first,last)
-template <class _ExecutionPolicy, class _Index, class _Brick>
-bool
-__parallel_or(_ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick __f)
-{
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Index>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
-
-    ::std::atomic<bool> __found(false);
-    __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                  [__f, &__found](_Index __i, _Index __j) {
-                                      if (!__found.load(::std::memory_order_relaxed) && __f(__i, __j))
-                                      {
-                                          __found.store(true, ::std::memory_order_relaxed);
-                                          __par_backend::__cancel_execution();
-                                      }
-                                  });
-    return __found;
-}
-
 template <class _IsVector, class _ExecutionPolicy, class _Index, class _Brick>
 bool
 __parallel_or(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Index __first, _Index __last, _Brick __f)
