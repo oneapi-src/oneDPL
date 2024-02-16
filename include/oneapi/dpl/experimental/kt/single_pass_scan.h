@@ -339,6 +339,8 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     _Type* __status_vals_full = sycl::malloc_device<_Type>(__status_flags_size, __queue);
     _Type* __status_vals_partial = sycl::malloc_device<_Type>(__status_flags_size, __queue);
 
+    assert(__status_flags && __status_vals_full && __status_vals_partial);
+
     auto __fill_event = __lookback_init_submitter<_FlagType, _Type, _BinaryOp, _LookbackInitKernel>{}(
         __queue, __status_flags, __status_vals_partial, __status_flags_size, __status_flag_padding);
 
