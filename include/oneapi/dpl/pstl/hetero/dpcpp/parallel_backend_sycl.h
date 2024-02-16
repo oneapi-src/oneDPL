@@ -872,8 +872,9 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag, _Execut
         if (__n <= __single_group_upper_limit && __max_slm_size >= __req_slm_size)
         {
             return __parallel_transform_scan_single_group(
-                std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
-                ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init, __binary_op, _Inclusive{});
+                oneapi::dpl::__internal::__device_backend_tag{}, std::forward<_ExecutionPolicy>(__exec),
+                ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng), __n, __unary_op, __init,
+                __binary_op, _Inclusive{});
         }
     }
 
