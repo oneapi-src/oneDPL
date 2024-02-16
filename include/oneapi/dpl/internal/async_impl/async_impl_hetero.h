@@ -208,13 +208,12 @@ __pattern_fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forwa
 // transform_scan
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _UnaryOperation,
-          typename _InitType, typename _BinaryOperation, typename _Inclusive,
-          oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, int> = 0>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
+          typename _UnaryOperation, typename _InitType, typename _BinaryOperation, typename _Inclusive>
 auto
-__pattern_transform_scan_base_async(_ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
-                                    _Iterator2 __result, _UnaryOperation __unary_op, _InitType __init,
-                                    _BinaryOperation __binary_op, _Inclusive)
+__pattern_transform_scan_base_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first,
+                                    _Iterator1 __last, _Iterator2 __result, _UnaryOperation __unary_op,
+                                    _InitType __init, _BinaryOperation __binary_op, _Inclusive)
 {
     assert(__first < __last);
 
