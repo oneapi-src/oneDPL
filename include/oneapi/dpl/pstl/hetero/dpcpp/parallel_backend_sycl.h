@@ -769,12 +769,11 @@ __parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
-          typename _LocalScan, typename _GroupScan, typename _GlobalScan,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+          typename _LocalScan, typename _GroupScan, typename _GlobalScan>
 auto
-__parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng,
-                               _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
-                               _GroupScan __group_scan, _GlobalScan __global_scan)
+__parallel_transform_scan_base(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                               _Range1&& __in_rng, _Range2&& __out_rng, _BinaryOperation __binary_op, _InitType __init,
+                               _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 

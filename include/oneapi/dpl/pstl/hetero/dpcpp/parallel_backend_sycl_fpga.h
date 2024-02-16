@@ -187,12 +187,11 @@ __parallel_transform_scan(oneapi::dpl::__internal::__fpga_backend_tag, _Executio
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
-          typename _LocalScan, typename _GroupScan, typename _GlobalScan,
-          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_ExecutionPolicy, int> = 0>
+          typename _LocalScan, typename _GroupScan, typename _GlobalScan>
 auto
-__parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
-                               _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
-                               _GroupScan __group_scan, _GlobalScan __global_scan)
+__parallel_transform_scan_base(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Range1&& __rng1,
+                               _Range2&& __rng2, _BinaryOperation __binary_op, _InitType __init,
+                               _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_base(
