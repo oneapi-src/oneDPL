@@ -101,6 +101,7 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__fpga_backend_tag, _Execut
 {
     // workaround until we implement more performant version for patterns
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_Tp, _Commutative>(
+        oneapi::dpl::__internal::__device_backend_tag{},
         __exec.__device_policy(), __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
 }
 
