@@ -224,7 +224,7 @@ __pattern_transform_scan_base_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&
     auto __buf2 = __keep2(__result, __result + __n);
 
     auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-        oneapi::dpl::__internal::__fpga_backend_tag{},
+        _BackendTag{},
         ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init,
         __binary_op, _Inclusive{});
     return __res.__make_future(__result + __n);
@@ -240,8 +240,12 @@ __pattern_transform_scan_async(_ExecutionPolicy&& __exec, _Iterator1 __first, _I
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
     using _InitType = unseq_backend::__init_value<_RepackedType>;
 
-    return __pattern_transform_scan_base_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-                                               __unary_op, _InitType{__init}, __binary_op, _Inclusive{});
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+
+    return __pattern_transform_scan_base_async(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+                                               __last, __result, __unary_op, _InitType{__init}, __binary_op,
+                                               _Inclusive{});
 }
 
 // scan without initial element
@@ -256,8 +260,11 @@ __pattern_transform_scan_async(_ExecutionPolicy&& __exec, _Iterator1 __first, _I
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_ValueType>;
     using _InitType = unseq_backend::__no_init_value<_RepackedType>;
 
-    return __pattern_transform_scan_base_async(::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-                                               __unary_op, _InitType{}, __binary_op, _Inclusive{});
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator1, _Iterator2>();
+
+    return __pattern_transform_scan_base_async(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+                                               __last, __result, __unary_op, _InitType{}, __binary_op, _Inclusive{});
 }
 
 } // namespace __internal
