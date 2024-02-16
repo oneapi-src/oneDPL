@@ -190,26 +190,24 @@ template <typename... _Name>
 using _SegReducePrefixPhase = __seg_reduce_prefix_kernel<_Name...>;
 } // namespace
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
-          typename _BinaryPredicate, typename _BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range3>>
-__sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
-                         _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
-                         ::std::false_type /* has_known_identity */)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
+          typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
+oneapi::dpl::__internal::__difference_t<_Range3>
+__sycl_reduce_by_segment(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values,
+                         _Range3&& __out_keys, _Range4&& __out_values, _BinaryPredicate __binary_pred,
+                         _BinaryOperator __binary_op, ::std::false_type /* has_known_identity */)
 {
     return oneapi::dpl::experimental::ranges::reduce_by_segment(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__keys), ::std::forward<_Range2>(__values),
         ::std::forward<_Range3>(__out_keys), ::std::forward<_Range4>(__out_values), __binary_pred, __binary_op);
 }
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
-          typename _BinaryPredicate, typename _BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range3>>
-__sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
-                         _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op,
-                         ::std::true_type /* has_known_identity */)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
+          typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
+oneapi::dpl::__internal::__difference_t<_Range3>
+__sycl_reduce_by_segment(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values,
+                         _Range3&& __out_keys, _Range4&& __out_values, _BinaryPredicate __binary_pred,
+                         _BinaryOperator __binary_op, ::std::true_type /* has_known_identity */)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
