@@ -74,21 +74,6 @@ __parallel_for(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&
 
 template <class _ExecutionPolicy, class _Value, class _Index, typename _RealBody, typename _Reduction>
 _Value
-__parallel_reduce(_ExecutionPolicy&&, _Index __first, _Index __last, const _Value& __identity,
-                  const _RealBody& __real_body, const _Reduction&)
-{
-    if (__first == __last)
-    {
-        return __identity;
-    }
-    else
-    {
-        return __real_body(__first, __last, __identity);
-    }
-}
-
-template <class _ExecutionPolicy, class _Value, class _Index, typename _RealBody, typename _Reduction>
-_Value
 __parallel_reduce(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&, _Index __first, _Index __last,
                   const _Value& __identity, const _RealBody& __real_body, const _Reduction&)
 {
