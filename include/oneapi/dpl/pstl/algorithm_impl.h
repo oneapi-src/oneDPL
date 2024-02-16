@@ -1521,15 +1521,15 @@ __remove_elements(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forward
                         else
                             ::new (::std::addressof(*__z)) _Tp(::std::move(*__x));
                     },
-                    __is_vector);
+                    _IsVector{});
             },
             [&__m](_DifferenceType __total) { __m = __total; });
 
         // 3. Elements from result are moved to [first, last)
         __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __result,
-                                      __result + __m, [__result, __first, __is_vector](_Tp* __i, _Tp* __j) {
+                                      __result + __m, [__result, __first](_Tp* __i, _Tp* __j) {
                                           __brick_move_destroy<_ExecutionPolicy>{}(__i, __j, __first + (__i - __result),
-                                                                                   __is_vector);
+                                                                                   _IsVector{});
                                       });
         return __first + __m;
     });
