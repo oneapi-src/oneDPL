@@ -25,7 +25,7 @@ namespace dpl
 {
 namespace __internal
 {
-template <class _IsVector, typename _BackendType = __par_backend_tag>
+template <class _IsVector>
 struct __parallel_tag;
 
 //------------------------------------------------------------------------
