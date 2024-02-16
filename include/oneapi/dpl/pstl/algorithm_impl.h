@@ -1558,8 +1558,7 @@ __pattern_unique(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ra
             __internal::__brick_walk3(
                 __b, __e, __it - 1, __it,
                 [&__pred](bool& __x, _ReferenceType __y, _ReferenceType __z) { __x = !__pred(__y, __z); }, _IsVector{});
-        },
-        _IsVector{});
+        });
 }
 
 //------------------------------------------------------------------------
@@ -2991,8 +2990,7 @@ __pattern_remove_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
         [&__pred](bool* __b, bool* __e, _RandomAccessIterator __it) {
             __internal::__brick_walk2(
                 __b, __e, __it, [&__pred](bool& __x, _ReferenceType __y) { __x = !__pred(__y); }, _IsVector{});
-        },
-        _IsVector{});
+        });
 }
 
 //------------------------------------------------------------------------
