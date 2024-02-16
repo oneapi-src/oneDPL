@@ -495,8 +495,9 @@ __histogram_general_private_global_atomics(oneapi::dpl::__internal::__device_bac
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,
           typename _BinHashMgr>
 auto
-__parallel_histogram_select_kernel(_ExecutionPolicy&& __exec, const sycl::event& __init_event, _Range1&& __input,
-                                   _Range2&& __bins, const _BinHashMgr& __binhash_manager)
+__parallel_histogram_select_kernel(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                   const sycl::event& __init_event, _Range1&& __input, _Range2&& __bins,
+                                   const _BinHashMgr& __binhash_manager)
 {
     using _private_histogram_type = ::std::uint16_t;
     using _local_histogram_type = ::std::uint32_t;
