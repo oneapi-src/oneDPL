@@ -75,12 +75,12 @@ pattern_inclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
 }
 
 #if _ONEDPL_BACKEND_SYCL
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
-          typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
-inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                               OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op,
-                               ::std::true_type /* has_known_identity */)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename BinaryPredicate, typename BinaryOperator>
+OutputIterator
+inclusive_scan_by_segment_impl(__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+                               InputIterator2 first2, OutputIterator result, BinaryPredicate binary_pred,
+                               BinaryOperator binary_op, ::std::true_type /* has_known_identity */)
 {
     using iter_value_t = typename ::std::iterator_traits<InputIterator2>::value_type;
     iter_value_t identity = unseq_backend::__known_identity<BinaryOperator, iter_value_t>;
@@ -88,12 +88,12 @@ inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIter
                                                    identity, binary_pred, binary_op, ::std::true_type{});
 }
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
-          typename BinaryPredicate, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, OutputIterator>
-inclusive_scan_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                               OutputIterator result, BinaryPredicate binary_pred, BinaryOperator binary_op,
-                               ::std::false_type /* has_known_identity */)
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename BinaryPredicate, typename BinaryOperator>
+OutputIterator
+inclusive_scan_by_segment_impl(__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+                               InputIterator2 first2, OutputIterator result, BinaryPredicate binary_pred,
+                               BinaryOperator binary_op, ::std::false_type /* has_known_identity */)
 {
 
     typedef unsigned int FlagType;
