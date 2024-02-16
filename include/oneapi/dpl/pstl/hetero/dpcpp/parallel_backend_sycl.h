@@ -2224,7 +2224,8 @@ __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag, _Execution
     auto __cmp_f = [__comp, __proj](const auto& __a, const auto& __b) mutable {
         return __comp(__proj(__a), __proj(__b));
     };
-    return __parallel_sort_impl(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __cmp_f);
+    return __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag{},
+                                ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __cmp_f);
 }
 
 //------------------------------------------------------------------------
