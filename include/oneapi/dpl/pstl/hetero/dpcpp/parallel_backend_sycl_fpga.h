@@ -187,17 +187,6 @@ __parallel_or(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __
                                                             __s_last, __f);
 }
 
-template <typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Brick>
-bool
-__parallel_or(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Iterator1 __first,
-              _Iterator1 __last, _Iterator2 __s_first, _Iterator2 __s_last, _Brick __f)
-{
-    // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_or(oneapi::dpl::__internal::__device_backend_tag{},
-                                                            __exec.__device_policy(), __first, __last, __s_first,
-                                                            __s_last, __f);
-}
-
 template <typename _ExecutionPolicy, typename _Iterator, typename _Brick>
 bool
 __parallel_or(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __exec, _Iterator __first,
@@ -292,19 +281,14 @@ __parallel_histogram(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPoli
                      _Range1&& __input, _Range2&& __bins,
                      const _BinHashMgr& __binhash_manager)
 {
-    if constexpr (sizeof(oneapi::dpl::__internal::__value_t<_Range2>) <= sizeof(::std::uint32_t))
-    {
-        // workaround until we implement more performant version for patterns
-        return oneapi::dpl::__par_backend_hetero::__parallel_histogram(
-            oneapi::dpl::__internal::__device_backend_tag{},
-            __exec.__device_policy(), __init_event, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
-            __binhash_manager);
-    }
-    else
-    {
-        static_assert(false, "histogram is not supported on FPGA devices with output types greater than 32 bits");
-        return __future(sycl::event{});
-    }
+    static_assert(sizeof(oneapi::dpl::__internal::__value_t<_Range2>) <= sizeof(::std::uint32_t),
+                  "histogram is not supported on FPGA devices with output types greater than 32 bits");
+
+    // workaround until we implement more performant version for patterns
+    return oneapi::dpl::__par_backend_hetero::__parallel_histogram(
+        oneapi::dpl::__internal::__device_backend_tag{},
+        __exec.__device_policy(), __init_event, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
+        __binhash_manager);
 }
 
 } // namespace __par_backend_hetero
