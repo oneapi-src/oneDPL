@@ -2279,7 +2279,7 @@ __pattern_unique(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Rand
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _BinaryPredicate>
 _RandomAccessIterator
-__pattern_unique(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_unique(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                  _RandomAccessIterator __last, _BinaryPredicate __pred)
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::reference _ReferenceType;
@@ -2294,6 +2294,7 @@ __pattern_unique(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAc
         return __internal::__brick_unique(__first, __last, __pred, _IsVector{});
     }
     return __internal::__remove_elements(
+        __tag,
         ::std::forward<_ExecutionPolicy>(__exec), ++__first, __last,
         [&__pred](bool* __b, bool* __e, _RandomAccessIterator __it) {
             __internal::__brick_walk3(
@@ -4738,7 +4739,7 @@ __pattern_remove_if(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _R
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
 _RandomAccessIterator
-__pattern_remove_if(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_remove_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                     _RandomAccessIterator __last, _UnaryPredicate __pred)
 {
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::reference _ReferenceType;
@@ -4750,6 +4751,7 @@ __pattern_remove_if(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rando
     }
 
     return __internal::__remove_elements(
+        __tag,
         ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
         [&__pred](bool* __b, bool* __e, _RandomAccessIterator __it) {
             __internal::__brick_walk2(
