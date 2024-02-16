@@ -154,14 +154,6 @@ __parallel_transform_scan(oneapi::dpl::__internal::__serial_backend_tag, _Execut
 
 template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
-__parallel_stable_sort(_ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
-                       _LeafSort __leaf_sort, ::std::size_t = 0)
-{
-    __leaf_sort(__first, __last, __comp);
-}
-
-template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
-void
 __parallel_stable_sort(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy&&, _RandomAccessIterator __first,
                        _RandomAccessIterator __last, _Compare __comp, _LeafSort __leaf_sort, ::std::size_t = 0)
 {

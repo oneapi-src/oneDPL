@@ -123,47 +123,6 @@ __parallel_stable_sort_body(_RandomAccessIterator __xs, _RandomAccessIterator __
 
 template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
-__parallel_stable_sort(_ExecutionPolicy&& /*__exec*/, _RandomAccessIterator __xs, _RandomAccessIterator __xe,
-                       _Compare __comp, _LeafSort __leaf_sort, std::size_t __nsort = 0)
-{
-    auto __count = static_cast<std::size_t>(__xe - __xs);
-    if (__count <= __default_chunk_size || __nsort < __count)
-    {
-        __leaf_sort(__xs, __xe, __comp);
-        return;
-    }
-
-    // TODO: the partial sort implementation should
-    // be shared with the other backends.
-
-    if (omp_in_parallel())
-    {
-        if (__count <= __nsort)
-        {
-            oneapi::dpl::__omp_backend::__parallel_stable_sort_body(__xs, __xe, __comp, __leaf_sort);
-        }
-        else
-        {
-            oneapi::dpl::__omp_backend::__parallel_stable_partial_sort(__xs, __xe, __comp, __leaf_sort, __nsort);
-        }
-    }
-    else
-    {
-        _PSTL_PRAGMA(omp parallel)
-        _PSTL_PRAGMA(omp single nowait)
-        if (__count <= __nsort)
-        {
-            oneapi::dpl::__omp_backend::__parallel_stable_sort_body(__xs, __xe, __comp, __leaf_sort);
-        }
-        else
-        {
-            oneapi::dpl::__omp_backend::__parallel_stable_partial_sort(__xs, __xe, __comp, __leaf_sort, __nsort);
-        }
-    }
-}
-
-template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
-void
 __parallel_stable_sort(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy&& /*__exec*/,
                        _RandomAccessIterator __xs, _RandomAccessIterator __xe, _Compare __comp, _LeafSort __leaf_sort,
                        std::size_t __nsort = 0)
