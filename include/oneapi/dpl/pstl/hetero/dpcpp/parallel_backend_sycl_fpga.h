@@ -283,7 +283,8 @@ __parallel_or(oneapi::dpl::__internal::__fpga_backend_tag, _ExecutionPolicy&& __
               _Iterator1 __last, _Iterator2 __s_first, _Iterator2 __s_last, _Brick __f)
 {
     // workaround until we implement more performant version for patterns
-    return oneapi::dpl::__par_backend_hetero::__parallel_or(__exec.__device_policy(), __first, __last, __s_first,
+    return oneapi::dpl::__par_backend_hetero::__parallel_or(oneapi::dpl::__internal::__device_backend_tag{},
+                                                            __exec.__device_policy(), __first, __last, __s_first,
                                                             __s_last, __f);
 }
 
