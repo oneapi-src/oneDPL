@@ -573,7 +573,7 @@ __sycl_reduce_by_segment(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator1, typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 ::std::pair<OutputIterator1, OutputIterator2>
-reduce_by_segment_impl(__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+reduce_by_segment_impl(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
                        InputIterator2 first2, OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
                        BinaryOperator binary_op)
 {
@@ -609,9 +609,9 @@ reduce_by_segment_impl(__hetero_tag<_BackendTag>, Policy&& policy, InputIterator
                                                      typename ::std::iterator_traits<InputIterator2>::value_type>::type;
 
     // number of unique keys
-    _CountType __n = __sycl_reduce_by_segment(::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(),
-                                              key_output_buf.all_view(), value_output_buf.all_view(), binary_pred,
-                                              binary_op, has_known_identity{});
+    _CountType __n = __sycl_reduce_by_segment(
+        __tag, ::std::forward<Policy>(policy), key_buf.all_view(), value_buf.all_view(), key_output_buf.all_view(),
+        value_output_buf.all_view(), binary_pred, binary_op, has_known_identity{});
 
     return ::std::make_pair(result1 + __n, result2 + __n);
 }
