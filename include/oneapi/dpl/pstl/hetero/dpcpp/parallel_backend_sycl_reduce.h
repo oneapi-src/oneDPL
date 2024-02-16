@@ -138,10 +138,11 @@ struct __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __ite
 
 template <typename _Tp, ::std::uint16_t __work_group_size, ::std::uint8_t __iters_per_work_item, typename _Commutative,
           typename _ExecutionPolicy, typename _Size, typename _ReduceOp, typename _TransformOp, typename _InitType,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0, typename... _Ranges>
+          typename... _Ranges>
 auto
-__parallel_transform_reduce_small_impl(_ExecutionPolicy&& __exec, const _Size __n, _ReduceOp __reduce_op,
-                                       _TransformOp __transform_op, _InitType __init, _Ranges&&... __rngs)
+__parallel_transform_reduce_small_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                       const _Size __n, _ReduceOp __reduce_op, _TransformOp __transform_op,
+                                       _InitType __init, _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _ReduceKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
