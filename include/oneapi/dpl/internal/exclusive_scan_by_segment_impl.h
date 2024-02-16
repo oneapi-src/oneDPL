@@ -171,7 +171,7 @@ pattern_exclusive_scan_by_segment(__hetero_tag<_BackendTag> __tag, Policy&& poli
                                   BinaryPredicate binary_pred, Operator binary_op)
 {
     return internal::exclusive_scan_by_segment_impl(
-        ::std::forward<Policy>(policy), first1, last1, first2, result, init, binary_pred, binary_op,
+        __tag, ::std::forward<Policy>(policy), first1, last1, first2, result, init, binary_pred, binary_op,
         typename unseq_backend::__has_known_identity<
             Operator, typename ::std::iterator_traits<InputIterator2>::value_type>::type{});
 }
