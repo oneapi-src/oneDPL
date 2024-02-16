@@ -371,10 +371,10 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
 
 template <typename _InRng, typename _OutRng, typename _BinaryOp, typename _KernelParam>
 sycl::event
-inclusive_scan(sycl::queue __queue, _InRng __in_rng, _OutRng __out_rng, _BinaryOp __binary_op,
+inclusive_scan(sycl::queue __queue, _InRng&& __in_rng, _OutRng&& __out_rng, _BinaryOp __binary_op,
                _KernelParam __param = {})
 {
-    return __impl::__single_pass_scan<true>(__queue, __in_rng, __out_rng, __binary_op, __param);
+    return __impl::__single_pass_scan<true>(__queue, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __binary_op, __param);
 }
 
 template <typename _InIterator, typename _OutIterator, typename _BinaryOp, typename _KernelParam>
