@@ -220,9 +220,13 @@ auto
 inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _Events&&... __dependencies)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+
     using _ValueType = typename ::std::iterator_traits<_ForwardIt1>::value_type;
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(
+        __dispatch_tag,
         ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, oneapi::dpl::__internal::__no_op(),
         ::std::plus<_ValueType>(), /*inclusive=*/::std::true_type());
 }
