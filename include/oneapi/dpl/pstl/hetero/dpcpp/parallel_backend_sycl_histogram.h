@@ -285,9 +285,9 @@ struct __histogram_general_registers_local_reduction_submitter<__iters_per_work_
 template <::std::uint16_t __iters_per_work_item, ::std::uint8_t __bins_per_work_item, typename _ExecutionPolicy,
           typename _Range1, typename _Range2, typename _BinHashMgr>
 auto
-__histogram_general_registers_local_reduction(_ExecutionPolicy&& __exec, const sycl::event& __init_event,
-                                              ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
-                                              const _BinHashMgr& __binhash_manager)
+__histogram_general_registers_local_reduction(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                              const sycl::event& __init_event, ::std::uint16_t __work_group_size,
+                                              _Range1&& __input, _Range2&& __bins, const _BinHashMgr& __binhash_manager)
 {
     using _kernel_base_name = typename ::std::decay_t<_ExecutionPolicy>::kernel_name;
 
