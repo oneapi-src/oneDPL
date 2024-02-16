@@ -692,9 +692,10 @@ struct __parallel_copy_if_static_single_group_submitter<_Size, _ElemsPerItem, _W
 template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _UnaryOperation, typename _InitType,
           typename _BinaryOperation, typename _Inclusive>
 auto
-__parallel_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng,
-                                       ::std::size_t __n, _UnaryOperation __unary_op, _InitType __init,
-                                       _BinaryOperation __binary_op, _Inclusive)
+__parallel_transform_scan_single_group(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec,
+                                       _InRng&& __in_rng, _OutRng&& __out_rng, ::std::size_t __n,
+                                       _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op,
+                                       _Inclusive)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
