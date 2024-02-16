@@ -390,10 +390,10 @@ __pattern_for_loop(_Tag, _ExecutionPolicy&&, _Ip __first, _Ip __last, _Function 
 template <typename _IsVector, typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function,
           typename... _Rest>
 void
-__pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Function __f,
+__pattern_for_loop_n(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Function __f,
                      __single_stride_type, _Rest&&... __rest)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     using __pack_type = __reduction_pack<_Rest...>;
 
@@ -427,10 +427,10 @@ __pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec,
 template <typename _IsVector, typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename _Sp,
           typename... _Rest>
 void
-__pattern_for_loop_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Function __f,
+__pattern_for_loop_n(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ip __first, _Size __n, _Function __f,
                      _Sp __stride, _Rest&&... __rest)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     using __pack_type = __reduction_pack<_Rest...>;
 

@@ -386,11 +386,11 @@ __pattern_adjacent_difference(_Tag, _ExecutionPolicy&&, _ForwardIterator __first
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _BinaryOperation>
 _RandomAccessIterator2
-__pattern_adjacent_difference(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec,
+__pattern_adjacent_difference(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec,
                               _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                               _RandomAccessIterator2 __d_first, _BinaryOperation __op)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     assert(__first != __last);
     typedef typename ::std::iterator_traits<_RandomAccessIterator1>::reference _ReferenceType1;

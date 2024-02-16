@@ -1455,10 +1455,10 @@ __pattern_unique(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIte
 // So, a caller passes _CalcMask brick into remove_elements.
 template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator, class _CalcMask>
 _ForwardIterator
-__remove_elements(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+__remove_elements(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _ForwardIterator __first,
                   _ForwardIterator __last, _CalcMask __calc_mask)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     typedef typename ::std::iterator_traits<_ForwardIterator>::difference_type _DifferenceType;
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _Tp;
@@ -2039,10 +2039,10 @@ __pattern_is_partitioned(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _Fo
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
 bool
-__pattern_is_partitioned(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_is_partitioned(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                          _RandomAccessIterator __last, _UnaryPredicate __pred)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     //trivial pre-checks
     if (__first == __last)
@@ -2169,10 +2169,10 @@ __pattern_partition(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _Forward
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
 _RandomAccessIterator
-__pattern_partition(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                     _RandomAccessIterator __last, _UnaryPredicate __pred)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     // partitioned range: elements before pivot satisfy pred (true part),
     //                    elements after pivot don't satisfy pred (false part)
@@ -2269,10 +2269,10 @@ __pattern_stable_partition(_Tag, _ExecutionPolicy&&, _BidirectionalIterator __fi
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _UnaryPredicate>
 _RandomAccessIterator
-__pattern_stable_partition(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_stable_partition(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                            _RandomAccessIterator __last, _UnaryPredicate __pred)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     // partitioned range: elements before pivot satisfy pred (true part),
     //                    elements after pivot don't satisfy pred (false part)
@@ -2668,10 +2668,10 @@ __pattern_adjacent_find(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _For
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _BinaryPredicate, class _Semantic>
 _RandomAccessIterator
-__pattern_adjacent_find(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_adjacent_find(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                         _RandomAccessIterator __last, _BinaryPredicate __pred, _Semantic __or_semantic)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     if (__last - __first < 2)
         return __last;
@@ -3205,11 +3205,11 @@ inline constexpr auto __set_algo_cut_off = 1000;
 template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2,
           class _OutputIterator, class _Compare, class _SizeFunction, class _SetOP>
 _OutputIterator
-__parallel_set_op(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+__parallel_set_op(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                   _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
                   _OutputIterator __result, _Compare __comp, _SizeFunction __size_func, _SetOP __set_op)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _DifferenceType;
     typedef typename ::std::iterator_traits<_OutputIterator>::value_type _T;
@@ -3302,7 +3302,7 @@ __parallel_set_union_op(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __ex
                         _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2,
                         _OutputIterator __result, _Compare __comp, _SetUnionOp __set_union_op)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     typedef typename ::std::iterator_traits<_ForwardIterator1>::difference_type _DifferenceType;
 

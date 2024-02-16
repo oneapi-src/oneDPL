@@ -1598,9 +1598,9 @@ __pattern_nth_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator>
 void
-__pattern_reverse(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last)
+__pattern_reverse(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __hetero_tag<_BackendTag>::__backend_tag;
 
     auto __n = __last - __first;
     if (__n <= 0)

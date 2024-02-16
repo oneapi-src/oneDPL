@@ -114,10 +114,10 @@ binary_search_impl(_Tag, Policy&& policy, InputIterator1 start, InputIterator1 e
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator, typename StrictWeakOrdering>
 OutputIterator
-lower_bound_impl(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 start, InputIterator1 end,
+lower_bound_impl(__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 start, InputIterator1 end,
                  InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __hetero_tag<_BackendTag>::__backend_tag;
 
     namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
@@ -146,10 +146,10 @@ lower_bound_impl(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator, typename StrictWeakOrdering>
 OutputIterator
-upper_bound_impl(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 start, InputIterator1 end,
+upper_bound_impl(__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 start, InputIterator1 end,
                  InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __hetero_tag<_BackendTag>::__backend_tag;
 
     namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
@@ -178,10 +178,10 @@ upper_bound_impl(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator, typename StrictWeakOrdering>
 OutputIterator
-binary_search_impl(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 start, InputIterator1 end,
+binary_search_impl(__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 start, InputIterator1 end,
                    InputIterator2 value_start, InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    using __backend_tag = typename decltype(__tag)::__backend_tag;
+    using __backend_tag = typename __hetero_tag<_BackendTag>::__backend_tag;
 
     namespace __bknd = __par_backend_hetero;
     const auto size = ::std::distance(start, end);
