@@ -2246,7 +2246,8 @@ __parallel_partial_sort(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    return __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
+    return __parallel_partial_sort_impl(oneapi::dpl::__internal::__device_backend_tag{},
+                                        ::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
                                         __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
 }
 
@@ -2263,7 +2264,8 @@ __parallel_partial_sort(oneapi::dpl::__internal::__device_backend_tag, _Executio
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    return __parallel_partial_sort_impl(::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
+    return __parallel_partial_sort_impl(oneapi::dpl::__internal::__device_backend_tag{},
+                                        ::std::forward<_ExecutionPolicy>(__exec), __buf.all_view(),
                                         __partial_merge_kernel<decltype(__mid_idx)>{__mid_idx}, __comp);
 }
 } // namespace __par_backend_hetero
