@@ -78,13 +78,15 @@ class Reduce3;
 template <typename Name>
 class Reduce4;
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
+template <class _Tag, typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
           typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_host_execution_policy<Policy, ::std::pair<OutputIterator1, OutputIterator2>>
-reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+::std::pair<OutputIterator1, OutputIterator2>
+reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
                        BinaryOperator binary_op)
 {
+    static_assert(__is_backend_tag_v<_Tag>);
+
     // The algorithm reduces values in [first2, first2 + (last1-first1)) where the associated
     // keys for the values are equal to the adjacent key. This function's implementation is a derivative work
     // and responsible for the second copyright notice in this header.
@@ -570,11 +572,11 @@ __sycl_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& 
     return __end_idx.get_host_access()[0] + 1;
 }
 
-template <typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator1,
-          typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy, ::std::pair<OutputIterator1, OutputIterator2>>
-reduce_by_segment_impl(Policy&& policy, InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
-                       OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
+template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator1, typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
+::std::pair<OutputIterator1, OutputIterator2>
+reduce_by_segment_impl(__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+                       InputIterator2 first2, OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
                        BinaryOperator binary_op)
 {
     // The algorithm reduces values in [first2, first2 + (last1-first1)) where the associated
