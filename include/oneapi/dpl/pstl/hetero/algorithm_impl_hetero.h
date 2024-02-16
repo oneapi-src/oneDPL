@@ -1999,6 +1999,48 @@ class __shift_left_right
 {
 };
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range>
+oneapi::dpl::__internal::__difference_t<_Range>
+__pattern_shift_left(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range __rng,
+                     oneapi::dpl::__internal::__difference_t<_Range> __n)
+{
+    //If (n > 0 && n < m), returns first + (m - n). Otherwise, if n  > 0, returns first. Otherwise, returns last.
+    using _DiffType = oneapi::dpl::__internal::__difference_t<_Range>;
+    _DiffType __size = __rng.size();
+
+    assert(__n > 0 && __n < __size);
+
+    _DiffType __mid = __size / 2 + __size % 2;
+    _DiffType __size_res = __size - __n;
+
+    //1. n >= size/2; 'size - _n' parallel copying
+    if (__n >= __mid)
+    {
+        using _Function = __brick_move<_ExecutionPolicy>;
+        auto __brick = oneapi::dpl::unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
+
+        //TODO: to consider use just "read" access mode for a source range and just "write" - for a destination range.
+        auto __src = oneapi::dpl::__ranges::drop_view_simple<_Range, _DiffType>(__rng, __n);
+        auto __dst = oneapi::dpl::__ranges::take_view_simple<_Range, _DiffType>(__rng, __size_res);
+
+        oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                          __brick, __size_res, __src, __dst)
+            .wait();
+    }
+    else //2. n < size/2; 'n' parallel copying
+    {
+        auto __brick = unseq_backend::__brick_shift_left<_ExecutionPolicy, _DiffType>{__size, __n};
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
+            _BackendTag{},
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__shift_left_right>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            __brick, __n, __rng)
+            .wait();
+    }
+
+    return __size_res;
+}
+
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator>
 _Iterator
 __pattern_shift_left(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
