@@ -106,6 +106,7 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Rang
     _NoOpFunctor __get_data_op;
 
     oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_base(
+        oneapi::dpl::__internal::__device_backend_tag{}, // TODO required to fix backend tag eval
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
         __binary_op, __init,
         // local scan

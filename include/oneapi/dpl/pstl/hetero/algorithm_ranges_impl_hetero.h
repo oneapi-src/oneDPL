@@ -363,6 +363,7 @@ __pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng
 
     auto __res =
         __par_backend_hetero::__parallel_transform_scan_base(
+            oneapi::dpl::__internal::__device_backend_tag{}, // TODO required to fix backend tag eval
             ::std::forward<_ExecutionPolicy>(__exec),
             oneapi::dpl::__ranges::zip_view(
                 __rng1, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
