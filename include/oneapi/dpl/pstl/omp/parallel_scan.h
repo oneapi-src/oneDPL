@@ -108,42 +108,6 @@ __parallel_strict_scan_body(_Index __n, _Tp __initial, _Rp __reduce, _Cp __combi
 
 template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
 void
-__parallel_strict_scan(_ExecutionPolicy&&, _Index __n, _Tp __initial, _Rp __reduce, _Cp __combine, _Sp __scan,
-                       _Ap __apex)
-{
-    if (__n <= __default_chunk_size)
-    {
-        _Tp __sum = __initial;
-        if (__n)
-        {
-            __sum = __combine(__sum, __reduce(_Index(0), __n));
-        }
-        __apex(__sum);
-        if (__n)
-        {
-            __scan(_Index(0), __n, __initial);
-        }
-        return;
-    }
-
-    if (omp_in_parallel())
-    {
-        oneapi::dpl::__omp_backend::__parallel_strict_scan_body<_ExecutionPolicy>(__n, __initial, __reduce, __combine,
-                                                                                  __scan, __apex);
-    }
-    else
-    {
-        _PSTL_PRAGMA(omp parallel)
-        _PSTL_PRAGMA(omp single nowait)
-        {
-            oneapi::dpl::__omp_backend::__parallel_strict_scan_body<_ExecutionPolicy>(__n, __initial, __reduce,
-                                                                                      __combine, __scan, __apex);
-        }
-    }
-}
-
-template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
-void
 __parallel_strict_scan(oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy&&, _Index __n, _Tp __initial,
                        _Rp __reduce, _Cp __combine, _Sp __scan, _Ap __apex)
 {
