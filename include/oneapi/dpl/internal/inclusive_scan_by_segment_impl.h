@@ -43,7 +43,7 @@ pattern_inclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
                                   InputIterator2 first2, OutputIterator result, BinaryPredicate binary_pred,
                                   BinaryOperator binary_op)
 {
-    static_assert(__is_backend_tag_v<_Tag>);
+    static_assert(__internal::__is_backend_tag_v<_Tag>);
 
     const auto n = ::std::distance(first1, last1);
 
@@ -78,7 +78,7 @@ pattern_inclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator, typename BinaryPredicate, typename BinaryOperator>
 OutputIterator
-inclusive_scan_by_segment_impl(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+inclusive_scan_by_segment_impl(__internal::__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
                                InputIterator2 first2, OutputIterator result, BinaryPredicate binary_pred,
                                BinaryOperator binary_op, ::std::true_type /* has_known_identity */)
 {
@@ -91,7 +91,7 @@ inclusive_scan_by_segment_impl(__hetero_tag<_BackendTag> __tag, Policy&& policy,
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator, typename BinaryPredicate, typename BinaryOperator>
 OutputIterator
-inclusive_scan_by_segment_impl(__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+inclusive_scan_by_segment_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
                                InputIterator2 first2, OutputIterator result, BinaryPredicate binary_pred,
                                BinaryOperator binary_op, ::std::false_type /* has_known_identity */)
 {
@@ -129,7 +129,7 @@ inclusive_scan_by_segment_impl(__hetero_tag<_BackendTag>, Policy&& policy, Input
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator, typename BinaryPredicate, typename BinaryOperator>
 OutputIterator
-pattern_inclusive_scan_by_segment(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 first1,
+pattern_inclusive_scan_by_segment(__internal::__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 first1,
                                   InputIterator1 last1, InputIterator2 first2, OutputIterator result,
                                   BinaryPredicate binary_pred, BinaryOperator binary_op)
 {

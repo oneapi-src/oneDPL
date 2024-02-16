@@ -193,7 +193,7 @@ using _SegReducePrefixPhase = __seg_reduce_prefix_kernel<_Name...>;
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
           typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
 oneapi::dpl::__internal::__difference_t<_Range3>
-__sycl_reduce_by_segment(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values,
+__sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values,
                          _Range3&& __out_keys, _Range4&& __out_values, _BinaryPredicate __binary_pred,
                          _BinaryOperator __binary_op, ::std::false_type /* has_known_identity */)
 {
@@ -205,7 +205,7 @@ __sycl_reduce_by_segment(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
           typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
 oneapi::dpl::__internal::__difference_t<_Range3>
-__sycl_reduce_by_segment(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values,
+__sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values,
                          _Range3&& __out_keys, _Range4&& __out_values, _BinaryPredicate __binary_pred,
                          _BinaryOperator __binary_op, ::std::true_type /* has_known_identity */)
 {
@@ -573,7 +573,7 @@ __sycl_reduce_by_segment(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
           typename OutputIterator1, typename OutputIterator2, typename BinaryPred, typename BinaryOperator>
 ::std::pair<OutputIterator1, OutputIterator2>
-reduce_by_segment_impl(__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
+reduce_by_segment_impl(__internal::__hetero_tag<_BackendTag> __tag, Policy&& policy, InputIterator1 first1, InputIterator1 last1,
                        InputIterator2 first2, OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
                        BinaryOperator binary_op)
 {
