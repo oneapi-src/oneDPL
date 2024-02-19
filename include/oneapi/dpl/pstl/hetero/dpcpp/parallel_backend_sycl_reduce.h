@@ -279,7 +279,8 @@ __parallel_transform_reduce_mid_impl(oneapi::dpl::__internal::__device_backend_t
     sycl::event __reduce_event =
         __parallel_transform_reduce_device_kernel_submitter<_Tp, __work_group_size, __iters_per_work_item_device_kernel,
                                                             _Commutative, _ReduceDeviceKernel>()(
-            __exec, __n, __reduce_op, __transform_op, __init, __temp, ::std::forward<_Ranges>(__rngs)...);
+            oneapi::dpl::__internal::__device_backend_tag{}, __exec, __n, __reduce_op, __transform_op, __init, __temp,
+            ::std::forward<_Ranges>(__rngs)...);
 
     __n = __n_groups; // Number of preliminary results from the device kernel.
     return __parallel_transform_reduce_work_group_kernel_submitter<
