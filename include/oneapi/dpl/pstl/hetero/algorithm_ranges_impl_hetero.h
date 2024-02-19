@@ -536,8 +536,9 @@ oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
 __pattern_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
     if (__rng.size() >= 2)
-        __par_backend_hetero::__parallel_stable_sort(::std::forward<_ExecutionPolicy>(__exec),
-                                                     ::std::forward<_Range>(__rng), __comp, __proj)
+        __par_backend_hetero::__parallel_stable_sort(
+            oneapi::dpl::__internal::__device_backend_tag{}, // TODO required to fix backend tag eval
+            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __comp, __proj)
             .wait();
 }
 
