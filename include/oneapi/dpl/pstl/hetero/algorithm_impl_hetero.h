@@ -1039,14 +1039,9 @@ __pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 
     auto __copy_last = __pattern_copy_if(__tag, __exec, __first, __last, __copy_first, __not_pred<_Predicate>{__pred});
 
-    constexpr auto __dispatch_tag1 =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__copy_first), decltype(__copy_last),
-                                                  decltype(__first)>();
-
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
     return __pattern_walk2(
-        __dispatch_tag1,
-        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __copy_first, __copy_last, __first, __brick_copy<_ExecutionPolicy>{});
 }
 
@@ -1062,21 +1057,12 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
 
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
     auto __copy_first = __buf.get();
-    auto __copy_last =
-        __pattern_unique_copy(oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first),
-                                                                        decltype(__last), decltype(__copy_first)>(),
-                              __exec, __first, __last, __copy_first, __pred);
-
-    constexpr auto __dispatch_tag1 =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__copy_first), decltype(__copy_last),
-                                                  decltype(__first)>();
-    using __backend_tag1 = typename decltype(__dispatch_tag1)::__backend_tag;
+    auto __copy_last = __pattern_unique_copy(__tag, __exec, __first, __last, __copy_first, __pred);
 
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
-    return __pattern_walk2<__backend_tag1, /*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
+    return __pattern_walk2<_BackendTag, /*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
                            __par_backend_hetero::access_mode::read_write>(
-        __dispatch_tag1,
-        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __copy_first, __copy_last, __first, __brick_copy<_ExecutionPolicy>{});
 }
 
@@ -1230,7 +1216,7 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ite
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 void
-__pattern_inplace_merge(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __middle,
+__pattern_inplace_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __middle,
                         _Iterator __last, _Compare __comp)
 {
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
@@ -1245,20 +1231,16 @@ __pattern_inplace_merge(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
     auto __copy_first = __buf.get();
     auto __copy_last = __copy_first + __n;
 
-    __pattern_merge(oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first), decltype(__middle),
-                                                              decltype(__last), decltype(__copy_first)>(),
-                    __exec, __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
-                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
-                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
-                    __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__copy_first),
-                    __comp);
+    __pattern_merge(
+        __tag, __exec, __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__middle),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
+        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__copy_first), __comp);
 
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
     __pattern_walk2(
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__copy_first), decltype(__copy_last),
-                                                  decltype(__first)>(),
-        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+        __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __copy_first, __copy_last, __first, __brick_move<_ExecutionPolicy>{});
 }
 
@@ -1338,27 +1320,16 @@ __pattern_stable_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& _
     auto __true_result = __true_buf.get();
     auto __false_result = __false_buf.get();
 
-    constexpr auto __dispatch_tag = __select_backend<_ExecutionPolicy, decltype(__first), decltype(__last),
-                                                     decltype(__true_result), decltype(__false_result)>();
-    auto copy_result =
-        __pattern_partition_copy(__dispatch_tag, __exec, __first, __last, __true_result, __false_result, __pred);
+    auto copy_result = __pattern_partition_copy(__tag, __exec, __first, __last, __true_result, __false_result, __pred);
     auto true_count = copy_result.first - __true_result;
 
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
-    constexpr auto __dispatch_tag1 =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__true_result),
-                                                  decltype(copy_result.first), decltype(__first)>();
-    using __backend_tag1 = typename decltype(__dispatch_tag1)::__backend_tag;
-    __pattern_walk2<__backend_tag1, /*_IsSync=*/::std::false_type>(
-        __dispatch_tag1, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result,
-        copy_result.first, __first, __brick_move<_ExecutionPolicy>{});
+    __pattern_walk2<_BackendTag, /*_IsSync=*/::std::false_type>(
+        __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result, copy_result.first,
+        __first, __brick_move<_ExecutionPolicy>{});
 
-    constexpr auto __dispatch_tag2 =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__false_result),
-                                                  decltype(copy_result.second), decltype(__first + true_count)>();
     __pattern_walk2(
-        __dispatch_tag2,
-        __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
+        __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
         __false_result, copy_result.second, __first + true_count, __brick_move<_ExecutionPolicy>{});
 
     return __first + true_count;
@@ -1545,35 +1516,20 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 
         auto __buf_first = __buf.get();
 
-        constexpr auto __dispatch_tag1 =
-            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first), decltype(__last),
-                                                      decltype(__buf_first)>();
-        using __backend_tag1 = typename decltype(__dispatch_tag1)::__backend_tag;
-
-        auto __buf_last = __pattern_walk2<__backend_tag1, /*_IsSync=*/::std::false_type>(
-            __dispatch_tag1, __par_backend_hetero::make_wrapped_policy<__initial_copy_2>(__exec), __first, __last,
-            __buf_first, __brick_copy<_ExecutionPolicy>{});
+        auto __buf_last = __pattern_walk2<_BackendTag, /*_IsSync=*/::std::false_type>(
+            __tag, __par_backend_hetero::make_wrapped_policy<__initial_copy_2>(__exec), __first, __last, __buf_first,
+            __brick_copy<_ExecutionPolicy>{});
 
         auto __buf_mid = __buf_first + __out_size;
 
-        constexpr auto __dispatch_tag11 =
-            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__buf_first), decltype(__buf_mid),
-                                                      decltype(__buf_last)>();
-        using __backend_tag11 = typename decltype(__dispatch_tag11)::__backend_tag;
-
         __par_backend_hetero::__parallel_partial_sort(
-            __backend_tag11{}, __par_backend_hetero::make_wrapped_policy<__partial_sort_2>(__exec),
+            _BackendTag{}, __par_backend_hetero::make_wrapped_policy<__partial_sort_2>(__exec),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_first),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_mid),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_last), __comp);
 
-        constexpr auto __dispatch_tag2 =
-            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__buf_first), decltype(__buf_mid),
-                                                      decltype(__out_first)>();
-
         return __pattern_walk2(
-            __dispatch_tag2,
-            __par_backend_hetero::make_wrapped_policy<__copy_back>(::std::forward<_ExecutionPolicy>(__exec)),
+            __tag, __par_backend_hetero::make_wrapped_policy<__copy_back>(::std::forward<_ExecutionPolicy>(__exec)),
             __buf_first, __buf_mid, __out_first, __brick_copy<_ExecutionPolicy>{});
     }
 }
@@ -1887,17 +1843,13 @@ __pattern_set_union(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 
     //1. Calc difference {2} \ {1}
     const auto __n_diff =
-        oneapi::dpl::__internal::__pattern_hetero_set_op(
-            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first2), decltype(__last2),
-                                                      decltype(__first1), decltype(__last1), decltype(__buf)>(),
-            __exec, __first2, __last2, __first1, __last1, __buf, __comp, unseq_backend::_DifferenceTag()) -
+        oneapi::dpl::__internal::__pattern_hetero_set_op(__tag, __exec, __first2, __last2, __first1, __last1, __buf,
+                                                         __comp, unseq_backend::_DifferenceTag()) -
         __buf;
 
     //2. Merge {1} and the difference
-    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first1),
-                                                                          decltype(__buf), decltype(__result)>();
     return oneapi::dpl::__internal::__pattern_merge(
-        __dispatch_tag,
+        __tag,
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_union_copy_case_2>(
             ::std::forward<_ExecutionPolicy>(__exec)),
         __first1, __last1, __buf, __buf + __n_diff, __result, __comp);
@@ -1974,25 +1926,19 @@ __pattern_set_symmetric_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPo
     //1. Calc difference {1} \ {2}
     const auto __n_diff_1 =
         oneapi::dpl::__internal::__pattern_hetero_set_op(
-            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first1), decltype(__last1),
-                                                      decltype(__first2), decltype(__last2), decltype(__buf_1)>(),
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_1>(__exec),
+            __tag, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_1>(__exec),
             __first1, __last1, __first2, __last2, __buf_1, __comp, unseq_backend::_DifferenceTag()) -
         __buf_1;
 
     //2. Calc difference {2} \ {1}
     const auto __n_diff_2 =
         oneapi::dpl::__internal::__pattern_hetero_set_op(
-            oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__first2), decltype(__last2),
-                                                      decltype(__first1), decltype(__last1), decltype(__buf_2)>(),
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_2>(__exec),
+            __tag, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__set_symmetric_difference_phase_2>(__exec),
             __first2, __last2, __first1, __last1, __buf_2, __comp, unseq_backend::_DifferenceTag()) -
         __buf_2;
 
     //3. Merge the differences
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, decltype(__buf_1),
-                                                                              decltype(__buf_2), decltype(__result)>();
-    return oneapi::dpl::__internal::__pattern_merge(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __buf_1,
+    return oneapi::dpl::__internal::__pattern_merge(__tag, ::std::forward<_ExecutionPolicy>(__exec), __buf_1,
                                                     __buf_1 + __n_diff_1, __buf_2, __buf_2 + __n_diff_2, __result,
                                                     __comp);
 }
