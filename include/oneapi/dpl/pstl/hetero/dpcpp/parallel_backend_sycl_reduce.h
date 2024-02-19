@@ -148,9 +148,9 @@ __parallel_transform_reduce_small_impl(oneapi::dpl::__internal::__device_backend
         __reduce_small_kernel<::std::integral_constant<::std::uint8_t, __iters_per_work_item>, _CustomName>>;
 
     return __parallel_transform_reduce_small_submitter<_Tp, __work_group_size, __iters_per_work_item, _Commutative,
-                                                       _ReduceKernel>()(::std::forward<_ExecutionPolicy>(__exec), __n,
-                                                                        __reduce_op, __transform_op, __init,
-                                                                        ::std::forward<_Ranges>(__rngs)...);
+                                                       _ReduceKernel>()(
+        oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op,
+        __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
 }
 
 // Submits the first kernel of the parallel_transform_reduce for mid-sized arrays.
