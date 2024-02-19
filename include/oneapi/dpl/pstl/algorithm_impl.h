@@ -174,20 +174,6 @@ __pattern_walk1(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _ForwardIt
     });
 }
 
-template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _UnaryPredicate, class _Tp>
-void
-__pattern_replace_if(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-                     _UnaryPredicate __pred, const _Tp& __new_value)
-{
-    static_assert(__is_backend_tag_v<_Tag>);
-
-    oneapi::dpl::__internal::__pattern_walk1(
-        __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        oneapi::dpl::__internal::__replace_functor<
-            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>,
-            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _UnaryPredicate>>(__new_value, __pred));
-}
-
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Brick>
 void
 __pattern_walk_brick(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,

@@ -395,8 +395,11 @@ replace_if(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator
 {
     constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
 
-    __pattern_replace_if(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __pred,
-                         __new_value);
+    oneapi::dpl::__internal::__pattern_walk1(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        oneapi::dpl::__internal::__replace_functor<
+            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _Tp>,
+            oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _UnaryPredicate>>(__new_value, __pred));
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator, class _Tp>
