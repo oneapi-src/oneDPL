@@ -817,9 +817,8 @@ __parallel_transform_scan(oneapi::dpl::__internal::__device_backend_tag, _Execut
 
     return __future(
         __parallel_transform_scan_base(
-            oneapi::dpl::__internal::__device_backend_tag{},
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
-            ::std::forward<_Range2>(__out_rng), __binary_op, __init,
+            oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng), __binary_op, __init,
             // local scan
             unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
                                   _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op,
@@ -895,8 +894,7 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __n);
 
     return __parallel_transform_scan_base(
-        oneapi::dpl::__internal::__device_backend_tag{},
-        ::std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::__ranges::make_zip_view(
             ::std::forward<_InRng>(__in_rng),
             oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
@@ -1814,8 +1812,8 @@ __parallel_stable_sort(oneapi::dpl::__internal::__device_backend_tag, _Execution
                        _Compare, _Proj __proj)
 {
     return __parallel_radix_sort<__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value>(
-        oneapi::dpl::__internal::__device_backend_tag{},
-        ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __proj);
+        oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        ::std::forward<_Range>(__rng), __proj);
 }
 #endif
 

@@ -515,9 +515,9 @@ __parallel_histogram_select_kernel(oneapi::dpl::__internal::__device_backend_tag
     {
         return __future(
             __histogram_general_registers_local_reduction<__iters_per_work_item, __max_work_item_private_bins>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __init_event, __work_group_size,
-                ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager));
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __init_event,
+                __work_group_size, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
+                __binhash_manager));
     }
     // if bins fit into SLM, use local atomics
     else if (__num_bins * sizeof(_local_histogram_type) +
@@ -551,16 +551,14 @@ __parallel_histogram(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
     if (__input.size() < 1048576) // 2^20
     {
         return __parallel_histogram_select_kernel</*iters_per_workitem = */ 4>(
-            oneapi::dpl::__internal::__device_backend_tag{},
-            ::std::forward<_ExecutionPolicy>(__exec), __init_event, ::std::forward<_Range1>(__input),
-            ::std::forward<_Range2>(__bins), __binhash_manager);
+            oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __init_event,
+            ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager);
     }
     else
     {
         return __parallel_histogram_select_kernel</*iters_per_workitem = */ 32>(
-            oneapi::dpl::__internal::__device_backend_tag{},
-            ::std::forward<_ExecutionPolicy>(__exec), __init_event, ::std::forward<_Range1>(__input),
-            ::std::forward<_Range2>(__bins), __binhash_manager);
+            oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __init_event,
+            ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager);
     }
 }
 

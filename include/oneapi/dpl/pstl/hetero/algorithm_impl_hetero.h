@@ -488,8 +488,7 @@ __pattern_min_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
     auto __buf = __keep(__first, __last);
 
     auto __ret_idx = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType, _Commutative>(
-                         _BackendTag{},
-                         ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
                          unseq_backend::__no_init_value{}, // no initial value
                          __buf.all_view())
                          .get();
@@ -557,8 +556,7 @@ __pattern_minmax_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
 
     auto __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
                                                                                 ::std::false_type /*is_commutative*/>(
-                     _BackendTag{},
-                     ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                     _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
                      unseq_backend::__no_init_value{}, // no initial value
                      __buf.all_view())
                      .get();
@@ -652,8 +650,7 @@ __pattern_count(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ite
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
                                                                           ::std::true_type /*is_commutative*/>(
-               _BackendTag{},
-               ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+               _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
                unseq_backend::__no_init_value{}, // no initial value
                __buf.all_view())
         .get();
@@ -1119,8 +1116,7 @@ __pattern_is_partitioned(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
 
     auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
                                                                                 ::std::false_type /*is_commutative*/>(
-                     _BackendTag{},
-                     ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                     _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
                      unseq_backend::__no_init_value{}, // no initial value
                      __buf.all_view())
                      .get();
@@ -1234,8 +1230,8 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ite
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 void
-__pattern_inplace_merge(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first,
-                        _Iterator __middle, _Iterator __last, _Compare __comp)
+__pattern_inplace_merge(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __middle,
+                        _Iterator __last, _Compare __comp)
 {
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
@@ -1421,8 +1417,7 @@ __pattern_lexicographical_compare(__hetero_tag<_BackendTag> __tag, _ExecutionPol
     auto __ret_idx =
         oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
                                                                        ::std::false_type /*is_commutative*/>(
-            _BackendTag{},
-            ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
             unseq_backend::__no_init_value{}, // no initial value
             __buf1.all_view(), __buf2.all_view())
             .get();
@@ -1775,8 +1770,7 @@ __pattern_hetero_set_op(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _F
 
     auto __result_size =
         __par_backend_hetero::__parallel_transform_scan_base(
-            _BackendTag{},
-            ::std::forward<_ExecutionPolicy>(__exec),
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
             oneapi::dpl::__ranges::make_zip_view(
                 __buf1.all_view(), __buf2.all_view(),
                 oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
@@ -2087,7 +2081,8 @@ __pattern_shift_right(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 
     //A shift right is the shift left with a reverse logic.
     auto __rng = oneapi::dpl::__ranges::reverse_view_simple<decltype(__buf.all_view())>{__buf.all_view()};
-    auto __res = oneapi::dpl::__internal::__pattern_shift_left(__tag, ::std::forward<_ExecutionPolicy>(__exec), __rng, __n);
+    auto __res =
+        oneapi::dpl::__internal::__pattern_shift_left(__tag, ::std::forward<_ExecutionPolicy>(__exec), __rng, __n);
 
     return __last - __res;
 }

@@ -1470,7 +1470,7 @@ __remove_elements(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forward
         _DifferenceType __min = __par_backend::__parallel_reduce(
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), _DifferenceType(0), __n, __n,
             [__first, __mask, &__calc_mask](_DifferenceType __i, _DifferenceType __j,
-                                                         _DifferenceType __local_min) -> _DifferenceType {
+                                            _DifferenceType __local_min) -> _DifferenceType {
                 // Create mask
                 __calc_mask(__mask + __i, __mask + __j, __first + __i);
 
@@ -1552,8 +1552,7 @@ __pattern_unique(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ra
         return __internal::__brick_unique(__first, __last, __pred, _IsVector{});
     }
     return __internal::__remove_elements(
-        __tag,
-        ::std::forward<_ExecutionPolicy>(__exec), ++__first, __last,
+        __tag, ::std::forward<_ExecutionPolicy>(__exec), ++__first, __last,
         [&__pred](bool* __b, bool* __e, _RandomAccessIterator __it) {
             __internal::__brick_walk3(
                 __b, __e, __it - 1, __it,
@@ -2985,8 +2984,7 @@ __pattern_remove_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
     }
 
     return __internal::__remove_elements(
-        __tag,
-        ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+        __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
         [&__pred](bool* __b, bool* __e, _RandomAccessIterator __it) {
             __internal::__brick_walk2(
                 __b, __e, __it, [&__pred](bool& __x, _ReferenceType __y) { __x = !__pred(__y); }, _IsVector{});
@@ -4270,7 +4268,8 @@ __pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forw
 
 template <class _Tag, class _ExecutionPolicy, class _BidirectionalIterator>
 _BidirectionalIterator
-__pattern_shift_right(_Tag __tag, _ExecutionPolicy&& __exec, _BidirectionalIterator __first, _BidirectionalIterator __last,
+__pattern_shift_right(_Tag __tag, _ExecutionPolicy&& __exec, _BidirectionalIterator __first,
+                      _BidirectionalIterator __last,
                       typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n)
 {
     static_assert(__is_backend_tag_v<_Tag>);

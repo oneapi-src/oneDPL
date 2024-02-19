@@ -432,44 +432,38 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag, _Exec
         if (__n <= 256)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 1, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 512)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 2, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 1024)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 4, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 2048)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 8, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 4096)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 16, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 8192)
         {
             return __parallel_transform_reduce_small_impl<_Tp, 256, 32, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
 
         // Use two-step tree reduction.
@@ -478,51 +472,44 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag, _Exec
         else if (__n <= 2097152)
         {
             return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 1, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 4194304)
         {
             return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 2, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 8388608)
         {
             return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 4, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 16777216)
         {
             return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 8, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 33554432)
         {
             return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 16, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
         else if (__n <= 67108864)
         {
             return __parallel_transform_reduce_mid_impl<_Tp, 256, 32, 32, _Commutative>(
-                oneapi::dpl::__internal::__device_backend_tag{},
-                ::std::forward<_ExecutionPolicy>(__exec), __n, __reduce_op, __transform_op, __init,
-                ::std::forward<_Ranges>(__rngs)...);
+                oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+                __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
         }
     }
     // Otherwise use a recursive tree reduction.
     return __parallel_transform_reduce_impl<_Tp, 32, _Commutative>::submit(
-        oneapi::dpl::__internal::__device_backend_tag{},
-        ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_op, __transform_op, __init,
-        ::std::forward<_Ranges>(__rngs)...);
+        oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n,
+        __work_group_size, __reduce_op, __transform_op, __init, ::std::forward<_Ranges>(__rngs)...);
 }
 
 } // namespace __par_backend_hetero

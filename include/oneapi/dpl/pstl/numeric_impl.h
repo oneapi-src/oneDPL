@@ -263,8 +263,7 @@ __pattern_transform_scan(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
 
     return __internal::__except_handler([&]() {
         __par_backend::__parallel_transform_scan(
-            __backend_tag{},
-            ::std::forward<_ExecutionPolicy>(__exec), __last - __first,
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __last - __first,
             [__first, __unary_op](_DifferenceType __i) mutable { return __unary_op(__first[__i]); }, __init,
             __binary_op,
             [__first, __unary_op, __binary_op](_DifferenceType __i, _DifferenceType __j, _Tp __init) {
@@ -388,9 +387,8 @@ __pattern_adjacent_difference(_Tag, _ExecutionPolicy&&, _ForwardIterator __first
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _BinaryOperation>
 _RandomAccessIterator2
-__pattern_adjacent_difference(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec,
-                              _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
-                              _RandomAccessIterator2 __d_first, _BinaryOperation __op)
+__pattern_adjacent_difference(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first,
+                              _RandomAccessIterator1 __last, _RandomAccessIterator2 __d_first, _BinaryOperation __op)
 {
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 

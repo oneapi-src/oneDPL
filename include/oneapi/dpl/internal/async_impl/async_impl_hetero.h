@@ -179,8 +179,7 @@ __pattern_fill_async(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec,
                      _ForwardIterator __last, const _T& __value)
 {
     return __pattern_walk1_async(
-        __tag,
-        ::std::forward<_ExecutionPolicy>(__exec),
+        __tag, ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
         fill_functor<_T>{__value});
@@ -206,9 +205,8 @@ __pattern_transform_scan_base_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&
     auto __buf2 = __keep2(__result, __result + __n);
 
     auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-        _BackendTag{},
-        ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init,
-        __binary_op, _Inclusive{});
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op,
+        __init, __binary_op, _Inclusive{});
     return __res.__make_future(__result + __n);
 }
 
