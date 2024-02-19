@@ -520,6 +520,7 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag, _Exec
     }
     // Otherwise use a recursive tree reduction.
     return __parallel_transform_reduce_impl<_Tp, 32, _Commutative>::submit(
+        oneapi::dpl::__internal::__device_backend_tag{},
         ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __reduce_op, __transform_op, __init,
         ::std::forward<_Ranges>(__rngs)...);
 }
