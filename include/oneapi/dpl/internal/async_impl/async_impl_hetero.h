@@ -30,10 +30,10 @@ namespace dpl
 namespace __internal
 {
 
-template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Function,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Function>
 auto
-__pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f)
+__pattern_walk1_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+                      _ForwardIterator __last, _Function __f)
 {
     auto __n = __last - __first;
     assert(__n > 0);
@@ -42,23 +42,19 @@ __pattern_walk1_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forw
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
 
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
-
     auto __future_obj = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf.all_view());
     return __future_obj;
 }
 
-template <typename _IsSync = ::std::false_type,
+template <typename _BackendTag, typename _IsSync = ::std::false_type,
           __par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
           __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::write,
-          typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+          typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function>
 auto
-__pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                      _ForwardIterator2 __first2, _Function __f)
+__pattern_walk2_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                      _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __f)
 {
     auto __n = __last1 - __first1;
     assert(__n > 0);
@@ -69,12 +65,8 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__acc_mode2, _ForwardIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
-
     auto __future = oneapi::dpl::__par_backend_hetero::__parallel_for(
-        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
         unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n, __buf1.all_view(), __buf2.all_view());
 
     if constexpr (_IsSync::value)
@@ -83,11 +75,11 @@ __pattern_walk2_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
     return __future.__make_future(__first2 + __n);
 }
 
-template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _ForwardIterator3,
-          typename _Function, oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _ForwardIterator3, typename _Function>
 auto
-__pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                      _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f)
+__pattern_walk3_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                      _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f)
 {
     auto __n = __last1 - __first1;
     assert(__n > 0);
@@ -102,25 +94,22 @@ __pattern_walk3_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Fo
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _ForwardIterator3>();
     auto __buf3 = __keep3(__first3, __first3 + __n);
 
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1,
-                                                                              _ForwardIterator2, _ForwardIterator3>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
-
     auto __future =
-        oneapi::dpl::__par_backend_hetero::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
                                                           unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
                                                           __buf1.all_view(), __buf2.all_view(), __buf3.all_view());
 
     return __future.__make_future(__first3 + __n);
 }
 
-template <typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Brick,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _Brick>
 auto
-__pattern_walk2_brick_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
-                            _ForwardIterator2 __first2, _Brick __brick)
+__pattern_walk2_brick_async(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+                            _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Brick __brick)
 {
     return __pattern_walk2_async(
+        __tag,
         __par_backend_hetero::make_wrapped_policy<__walk2_brick_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __first1, __last1, __first2, __brick);
 }
@@ -129,11 +118,10 @@ __pattern_walk2_brick_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first
 // transform_reduce (version with two binary functions)
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _RandomAccessIterator1, typename _RandomAccessIterator2, typename _Tp,
-          typename _BinaryOperation1, typename _BinaryOperation2,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator1,
+          typename _RandomAccessIterator2, typename _Tp, typename _BinaryOperation1, typename _BinaryOperation2>
 auto
-__pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+__pattern_transform_reduce_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                                  _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init,
                                  _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
@@ -151,13 +139,9 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _RandomAccessIterator1, _RandomAccessIterator2>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
-
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
                                                                           ::std::true_type /*is_commutative*/>(
-        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
         unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
         __buf1.all_view(), __buf2.all_view());
 }
@@ -166,12 +150,12 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _RandomAccessIterato
 // transform_reduce (with unary and binary functions)
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _ForwardIterator, typename _Tp, typename _BinaryOperation,
-          typename _UnaryOperation,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Tp,
+          typename _BinaryOperation, typename _UnaryOperation>
 auto
-__pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
-                                 _Tp __init, _BinaryOperation __binary_op, _UnaryOperation __unary_op)
+__pattern_transform_reduce_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+                                 _ForwardIterator __last, _Tp __init, _BinaryOperation __binary_op,
+                                 _UnaryOperation __unary_op)
 {
     assert(__first < __last);
 
@@ -182,22 +166,20 @@ __pattern_transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __f
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
 
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
-    using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
-
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
                                                                           ::std::true_type /*is_commutative*/>(
-        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
         unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
         __buf.all_view());
 }
 
-template <typename _ExecutionPolicy, typename _ForwardIterator, typename _T,
-          oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _T>
 auto
-__pattern_fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _T& __value)
+__pattern_fill_async(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+                     _ForwardIterator __last, const _T& __value)
 {
     return __pattern_walk1_async(
+        __tag,
         ::std::forward<_ExecutionPolicy>(__exec),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
         __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__last),
