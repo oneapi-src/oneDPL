@@ -1265,6 +1265,15 @@ _ForwardIterator
 __pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
                      typename ::std::iterator_traits<_ForwardIterator>::difference_type);
 
+//------------------------------------------------------------------------
+// shift_right
+//------------------------------------------------------------------------
+
+template <class _Tag, class _ExecutionPolicy, class _BidirectionalIterator>
+_BidirectionalIterator
+__pattern_shift_right(_Tag, _ExecutionPolicy&&, _BidirectionalIterator, _BidirectionalIterator,
+                      typename ::std::iterator_traits<_BidirectionalIterator>::difference_type);
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
