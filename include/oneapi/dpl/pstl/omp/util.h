@@ -48,7 +48,7 @@ namespace __omp_backend
 // use to cancel execution
 //------------------------------------------------------------------------
 inline void
-__cancel_execution()
+__cancel_execution(oneapi::dpl::__internal::__omp_backend_tag)
 {
     // TODO: Figure out how to make cancellation work.
 }

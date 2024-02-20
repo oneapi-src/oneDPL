@@ -86,7 +86,7 @@ using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 // Wrapper for tbb::task
 inline void
-__cancel_execution()
+__cancel_execution(oneapi::dpl::__internal::__tbb_backend_tag)
 {
 #if TBB_INTERFACE_VERSION <= 12000
     tbb::task::self().group()->cancel_group_execution();

@@ -60,7 +60,7 @@ template <typename _ExecutionPolicy, typename _Tp>
 using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 inline void
-__cancel_execution()
+__cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)
 {
 }
 
