@@ -111,6 +111,9 @@ template <class _IsVector>
 struct __serial_tag
 {
     using __is_vector = _IsVector;
+    // backend tag can be change depending on
+    // TBB availability in the environment
+    using __backend_tag = __par_backend_tag;
 };
 
 template <class _IsVector>
