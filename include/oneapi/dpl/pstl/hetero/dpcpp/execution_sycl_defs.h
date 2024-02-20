@@ -60,24 +60,6 @@ class device_policy
         return q;
     }
 
-    // For internal use only
-    static constexpr ::std::true_type
-    __allow_unsequenced()
-    {
-        return ::std::true_type{};
-    }
-    // __allow_vector is needed for __is_vectorization_preferred
-    static constexpr ::std::true_type
-    __allow_vector()
-    {
-        return ::std::true_type{};
-    }
-    static constexpr ::std::true_type
-    __allow_parallel()
-    {
-        return ::std::true_type{};
-    }
-
   private:
     sycl::queue q;
 };
