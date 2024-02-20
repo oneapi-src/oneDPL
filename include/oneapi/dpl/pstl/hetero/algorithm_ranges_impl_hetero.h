@@ -543,10 +543,9 @@ __pattern_sort(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __
 // min_element
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range>>
-__pattern_min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Compare>
+oneapi::dpl::__internal::__difference_t<_Range>
+__pattern_min_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
     //If size == 1, result is the zero-indexed element. If size == 0, result is 0.
     if (__rng.size() < 2)
