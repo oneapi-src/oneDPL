@@ -56,8 +56,9 @@ class __buffer_impl
     ~__buffer_impl() { __allocator_.deallocate(__ptr_, __buf_size_); }
 };
 
-template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
+template <class _Tag, typename _ExecutionPolicy, typename _Tp>
+using __buffer = ::std::enable_if_t<::std::is_same_v<_Tag, oneapi::dpl::__internal::__serial_backend_tag>,
+                                    __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>>;
 
 inline void
 __cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)

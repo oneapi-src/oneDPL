@@ -448,8 +448,9 @@ struct __memobj_traits<_T*>
 
 } // namespace __internal
 
-template <typename _ExecutionPolicy, typename _T>
-using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T>;
+template <class _Tag, typename _ExecutionPolicy, typename _T>
+using __buffer = ::std::enable_if_t<::std::is_base_of<oneapi::dpl::__internal::__device_backend_tag, _Tag>::value,
+                                    __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T>>;
 
 template <typename T>
 struct __repacked_tuple
