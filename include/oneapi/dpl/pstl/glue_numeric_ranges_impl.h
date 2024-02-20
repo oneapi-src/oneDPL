@@ -161,8 +161,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 transform_exclusive_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Tp __init,
                          _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+
     return oneapi::dpl::__internal::__ranges::__pattern_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
         views::all_write(::std::forward<_Range2>(__rng2)), __unary_op, __init, __binary_op,
         /*inclusive=*/::std::false_type());
 }
@@ -176,8 +178,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 transform_inclusive_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
                          _UnaryOperation __unary_op, _Tp __init)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+
     return oneapi::dpl::__internal::__ranges::__pattern_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
         views::all_write(::std::forward<_Range2>(__rng2)), __unary_op, __init, __binary_op,
         /*inclusive=*/::std::true_type());
 }
@@ -189,8 +193,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 transform_inclusive_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
                          _UnaryOperation __unary_op)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+
     return oneapi::dpl::__internal::__ranges::__pattern_transform_scan(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
         views::all_write(::std::forward<_Range2>(__rng2)), __unary_op, __binary_op, /*inclusive=*/::std::true_type());
 }
 
