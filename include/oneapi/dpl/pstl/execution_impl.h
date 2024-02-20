@@ -79,14 +79,6 @@ using __allow_parallel = typename __internal::__policy_traits<::std::decay_t<_Ex
 
 template <typename _ExecutionPolicy, typename... _IteratorTypes>
 constexpr auto
-__is_vectorization_preferred()
-{
-    return ::std::conjunction<decltype(::std::decay_t<_ExecutionPolicy>::__allow_vector()),
-                              __internal::__is_random_access_iterator_t<_IteratorTypes...>>();
-}
-
-template <typename _ExecutionPolicy, typename... _IteratorTypes>
-constexpr auto
 __is_parallelization_preferred()
 {
     return ::std::conjunction<decltype(::std::decay_t<_ExecutionPolicy>::__allow_parallel()),
