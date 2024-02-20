@@ -669,12 +669,12 @@ class __assign_key2_wrapper
 {
 };
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Range4,
-          typename _BinaryPredicate, typename _BinaryOperator>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range3>>
-__pattern_reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
-                            _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
+          typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
+oneapi::dpl::__internal::__difference_t<_Range3>
+__pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values,
+                            _Range3&& __out_keys, _Range4&& __out_values, _BinaryPredicate __binary_pred,
+                            _BinaryOperator __binary_op)
 {
     // The algorithm reduces values in __values where the
     // associated keys for the values are equal to the adjacent key.
