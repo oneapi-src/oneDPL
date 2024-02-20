@@ -431,11 +431,11 @@ __pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 // unique_copy
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryPredicate,
-          typename _Assign = oneapi::dpl::__internal::__pstl_assign>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range2>>
-__pattern_unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred, _Assign)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2,
+          typename _BinaryPredicate, typename _Assign = oneapi::dpl::__internal::__pstl_assign>
+oneapi::dpl::__internal::__difference_t<_Range2>
+__pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result,
+                      _BinaryPredicate __pred, _Assign)
 {
     using _It1DifferenceType = oneapi::dpl::__internal::__difference_t<_Range1>;
     unseq_backend::__copy_by_mask<::std::plus<_It1DifferenceType>, _Assign, /*inclusive*/ ::std::true_type, 1>
