@@ -682,9 +682,6 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
     //          __out_keys   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 }
     //          __out_values = { 1, 2, 3, 4, 2, 6, 2, 6, 0 }
 
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2, _Range3>();
-
     const auto __n = __keys.size();
 
     if (__n == 0)
