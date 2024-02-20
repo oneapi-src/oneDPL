@@ -710,8 +710,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
                   _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2, _Range3>();
+
     return oneapi::dpl::__internal::__ranges::__pattern_reduce_by_segment(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__keys)),
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__keys)),
         views::all_read(::std::forward<_Range2>(__values)), views::all_write(::std::forward<_Range3>(__out_keys)),
         views::all_write(::std::forward<_Range4>(__out_values)), __binary_pred, __binary_op);
 }
