@@ -384,11 +384,11 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range
     return __res;
 }
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate,
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate,
           typename _Assign = oneapi::dpl::__internal::__pstl_assign>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range2>>
-__pattern_copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Predicate __pred, _Assign)
+oneapi::dpl::__internal::__difference_t<_Range2>
+__pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
+                  _Predicate __pred, _Assign)
 {
     using _SizeType = decltype(__rng1.size());
     using _ReduceOp = ::std::plus<_SizeType>;
