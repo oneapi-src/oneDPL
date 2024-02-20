@@ -190,9 +190,9 @@ __pattern_find_first_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
 // any_of
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _Pred>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, bool>
-__pattern_any_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Pred __pred)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Pred>
+bool
+__pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __rng, _Pred __pred)
 {
     if (__rng.empty())
         return false;
