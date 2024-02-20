@@ -404,10 +404,9 @@ __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
 // remove_if
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range>>
-__pattern_remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Predicate>
+oneapi::dpl::__internal::__difference_t<_Range>
+__pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
     if (__rng.size() == 0)
         return __rng.size();
