@@ -365,7 +365,9 @@ template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred)
 {
-    return oneapi::dpl::__internal::__ranges::__pattern_unique(::std::forward<_ExecutionPolicy>(__exec),
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+
+    return oneapi::dpl::__internal::__ranges::__pattern_unique(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                                views::all(::std::forward<_Range>(__rng)), __pred);
 }
 
