@@ -77,14 +77,6 @@ using __allow_unsequenced = typename __internal::__policy_traits<::std::decay_t<
 template <typename _ExecutionPolicy>
 using __allow_parallel = typename __internal::__policy_traits<::std::decay_t<_ExecutionPolicy>>::__allow_parallel;
 
-template <typename _ExecutionPolicy, typename... _IteratorTypes>
-constexpr auto
-__is_parallelization_preferred()
-{
-    return ::std::conjunction<decltype(::std::decay_t<_ExecutionPolicy>::__allow_parallel()),
-                              __internal::__is_random_access_iterator_t<_IteratorTypes...>>();
-}
-
 //------------------------------------------------------------------------
 // backend selector with tags
 //------------------------------------------------------------------------
