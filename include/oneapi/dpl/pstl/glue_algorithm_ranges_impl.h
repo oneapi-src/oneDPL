@@ -686,8 +686,11 @@ oneapi::dpl::__internal::__enable_if_execution_policy<
     ::std::pair<oneapi::dpl::__internal::__difference_t<_Range>, oneapi::dpl::__internal::__difference_t<_Range>>>
 minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+
     return oneapi::dpl::__internal::__ranges::__pattern_minmax_element(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)), __comp);
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
+        __comp);
 }
 
 template <typename _ExecutionPolicy, typename _Range>
