@@ -716,6 +716,15 @@ struct __get_sycl_range
     }
 };
 
+template <class _ExecutionPolicy, typename... _Ranges>
+constexpr oneapi::dpl::__internal::__hetero_tag<
+    typename oneapi::dpl::__internal::__select_backend_for_hetero_policy_trait<
+        ::std::decay_t<_ExecutionPolicy>>::__backend_tag>
+__select_backend()
+{
+    return {}; // return __hetero_tag<__device_backend_tag> or __hetero_tag<__fpga_backend_tag>
+}
+
 } // namespace __ranges
 } // namespace dpl
 } // namespace oneapi
