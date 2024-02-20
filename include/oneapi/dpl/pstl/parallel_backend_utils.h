@@ -20,6 +20,7 @@
 #include <utility>
 #include <cassert>
 #include "utils.h"
+#include "memory_fwd.h"
 
 namespace oneapi
 {
@@ -171,13 +172,14 @@ __set_union_construct(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _Fo
     return __cc_range(__first2, __last2, __result);
 }
 
-template <typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator, typename _Compare>
+template <typename _ForwardIterator1, typename _ForwardIterator2, typename _OutputIterator, typename _Compare,
+          typename _CopyFunc, typename _CopyFromFirstSet>
 _OutputIterator
 __set_intersection_construct(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2,
-                             _ForwardIterator2 __last2, _OutputIterator __result, _Compare __comp)
+                             _ForwardIterator2 __last2, _OutputIterator __result, _Compare __comp, _CopyFunc _copy,
+                             _CopyFromFirstSet)
 {
     using _Tp = typename ::std::iterator_traits<_OutputIterator>::value_type;
-
     for (; __first1 != __last1 && __first2 != __last2;)
     {
         if (__comp(*__first1, *__first2))
@@ -186,7 +188,14 @@ __set_intersection_construct(_ForwardIterator1 __first1, _ForwardIterator1 __las
         {
             if (!__comp(*__first2, *__first1))
             {
-                ::new (::std::addressof(*__result)) _Tp(*__first1);
+
+                auto __select_element = [](auto&& _f1, auto&& _f2) {
+                    if constexpr (_CopyFromFirstSet::value)
+                        return ::std::forward<decltype(_f1)>(_f1);
+                    else
+                        return ::std::forward<decltype(_f2)>(_f2);
+                };
+                _copy(*__select_element(__first1, __first2), *__result);
                 ++__result;
                 ++__first1;
             }
