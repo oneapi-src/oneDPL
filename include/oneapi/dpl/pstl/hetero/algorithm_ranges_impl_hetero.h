@@ -75,6 +75,7 @@ __pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Rang
     if (__rng1.size() <= __rng2.size())
     {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+            __tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap1_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             __f, __rng1, __rng2);
@@ -82,6 +83,7 @@ __pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Rang
     }
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+        __tag,
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__swap2_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
         __f, __rng2, __rng1);
@@ -420,7 +422,7 @@ __pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
                                             oneapi::dpl::__internal::__pstl_assign());
     auto __copy_rng_truncated = __copy_rng | oneapi::dpl::experimental::ranges::views::take(__copy_last_id);
 
-    oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec),
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                         oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
                                                         __copy_rng_truncated, ::std::forward<_Range>(__rng));
 
@@ -464,7 +466,7 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
     auto res_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
     auto res = __pattern_unique_copy(__exec, __rng, res_rng, __pred, oneapi::dpl::__internal::__pstl_assign());
 
-    __pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __brick_copy<_ExecutionPolicy>{}, res_rng,
+    __pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec), __brick_copy<_ExecutionPolicy>{}, res_rng,
                      ::std::forward<_Range>(__rng));
     return res;
 }
@@ -499,6 +501,7 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ran
     if (__n1 == 0)
     {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+            __tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy1_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::forward<_Range2>(__rng2),
@@ -507,6 +510,7 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ran
     else if (__n2 == 0)
     {
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+            __tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy2_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
             oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{}, ::std::forward<_Range1>(__rng1),
@@ -685,6 +689,9 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
     //          __out_keys   = { 1, 2, 3, 4, 1, 3, 1, 3, 0 }
     //          __out_values = { 1, 2, 3, 4, 2, 6, 2, 6, 0 }
 
+    constexpr auto __dispatch_tag =
+        oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2, _Range3>();
+
     const auto __n = __keys.size();
 
     if (__n == 0)
@@ -695,10 +702,12 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         __brick_copy<_ExecutionPolicy> __copy_range{};
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+            __tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_keys_wrapper>(__exec),
             __copy_range, ::std::forward<_Range1>(__keys), ::std::forward<_Range3>(__out_keys));
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
+            __tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_values_wrapper>
                 (::std::forward<_ExecutionPolicy>(__exec)),
             __copy_range, ::std::forward<_Range2>(__values), ::std::forward<_Range4>(__out_values));
