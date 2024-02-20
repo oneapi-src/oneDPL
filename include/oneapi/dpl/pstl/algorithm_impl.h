@@ -561,8 +561,6 @@ _ForwardIterator2
 __pattern_walk2_transform_if(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                              _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __func) noexcept
 {
-    static_assert(__is_backend_tag_v<_Tag>);
-
     return __pattern_walk2(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __func);
 }
 
@@ -573,8 +571,6 @@ __pattern_walk3_transform_if(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIter
                              _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator3 __first3,
                              _Function __func) noexcept
 {
-    static_assert(__is_backend_tag_v<_Tag>);
-
     return __pattern_walk3(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __first3,
                            __func);
 }
@@ -4124,8 +4120,6 @@ _ForwardIterator2
 __pattern_swap(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                _ForwardIterator2 __first2, _Function __f)
 {
-    static_assert(__is_backend_tag_v<_Tag>);
-
     return __pattern_walk2(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __f);
 }
 
@@ -4258,8 +4252,6 @@ __pattern_shift_right(_Tag __tag, _ExecutionPolicy&& __exec, _BidirectionalItera
                       _BidirectionalIterator __last,
                       typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n)
 {
-    static_assert(__is_backend_tag_v<_Tag>);
-
     using _ReverseIterator = typename ::std::reverse_iterator<_BidirectionalIterator>;
 
     auto __res = oneapi::dpl::__internal::__pattern_shift_left(
