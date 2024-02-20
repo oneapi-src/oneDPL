@@ -46,10 +46,9 @@ __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     if (__n > 0)
     {
-        oneapi::dpl::__par_backend_hetero::__parallel_for(
-            oneapi::dpl::__internal::__device_backend_tag{}, // TODO required to fix backend tag eval
-            ::std::forward<_ExecutionPolicy>(__exec), unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-            ::std::forward<_Ranges>(__rngs)...)
+        oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+                                                          ::std::forward<_Ranges>(__rngs)...)
             .wait();
     }
 }
@@ -761,8 +760,7 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 
     //reduce by segment
     oneapi::dpl::__par_backend_hetero::__parallel_for(
-        oneapi::dpl::__internal::__device_backend_tag{}, // TODO required to fix backend tag eval
-        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce1_wrapper>(__exec),
+        _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce1_wrapper>(__exec),
         unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__n)>(__binary_op, __n), __intermediate_result_end,
         oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx),
                                                 __intermediate_result_end),
@@ -804,7 +802,7 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 
     //reduce by segment
     oneapi::dpl::__par_backend_hetero::__parallel_for(
-        oneapi::dpl::__internal::__device_backend_tag{}, // TODO required to fix backend tag eval
+        _BackendTag{},
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce2_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
         unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__intermediate_result_end)>(
