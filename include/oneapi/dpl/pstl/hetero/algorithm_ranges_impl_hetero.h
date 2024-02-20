@@ -515,10 +515,9 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ran
     }
     else
     {
-        __par_backend_hetero::__parallel_merge(
-            oneapi::dpl::__internal::__device_backend_tag{}, // TODO required to fix backend tag eval
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
-            ::std::forward<_Range3>(__rng3), __comp)
+        __par_backend_hetero::__parallel_merge(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                               ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+                                               ::std::forward<_Range3>(__rng3), __comp)
             .wait();
     }
 
