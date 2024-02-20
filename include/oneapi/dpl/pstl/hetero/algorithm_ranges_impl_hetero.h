@@ -247,8 +247,8 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
 // search_n
 //------------------------------------------------------------------------
 
-template <template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Size, typename _Tp,
-                    typename _BinaryPredicate>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Size, typename _Tp,
+          typename _BinaryPredicate>
 oneapi::dpl::__internal::__difference_t<_Range>
 __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range&& __rng, _Size __count, const _Tp& __value,
                    _BinaryPredicate __pred)
