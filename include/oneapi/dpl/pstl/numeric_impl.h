@@ -68,7 +68,7 @@ __pattern_transform_reduce(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1,
                            _ForwardIterator2 __first2, _Tp __init, _BinaryOperation1 __binary_op1,
                            _BinaryOperation2 __binary_op2) noexcept
 {
-    static_assert(__is_backend_tag_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
     return __brick_transform_reduce(__first1, __last1, __first2, __init, __binary_op1, __binary_op2,
                                     typename _Tag::__is_vector{});
@@ -133,7 +133,7 @@ _Tp
 __pattern_transform_reduce(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
                            _BinaryOperation __binary_op, _UnaryOperation __unary_op) noexcept
 {
-    static_assert(__is_backend_tag_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
     return __internal::__brick_transform_reduce(__first, __last, __init, __binary_op, __unary_op,
                                                 typename _Tag::__is_vector{});
@@ -243,7 +243,7 @@ __pattern_transform_scan(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _Fo
                          _OutputIterator __result, _UnaryOperation __unary_op, _Tp __init, _BinaryOperation __binary_op,
                          _Inclusive) noexcept
 {
-    static_assert(__is_backend_tag_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
     return __internal::__brick_transform_scan(__first, __last, __result, __unary_op, __init, __binary_op, _Inclusive(),
                                               typename _Tag::__is_vector{})
@@ -327,7 +327,11 @@ _OutputIterator
 __pattern_transform_scan(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                          _OutputIterator __result, _UnaryOperation __unary_op, _BinaryOperation __binary_op, _Inclusive)
 {
+//#if _ONEDPL_BACKEND_SYCL
+//    static_assert(is_backend_tag_serial_v<_Tag> || is_backend_tag_parallel_forward_v<_Tag>);
+//#else
     static_assert(__is_backend_tag_v<_Tag>);
+//#endif
 
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     if (__first != __last)
@@ -379,7 +383,7 @@ _OutputIterator
 __pattern_adjacent_difference(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                               _OutputIterator __d_first, _BinaryOperation __op) noexcept
 {
-    static_assert(__is_backend_tag_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
     return __internal::__brick_adjacent_difference(__first, __last, __d_first, __op, typename _Tag::__is_vector{});
 }

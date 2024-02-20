@@ -44,7 +44,11 @@ pattern_exclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
                                   InputIterator2 first2, OutputIterator result, T init, BinaryPredicate binary_pred,
                                   Operator binary_op)
 {
+//#if _ONEDPL_BACKEND_SYCL
+//    static_assert(__internal::__is_backend_tag_serial_v<_Tag> || __internal::__is_backend_tag_parallel_forward_v<_Tag>);
+//#else
     static_assert(__internal::__is_backend_tag_v<_Tag>);
+//#endif
 
     using __backend_tag = typename _Tag::__backend_tag;
 
