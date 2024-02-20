@@ -39,7 +39,9 @@ template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 any_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
-    return oneapi::dpl::__internal::__ranges::__pattern_any_of(::std::forward<_ExecutionPolicy>(__exec),
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+
+    return oneapi::dpl::__internal::__ranges::__pattern_any_of(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                                views::all_read(::std::forward<_Range>(__rng)), __pred);
 }
 
