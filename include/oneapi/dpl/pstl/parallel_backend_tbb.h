@@ -81,8 +81,9 @@ class __buffer_impl
     ~__buffer_impl() { _M_allocator.deallocate(_M_ptr, _M_buf_size); }
 };
 
-template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
+template <class _Tag, typename _ExecutionPolicy, typename _Tp>
+using __buffer = ::std::enable_if_t<::std::is_same_v<_Tag, oneapi::dpl::__internal::__tbb_backend_tag>,
+                                    __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>>;
 
 // Wrapper for tbb::task
 inline void
