@@ -451,10 +451,9 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 // unique
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range>>
-__pattern_unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
+oneapi::dpl::__internal::__difference_t<_Range>
+__pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred)
 {
     if (__rng.size() == 0)
         return __rng.size();
