@@ -528,9 +528,9 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ran
 // sort
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
-__pattern_sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Compare, typename _Proj>
+void
+__pattern_sort(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
     if (__rng.size() >= 2)
         __par_backend_hetero::__parallel_stable_sort(
