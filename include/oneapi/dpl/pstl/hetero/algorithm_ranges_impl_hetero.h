@@ -247,10 +247,10 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
 // search_n
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _Size, typename _Tp, typename _BinaryPredicate>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range>>
-__pattern_search_n(_ExecutionPolicy&& __exec, _Range&& __rng, _Size __count, const _Tp& __value,
+template <template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Size, typename _Tp,
+                    typename _BinaryPredicate>
+oneapi::dpl::__internal::__difference_t<_Range>
+__pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range&& __rng, _Size __count, const _Tp& __value,
                    _BinaryPredicate __pred)
 {
     //TODO: To consider definition a kind of special factory "multiple_view" (addition to standard "single_view").
