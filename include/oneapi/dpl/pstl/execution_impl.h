@@ -68,15 +68,6 @@ struct __policy_traits<oneapi::dpl::execution::parallel_unsequenced_policy>
     typedef ::std::true_type __allow_vector;
 };
 
-template <typename _ExecutionPolicy>
-using __allow_vector = typename __internal::__policy_traits<::std::decay_t<_ExecutionPolicy>>::__allow_vector;
-
-template <typename _ExecutionPolicy>
-using __allow_unsequenced = typename __internal::__policy_traits<::std::decay_t<_ExecutionPolicy>>::__allow_unsequenced;
-
-template <typename _ExecutionPolicy>
-using __allow_parallel = typename __internal::__policy_traits<::std::decay_t<_ExecutionPolicy>>::__allow_parallel;
-
 //------------------------------------------------------------------------
 // backend selector with tags
 //------------------------------------------------------------------------
