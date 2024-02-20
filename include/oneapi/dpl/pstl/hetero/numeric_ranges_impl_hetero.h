@@ -131,12 +131,14 @@ oneapi::dpl::__internal::__difference_t<_Range2>
 __pattern_transform_scan(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
                          _UnaryOperation __unary_op, _Type __init, _BinaryOperation __binary_op, _Inclusive)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
     using _InitType = unseq_backend::__init_value<_RepackedType>;
 
-    return __pattern_transform_scan_base(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
-                                         ::std::forward<_Range2>(__rng2), __unary_op, _InitType{__init}, __binary_op,
-                                         _Inclusive{});
+    return __pattern_transform_scan_base(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                         ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2), __unary_op,
+                                         _InitType{__init}, __binary_op, _Inclusive{});
 }
 
 // scan without initial element
@@ -150,9 +152,9 @@ __pattern_transform_scan(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
     using _InitType = unseq_backend::__no_init_value<_RepackedType>;
 
-    return __pattern_transform_scan_base(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
-                                         ::std::forward<_Range2>(__rng2), __unary_op, _InitType{}, __binary_op,
-                                         _Inclusive{});
+    return __pattern_transform_scan_base(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                         ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2), __unary_op,
+                                         _InitType{}, __binary_op, _Inclusive{});
 }
 
 } // namespace __ranges
