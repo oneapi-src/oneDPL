@@ -136,10 +136,10 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&&
 // find_end
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Pred>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range1>>
-__pattern_find_end(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Pred __pred)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Pred>
+oneapi::dpl::__internal::__difference_t<_Range1>
+__pattern_find_end(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
+                   _Pred __pred)
 {
     //trivial pre-checks
     if (__rng1.empty() || __rng2.empty() || __rng1.size() < __rng2.size())
