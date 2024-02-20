@@ -461,7 +461,7 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
 
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
     auto res_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
-    auto res = __pattern_unique_copy(__tag, __exec, __rng, res_rng, __pred, oneapi::dpl::__internal::__pstl_assign());
+    auto res = __ranges::__pattern_unique_copy(__tag, __exec, __rng, res_rng, __pred, oneapi::dpl::__internal::__pstl_assign());
 
     __pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec), __brick_copy<_ExecutionPolicy>{}, res_rng,
                      ::std::forward<_Range>(__rng));
