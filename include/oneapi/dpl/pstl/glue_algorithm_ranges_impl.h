@@ -162,9 +162,11 @@ template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+
     return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)), __pred,
-        oneapi::dpl::__internal::__first_semantic());
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
+        __pred, oneapi::dpl::__internal::__first_semantic());
 }
 
 template <typename _ExecutionPolicy, typename _Range>
@@ -521,10 +523,12 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 is_sorted_until(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+
     auto __view = views::all_read(::std::forward<_Range>(__rng));
     const auto __res = oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
-        ::std::forward<_ExecutionPolicy>(__exec), __view, oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
-        oneapi::dpl::__internal::__first_semantic());
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __view,
+        oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp), oneapi::dpl::__internal::__first_semantic());
 
     return __res == __view.size() ? __res : __res + 1;
 }
@@ -541,9 +545,11 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 is_sorted(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+
     auto __view = views::all_read(::std::forward<_Range>(__rng));
     return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
-               ::std::forward<_ExecutionPolicy>(__exec), __view,
+               __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __view,
                oneapi::dpl::__internal::__reorder_pred<_Compare>(__comp),
                oneapi::dpl::__internal::__or_semantic()) == __view.size();
 }
