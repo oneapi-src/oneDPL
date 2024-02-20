@@ -473,61 +473,18 @@ __pattern_for_loop(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
         ::std::forward<_Rest>(__rest)...);
 }
 
-// Helper structure to split code functions for integral and iterator types so the return
-// value can be successfully deduced.
-template <typename _Ip, typename = void>
-struct __use_par_vec_helper;
-
-template <typename _Ip>
-struct __use_par_vec_helper<_Ip, ::std::enable_if_t<::std::is_integral_v<_Ip>>>
-{
-    template <typename _ExecutionPolicy>
-    static constexpr auto
-    __use_vector()
-    {
-        return ::std::decay_t<_ExecutionPolicy>::__allow_vector();
-    }
-
-    template <typename _ExecutionPolicy>
-    static constexpr auto
-    __use_parallel()
-    {
-        return ::std::decay_t<_ExecutionPolicy>::__allow_parallel();
-    }
-};
-
-template <typename _Ip>
-struct __use_par_vec_helper<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
-{
-    template <typename _ExecutionPolicy>
-    static constexpr auto
-    __use_vector()
-    {
-        return oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _Ip>();
-    }
-
-    template <typename _ExecutionPolicy>
-    static constexpr auto
-    __use_parallel()
-    {
-        return oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _Ip>();
-    }
-};
-
 // Special versions for for_loop: handles both iterators and integral types(treated as random access iterators)
 template <typename _ExecutionPolicy, typename _Ip>
 constexpr auto
 __select_backend_for_loop()
 {
-    using _IsVector = decltype(__use_par_vec_helper<_Ip>::template __use_vector<_ExecutionPolicy>());
-
-    if constexpr (__use_par_vec_helper<_Ip>::template __use_parallel<_ExecutionPolicy>())
+    if constexpr (::std::is_integral_v<_Ip>)
     {
-        return __parallel_tag<_IsVector>{};
+        return __select_backend<_ExecutionPolicy>();
     }
     else
     {
-        return __serial_tag<_IsVector>{};
+        return __select_backend<_ExecutionPolicy, _Ip>();
     }
 }
 
