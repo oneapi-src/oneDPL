@@ -51,8 +51,7 @@ __pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec,
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
                                                                           ::std::true_type /*is_commutative*/>(
-               oneapi::dpl::__internal::__device_backend_tag{}, // TODO required to fix backend tag eval
-               ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
+               _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
                unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
                ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
         .get();
@@ -76,8 +75,7 @@ __pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec,
 
     return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
                                                                           ::std::true_type /*is_commutative*/>(
-               oneapi::dpl::__internal::__device_backend_tag{}, // TODO required to fix backend tag eval
-               ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
+               _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
                unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
                ::std::forward<_Range>(__rng))
         .get();
