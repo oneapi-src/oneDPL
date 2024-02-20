@@ -80,13 +80,13 @@ template <typename... _Types>
 class zip_forward_iterator
 {
     static const ::std::size_t __num_types = sizeof...(_Types);
-    typedef typename ::std::tuple<_Types...> __it_types;
+    typedef typename oneapi::dpl::__internal::tuple<_Types...> __it_types;
 
   public:
     typedef ::std::make_signed_t<::std::size_t> difference_type;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
-    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
+    typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
+    typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
+    typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
     typedef ::std::forward_iterator_tag iterator_category;
 
     zip_forward_iterator() : __my_it_() {}
