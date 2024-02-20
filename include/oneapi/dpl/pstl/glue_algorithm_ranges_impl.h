@@ -227,9 +227,11 @@ template <typename _ExecutionPolicy, typename _Range, typename _Size, typename _
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 search_n(_ExecutionPolicy&& __exec, _Range&& __rng, _Size __count, const _Tp& __value, _BinaryPredicate __pred)
 {
-    return oneapi::dpl::__internal::__ranges::__pattern_search_n(::std::forward<_ExecutionPolicy>(__exec),
-                                                                 views::all_read(::std::forward<_Range>(__rng)),
-                                                                 __count, __value, __pred);
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+
+    return oneapi::dpl::__internal::__ranges::__pattern_search_n(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
+        __count, __value, __pred);
 }
 
 template <typename _ExecutionPolicy, typename _Range, typename _Size, typename _Tp>
