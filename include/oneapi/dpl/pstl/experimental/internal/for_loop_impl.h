@@ -517,25 +517,11 @@ struct __use_par_vec_helper<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
 // Special versions for for_loop: handles both iterators and integral types(treated as random access iterators)
 template <typename _ExecutionPolicy, typename _Ip>
 constexpr auto
-__use_vectorization() -> decltype(__use_par_vec_helper<_Ip>::template __use_vector<_ExecutionPolicy>())
-{
-    return __use_par_vec_helper<_Ip>::template __use_vector<_ExecutionPolicy>();
-}
-
-template <typename _ExecutionPolicy, typename _Ip>
-constexpr auto
-__use_parallelization() -> decltype(__use_par_vec_helper<_Ip>::template __use_parallel<_ExecutionPolicy>())
-{
-    return __use_par_vec_helper<_Ip>::template __use_parallel<_ExecutionPolicy>();
-}
-
-template <typename _ExecutionPolicy, typename _Ip>
-constexpr auto
 __select_backend_for_loop()
 {
-    using _IsVector = decltype(oneapi::dpl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>());
+    using _IsVector = decltype(__use_par_vec_helper<_Ip>::template __use_vector<_ExecutionPolicy>());
 
-    if constexpr (oneapi::dpl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>())
+    if constexpr (__use_par_vec_helper<_Ip>::template __use_parallel<_ExecutionPolicy>())
     {
         return __parallel_tag<_IsVector>{};
     }
