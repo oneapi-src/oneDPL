@@ -37,11 +37,11 @@ namespace __ranges
 // transform_reduce (version with two binary functions)
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Tp, typename _BinaryOperation1,
-          typename _BinaryOperation2>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Tp>
-__pattern_transform_reduce(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Tp __init,
-                           _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Tp,
+          typename _BinaryOperation1, typename _BinaryOperation2>
+_Tp
+__pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
+                           _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
     if (__rng1.empty())
         return __init;
@@ -62,10 +62,11 @@ __pattern_transform_reduce(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&
 // transform_reduce (with unary and binary functions)
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _Tp, typename _BinaryOperation, typename _UnaryOperation>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy, _Tp>
-__pattern_transform_reduce(_ExecutionPolicy&& __exec, _Range&& __rng, _Tp __init, _BinaryOperation __binary_op,
-                           _UnaryOperation __unary_op)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Tp, typename _BinaryOperation,
+          typename _UnaryOperation>
+_Tp
+__pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __rng, _Tp __init,
+                           _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
     if (__rng.empty())
         return __init;
