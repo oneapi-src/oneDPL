@@ -279,11 +279,11 @@ return_value(_Size __res, _Size __size, ::std::false_type)
 // adjacent_find
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate, typename _OrFirstTag>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range>>
-__pattern_adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __predicate,
-                        _OrFirstTag __is__or_semantic)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate,
+          typename _OrFirstTag>
+oneapi::dpl::__internal::__difference_t<_Range>
+__pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __rng,
+                        _BinaryPredicate __predicate, _OrFirstTag __is__or_semantic)
 {
     if (__rng.size() < 2)
         return __rng.size();
