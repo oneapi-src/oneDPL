@@ -399,7 +399,7 @@ __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
     unseq_backend::__create_mask<_Predicate, _SizeType> __create_mask_op{__pred};
     unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
 
-    return __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
+    return __pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
                                ::std::forward<_Range2>(__rng2), __create_mask_op, __copy_by_mask_op);
 }
 
@@ -446,7 +446,7 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
     __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
         __not_pred<_BinaryPredicate>{__pred}};
 
-    return __pattern_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng),
+    return __pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng),
                                ::std::forward<_Range2>(__result), __create_mask_op, __copy_by_mask_op);
 }
 
