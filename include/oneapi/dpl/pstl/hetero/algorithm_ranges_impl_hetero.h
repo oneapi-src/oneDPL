@@ -39,9 +39,9 @@ namespace __ranges
 // walk_n
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Function, typename... _Ranges>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
-__pattern_walk_n(_ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Function, typename... _Ranges>
+void
+__pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function __f, _Ranges&&... __rngs)
 {
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     if (__n > 0)
