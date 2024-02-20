@@ -176,7 +176,7 @@ struct __lookback_kernel_func
     ::std::size_t __current_num_items;
     _TileVals __tile_vals;
 
-    [[intel::reqd_sub_group_size(SUBGROUP_SIZE)]] void
+    [[sycl::reqd_sub_group_size(SUBGROUP_SIZE)]] void
     operator()(const sycl::nd_item<1>& __item) const
     {
         auto __group = __item.get_group();
