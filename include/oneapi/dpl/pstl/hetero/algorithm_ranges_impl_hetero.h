@@ -337,11 +337,11 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& _
 // copy_if
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _CreateMaskOp, typename _CopyByMaskOp>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range1>>
-__pattern_scan_copy(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _CreateMaskOp __create_mask_op,
-                    _CopyByMaskOp __copy_by_mask_op)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _CreateMaskOp,
+          typename _CopyByMaskOp>
+oneapi::dpl::__internal::__difference_t<_Range1>
+__pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
+                    _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
 {
     if (__rng1.size() == 0)
         return __rng1.size();
