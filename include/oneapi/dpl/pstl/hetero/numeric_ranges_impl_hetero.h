@@ -125,12 +125,11 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
     return __rng1_size;
 }
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _Type,
-          typename _BinaryOperation, typename _Inclusive>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range2>>
-__pattern_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _UnaryOperation __unary_op,
-                         _Type __init, _BinaryOperation __binary_op, _Inclusive)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation,
+          typename _Type, typename _BinaryOperation, typename _Inclusive>
+oneapi::dpl::__internal::__difference_t<_Range2>
+__pattern_transform_scan(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
+                         _UnaryOperation __unary_op, _Type __init, _BinaryOperation __binary_op, _Inclusive)
 {
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
     using _InitType = unseq_backend::__init_value<_RepackedType>;
@@ -141,12 +140,11 @@ __pattern_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& 
 }
 
 // scan without initial element
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation,
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation,
           typename _BinaryOperation, typename _Inclusive>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range2>>
-__pattern_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _UnaryOperation __unary_op,
-                         _BinaryOperation __binary_op, _Inclusive)
+oneapi::dpl::__internal::__difference_t<_Range2>
+__pattern_transform_scan(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
+                         _UnaryOperation __unary_op, _BinaryOperation __binary_op, _Inclusive)
 {
     using _Type = oneapi::dpl::__internal::__value_t<_Range1>;
     using _RepackedType = __par_backend_hetero::__repacked_tuple_t<_Type>;
