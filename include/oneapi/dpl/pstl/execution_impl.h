@@ -174,23 +174,17 @@ __select_backend()
     return {};
 }
 
+//----------------------------------------------------------
+// __is_backend_tag, __is_backend_tag_v
+//----------------------------------------------------------
+
 template <class _Tag>
 struct __is_backend_tag : ::std::false_type
 {
 };
 
-template <class _Tag>
-struct __is_backend_tag_serial : ::std::false_type
-{
-};
-
 template <class _IsVector>
 struct __is_backend_tag<__serial_tag<_IsVector>> : ::std::true_type
-{
-};
-
-template <class _IsVector>
-struct __is_backend_tag_serial<__serial_tag<_IsVector>> : ::std::true_type
 {
 };
 
@@ -205,10 +199,41 @@ struct __is_backend_tag<__parallel_forward_tag> : ::std::true_type
 };
 
 template <class _Tag>
-inline constexpr bool __is_backend_tag_serial_v = __is_backend_tag_serial<::std::decay_t<_Tag>>::value;
+inline constexpr bool __is_backend_tag_v = __is_backend_tag<::std::decay_t<_Tag>>::value;
+
+//----------------------------------------------------------
+// __is_backend_tag_serial, __is_backend_tag_serial_v
+//----------------------------------------------------------
 
 template <class _Tag>
-inline constexpr bool __is_backend_tag_v = __is_backend_tag<::std::decay_t<_Tag>>::value;
+struct __is_backend_tag_serial : ::std::false_type
+{
+};
+
+template <class _IsVector>
+struct __is_backend_tag_serial<__serial_tag<_IsVector>> : ::std::true_type
+{
+};
+
+template <class _Tag>
+inline constexpr bool __is_backend_tag_serial_v = __is_backend_tag_serial<::std::decay_t<_Tag>>::value;
+
+//----------------------------------------------------------
+// __is_backend_tag_parallel_forward, __is_backend_tag_parallel_forward_v
+//----------------------------------------------------------
+
+template <class _Tag>
+struct __is_backend_tag_parallel_forward : ::std::false_type
+{
+};
+
+template <>
+struct __is_backend_tag_parallel_forward<__parallel_forward_tag> : ::std::true_type
+{
+};
+
+template <class _Tag>
+inline constexpr bool __is_backend_tag_parallel_forward_v = __is_backend_tag_parallel_forward<::std::decay_t<_Tag>>::value;
 
 } // namespace __internal
 } // namespace dpl
