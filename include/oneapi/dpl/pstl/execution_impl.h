@@ -30,44 +30,6 @@ namespace dpl
 namespace __internal
 {
 
-/* policy */
-template <typename Policy>
-struct __policy_traits
-{
-};
-
-template <>
-struct __policy_traits<oneapi::dpl::execution::sequenced_policy>
-{
-    typedef ::std::false_type __allow_parallel;
-    typedef ::std::false_type __allow_unsequenced;
-    typedef ::std::false_type __allow_vector;
-};
-
-template <>
-struct __policy_traits<oneapi::dpl::execution::unsequenced_policy>
-{
-    typedef ::std::false_type __allow_parallel;
-    typedef ::std::true_type __allow_unsequenced;
-    typedef ::std::true_type __allow_vector;
-};
-
-template <>
-struct __policy_traits<oneapi::dpl::execution::parallel_policy>
-{
-    typedef ::std::true_type __allow_parallel;
-    typedef ::std::false_type __allow_unsequenced;
-    typedef ::std::false_type __allow_vector;
-};
-
-template <>
-struct __policy_traits<oneapi::dpl::execution::parallel_unsequenced_policy>
-{
-    typedef ::std::true_type __allow_parallel;
-    typedef ::std::true_type __allow_unsequenced;
-    typedef ::std::true_type __allow_vector;
-};
-
 //------------------------------------------------------------------------
 // backend selector with tags
 //------------------------------------------------------------------------

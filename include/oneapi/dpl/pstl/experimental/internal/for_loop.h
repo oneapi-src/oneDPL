@@ -42,15 +42,6 @@ struct type_identity
 template <typename _Tp>
 using type_identity_t = typename type_identity<_Tp>::type;
 
-//hide vector policy till the algorithms implementation
-// template <>
-// struct __policy_traits<oneapi::dpl::execution::vector_policy>
-// {
-//     typedef ::std::false_type __allow_parallel;
-//     typedef ::std::false_type __allow_unsequenced;
-//     typedef ::std::true_type __allow_vector;
-// };
-
 // TODO: add static asserts for parameters according to the requirements
 template <typename _ExecutionPolicy, typename _Ip, typename... _Rest>
 void
