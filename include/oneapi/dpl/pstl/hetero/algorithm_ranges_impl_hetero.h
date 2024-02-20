@@ -483,10 +483,11 @@ class __copy2_wrapper
 {
 };
 
-template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3, typename _Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy,
-                                                             oneapi::dpl::__internal::__difference_t<_Range3>>
-__pattern_merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
+          typename _Compare>
+oneapi::dpl::__internal::__difference_t<_Range3>
+__pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
+                _Range3&& __rng3, _Compare __comp)
 {
     auto __n1 = __rng1.size();
     auto __n2 = __rng2.size();
