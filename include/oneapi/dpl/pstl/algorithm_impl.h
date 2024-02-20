@@ -1330,7 +1330,7 @@ __pattern_copy_if(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
     const _DifferenceType __n = __last - __first;
     if (_DifferenceType(1) < __n)
     {
-        __par_backend::__buffer<_ExecutionPolicy, bool> __mask_buf(__n);
+        __par_backend::__buffer<__backend_tag, _ExecutionPolicy, bool> __mask_buf(__n);
         return __internal::__except_handler([&__exec, __n, __first, __result, __pred, &__mask_buf]() {
             bool* __mask = __mask_buf.get();
             _DifferenceType __m{};
@@ -1449,7 +1449,7 @@ __remove_elements(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forward
     typedef typename ::std::iterator_traits<_ForwardIterator>::difference_type _DifferenceType;
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _Tp;
     _DifferenceType __n = __last - __first;
-    __par_backend::__buffer<_ExecutionPolicy, bool> __mask_buf(__n);
+    __par_backend::__buffer<__backend_tag, _ExecutionPolicy, bool> __mask_buf(__n);
     // 1. find a first iterator that should be removed
     return __internal::__except_handler([&]() {
         bool* __mask = __mask_buf.get();
@@ -1486,7 +1486,7 @@ __remove_elements(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forward
         __n -= __min;
         __first += __min;
 
-        __par_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__n);
+        __par_backend::__buffer<__backend_tag, _ExecutionPolicy, _Tp> __buf(__n);
         _Tp* __result = __buf.get();
         __mask += __min;
         _DifferenceType __m{};
@@ -1614,7 +1614,7 @@ __pattern_unique_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ran
     const _DifferenceType __n = __last - __first;
     if (_DifferenceType(2) < __n)
     {
-        __par_backend::__buffer<_ExecutionPolicy, bool> __mask_buf(__n);
+        __par_backend::__buffer<__backend_tag, _ExecutionPolicy, bool> __mask_buf(__n);
         if (_DifferenceType(2) < __n)
         {
             return __internal::__except_handler([&__exec, __n, __first, __result, __pred, &__mask_buf]() {
@@ -1855,7 +1855,7 @@ __pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAc
     auto __m = __middle - __first;
     if (__m <= __n / 2)
     {
-        __par_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__n - __m);
+        __par_backend::__buffer<__backend_tag, _ExecutionPolicy, _Tp> __buf(__n - __m);
         return __internal::__except_handler([&__exec, __n, __m, __first, __middle, __last, &__buf]() {
             _Tp* __result = __buf.get();
             __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __middle, __last,
@@ -1881,7 +1881,7 @@ __pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAc
     }
     else
     {
-        __par_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__m);
+        __par_backend::__buffer<__backend_tag, _ExecutionPolicy, _Tp> __buf(__m);
         return __internal::__except_handler([&__exec, __n, __m, __first, __middle, __last, &__buf]() {
             _Tp* __result = __buf.get();
             __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __middle,
@@ -2356,7 +2356,7 @@ __pattern_partition_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _
     const _DifferenceType __n = __last - __first;
     if (_DifferenceType(1) < __n)
     {
-        __par_backend::__buffer<_ExecutionPolicy, bool> __mask_buf(__n);
+        __par_backend::__buffer<__backend_tag, _ExecutionPolicy, bool> __mask_buf(__n);
         return __internal::__except_handler([&__exec, __n, __first, __out_true, __out_false, __pred, &__mask_buf]() {
             bool* __mask = __mask_buf.get();
             _ReturnType __m{};
@@ -2582,7 +2582,7 @@ __pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec
         {
             typedef typename ::std::iterator_traits<_RandomAccessIterator1>::value_type _T1;
             typedef typename ::std::iterator_traits<_RandomAccessIterator2>::value_type _T2;
-            __par_backend::__buffer<_ExecutionPolicy, _T1> __buf(__n1);
+            __par_backend::__buffer<__backend_tag, _ExecutionPolicy, _T1> __buf(__n1);
             _T1* __r = __buf.get();
 
             __par_backend::__parallel_stable_sort(
@@ -3075,7 +3075,7 @@ __pattern_inplace_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _R
 
     typedef typename ::std::iterator_traits<_RandomAccessIterator>::value_type _Tp;
     auto __n = __last - __first;
-    __par_backend::__buffer<_ExecutionPolicy, _Tp> __buf(__n);
+    __par_backend::__buffer<__backend_tag, _ExecutionPolicy, _Tp> __buf(__n);
     _Tp* __r = __buf.get();
     __internal::__except_handler([&]() {
         auto __move_values = [](_RandomAccessIterator __x, _Tp* __z) {
@@ -3209,7 +3209,7 @@ __parallel_set_op(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forward
     const _DifferenceType __n1 = __last1 - __first1;
     const _DifferenceType __n2 = __last2 - __first2;
 
-    __par_backend::__buffer<_ExecutionPolicy, _T> __buf(__size_func(__n1, __n2));
+    __par_backend::__buffer<__backend_tag, _ExecutionPolicy, _T> __buf(__size_func(__n1, __n2));
 
     return __internal::__except_handler([&__exec, __n1, __first1, __last1, __first2, __last2, __result, __comp,
                                          __size_func, __set_op, &__buf]() {

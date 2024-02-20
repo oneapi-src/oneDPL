@@ -411,6 +411,9 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
                ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
                const _BinHashMgr& __binhash_manager)
     {
+        constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+        using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
+
         const ::std::size_t __n = __input.size();
         const ::std::size_t __num_bins = __bins.size();
         using _bin_type = oneapi::dpl::__internal::__value_t<_Range2>;
@@ -426,7 +429,7 @@ struct __histogram_general_private_global_atomics_submitter<__internal::__option
             oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __iters_per_work_item);
 
         auto __private_histograms =
-            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _bin_type>(__exec, __segments * __num_bins)
+            oneapi::dpl::__par_backend_hetero::__buffer<__backend_tag, _ExecutionPolicy, _bin_type>(__exec, __segments * __num_bins)
                 .get_buffer();
 
         return __exec.queue().submit([&](auto& __h) {
