@@ -681,19 +681,6 @@ struct basic_common_reference<oneapi::dpl::__internal::tuple<TTypes...>, oneapi:
     using type = oneapi::dpl::__internal::tuple<::std::common_reference_t<TQual<TTypes>, UQual<UTypes>>...>;
 };
 #endif
-
-// To enable oneapi::dpl::__internal::zip_forward_iterator to satisfy the requirements for the
-// std::input_iterator concept in C++20 which is a constraint imposed in the oneTBB backend,
-// we must provide a basic_common_reference specialization for std::tuple which is not provided
-// in the standard until C++23.
-#if _ONEDPL___cplusplus >= 202002L && _ONEDPL___cplusplus < 202302L
-template <typename... TTypes, typename... UTypes, template <typename> typename TQual,
-          template <typename> typename UQual>
-struct basic_common_reference<::std::tuple<TTypes...>, ::std::tuple<UTypes...>, TQual, UQual>
-{
-    using type = ::std::tuple<::std::common_reference_t<TQual<TTypes>, UQual<UTypes>>...>;
-};
-#endif
 } // namespace std
 
 #endif // _ONEDPL_TUPLE_IMPL_H
