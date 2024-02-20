@@ -149,7 +149,7 @@ __pattern_find_end(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
 
     if (__rng1.size() == __rng2.size())
     {
-        const bool __res = __pattern_equal(::std::forward<_ExecutionPolicy>(__exec), __rng1,
+        const bool __res = __pattern_equal(__tag, ::std::forward<_ExecutionPolicy>(__exec), __rng1,
                                            ::std::forward<_Range2>(__rng2), __pred);
         return __res ? 0 : __rng1.size();
     }
@@ -230,7 +230,7 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
     if (__rng1.size() == __rng2.size())
     {
         const bool __res = __pattern_equal(
-            __par_backend_hetero::make_wrapped_policy<equal_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
+            __tag, __par_backend_hetero::make_wrapped_policy<equal_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
             __rng1, ::std::forward<_Range2>(__rng2), __pred);
         return __res ? 0 : __rng1.size();
     }
