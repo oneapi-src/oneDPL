@@ -261,8 +261,10 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range2>>
 copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Predicate __pred)
 {
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+
     return oneapi::dpl::__internal::__ranges::__pattern_copy_if(
-        ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng)),
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng)),
         views::all_write(::std::forward<_Range2>(__result)), __pred, oneapi::dpl::__internal::__pstl_assign());
 }
 
