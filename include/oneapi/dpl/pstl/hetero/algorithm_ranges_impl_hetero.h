@@ -297,7 +297,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
     auto __rng1 = __rng | oneapi::dpl::experimental::ranges::views::take(__rng.size() - 1);
     auto __rng2 = __rng | oneapi::dpl::experimental::ranges::views::drop(1);
 
-    // TODO: in case of confilicting names
+    // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
     auto result = oneapi::dpl::__par_backend_hetero::__parallel_find_or(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
