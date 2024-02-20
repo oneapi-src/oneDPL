@@ -260,7 +260,8 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     auto __s_rng = oneapi::dpl::experimental::ranges::views::iota(0, __count) |
                    oneapi::dpl::experimental::ranges::views::transform([__value](auto) { return __value; });
 
-    return __pattern_search(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __s_rng, __pred);
+    return __pattern_search(__tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __s_rng,
+                            __pred);
 }
 
 template <typename _Size>
