@@ -85,7 +85,7 @@ __parallel_or(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Index
                                       if (!__found.load(::std::memory_order_relaxed) && __f(__i, __j))
                                       {
                                           __found.store(true, ::std::memory_order_relaxed);
-                                          __par_backend::__cancel_execution();
+                                          __par_backend::__cancel_execution(__backend_tag{});
                                       }
                                   });
     return __found;
