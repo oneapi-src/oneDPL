@@ -27,6 +27,11 @@ Fixed Issues
 
 Known Issues and Limitations
 ----------------------------
+New in This Release
+^^^^^^^^^^^^^^^^^^^
+- Crashes or incorrect results may occur when using ``oneapi::dpl::reverse_iterator`` or
+  ``std::reverse_iterator`` with device execution policies.
+
 Existing Issues
 ^^^^^^^^^^^^^^^
 See oneDPL Guide for other `restrictions and known limitations`_.
