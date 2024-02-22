@@ -161,7 +161,7 @@ class __reduction_pack
     }
 };
 
-// Sequenced version of for_loop_n
+// Sequenced + vectorized version of for_loop_n
 template <class _Tag, typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename... _Rest>
 void
 __pattern_for_loop_n(_Tag, _ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, __single_stride_type,
@@ -171,16 +171,16 @@ __pattern_for_loop_n(_Tag, _ExecutionPolicy&&, _Ip __first, _Size __n, _Function
 
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
-    if constexpr (!typename _Tag::__is_vector{})
-    {
-        for (_Size __i = 0; __i < __n; ++__i, ++__first)
-            __pack.__apply_func(__f, __first, __i);
-    }
-    else
+    if constexpr (typename _Tag::__is_vector{})
     {
         oneapi::dpl::__internal::__brick_walk1(
             __n, [&__pack, __first, __f](_Size __idx) { __pack.__apply_func(__f, __first + __idx, __idx); },
             ::std::true_type{});
+    }
+    else
+    {
+        for (_Size __i = 0; __i < __n; ++__i, ++__first)
+            __pack.__apply_func(__f, __first, __i);
     }
 
     __pack.__finalize(__n);
@@ -196,7 +196,16 @@ __pattern_for_loop_n(_Tag, _ExecutionPolicy&&, _Ip __first, _Size __n, _Function
 
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
-    if constexpr (!typename _Tag::__is_vector{})
+    if constexpr (typename _Tag::__is_vector{})
+    {
+        oneapi::dpl::__internal::__brick_walk1(
+            __n,
+            [&__pack, __first, __f, __stride](_Size __idx) {
+                __pack.__apply_func(__f, __first + __idx * __stride, __idx);
+            },
+            ::std::true_type{});
+    }
+    else
     {
         // Simple loop from 0 to __n is not suitable here as we need to ensure that __first is always
         // <= than the end iterator, even if it's not dereferenced. Some implementation might place
@@ -210,15 +219,6 @@ __pattern_for_loop_n(_Tag, _ExecutionPolicy&&, _Ip __first, _Size __n, _Function
 
             __pack.__apply_func(__f, __first, __n - 1);
         }
-    }
-    else
-    {
-        oneapi::dpl::__internal::__brick_walk1(
-            __n,
-            [&__pack, __first, __f, __stride](_Size __idx) {
-                __pack.__apply_func(__f, __first + __idx * __stride, __idx);
-            },
-            ::std::true_type{});
     }
 
     __pack.__finalize(__n);
