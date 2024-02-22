@@ -58,18 +58,6 @@ inline constexpr bool __is_random_access_iterator_v = __is_random_access_iterato
 template <typename... _IteratorTypes>
 inline constexpr bool __is_forward_iterator_v = __is_forward_iterator<_IteratorTypes...>::value;
 
-// struct for checking if iterator is heterogeneous or not
-// for non-heterogeneous iterators
-template <typename Iter, typename Void = void>
-struct is_hetero_iterator : ::std::false_type
-{
-};
-
-// for heterogeneous iterators
-template <typename Iter>
-struct is_hetero_iterator<Iter, ::std::enable_if_t<Iter::is_hetero::value>> : ::std::true_type
-{
-};
 // struct for checking if iterator should be passed directly to device or not
 // for iterators that should not be passed directly
 template <typename Iter, typename Void = void>
