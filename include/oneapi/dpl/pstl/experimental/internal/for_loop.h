@@ -59,6 +59,9 @@ template <typename _ExecutionPolicy, typename _Ip, typename _Sp, typename... _Re
 void
 for_loop_strided(_ExecutionPolicy&& __exec, type_identity_t<_Ip> __start, _Ip __finish, _Sp __stride, _Rest&&... __rest)
 {
+    static_assert(oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value,
+                  "for_loop_strided is implemented for the host policies only");
+
     oneapi::dpl::__internal::__for_loop_repack(::std::forward<_ExecutionPolicy>(__exec), __start, __finish, __stride,
                                                ::std::forward_as_tuple(::std::forward<_Rest>(__rest)...));
 }
