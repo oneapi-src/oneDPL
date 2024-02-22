@@ -716,6 +716,9 @@ struct __get_sycl_range
     }
 };
 
+//TODO required correct implementation of this __ranges::__select_backend()
+// 1. There is still not RA ranges checks
+// 2. Obviously, a return tag is not necessarily oneapi::dpl::__internal::__hetero_tag
 template <class _ExecutionPolicy, typename... _Ranges>
 constexpr oneapi::dpl::__internal::__hetero_tag<
     typename oneapi::dpl::__internal::__select_backend_for_hetero_policy_trait<
