@@ -481,7 +481,7 @@ struct __get_sycl_range
     {
         assert(__first < __last);
 
-        auto __res = __process_input_iter<_LocalAccMode>(__first.base(), __last.base());
+        auto __res = __process_input_iter<_LocalAccMode>(__last.base(), __first.base());
         auto __rng = oneapi::dpl::__ranges::reverse_view_simple<decltype(__res.all_view())>{__res.all_view()};
 
         return __range_holder<decltype(__rng)>{__rng};
