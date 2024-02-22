@@ -377,7 +377,7 @@ __pattern_for_loop(_Tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Fu
                    _Rest&&... __rest) noexcept
 {
     static_assert(__is_backend_tag_v<_Tag>);
-    static_assert(!__is_random_access_or_integral_v<_Ip> >);
+    static_assert(!__is_random_access_or_integral_v<_Ip>);
 
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
