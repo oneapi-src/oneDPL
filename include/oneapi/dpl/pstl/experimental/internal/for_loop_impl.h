@@ -267,36 +267,46 @@ __pattern_for_loop(_Tag __tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __las
 {
     static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
-    if constexpr (__is_random_access_or_integral_v<_Ip>)
+    if constexpr (!typename _Tag::__is_vector{})
+    {
+        if constexpr (__is_random_access_or_integral_v<_Ip>)
+        {
+            oneapi::dpl::__internal::__pattern_for_loop_n(
+                __tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+                oneapi::dpl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
+                ::std::forward<_Rest>(__rest)...);
+        }
+        else
+        {
+            __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
+
+            // Make sure that our index type is able to hold all the possible values
+            using __index_type = typename __difference<_Ip>::__type;
+            __index_type __ordinal_position = 0;
+
+            if (__stride == 1)
+            {
+                // Avoid check for i % stride on each iteration for the most common case.
+                for (; __first != __last; ++__first, ++__ordinal_position)
+                    __pack.__apply_func(__f, __first, __ordinal_position);
+            }
+            else
+            {
+                __ordinal_position = oneapi::dpl::__internal::__execute_loop_strided(
+                    __first, __last, __f, __stride, __pack,
+                    // Only passed to deduce the type for internal counter
+                    __index_type{});
+            }
+
+            __pack.__finalize(__ordinal_position);
+        }
+    }
+    else
     {
         oneapi::dpl::__internal::__pattern_for_loop_n(
             __tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
             oneapi::dpl::__internal::__calculate_input_sequence_length(__first, __last, __stride), __f, __stride,
             ::std::forward<_Rest>(__rest)...);
-    }
-    else
-    {
-        __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
-
-        // Make sure that our index type is able to hold all the possible values
-        using __index_type = typename __difference<_Ip>::__type;
-        __index_type __ordinal_position = 0;
-
-        if (__stride == 1)
-        {
-            // Avoid check for i % stride on each iteration for the most common case.
-            for (; __first != __last; ++__first, ++__ordinal_position)
-                __pack.__apply_func(__f, __first, __ordinal_position);
-        }
-        else
-        {
-            __ordinal_position =
-                oneapi::dpl::__internal::__execute_loop_strided(__first, __last, __f, __stride, __pack,
-                                                                // Only passed to deduce the type for internal counter
-                                                                __index_type{});
-        }
-
-        __pack.__finalize(__ordinal_position);
     }
 }
 
@@ -362,9 +372,8 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 
 // Sequenced version of for_loop for non-RAI and non-integral types
 template <class _Tag, typename _ExecutionPolicy, typename _Ip, typename _Function, typename... _Rest>
-::std::enable_if_t<!__is_random_access_or_integral_v<_Ip>>
-__pattern_for_loop(_Tag, _ExecutionPolicy&&, _Ip __first, _Ip __last, _Function __f, __single_stride_type,
-                   _Rest&&... __rest) noexcept
+void
+__pattern_for_loop(_Tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, __single_stride_type, _Rest&&... __rest) noexcept
 {
     static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
@@ -422,6 +431,17 @@ __pattern_for_loop_n(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ip _
                    })
             .__finalize(__n);
     });
+}
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _Ip, typename _Function, typename... _Rest>
+void
+__pattern_for_loop(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f,
+                   __single_stride_type, _Rest&&... __rest)
+{
+    oneapi::dpl::__internal::__pattern_for_loop_n(
+        __tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+        oneapi::dpl::__internal::__calculate_input_sequence_length(__first, __last, __single_stride_type{}), __f,
+        __single_stride_type{}, ::std::forward<_Rest>(__rest)...);
 }
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename _Sp,
