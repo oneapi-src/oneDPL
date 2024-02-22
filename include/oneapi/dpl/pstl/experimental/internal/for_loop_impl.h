@@ -498,7 +498,7 @@ template <typename _ExecutionPolicy, typename _Ip>
 constexpr auto
 __select_backend_for_loop()
 {
-    static_assert(oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value, "for_loop staff can be used with host policies only");
+    static_assert(oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value);
 
     if constexpr (::std::is_integral_v<_Ip>)
     {
