@@ -70,6 +70,9 @@ template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename... _
 void
 for_loop_n(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Rest&&... __rest)
 {
+    static_assert(oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value,
+                  "for_loop_n can be used with host policies only");
+
     oneapi::dpl::__internal::__for_loop_repack_n(::std::forward<_ExecutionPolicy>(__exec), __start, __n,
                                                  oneapi::dpl::__internal::__single_stride_type{},
                                                  ::std::forward_as_tuple(::std::forward<_Rest>(__rest)...));
