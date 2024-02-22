@@ -375,7 +375,7 @@ template <class _Tag, typename _ExecutionPolicy, typename _Ip, typename _Functio
 void
 __pattern_for_loop(_Tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, __single_stride_type, _Rest&&... __rest) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_v<_Tag>);
 
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
