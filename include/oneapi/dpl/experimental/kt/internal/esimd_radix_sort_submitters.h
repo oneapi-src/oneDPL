@@ -18,6 +18,7 @@
 
 #include "../../../pstl/hetero/dpcpp/utils_ranges_sycl.h"
 #include "../../../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
+#include "../../../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
 
 #include "esimd_radix_sort_kernels.h"
 #include "esimd_defs.h"
