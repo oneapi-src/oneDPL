@@ -296,8 +296,8 @@ test_for_loop()
         Sequence<T> in_out(n, Gen<T>());
         Sequence<T> expected = in_out;
 
-        invoke_on_all_policies<>()(test_for_loop_impl(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
-                                   in_out.size());
+        invoke_on_all_host_policies()(test_for_loop_impl(), in_out.begin(), in_out.end(), expected.begin(),
+                                      expected.end(), in_out.size());
     }
 }
 
@@ -313,8 +313,8 @@ test_for_loop_strided()
         ::std::vector<size_t> strides = {1, 2, 10, n > 1 ? n - 1 : 1, n > 0 ? n : 1, n + 1};
         for (size_t stride : strides)
         {
-            invoke_on_all_policies<>()(test_for_loop_strided_impl(), in_out.begin(), in_out.end(), expected.begin(),
-                                       expected.end(), in_out.size(), stride);
+            invoke_on_all_host_policies()(test_for_loop_strided_impl(), in_out.begin(), in_out.end(), expected.begin(),
+                                          expected.end(), in_out.size(), stride);
         }
     }
 }
