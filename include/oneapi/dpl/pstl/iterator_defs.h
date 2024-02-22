@@ -58,25 +58,6 @@ inline constexpr bool __is_random_access_iterator_v = __is_random_access_iterato
 template <typename... _IteratorTypes>
 inline constexpr bool __is_forward_iterator_v = __is_forward_iterator<_IteratorTypes...>::value;
 
-// struct for checking if iterator should be passed directly to device or not
-// for iterators that should not be passed directly
-template <typename Iter, typename Void = void>
-struct is_passed_directly : ::std::false_type
-{
-};
-
-// for iterators defined as direct pass
-template <typename Iter>
-struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::value>> : ::std::true_type
-{
-};
-
-// for pointers to objects on device
-template <typename Iter>
-struct is_passed_directly<Iter, ::std::enable_if_t<::std::is_pointer_v<Iter>>> : ::std::true_type
-{
-};
-
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
