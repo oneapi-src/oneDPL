@@ -24,6 +24,8 @@ Fixed Issues
 - Fixed handling of ``permutation_iterator`` as input to oneDPL algorithms for a variety of
   source iterator and permutation types which caused issues.
 - Fixed ``zip_iterator`` to be `sycl device copyable`_ for trivially copyable source iterator types.
+- Added a workaround for reduction algorithm failures with 64-bit data types. Define
+  the ``ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION`` macro to ``1`` before including oneDPL header files.
 
 Known Issues and Limitations
 ----------------------------
@@ -64,6 +66,8 @@ See oneDPL Guide for other `restrictions and known limitations`_.
 - Incorrect results may be produced by ``reduce``, ``reduce_by_segment``, and ``transform_reduce``
   with 64-bit data types when compiled by Intel® oneAPI DPC++/C++ Compiler versions 2021.3 and newer
   and executed on GPU devices.
+  For a workaround, define the ``ONEDPL_WORKAROUND_FOR_IGPU_64BIT_REDUCTION`` macro to ``1`` before
+  including oneDPL header files.
 - ``std::tuple``, ``std::pair`` cannot be used with SYCL buffers to transfer data between host and device.
 - ``std::array`` cannot be swapped in DPC++ kernels with ``std::swap`` function or ``swap`` member function
   in the Microsoft* Visual C++ standard library.
