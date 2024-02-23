@@ -290,10 +290,10 @@ __pattern_for_loop(_Tag __tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __las
         }
         else
         {
-            __ordinal_position = oneapi::dpl::__internal::__execute_loop_strided(
-                __first, __last, __f, __stride, __pack,
-                // Only passed to deduce the type for internal counter
-                __index_type{});
+            __ordinal_position =
+                oneapi::dpl::__internal::__execute_loop_strided(__first, __last, __f, __stride, __pack,
+                                                                // Only passed to deduce the type for internal counter
+                                                                __index_type{});
         }
 
         __pack.__finalize(__ordinal_position);
@@ -363,7 +363,8 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 // Sequenced version of for_loop for non-RAI and non-integral types
 template <class _Tag, typename _ExecutionPolicy, typename _Ip, typename _Function, typename... _Rest>
 void
-__pattern_for_loop(_Tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, __single_stride_type, _Rest&&... __rest) noexcept
+__pattern_for_loop(_Tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, __single_stride_type,
+                   _Rest&&... __rest) noexcept
 {
     static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 

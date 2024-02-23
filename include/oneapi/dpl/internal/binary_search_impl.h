@@ -74,11 +74,11 @@ OutputIterator
 lower_bound_impl(_Tag, Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-//#if _ONEDPL_BACKEND_SYCL
-//    static_assert(__internal::__is_backend_tag_serial_v<_Tag> || __internal::__is_backend_tag_parallel_forward_v<_Tag>);
-//#else
+    //#if _ONEDPL_BACKEND_SYCL
+    //    static_assert(__internal::__is_backend_tag_serial_v<_Tag> || __internal::__is_backend_tag_parallel_forward_v<_Tag>);
+    //#else
     static_assert(__internal::__is_backend_tag_v<_Tag>);
-//#endif
+    //#endif
 
     return oneapi::dpl::transform(policy, value_start, value_end, result,
                                   [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
@@ -92,11 +92,11 @@ OutputIterator
 upper_bound_impl(_Tag, Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                  InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-//#if _ONEDPL_BACKEND_SYCL
-//    static_assert(__internal::__is_backend_tag_serial_v<_Tag> || __internal::__is_backend_tag_parallel_forward_v<_Tag>);
-//#else
+    //#if _ONEDPL_BACKEND_SYCL
+    //    static_assert(__internal::__is_backend_tag_serial_v<_Tag> || __internal::__is_backend_tag_parallel_forward_v<_Tag>);
+    //#else
     static_assert(__internal::__is_backend_tag_v<_Tag>);
-//#endif
+    //#endif
 
     return oneapi::dpl::transform(policy, value_start, value_end, result,
                                   [=](typename ::std::iterator_traits<InputIterator2>::reference val) {
@@ -110,11 +110,11 @@ OutputIterator
 binary_search_impl(_Tag, Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
                    InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-//#if _ONEDPL_BACKEND_SYCL
-//    static_assert(__internal::__is_backend_tag_serial_v<_Tag> || __internal::__is_backend_tag_parallel_forward_v<_Tag>);
-//#else
+    //#if _ONEDPL_BACKEND_SYCL
+    //    static_assert(__internal::__is_backend_tag_serial_v<_Tag> || __internal::__is_backend_tag_parallel_forward_v<_Tag>);
+    //#else
     static_assert(__internal::__is_backend_tag_v<_Tag>);
-//#endif
+    //#endif
 
     return oneapi::dpl::transform(policy, value_start, value_end, result,
                                   [=](typename ::std::iterator_traits<InputIterator2>::reference val) {

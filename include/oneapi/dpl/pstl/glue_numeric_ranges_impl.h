@@ -63,8 +63,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
 transform_reduce(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Tp __init)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
 
     using _ValueType = oneapi::dpl::__internal::__value_t<_Range1>;
     return oneapi::dpl::__internal::__ranges::__pattern_transform_reduce(

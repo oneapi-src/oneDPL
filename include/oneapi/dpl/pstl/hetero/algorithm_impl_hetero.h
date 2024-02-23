@@ -1034,7 +1034,8 @@ __pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
-    oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
+    oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, _ValueType> __buf(__exec,
+                                                                                                 __last - __first);
     auto __copy_first = __buf.get();
 
     auto __copy_last = __pattern_copy_if(__tag, __exec, __first, __last, __copy_first, __not_pred<_Predicate>{__pred});
@@ -1055,7 +1056,8 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
 
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 
-    oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, _ValueType> __buf(__exec, __last - __first);
+    oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, _ValueType> __buf(__exec,
+                                                                                                 __last - __first);
     auto __copy_first = __buf.get();
     auto __copy_last = __pattern_unique_copy(__tag, __exec, __first, __last, __copy_first, __pred);
 
@@ -1216,8 +1218,8 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ite
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 void
-__pattern_inplace_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __middle,
-                        _Iterator __last, _Compare __comp)
+__pattern_inplace_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
+                        _Iterator __middle, _Iterator __last, _Compare __comp)
 {
     using _ValueType = typename ::std::iterator_traits<_Iterator>::value_type;
 

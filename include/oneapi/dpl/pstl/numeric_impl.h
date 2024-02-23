@@ -327,11 +327,11 @@ _OutputIterator
 __pattern_transform_scan(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                          _OutputIterator __result, _UnaryOperation __unary_op, _BinaryOperation __binary_op, _Inclusive)
 {
-//#if _ONEDPL_BACKEND_SYCL
-//    static_assert(is_backend_tag_serial_v<_Tag> || is_backend_tag_parallel_forward_v<_Tag>);
-//#else
+    //#if _ONEDPL_BACKEND_SYCL
+    //    static_assert(is_backend_tag_serial_v<_Tag> || is_backend_tag_parallel_forward_v<_Tag>);
+    //#else
     static_assert(__is_backend_tag_v<_Tag>);
-//#endif
+    //#endif
 
     typedef typename ::std::iterator_traits<_ForwardIterator>::value_type _ValueType;
     if (__first != __last)

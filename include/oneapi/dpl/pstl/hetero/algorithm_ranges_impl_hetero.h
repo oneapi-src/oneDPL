@@ -69,7 +69,8 @@ class __swap2_wrapper
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Function>
 bool
-__pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Function __f)
+__pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2,
+               _Function __f)
 {
     if (__rng1.size() <= __rng2.size())
     {
@@ -250,8 +251,8 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Size, typename _Tp,
           typename _BinaryPredicate>
 oneapi::dpl::__internal::__difference_t<_Range>
-__pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range&& __rng, _Size __count, const _Tp& __value,
-                   _BinaryPredicate __pred)
+__pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range&& __rng, _Size __count,
+                   const _Tp& __value, _BinaryPredicate __pred)
 {
     //TODO: To consider definition a kind of special factory "multiple_view" (addition to standard "single_view").
     //The factory "multiple_view" would generate a range of N identical values.
@@ -359,7 +360,8 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range
     _DataAcc __get_data_op;
     _MaskAssigner __add_mask_op;
 
-    oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, int32_t> __mask_buf(__exec, __rng1.size());
+    oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, int32_t> __mask_buf(__exec,
+                                                                                                   __rng1.size());
 
     auto __res =
         __par_backend_hetero::__parallel_transform_scan_base(
@@ -416,7 +418,7 @@ __pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
     auto __copy_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
 
     auto __copy_last_id = __ranges::__pattern_copy_if(__tag, __exec, __rng, __copy_rng, __not_pred<_Predicate>{__pred},
-                                            oneapi::dpl::__internal::__pstl_assign());
+                                                      oneapi::dpl::__internal::__pstl_assign());
     auto __copy_rng_truncated = __copy_rng | oneapi::dpl::experimental::ranges::views::take(__copy_last_id);
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec),
@@ -461,7 +463,8 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
 
     oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
     auto res_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
-    auto res = __ranges::__pattern_unique_copy(__tag, __exec, __rng, res_rng, __pred, oneapi::dpl::__internal::__pstl_assign());
+    auto res = __ranges::__pattern_unique_copy(__tag, __exec, __rng, res_rng, __pred,
+                                               oneapi::dpl::__internal::__pstl_assign());
 
     __pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec), __brick_copy<_ExecutionPolicy>{}, res_rng,
                      ::std::forward<_Range>(__rng));
@@ -669,9 +672,9 @@ class __assign_key2_wrapper
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Range3,
           typename _Range4, typename _BinaryPredicate, typename _BinaryOperator>
 oneapi::dpl::__internal::__difference_t<_Range3>
-__pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values,
-                            _Range3&& __out_keys, _Range4&& __out_values, _BinaryPredicate __binary_pred,
-                            _BinaryOperator __binary_op)
+__pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Range1&& __keys,
+                            _Range2&& __values, _Range3&& __out_keys, _Range4&& __out_values,
+                            _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
     // The algorithm reduces values in __values where the
     // associated keys for the values are equal to the adjacent key.
@@ -692,14 +695,13 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         __brick_copy<_ExecutionPolicy> __copy_range{};
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
-            __tag,
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_keys_wrapper>(__exec),
-            __copy_range, ::std::forward<_Range1>(__keys), ::std::forward<_Range3>(__out_keys));
+            __tag, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_keys_wrapper>(__exec), __copy_range,
+            ::std::forward<_Range1>(__keys), ::std::forward<_Range3>(__out_keys));
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
             __tag,
-            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_values_wrapper>
-                (::std::forward<_ExecutionPolicy>(__exec)),
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_values_wrapper>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
             __copy_range, ::std::forward<_Range2>(__values), ::std::forward<_Range4>(__out_values));
 
         return 1;
@@ -712,11 +714,14 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
     // Round 1: reduce with extra indices added to avoid long segments
     // TODO: At threshold points check if the key is equal to the key at the previous threshold point, indicating a long sequence.
     // Skip a round of copy_if and reduces if there are none.
-    auto __idx = oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __diff_type>(__exec, __n).get_buffer();
+    auto __idx = oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __diff_type>(__exec, __n)
+                     .get_buffer();
     auto __tmp_out_keys =
-        oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __key_type>(__exec, __n).get_buffer();
+        oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __key_type>(__exec, __n)
+            .get_buffer();
     auto __tmp_out_values =
-        oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __val_type>(__exec, __n).get_buffer();
+        oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __val_type>(__exec, __n)
+            .get_buffer();
 
     // Replicating first element of keys view to be able to compare (i-1)-th and (i)-th key with aligned sequences,
     //  dropping the last key for the i-1 sequence.

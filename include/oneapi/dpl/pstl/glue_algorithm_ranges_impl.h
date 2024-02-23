@@ -86,7 +86,8 @@ find_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
     constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
 
-    return oneapi::dpl::__internal::__ranges::__pattern_find_if(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+    return oneapi::dpl::__internal::__ranges::__pattern_find_if(__dispatch_tag,
+                                                                ::std::forward<_ExecutionPolicy>(__exec),
                                                                 views::all_read(::std::forward<_Range>(__rng)), __pred);
 }
 
@@ -297,8 +298,7 @@ transform(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Unary
     constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
-        __dispatch_tag,
-        ::std::forward<_ExecutionPolicy>(__exec), [__op](auto x, auto& z) { z = __op(x); },
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), [__op](auto x, auto& z) { z = __op(x); },
         views::all_read(::std::forward<_Range1>(__rng)), views::all_write(::std::forward<_Range2>(__result)));
 }
 

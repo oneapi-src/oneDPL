@@ -170,7 +170,8 @@ struct __is_backend_tag_parallel_forward<__parallel_forward_tag> : ::std::true_t
 };
 
 template <class _Tag>
-inline constexpr bool __is_backend_tag_parallel_forward_v = __is_backend_tag_parallel_forward<::std::decay_t<_Tag>>::value;
+inline constexpr bool __is_backend_tag_parallel_forward_v =
+    __is_backend_tag_parallel_forward<::std::decay_t<_Tag>>::value;
 
 //----------------------------------------------------------
 // __is_backend_tag_parallel, __is_backend_tag_parallel_v

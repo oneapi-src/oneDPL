@@ -109,7 +109,8 @@ struct __sycl_scan_by_segment_impl
     operator()(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
                _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, _T __init, _T __identity)
     {
-        constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2, _Range3>();
+        constexpr auto __dispatch_tag =
+            oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2, _Range3>();
         using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
@@ -148,11 +149,13 @@ struct __sycl_scan_by_segment_impl
         ::std::size_t __n_groups = __internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
         auto __partials =
-            oneapi::dpl::__par_backend_hetero::__buffer<__backend_tag, _ExecutionPolicy, __val_type>(__exec, __n_groups).get_buffer();
+            oneapi::dpl::__par_backend_hetero::__buffer<__backend_tag, _ExecutionPolicy, __val_type>(__exec, __n_groups)
+                .get_buffer();
 
         // the number of segment ends found in each work group
         auto __seg_ends =
-            oneapi::dpl::__par_backend_hetero::__buffer<__backend_tag, _ExecutionPolicy, bool>(__exec, __n_groups).get_buffer();
+            oneapi::dpl::__par_backend_hetero::__buffer<__backend_tag, _ExecutionPolicy, bool>(__exec, __n_groups)
+                .get_buffer();
 
         // 1. Work group reduction
         auto __wg_scan = __exec.queue().submit([&](sycl::handler& __cgh) {
