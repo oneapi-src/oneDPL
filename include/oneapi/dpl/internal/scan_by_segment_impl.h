@@ -38,13 +38,13 @@
 #include <utility>
 #include <algorithm>
 
-#include <oneapi/dpl/pstl/algorithm_fwd.h>
-#include <oneapi/dpl/pstl/parallel_backend.h>
-#include <oneapi/dpl/pstl/hetero/utils_hetero.h>
+#include "../pstl/algorithm_fwd.h"
+#include "../pstl/parallel_backend.h"
+#include "../pstl/hetero/utils_hetero.h"
 
-#include <oneapi/dpl/pstl/hetero/dpcpp/utils_ranges_sycl.h>
-#include <oneapi/dpl/pstl/hetero/dpcpp/unseq_backend_sycl.h>
-#include <oneapi/dpl/pstl/hetero/dpcpp/parallel_backend_sycl_utils.h>
+#include "../pstl/hetero/dpcpp/utils_ranges_sycl.h"
+#include "../pstl/hetero/dpcpp/unseq_backend_sycl.h"
+#include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 
 namespace oneapi
 {
