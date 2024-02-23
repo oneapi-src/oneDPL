@@ -71,8 +71,7 @@ operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F
 };//transform_fn
 
 template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred >
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-oneapi::dpl::ranges::iterator_t<_R>>
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R>>
 find_if_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
 {
     auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
@@ -98,14 +97,22 @@ find_if_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj 
     }
 }
 
+template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R>>
+find_if_not_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
+{
+    return oneapi::dpl::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+        oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy,
+        _Pred>>(__pred), __proj);
+}
+
 template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj>
 constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R>>
 find_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj) const
 {
-    return oneapi::dpl::ranges::find_if(
-        std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
-        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _T>>(
-            __value), __proj);
+    return oneapi::dpl::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy,
+        const _T>>(__value), __proj);
 }
 inline constexpr transform_fn transform;
 
