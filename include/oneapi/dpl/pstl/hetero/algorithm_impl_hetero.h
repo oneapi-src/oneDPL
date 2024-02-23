@@ -440,7 +440,7 @@ struct __brick_fill_n<_SourceT, _ExecutionPolicy,
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 _Iterator
-__pattern_min_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+__pattern_min_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                       _Compare __comp)
 {
     if (__first == __last)
@@ -516,8 +516,8 @@ __pattern_min_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 ::std::pair<_Iterator, _Iterator>
-__pattern_minmax_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
-                         _Iterator __last, _Compare __comp)
+__pattern_minmax_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                         _Compare __comp)
 {
     if (__first == __last)
         return ::std::make_pair(__first, __first);
@@ -570,7 +570,7 @@ __pattern_minmax_element(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __e
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _BinaryPredicate>
 _Iterator
-__pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+__pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                         _BinaryPredicate __predicate, oneapi::dpl::__internal::__or_semantic)
 {
     if (__last - __first < 2)
@@ -598,7 +598,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _BinaryPredicate>
 _Iterator
-__pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+__pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                         _BinaryPredicate __predicate, oneapi::dpl::__internal::__first_semantic)
 {
     if (__last - __first < 2)
@@ -630,7 +630,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Predicate>
 typename ::std::iterator_traits<_Iterator>::difference_type
-__pattern_count(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+__pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                 _Predicate __predicate)
 {
     if (__first == __last)
@@ -662,7 +662,7 @@ __pattern_count(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ite
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
 bool
-__pattern_any_of(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+__pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                  _Pred __pred)
 {
     if (__first == __last)
@@ -686,7 +686,7 @@ __pattern_any_of(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
 bool
-__pattern_equal(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
+__pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
                 _Iterator2 __first2, _Iterator2 __last2, _Pred __pred)
 {
     if (__last1 == __first1 || __last2 == __first2 || __last1 - __first1 != __last2 - __first2)
@@ -726,7 +726,7 @@ __pattern_equal(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ite
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Pred>
 _Iterator
-__pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+__pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
                   _Pred __pred)
 {
     if (__first == __last)
@@ -779,8 +779,8 @@ __pattern_find_end(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
 _Iterator1
-__pattern_find_first_of(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first,
-                        _Iterator1 __last, _Iterator2 __s_first, _Iterator2 __s_last, _Pred __pred)
+__pattern_find_first_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
+                        _Iterator2 __s_first, _Iterator2 __s_last, _Pred __pred)
 {
     if (__first == __last || __s_last == __s_first)
         return __last;
@@ -888,7 +888,7 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Pred>
 ::std::pair<_Iterator1, _Iterator2>
-__pattern_mismatch(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
+__pattern_mismatch(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first1, _Iterator1 __last1,
                    _Iterator2 __first2, _Iterator2 __last2, _Pred __pred)
 {
     auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
@@ -941,7 +941,7 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Itera
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
           typename _Predicate>
 _Iterator2
-__pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
+__pattern_copy_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first, _Iterator1 __last,
                   _Iterator2 __result_first, _Predicate __pred)
 {
     using _It1DifferenceType = typename ::std::iterator_traits<_Iterator1>::difference_type;
@@ -1082,8 +1082,8 @@ enum _IsPartitionedReduceType : signed char
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Predicate>
 bool
-__pattern_is_partitioned(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
-                         _Iterator __last, _Predicate __predicate)
+__pattern_is_partitioned(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                         _Predicate __predicate)
 {
     if (__last - __first < 2)
         return true;
@@ -1133,7 +1133,7 @@ struct __is_heap_check
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare>
 _RandomAccessIterator
-__pattern_is_heap_until(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_is_heap_until(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                         _RandomAccessIterator __last, _Compare __comp)
 {
     if (__last - __first < 2)
@@ -1151,7 +1151,7 @@ __pattern_is_heap_until(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare>
 bool
-__pattern_is_heap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
+__pattern_is_heap(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _RandomAccessIterator __first,
                   _RandomAccessIterator __last, _Compare __comp)
 {
     if (__last - __first < 2)
@@ -1251,8 +1251,8 @@ __pattern_inplace_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
 //------------------------------------------------------------------------
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare, typename _Proj>
 void
-__stable_sort_with_projection(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first,
-                              _Iterator __last, _Compare __comp, _Proj __proj)
+__stable_sort_with_projection(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last,
+                              _Compare __comp, _Proj __proj)
 {
     if (__last - __first < 2)
         return;
@@ -1352,7 +1352,7 @@ __pattern_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2, typename _Compare>
 bool
-__pattern_lexicographical_compare(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator1 __first1,
+__pattern_lexicographical_compare(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1 __first1,
                                   _Iterator1 __last1, _Iterator2 __first2, _Iterator2 __last2, _Compare __comp)
 {
     //trivial pre-checks
@@ -1401,7 +1401,7 @@ __pattern_lexicographical_compare(__hetero_tag<_BackendTag> __tag, _ExecutionPol
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
           typename _Compare>
 bool
-__pattern_includes(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
+__pattern_includes(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                    _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp)
 {
     //according to the spec
@@ -1432,7 +1432,7 @@ __pattern_includes(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator, typename _Compare>
 void
-__pattern_partial_sort(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid,
+__pattern_partial_sort(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator __first, _Iterator __mid,
                        _Iterator __last, _Compare __comp)
 {
     if (__last - __first < 2)
@@ -1583,7 +1583,7 @@ __pattern_reverse(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterato
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _BidirectionalIterator, typename _ForwardIterator>
 _ForwardIterator
-__pattern_reverse_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _BidirectionalIterator __first,
+__pattern_reverse_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _BidirectionalIterator __first,
                        _BidirectionalIterator __last, _ForwardIterator __result)
 {
     auto __n = __last - __first;
