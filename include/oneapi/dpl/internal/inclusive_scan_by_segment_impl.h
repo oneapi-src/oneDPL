@@ -43,7 +43,7 @@ pattern_inclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
                                   InputIterator2 first2, OutputIterator result, BinaryPredicate binary_pred,
                                   BinaryOperator binary_op)
 {
-    static_assert(__internal::__is_backend_tag_v<_Tag>);
+    static_assert(__internal::__is_host_backend_tag_v<_Tag>);
 
     using __backend_tag = typename _Tag::__backend_tag;
 
