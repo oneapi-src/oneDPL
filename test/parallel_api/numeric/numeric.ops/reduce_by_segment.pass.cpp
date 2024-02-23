@@ -350,8 +350,7 @@ void
 run_test_on_host()
 {
 #if !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
-    test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>,
-                             TestUtils::invoke_on_all_host_policies>();
+    test_algo_four_sequences<ValueType, test_reduce_by_segment<BinaryPredicate, BinaryOperation>>();
 #endif     // !_PSTL_ICC_TEST_SIMD_UDS_BROKEN && !_PSTL_ICPX_TEST_RED_BY_SEG_OPTIMIZER_CRASH
 }
 

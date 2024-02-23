@@ -45,7 +45,7 @@ Prerequisites
 C++17 is the minimal supported version of the C++ standard.
 That means, any use of |onedpl_short| may require a C++17 compiler.
 While some APIs of the library may accidentally work with earlier versions of the C++ standard, it is no more guaranteed.
- 
+
 To call Parallel API with the C++ standard policies, you need to install the following software:
 
 * A C++ compiler with support for OpenMP* 4.0 (or higher) SIMD constructs
@@ -127,11 +127,11 @@ Known Limitations
 * Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
   (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
   for double precision. 
-* The initial value type for ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
-  ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``reduce_by_segment``
-  should satisfy the ``DefaultConstructible`` requirements for C++ standard policies.
-  Additionally, a default-constructed instance of that type should be
-  the identity element for the provided scan binary operation.
+* When ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``, ``inclusive_scan_by_segment``,
+  ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``reduce_by_segment`` algorithms are used with
+  C++ standard policies, the initial value type must satisfy the ``DefaultConstructible`` requirements.
+  Additionally, a default-constructed instance of that type should act as
+  the identity element for the provided binary operation.
 * The initial value type for ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
   ``inclusive_scan_by_segment``, ``reduce``, ``reduce_by_segment``, ``transform_reduce``, ``transform_exclusive_scan``,
   ``transform_inclusive_scan`` should satisfy the ``MoveAssignable`` and the ``CopyConstructible`` requirements.
@@ -143,7 +143,7 @@ Known Limitations
   ``uninitialized_move_n``, ``uninitialized_default_construct``, ``uninitialized_default_construct_n``, ``uninitialized_value_construct``, ``uninitialized_value_construct_n``
   should be called with a device policy when using device data and should be called with a host policy when using host data. Otherwise, the result is undefined.
 * The algorithms that destroy data: ``destroy`` and ``destroy_n`` should be called with a host policy when using host data that was initialized on the host, and should be called with a device policy when using device data that was initialized on the device. Otherwise, the result is undefined.
-        
+
 
 Build Your Code with |onedpl_short|
 ===================================
