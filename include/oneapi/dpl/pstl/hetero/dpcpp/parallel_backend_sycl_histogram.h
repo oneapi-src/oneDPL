@@ -403,7 +403,8 @@ template <typename _BackendTag, typename _KernelName>
 struct __histogram_general_private_global_atomics_submitter;
 
 template <typename _BackendTag, typename... _KernelName>
-struct __histogram_general_private_global_atomics_submitter<__internal::__optional_kernel_name<_KernelName...>>
+struct __histogram_general_private_global_atomics_submitter<_BackendTag,
+                                                            __internal::__optional_kernel_name<_KernelName...>>
 {
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinHashMgr>
     auto
