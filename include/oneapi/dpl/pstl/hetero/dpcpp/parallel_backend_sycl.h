@@ -1565,11 +1565,13 @@ struct __leaf_sort_kernel
 };
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _IdType, typename _LeafSortName, typename _GlobalSortName, typename _CopyBackName>
+template <typename _BackendTag, typename _IdType, typename _LeafSortName, typename _GlobalSortName,
+          typename _CopyBackName>
 struct __parallel_sort_submitter;
 
-template <typename _IdType, typename... _LeafSortName, typename... _GlobalSortName, typename... _CopyBackName>
-struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_LeafSortName...>,
+template <typename _BackendTag, typename _IdType, typename... _LeafSortName, typename... _GlobalSortName,
+          typename... _CopyBackName>
+struct __parallel_sort_submitter<_BackendTag, _IdType, __internal::__optional_kernel_name<_LeafSortName...>,
                                  __internal::__optional_kernel_name<_GlobalSortName...>,
                                  __internal::__optional_kernel_name<_CopyBackName...>>
 {
@@ -1577,9 +1579,6 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
     auto
     operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp) const
     {
-        constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
-        using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
-
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
         using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
 
@@ -1601,7 +1600,7 @@ struct __parallel_sort_submitter<_IdType, __internal::__optional_kernel_name<_Le
         });
 
         // 2. Merge sorting
-        oneapi::dpl::__par_backend_hetero::__buffer<__backend_tag, _ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
+        oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, _Tp> __temp_buf(__exec, __n);
         auto __temp = __temp_buf.get_buffer();
         bool __data_in_temp = false;
         _IdType __n_sorted = __leaf;
@@ -1685,8 +1684,9 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
             oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName, _wi_index_type>>;
         using _CopyBackKernel =
             oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName, _wi_index_type>>;
-        return __parallel_sort_submitter<_wi_index_type, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __comp);
+        return __parallel_sort_submitter<oneapi::dpl::__internal::__device_backend_tag, _wi_index_type, _LeafSortKernel,
+                                         _GlobalSortKernel, _CopyBackKernel>()(::std::forward<_ExecutionPolicy>(__exec),
+                                                                               ::std::forward<_Range>(__rng), __comp);
     }
     else
     {
@@ -1697,8 +1697,9 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
             oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_global_kernel<_CustomName, _wi_index_type>>;
         using _CopyBackKernel =
             oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName, _wi_index_type>>;
-        return __parallel_sort_submitter<_wi_index_type, _LeafSortKernel, _GlobalSortKernel, _CopyBackKernel>()(
-            ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __comp);
+        return __parallel_sort_submitter<oneapi::dpl::__internal::__device_backend_tag, _wi_index_type, _LeafSortKernel,
+                                         _GlobalSortKernel, _CopyBackKernel>()(::std::forward<_ExecutionPolicy>(__exec),
+                                                                               ::std::forward<_Range>(__rng), __comp);
     }
 }
 
