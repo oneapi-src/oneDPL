@@ -112,33 +112,6 @@ __select_backend()
 }
 
 //----------------------------------------------------------
-// __is_backend_tag, __is_backend_tag_v
-//----------------------------------------------------------
-
-template <class _Tag>
-struct __is_backend_tag : ::std::false_type
-{
-};
-
-template <class _IsVector>
-struct __is_backend_tag<__serial_tag<_IsVector>> : ::std::true_type
-{
-};
-
-template <class _IsVector>
-struct __is_backend_tag<__parallel_tag<_IsVector>> : ::std::true_type
-{
-};
-
-template <>
-struct __is_backend_tag<__parallel_forward_tag> : ::std::true_type
-{
-};
-
-template <class _Tag>
-inline constexpr bool __is_backend_tag_v = __is_backend_tag<::std::decay_t<_Tag>>::value;
-
-//----------------------------------------------------------
 // __is_backend_tag_serial, __is_backend_tag_serial_v
 //----------------------------------------------------------
 

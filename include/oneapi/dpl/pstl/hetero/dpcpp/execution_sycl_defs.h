@@ -326,14 +326,6 @@ __select_backend()
     return {}; // return __hetero_tag<__device_backend_tag> or __hetero_tag<__fpga_backend_tag>
 }
 
-template <class _Tag>
-struct __is_backend_tag;
-
-template <typename _BackendTag>
-struct __is_backend_tag<__hetero_tag<_BackendTag>> : ::std::true_type
-{
-};
-
 } // namespace __internal
 
 } // namespace dpl
