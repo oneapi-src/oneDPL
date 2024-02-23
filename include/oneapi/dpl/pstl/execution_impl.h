@@ -190,6 +190,14 @@ struct __is_backend_tag_parallel<__parallel_tag<_IsVector>> : ::std::true_type
 template <class _Tag>
 inline constexpr bool __is_backend_tag_parallel_v = __is_backend_tag_parallel<::std::decay_t<_Tag>>::value;
 
+//----------------------------------------------------------
+// __is_host_backend_tag_v
+//----------------------------------------------------------
+
+template <class _Tag>
+inline constexpr bool __is_host_backend_tag_v =
+    __is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag> || __is_backend_tag_parallel_v<_Tag>;
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
