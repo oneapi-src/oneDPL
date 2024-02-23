@@ -378,9 +378,10 @@ main()
     run_test<float, ::std::equal_to<float>, ::std::plus<float>>();
     run_test<double, ::std::equal_to<double>, ::std::plus<double>>();
 
-    // TODO investigate possible overflow
+    // TODO investigate possible overflow: see issue #1416
+    run_test_on_device<int, ::std::equal_to<int>, ::std::multiplies<int>>();
+    run_test_on_device<float, ::std::equal_to<float>, ::std::multiplies<float>>();
     run_test_on_device<double, ::std::equal_to<double>, ::std::multiplies<double>>();
-    run_test_on_device<::std::uint64_t, ::std::equal_to<::std::uint64_t>, ::std::multiplies<::std::uint64_t>>();
 
     return TestUtils::done();
 }
