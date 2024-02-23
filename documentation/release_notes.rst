@@ -16,7 +16,6 @@ New Features
 - Added new ``histogram`` algorithms for generating a histogram from an input sequence into
   an output sequence representing either equally spaced or user-defined bins.
   These algorithms are currently only available for device execution policies.
-- Added ability to avoid group reduction operations for 64-bit arithmetic data types.
 - Supported zip_iterator for ``transform`` algorithm.
 
 Fixed Issues
