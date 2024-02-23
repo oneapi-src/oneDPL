@@ -129,9 +129,8 @@ Known Limitations
   for double precision. 
 * When ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``, ``inclusive_scan_by_segment``,
   ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``reduce_by_segment`` algorithms are used with
-  C++ standard policies, the initial value type must satisfy the ``DefaultConstructible`` requirements.
-  Additionally, a default-constructed instance of that type should act as
-  the identity element for the provided binary operation.
+  C++ standard policies, the initial value type must satisfy the ``DefaultConstructible`` requirements;
+  a default-constructed instance of that type should act as the identity element for the provided binary operation.
 * The initial value type for ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
   ``inclusive_scan_by_segment``, ``reduce``, ``reduce_by_segment``, ``transform_reduce``, ``transform_exclusive_scan``,
   ``transform_inclusive_scan`` should satisfy the ``MoveAssignable`` and the ``CopyConstructible`` requirements.
