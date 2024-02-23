@@ -94,7 +94,7 @@ class __seg_scan_wg_kernel;
 template <bool __is_inclusive, typename... Name>
 class __seg_scan_prefix_kernel;
 
-template <bool __is_inclusive>
+template <typename _BackendTag, bool __is_inclusive>
 struct __sycl_scan_by_segment_impl
 {
     template <typename... _Name>
@@ -109,10 +109,6 @@ struct __sycl_scan_by_segment_impl
     operator()(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_values,
                _BinaryPredicate __binary_pred, _BinaryOperator __binary_op, _T __init, _T __identity)
     {
-        constexpr auto __dispatch_tag =
-            oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2, _Range3>();
-        using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
-
         using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
 
         using _SegScanWgKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
@@ -149,12 +145,12 @@ struct __sycl_scan_by_segment_impl
         ::std::size_t __n_groups = __internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
         auto __partials =
-            oneapi::dpl::__par_backend_hetero::__buffer<__backend_tag, _ExecutionPolicy, __val_type>(__exec, __n_groups)
+            oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __val_type>(__exec, __n_groups)
                 .get_buffer();
 
         // the number of segment ends found in each work group
         auto __seg_ends =
-            oneapi::dpl::__par_backend_hetero::__buffer<__backend_tag, _ExecutionPolicy, bool>(__exec, __n_groups)
+            oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, bool>(__exec, __n_groups)
                 .get_buffer();
 
         // 1. Work group reduction
@@ -396,9 +392,9 @@ __scan_by_segment_impl_common(__internal::__hetero_tag<_BackendTag>, Policy&& po
 
     constexpr iter_value_t identity = unseq_backend::__known_identity<Operator, iter_value_t>;
 
-    __sycl_scan_by_segment_impl<Inclusive::value>()(::std::forward<Policy>(policy), key_buf.all_view(),
-                                                    value_buf.all_view(), value_output_buf.all_view(), binary_pred,
-                                                    binary_op, init, identity);
+    __sycl_scan_by_segment_impl<_BackendTag, Inclusive::value>()(::std::forward<Policy>(policy), key_buf.all_view(),
+                                                                 value_buf.all_view(), value_output_buf.all_view(),
+                                                                 binary_pred, binary_op, init, identity);
     return result + n;
 }
 
