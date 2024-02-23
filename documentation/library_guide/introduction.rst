@@ -129,7 +129,9 @@ Known Limitations
   for double precision. 
 * ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
   ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan``,
-  when used with C++ standard policies, impose limitations on the initial value type.
+  when used with C++ standard policies, impose limitations on the initial value type if an 
+  initial value is provided, and on the value type of the input iterator if an initial value is 
+  not provided.
   Firstly, it must satisfy the ``DefaultConstructible`` requirements.
   Secondly, a default-constructed instance of that type should act as the identity element for the binary scan function.
 * ``reduce_by_segment``, when used with C++ standard policies, imposes limitations on the value type.
