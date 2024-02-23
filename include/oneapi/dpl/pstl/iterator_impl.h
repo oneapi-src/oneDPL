@@ -86,7 +86,7 @@ class zip_forward_iterator
     typedef ::std::make_signed_t<::std::size_t> difference_type;
     typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::value_type...> value_type;
     typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::reference...> reference;
-    typedef oneapi::dpl::__internal::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
+    typedef ::std::tuple<typename ::std::iterator_traits<_Types>::pointer...> pointer;
     typedef ::std::forward_iterator_tag iterator_category;
 
     zip_forward_iterator() : __my_it_() {}
