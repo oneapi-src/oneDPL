@@ -36,19 +36,13 @@ template <typename... _Name>
 class __esimd_radix_sort_onesweep_scan;
 
 template <typename... _Name>
-class __esimd_radix_sort_onesweep_even;
-
-template <typename... _Name>
-class __esimd_radix_sort_onesweep_odd;
+class __esimd_radix_sort_onesweep;
 
 template <typename... _Name>
 class __esimd_radix_sort_onesweep_copyback;
 
 template <typename... _Name>
-class __esimd_radix_sort_onesweep_even_by_key;
-
-template <typename... _Name>
-class __esimd_radix_sort_onesweep_odd_by_key;
+class __esimd_radix_sort_onesweep_by_key;
 
 template <typename... _Name>
 class __esimd_radix_sort_onesweep_copyback_by_key;
@@ -63,7 +57,20 @@ __one_wg(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__esimd_radix_sort_one_wg<_KernelName>>;
 
     return __radix_sort_one_wg_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size, _KeyT,
-                                         _EsimRadixSortKernel>()(__q, ::std::forward<_RngPack>(__pack), __n);
+                                         _EsimRadixSortKernel>()(__q, __pack, __pack, __n);
+}
+
+template <typename _KernelName, bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
+          ::std::uint16_t __work_group_size, typename _RngPack1, typename _RngPack2>
+sycl::event
+__one_wg(sycl::queue __q, _RngPack1&& __pack_in, _RngPack2&& __pack_out, ::std::size_t __n)
+{
+    using _KeyT = typename _RngPack1::_KeyT;
+    using _EsimRadixSortKernel =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__esimd_radix_sort_one_wg<_KernelName>>;
+
+    return __radix_sort_one_wg_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size, _KeyT,
+                                         _EsimRadixSortKernel>()(__q, __pack_in, __pack_out, __n);
 }
 
 template <typename _HistT, typename _KeyT, typename _ValT = void>
@@ -154,22 +161,22 @@ class __onesweep_memory_holder
     }
 
     _KeyT*
-    __keys_ptr() noexcept
+    __keys_ptr() const noexcept
     {
         return __m_keys_ptr;
     }
     _ValT*
-    __vals_ptr() noexcept
+    __vals_ptr() const noexcept
     {
         return __m_vals_ptr;
     }
     _HistT*
-    __global_hist_ptr() noexcept
+    __global_hist_ptr() const noexcept
     {
         return __m_global_hist_ptr;
     }
     _HistT*
-    __group_hist_ptr() noexcept
+    __group_hist_ptr() const noexcept
     {
         return __m_group_hist_ptr;
     }
@@ -194,24 +201,23 @@ class __onesweep_memory_holder
 };
 
 template <typename _KernelName, bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
-          ::std::uint16_t __work_group_size, typename _RngPack>
+          ::std::uint16_t __work_group_size, typename _RngPack1, typename _RngPack2, typename _RngPack3,
+          typename _MemHolder>
 sycl::event
-__onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
+__onesweep_impl(sycl::queue __q, _RngPack1&& __input_pack, _RngPack2&& __virt_pack1, _RngPack3&& __virt_pack2,
+                const _MemHolder& __mem_holder, ::std::size_t __n)
 {
-    using _KeyT = typename _RngPack::_KeyT;
-    using _ValT = typename _RngPack::_ValT;
-    constexpr bool __has_values = _RngPack::__has_values;
+    using _KeyT = typename ::std::decay_t<_RngPack1>::_KeyT;
+    using _ValT = typename ::std::decay_t<_RngPack1>::_ValT;
+    constexpr bool __has_values = ::std::decay_t<_RngPack1>::__has_values;
 
     using _EsimdRadixSortHistogram = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __esimd_radix_sort_onesweep_histogram<_KernelName>>;
     using _EsimdRadixSortScan = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __esimd_radix_sort_onesweep_scan<_KernelName>>;
-    using _EsimdRadixSortSweepEven = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_even_by_key<_KernelName>,
-                             __esimd_radix_sort_onesweep_even<_KernelName>>>;
-    using _EsimdRadixSortSweepOdd = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
-        ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_odd_by_key<_KernelName>,
-                             __esimd_radix_sort_onesweep_odd<_KernelName>>>;
+    using _EsimdRadixSortSweep =
+        oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<::std::conditional_t<
+            __has_values, __esimd_radix_sort_onesweep_by_key<_KernelName>, __esimd_radix_sort_onesweep<_KernelName>>>;
     using _EsimdRadixSortCopyback = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_copyback_by_key<_KernelName>,
                              __esimd_radix_sort_onesweep_copyback<_KernelName>>>;
@@ -227,35 +233,6 @@ __onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
     constexpr ::std::uint32_t __global_hist_item_count = __bin_count * __stage_count;
     const ::std::uint32_t __group_hist_item_count = __bin_count * __stage_count * __sweep_work_group_count;
 
-    // Memory is not going to be allocated for void value type
-    // TODO: make this more explicit to reduce coupling between __onesweep_memory_holder and __rng_pack
-    __onesweep_memory_holder<_GlobalHistT, _KeyT, _ValT> __mem_holder(__q);
-    __mem_holder.__keys_alloc_count(__n);
-    if constexpr (__has_values)
-    {
-        __mem_holder.__vals_alloc_count(__n);
-    }
-    __mem_holder.__global_hist_item_alloc_count(__global_hist_item_count);
-    __mem_holder.__group_hist_item_alloc_count(__group_hist_item_count);
-    __mem_holder.__allocate();
-
-    auto __get_tmp_pack = [&]() {
-        auto __keys_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _KeyT*>();
-        auto __keys_tmp_rng = __keys_tmp_keep(__mem_holder.__keys_ptr(), __mem_holder.__keys_ptr() + __n).all_view();
-        if constexpr (__has_values)
-        {
-            auto __vals_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _ValT*>();
-            auto __vals_tmp_rng =
-                __vals_tmp_keep(__mem_holder.__vals_ptr(), __mem_holder.__vals_ptr() + __n).all_view();
-            return __rng_pack(::std::move(__keys_tmp_rng), ::std::move(__vals_tmp_rng));
-        }
-        else
-        {
-            return __rng_pack(::std::move(__keys_tmp_rng));
-        }
-    };
-    auto __tmp_pack = __get_tmp_pack();
-
     // TODO: check if it is more performant to fill it inside the histgogram kernel
     // This line assumes that global and group histograms are stored sequentially
     sycl::event __event_chain = __q.memset(__mem_holder.__global_hist_ptr(), 0,
@@ -266,37 +243,163 @@ __onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
     constexpr ::std::uint32_t __hist_work_group_size = 64;
     __event_chain = __radix_sort_histogram_submitter<__is_ascending, __radix_bits, __hist_work_group_count,
                                                      __hist_work_group_size, _EsimdRadixSortHistogram>()(
-        __q, __pack.__keys_rng(), __mem_holder.__global_hist_ptr(), __n, __event_chain);
+        __q, __input_pack.__keys_rng(), __mem_holder.__global_hist_ptr(), __n, __event_chain);
 
     __event_chain = __radix_sort_onesweep_scan_submitter<__stage_count, __bin_count, _EsimdRadixSortScan>()(
         __q, __mem_holder.__global_hist_ptr(), __n, __event_chain);
 
-    for (::std::uint32_t __stage = 0; __stage < __stage_count; __stage++)
+    auto __submit_iteration = [&](auto __input_, auto __output_, auto __p_global_hist_, auto __p_group_hists_,
+                                  auto __stage_, auto __event_chain_) {
+        return __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item, __work_group_size,
+                                               _EsimdRadixSortSweep>()(__q, __input_, __output_, __p_global_hist_,
+                                                                       __p_group_hists_, __sweep_work_group_count, __n,
+                                                                       __stage_, __event_chain_);
+    };
+    __event_chain = __submit_iteration(__input_pack, __virt_pack1, __mem_holder.__global_hist_ptr(),
+                                       __mem_holder.__group_hist_ptr(), 0, __event_chain);
+
+    for (::std::uint32_t __stage = 1; __stage < __stage_count; __stage++)
     {
         _GlobalHistT* __p_global_hist = __mem_holder.__global_hist_ptr() + __bin_count * __stage;
         _GlobalHistT* __p_group_hists =
             __mem_holder.__group_hist_ptr() + __sweep_work_group_count * __bin_count * __stage;
-        if ((__stage % 2) == 0)
+
+        if (__stage % 2 != 0)
         {
-            __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item,
-                                                            __work_group_size, _EsimdRadixSortSweepEven>()(
-                __q, __pack, __tmp_pack, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n, __stage,
-                __event_chain);
+            __event_chain = __submit_iteration(__virt_pack1, __virt_pack2, __p_global_hist, __p_group_hists, __stage,
+                                               __event_chain);
         }
         else
         {
-            __event_chain = __radix_sort_onesweep_submitter<__is_ascending, __radix_bits, __data_per_work_item,
-                                                            __work_group_size, _EsimdRadixSortSweepOdd>()(
-                __q, __tmp_pack, __pack, __p_global_hist, __p_group_hists, __sweep_work_group_count, __n, __stage,
-                __event_chain);
+            __event_chain = __submit_iteration(__virt_pack2, __virt_pack1, __p_global_hist, __p_group_hists, __stage,
+                                               __event_chain);
         }
     }
+
+    return __event_chain;
+}
+
+template <::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item, ::std::uint16_t __work_group_size,
+          typename _RngPack, typename _MemHolder>
+void
+__allocate_temp(_MemHolder& __mem_holder, ::std::size_t __n)
+{
+    using _KeyT = typename _RngPack::_KeyT;
+    using _ValT = typename _RngPack::_ValT;
+    constexpr bool __has_values = _RngPack::__has_values;
+
+    constexpr ::std::uint32_t __bin_count = 1 << __radix_bits;
+
+    const ::std::uint32_t __sweep_work_group_count =
+        oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size * __data_per_work_item);
+
+    constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
+    constexpr ::std::uint32_t __stage_count = oneapi::dpl::__internal::__dpl_ceiling_div(__bit_count, __radix_bits);
+
+    constexpr ::std::uint32_t __global_hist_item_count = __bin_count * __stage_count;
+    const ::std::uint32_t __group_hist_item_count = __bin_count * __stage_count * __sweep_work_group_count;
+
+    __mem_holder.__keys_alloc_count(__n);
+    if constexpr (__has_values)
+    {
+        __mem_holder.__vals_alloc_count(__n);
+    }
+    __mem_holder.__global_hist_item_alloc_count(__global_hist_item_count);
+    __mem_holder.__group_hist_item_alloc_count(__group_hist_item_count);
+    __mem_holder.__allocate();
+}
+
+template <typename _RngPack, typename _MemHolder>
+auto
+__create_temp_pack(const _MemHolder& __mem_holder, ::std::size_t __n)
+{
+    using _KeyT = typename _RngPack::_KeyT;
+    using _ValT = typename _RngPack::_ValT;
+    constexpr bool __has_values = _RngPack::__has_values;
+
+    auto __keys_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _KeyT*>();
+    auto __keys_tmp_rng = __keys_tmp_keep(__mem_holder.__keys_ptr(), __mem_holder.__keys_ptr() + __n).all_view();
+    if constexpr (__has_values)
+    {
+        auto __vals_tmp_keep = oneapi::dpl::__ranges::__get_sycl_range<sycl::access_mode::read_write, _ValT*>();
+        auto __vals_tmp_rng = __vals_tmp_keep(__mem_holder.__vals_ptr(), __mem_holder.__vals_ptr() + __n).all_view();
+        return __rng_pack(::std::move(__keys_tmp_rng), ::std::move(__vals_tmp_rng));
+    }
+    else
+    {
+        return __rng_pack(::std::move(__keys_tmp_rng));
+    }
+}
+
+template <typename _KernelName, bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
+          ::std::uint16_t __work_group_size, typename _RngPack>
+sycl::event
+__onesweep(sycl::queue __q, _RngPack&& __pack, ::std::size_t __n)
+{
+    using _KeyT = typename _RngPack::_KeyT;
+    using _ValT = typename _RngPack::_ValT;
+    constexpr bool __has_values = _RngPack::__has_values;
+
+    using _EsimdRadixSortCopyback = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_copyback_by_key<_KernelName>,
+                             __esimd_radix_sort_onesweep_copyback<_KernelName>>>;
+
+    using _GlobalHistT = ::std::uint32_t;
+
+    constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
+    constexpr ::std::uint32_t __stage_count = oneapi::dpl::__internal::__dpl_ceiling_div(__bit_count, __radix_bits);
+
+    // Memory is not going to be allocated for void value type
+    // TODO: make this more explicit to reduce coupling between __onesweep_memory_holder and __rng_pack
+    __onesweep_memory_holder<_GlobalHistT, _KeyT, _ValT> __mem_holder(__q);
+
+    __allocate_temp<__radix_bits, __data_per_work_item, __work_group_size, _RngPack>(__mem_holder, __n);
+
+    auto __tmp_pack = __create_temp_pack<_RngPack>(__mem_holder, __n);
+
+    sycl::event __event_chain =
+        __onesweep_impl<_KernelName, __is_ascending, __radix_bits, __data_per_work_item, __work_group_size>(
+            __q, __pack, __tmp_pack, __pack, __mem_holder, __n);
 
     if constexpr (__stage_count % 2 != 0)
     {
         __event_chain =
             __radix_sort_copyback_submitter<_EsimdRadixSortCopyback>()(__q, __tmp_pack, __pack, __n, __event_chain);
     }
+
+    return __mem_holder.__async_deallocate(__event_chain);
+}
+
+template <typename _KernelName, bool __is_ascending, ::std::uint8_t __radix_bits, ::std::uint16_t __data_per_work_item,
+          ::std::uint16_t __work_group_size, typename _RngPack1, typename _RngPack2>
+sycl::event
+__onesweep(sycl::queue __q, _RngPack1&& __pack, _RngPack2&& __pack_out, ::std::size_t __n)
+{
+    using _KeyT = typename _RngPack1::_KeyT;
+    using _ValT = typename _RngPack1::_ValT;
+    constexpr bool __has_values = _RngPack1::__has_values;
+
+    using _EsimdRadixSortCopyback = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+        ::std::conditional_t<__has_values, __esimd_radix_sort_onesweep_copyback_by_key<_KernelName>,
+                             __esimd_radix_sort_onesweep_copyback<_KernelName>>>;
+
+    using _GlobalHistT = ::std::uint32_t;
+
+    constexpr ::std::uint32_t __bit_count = sizeof(_KeyT) * 8;
+    constexpr ::std::uint32_t __stage_count = oneapi::dpl::__internal::__dpl_ceiling_div(__bit_count, __radix_bits);
+
+    // Memory is not going to be allocated for void value type
+    // TODO: make this more explicit to reduce coupling between __onesweep_memory_holder and __rng_pack
+    __onesweep_memory_holder<_GlobalHistT, _KeyT, _ValT> __mem_holder(__q);
+
+    __allocate_temp<__radix_bits, __data_per_work_item, __work_group_size, _RngPack1>(__mem_holder, __n);
+    auto __tmp_pack = __create_temp_pack<_RngPack1>(__mem_holder, __n);
+
+    auto __virt_pack1 = ::std::get<__stage_count % 2>(::std::tuple(__tmp_pack, __pack_out));
+    auto __virt_pack2 = ::std::get<__stage_count % 2>(::std::tuple(__pack_out, __tmp_pack));
+    sycl::event __event_chain =
+        __onesweep_impl<_KernelName, __is_ascending, __radix_bits, __data_per_work_item, __work_group_size>(
+            __q, __pack, __virt_pack1, __virt_pack2, __mem_holder, __n);
 
     return __mem_holder.__async_deallocate(__event_chain);
 }
@@ -337,6 +440,48 @@ __radix_sort(sycl::queue __q, _RngPack&& __pack, _KernelParam __param)
             // TODO: support more granular DataPerWorkItem and WorkGroupSize
             return __onesweep<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
                 __q, ::std::forward<_RngPack>(__pack), __n);
+        }
+    }
+}
+
+// TODO: allow calling it only for all_view (accessor) and guard_view (USM) ranges, views::subrange and sycl_iterator
+template <bool __is_ascending, ::std::uint8_t __radix_bits, typename _RngPack1, typename _RngPack2,
+          typename _KernelParam>
+sycl::event
+__radix_sort(sycl::queue __q, _RngPack1&& __pack, _RngPack2&& __pack_out, _KernelParam __param)
+{
+    const auto __n = __pack.__keys_rng().size();
+    assert(__n > 1);
+
+    // _PRINT_INFO_IN_DEBUG_MODE(__exec); TODO: extend the utility to work with queues
+    constexpr auto __data_per_workitem = _KernelParam::data_per_workitem;
+    constexpr auto __workgroup_size = _KernelParam::workgroup_size;
+    using _KernelName = typename _KernelParam::kernel_name;
+
+    // TODO: enable sort_by_key for one-work-group implementation
+    if constexpr (_RngPack1::__has_values)
+    {
+        return __onesweep<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
+            __q, ::std::forward<_RngPack1>(__pack), ::std::forward<_RngPack2>(__pack_out), __n);
+    }
+    else
+    {
+        constexpr ::std::uint32_t __one_wg_cap = __data_per_workitem * __workgroup_size;
+        if (__n <= __one_wg_cap)
+        {
+            // TODO: support different RadixBits values (only 7, 8, 9 are currently supported)
+            // TODO: support more granular DataPerWorkItem and WorkGroupSize
+
+            return __one_wg<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
+                __q, ::std::forward<_RngPack1>(__pack), ::std::forward<_RngPack2>(__pack_out), __n);
+        }
+        else
+        {
+            // TODO: avoid kernel duplication (generate the output storage with the same type as input storage and use swap)
+            // TODO: support different RadixBits
+            // TODO: support more granular DataPerWorkItem and WorkGroupSize
+            return __onesweep<_KernelName, __is_ascending, __radix_bits, __data_per_workitem, __workgroup_size>(
+                __q, ::std::forward<_RngPack1>(__pack), ::std::forward<_RngPack2>(__pack_out), __n);
         }
     }
 }
