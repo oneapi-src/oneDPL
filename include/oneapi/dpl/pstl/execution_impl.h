@@ -172,6 +172,23 @@ struct __is_backend_tag_parallel_forward<__parallel_forward_tag> : ::std::true_t
 template <class _Tag>
 inline constexpr bool __is_backend_tag_parallel_forward_v = __is_backend_tag_parallel_forward<::std::decay_t<_Tag>>::value;
 
+//----------------------------------------------------------
+// __is_backend_tag_parallel, __is_backend_tag_parallel_v
+//----------------------------------------------------------
+
+template <class _Tag>
+struct __is_backend_tag_parallel : ::std::false_type
+{
+};
+
+template <class _IsVector>
+struct __is_backend_tag_parallel<__parallel_tag<_IsVector>> : ::std::true_type
+{
+};
+
+template <class _Tag>
+inline constexpr bool __is_backend_tag_parallel_v = __is_backend_tag_parallel<::std::decay_t<_Tag>>::value;
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
