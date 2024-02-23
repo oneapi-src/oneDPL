@@ -40,7 +40,7 @@ namespace __internal
 template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator1,
           typename _RandomAccessIterator2, typename _Tp, typename _BinaryOperation1, typename _BinaryOperation2>
 _Tp
-__pattern_transform_reduce(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
+__pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __first1,
                            _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2, _Tp __init,
                            _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
@@ -73,7 +73,7 @@ __pattern_transform_reduce(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& _
 template <typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator, typename _Tp,
           typename _BinaryOperation, typename _UnaryOperation>
 _Tp
-__pattern_transform_reduce(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
+__pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator __first,
                            _ForwardIterator __last, _Tp __init, _BinaryOperation __binary_op,
                            _UnaryOperation __unary_op)
 {
