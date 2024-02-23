@@ -127,10 +127,14 @@ Known Limitations
 * Due to specifics of Microsoft* Visual C++, some standard floating-point math functions
   (including ``std::ldexp``, ``std::frexp``, ``std::sqrt(std::complex<float>)``) require device support
   for double precision. 
-* When ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``, ``inclusive_scan_by_segment``,
-  ``transform_exclusive_scan``, ``transform_inclusive_scan``, ``reduce_by_segment`` algorithms are used with
-  C++ standard policies, the initial value type must satisfy the ``DefaultConstructible`` requirements;
-  a default-constructed instance of that type should act as the identity element for the provided binary operation.
+* ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
+  ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan``,
+  when used with C++ standard policies, impose limitations on the initial value type.
+  Firstly, it must satisfy the ``DefaultConstructible`` requirements.
+  Secondly, a default-constructed instance of that type should act as the identity element for the binary scan function.
+* ``reduce_by_segment``, when used with C++ standard policies, imposes limitations on the value type.
+  Firstly, it must satisfy the ``DefaultConstructible`` requirements.
+  Secondly, a default-constructed instance of that type should act as the identity element for the binary reduction function.
 * The initial value type for ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
   ``inclusive_scan_by_segment``, ``reduce``, ``reduce_by_segment``, ``transform_reduce``, ``transform_exclusive_scan``,
   ``transform_inclusive_scan`` should satisfy the ``MoveAssignable`` and the ``CopyConstructible`` requirements.
