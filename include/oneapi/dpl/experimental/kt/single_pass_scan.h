@@ -212,7 +212,7 @@ struct __lookback_kernel_func
 
         if (__wg_next_offset <= __n)
         {
-#pragma unroll
+            _ONEDPL_PRAGMA_UNROLL
             for (std::uint32_t __i = 0; __i < __data_per_workitem; ++__i)
             {
                 __tile_vals[__local_id + __workgroup_size * __i] =
@@ -221,7 +221,7 @@ struct __lookback_kernel_func
         }
         else
         {
-#pragma unroll
+            _ONEDPL_PRAGMA_UNROLL
             for (std::uint32_t __i = 0; __i < __data_per_workitem; ++__i)
             {
                 if (__wg_current_offset + __local_id + __workgroup_size * __i < __n)
