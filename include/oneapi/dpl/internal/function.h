@@ -165,27 +165,27 @@ branchless_lower_bound(Acc acc, IdxT first, IdxT last, const Value& value, Compa
     IdxT cur = n;
 #if 0
     IdxT it;
-    while (__n > 0)
+    while (n > 0)
     {
-        __it = __first;
-        __cur = __n / 2;
-        __it += __cur;
-        if (__comp(__acc[__it], __value))
+        it = first;
+        cur = n / 2;
+        it += cur;
+        if (comp(acc[it], value))
         {
-            __n -= __cur + 1, __first = ++__it;
+            n -= cur + 1, first = ++it;
         }
         else
-            __n = __cur;
+            n = cur;
     }
-    return __first;
+    return first;
 #else
     // TODO: Evaluate wider scale correctness 
     IdxT offset = 0;
     // TODO: Figure out a good way to check '<=' instead of just '<' which __comp defines. 
-    for (IdxT i = __n / 2; i >= 1; i >>= 1)
-        offset += std::min(__n - 1, IdxT((__comp(__acc[offset + i], __value) || __acc[offset + i] == __value) * i));
+    for (IdxT i = n / 2; i >= 1; i >>= 1)
+        offset += std::min(n - 1, IdxT((comp(acc[offset + i], value) || acc[offset + i] == value) * i));
 
-    return __first + offset;
+    return first + offset;
 #endif
 }
 } // namespace internal
