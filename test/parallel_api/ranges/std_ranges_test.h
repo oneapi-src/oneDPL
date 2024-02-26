@@ -41,7 +41,6 @@ auto host_policies() { return std::true_type{};}
 template<typename Container, int Ranges = 1>
 struct test
 {
-
     template<typename Policy, typename Algo, typename... Args>
     std::enable_if_t<std::is_same_v<Policy, std::true_type>>
     operator()(Policy, Algo algo, Args... args)
@@ -60,18 +59,22 @@ struct test
         int data[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         int expected[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
+        auto expected_view = tr(std::ranges::subrange(expected, expected + max_n));
+        auto expected_res = checker(expected_view, f, proj);
         {
             Container cont(exec, data, max_n);
             typename Container::type& A = cont();
 
-            algo(exec, tr(A), f, proj);
+            auto res = algo(exec, tr(A), f, proj);
+
+            auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, tr(A).begin());
+            EXPECT_TRUE(bres, "wrong return value from algo with ranges");
         }
 
         //check result
-        checker(tr(std::ranges::subrange(expected, expected + max_n)), f, proj);
         EXPECT_EQ_N(expected, data, max_n, "wrong effect algo with ranges");
     }
-    
+
     template<typename Policy, typename Algo, typename Checker, typename Functor, typename Proj = std::identity, typename Transform = std::identity>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && Ranges == 2>
     operator()(Policy&& exec, Algo algo, Checker checker, Functor f, Proj proj = {}, Transform tr = {})
@@ -81,6 +84,8 @@ struct test
         int data_out[max_n] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         int expected[max_n] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+        auto src_view = tr(std::ranges::subrange(data_in, data_in + max_n));
+        auto expected_res = checker(src_view, expected, f, proj);
         {
             Container cont_in(exec, data_in, max_n);
             Container cont_out(exec, data_out, max_n);
@@ -88,12 +93,61 @@ struct test
             typename Container::type& A = cont_in();
             typename Container::type& B = cont_out();
 
-            algo(exec, tr(A), tr(B), f, proj);
+            auto res = algo(exec, tr(A), tr(B), f, proj);
+
+            auto bres_in = ret_in_val(expected_res, src_view.begin()) == ret_in_val(res, tr(A).begin());
+            EXPECT_TRUE(bres_in, "wrong return value from algo with input range");
+
+            auto bres_out = ret_out_val(expected_res, src_view.begin()) == ret_out_val(res, tr(A).begin());
+            EXPECT_TRUE(bres_in, "wrong return value from algo with output range");
         }
 
         //check result
-        checker(tr(std::ranges::subrange(data_in, data_in + max_n)), expected, f, proj);
         EXPECT_EQ_N(expected, data_out, max_n, "wrong effect algo with ranges");
+    }
+
+private:
+
+    template <typename Ret>
+    static constexpr auto check_in(int) -> decltype(std::declval<Ret>().in, std::true_type{})
+    {
+        return {};
+    }
+
+    template <typename Ret>
+    static constexpr auto check_in(...) -> std::false_type
+    {
+        return {};
+    }
+
+    template<typename Ret, typename Begin>
+    auto ret_in_val(Ret&& ret, Begin&& begin)
+    {
+        if constexpr (check_in<Ret>(0))
+            return ret.in - begin;
+        else
+            return ret;
+    }
+    
+    template <typename Ret>
+    static constexpr auto check_out(int) -> decltype(std::declval<Ret>().out, std::true_type{})
+    {
+        return {};
+    }
+
+    template <typename Ret>
+    static constexpr auto check_out(...) -> std::false_type
+    {
+        return {};
+    }
+
+    template<typename Ret, typename Begin>
+    auto ret_out_val(Ret&& ret, Begin&& begin)
+    {
+        if constexpr (check_out<Ret>(0))
+            return ret.in - begin;
+        else
+            return ret;
     }
 };
 
