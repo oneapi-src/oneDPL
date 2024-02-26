@@ -139,7 +139,7 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     else
     {
         __bknd::__parallel_for(::std::forward<Policy>(policy),
-                               custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::size_t, lower_bound>{comp, static_cast<::std::size_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
@@ -180,7 +180,7 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     else
     {
         __bknd::__parallel_for(::std::forward<Policy>(policy),
-                               custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::size_t, upper_bound>{comp, static_cast<::std::size_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
@@ -221,7 +221,7 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
     else
     {
         __bknd::__parallel_for(::std::forward<Policy>(policy),
-                               custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::size_t, binary_search>{comp, static_cast<::std::size_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
