@@ -166,10 +166,15 @@ branchless_lower_bound(Acc acc, IdxT first, IdxT last, const Value& value, Compa
     IdxT offset = 0;
     IdxT start = oneapi::dpl::__internal::__dpl_bit_ceil(n) / 2;
     // TODO: Figure out a good way to check '<=' instead of just '<' which __comp defines. 
-    for (IdxT i = start; i >= 1; i /= 2)
+    for (IdxT i = start; i >= 2; i >>= 1)
     {
-        IdxT idx = ::std::min(n-1, offset + i);
-        offset += IdxT(comp(acc[idx], value) || acc[idx] == value) * i;
+        IdxT idx = offset + i;
+        offset += static_cast<IdxT>(comp(acc[idx], value) || acc[idx] == value) * i;
+    }
+    if (n > 1)
+    {
+        IdxT idx = ::std::min(n-1, offset + 1);
+        offset += static_cast<IdxT>(comp(acc[idx], value) || acc[idx] == value);
     }
     return first + offset;
 }
