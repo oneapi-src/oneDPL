@@ -58,7 +58,6 @@ struct custom_brick
         {
             get<2>(acc[idx]) = oneapi::dpl::internal::branchless_lower_bound(get<0>(acc.tuple()), start_orig, end_orig,
                                                                              get<1>(acc[idx]), comp);
-
         }
         else
         {
@@ -135,10 +134,11 @@ lower_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
+    // Enable index calculation to proceed with uint32_t if input range is small enough. 
     if (size <= ::std::numeric_limits<::std::uint32_t>::max())
     {
         __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
-                               custom_brick<StrictWeakOrdering, ::std::uint32_t, lower_bound>{comp, size}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::uint32_t, lower_bound>{comp, static_cast<::std::uint32_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
@@ -175,12 +175,11 @@ upper_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-
     // Enable index calculation to proceed with uint32_t if input range is small enough. 
     if (size <= ::std::numeric_limits<::std::uint32_t>::max())
     {
         __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
-                               custom_brick<StrictWeakOrdering, ::std::uint32_t, upper_bound>{comp, size}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::uint32_t, upper_bound>{comp, static_cast<::std::uint32_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
@@ -217,12 +216,11 @@ binary_search_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, Input
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-
     // Enable index calculation to proceed with uint32_t if input range is small enough. 
     if (size <= ::std::numeric_limits<::std::uint32_t>::max())
     {
         __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
-                               custom_brick<StrictWeakOrdering, ::std::uint32_t, binary_search>{comp, size}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::uint32_t, binary_search>{comp, static_cast<::std::uint32_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
