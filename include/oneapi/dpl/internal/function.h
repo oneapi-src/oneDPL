@@ -153,6 +153,41 @@ class transform_if_stencil_fun
     Predicate pred;
     UnaryOperation op;
 };
+
+// Lower bound functor more suitable to SIMD-style execution to minimize subgroup divergence.
+// Runs in Theta(log2(input size)) time.
+// Used by: binary_search, lower_bound, upper_bound.
+template <typename Acc, typename IdxT, typename Value, typename Compare>
+IdxT
+branchless_lower_bound(Acc acc, IdxT first, IdxT last, const Value& value, Compare comp)
+{
+    IdxT n = last - first;
+    IdxT cur = n;
+#if 0
+    IdxT it;
+    while (__n > 0)
+    {
+        __it = __first;
+        __cur = __n / 2;
+        __it += __cur;
+        if (__comp(__acc[__it], __value))
+        {
+            __n -= __cur + 1, __first = ++__it;
+        }
+        else
+            __n = __cur;
+    }
+    return __first;
+#else
+    // TODO: Evaluate wider scale correctness 
+    IdxT offset = 0;
+    // TODO: Figure out a good way to check '<=' instead of just '<' which __comp defines. 
+    for (IdxT i = __n / 2; i >= 1; i >>= 1)
+        offset += std::min(__n - 1, IdxT((__comp(__acc[offset + i], __value) || __acc[offset + i] == __value) * i));
+
+    return __first + offset;
+#endif
+}
 } // namespace internal
 } // namespace dpl
 } // namespace oneapi
