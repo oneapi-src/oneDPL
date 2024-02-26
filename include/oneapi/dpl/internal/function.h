@@ -21,6 +21,7 @@
 #    include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 #endif
 #include "../functional"
+#include "../pstl/utils.h"
 #include <tuple>
 
 namespace oneapi
@@ -162,31 +163,15 @@ IdxT
 branchless_lower_bound(Acc acc, IdxT first, IdxT last, const Value& value, Compare comp)
 {
     IdxT n = last - first;
-    IdxT cur = n;
-#if 0
-    IdxT it;
-    while (n > 0)
-    {
-        it = first;
-        cur = n / 2;
-        it += cur;
-        if (comp(acc[it], value))
-        {
-            n -= cur + 1, first = ++it;
-        }
-        else
-            n = cur;
-    }
-    return first;
-#else
-    // TODO: Evaluate wider scale correctness 
     IdxT offset = 0;
+    IdxT start = oneapi::dpl::__internal::__dpl_bit_ceil(n) / 2;
     // TODO: Figure out a good way to check '<=' instead of just '<' which __comp defines. 
-    for (IdxT i = n / 2; i >= 1; i >>= 1)
-        offset += std::min(n - 1, IdxT((comp(acc[offset + i], value) || acc[offset + i] == value) * i));
-
+    for (IdxT i = start; i >= 1; i /= 2)
+    {
+        IdxT idx = ::std::min(n-1, offset + i);
+        offset += IdxT(comp(acc[idx], value) || acc[idx] == value) * i;
+    }
     return first + offset;
-#endif
 }
 } // namespace internal
 } // namespace dpl
