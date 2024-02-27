@@ -1,3 +1,21 @@
+
+.. |rem| raw:: html
+
+  <strike style="background-color:Pink">
+
+
+.. |/rem| raw:: html
+
+  </strike>
+
+.. |add| raw:: html
+
+  <span style="background-color:LightGreen">
+
+.. |/add| raw:: html
+
+  </span>
+
 Intel® oneAPI DPC++ Library (oneDPL) Release Notes
 ###################################################
 
@@ -10,6 +28,19 @@ creating efficient heterogeneous applications.
 
 New in 2022.5.0
 ===============
+
+Corrections to `restrictions and known limitations`_
+----------------------------------------------------
+- ``exclusive_scan``, ``inclusive_scan``, ``exclusive_scan_by_segment``,
+  ``inclusive_scan_by_segment``, ``transform_exclusive_scan``, ``transform_inclusive_scan``,
+  |add| when used with C++ standard policies |/add|, impose limitations on the initial value type if an
+  initial value is provided, |add| and on the value type of the input iterator if an initial value is
+  not provided |/add|.
+  Firstly, it must satisfy the ``DefaultConstructible`` requirements.
+  Secondly, a default-constructed instance of that type should act as the identity element for the binary scan function.
+- |add| ``reduce_by_segment``, when used with C++ standard policies, imposes limitations on the value type.
+  Firstly, it must satisfy the ``DefaultConstructible`` requirements.
+  Secondly, a default-constructed instance of that type should act as the identity element for the binary reduction function. |/add|
 
 New Features
 ------------
