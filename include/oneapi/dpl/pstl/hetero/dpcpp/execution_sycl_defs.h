@@ -115,8 +115,8 @@ class device_policy
 #if _ONEDPL_FPGA_DEVICE
 
 ////////////////////////////////////////////////////////////////////////////////
-// TDefaultSYCLQueueFactoryFPGA - default sycl::queue FPGA factory
-struct TDefaultSYCLQueueFactoryFPGA
+// sycl_queue_factory_fpga - default sycl::queue FPGA factory
+struct sycl_queue_factory_fpga
 {
     template <class... Args>
     sycl::queue
@@ -141,7 +141,7 @@ struct TDefaultSYCLQueueFactoryFPGA
 
 struct DefaultKernelNameFPGA;
 template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA,
-          class TSYCLQueueFactory = TDefaultSYCLQueueFactoryFPGA>
+          class TSYCLQueueFactory = sycl_queue_factory_fpga>
 class fpga_policy : public device_policy<KernelName, TSYCLQueueFactory>
 {
     using base = device_policy<KernelName, TSYCLQueueFactory>;
