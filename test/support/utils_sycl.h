@@ -314,7 +314,8 @@ test3buffers(int mult = kDefaultMultValue)
     }
 }
 
-template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName,
+          typename CheckHeteroPolicyWithReverseIt = ::std::false_type>
 void
 test4buffers(int mult = kDefaultMultValue)
 {
@@ -342,12 +343,13 @@ test4buffers(int mult = kDefaultMultValue)
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
-                                               inout1_offset_first, inout1_offset_first + n,
-                                               inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n * mult,
-                                               inout4_offset_first, inout4_offset_first + n * mult,
-                                               n);
+            invoke_on_all_hetero_policies<0, CheckHeteroPolicyWithReverseIt>()(
+                create_test_obj<TestValueType, TestName>(test_base_data),
+                inout1_offset_first, inout1_offset_first + n,
+                inout2_offset_first, inout2_offset_first + n,
+                inout3_offset_first, inout3_offset_first + n * mult,
+                inout4_offset_first, inout4_offset_first + n * mult,
+                n);
         }
     }
 #endif
@@ -371,12 +373,13 @@ test4buffers(int mult = kDefaultMultValue)
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
-                                               inout1_offset_first, inout1_offset_first + n,
-                                               inout2_offset_first, inout2_offset_first + n,
-                                               inout3_offset_first, inout3_offset_first + n * mult,
-                                               inout4_offset_first, inout4_offset_first + n * mult,
-                                               n);
+            invoke_on_all_hetero_policies<1, CheckHeteroPolicyWithReverseIt>()(
+                create_test_obj<TestValueType, TestName>(test_base_data),
+                inout1_offset_first, inout1_offset_first + n,
+                inout2_offset_first, inout2_offset_first + n,
+                inout3_offset_first, inout3_offset_first + n * mult,
+                inout4_offset_first, inout4_offset_first + n * mult,
+                n);
         }
     }
 }
