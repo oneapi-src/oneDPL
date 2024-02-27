@@ -36,7 +36,8 @@ namespace ranges
 // [alg.foreach]
 
 template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, std::ranges::borrowed_iterator_t<_R>>
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+std::ranges::for_each_result<oneapi::dpl::ranges::iterator_t<_R>, _Fun>>
 for_each_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj) const
 {
     auto __f_1 = [__f, __proj](auto&& __val) { __f(__proj(__val));};
@@ -55,16 +56,14 @@ for_each_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __p
             __view.end(), __f_1,
             oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _It>(__exec),
             oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _It>(__exec));
-    
     }
 
-    return {__r.begin() + __r.size()};
+    return {__internal::__get_result(__r), std::move(__f)};
 }
 
-
 template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj>
-constexpr std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<_InRange>,
-std::ranges::borrowed_iterator_t<_OutRange>>
+constexpr std::ranges::unary_transform_result<oneapi::dpl::ranges::iterator_t<_InRange>,
+oneapi::dpl::ranges::iterator_t<_OutRange>>
 transform_fn::operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj) const
 {
     assert(__in_r.size() == __out_r.size());
@@ -87,13 +86,13 @@ transform_fn::operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange
         auto __view_out = std::views::common(::std::forward<_OutRange>(__out_r));
 
         oneapi::dpl::__internal::__pattern_walk2(
-            ::std::forward<_ExecutionPolicy>(__exec), __view_in.begin(), __view_in.end(), __out_r.begin(),
+            ::std::forward<_ExecutionPolicy>(__exec), __view_in.begin(), __view_in.end(), __view_out.begin(),
             oneapi::dpl::__internal::__transform_functor<decltype(__unary_op)>{::std::move(__unary_op)},
             oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ItIn, _ItOut>(__exec),
             oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ItIn, _ItOut>(__exec));
     }
 
-    return {__in_r.begin(), __out_r.begin()};
+    return {__internal::__get_result(__in_r), __internal::__get_result(__out_r)};
 }
 
 
