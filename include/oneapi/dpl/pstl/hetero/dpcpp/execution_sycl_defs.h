@@ -23,6 +23,8 @@
 #include "sycl_defs.h"
 
 #include <type_traits>
+#include <mutex>
+#include <optional>
 
 namespace oneapi
 {
@@ -34,6 +36,33 @@ inline namespace __dpl
 {
 
 struct DefaultKernelName;
+
+////////////////////////////////////////////////////////////////////////////////
+// sycl_queue_container - container with optionally created sycl::queue instance
+template <class TSYCLQueueFactory>
+class sycl_queue_container
+{
+  public:
+
+    template <typename... Args>
+    sycl::queue
+    get_queue(Args&&... args)
+    {
+        ::std::call_once(__is_created, [&]() {
+            TSYCLQueueFactory factory;
+            __queue.emplace(factory(::std::forward<Args>(args)...));
+        });
+
+        assert(__queue.has_value());
+        return __queue.value();
+    }
+
+  private:
+    ::std::once_flag __is_created;
+    ::std::optional<sycl::queue> __queue;
+};
+template <typename TFactory>
+using sycl_queue_container_ptr = ::std::shared_ptr<sycl_queue_container<TFactory>>;
 
 //We can create device_policy object:
 // 1. from sycl::queue
