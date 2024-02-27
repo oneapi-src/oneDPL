@@ -225,8 +225,7 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
 {
     template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
     auto
-    operator()(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count,
-               _Ranges&&... __rngs) const
+    operator()(_ExecutionPolicy&& __exec, _Fp __brick, _Index __count, _Ranges&&... __rngs) const
     {
         assert(oneapi::dpl::__ranges::__get_first_range_size(__rngs...) > 0);
         _PRINT_INFO_IN_DEBUG_MODE(__exec);
@@ -247,14 +246,14 @@ struct __parallel_for_submitter<__internal::__optional_kernel_name<_Name...>>
 //for some algorithms happens that size of processing range is n, but amount of iterations is n/2.
 template <typename _ExecutionPolicy, typename _Fp, typename _Index, typename... _Ranges>
 auto
-__parallel_for(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _ExecutionPolicy&& __exec, _Fp __brick,
-               _Index __count, _Ranges&&... __rngs)
+__parallel_for(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy&& __exec, _Fp __brick, _Index __count,
+               _Ranges&&... __rngs)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
     using _ForKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<_CustomName>;
 
-    return __parallel_for_submitter<_ForKernel>()(__backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __brick,
-                                                  __count, ::std::forward<_Ranges>(__rngs)...);
+    return __parallel_for_submitter<_ForKernel>()(::std::forward<_ExecutionPolicy>(__exec), __brick, __count,
+                                                  ::std::forward<_Ranges>(__rngs)...);
 }
 
 //------------------------------------------------------------------------
