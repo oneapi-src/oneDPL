@@ -64,8 +64,8 @@ template <typename TFactory>
 using sycl_queue_container_ptr = ::std::shared_ptr<sycl_queue_container<TFactory>>;
 
 ////////////////////////////////////////////////////////////////////////////////
-// TDefaultSYCLQueueFactory - default sycl::queue factory
-struct TDefaultSYCLQueueFactory
+// sycl_queue_factory_device - default sycl::queue factory for device policy
+struct sycl_queue_factory_device
 {
     template <typename... Args>
     sycl::queue
@@ -80,7 +80,7 @@ struct TDefaultSYCLQueueFactory
 // 2. from sycl::device_selector (implicitly through sycl::queue)
 // 3. from sycl::device
 // 4. from other device_policy encapsulating the same queue type
-template <typename KernelName = DefaultKernelName, class TSyclQueueFactory = TDefaultSYCLQueueFactory>
+template <typename KernelName = DefaultKernelName, class TSyclQueueFactory = sycl_queue_factory_device>
 class device_policy
 {
   public:
