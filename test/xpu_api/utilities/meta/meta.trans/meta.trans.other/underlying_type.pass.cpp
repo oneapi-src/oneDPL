@@ -118,16 +118,15 @@ kernel_test1(sycl::queue& deviceQueue)
     });
 }
 
-#if !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
+// Until C++20 the behaviour of std::underlying_type<T> is undefined when T is not enum
+#if TEST_STD_VER >= 20 && !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
 void
 kernel_test2(sycl::queue& deviceQueue)
 {
-    // Until C++20 the behaviour of std::underlying_type<T> is undefined when T is not enum
 #if TEST_STD_VER >= 20
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest2>([=]() { static_assert(!has_underlying_type_member<double>::value); });
     });
-#endif
 }
 #endif
 
@@ -137,7 +136,7 @@ main()
     sycl::queue deviceQueue = TestUtils::get_test_queue();
     kernel_test1(deviceQueue);
 
-#if !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
+#if TEST_STD_VER >= 20 && !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
     const auto device = deviceQueue.get_device();
     if (TestUtils::has_type_support<double>(device))
     {
