@@ -64,6 +64,18 @@ class sycl_queue_container
 template <typename TFactory>
 using sycl_queue_container_ptr = ::std::shared_ptr<sycl_queue_container<TFactory>>;
 
+////////////////////////////////////////////////////////////////////////////////
+// TDefaultSYCLQueueFactory - default sycl::queue factory
+struct TDefaultSYCLQueueFactory
+{
+    template <typename... Args>
+    sycl::queue
+    operator()(Args&&... args)
+    {
+        return sycl::queue(::std::forward<Args>(args)...);
+    }
+};
+
 //We can create device_policy object:
 // 1. from sycl::queue
 // 2. from sycl::device_selector (implicitly through sycl::queue)
@@ -94,6 +106,32 @@ class device_policy
 };
 
 #if _ONEDPL_FPGA_DEVICE
+
+////////////////////////////////////////////////////////////////////////////////
+// TDefaultSYCLQueueFactoryFPGA - default sycl::queue FPGA factory
+struct TDefaultSYCLQueueFactoryFPGA
+{
+    template <class... Args>
+    sycl::queue
+    operator()(Args&&... args)
+    {
+        if constexpr (sizeof...(Args) > 0)
+        {
+            return sycl::queue(::std::forward<Args>(args)...);
+        }
+        else
+        {
+            return sycl::queue(
+#    if _ONEDPL_FPGA_EMU
+                __dpl_sycl::__fpga_emulator_selector()
+#    else
+                __dpl_sycl::__fpga_selector()
+#    endif // _ONEDPL_FPGA_EMU
+            );
+        }
+    }
+};
+
 struct DefaultKernelNameFPGA;
 template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
 class fpga_policy : public device_policy<KernelName>
