@@ -27,6 +27,14 @@ namespace oneapi
 {
 namespace dpl
 {
+
+namespace views
+{
+using oneapi::dpl::__ranges::views::all;
+using oneapi::dpl::__ranges::views::all_read;
+using oneapi::dpl::__ranges::views::all_write;
+}
+
 namespace experimental
 {
 namespace ranges
