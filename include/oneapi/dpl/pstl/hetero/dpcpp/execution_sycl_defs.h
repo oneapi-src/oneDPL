@@ -81,28 +81,47 @@ struct TDefaultSYCLQueueFactory
 // 2. from sycl::device_selector (implicitly through sycl::queue)
 // 3. from sycl::device
 // 4. from other device_policy encapsulating the same queue type
-template <typename KernelName = DefaultKernelName>
+template <typename KernelName = DefaultKernelName, class TSyclQueueFactory = TDefaultSYCLQueueFactory>
 class device_policy
 {
   public:
     using kernel_name = KernelName;
 
-    device_policy() = default;
-    template <typename OtherName>
-    device_policy(const device_policy<OtherName>& other) : q(other.queue())
+    device_policy()
+        : q_container(::std::make_shared<sycl_queue_container<TSyclQueueFactory>>())
     {
     }
-    explicit device_policy(sycl::queue q_) : q(q_) {}
-    explicit device_policy(sycl::device d_) : q(d_) {}
-    operator sycl::queue() const { return q; }
+
+    template <typename OtherName>
+    device_policy(const device_policy<OtherName, TSyclQueueFactory>& other)
+        : q_container(other.get_sycl_queue_container())
+    {
+    }
+    explicit device_policy(sycl::queue q_)
+        : device_policy()
+    {
+        q_container->get_queue(::std::move(q_));
+    }
+    explicit device_policy(sycl::device d_)
+        : device_policy()
+    {
+        q_container->get_queue(::std::move(d_));
+    }
+    operator sycl::queue() const { return queue(); }
     sycl::queue
     queue() const
     {
-        return q;
+        return q_container->get_queue();
+    }
+
+    auto get_sycl_queue_container() const
+    {
+        return q_container;
     }
 
   private:
-    sycl::queue q;
+
+    mutable sycl_queue_container_ptr<TSyclQueueFactory> q_container;
 };
 
 #if _ONEDPL_FPGA_DEVICE
