@@ -98,8 +98,7 @@ kernel_test1(sycl::queue& deviceQueue)
             static_assert(has_underlying_type_member<G>::value);
 
             // Until C++20 the behaviour of std::underlying_type<T> is undefined when T is not enum
-#if TEST_STD_VER >= 20
-#    if !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
+#if TEST_STD_VER >= 20 && !_PSTL_ICC_TEST_UNDERLYING_TYPE_BROKEN
             static_assert(!has_underlying_type_member<void>::value);
             static_assert(!has_underlying_type_member<int>::value);
             static_assert(!has_underlying_type_member<int[]>::value);
