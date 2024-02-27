@@ -158,7 +158,7 @@ inline void unsupported_types_notifier(const sycl::device& device)
 }
 
 // Invoke test::operator()(policy,rest...) for each possible policy.
-template <::std::size_t CallNumber = 0>
+template <::std::size_t CallNumber = 0, typename CheckIsReverse = ::std::false_type>
 struct invoke_on_all_hetero_policies
 {
     sycl::queue queue;
@@ -190,6 +190,12 @@ struct invoke_on_all_hetero_policies
 #endif
             iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
                 my_policy, op, ::std::forward<Args>(rest)...);
+
+            if constexpr (CheckIsReverse::value)
+            {
+                iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::true_type>()(
+                    my_policy, op, ::std::forward<Args>(rest)...);
+            }
         }
         else
         {
