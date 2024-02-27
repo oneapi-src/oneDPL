@@ -42,8 +42,8 @@ main()
 
         auto view = oneapi::dpl::experimental::ranges::all_view<int, sycl::access::mode::read>(A);
 
-        auto exec = TestUtils::default_dpcpp_policy;
-        using Policy = decltype(TestUtils::default_dpcpp_policy);
+        auto exec = TestUtils::get_default_dpcpp_policy();
+        using Policy = decltype(exec);
 
         res1 = oneapi::dpl::experimental::ranges::transform_reduce(exec, A, view, 0);
         res2 = oneapi::dpl::experimental::ranges::transform_reduce(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, A, 0, ::std::plus<int>(), ::std::multiplies<int>());

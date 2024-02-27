@@ -43,8 +43,8 @@ main()
 
         auto view  = all_view(A);
 
-        auto exec = TestUtils::default_dpcpp_policy;
-        using Policy = decltype(TestUtils::default_dpcpp_policy);
+        auto exec = TestUtils::get_default_dpcpp_policy();
+        using Policy = decltype(exec);
 
         res1 = is_sorted_until(exec, view);
         res2 = is_sorted_until(make_new_policy<new_kernel_name<Policy, 0>>(exec), A, [](auto a, auto b) { return a < b; });
