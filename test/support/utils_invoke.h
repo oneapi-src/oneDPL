@@ -239,7 +239,7 @@ struct invoke_on_all_pstl_offload_policies {
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
 ////////////////////////////////////////////////////////////////////////////////
-template <::std::size_t CallNumber = 0>
+template <::std::size_t CallNumber = 0, typename CheckHeteroPolicyWithReverseIt = ::std::false_type>
 struct invoke_on_all_policies
 {
     template <typename Op, typename... T>
@@ -252,7 +252,7 @@ struct invoke_on_all_policies
 #if __SYCL_PSTL_OFFLOAD__
         invoke_on_all_pstl_offload_policies()(op, rest...);
 #endif
-        invoke_on_all_hetero_policies<CallNumber>()(op, ::std::forward<T>(rest)...);
+        invoke_on_all_hetero_policies<CallNumber, CheckHeteroPolicyWithReverseIt>()(op, ::std::forward<T>(rest)...);
 #else
         invoke_on_all_host_policies()(op, ::std::forward<T>(rest)...);
 #endif // TEST_DPCPP_BACKEND_PRESENT
