@@ -46,8 +46,8 @@ main()
         auto view = ranges::all_view<int, sycl::access::mode::read>(A);
         auto view_res1 = ranges::all_view<int, sycl::access::mode::write>(B1);
 
-        auto exec = TestUtils::default_dpcpp_policy;
-        using Policy = decltype(TestUtils::default_dpcpp_policy);
+        auto exec = TestUtils::get_default_dpcpp_policy();
+        using Policy = decltype(exec);
 
         ranges::exclusive_scan(exec, A, view_res1, 100);
         ranges::exclusive_scan(make_new_policy<new_kernel_name<Policy, 0>>(exec), view, B2, 100, ::std::plus<int>());

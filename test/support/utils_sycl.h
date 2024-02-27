@@ -115,12 +115,16 @@ get_default_selector()
 #    endif // ONEDPL_FPGA_EMULATOR
 }
 
-inline auto&& default_dpcpp_policy =
+auto
+get_default_dpcpp_policy()
+{
+    return
 #    if ONEDPL_USE_PREDEFINED_POLICIES
         oneapi::dpl::execution::dpcpp_fpga;
 #    else
         TestUtils::make_fpga_policy(sycl::queue{get_default_selector()});
 #    endif // ONEDPL_USE_PREDEFINED_POLICIES
+}
 #else
 auto
 get_default_selector()
@@ -133,12 +137,16 @@ get_default_selector()
 #    endif
 }
 
-inline auto&& default_dpcpp_policy =
+auto
+get_default_dpcpp_policy()
+{
+    return
 #    if ONEDPL_USE_PREDEFINED_POLICIES
         oneapi::dpl::execution::dpcpp_default;
 #    else
         oneapi::dpl::execution::make_device_policy(sycl::queue{get_default_selector()});
 #    endif // ONEDPL_USE_PREDEFINED_POLICIES
+}
 #endif     // ONEDPL_FPGA_DEVICE
 
 inline
