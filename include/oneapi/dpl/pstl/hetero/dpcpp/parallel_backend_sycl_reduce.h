@@ -235,11 +235,12 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
 
         // Lower the work group size of the second kernel to the next power of 2 if __n < __work_group_size.
         auto __work_group_size2 = __work_group_size;
-        if (__iters_per_work_item == 1)
+        if (__iters_per_work_item == 4)
         {
-            if (__n < __work_group_size)
+            const _Size __no_wis = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 4);
+            if (__no_wis < __work_group_size)
             {
-                __work_group_size2 = __n;
+                __work_group_size2 = __no_wis;
                 if ((__work_group_size2 & (__work_group_size2 - 1)) != 0)
                     __work_group_size2 = oneapi::dpl::__internal::__dpl_bit_floor(__work_group_size2) << 1;
             }
@@ -250,8 +251,7 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
 
             auto __temp_acc = __scratch_container.__get_scratch_acc(__cgh);
             auto __res_acc = __scratch_container.__get_result_acc(__cgh);
-            ::std::size_t __local_mem_size = __reduce_pattern.local_mem_req(__work_group_size2);
-            __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__local_mem_size), __cgh);
+            __dpl_sycl::__local_accessor<_Tp> __temp_local(sycl::range<1>(__work_group_size), __cgh);
 
             __cgh.parallel_for<_KernelName...>(
                 sycl::nd_range<1>(sycl::range<1>(__work_group_size2), sycl::range<1>(__work_group_size2)),
