@@ -28,6 +28,78 @@ namespace oneapi
 {
 namespace dpl
 {
+
+#if _ONEDPL___cplusplus >= 202002L
+namespace ranges
+{
+
+// [alg.foreach]
+
+template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, std::ranges::borrowed_iterator_t<_R>>
+for_each_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj) const
+{
+    auto __f_1 = [__f, __proj](auto&& __val) { __f(__proj(__val));};
+
+    if constexpr(!oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value)
+    {
+        oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), __f_1,
+            oneapi::dpl::views::all(::std::forward<_R>(__r)));
+    }
+    else //host policy
+    {
+        using _It = std::ranges::iterator_t<_R>;
+        auto __view = std::views::common(::std::forward<_R>(__r));
+
+        oneapi::dpl::__internal::__pattern_walk1(::std::forward<_ExecutionPolicy>(__exec), __view.begin(),
+            __view.end(), __f_1,
+            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _It>(__exec),
+            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _It>(__exec));
+    
+    }
+
+    return {__r.begin() + __r.size()};
+}
+
+
+template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj>
+constexpr std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<_InRange>,
+std::ranges::borrowed_iterator_t<_OutRange>>
+transform_fn::operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj) const
+{
+    assert(__in_r.size() == __out_r.size());
+
+    auto __unary_op = [=](auto&& __val) -> decltype(auto) { return __op(__proj(__val));};
+
+    if constexpr(!oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value)
+    {
+        oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), 
+            oneapi::dpl::__internal::__transform_functor<decltype(__unary_op)>{::std::move(__unary_op)},
+            oneapi::dpl::views::all_read(::std::forward<_InRange>(__in_r)),
+            oneapi::dpl::views::all_write(::std::forward<_OutRange>(__out_r)));
+    }
+    else
+    {
+        using _ItIn = std::ranges::iterator_t<_InRange>;
+        using _ItOut = std::ranges::iterator_t<_OutRange>;
+
+        auto __view_in = std::views::common(::std::forward<_InRange>(__in_r));
+        auto __view_out = std::views::common(::std::forward<_OutRange>(__out_r));
+
+        oneapi::dpl::__internal::__pattern_walk2(
+            ::std::forward<_ExecutionPolicy>(__exec), __view_in.begin(), __view_in.end(), __out_r.begin(),
+            oneapi::dpl::__internal::__transform_functor<decltype(__unary_op)>{::std::move(__unary_op)},
+            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ItIn, _ItOut>(__exec),
+            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ItIn, _ItOut>(__exec));
+    }
+
+    return {__in_r.begin(), __out_r.begin()};
+}
+
+
+}
+#endif
+
 namespace experimental
 {
 namespace ranges
