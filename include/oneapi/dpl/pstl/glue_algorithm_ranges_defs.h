@@ -23,6 +23,16 @@ namespace oneapi
 {
 namespace dpl
 {
+
+struct adjacent_find_fn
+{
+template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred = std::ranges::equal_to>
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R>>
+operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred = {}, _Proj __proj = {}) const;
+};
+
+inline constexpr adjacent_find_fn adjacent_find;
+
 namespace experimental
 {
 namespace ranges
