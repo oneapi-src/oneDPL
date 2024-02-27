@@ -47,8 +47,8 @@ main()
 
         auto view = all_view(A);
 
-        auto exec = TestUtils::default_dpcpp_policy;
-        using Policy = decltype(TestUtils::default_dpcpp_policy);
+        auto exec = TestUtils::get_default_dpcpp_policy();
+        using Policy = decltype(exec);
 
         //min element
         res1 = min_element(exec, A);
