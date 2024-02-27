@@ -70,6 +70,43 @@ operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F
 }
 };//transform_fn
 
+template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred >
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
+oneapi::dpl::ranges::iterator_t<_R>>
+find_if_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
+{
+    auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
+
+    if constexpr(!oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value)
+    {
+        auto __idx = oneapi::dpl::__internal::__ranges::__pattern_find_if(::std::forward<_ExecutionPolicy>(__exec),
+            views::all_read(::std::forward<_R>(__r)), __pred_1);
+
+        return {__internal::__get_result(__r, __idx)};
+    }
+    else
+    {
+        using _It = std::ranges::iterator_t<_R>;
+        auto __view = std::views::common(::std::forward<_R>(__r));
+
+        auto __res = oneapi::dpl::__internal::__pattern_find_if(::std::forward<_ExecutionPolicy>(__exec), __view.begin(),
+            __view.end(), __pred_1,
+            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _It>(__exec),
+            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _It>(__exec));
+
+        return {__internal::__get_result(__r, __res - __view.begin())};
+    }
+}
+
+template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj>
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R>>
+find_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj) const
+{
+    return oneapi::dpl::ranges::find_if(
+        std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, const _T>>(
+            __value), __proj);
+}
 inline constexpr transform_fn transform;
 
 } //ranges
