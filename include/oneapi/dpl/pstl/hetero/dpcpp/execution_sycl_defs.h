@@ -152,27 +152,19 @@ struct TDefaultSYCLQueueFactoryFPGA
 };
 
 struct DefaultKernelNameFPGA;
-template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
-class fpga_policy : public device_policy<KernelName>
+template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA,
+          class TSYCLQueueFactory = TDefaultSYCLQueueFactoryFPGA>
+class fpga_policy : public device_policy<KernelName, TSYCLQueueFactory>
 {
-    using base = device_policy<KernelName>;
+    using base = device_policy<KernelName, TSYCLQueueFactory>;
 
   public:
     static constexpr unsigned int unroll_factor = factor;
 
-    fpga_policy()
-        : base(sycl::queue(
-#    if _ONEDPL_FPGA_EMU
-              __dpl_sycl::__fpga_emulator_selector()
-#    else
-              __dpl_sycl::__fpga_selector()
-#    endif // _ONEDPL_FPGA_EMU
-                  ))
-    {
-    }
+    fpga_policy() = default;
 
     template <unsigned int other_factor, typename OtherName>
-    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
+    fpga_policy(const fpga_policy<other_factor, OtherName, TSYCLQueueFactory>& other) : base(other){};
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
 };
