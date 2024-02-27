@@ -21,7 +21,7 @@
 #include <list>
 #include <memory>
 
-#include "support/utils_sycl_defs.h"
+#include "utils_sycl_defs.h"
 
 namespace TestUtils
 {
