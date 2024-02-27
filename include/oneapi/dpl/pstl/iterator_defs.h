@@ -32,7 +32,7 @@ namespace __internal
 template <typename _IteratorTag, typename... _IteratorTypes>
 auto
 __is_iterator_of(int) -> decltype(
-    std::conjunction<::std::is_base_of<
+    ::std::conjunction<::std::is_base_of<
         _IteratorTag, typename ::std::iterator_traits<::std::decay_t<_IteratorTypes>>::iterator_category>...>{});
 
 template <typename... _IteratorTypes>
