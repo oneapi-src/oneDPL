@@ -23,6 +23,33 @@ namespace oneapi
 {
 namespace dpl
 {
+struct any_of_fn
+{
+template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred>
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const;
+};
+
+inline constexpr any_of_fn any_of;
+
+struct all_of_fn
+{
+template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred>
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const;
+};
+
+inline constexpr all_of_fn all_of;
+
+struct none_of_fn
+{
+template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Pred>
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj = {}) const;
+};
+
+inline constexpr none_of_fn none_of;
+
 namespace experimental
 {
 namespace ranges
