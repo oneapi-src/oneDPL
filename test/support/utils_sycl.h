@@ -140,7 +140,8 @@ sycl::queue get_test_queue()
     return my_queue;
 }
 
-template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName>
+template <sycl::usm::alloc alloc_type, typename TestValueType, typename TestName,
+          typename CheckHeteroPolicyWithReverseIt = ::std::false_type>
 void
 test1buffer()
 {
@@ -161,9 +162,11 @@ test1buffer()
 #    if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #    endif
-            invoke_on_all_hetero_policies<0>()(create_test_obj<TestValueType, TestName>(test_base_data),
-                                               inout1_offset_first, inout1_offset_first + n,
-                                               n);
+            invoke_on_all_hetero_policies<0, CheckHeteroPolicyWithReverseIt>()(
+                create_test_obj<TestValueType, TestName>(test_base_data),
+                inout1_offset_first,
+                inout1_offset_first + n,
+                n);
         }
     }
 #endif
@@ -181,9 +184,11 @@ test1buffer()
 #if _ONEDPL_DEBUG_SYCL
             ::std::cout << "n = " << n << ::std::endl;
 #endif
-            invoke_on_all_hetero_policies<1>()(create_test_obj<TestValueType, TestName>(test_base_data),
-                                               inout1_offset_first, inout1_offset_first + n,
-                                               n);
+            invoke_on_all_hetero_policies<1, CheckHeteroPolicyWithReverseIt>()(
+                create_test_obj<TestValueType, TestName>(test_base_data),
+                inout1_offset_first,
+                inout1_offset_first + n,
+                n);
         }
     }
 }
