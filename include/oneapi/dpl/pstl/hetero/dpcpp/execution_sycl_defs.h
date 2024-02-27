@@ -177,6 +177,13 @@ inline fpga_policy<> dpcpp_fpga{};
 #endif // _ONEDPL_PREDEFINED_POLICIES
 
 // make_policy functions
+template <typename KernelNameOther>
+auto
+make_device_policy(const device_policy<KernelNameOther>& other)
+{
+    return device_policy<DefaultKernelName>(other);
+}
+
 template <typename KernelName = DefaultKernelName>
 device_policy<KernelName>
 make_device_policy(sycl::queue q)
@@ -191,7 +198,7 @@ make_device_policy(sycl::device d)
     return device_policy<KernelName>(d);
 }
 
-template <typename NewKernelName, typename OldKernelName = DefaultKernelName>
+template <typename NewKernelName, typename OldKernelName>
 device_policy<NewKernelName>
 make_device_policy(const device_policy<OldKernelName>& policy
 #if _ONEDPL_PREDEFINED_POLICIES
@@ -202,7 +209,7 @@ make_device_policy(const device_policy<OldKernelName>& policy
     return device_policy<NewKernelName>(policy);
 }
 
-template <typename NewKernelName, typename OldKernelName = DefaultKernelName>
+template <typename NewKernelName, typename OldKernelName>
 device_policy<NewKernelName>
 make_hetero_policy(const device_policy<OldKernelName>& policy)
 {
