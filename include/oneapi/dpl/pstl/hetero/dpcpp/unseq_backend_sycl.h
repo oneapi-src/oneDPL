@@ -210,25 +210,34 @@ struct transform_reduce
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename _Res, typename... _Acc>
     void
-    seq_impl(const _NDItemId __item_id, const _Size __n, ::std::uint8_t __iters_per_work_item,
+    seq_impl(const _NDItemId __item_id, const _Size __n, const ::std::uint8_t __iters_per_work_item,
              const _Size __global_offset, const _AccLocal& __local_mem, _Res& __res, const _Acc&... __acc) const
     {
         auto __global_idx = __item_id.get_global_id(0);
         auto __local_idx = __item_id.get_local_id(0);
         const _Size __adjusted_global_id = __global_offset + __iters_per_work_item * __global_idx;
         const _Size __adjusted_n = __global_offset + __n;
+
         // Sequential load and reduce from global memory
+        // 4-wide vectorized path (__iters_per_work_item are multiples of four)
         if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
         {
-            // Keep these statements in the same scope to allow for better memory alignment
             new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
-            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
+            __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 1, __acc...));
+            __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 2, __acc...));
+            __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 3, __acc...));
+            for (_Size __i = 4; __i < __iters_per_work_item; __i += 4)
+            {
                 __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __i, __acc...));
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __i + 1, __acc...));
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __i + 2, __acc...));
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __i + 3, __acc...));
+            }
         }
+        // Remainder path
         else if (__adjusted_global_id < __adjusted_n)
         {
             const _Size __items_to_process = __adjusted_n - __adjusted_global_id;
-            // Keep these statements in the same scope to allow for better memory alignment
             new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
             for (_Size __i = 1; __i < __items_to_process; ++__i)
                 __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __i, __acc...));
@@ -238,37 +247,71 @@ struct transform_reduce
 
     template <typename _NDItemId, typename _Size, typename _Res, typename _AccLocal, typename... _Acc>
     void
-    nonseq_impl(const _NDItemId __item_id, const _Size __n, ::std::uint8_t __iters_per_work_item,
+    nonseq_impl(const _NDItemId __item_id, const _Size __n, const ::std::uint8_t __iters_per_work_item,
                 const _Size __global_offset, const _AccLocal& __local_mem, _Res& __res, const _Acc&... __acc) const
     {
         auto __local_idx = __item_id.get_local_id(0);
-        const _Size __stride = __item_id.get_local_range(0);
+        const _Size __local_range = __item_id.get_local_range(0);
+        const _Size __stride = __local_range * 4;
+        const _Size __no_vec_ops = __iters_per_work_item / 4;
 
-        const _Size __adjusted_global_id =
-            __global_offset + __item_id.get_group_linear_id() * __stride * __iters_per_work_item + __local_idx;
+        _Size __adjusted_global_id =
+            __global_offset + __item_id.get_group_linear_id() * __local_range * __iters_per_work_item + __local_idx * 4;
         const _Size __adjusted_n = __global_offset + __n;
 
         // Coalesced load and reduce from global memory
-        if (__adjusted_global_id + __stride * __iters_per_work_item < __adjusted_n)
+        if (__adjusted_global_id + __stride * (__no_vec_ops - 1) + 3 < __adjusted_n)
         {
             new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
-            for (_Size __i = 1; __i < __iters_per_work_item; ++__i)
-                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
+            __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 1, __acc...));
+            __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 2, __acc...));
+            __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 3, __acc...));
+            for (_Size __i = 1; __i < __no_vec_ops; ++__i)
+            {
+                __adjusted_global_id += __stride;
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id, __acc...));
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 1, __acc...));
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 2, __acc...));
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 3, __acc...));
+            }
+        }
+        else if (__adjusted_global_id + 3 < __adjusted_n)
+        {
+            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+            __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 1, __acc...));
+            __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 2, __acc...));
+            __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 3, __acc...));
+            __adjusted_global_id += __stride;
+            while (__adjusted_global_id + 3 < __adjusted_n)
+            {
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id, __acc...));
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 1, __acc...));
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 2, __acc...));
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 3, __acc...));
+                __adjusted_global_id += __stride;
+            }
+            if (__adjusted_global_id < __adjusted_n)
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id, __acc...));
+            if (__adjusted_global_id + 1 < __adjusted_n)
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 1, __acc...));
+            if (__adjusted_global_id + 2 < __adjusted_n)
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 2, __acc...));
+            __local_mem[__local_idx] = __res.__v;
         }
         else if (__adjusted_global_id < __adjusted_n)
         {
-            const _Size __items_to_process =
-                std::max(((__adjusted_n - __adjusted_global_id - 1) / __stride) + 1, static_cast<_Size>(0));
             new (&__res.__v) _Tp(__unary_op(__adjusted_global_id, __acc...));
-            for (_Size __i = 1; __i < __items_to_process; ++__i)
+            if (__adjusted_global_id + 1 < __adjusted_n)
                 __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + __stride * __i, __acc...));
+            if (__adjusted_global_id + 2 < __adjusted_n)
+                __res.__v = __binary_op(__res.__v, __unary_op(__adjusted_global_id + 2, __acc...));
         }
         return;
     }
 
     // For non-SPIR-V targets, we check if the operator is commutative before selecting the appropriate codepath.
     // On SPIR-V targets, the sequential implementation with the non-commutative operator is currently more performant.
-    static constexpr bool __use_nonseq_impl = !oneapi::dpl::__internal::__is_spirv_target_v && _Commutative::value;
+    static constexpr bool __use_nonseq_impl = _Commutative::value;
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename _Res, typename... _Acc>
     inline void
@@ -295,8 +338,9 @@ struct transform_reduce
             _Size __items_per_work_group = __work_group_size * __iters_per_work_item;
             _Size __full_group_contrib = (__n / __items_per_work_group) * __work_group_size;
             _Size __last_wg_remainder = __n % __items_per_work_group;
-
-            _Size __last_wg_contrib = ::std::min(__last_wg_remainder, static_cast<_Size>(__work_group_size));
+            // Adjust remainder and wg size for vector size
+            _Size __last_wg_vec = oneapi::dpl::__internal::__dpl_ceiling_div(__last_wg_remainder, 4);
+            _Size __last_wg_contrib = ::std::min(__last_wg_vec, static_cast<_Size>(__work_group_size * 4));
             return __full_group_contrib + __last_wg_contrib;
         }
         else
