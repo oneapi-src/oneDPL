@@ -216,8 +216,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 lower_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2, OutputIterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
 
     return internal::lower_bound_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
                                       value_end, result, oneapi::dpl::__internal::__pstl_less());
@@ -229,8 +228,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 lower_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2, OutputIterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
 
     return internal::lower_bound_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
                                       value_end, result, comp);
@@ -244,8 +242,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 upper_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2, OutputIterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
 
     return internal::upper_bound_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
                                       value_end, result, oneapi::dpl::__internal::__pstl_less());
@@ -257,8 +254,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 upper_bound(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
             InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2, OutputIterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
 
     return internal::upper_bound_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
                                       value_end, result, comp);
@@ -273,8 +269,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
               InputIterator2 value_end, OutputIterator result)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2, OutputIterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
 
     return internal::binary_search_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
                                         value_end, result, oneapi::dpl::__internal::__pstl_less());
@@ -286,8 +281,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<Policy, OutputIterator>
 binary_search(Policy&& policy, InputIterator1 start, InputIterator1 end, InputIterator2 value_start,
               InputIterator2 value_end, OutputIterator result, StrictWeakOrdering comp)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<Policy, InputIterator1, InputIterator2, OutputIterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(policy, start, value_start, result);
 
     return internal::binary_search_impl(__dispatch_tag, ::std::forward<Policy>(policy), start, end, value_start,
                                         value_end, result, comp);
