@@ -208,11 +208,32 @@ struct transform_reduce
     _Operation1 __binary_op;
     _Operation2 __unary_op;
 
+    template <typename _Res, typename _Size, typename... _Acc>
+    inline _Res
+    vectorized_reduction_first(const _Size __start_idx, const _Acc&... __acc) const
+    {
+        _Res __res = __unary_op(__start_idx, __acc...);
+        __res = __binary_op(__res, __unary_op(__start_idx + 1, __acc...));
+        __res = __binary_op(__res, __unary_op(__start_idx + 2, __acc...));
+        return __binary_op(__res, __unary_op(__start_idx + 3, __acc...));
+    }
+
+    template <typename _Size, typename _Res, typename... _Acc>
+    inline void
+    vectorized_reduction_remainder(const _Size __start_idx, _Res& __res, const _Acc&... __acc) const
+    {
+        __res = __binary_op(__res, __unary_op(__start_idx, __acc...));
+        __res = __binary_op(__res, __unary_op(__start_idx + 1, __acc...));
+        __res = __binary_op(__res, __unary_op(__start_idx + 2, __acc...));
+        __res = __binary_op(__res, __unary_op(__start_idx + 3, __acc...));
+    }
+
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     void
     seq_impl(const _NDItemId __item_id, const _Size __n, const ::std::uint8_t __iters_per_work_item,
              const _Size __global_offset, const _AccLocal& __local_mem, const _Acc&... __acc) const
     {
+        using _Res = typename _AccLocal::value_type;
         auto __global_idx = __item_id.get_global_id(0);
         auto __local_idx = __item_id.get_local_id(0);
         const _Size __adjusted_global_id = __global_offset + __iters_per_work_item * __global_idx;
@@ -222,17 +243,9 @@ struct transform_reduce
         // 4-wide vectorized path (__iters_per_work_item are multiples of four)
         if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
         {
-            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 1, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 2, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 3, __acc...));
+            _Res __res = vectorized_reduction_first<_Res>(__adjusted_global_id, __acc...);
             for (_Size __i = 4; __i < __iters_per_work_item; __i += 4)
-            {
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i + 1, __acc...));
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i + 2, __acc...));
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i + 3, __acc...));
-            }
+                vectorized_reduction_remainder(__adjusted_global_id + __i, __res, __acc...);
             __local_mem[__local_idx] = __res;
         }
         // Remainder path
@@ -251,6 +264,7 @@ struct transform_reduce
     nonseq_impl(const _NDItemId __item_id, const _Size __n, const ::std::uint8_t __iters_per_work_item,
                 const _Size __global_offset, const _AccLocal& __local_mem, const _Acc&... __acc) const
     {
+        using _Res = typename _AccLocal::value_type;
         auto __local_idx = __item_id.get_local_id(0);
         const _Size __local_range = __item_id.get_local_range(0);
         const _Size __stride = __local_range * 4;
@@ -263,33 +277,18 @@ struct transform_reduce
         // Coalesced load and reduce from global memory
         if (__adjusted_global_id + __stride * (__no_vec_ops - 1) + 3 < __adjusted_n)
         {
-            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 1, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 2, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 3, __acc...));
+            _Res __res = vectorized_reduction_first<_Res>(__adjusted_global_id, __acc...);
             for (_Size __i = 1; __i < __no_vec_ops; ++__i)
-            {
-                __adjusted_global_id += __stride;
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id, __acc...));
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 1, __acc...));
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 2, __acc...));
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 3, __acc...));
-            }
+                vectorized_reduction_remainder(__adjusted_global_id + __i * __stride, __res, __acc...);
             __local_mem[__local_idx] = __res;
         }
         else if (__adjusted_global_id + 3 < __adjusted_n)
         {
-            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 1, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 2, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 3, __acc...));
+            _Res __res = vectorized_reduction_first<_Res>(__adjusted_global_id, __acc...);
             __adjusted_global_id += __stride;
             while (__adjusted_global_id + 3 < __adjusted_n)
             {
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id, __acc...));
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 1, __acc...));
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 2, __acc...));
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 3, __acc...));
+                vectorized_reduction_remainder(__adjusted_global_id, __res, __acc...);
                 __adjusted_global_id += __stride;
             }
             if (__adjusted_global_id < __adjusted_n)
@@ -302,7 +301,7 @@ struct transform_reduce
         }
         else if (__adjusted_global_id < __adjusted_n)
         {
-            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
+            _Res __res = __unary_op(__adjusted_global_id, __acc...);
             if (__adjusted_global_id + 1 < __adjusted_n)
                 __res = __binary_op(__res, __unary_op(__adjusted_global_id + 1, __acc...));
             if (__adjusted_global_id + 2 < __adjusted_n)
