@@ -486,18 +486,18 @@ __pattern_for_loop(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
 
 // Special versions for for_loop: handles both iterators and integral types(treated as random access iterators)
 template <typename _ExecutionPolicy, typename _Ip>
-constexpr auto
-__select_backend_for_loop()
+auto
+__select_backend_for_loop(_ExecutionPolicy&& exec, _Ip __start)
 {
     static_assert(oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value);
 
     if constexpr (::std::is_integral_v<_Ip>)
     {
-        return __select_backend<_ExecutionPolicy>();
+        return __select_backend(exec);
     }
     else
     {
-        return __select_backend<_ExecutionPolicy, _Ip>();
+        return __select_backend(exec, __start);
     }
 }
 
@@ -507,7 +507,7 @@ void
 __for_loop_impl(_ExecutionPolicy&& __exec, _Ip __start, _Ip __finish, _Fp&& __f, _Sp __stride,
                 ::std::tuple<_Rest...>&& __t, ::std::index_sequence<_Is...>)
 {
-    constexpr auto __dispatch_tag = __select_backend_for_loop<_ExecutionPolicy, _Ip>();
+    const auto __dispatch_tag = __select_backend_for_loop(__exec, __start);
 
     oneapi::dpl::__internal::__pattern_for_loop(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __start,
                                                 __finish, __f, __stride, ::std::get<_Is>(::std::move(__t))...);
@@ -519,7 +519,7 @@ void
 __for_loop_n_impl(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Fp&& __f, _Sp __stride,
                   ::std::tuple<_Rest...>&& __t, ::std::index_sequence<_Is...>)
 {
-    constexpr auto __dispatch_tag = __select_backend_for_loop<_ExecutionPolicy, _Ip>();
+    const auto __dispatch_tag = __select_backend_for_loop(__exec, __start);
 
     oneapi::dpl::__internal::__pattern_for_loop_n(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __start,
                                                   __n, __f, __stride, ::std::get<_Is>(::std::move(__t))...);
