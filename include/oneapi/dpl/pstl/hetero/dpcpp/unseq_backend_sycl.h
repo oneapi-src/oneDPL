@@ -228,90 +228,52 @@ struct transform_reduce
         __res = __binary_op(__res, __unary_op(__start_idx + 3, __acc...));
     }
 
-    template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
-    void
-    seq_impl(const _NDItemId __item_id, const _Size __n, const ::std::uint8_t __iters_per_work_item,
-             const _Size __global_offset, const _AccLocal& __local_mem, const _Acc&... __acc) const
+    template <typename _Res, typename _Size, typename... _Acc>
+    _Res
+    full_reduction(const _Size __start_idx, const _Size __no_vec_ops, const _Size __stride, const _Acc&... __acc) const
     {
-        using _Res = typename _AccLocal::value_type;
-        auto __global_idx = __item_id.get_global_id(0);
-        auto __local_idx = __item_id.get_local_id(0);
-        const _Size __adjusted_global_id = __global_offset + __iters_per_work_item * __global_idx;
-        const _Size __adjusted_n = __global_offset + __n;
-
-        // Sequential load and reduce from global memory
-        // 4-wide vectorized path (__iters_per_work_item are multiples of four)
-        if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
-        {
-            _Res __res = vectorized_reduction_first<_Res>(__adjusted_global_id, __acc...);
-            for (_Size __i = 4; __i < __iters_per_work_item; __i += 4)
-                vectorized_reduction_remainder(__adjusted_global_id + __i, __res, __acc...);
-            __local_mem[__local_idx] = __res;
-        }
-        // Remainder path
-        else if (__adjusted_global_id < __adjusted_n)
-        {
-            const _Size __items_to_process = __adjusted_n - __adjusted_global_id;
-            typename _AccLocal::value_type __res = __unary_op(__adjusted_global_id, __acc...);
-            for (_Size __i = 1; __i < __items_to_process; ++__i)
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
-            __local_mem[__local_idx] = __res;
-        }
+        _Res __res = vectorized_reduction_first<_Res>(__start_idx, __acc...);
+        for (_Size __i = 1; __i < __no_vec_ops; ++__i)
+            vectorized_reduction_remainder(__start_idx + __i * __stride, __res, __acc...);
+        return __res;
     }
 
-    template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
-    void
-    nonseq_impl(const _NDItemId __item_id, const _Size __n, const ::std::uint8_t __iters_per_work_item,
-                const _Size __global_offset, const _AccLocal& __local_mem, const _Acc&... __acc) const
+    template <typename _Res, typename _Size, typename... _Acc>
+    _Res
+    partial_reduction(_Size __start_idx, const _Size __n, const _Size __no_vec_ops, const _Size __stride,
+                      const _Acc&... __acc) const
     {
-        using _Res = typename _AccLocal::value_type;
-        auto __local_idx = __item_id.get_local_id(0);
-        const _Size __local_range = __item_id.get_local_range(0);
-        const _Size __stride = __local_range * 4;
-        const _Size __no_vec_ops = __iters_per_work_item / 4;
-
-        _Size __adjusted_global_id =
-            __global_offset + __item_id.get_group_linear_id() * __local_range * __iters_per_work_item + __local_idx * 4;
-        const _Size __adjusted_n = __global_offset + __n;
-
-        // Coalesced load and reduce from global memory
-        if (__adjusted_global_id + __stride * (__no_vec_ops - 1) + 3 < __adjusted_n)
+        _Res __res = vectorized_reduction_first<_Res>(__start_idx, __acc...);
+        __start_idx += __stride;
+        for (_Size __i = 1; __i < __no_vec_ops; ++__i)
         {
-            _Res __res = vectorized_reduction_first<_Res>(__adjusted_global_id, __acc...);
-            for (_Size __i = 1; __i < __no_vec_ops; ++__i)
-                vectorized_reduction_remainder(__adjusted_global_id + __i * __stride, __res, __acc...);
-            __local_mem[__local_idx] = __res;
+            if (__start_idx + 3 < __n)
+                vectorized_reduction_remainder(__start_idx, __res, __acc...);
+            else
+                break;
+            __start_idx += __stride;
         }
-        else if (__adjusted_global_id + 3 < __adjusted_n)
-        {
-            _Res __res = vectorized_reduction_first<_Res>(__adjusted_global_id, __acc...);
-            __adjusted_global_id += __stride;
-            while (__adjusted_global_id + 3 < __adjusted_n)
-            {
-                vectorized_reduction_remainder(__adjusted_global_id, __res, __acc...);
-                __adjusted_global_id += __stride;
-            }
-            if (__adjusted_global_id < __adjusted_n)
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id, __acc...));
-            if (__adjusted_global_id + 1 < __adjusted_n)
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 1, __acc...));
-            if (__adjusted_global_id + 2 < __adjusted_n)
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 2, __acc...));
-            __local_mem[__local_idx] = __res;
-        }
-        else if (__adjusted_global_id < __adjusted_n)
-        {
-            _Res __res = __unary_op(__adjusted_global_id, __acc...);
-            if (__adjusted_global_id + 1 < __adjusted_n)
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 1, __acc...));
-            if (__adjusted_global_id + 2 < __adjusted_n)
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 2, __acc...));
-            __local_mem[__local_idx] = __res;
-        }
+        if (__start_idx < __n)
+            __res = __binary_op(__res, __unary_op(__start_idx, __acc...));
+        if (__start_idx + 1 < __n)
+            __res = __binary_op(__res, __unary_op(__start_idx + 1, __acc...));
+        if (__start_idx + 2 < __n)
+            __res = __binary_op(__res, __unary_op(__start_idx + 2, __acc...));
+        return __res;
     }
 
-    // For non-SPIR-V targets, we check if the operator is commutative before selecting the appropriate codepath.
-    // On SPIR-V targets, the sequential implementation with the non-commutative operator is currently more performant.
+    template <typename _Res, typename _Size, typename... _Acc>
+    _Res
+    scalar_reduction(const _Size __start_idx, const _Size __n, const _Acc&... __acc) const
+    {
+        _Res __res = __unary_op(__start_idx, __acc...);
+        if (__start_idx + 1 < __n)
+            __res = __binary_op(__res, __unary_op(__start_idx + 1, __acc...));
+        if (__start_idx + 2 < __n)
+            __res = __binary_op(__res, __unary_op(__start_idx + 2, __acc...));
+        return __res;
+    }
+
     static constexpr bool __use_nonseq_impl = _Commutative::value;
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
@@ -319,13 +281,52 @@ struct transform_reduce
     operator()(const _NDItemId& __item_id, const _Size& __n, const ::std::uint8_t& __iters_per_work_item,
                const _Size& __global_offset, const _AccLocal& __local_mem, const _Acc&... __acc) const
     {
+        using _Res = typename _AccLocal::value_type;
+        auto __local_idx = __item_id.get_local_id(0);
+        auto __global_idx = __item_id.get_global_id(0);
+        const _Size __local_range = __item_id.get_local_range(0);
+        const _Size __no_vec_ops = __iters_per_work_item / 4;
+        const _Size __adjusted_n = __global_offset + __n;
+
+        _Size __stride = 4; // sequential loads with 4-wide vectors
+        if constexpr (__use_nonseq_impl)
+            __stride = __local_range * 4; // coalesced loads with 4-wide vectors
+        _Size __adjusted_global_id = __global_offset;
         if constexpr (__use_nonseq_impl)
         {
-            return nonseq_impl(__item_id, __n, __iters_per_work_item, __global_offset, __local_mem, __acc...);
+            __adjusted_global_id +=
+                __item_id.get_group_linear_id() * __local_range * __iters_per_work_item + __local_idx * 4;
+        }
+        else
+            __adjusted_global_id += __iters_per_work_item * __global_idx;
+
+        bool __is_full = false;
+        if constexpr (__use_nonseq_impl)
+        {
+            if (__adjusted_global_id + __stride * (__no_vec_ops - 1) + 3 < __adjusted_n)
+                __is_full = true;
         }
         else
         {
-            return seq_impl(__item_id, __n, __iters_per_work_item, __global_offset, __local_mem, __acc...);
+            if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
+                __is_full = true;
+        }
+
+        // 4-wide vectorized path (__iters_per_work_item are multiples of four)
+        if (__is_full)
+        {
+            __local_mem[__local_idx] = full_reduction<_Res>(__adjusted_global_id, __no_vec_ops, __stride, __acc...);
+        }
+        // At least one vector operation
+        else if (__adjusted_global_id + 3 < __adjusted_n)
+        {
+            __local_mem[__local_idx] =
+                partial_reduction<_Res>(__adjusted_global_id, __adjusted_n, __no_vec_ops, __stride, __acc...);
+        }
+        // Scalar remainder
+        else if (__adjusted_global_id < __adjusted_n)
+        {
+            __local_mem[__local_idx] = scalar_reduction<_Res>(__adjusted_global_id, __adjusted_n, __acc...);
         }
     }
 
