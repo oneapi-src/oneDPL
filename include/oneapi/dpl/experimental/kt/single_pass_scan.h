@@ -18,6 +18,7 @@
 
 #include "../../pstl/hetero/dpcpp/sycl_defs.h"
 #include "../../pstl/hetero/dpcpp/unseq_backend_sycl.h"
+#include "../../pstl/hetero/dpcpp/parallel_backend_sycl.h"
 
 namespace oneapi::dpl::experimental::kt
 {
@@ -324,6 +325,19 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
 
     assert("This device does not support 64-bit atomics" &&
            (sizeof(_Type) < 64 || __queue.get_device().has(sycl::aspect::atomic64)));
+
+    // Next power of 2 greater than or equal to __n
+    auto __n_uniform = __n;
+    if ((__n_uniform & (__n_uniform - 1)) != 0)
+        __n_uniform = oneapi::dpl::__internal::__dpl_bit_floor(__n) << 1;
+
+    // Perform a single-work group scan if the input is small
+    if (oneapi::dpl::__par_backend_hetero::__group_scan_fits_in_slm<_Type>(__queue, __n, __n_uniform))
+    {
+        return oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_single_group(
+            oneapi::dpl::execution::__dpl::make_device_policy(__queue), ::std::forward<_InRange>(__in_rng),
+            ::std::forward<_OutRange>(__out_rng), __n, oneapi::dpl::__internal::__no_op{}, unseq_backend::__no_init_value<_Type>{}, __binary_op, ::std::true_type{});
+    }
 
     constexpr ::std::size_t __workgroup_size = _KernelParam::workgroup_size;
     constexpr ::std::size_t __data_per_workitem = _KernelParam::data_per_workitem;
