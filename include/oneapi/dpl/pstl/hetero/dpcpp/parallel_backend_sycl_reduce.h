@@ -475,15 +475,15 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
     else if (__iters_per_work_item <= 32 * __work_group_size * 32 * __work_group_size)
     {
         ::std::size_t __iters_per_work_item_device_kernel =
-            oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __work_group_size);
+            oneapi::dpl::__internal::__dpl_ceiling_div(__n, 32 * __work_group_size);
         __iters_per_work_item_device_kernel = ((__iters_per_work_item_device_kernel + 3) / 4) * 4;
         ::std::size_t __iters_per_work_item_work_group_kernel = 4;
         if (__iters_per_work_item_device_kernel > 32)
         {
-            __iters_per_work_item_device_kernel = 32;
             __iters_per_work_item_work_group_kernel =
-                oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item, __iters_per_work_item_device_kernel);
+                oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item_device_kernel, 32);
             __iters_per_work_item_work_group_kernel = ((__iters_per_work_item_work_group_kernel + 3) / 4) * 4;
+            __iters_per_work_item_device_kernel = 32;
         }
         return __parallel_transform_reduce_mid_impl<_Tp, _Commutative>(
             __backend_tag, ::std::forward<_ExecutionPolicy>(__exec), __n, __work_group_size, __iters_per_work_item_device_kernel,
