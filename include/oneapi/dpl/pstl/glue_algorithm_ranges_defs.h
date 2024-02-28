@@ -33,6 +33,31 @@ operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred = {}, _Proj __proj 
 
 inline constexpr adjacent_find_fn adjacent_find;
 
+struct search_fn
+{
+template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred = std::ranges::equal_to,
+typename _Proj1 = std::identity, typename _Proj2 = std::identity>
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R1>>
+operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred = {}, _Proj1 __proj1 = {},
+    _Proj2 __proj2 = {}) const;
+};
+
+inline constexpr search_fn search;
+
+struct search_n_fn
+{
+template<typename _ExecutionPolicy, typename _R, typename _T, typename _Pred = std::ranges::equal_to,
+typename _Proj = std::identity>
+constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R>>
+operator()(_ExecutionPolicy&& __exec, _R&& __r, std::ranges::range_difference_t<_R> __count, const _T& __value,
+    _Pred __pred = {}, _Proj __proj = {}) const;
+};
+
+inline constexpr search_n_fn search_n;
+
+}
+#endif
+
 namespace experimental
 {
 namespace ranges
