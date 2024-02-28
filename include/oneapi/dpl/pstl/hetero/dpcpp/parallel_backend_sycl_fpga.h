@@ -277,18 +277,13 @@ auto
 __parallel_histogram(_ExecutionPolicy&& __exec, const _Event& __init_event, _Range1&& __input, _Range2&& __bins,
                      const _BinHashMgr& __binhash_manager)
 {
-    if constexpr (sizeof(oneapi::dpl::__internal::__value_t<_Range2>) <= sizeof(::std::uint32_t))
-    {
-        // workaround until we implement more performant version for patterns
-        return oneapi::dpl::__par_backend_hetero::__parallel_histogram(
-            __exec.__device_policy(), __init_event, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
-            __binhash_manager);
-    }
-    else
-    {
-        static_assert(false, "histogram is not supported on FPGA devices with output types greater than 32 bits");
-        return __future(sycl::event{});
-    }
+    static_assert(sizeof(oneapi::dpl::__internal::__value_t<_Range2>) <= sizeof(::std::uint32_t),
+                  "histogram is not supported on FPGA devices with output types greater than 32 bits");
+
+    // workaround until we implement more performant version for patterns
+    return oneapi::dpl::__par_backend_hetero::__parallel_histogram(__exec.__device_policy(), __init_event,
+                                                                   ::std::forward<_Range1>(__input),
+                                                                   ::std::forward<_Range2>(__bins), __binhash_manager);
 }
 
 } // namespace __par_backend_hetero
