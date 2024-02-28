@@ -184,24 +184,29 @@ uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size 
 }
 
 #if (_PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN)
-template <class _ExecutionPolicy>
-struct EvaDestroylWorkaroundPolicy
-{
-    using ExecutionPolicy = _ExecutionPolicy;
-};
 
-template <>
-struct EvaDestroylWorkaroundPolicy<oneapi::dpl::execution::parallel_unsequenced_policy>
+// oneapi::dpl::execution::parallel_unsequenced_policy -> oneapi::dpl::execution::parallel_policy
+auto
+get_destroy_dest_policy(oneapi::dpl::execution::parallel_unsequenced_policy)
 {
-    using ExecutionPolicy = oneapi::dpl::execution::parallel_policy;
-};
+    return oneapi::dpl::execution::parallel_policy{};
+}
 
-template <>
-struct EvaDestroylWorkaroundPolicy<oneapi::dpl::execution::unsequenced_policy>
+// oneapi::dpl::execution::unsequenced_policy -> oneapi::dpl::execution::sequenced_policy
+auto get_destroy_dest_policy(oneapi::dpl::execution::unsequenced_policy)
 {
-    using ExecutionPolicy = oneapi::dpl::execution::sequenced_policy;
-};
-#endif // _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN
+    return oneapi::dpl::execution::sequenced_policy{};
+}
+
+#endif // (_PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN)
+
+// 1:1 for all other policies
+template <typename _ExecutionPolicy>
+auto
+get_destroy_dest_policy(_ExecutionPolicy&& __exec)
+{
+    return __exec;
+}
 
 // [specialized.destroy]
 
@@ -214,14 +219,7 @@ destroy(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __
 
     if constexpr (!::std::is_trivially_destructible_v<_ValueType>)
     {
-        using _ExecutionPolicyDest =
-#if (_PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN)
-            typename EvaDestroylWorkaroundPolicy<::std::decay_t<_ExecutionPolicy>>::ExecutionPolicy;
-#else
-            _ExecutionPolicy;
-#endif // _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN
-
-        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(get_destroy_dest_policy(__exec), __first);
 
         oneapi::dpl::__internal::__pattern_walk1(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
                                                  __last, [](_ReferenceType __val) { __val.~_ValueType(); });
@@ -241,14 +239,7 @@ destroy_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n)
     }
     else
     {
-        using _ExecutionPolicyDest =
-#if (_PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN)
-            typename EvaDestroylWorkaroundPolicy<::std::decay_t<_ExecutionPolicy>>::ExecutionPolicy;
-#else
-            _ExecutionPolicy;
-#endif // _PSTL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN || _ONEDPL_ICPX_OMP_SIMD_DESTROY_WINDOWS_BROKEN
-
-        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(get_destroy_dest_policy(__exec), __first);
 
         return oneapi::dpl::__internal::__pattern_walk1_n(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                           __first, __n,
