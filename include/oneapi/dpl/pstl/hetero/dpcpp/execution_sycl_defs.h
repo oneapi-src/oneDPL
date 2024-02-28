@@ -296,35 +296,25 @@ struct __device_backend_tag
 {
 };
 
-template <typename HeteroPolicy>
-struct __select_backend_for_hetero_policy_trait;
-
-template <typename KernelName>
-struct __select_backend_for_hetero_policy_trait<execution::device_policy<KernelName>>
+template <class... _IteratorTypes, typename _KernelName>
+::std::enable_if_t<__is_random_access_iterator_v<_IteratorTypes...>, __hetero_tag<__device_backend_tag>>
+__select_backend(const execution::device_policy<_KernelName>&, _IteratorTypes&&...)
 {
-    using __backend_tag = __device_backend_tag;
-};
+    return {};
+}
 
 #if _ONEDPL_FPGA_DEVICE
 struct __fpga_backend_tag : __device_backend_tag
 {
 };
 
-template <unsigned int factor, typename KernelName>
-struct __select_backend_for_hetero_policy_trait<execution::fpga_policy<factor, KernelName>>
+template <class... _IteratorTypes, unsigned int _Factor, typename _KernelName>
+::std::enable_if_t<__is_random_access_iterator_v<_IteratorTypes...>, __hetero_tag<__fpga_backend_tag>>
+__select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _IteratorTypes&&...)
 {
-    using __backend_tag = __fpga_backend_tag;
-};
-#endif
-
-template <class _ExecutionPolicy, class... _IteratorTypes>
-constexpr ::std::enable_if_t<
-    __is_random_access_iterator_v<_IteratorTypes...>,
-    __hetero_tag<typename __select_backend_for_hetero_policy_trait<::std::decay_t<_ExecutionPolicy>>::__backend_tag>>
-__select_backend()
-{
-    return {}; // return __hetero_tag<__device_backend_tag> or __hetero_tag<__fpga_backend_tag>
+    return {};
 }
+#endif
 
 } // namespace __internal
 

@@ -43,8 +43,7 @@ auto
 transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
                 _ForwardIterator2 __result, _UnaryOperation __op, _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = oneapi::dpl::__internal::__pattern_walk2_async(
@@ -62,8 +61,7 @@ transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
                 _ForwardIterator2 __first2, _ForwardIterator __result, _BinaryOperation __op,
                 _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1,
-                                                                              _ForwardIterator2, _ForwardIterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2, __result);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = oneapi::dpl::__internal::__pattern_walk3_async(
@@ -79,8 +77,7 @@ auto
 copy_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result,
            _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = oneapi::dpl::__internal::__pattern_walk2_brick_async(
@@ -102,7 +99,7 @@ sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Comp
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _Iterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
     using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
     return __par_backend_hetero::__parallel_stable_sort(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
@@ -127,7 +124,7 @@ auto
 for_each_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Function __f,
                _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = oneapi::dpl::__internal::__pattern_walk1_async(
@@ -144,7 +141,7 @@ auto
 reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
              _BinaryOperation __binary_op, _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     auto ret_val = oneapi::dpl::__internal::__pattern_transform_reduce_async(
@@ -181,7 +178,7 @@ auto
 fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value,
            _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_fill_async(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
@@ -198,8 +195,7 @@ auto
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                        _T __init, _BinaryOp1 __binary_op1, _BinaryOp2 __binary_op2, _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_reduce_async(
@@ -214,7 +210,7 @@ auto
 transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt __last, _T __init,
                        _BinaryOp __binary_op, _UnaryOp __unary_op, _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_reduce_async(
@@ -241,8 +237,7 @@ auto
 inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     using _ValueType = typename ::std::iterator_traits<_ForwardIt1>::value_type;
     wait_for_all(::std::forward<_Events>(__dependencies)...);
@@ -258,8 +253,7 @@ auto
 inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _BinaryOperation __binary_op, _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(
@@ -275,8 +269,7 @@ auto
 inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _BinaryOperation __binary_op, _T __init, _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(
@@ -290,8 +283,7 @@ auto
 exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _T __init, _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(
@@ -307,8 +299,7 @@ auto
 exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt1 __last1, _ForwardIt2 __first2,
                      _T __init, _BinaryOperation __binary_op, _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(
@@ -324,8 +315,7 @@ transform_exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
                                _ForwardIt2 __first2, _T __init, _BinaryOperation __binary_op,
                                _UnaryOperation __unary_op, _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(__dispatch_tag,
@@ -342,8 +332,7 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
                                _ForwardIt2 __first2, _BinaryOperation __binary_op, _UnaryOperation __unary_op,
                                _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(
@@ -360,8 +349,7 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
                                _ForwardIt2 __first2, _BinaryOperation __binary_op, _UnaryOperation __unary_op,
                                _T __init, _Events&&... __dependencies)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIt1, _ForwardIt2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
     return oneapi::dpl::__internal::__pattern_transform_scan_async(__dispatch_tag,

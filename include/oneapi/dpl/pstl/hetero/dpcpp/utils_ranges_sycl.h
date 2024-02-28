@@ -719,14 +719,24 @@ struct __get_sycl_range
 //TODO required correct implementation of this __ranges::__select_backend()
 // 1. There is still not RA ranges checks
 // 2. Obviously, a return tag is not necessarily oneapi::dpl::__internal::__hetero_tag
-template <class _ExecutionPolicy, typename... _Ranges>
-constexpr oneapi::dpl::__internal::__hetero_tag<
-    typename oneapi::dpl::__internal::__select_backend_for_hetero_policy_trait<
-        ::std::decay_t<_ExecutionPolicy>>::__backend_tag>
-__select_backend()
+template <typename _KernelName, typename... _Ranges>
+oneapi::dpl::__internal::__hetero_tag<oneapi::dpl::__internal::__device_backend_tag>
+__select_backend(const execution::device_policy<_KernelName>&, _Ranges&&...)
 {
-    return {}; // return __hetero_tag<__device_backend_tag> or __hetero_tag<__fpga_backend_tag>
+    return {};
 }
+
+#if _ONEDPL_FPGA_DEVICE
+//TODO required correct implementation of this __ranges::__select_backend()
+// 1. There is still not RA ranges checks
+// 2. Obviously, a return tag is not necessarily oneapi::dpl::__internal::__hetero_tag
+template <unsigned int _Factor, typename _KernelName, typename... _Ranges>
+oneapi::dpl::__internal::__hetero_tag<oneapi::dpl::__internal::__fpga_backend_tag>
+__select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _Ranges&&...)
+{
+    return {};
+}
+#endif
 
 } // namespace __ranges
 } // namespace dpl

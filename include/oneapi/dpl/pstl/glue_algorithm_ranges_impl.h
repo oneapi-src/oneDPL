@@ -39,7 +39,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 any_of(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     return oneapi::dpl::__internal::__ranges::__pattern_any_of(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                                views::all_read(::std::forward<_Range>(__rng)), __pred);
@@ -72,7 +72,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Function>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 for_each(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __f,
                                                         views::all(::std::forward<_Range>(__rng)));
@@ -84,7 +84,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 find_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     return oneapi::dpl::__internal::__ranges::__pattern_find_if(__dispatch_tag,
                                                                 ::std::forward<_ExecutionPolicy>(__exec),
@@ -118,7 +118,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range1>>
 find_end(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryPredicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng1, __rng2);
 
     return oneapi::dpl::__internal::__ranges::__pattern_find_end(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
@@ -141,7 +141,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range1>>
 find_first_of(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryPredicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng1, __rng2);
 
     return oneapi::dpl::__internal::__ranges::__pattern_find_first_of(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
@@ -163,7 +163,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
@@ -185,7 +185,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 count_if(_ExecutionPolicy&& __exec, _Range&& __rng, _Predicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     return oneapi::dpl::__internal::__ranges::__pattern_count(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                               views::all_read(::std::forward<_Range>(__rng)), __pred);
@@ -208,7 +208,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range1>>
 search(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryPredicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng1, __rng2);
 
     return oneapi::dpl::__internal::__ranges::__pattern_search(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
@@ -228,7 +228,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Size, typename _
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 search_n(_ExecutionPolicy&& __exec, _Range&& __rng, _Size __count, const _Tp& __value, _BinaryPredicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     return oneapi::dpl::__internal::__ranges::__pattern_search_n(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
@@ -249,7 +249,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng, __result);
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                         oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{},
@@ -262,7 +262,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range2>>
 copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _Predicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng, __result);
 
     return oneapi::dpl::__internal::__ranges::__pattern_copy_if(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng)),
@@ -276,7 +276,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range1>>
 swap_ranges(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng1, __rng2);
 
     using _ReferenceType1 = oneapi::dpl::__internal::__value_t<_Range1>&;
     using _ReferenceType2 = oneapi::dpl::__internal::__value_t<_Range2>&;
@@ -295,7 +295,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 transform(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _UnaryOperation __op)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng, __result);
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), [__op](auto x, auto& z) { z = __op(x); },
@@ -306,8 +306,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 transform(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __result, _BinaryOperation __op)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2, _Range3>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng1, __rng2, __result);
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), [__op](auto x, auto y, auto& z) { z = __op(x, y); },
@@ -321,7 +320,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _UnaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 remove_if(_ExecutionPolicy&& __exec, _Range&& __rng, _UnaryPredicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     return oneapi::dpl::__internal::__ranges::__pattern_remove_if(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all(::std::forward<_Range>(__rng)), __pred);
@@ -365,7 +364,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 unique(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     return oneapi::dpl::__internal::__ranges::__pattern_unique(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                                views::all(::std::forward<_Range>(__rng)), __pred);
@@ -384,7 +383,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range2>>
 unique_copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _BinaryPredicate __pred)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng, __result);
 
     return oneapi::dpl::__internal::__ranges::__pattern_unique_copy(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng)),
@@ -443,7 +442,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _UnaryPredicate, 
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 replace_if(_ExecutionPolicy&& __exec, _Range&& __rng, _UnaryPredicate __pred, const _Tp& __new_value)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
@@ -470,7 +469,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 replace_copy_if(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result, _UnaryPredicate __pred,
                 const _Tp& __new_value)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng, __result);
 
     auto __src = views::all_read(::std::forward<_Range1>(__rng));
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
@@ -504,7 +503,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 sort(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     oneapi::dpl::__internal::__ranges::__pattern_sort(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                       views::all(::std::forward<_Range>(__rng)), __comp, __proj);
@@ -541,7 +540,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 is_sorted_until(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     auto __view = views::all_read(::std::forward<_Range>(__rng));
     const auto __res = oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
@@ -563,7 +562,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 is_sorted(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     auto __view = views::all_read(::std::forward<_Range>(__rng));
     return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
@@ -586,7 +585,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typenam
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
 equal(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryPredicate __p)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng1, __rng2);
 
     return oneapi::dpl::__internal::__ranges::__pattern_equal(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                               views::all_read(::std::forward<_Range1>(__rng1)),
@@ -607,7 +606,7 @@ template <typename _ExecutionPolicy, typename _Range1, typename _Range2>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 move(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng1, __rng2);
 
     using _DecayedExecutionPolicy = ::std::decay_t<_ExecutionPolicy>;
 
@@ -624,8 +623,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
                                                       oneapi::dpl::__internal::__difference_t<_Range3>>
 merge(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _Range3&& __rng3, _Compare __comp)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2, _Range3>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng1, __rng2, __rng3);
 
     return oneapi::dpl::__internal::__ranges::__pattern_merge(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__rng1)),
@@ -648,7 +646,7 @@ template <typename _ExecutionPolicy, typename _Range, typename _Compare>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::__internal::__difference_t<_Range>>
 min_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     return oneapi::dpl::__internal::__ranges::__pattern_min_element(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
@@ -686,7 +684,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<
     ::std::pair<oneapi::dpl::__internal::__difference_t<_Range>, oneapi::dpl::__internal::__difference_t<_Range>>>
 minmax_element(_ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range>();
+    const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
     return oneapi::dpl::__internal::__ranges::__pattern_minmax_element(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
@@ -710,8 +708,8 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 reduce_by_segment(_ExecutionPolicy&& __exec, _Range1&& __keys, _Range2&& __values, _Range3&& __out_keys,
                   _Range4&& __out_values, _BinaryPredicate __binary_pred, _BinaryOperator __binary_op)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__ranges::__select_backend<_ExecutionPolicy, _Range1, _Range2, _Range3>();
+    const auto __dispatch_tag =
+        oneapi::dpl::__ranges::__select_backend(__exec, __keys, __values, __out_keys, __out_values);
 
     return oneapi::dpl::__internal::__ranges::__pattern_reduce_by_segment(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range1>(__keys)),

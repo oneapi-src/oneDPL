@@ -71,8 +71,7 @@ transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Forward
 {
     typedef typename ::std::iterator_traits<_ForwardIterator1>::value_type _InputType;
 
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     return oneapi::dpl::__internal::__pattern_transform_reduce(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init,
@@ -85,8 +84,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
 transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                  _ForwardIterator2 __first2, _Tp __init, _BinaryOperation1 __binary_op1, _BinaryOperation2 __binary_op2)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     return oneapi::dpl::__internal::__pattern_transform_reduce(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                                __first1, __last1, __first2, __init, __binary_op1,
@@ -98,7 +96,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Tp>
 transform_reduce(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last, _Tp __init,
                  _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
-    constexpr auto __dispatch_tag = oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     return oneapi::dpl::__internal::__pattern_transform_reduce(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                                __first, __last, __init, __binary_op, __unary_op);
@@ -225,8 +223,7 @@ transform_exclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _
                          _ForwardIterator2 __result, _Tp __init, _BinaryOperation __binary_op,
                          _UnaryOperation __unary_op)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     return oneapi::dpl::__internal::__pattern_transform_scan(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                              __first, __last, __result, __unary_op, __init, __binary_op,
@@ -242,8 +239,7 @@ transform_inclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _
                          _ForwardIterator2 __result, _BinaryOperation __binary_op, _UnaryOperation __unary_op,
                          _Tp __init)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     return oneapi::dpl::__internal::__pattern_transform_scan(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                              __first, __last, __result, __unary_op, __init, __binary_op,
@@ -256,8 +252,7 @@ oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _Forward
 transform_inclusive_scan(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last,
                          _ForwardIterator2 __result, _BinaryOperation __binary_op, _UnaryOperation __unary_op)
 {
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     return oneapi::dpl::__internal::__pattern_transform_scan(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
                                                              __first, __last, __result, __unary_op, __binary_op,
@@ -274,8 +269,7 @@ adjacent_difference(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _Forwa
     if (__first == __last)
         return __d_first;
 
-    constexpr auto __dispatch_tag =
-        oneapi::dpl::__internal::__select_backend<_ExecutionPolicy, _ForwardIterator1, _ForwardIterator2>();
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __d_first);
 
     return oneapi::dpl::__internal::__pattern_adjacent_difference(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first, __op);
