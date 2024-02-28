@@ -193,7 +193,8 @@ get_destroy_dest_policy(oneapi::dpl::execution::parallel_unsequenced_policy)
 }
 
 // oneapi::dpl::execution::unsequenced_policy -> oneapi::dpl::execution::sequenced_policy
-auto get_destroy_dest_policy(oneapi::dpl::execution::unsequenced_policy)
+auto
+get_destroy_dest_policy(oneapi::dpl::execution::unsequenced_policy)
 {
     return oneapi::dpl::execution::sequenced_policy{};
 }
