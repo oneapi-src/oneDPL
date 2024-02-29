@@ -140,8 +140,8 @@ __pattern_transform_reduce_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& _
         oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _RandomAccessIterator2>();
     auto __buf2 = __keep2(__first2, __first2 + __n);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
-                                                                          ::std::true_type /*is_commutative*/>(
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<
+        _RepackedTp, /*is_commutative*/ ::std::true_type, /*vec_size*/ 4>(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
         unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
         __buf1.all_view(), __buf2.all_view());
@@ -167,8 +167,8 @@ __pattern_transform_reduce_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& _
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _ForwardIterator>();
     auto __buf = __keep(__first, __last);
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
-                                                                          ::std::true_type /*is_commutative*/>(
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<
+        _RepackedTp, /*is_commutative*/ ::std::true_type, /*vec_size*/ 4>(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
         unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
         __buf.all_view());
