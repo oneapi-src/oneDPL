@@ -74,7 +74,7 @@ test_all_view(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
         sycl::buffer<T> buf(input.data(), input.size());
         oneapi::dpl::experimental::ranges::all_view<T, sycl::access::mode::read_write> view(buf);
         sycl::buffer<T> buf_out(input.size());
-        oneapi::dpl::experimental::kt::inclusive_scan(q, view, view, bin_op, param).wait();
+        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, view, view, bin_op, param).wait();
     }
 
     std::string msg = "wrong results with all_view, n: " + std::to_string(size);
@@ -98,7 +98,7 @@ test_usm(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam param)
 
     std::inclusive_scan(expected.begin(), expected.end(), expected.begin(), bin_op);
 
-    oneapi::dpl::experimental::kt::inclusive_scan(q, dt_input.get_data(), dt_input.get_data() + size,
+    oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, dt_input.get_data(), dt_input.get_data() + size,
                                                   dt_output.get_data(), bin_op, param)
         .wait();
 
@@ -126,7 +126,7 @@ test_sycl_iterators(sycl::queue q, std::size_t size, BinOp bin_op, KernelParam)
     {
         sycl::buffer<T> buf(input.data(), input.size());
         sycl::buffer<T> buf_out(output.data(), output.size());
-        oneapi::dpl::experimental::kt::inclusive_scan(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
+        oneapi::dpl::experimental::kt::gpu::inclusive_scan(q, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
                                                       oneapi::dpl::begin(buf_out), bin_op, param)
             .wait();
     }

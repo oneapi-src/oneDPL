@@ -23,7 +23,7 @@
 namespace oneapi::dpl::experimental::kt
 {
 
-inline namespace igpu
+namespace gpu
 {
 
 namespace __impl
@@ -406,7 +406,7 @@ inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end
     return __impl::__single_pass_scan<true>(__queue, __buf1.all_view(), __buf2.all_view(), __binary_op, __param);
 }
 
-} // namespace igpu
+} // namespace gpu
 
 } // namespace oneapi::dpl::experimental::kt
 
