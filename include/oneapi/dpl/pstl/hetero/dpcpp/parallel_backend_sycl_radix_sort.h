@@ -73,6 +73,20 @@ __order_preserving_cast(_Int __val)
     return __val ^ __mask;
 }
 
+template <bool __is_ascending>
+::std::uint16_t
+__order_preserving_cast(sycl::half __val)
+{
+    ::std::uint16_t __uint16_val = oneapi::dpl::__internal::__dpl_bit_cast<::std::uint16_t>(__val);
+    ::std::uint16_t __mask;
+    // __uint16_val >> 15 takes the sign bit of the original value
+    if constexpr (__is_ascending)
+        __mask = (__uint16_val >> 15 == 0) ? 0x8000u : 0xFFFFu;
+    else
+        __mask = (__uint16_val >> 15 == 0) ? 0x7FFFu : ::std::uint16_t(0);
+    return __uint16_val ^ __mask;
+}
+
 template <bool __is_ascending, typename _Float,
           ::std::enable_if_t<::std::is_floating_point_v<_Float> && sizeof(_Float) == sizeof(::std::uint32_t), int> = 0>
 ::std::uint32_t

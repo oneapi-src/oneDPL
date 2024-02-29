@@ -1767,8 +1767,9 @@ struct __is_radix_sort_usable_for_type
 {
     static constexpr bool value =
 #if _USE_RADIX_SORT
-        ::std::is_arithmetic_v<_T> && (__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value ||
-                                       __internal::__is_comp_descending<::std::decay_t<_Compare>>::value);
+        (::std::is_arithmetic_v<_T> || ::std::is_same_v<sycl::half, _T>) &&
+            (__internal::__is_comp_ascending<::std::decay_t<_Compare>>::value ||
+            __internal::__is_comp_descending<::std::decay_t<_Compare>>::value);
 #else
         false;
 #endif
