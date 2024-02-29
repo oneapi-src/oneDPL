@@ -51,7 +51,7 @@ uninitialized_copy(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick(
             __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-            oneapi::dpl::__internal::__brick_copy<_DecayedExecutionPolicy>{});
+            oneapi::dpl::__internal::__brick_copy<::std::decay_t<decltype(__dispatch_tag)>, _DecayedExecutionPolicy>{});
     }
     else
     {
@@ -102,7 +102,7 @@ uninitialized_move(_ExecutionPolicy&& __exec, _InputIterator __first, _InputIter
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick(
             __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-            oneapi::dpl::__internal::__brick_copy<_DecayedExecutionPolicy>{});
+            oneapi::dpl::__internal::__brick_copy<::std::decay_t<decltype(__dispatch_tag)>, _DecayedExecutionPolicy>{});
     }
     else
     {

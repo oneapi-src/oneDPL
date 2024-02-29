@@ -1075,9 +1075,10 @@ struct __brick_copy_n
 // copy
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy>
-struct __brick_copy<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
+template <class _Tag, typename _ExecutionPolicy>
+struct __brick_copy
 {
+    static_assert(__is_host_backend_tag_v<_Tag>);
 
     template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
     _RandomAccessIterator2
@@ -1913,33 +1914,36 @@ __pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAc
 // rotate_copy
 //------------------------------------------------------------------------
 
-template <class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator>
+template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator>
 _OutputIterator
-__brick_rotate_copy(_ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last,
-                    _OutputIterator __result, /*__is_vector=*/::std::false_type) noexcept
+__brick_rotate_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last,
+                    _OutputIterator __result) noexcept
 {
+    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+
     return ::std::rotate_copy(__first, __middle, __last, __result);
 }
 
-template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2>
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2>
 _RandomAccessIterator2
-__brick_rotate_copy(_ExecutionPolicy&&, _RandomAccessIterator1 __first, _RandomAccessIterator1 __middle,
-                    _RandomAccessIterator1 __last, _RandomAccessIterator2 __result,
-                    /*__is_vector=*/::std::true_type) noexcept
+__brick_rotate_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1 __first,
+                    _RandomAccessIterator1 __middle,
+                    _RandomAccessIterator1 __last, _RandomAccessIterator2 __result) noexcept
 {
-    _RandomAccessIterator2 __res = __brick_copy<_ExecutionPolicy>{}(__middle, __last, __result, ::std::true_type());
-    return __internal::__brick_copy<_ExecutionPolicy>{}(__first, __middle, __res, ::std::true_type());
+    _RandomAccessIterator2 __res =
+        __brick_copy<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(__middle, __last, __result);
+    return __internal::__brick_copy<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(__first, __middle, __res);
 }
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator>
 _OutputIterator
-__pattern_rotate_copy(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __middle,
+__pattern_rotate_copy(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __middle,
                       _ForwardIterator __last, _OutputIterator __result) noexcept
 {
     static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
-    return __internal::__brick_rotate_copy(::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last,
-                                           __result, typename _Tag::__is_vector{});
+    return __internal::__brick_rotate_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last,
+                                           __result);
 }
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2>
@@ -1952,7 +1956,7 @@ __pattern_rotate_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ran
     __par_backend::__parallel_for(
         __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
         [__first, __last, __middle, __result](_RandomAccessIterator1 __b, _RandomAccessIterator1 __e) {
-            __internal::__brick_copy<_ExecutionPolicy> __copy{};
+            __internal::__brick_copy<__parallel_tag<_IsVector>, _ExecutionPolicy> __copy{};
             if (__b > __middle)
             {
                 __copy(__b, __e, __result + (__b - __middle), _IsVector{});
@@ -2573,7 +2577,7 @@ __pattern_partial_sort_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec
                     _RandomAccessIterator1 __j1 = __first + (__j - __d_first);
 
                     // 1. Copy elements from input to output
-                    __brick_copy<_ExecutionPolicy>{}(__i1, __j1, __i, _IsVector{});
+                    __brick_copy<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(__i1, __j1, __i, _IsVector{});
                     // 2. Sort elements in output sequence
                     ::std::sort(__i, __j, __comp);
                 },
@@ -3293,7 +3297,7 @@ __parallel_set_union_op(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __ex
     const auto __n1 = __last1 - __first1;
     const auto __n2 = __last2 - __first2;
 
-    __brick_copy<_ExecutionPolicy> __copy_range{};
+    __brick_copy<__parallel_tag<_IsVector>, _ExecutionPolicy> __copy_range{};
 
     // {1} {}: parallel copying just first sequence
     if (__n2 == 0)
@@ -3617,21 +3621,21 @@ __pattern_set_difference(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __e
     // {1} \ {}: parallel copying just first sequence
     if (__n2 == 0)
         return __pattern_walk2_brick(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __result,
-                                     __internal::__brick_copy<_ExecutionPolicy>{});
+                                     __internal::__brick_copy<__parallel_tag<_IsVector>, _ExecutionPolicy>{});
 
     // testing  whether the sequences are intersected
     _RandomAccessIterator1 __left_bound_seq_1 = ::std::lower_bound(__first1, __last1, *__first2, __comp);
     //{1} < {2}: seq 2 is wholly greater than seq 1, so, parallel copying just first sequence
     if (__left_bound_seq_1 == __last1)
         return __pattern_walk2_brick(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __result,
-                                     __internal::__brick_copy<_ExecutionPolicy>{});
+                                     __internal::__brick_copy<__parallel_tag<_IsVector>, _ExecutionPolicy>{});
 
     // testing  whether the sequences are intersected
     _RandomAccessIterator2 __left_bound_seq_2 = ::std::lower_bound(__first2, __last2, *__first1, __comp);
     //{2} < {1}: seq 1 is wholly greater than seq 2, so, parallel copying just first sequence
     if (__left_bound_seq_2 == __last2)
         return __internal::__pattern_walk2_brick(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1,
-                                                 __result, __brick_copy<_ExecutionPolicy>{});
+                                                 __result, __brick_copy<__parallel_tag<_IsVector>, _ExecutionPolicy>{});
 
     if (__n1 + __n2 > __set_algo_cut_off)
         return __parallel_set_op(

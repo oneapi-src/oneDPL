@@ -269,9 +269,9 @@ copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __l
 {
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
-    return oneapi::dpl::__internal::__pattern_walk2_brick(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          __first, __last, __result,
-                                                          oneapi::dpl::__internal::__brick_copy<_ExecutionPolicy>{});
+    return oneapi::dpl::__internal::__pattern_walk2_brick(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+        oneapi::dpl::__internal::__brick_copy<::std::decay_t<decltype(__dispatch_tag)>, _ExecutionPolicy>{});
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _Size, class _ForwardIterator2>
