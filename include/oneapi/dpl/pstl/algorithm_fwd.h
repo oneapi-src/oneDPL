@@ -406,7 +406,7 @@ __pattern_search_n(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessI
 // copy_n
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename = void>
+template <class _Tag, typename _ExecutionPolicy>
 struct __brick_copy_n;
 
 template <typename _ExecutionPolicy, typename = void>

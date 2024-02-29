@@ -375,8 +375,8 @@ __pattern_generate_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec,
 // brick_copy, brick_move
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy>
-struct __brick_copy_n<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
+template <typename _BackendTag, typename _ExecutionPolicy>
+struct __brick_copy_n<__hetero_tag<_BackendTag>, _ExecutionPolicy>
 {
     template <typename _SourceT, typename _TargetT>
     void
@@ -390,7 +390,7 @@ template <typename _ExecutionPolicy>
 struct __brick_copy<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
 {
     template <typename _SourceT, typename _TargetT>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
+    void
     operator()(_SourceT&& __source, _TargetT&& __target) const
     {
         __target = ::std::forward<_SourceT>(__source);

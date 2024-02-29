@@ -1048,9 +1048,11 @@ __pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
 // clear that doing so is worth the trouble and extra layers of call chain.
 // Sometimes a little duplication for sake of regularity is better than the alternative.
 
-template <typename _ExecutionPolicy>
-struct __brick_copy_n<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
+template <class _Tag, typename _ExecutionPolicy>
+struct __brick_copy_n
 {
+    static_assert(__is_host_backend_tag_v<_Tag>);
+
     template <typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2>
     _RandomAccessIterator2
     operator()(_RandomAccessIterator1 __first, _Size __n, _RandomAccessIterator2 __result,
