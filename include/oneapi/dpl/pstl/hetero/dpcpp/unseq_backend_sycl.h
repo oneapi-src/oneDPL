@@ -284,6 +284,11 @@ struct transform_reduce
         using _Res = typename _AccLocal::value_type;
         auto __local_idx = __item_id.get_local_id(0);
         auto __global_idx = __item_id.get_global_id(0);
+        if (__iters_per_work_item == 1)
+        {
+            __local_mem[__local_idx] = __unary_op(__global_idx, __acc...);
+            return;
+        }
         const _Size __local_range = __item_id.get_local_range(0);
         const _Size __no_vec_ops = __iters_per_work_item / 4;
         const _Size __adjusted_n = __global_offset + __n;
@@ -349,6 +354,7 @@ struct transform_reduce
         {
             return seq_impl(__item_id, __n, __iters_per_work_item, __global_offset, __local_mem, __acc...);
         }
+        return;
     }
 
     template <typename _Size>
@@ -356,6 +362,8 @@ struct transform_reduce
     output_size(const _Size& __n, const ::std::uint16_t& __work_group_size,
                 const ::std::uint8_t& __iters_per_work_item) const
     {
+        if (__iters_per_work_item == 1)
+            return __n;
         if constexpr (__use_nonseq_impl)
         {
             _Size __items_per_work_group = __work_group_size * __iters_per_work_item;

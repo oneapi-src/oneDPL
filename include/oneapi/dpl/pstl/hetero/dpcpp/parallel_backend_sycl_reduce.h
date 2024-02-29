@@ -235,12 +235,11 @@ struct __parallel_transform_reduce_work_group_kernel_submitter<_Tp, _Commutative
 
         // Lower the work group size of the second kernel to the next power of 2 if __n < __work_group_size.
         auto __work_group_size2 = __work_group_size;
-        if (__iters_per_work_item == 4)
+        if (__iters_per_work_item == 1)
         {
-            const _Size __no_wis = oneapi::dpl::__internal::__dpl_ceiling_div(__n, 4);
-            if (__no_wis < __work_group_size)
+            if (__n < __work_group_size)
             {
-                __work_group_size2 = __no_wis;
+                __work_group_size2 = __n;
                 if ((__work_group_size2 & (__work_group_size2 - 1)) != 0)
                     __work_group_size2 = oneapi::dpl::__internal::__dpl_bit_floor(__work_group_size2) << 1;
             }
@@ -460,7 +459,8 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
 
     // Enable 4-wide vectorization and limit to 32 for performance on GPUs. Empirically tested.
     ::std::size_t __iters_per_work_item = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __work_group_size);
-    __iters_per_work_item = ((__iters_per_work_item + 3) / 4) * 4;
+    if (__iters_per_work_item > 1)
+        __iters_per_work_item = ((__iters_per_work_item + 3) / 4) * 4;
 
     // Use single work group implementation.
     if (__iters_per_work_item <= 32)
@@ -476,13 +476,15 @@ __parallel_transform_reduce(oneapi::dpl::__internal::__device_backend_tag __back
     {
         ::std::size_t __iters_per_work_item_device_kernel =
             oneapi::dpl::__internal::__dpl_ceiling_div(__n, 32 * __work_group_size);
-        __iters_per_work_item_device_kernel = ((__iters_per_work_item_device_kernel + 3) / 4) * 4;
-        ::std::size_t __iters_per_work_item_work_group_kernel = 4;
+        if (__iters_per_work_item_device_kernel > 1)
+            __iters_per_work_item_device_kernel = ((__iters_per_work_item_device_kernel + 3) / 4) * 4;
+        ::std::size_t __iters_per_work_item_work_group_kernel = 1;
         if (__iters_per_work_item_device_kernel > 32)
         {
             __iters_per_work_item_work_group_kernel =
                 oneapi::dpl::__internal::__dpl_ceiling_div(__iters_per_work_item_device_kernel, 32);
-            __iters_per_work_item_work_group_kernel = ((__iters_per_work_item_work_group_kernel + 3) / 4) * 4;
+            if (__iters_per_work_item_work_group_kernel > 1)
+                __iters_per_work_item_work_group_kernel = ((__iters_per_work_item_work_group_kernel + 3) / 4) * 4;
             __iters_per_work_item_device_kernel = 32;
         }
         return __parallel_transform_reduce_mid_impl<_Tp, _Commutative>(
