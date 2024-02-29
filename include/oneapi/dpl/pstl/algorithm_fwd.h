@@ -412,7 +412,7 @@ struct __brick_copy_n;
 template <class _Tag, typename _ExecutionPolicy>
 struct __brick_copy;
 
-template <typename _ExecutionPolicy, typename = void>
+template <class _Tag, typename _ExecutionPolicy>
 struct __brick_move;
 
 //------------------------------------------------------------------------

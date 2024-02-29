@@ -397,8 +397,8 @@ struct __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>
     }
 };
 
-template <typename _ExecutionPolicy>
-struct __brick_move<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
+template <typename _BackendTag, typename _ExecutionPolicy>
+struct __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>
 {
     template <typename _SourceT, typename _TargetT>
     oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>
@@ -1245,7 +1245,7 @@ __pattern_inplace_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
     __pattern_walk2(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
-        __copy_first, __copy_last, __first, __brick_move<_ExecutionPolicy>{});
+        __copy_first, __copy_last, __first, __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 }
 
 //------------------------------------------------------------------------
@@ -1330,11 +1330,12 @@ __pattern_stable_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& _
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
     __pattern_walk2<_BackendTag, /*_IsSync=*/::std::false_type>(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result, copy_result.first,
-        __first, __brick_move<_ExecutionPolicy>{});
+        __first, __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
     __pattern_walk2(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper2>(::std::forward<_ExecutionPolicy>(__exec)),
-        __false_result, copy_result.second, __first + true_count, __brick_move<_ExecutionPolicy>{});
+        __false_result, copy_result.second, __first + true_count,
+        __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
     return __first + true_count;
 }
@@ -1644,7 +1645,7 @@ __pattern_rotate(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
         unseq_backend::__rotate_copy<typename ::std::iterator_traits<_Iterator>::difference_type>{__n, __shift}, __n,
         __buf.all_view(), __temp_rng);
 
-    using _Function = __brick_move<_ExecutionPolicy>;
+    using _Function = __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>;
     auto __brick = unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
 
     oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __brick,
@@ -1974,7 +1975,7 @@ __pattern_shift_left(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Rang
     //1. n >= size/2; 'size - _n' parallel copying
     if (__n >= __mid)
     {
-        using _Function = __brick_move<_ExecutionPolicy>;
+        using _Function = __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>;
         auto __brick = oneapi::dpl::unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
 
         //TODO: to consider use just "read" access mode for a source range and just "write" - for a destination range.

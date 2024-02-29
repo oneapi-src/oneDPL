@@ -818,7 +818,7 @@ move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __l
 
     return oneapi::dpl::__internal::__pattern_walk2_brick(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
-        oneapi::dpl::__internal::__brick_move<_DecayedExecutionPolicy>{});
+        oneapi::dpl::__internal::__brick_move<::std::decay_t<decltype(__dispatch_tag)>, _DecayedExecutionPolicy>{});
 }
 
 // [partial.sort]

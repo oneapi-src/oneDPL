@@ -1109,9 +1109,10 @@ struct __brick_copy
 // move
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy>
-struct __brick_move<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
+template <class _Tag, typename _ExecutionPolicy>
+struct __brick_move
 {
+    static_assert(__is_host_backend_tag_v<_Tag>);
 
     template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
     _RandomAccessIterator2
@@ -1869,7 +1870,7 @@ __pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAc
 
             __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __middle,
                                           [__last, __middle](_RandomAccessIterator __b, _RandomAccessIterator __e) {
-                                              __internal::__brick_move<_ExecutionPolicy>{}(
+                                              __internal::__brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(
                                                   __b, __e, __b + (__last - __middle), _IsVector{});
                                           });
 
@@ -1895,7 +1896,7 @@ __pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAc
 
             __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __middle, __last,
                                           [__first, __middle](_RandomAccessIterator __b, _RandomAccessIterator __e) {
-                                              __internal::__brick_move<_ExecutionPolicy>{}(
+                                              __internal::__brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(
                                                   __b, __e, __first + (__b - __middle), _IsVector{});
                                           });
 
@@ -4275,8 +4276,8 @@ __pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forw
     {
         __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n, __size,
                                       [__first, __n](_DiffType __i, _DiffType __j) {
-                                          __brick_move<_ExecutionPolicy>{}(__first + __i, __first + __j,
-                                                                           __first + __i - __n, _IsVector{});
+                                          __brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(
+                                              __first + __i, __first + __j, __first + __i - __n, _IsVector{});
                                       });
     }
     else //2. n < size/2; there is not enough memory to parallel copying; doing parallel copying by n elements
@@ -4287,8 +4288,8 @@ __pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forw
             auto __end = ::std::min(__k + __n, __size);
             __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __k, __end,
                                           [__first, __n](_DiffType __i, _DiffType __j) {
-                                              __brick_move<_ExecutionPolicy>{}(__first + __i, __first + __j,
-                                                                               __first + __i - __n, _IsVector{});
+                                              __brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(
+                                                  __first + __i, __first + __j, __first + __i - __n, _IsVector{});
                                           });
         }
     }
