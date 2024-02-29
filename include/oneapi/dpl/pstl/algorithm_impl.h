@@ -1131,7 +1131,7 @@ struct __brick_move<_ExecutionPolicy, oneapi::dpl::__internal::__enable_if_host_
     void
     operator()(_ReferenceType1&& __val, _ReferenceType2&& __result) const
     {
-        ::std::forward<_ReferenceType2>(__result) = ::std::move(::std::forward<_ReferenceType1>(__val));
+        __result = ::std::move(__val);
     }
 };
 
