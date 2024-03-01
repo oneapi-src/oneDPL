@@ -2809,10 +2809,11 @@ __pattern_fill(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcce
     });
 }
 
-template <typename _Tp, typename _ExecutionPolicy>
-struct __brick_fill_n<_Tp, _ExecutionPolicy,
-                      oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
+template <class _Tag, typename _Tp, typename _ExecutionPolicy>
+struct __brick_fill_n
 {
+    static_assert(__is_host_backend_tag_v<_Tag>);
+
     const _Tp& __value;
 
     template <typename _RandomAccessIterator, typename _Size>
@@ -2838,7 +2839,8 @@ __pattern_fill_n(_Tag, _ExecutionPolicy&&, _OutputIterator __first, _Size __coun
 {
     static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
-    return __internal::__brick_fill_n<_Tp, _ExecutionPolicy>{__value}(__first, __count, typename _Tag::__is_vector{});
+    return __internal::__brick_fill_n<_Tag, _Tp, _ExecutionPolicy>{__value}(__first, __count,
+                                                                            typename _Tag::__is_vector{});
 }
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Tp>

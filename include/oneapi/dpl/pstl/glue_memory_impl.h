@@ -177,7 +177,8 @@ uninitialized_fill_n(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Size 
     {
         return oneapi::dpl::__internal::__pattern_walk_brick_n(
             __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
-            oneapi::dpl::__internal::__brick_fill_n<_ValueType, _DecayedExecutionPolicy>{_ValueType(__value)});
+            oneapi::dpl::__internal::__brick_fill_n<::std::decay_t<decltype(__dispatch_tag)>, _ValueType,
+                                                    _DecayedExecutionPolicy>{_ValueType(__value)});
     }
     else
     {
@@ -338,7 +339,8 @@ uninitialized_value_construct_n(_ExecutionPolicy&& __exec, _ForwardIterator __fi
     {
         return oneapi::dpl::__internal::__pattern_walk_brick_n(
             __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n,
-            oneapi::dpl::__internal::__brick_fill_n<_ValueType, _DecayedExecutionPolicy>{_ValueType()});
+            oneapi::dpl::__internal::__brick_fill_n<::std::decay_t<decltype(__dispatch_tag)>, _ValueType,
+                                                    _DecayedExecutionPolicy>{_ValueType()});
     }
     else
     {

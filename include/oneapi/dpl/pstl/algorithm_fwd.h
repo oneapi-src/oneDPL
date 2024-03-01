@@ -863,7 +863,7 @@ template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, 
 _RandomAccessIterator
 __pattern_fill(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, const _Tp&);
 
-template <typename _Tp, typename _ExecutionPolicy, typename = void>
+template <class _Tag, typename _Tp, typename _ExecutionPolicy>
 struct __brick_fill_n;
 
 template <class _Tag, class _ExecutionPolicy, class _OutputIterator, class _Size, class _Tp>

@@ -420,9 +420,8 @@ struct __brick_fill<__hetero_tag<_BackendTag>, _SourceT, _ExecutionPolicy>
     }
 };
 
-template <typename _SourceT, typename _ExecutionPolicy>
-struct __brick_fill_n<_SourceT, _ExecutionPolicy,
-                      oneapi::dpl::__internal::__enable_if_hetero_execution_policy<_ExecutionPolicy>>
+template <typename _BackendTag, typename _SourceT, typename _ExecutionPolicy>
+struct __brick_fill_n<__hetero_tag<_BackendTag>, _SourceT, _ExecutionPolicy>
 {
     _SourceT __value;
     template <typename _TargetT>
