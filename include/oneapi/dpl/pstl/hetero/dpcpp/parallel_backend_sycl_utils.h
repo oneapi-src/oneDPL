@@ -540,6 +540,17 @@ struct __usm_host_or_buffer_storage
         }
     }
 
+    template <typename _Acc>
+    static auto
+    __get_usm_host_or_buffer_accessor_ptr(const _Acc& __acc)
+    {
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+        return __acc.__get_pointer();
+#else
+        return &__acc[0];
+#endif
+    }
+
     auto
     __get_acc(sycl::handler& __cgh)
     {
@@ -563,17 +574,6 @@ struct __usm_host_or_buffer_storage
         return __usm;
     }
 };
-
-template <typename _Acc>
-auto
-__get_usm_host_or_buffer_accessor_ptr(const _Acc& __acc)
-{
-#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
-    return __acc.__get_pointer();
-#else
-    return &__acc[0];
-#endif
-}
 
 //A contract for future class: <sycl::event or other event, a value, sycl::buffers..., or __usm_host_or_buffer_storage>
 //Impl details: inheritance (private) instead of aggregation for enabling the empty base optimization.
