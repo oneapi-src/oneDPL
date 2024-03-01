@@ -67,7 +67,7 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Pre
 bool
 __pattern_any_of(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Pred __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_any_of(__first, __last, __pred, typename _Tag::__is_vector{});
 }
@@ -139,7 +139,7 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Fun
 void
 __pattern_walk1(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Function __f) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>>);
 
     __internal::__brick_walk1(__first, __last, __f, typename _Tag::__is_vector{});
 }
@@ -179,7 +179,7 @@ void
 __pattern_walk_brick(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __last,
                      _Brick __brick) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     __brick(__first, __last, typename _Tag::__is_vector{});
 }
@@ -221,7 +221,7 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Siz
 _ForwardIterator
 __pattern_walk1_n(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _Size __n, _Function __f) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_walk1_n(__first, __n, __f, typename _Tag::__is_vector{});
 }
@@ -240,7 +240,7 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Siz
 _ForwardIterator
 __pattern_walk_brick_n(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _Size __n, _Brick __brick) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __brick(__first, __n, typename _Tag::__is_vector{});
 }
@@ -307,7 +307,7 @@ _ForwardIterator2
 __pattern_walk2(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                 _ForwardIterator2 __first2, _Function __f) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_walk2(__first1, __last1, __first2, __f, typename _Tag::__is_vector{});
 }
@@ -364,7 +364,7 @@ _ForwardIterator2
 __pattern_walk2_n(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _Size __n, _ForwardIterator2 __first2,
                   _Function __f) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_walk2_n(__first1, __n, __first2, __f, typename _Tag::__is_vector{});
 }
@@ -384,7 +384,7 @@ _ForwardIterator2
 __pattern_walk2_brick(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                       _ForwardIterator2 __first2, _Brick __brick) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>>);
 
     return __brick(__first1, __last1, __first2, typename _Tag::__is_vector{});
 }
@@ -461,7 +461,7 @@ _ForwardIterator2
 __pattern_walk2_brick_n(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _Size __n,
                         _ForwardIterator2 __first2, _Brick __brick) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __brick(__first1, __n, __first2, typename _Tag::__is_vector{});
 }
@@ -495,7 +495,7 @@ _ForwardIterator3
 __pattern_walk3(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                 _ForwardIterator2 __first2, _ForwardIterator3 __first3, _Function __f) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_walk3(__first1, __last1, __first2, __first3, __f, typename _Tag::__is_vector{});
 }
@@ -561,7 +561,7 @@ _ForwardIterator2
 __pattern_walk2_transform_if(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                              _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __func) noexcept
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
+    static_assert(__is_host_backend_tag_v<::std::decay_t<_Tag>>);
 
     return __pattern_walk2(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __func);
 }
@@ -573,7 +573,7 @@ __pattern_walk3_transform_if(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIter
                              _ForwardIterator1 __last1, _ForwardIterator2 __first2, _ForwardIterator3 __first3,
                              _Function __func) noexcept
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
+    static_assert(__is_host_backend_tag_v<::std::decay_t<_Tag>>);
 
     return __pattern_walk3(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __first3,
                            __func);
@@ -608,7 +608,7 @@ bool
 __pattern_equal(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                 _ForwardIterator2 __first2, _ForwardIterator2 __last2, _BinaryPredicate __p) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_equal(__first1, __last1, __first2, __last2, __p, typename _Tag::__is_vector{});
 }
@@ -659,7 +659,7 @@ bool
 __pattern_equal(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                 _ForwardIterator2 __first2, _BinaryPredicate __p) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_equal(__first1, __last1, __first2, __p, typename _Tag::__is_vector{});
 }
@@ -706,7 +706,7 @@ _ForwardIterator
 __pattern_find_if(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                   _Predicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_find_if(__first, __last, __pred, typename _Tag::__is_vector{});
 }
@@ -849,7 +849,7 @@ _ForwardIterator1
 __pattern_find_end(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first, _ForwardIterator1 __last,
                    _ForwardIterator2 __s_first, _ForwardIterator2 __s_last, _BinaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_find_end(__first, __last, __s_first, __s_last, __pred, typename _Tag::__is_vector{});
 }
@@ -905,7 +905,7 @@ _ForwardIterator1
 __pattern_find_first_of(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first, _ForwardIterator1 __last,
                         _ForwardIterator2 __s_first, _ForwardIterator2 __s_last, _BinaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_find_first_of(__first, __last, __s_first, __s_last, __pred,
                                              typename _Tag::__is_vector{});
@@ -954,7 +954,7 @@ _ForwardIterator1
 __pattern_search(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first, _ForwardIterator1 __last,
                  _ForwardIterator2 __s_first, _ForwardIterator2 __s_last, _BinaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_search(__first, __last, __s_first, __s_last, __pred, typename _Tag::__is_vector{});
 }
@@ -1010,7 +1010,7 @@ _ForwardIterator
 __pattern_search_n(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Size __count,
                    const _Tp& __value, _BinaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_search_n(__first, __last, __count, __value, __pred, typename _Tag::__is_vector{});
 }
@@ -1051,7 +1051,7 @@ __pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
 template <class _Tag>
 struct __brick_copy_n
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
+    static_assert(__is_host_backend_tag_v<::std::decay_t<_Tag>>);
 
     template <typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2>
     _RandomAccessIterator2
@@ -1078,7 +1078,7 @@ struct __brick_copy_n
 template <class _Tag>
 struct __brick_copy
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
+    static_assert(__is_host_backend_tag_v<::std::decay_t<_Tag>>);
 
     template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
     _RandomAccessIterator2
@@ -1112,7 +1112,7 @@ struct __brick_copy
 template <class _Tag>
 struct __brick_move
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
+    static_assert(__is_host_backend_tag_v<::std::decay_t<_Tag>>);
 
     template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
     _RandomAccessIterator2
@@ -1142,7 +1142,7 @@ struct __brick_move
 template <class _Tag>
 struct __brick_move_destroy
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
+    static_assert(__is_host_backend_tag_v<::std::decay_t<_Tag>>);
 
     template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
     _RandomAccessIterator2
@@ -1315,7 +1315,7 @@ _OutputIterator
 __pattern_copy_if(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _OutputIterator __result,
                   _UnaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_copy_if(__first, __last, __result, __pred, typename _Tag::__is_vector{});
 }
@@ -1380,7 +1380,7 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Pre
 typename ::std::iterator_traits<_ForwardIterator>::difference_type
 __pattern_count(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Predicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_count(__first, __last, __pred, typename _Tag::__is_vector{});
 }
@@ -1434,7 +1434,7 @@ _ForwardIterator
 __pattern_unique(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                  _BinaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_unique(__first, __last, __pred, typename _Tag::__is_vector{});
 }
@@ -1577,7 +1577,7 @@ _OutputIterator
 __pattern_unique_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                       _OutputIterator __result, _BinaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_unique_copy(__first, __last, __result, __pred, typename _Tag::__is_vector{});
 }
@@ -1713,7 +1713,7 @@ template <class _Tag, class _ExecutionPolicy, class _BidirectionalIterator>
 void
 __pattern_reverse(_Tag, _ExecutionPolicy&&, _BidirectionalIterator __first, _BidirectionalIterator __last) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     __internal::__brick_reverse(__first, __last, typename _Tag::__is_vector{});
 }
@@ -1761,7 +1761,7 @@ _OutputIterator
 __pattern_reverse_copy(_Tag, _ExecutionPolicy&&, _BidirectionalIterator __first, _BidirectionalIterator __last,
                        _OutputIterator __d_first) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_reverse_copy(__first, __last, __d_first, typename _Tag::__is_vector{});
 }
@@ -1840,7 +1840,7 @@ _ForwardIterator
 __pattern_rotate(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __middle,
                  _ForwardIterator __last) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_rotate(__first, __middle, __last, typename _Tag::__is_vector{});
 }
@@ -1918,7 +1918,7 @@ _OutputIterator
 __brick_rotate_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __middle,
                     _ForwardIterator __last, _OutputIterator __result) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return ::std::rotate_copy(__first, __middle, __last, __result);
 }
@@ -1938,7 +1938,7 @@ _OutputIterator
 __pattern_rotate_copy(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator __middle,
                       _ForwardIterator __last, _OutputIterator __result) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_rotate_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __middle, __last,
                                            __result);
@@ -2020,7 +2020,7 @@ bool
 __pattern_is_partitioned(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                          _UnaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_is_partitioned(__first, __last, __pred, typename _Tag::__is_vector{});
 }
@@ -2150,7 +2150,7 @@ _ForwardIterator
 __pattern_partition(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                     _UnaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_partition(__first, __last, __pred, typename _Tag::__is_vector{});
 }
@@ -2250,7 +2250,7 @@ _BidirectionalIterator
 __pattern_stable_partition(_Tag, _ExecutionPolicy&&, _BidirectionalIterator __first, _BidirectionalIterator __last,
                            _UnaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_stable_partition(__first, __last, __pred, typename _Tag::__is_vector{});
 }
@@ -2340,7 +2340,7 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Out
 __pattern_partition_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                          _OutputIterator1 __out_true, _OutputIterator2 __out_false, _UnaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_partition_copy(__first, __last, __out_true, __out_false, __pred,
                                               typename _Tag::__is_vector{});
@@ -2396,7 +2396,7 @@ void
 __pattern_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last, _Compare __comp,
                _IsMoveConstructible) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     ::std::sort(__first, __last, __comp);
 }
@@ -2428,7 +2428,7 @@ void
 __pattern_stable_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last,
                       _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     ::std::stable_sort(__first, __last, __comp);
 }
@@ -2461,7 +2461,7 @@ __pattern_sort_by_key(_Tag, _ExecutionPolicy&& __exec, _RandomAccessIterator1 __
                       _RandomAccessIterator1 __keys_last, _RandomAccessIterator2 __values_first,
                       _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     auto __beg = oneapi::dpl::make_zip_iterator(__keys_first, __values_first);
     auto __end = __beg + (__keys_last - __keys_first);
@@ -2507,7 +2507,7 @@ void
 __pattern_partial_sort(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __middle,
                        _RandomAccessIterator __last, _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     ::std::partial_sort(__first, __middle, __last, __comp);
 }
@@ -2545,7 +2545,7 @@ _RandomAccessIterator
 __pattern_partial_sort_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                             _RandomAccessIterator __d_first, _RandomAccessIterator __d_last, _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return ::std::partial_sort_copy(__first, __last, __d_first, __d_last, __comp);
 }
@@ -2649,7 +2649,7 @@ _ForwardIterator
 __pattern_adjacent_find(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                         _BinaryPredicate __pred, _Semantic) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_adjacent_find(__first, __last, __pred, typename _Tag::__is_vector{}, _Semantic::value);
 }
@@ -2709,7 +2709,7 @@ void
 __pattern_nth_element(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __nth,
                       _RandomAccessIterator __last, _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     ::std::nth_element(__first, __nth, __last, __comp);
 }
@@ -2761,7 +2761,7 @@ __pattern_nth_element(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec
 template <class _Tag, typename _Tp>
 struct __brick_fill
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
+    static_assert(__is_host_backend_tag_v<::std::decay_t<_Tag>>);
 
     const _Tp& __value;
 
@@ -2786,7 +2786,7 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Tp>
 void
 __pattern_fill(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, const _Tp& __value) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     __internal::__brick_fill<_Tag, _Tp>{__value}(__first, __last, typename _Tag::__is_vector{});
 }
@@ -2811,7 +2811,7 @@ __pattern_fill(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcce
 template <class _Tag, typename _Tp>
 struct __brick_fill_n
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
+    static_assert(__is_host_backend_tag_v<::std::decay_t<_Tag>>);
 
     const _Tp& __value;
 
@@ -2836,7 +2836,7 @@ template <class _Tag, class _ExecutionPolicy, class _OutputIterator, class _Size
 _OutputIterator
 __pattern_fill_n(_Tag, _ExecutionPolicy&&, _OutputIterator __first, _Size __count, const _Tp& __value) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_fill_n<_Tag, _Tp>{__value}(__first, __count, typename _Tag::__is_vector{});
 }
@@ -2873,7 +2873,7 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Gen
 void
 __pattern_generate(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last, _Generator __g) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     __internal::__brick_generate(__first, __last, __g, typename _Tag::__is_vector{});
 }
@@ -2913,7 +2913,7 @@ template <class _Tag, class _ExecutionPolicy, class _OutputIterator, class _Size
 _OutputIterator
 __pattern_generate_n(_Tag, _ExecutionPolicy&&, _OutputIterator __first, _Size __count, _Generator __g) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_generate_n(__first, __count, __g, typename _Tag::__is_vector{});
 }
@@ -2958,7 +2958,7 @@ _ForwardIterator
 __pattern_remove_if(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                     _UnaryPredicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_remove_if(__first, __last, __pred, typename _Tag::__is_vector{});
 }
@@ -3014,7 +3014,7 @@ __pattern_merge(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIt
                 _ForwardIterator2 __first2, _ForwardIterator2 __last2, _OutputIterator __d_first,
                 _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_merge(__first1, __last1, __first2, __last2, __d_first, __comp,
                                      typename _Tag::__is_vector{});
@@ -3063,7 +3063,7 @@ void
 __pattern_inplace_merge(_Tag, _ExecutionPolicy&&, _BidirectionalIterator __first, _BidirectionalIterator __middle,
                         _BidirectionalIterator __last, _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     __internal::__brick_inplace_merge(__first, __middle, __last, __comp, typename _Tag::__is_vector{});
 }
@@ -3122,7 +3122,7 @@ bool
 __pattern_includes(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                    _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return ::std::includes(__first1, __last1, __first2, __last2, __comp);
 }
@@ -3437,7 +3437,7 @@ __pattern_set_union(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _Forwa
                     _ForwardIterator2 __first2, _ForwardIterator2 __last2, _OutputIterator __result,
                     _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_set_union(__first1, __last1, __first2, __last2, __result, __comp,
                                          typename _Tag::__is_vector{});
@@ -3498,7 +3498,7 @@ __pattern_set_intersection(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1,
                            _ForwardIterator2 __first2, _ForwardIterator2 __last2, _OutputIterator __result,
                            _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_set_intersection(__first1, __last1, __first2, __last2, __result, __comp,
                                                 typename _Tag::__is_vector{});
@@ -3596,7 +3596,7 @@ __pattern_set_difference(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _
                          _ForwardIterator2 __first2, _ForwardIterator2 __last2, _OutputIterator __result,
                          _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_set_difference(__first1, __last1, __first2, __last2, __result, __comp,
                                               typename _Tag::__is_vector{});
@@ -3683,7 +3683,7 @@ __pattern_set_symmetric_difference(_Tag, _ExecutionPolicy&&, _ForwardIterator1 _
                                    _ForwardIterator2 __first2, _ForwardIterator2 __last2, _OutputIterator __result,
                                    _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_set_symmetric_difference(__first1, __last1, __first2, __last2, __result, __comp,
                                                         typename _Tag::__is_vector{});
@@ -3742,7 +3742,7 @@ _RandomAccessIterator
 __pattern_is_heap_until(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last,
                         _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_is_heap_until(__first, __last, __comp, typename _Tag::__is_vector{});
 }
@@ -3830,7 +3830,7 @@ bool
 __pattern_is_heap(_Tag, _ExecutionPolicy&&, _RandomAccessIterator __first, _RandomAccessIterator __last,
                   _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_is_heap(__first, __last, __comp, typename _Tag::__is_vector{});
 }
@@ -3878,7 +3878,7 @@ _ForwardIterator
 __pattern_min_element(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                       _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_min_element(__first, __last, __comp, typename _Tag::__is_vector{});
 }
@@ -3945,7 +3945,7 @@ template <class _Tag, typename _ExecutionPolicy, typename _ForwardIterator, type
 __pattern_minmax_element(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                          _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_minmax_element(__first, __last, __comp, typename _Tag::__is_vector{});
 }
@@ -4026,7 +4026,7 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _Fo
 __pattern_mismatch(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                    _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Predicate __pred) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_mismatch(__first1, __last1, __first2, __last2, __pred, typename _Tag::__is_vector{});
 }
@@ -4107,7 +4107,7 @@ bool
 __pattern_lexicographical_compare(_Tag, _ExecutionPolicy&&, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                                   _ForwardIterator2 __first2, _ForwardIterator2 __last2, _Compare __comp) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __internal::__brick_lexicographical_compare(__first1, __last1, __first2, __last2, __comp,
                                                        typename _Tag::__is_vector{});
@@ -4169,7 +4169,7 @@ _ForwardIterator2
 __pattern_swap(_Tag __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardIterator1 __last1,
                _ForwardIterator2 __first2, _Function __f)
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
+    static_assert(__is_host_backend_tag_v<::std::decay_t<_Tag>>);
 
     return __pattern_walk2(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __f);
 }
@@ -4247,7 +4247,7 @@ _ForwardIterator
 __pattern_shift_left(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __last,
                      typename ::std::iterator_traits<_ForwardIterator>::difference_type __n) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     return __brick_shift_left(__first, __last, __n, typename _Tag::__is_vector{});
 }
@@ -4303,7 +4303,7 @@ __pattern_shift_right(_Tag __tag, _ExecutionPolicy&& __exec, _BidirectionalItera
                       _BidirectionalIterator __last,
                       typename ::std::iterator_traits<_BidirectionalIterator>::difference_type __n)
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
+    static_assert(__is_host_backend_tag_v<::std::decay_t<_Tag>>);
 
     using _ReverseIterator = typename ::std::reverse_iterator<_BidirectionalIterator>;
 

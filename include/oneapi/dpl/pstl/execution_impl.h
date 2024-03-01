@@ -112,7 +112,7 @@ struct __is_backend_tag_serial<__serial_tag<_IsVector>> : ::std::true_type
 };
 
 template <class _Tag>
-inline constexpr bool __is_backend_tag_serial_v = __is_backend_tag_serial<::std::decay_t<_Tag>>::value;
+inline constexpr bool __is_backend_tag_serial_v = __is_backend_tag_serial<_Tag>::value;
 
 //----------------------------------------------------------
 // __is_backend_tag_parallel_forward, __is_backend_tag_parallel_forward_v
@@ -129,8 +129,7 @@ struct __is_backend_tag_parallel_forward<__parallel_forward_tag> : ::std::true_t
 };
 
 template <class _Tag>
-inline constexpr bool __is_backend_tag_parallel_forward_v =
-    __is_backend_tag_parallel_forward<::std::decay_t<_Tag>>::value;
+inline constexpr bool __is_backend_tag_parallel_forward_v = __is_backend_tag_parallel_forward<_Tag>::value;
 
 //----------------------------------------------------------
 // __is_backend_tag_parallel, __is_backend_tag_parallel_v
@@ -147,7 +146,7 @@ struct __is_backend_tag_parallel<__parallel_tag<_IsVector>> : ::std::true_type
 };
 
 template <class _Tag>
-inline constexpr bool __is_backend_tag_parallel_v = __is_backend_tag_parallel<::std::decay_t<_Tag>>::value;
+inline constexpr bool __is_backend_tag_parallel_v = __is_backend_tag_parallel<_Tag>::value;
 
 //----------------------------------------------------------
 // __is_host_backend_tag_v

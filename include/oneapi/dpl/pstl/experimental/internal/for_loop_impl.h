@@ -167,7 +167,7 @@ void
 __pattern_for_loop_n(_Tag, _ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, __single_stride_type,
                      _Rest&&... __rest) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
@@ -192,7 +192,7 @@ void
 __pattern_for_loop_n(_Tag, _ExecutionPolicy&&, _Ip __first, _Size __n, _Function __f, _Sp __stride,
                      _Rest&&... __rest) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
@@ -265,7 +265,7 @@ void
 __pattern_for_loop(_Tag __tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, _Sp __stride,
                    _Rest&&... __rest) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     if constexpr (typename _Tag::__is_vector{} || __is_random_access_or_integral_v<_Ip>)
     {
@@ -366,7 +366,7 @@ void
 __pattern_for_loop(_Tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, __single_stride_type,
                    _Rest&&... __rest) noexcept
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 

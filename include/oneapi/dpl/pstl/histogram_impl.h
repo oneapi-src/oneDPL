@@ -38,7 +38,7 @@ void
 __pattern_histogram(_Tag, _ExecutionPolicy&& exec, _RandomAccessIterator1 __first, _RandomAccessIterator1 __last,
                     _Size __num_bins, _IdxHashFunc __func, _RandomAccessIterator2 __histogram_first)
 {
-    static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
+    static_assert(__is_backend_tag_serial_v<::std::decay_t<_Tag>> || __is_backend_tag_parallel_forward_v<::std::decay_t<_Tag>>);
 
     static_assert(sizeof(_Size) == 0 /*false*/,
                   "Histogram API is currently unsupported for policies other than device execution policies");
