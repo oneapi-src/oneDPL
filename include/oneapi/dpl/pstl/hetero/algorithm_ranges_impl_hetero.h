@@ -423,7 +423,7 @@ __pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         __tag, ::std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{}, __copy_rng_truncated,
+        oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>>{}, __copy_rng_truncated,
         ::std::forward<_Range>(__rng));
 
     return __copy_last_id;
@@ -468,7 +468,7 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
                                                oneapi::dpl::__internal::__pstl_assign());
 
     __pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec),
-                     __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{}, res_rng,
+                     __brick_copy<__hetero_tag<_BackendTag>>{}, res_rng,
                      ::std::forward<_Range>(__rng));
     return res;
 }
@@ -506,7 +506,7 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ran
             __tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy1_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
-            oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{},
+            oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>>{},
             ::std::forward<_Range2>(__rng2), ::std::forward<_Range3>(__rng3));
     }
     else if (__n2 == 0)
@@ -515,7 +515,7 @@ __pattern_merge(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ran
             __tag,
             oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy2_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec)),
-            oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{},
+            oneapi::dpl::__internal::__brick_copy<__hetero_tag<_BackendTag>>{},
             ::std::forward<_Range1>(__rng1), ::std::forward<_Range3>(__rng3));
     }
     else
@@ -694,7 +694,7 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 
     if (__n == 1)
     {
-        __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy> __copy_range{};
+        __brick_copy<__hetero_tag<_BackendTag>> __copy_range{};
 
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(
             __tag, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__copy_keys_wrapper>(__exec), __copy_range,

@@ -251,7 +251,7 @@ __pattern_adjacent_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
 
             __internal::__pattern_walk2_brick(
                 __tag, __wrapped_policy, __first, __last, __d_first,
-                __internal::__brick_copy<__hetero_tag<_BackendTag>, decltype(__wrapped_policy)>{});
+                __internal::__brick_copy<__hetero_tag<_BackendTag>>{});
 
             return __d_last;
         });
