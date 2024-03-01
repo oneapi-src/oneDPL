@@ -852,7 +852,7 @@ __pattern_nth_element(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAcce
 //------------------------------------------------------------------------
 // fill, fill_n
 //------------------------------------------------------------------------
-template <typename _Tp, typename _ExecutionPolicy, typename = void>
+template <class _Tag, typename _Tp, typename _ExecutionPolicy>
 struct __brick_fill;
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Tp>

@@ -2759,9 +2759,11 @@ __pattern_nth_element(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec
 //------------------------------------------------------------------------
 // fill, fill_n
 //------------------------------------------------------------------------
-template <typename _Tp, typename _ExecutionPolicy>
-struct __brick_fill<_Tp, _ExecutionPolicy, oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>>
+template <class _Tag, typename _Tp, typename _ExecutionPolicy>
+struct __brick_fill
 {
+    static_assert(__is_host_backend_tag_v<_Tag>);
+
     const _Tp& __value;
 
     template <typename _RandomAccessIterator>
@@ -2787,7 +2789,7 @@ __pattern_fill(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardItera
 {
     static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
-    __internal::__brick_fill<_Tp, _ExecutionPolicy>{__value}(__first, __last, typename _Tag::__is_vector{});
+    __internal::__brick_fill<_Tag, _Tp, _ExecutionPolicy>{__value}(__first, __last, typename _Tag::__is_vector{});
 }
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Tp>
@@ -2800,8 +2802,8 @@ __pattern_fill(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcce
     return __internal::__except_handler([&__exec, __first, __last, &__value]() {
         __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                       [&__value](_RandomAccessIterator __begin, _RandomAccessIterator __end) {
-                                          __internal::__brick_fill<_Tp, _ExecutionPolicy>{__value}(__begin, __end,
-                                                                                                   _IsVector{});
+                                          __internal::__brick_fill<__parallel_tag<_IsVector>, _Tp, _ExecutionPolicy>{
+                                              __value}(__begin, __end, _IsVector{});
                                       });
         return __last;
     });
