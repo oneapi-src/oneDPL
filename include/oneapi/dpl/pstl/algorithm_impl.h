@@ -242,7 +242,7 @@ __pattern_walk_brick_n(_Tag, _ExecutionPolicy&& __exec, _ForwardIterator __first
 {
     static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
-    return __brick(__first, __n,);
+    return __brick(__first, __n, typename _Tag::__is_vector{});
 }
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Brick>
@@ -255,7 +255,7 @@ __pattern_walk_brick_n(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ra
     return __internal::__except_handler([&]() {
         __par_backend::__parallel_for(
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __first + __n,
-            [__brick](_RandomAccessIterator __i, _RandomAccessIterator __j) { __brick(__i, __j - __i); });
+            [__brick](_RandomAccessIterator __i, _RandomAccessIterator __j) { __brick(__i, __j - __i, _IsVector{}); });
         return __first + __n;
     });
 }
@@ -2817,16 +2817,18 @@ struct __brick_fill_n
 
     template <typename _RandomAccessIterator, typename _Size>
     _RandomAccessIterator
-    operator()(_RandomAccessIterator __first, _Size __count) const noexcept
+    operator()(_RandomAccessIterator __first, _Size __count,
+               /* __is_vector = */ ::std::true_type) const noexcept
     {
-        if constexpr (typename _Tag::__is_vector{})
-        {
-            return __unseq_backend::__simd_fill_n(__first, __count, __value);
-        }
-        else
-        {
-            return ::std::fill_n(__first, __count, __value);
-        }
+        return __unseq_backend::__simd_fill_n(__first, __count, __value);
+    }
+
+    template <typename _OutputIterator, typename _Size>
+    _OutputIterator
+    operator()(_OutputIterator __first, _Size __count,
+               /* __is_vector = */ ::std::false_type) const noexcept
+    {
+        return ::std::fill_n(__first, __count, __value);
     }
 };
 
@@ -2836,7 +2838,7 @@ __pattern_fill_n(_Tag, _ExecutionPolicy&&, _OutputIterator __first, _Size __coun
 {
     static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
-    return __internal::__brick_fill_n<_Tag, _Tp>{__value}(__first, __count);
+    return __internal::__brick_fill_n<_Tag, _Tp>{__value}(__first, __count, typename _Tag::__is_vector{});
 }
 
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Size, class _Tp>
