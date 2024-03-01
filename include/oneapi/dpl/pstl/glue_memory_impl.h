@@ -150,8 +150,7 @@ uninitialized_fill(_ExecutionPolicy&& __exec, _ForwardIterator __first, _Forward
     {
         oneapi::dpl::__internal::__pattern_walk_brick(
             __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-            oneapi::dpl::__internal::__brick_fill<::std::decay_t<decltype(__dispatch_tag)>, _ValueType,
-                                                  _DecayedExecutionPolicy>{
+            oneapi::dpl::__internal::__brick_fill<::std::decay_t<decltype(__dispatch_tag)>, _ValueType>{
                 _ValueType(__value)});
     }
     else
@@ -313,8 +312,7 @@ uninitialized_value_construct(_ExecutionPolicy&& __exec, _ForwardIterator __firs
     {
         oneapi::dpl::__internal::__pattern_walk_brick(
             __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-            oneapi::dpl::__internal::__brick_fill<::std::decay_t<decltype(__dispatch_tag)>, _ValueType,
-                                                  _DecayedExecutionPolicy>{_ValueType()});
+            oneapi::dpl::__internal::__brick_fill<::std::decay_t<decltype(__dispatch_tag)>, _ValueType>{_ValueType()});
     }
     else
     {
