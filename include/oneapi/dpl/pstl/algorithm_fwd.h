@@ -406,13 +406,13 @@ __pattern_search_n(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessI
 // copy_n
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename = void>
+template <class _Tag>
 struct __brick_copy_n;
 
-template <typename _ExecutionPolicy, typename = void>
+template <class _Tag>
 struct __brick_copy;
 
-template <typename _ExecutionPolicy, typename = void>
+template <class _Tag>
 struct __brick_move;
 
 //------------------------------------------------------------------------
@@ -632,14 +632,12 @@ __pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIte
 // rotate_copy
 //------------------------------------------------------------------------
 
-template <class _ForwardIterator, class _OutputIterator>
-_OutputIterator __brick_rotate_copy(_ForwardIterator, _ForwardIterator, _ForwardIterator, _OutputIterator,
-                                    /*__is_vector=*/::std::false_type) noexcept;
+template <class _Tag, class _ForwardIterator, class _OutputIterator>
+_OutputIterator __brick_rotate_copy(_Tag, _ForwardIterator, _ForwardIterator, _ForwardIterator, _OutputIterator) noexcept;
 
-template <class _RandomAccessIterator, class _OutputIterator>
-_OutputIterator __brick_rotate_copy(_RandomAccessIterator, _RandomAccessIterator, _RandomAccessIterator,
-                                    _OutputIterator,
-                                    /*__is_vector=*/::std::true_type) noexcept;
+template <class _IsVector, class _RandomAccessIterator, class _OutputIterator>
+_OutputIterator __brick_rotate_copy(__parallel_tag<_IsVector>, _RandomAccessIterator, _RandomAccessIterator,
+                                    _RandomAccessIterator, _OutputIterator) noexcept;
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator>
 _OutputIterator
@@ -854,7 +852,7 @@ __pattern_nth_element(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAcce
 //------------------------------------------------------------------------
 // fill, fill_n
 //------------------------------------------------------------------------
-template <typename _Tp, typename _ExecutionPolicy, typename = void>
+template <class _Tag, typename _Tp>
 struct __brick_fill;
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Tp>
@@ -865,7 +863,7 @@ template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, 
 _RandomAccessIterator
 __pattern_fill(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, const _Tp&);
 
-template <typename _Tp, typename _ExecutionPolicy, typename = void>
+template <class _Tag, typename _Tp>
 struct __brick_fill_n;
 
 template <class _Tag, class _ExecutionPolicy, class _OutputIterator, class _Size, class _Tp>
