@@ -297,9 +297,10 @@ struct __device_backend_tag
 };
 
 template <class... _IteratorTypes, typename _KernelName>
-::std::enable_if_t<__is_random_access_iterator_v<_IteratorTypes...>, __hetero_tag<__device_backend_tag>>
+__hetero_tag<__device_backend_tag>
 __select_backend(const execution::device_policy<_KernelName>&, _IteratorTypes&&...)
 {
+    static_assert(__is_random_access_iterator_v<_IteratorTypes...>);
     return {};
 }
 
@@ -309,9 +310,10 @@ struct __fpga_backend_tag : __device_backend_tag
 };
 
 template <class... _IteratorTypes, unsigned int _Factor, typename _KernelName>
-::std::enable_if_t<__is_random_access_iterator_v<_IteratorTypes...>, __hetero_tag<__fpga_backend_tag>>
+__hetero_tag<__fpga_backend_tag>
 __select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _IteratorTypes&&...)
 {
+    static_assert(__is_random_access_iterator_v<_IteratorTypes...>);
     return {};
 }
 #endif
