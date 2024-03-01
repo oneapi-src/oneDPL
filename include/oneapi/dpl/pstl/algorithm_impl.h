@@ -1109,7 +1109,7 @@ struct __brick_copy
 // move
 //------------------------------------------------------------------------
 
-template <class _Tag, typename _ExecutionPolicy>
+template <class _Tag>
 struct __brick_move
 {
     static_assert(__is_host_backend_tag_v<_Tag>);
@@ -1868,7 +1868,7 @@ __pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAc
 
             __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __middle,
                                           [__last, __middle](_RandomAccessIterator __b, _RandomAccessIterator __e) {
-                                              __internal::__brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(
+                                              __internal::__brick_move<__parallel_tag<_IsVector>>{}(
                                                   __b, __e, __b + (__last - __middle), _IsVector{});
                                           });
 
@@ -1894,7 +1894,7 @@ __pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAc
 
             __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __middle, __last,
                                           [__first, __middle](_RandomAccessIterator __b, _RandomAccessIterator __e) {
-                                              __internal::__brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(
+                                              __internal::__brick_move<__parallel_tag<_IsVector>>{}(
                                                   __b, __e, __first + (__b - __middle), _IsVector{});
                                           });
 
@@ -4277,7 +4277,7 @@ __pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forw
     {
         __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n, __size,
                                       [__first, __n](_DiffType __i, _DiffType __j) {
-                                          __brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(
+                                          __brick_move<__parallel_tag<_IsVector>>{}(
                                               __first + __i, __first + __j, __first + __i - __n, _IsVector{});
                                       });
     }
@@ -4289,7 +4289,7 @@ __pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forw
             auto __end = ::std::min(__k + __n, __size);
             __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __k, __end,
                                           [__first, __n](_DiffType __i, _DiffType __j) {
-                                              __brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(
+                                              __brick_move<__parallel_tag<_IsVector>>{}(
                                                   __first + __i, __first + __j, __first + __i - __n, _IsVector{});
                                           });
         }
