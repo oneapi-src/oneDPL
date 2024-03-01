@@ -85,6 +85,19 @@ struct UserType
         key = other.key;
         return *this;
     }
+    UserType&
+    operator=(UserType&& other)
+    {
+        key = other.key;
+        f = other.f;
+        u = other.u;
+        i = other.i;
+        other.key = -1;
+        other.f = 0.0f;
+        other.u = 0;
+        other.i = 0;
+        return *this;
+    }
     UserType(const UserType& other) : key(other.key), f(other.f), u(other.u), i(other.i) {}
     UserType(UserType&& other) : key(other.key), f(other.f), u(other.u), i(other.i)
     {
