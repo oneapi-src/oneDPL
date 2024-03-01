@@ -1915,8 +1915,8 @@ __pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAc
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _OutputIterator>
 _OutputIterator
-__brick_rotate_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __middle, _ForwardIterator __last,
-                    _OutputIterator __result) noexcept
+__brick_rotate_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _ForwardIterator __middle,
+                    _ForwardIterator __last, _OutputIterator __result) noexcept
 {
     static_assert(__is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag>);
 
@@ -1926,8 +1926,8 @@ __brick_rotate_copy(_Tag, _ExecutionPolicy&&, _ForwardIterator __first, _Forward
 template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2>
 _RandomAccessIterator2
 __brick_rotate_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1 __first,
-                    _RandomAccessIterator1 __middle,
-                    _RandomAccessIterator1 __last, _RandomAccessIterator2 __result) noexcept
+                    _RandomAccessIterator1 __middle, _RandomAccessIterator1 __last,
+                    _RandomAccessIterator2 __result) noexcept
 {
     _RandomAccessIterator2 __res = __brick_copy<__parallel_tag<_IsVector>>{}(__middle, __last, __result);
     return __internal::__brick_copy<__parallel_tag<_IsVector>>{}(__first, __middle, __res);
@@ -2801,8 +2801,8 @@ __pattern_fill(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcce
     return __internal::__except_handler([&__exec, __first, __last, &__value]() {
         __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                                       [&__value](_RandomAccessIterator __begin, _RandomAccessIterator __end) {
-                                          __internal::__brick_fill<__parallel_tag<_IsVector>, _Tp>{
-                                              __value}(__begin, __end, _IsVector{});
+                                          __internal::__brick_fill<__parallel_tag<_IsVector>, _Tp>{__value}(
+                                              __begin, __end, _IsVector{});
                                       });
         return __last;
     });
@@ -3224,9 +3224,9 @@ __parallel_set_op(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forward
         _DifferenceType __m{};
         auto __scan = [=](_DifferenceType, _DifferenceType, const _SetRange& __s) { // Scan
             if (!__s.empty())
-                __brick_move_destroy<__parallel_tag<_IsVector>>{}(
-                    __tmp_memory + __s.__buf_pos, __tmp_memory + (__s.__buf_pos + __s.__len), __result + __s.__pos,
-                    _IsVector{});
+                __brick_move_destroy<__parallel_tag<_IsVector>>{}(__tmp_memory + __s.__buf_pos,
+                                                                  __tmp_memory + (__s.__buf_pos + __s.__len),
+                                                                  __result + __s.__pos, _IsVector{});
         };
         __par_backend::__parallel_strict_scan(
             __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n1, _SetRange{0, 0, 0}, //-1, 0},
@@ -4276,8 +4276,8 @@ __pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Forw
     {
         __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n, __size,
                                       [__first, __n](_DiffType __i, _DiffType __j) {
-                                          __brick_move<__parallel_tag<_IsVector>>{}(
-                                              __first + __i, __first + __j, __first + __i - __n, _IsVector{});
+                                          __brick_move<__parallel_tag<_IsVector>>{}(__first + __i, __first + __j,
+                                                                                    __first + __i - __n, _IsVector{});
                                       });
     }
     else //2. n < size/2; there is not enough memory to parallel copying; doing parallel copying by n elements

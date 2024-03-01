@@ -249,9 +249,8 @@ __pattern_adjacent_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
             auto __wrapped_policy = __par_backend_hetero::make_wrapped_policy<adjacent_difference_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec));
 
-            __internal::__pattern_walk2_brick(
-                __tag, __wrapped_policy, __first, __last, __d_first,
-                __internal::__brick_copy<__hetero_tag<_BackendTag>>{});
+            __internal::__pattern_walk2_brick(__tag, __wrapped_policy, __first, __last, __d_first,
+                                              __internal::__brick_copy<__hetero_tag<_BackendTag>>{});
 
             return __d_last;
         });

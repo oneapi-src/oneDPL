@@ -633,7 +633,8 @@ __pattern_rotate(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIte
 //------------------------------------------------------------------------
 
 template <class _Tag, class _ForwardIterator, class _OutputIterator>
-_OutputIterator __brick_rotate_copy(_Tag, _ForwardIterator, _ForwardIterator, _ForwardIterator, _OutputIterator) noexcept;
+_OutputIterator __brick_rotate_copy(_Tag, _ForwardIterator, _ForwardIterator, _ForwardIterator,
+                                    _OutputIterator) noexcept;
 
 template <class _IsVector, class _RandomAccessIterator, class _OutputIterator>
 _OutputIterator __brick_rotate_copy(__parallel_tag<_IsVector>, _RandomAccessIterator, _RandomAccessIterator,
