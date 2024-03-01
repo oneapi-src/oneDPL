@@ -75,8 +75,7 @@ uninitialized_copy_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick_n(
             __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
-            oneapi::dpl::__internal::__brick_copy_n<::std::decay_t<decltype(__dispatch_tag)>,
-                                                    _DecayedExecutionPolicy>{});
+            oneapi::dpl::__internal::__brick_copy_n<::std::decay_t<decltype(__dispatch_tag)>>{});
     }
     else
     {
@@ -126,8 +125,7 @@ uninitialized_move_n(_ExecutionPolicy&& __exec, _InputIterator __first, _Size __
     {
         return oneapi::dpl::__internal::__pattern_walk2_brick_n(
             __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
-            oneapi::dpl::__internal::__brick_copy_n<::std::decay_t<decltype(__dispatch_tag)>,
-                                                    _DecayedExecutionPolicy>{});
+            oneapi::dpl::__internal::__brick_copy_n<::std::decay_t<decltype(__dispatch_tag)>>{});
     }
     else
     {

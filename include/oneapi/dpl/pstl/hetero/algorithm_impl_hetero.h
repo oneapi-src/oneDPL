@@ -375,8 +375,8 @@ __pattern_generate_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec,
 // brick_copy, brick_move
 //------------------------------------------------------------------------
 
-template <typename _BackendTag, typename _ExecutionPolicy>
-struct __brick_copy_n<__hetero_tag<_BackendTag>, _ExecutionPolicy>
+template <typename _BackendTag>
+struct __brick_copy_n<__hetero_tag<_BackendTag>>
 {
     template <typename _SourceT, typename _TargetT>
     void

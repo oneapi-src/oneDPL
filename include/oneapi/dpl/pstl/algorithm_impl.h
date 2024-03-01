@@ -1048,7 +1048,7 @@ __pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
 // clear that doing so is worth the trouble and extra layers of call chain.
 // Sometimes a little duplication for sake of regularity is better than the alternative.
 
-template <class _Tag, typename _ExecutionPolicy>
+template <class _Tag>
 struct __brick_copy_n
 {
     static_assert(__is_host_backend_tag_v<_Tag>);
