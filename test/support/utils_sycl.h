@@ -38,6 +38,29 @@
 namespace TestUtils
 {
 
+////////////////////////////////////////////////////////////////////////////////
+// Extension: hetero execution policy type trait
+template <typename _T>
+using is_hetero_execution_policy = ::std::disjunction<oneapi::dpl::__internal::__is_device_execution_policy<_T>,
+                                                      oneapi::dpl::__internal::__is_fpga_execution_policy<_T>>;
+
+template <typename _T>
+inline constexpr bool is_hetero_execution_policy_v = is_hetero_execution_policy<_T>::value;
+
+template <typename _ExecPolicy, typename _T = void>
+using enable_if_hetero_execution_policy =
+    ::std::enable_if_t<is_hetero_execution_policy_v<::std::decay_t<_ExecPolicy>>, _T>;
+
+template <typename _ExecPolicy, bool Cond, typename _T = void>
+using enable_if_hetero_execution_policy_cond =
+    ::std::enable_if_t<is_hetero_execution_policy_v<::std::decay_t<_ExecPolicy>> && Cond, _T>;
+
+template <typename _ExecPolicy, typename _T = void>
+using enable_if_fpga_execution_policy =
+    ::std::enable_if_t<oneapi::dpl::__internal::__is_fpga_execution_policy<::std::decay_t<_ExecPolicy>>, _T>;
+
+////////////////////////////////////////////////////////////////////////////////
+
 #define PRINT_DEBUG(message) ::TestUtils::print_debug(message)
 
 inline void
@@ -92,7 +115,7 @@ make_new_policy(_Policy&& __policy)
 
 #if ONEDPL_FPGA_DEVICE
 template <typename _NewKernelName, typename _Policy,
-          oneapi::dpl::__internal::__enable_if_fpga_execution_policy<_Policy, int> = 0>
+          TestUtils::enable_if_fpga_execution_policy<_Policy, int> = 0>
 auto
 make_new_policy(_Policy&& __policy)
     -> decltype(TestUtils::make_fpga_policy<::std::decay_t<_Policy>::unroll_factor, _NewKernelName>(

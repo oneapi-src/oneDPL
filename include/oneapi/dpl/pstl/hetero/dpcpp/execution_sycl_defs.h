@@ -245,14 +245,6 @@ struct __ref_or_copy_impl<execution::device_policy<PolicyParams...>, _T>
     using type = _T;
 };
 
-// Extension: hetero execution policy type trait
-template <typename _T>
-using __is_hetero_execution_policy =
-    ::std::disjunction<__is_device_execution_policy<_T>, __is_fpga_execution_policy<_T>>;
-
-template <typename _T>
-inline constexpr bool __is_hetero_execution_policy_v = __is_hetero_execution_policy<_T>::value;
-
 // Extension: check if parameter pack is convertible to events
 template <class... _Ts>
 inline constexpr bool __is_convertible_to_event = (::std::is_convertible_v<::std::decay_t<_Ts>, sycl::event> && ...);
@@ -264,10 +256,6 @@ using __enable_if_convertible_to_events = ::std::enable_if_t<__is_convertible_to
 template <typename _ExecPolicy, typename _T, typename... _Events>
 using __enable_if_device_execution_policy = ::std::enable_if_t<
     __is_device_execution_policy_v<::std::decay_t<_ExecPolicy>> && __is_convertible_to_event<_Events...>, _T>;
-
-template <typename _ExecPolicy, typename _T = void>
-using __enable_if_hetero_execution_policy =
-    ::std::enable_if_t<__is_hetero_execution_policy_v<::std::decay_t<_ExecPolicy>>, _T>;
 
 template <typename _ExecPolicy, typename _T = void>
 using __enable_if_fpga_execution_policy =

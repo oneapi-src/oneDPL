@@ -857,7 +857,7 @@ struct _ZipIteratorAdapter
 template <typename Policy>
 using __is_able_to_create_new_policy =
 #if TEST_DPCPP_BACKEND_PRESENT
-    oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<Policy>>;
+    is_hetero_execution_policy<::std::decay_t<Policy>>;
 #else
     ::std::false_type;
 #endif // TEST_DPCPP_BACKEND_PRESENT

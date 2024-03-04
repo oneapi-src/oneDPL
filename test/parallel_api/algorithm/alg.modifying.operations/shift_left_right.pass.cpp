@@ -87,7 +87,7 @@ struct test_shift
 #endif
 
     template <typename Policy, typename It, typename Algo>
-    oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy>
+    TestUtils::enable_if_hetero_execution_policy<Policy>
     operator()(Policy&& exec, It first, typename ::std::iterator_traits<It>::difference_type m,
         It first_exp, typename ::std::iterator_traits<It>::difference_type n, Algo algo)
     {

@@ -54,7 +54,7 @@ void
 wait_and_throw(ExecutionPolicy&& exec)
 {
 #if TEST_DPCPP_BACKEND_PRESENT
-    if constexpr (oneapi::dpl::__internal::__is_hetero_execution_policy<::std::decay_t<ExecutionPolicy>>::value)
+    if constexpr (TestUtils::is_hetero_execution_policy<::std::decay_t<ExecutionPolicy>>::value)
     {
         exec.queue().wait_and_throw();
     }

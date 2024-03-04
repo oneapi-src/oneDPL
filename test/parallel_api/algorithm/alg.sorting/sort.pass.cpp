@@ -293,7 +293,7 @@ run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, Outpu
 #if _PSTL_SYCL_TEST_USM
 template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
           typename... Compare>
-oneapi::dpl::__internal::__enable_if_hetero_execution_policy<Policy>
+TestUtils::enable_if_hetero_execution_policy<Policy>
 run_test(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
             OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n, Compare ...compare)
 {
