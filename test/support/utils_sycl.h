@@ -60,19 +60,66 @@ check_values(Iterator first, Iterator last, const T& val)
     return ::std::all_of(first, last, [&val](const T& x) { return x == val; });
 }
 
+std::string
+get_sycl_errc_presentation(sycl::errc error_code)
+{
+    switch (error_code)
+    {
+    case sycl::errc::success:
+        return "sycl::errc::success";
+    case sycl::errc::runtime:
+        return "sycl::errc::runtime";
+    case sycl::errc::kernel:
+        return "sycl::errc::kernel";
+    case sycl::errc::accessor:
+        return "sycl::errc::accessor";
+    case sycl::errc::nd_range:
+        return "sycl::errc::nd_range";
+    case sycl::errc::event:
+        return "sycl::errc::event";
+    case sycl::errc::kernel_argument:
+        return "sycl::errc::kernel_argument";
+    case sycl::errc::build:
+        return "sycl::errc::build";
+    case sycl::errc::invalid:
+        return "sycl::errc::invalid";
+    case sycl::errc::memory_allocation:
+        return "sycl::errc::memory_allocation";
+    case sycl::errc::platform:
+        return "sycl::errc::platform";
+    case sycl::errc::profiling:
+        return "sycl::errc::profiling";
+    case sycl::errc::feature_not_supported:
+        return "sycl::errc::feature_not_supported";
+    case sycl::errc::kernel_not_supported:
+        return "sycl::errc::kernel_not_supported";
+    case sycl::errc::backend_mismatch:
+        return "sycl::errc::backend_mismatch";
+    }
+
+    return "unknown";
+}
+
 auto async_handler = [](sycl::exception_list ex_list) {
-    for (auto& ex : ex_list)
+    for (const auto& pExcObj : ex_list)
     {
         try
         {
-            ::std::rethrow_exception(ex);
+            ::std::rethrow_exception(pExcObj);
         }
-        catch (sycl::exception& ex)
+        catch (const sycl::exception& exc)
         {
-            ::std::cerr << ex.what() << ::std::endl;
-            ::std::exit(EXIT_FAILURE);
+            ::std::cerr << "Exception ("
+                        << "code = " << get_sycl_errc_presentation(exc.code()) << ", "
+                        << "category: " << exc.category().name()
+                        << "):" << exc.what() << ::std::endl;
+        }
+        catch (const std::exception& exc)
+        {
+            ::std::cerr << "Exception:" << exc.what() << ::std::endl;
         }
     }
+    ::std::exit(EXIT_FAILURE);
 };
 
 //Check that type is device copyable including types which are deprecated in sycl 2020
