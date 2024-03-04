@@ -90,11 +90,7 @@ class zip_forward_iterator
     typedef ::std::forward_iterator_tag iterator_category;
 
     zip_forward_iterator() : __my_it_() {}
-    explicit
-    zip_forward_iterator(_Types... __args)
-        : __my_it_(oneapi::dpl::__internal::make_tuple(__args...))
-    {
-    }
+    explicit zip_forward_iterator(_Types... __args) : __my_it_(oneapi::dpl::__internal::make_tuple(__args...)) {}
 
     reference operator*() const
     {
@@ -273,11 +269,7 @@ class zip_iterator
     using is_zip = ::std::true_type;
 
     zip_iterator() : __my_it_() {}
-    explicit
-    zip_iterator(_Types... __args)
-        : __my_it_(oneapi::dpl::__internal::make_tuple(__args...))
-    {
-    }
+    explicit zip_iterator(_Types... __args) : __my_it_(oneapi::dpl::__internal::make_tuple(__args...)) {}
     explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
 
     reference operator*() const
