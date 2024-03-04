@@ -23,6 +23,9 @@
 // Enable for verbose list of tests run
 //#define VERBOSE_TEST 1
 
+//This test is written without indirection from invoke_on_all_hetero_policies to make clear exactly which types
+// are being tested, and to limit the number of types to be within reason.
+
 #if TEST_DPCPP_BACKEND_PRESENT
 template <int __recurse, int __reverses, bool __read = true, bool __reset_read = true, bool __write = true,
           bool __check_write = true, bool __usable_as_perm_map = true, bool __usable_as_perm_src = true,
@@ -218,49 +221,58 @@ template <typename T, int __recurse, typename Policy>
 void
 test(Policy&& device_policy, T trash, size_t n, std::string type_text)
 {
-    auto device_policy1 = TestUtils::create_new_policy_idx<Policy, 0>(device_policy);
-    auto device_policy2 = TestUtils::create_new_policy_idx<Policy, 1>(device_policy);
-    auto device_policy3 = TestUtils::create_new_policy_idx<Policy, 2>(device_policy);
-    auto device_policy4 = TestUtils::create_new_policy_idx<Policy, 3>(device_policy);
-    auto device_policy5 = TestUtils::create_new_policy_idx<Policy, 4>(device_policy);
-
-    auto copy_out = sycl::malloc_shared<T>(n, device_policy.queue());
-    oneapi::dpl::counting_iterator<int> counting(0);
-    if constexpr (std::is_integral_v<T>)
+    if (TestUtils::has_types_support<T>(device_policy.queue().get_device()))
     {
-        oneapi::dpl::counting_iterator<T> my_counting(0);
-        //counting_iterator
-        wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/false, /*__write=*/false,
-                     /*__check_write=*/false, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/true>(
-            device_policy1, my_counting, my_counting + n, counting, copy_out, my_counting, copy_out, counting, trash,
-            std::string("counting_iterator<") + type_text + std::string(">"));
+
+        auto device_policy1 = TestUtils::create_new_policy_idx<Policy, 0>(device_policy);
+        auto device_policy2 = TestUtils::create_new_policy_idx<Policy, 1>(device_policy);
+        auto device_policy3 = TestUtils::create_new_policy_idx<Policy, 2>(device_policy);
+        auto device_policy4 = TestUtils::create_new_policy_idx<Policy, 3>(device_policy);
+        auto device_policy5 = TestUtils::create_new_policy_idx<Policy, 4>(device_policy);
+
+        auto copy_out = sycl::malloc_shared<T>(n, device_policy.queue());
+        oneapi::dpl::counting_iterator<int> counting(0);
+        if constexpr (std::is_integral_v<T>)
+        {
+            oneapi::dpl::counting_iterator<T> my_counting(0);
+            //counting_iterator
+            wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/false, /*__write=*/false,
+                        /*__check_write=*/false, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/true>(
+                device_policy1, my_counting, my_counting + n, counting, copy_out, my_counting, copy_out, counting,
+                trash, std::string("counting_iterator<") + type_text + std::string(">"));
+        }
+
+        //host iterator
+        std::vector<T> host_iter(n);
+        wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
+                    /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false>(
+            device_policy2, host_iter.begin(), host_iter.end(), counting, copy_out, host_iter.begin(), copy_out,
+            counting, trash, std::string("host_iterator<") + type_text + std::string(">"));
+
+        //sycl iterator
+        sycl::buffer<T> buf(n);
+        //test all modes / wrappers
+        wrap_recurse<__recurse, 0>(device_policy3, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), counting, copy_out,
+                                oneapi::dpl::begin(buf), copy_out, counting, trash,
+                                std::string("sycl_iterator<") + type_text + std::string(">"));
+
+        //usm_shared
+        auto usm_shared = sycl::malloc_shared<T>(n, device_policy.queue());
+        //test all modes / wrappers
+        wrap_recurse<__recurse, 0>(device_policy4, usm_shared, usm_shared + n, counting, copy_out, usm_shared, copy_out,
+                                counting, trash, std::string("usm_shared<") + type_text + std::string(">"));
+
+        //usm_device
+        auto usm_device = sycl::malloc_device<T>(n, device_policy.queue());
+        //test all modes / wrappers
+        wrap_recurse<__recurse, 0>(device_policy5, usm_device, usm_device + n, counting, copy_out, usm_device, copy_out,
+                                counting, trash, std::string("usm_device<") + type_text + std::string(">"));
+    }
+    else
+    {
+        TestUtils::unsupported_types_notifier(device_policy.queue().get_device());
     }
 
-    //host iterator
-    std::vector<T> host_iter(n);
-    wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-                 /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false>(
-        device_policy2, host_iter.begin(), host_iter.end(), counting, copy_out, host_iter.begin(), copy_out, counting,
-        trash, std::string("host_iterator<") + type_text + std::string(">"));
-
-    //sycl iterator
-    sycl::buffer<T> buf(n);
-    //test all modes / wrappers
-    wrap_recurse<__recurse, 0>(device_policy3, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), counting, copy_out,
-                               oneapi::dpl::begin(buf), copy_out, counting, trash,
-                               std::string("sycl_iterator<") + type_text + std::string(">"));
-
-    //usm_shared
-    auto usm_shared = sycl::malloc_shared<T>(n, device_policy.queue());
-    //test all modes / wrappers
-    wrap_recurse<__recurse, 0>(device_policy4, usm_shared, usm_shared + n, counting, copy_out, usm_shared, copy_out,
-                               counting, trash, std::string("usm_shared<") + type_text + std::string(">"));
-
-    //usm_device
-    auto usm_device = sycl::malloc_device<T>(n, device_policy.queue());
-    //test all modes / wrappers
-    wrap_recurse<__recurse, 0>(device_policy5, usm_device, usm_device + n, counting, copy_out, usm_device, copy_out,
-                               counting, trash, std::string("usm_device<") + type_text + std::string(">"));
 }
 
 #endif //TEST_DPCPP_BACKEND_PRESENT
