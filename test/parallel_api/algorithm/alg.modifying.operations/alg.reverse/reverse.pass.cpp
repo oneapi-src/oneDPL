@@ -98,10 +98,18 @@ struct wrapper
 int
 main()
 {
-    test<std::int32_t>();
-    test<std::uint16_t>();
-    test<float64_t>();
-    test<wrapper<float32_t>>();
+    try
+    {
+        test<std::int32_t>();
+        test<std::uint16_t>();
+        test<float64_t>();
+        test<wrapper<float32_t>>();
+    }
+    catch (const ::std::exception& exc)
+    {
+        std::cout << "Exception: " << exc.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
     return done();
 }
