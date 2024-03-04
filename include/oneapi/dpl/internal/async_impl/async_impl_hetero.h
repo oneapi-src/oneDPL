@@ -109,10 +109,10 @@ auto
 __pattern_walk2_brick_async(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                             _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Brick __brick)
 {
-    return __pattern_walk2_async(
-        __tag,
-        __par_backend_hetero::make_wrapped_policy<__walk2_brick_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
-        __first1, __last1, __first2, __brick);
+    return __pattern_walk2_async(__tag,
+                                 __par_backend_hetero::make_wrapped_policy<__walk2_brick_wrapper>(
+                                     _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec)),
+                                 __first1, __last1, __first2, __brick);
 }
 
 //------------------------------------------------------------------------
