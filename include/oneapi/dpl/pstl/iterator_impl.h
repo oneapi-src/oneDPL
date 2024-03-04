@@ -278,11 +278,7 @@ class zip_iterator
         : __my_it_(oneapi::dpl::__internal::make_tuple(__args...))
     {
     }
-    explicit
-    zip_iterator(std::tuple<_Types...> __arg)
-        : __my_it_(__arg)
-    {
-    }
+    explicit zip_iterator(std::tuple<_Types...> __arg) : __my_it_(__arg) {}
 
     reference operator*() const
     {
