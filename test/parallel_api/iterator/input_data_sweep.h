@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- input_data_sweep.pass.cpp -----------------------------------------===//
+//===-- input_data_sweep.h ------------------------------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -13,15 +13,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+#ifndef _INPUT_DATA_SWEEP_H
+#define _INPUT_DATA_SWEEP_H
+
 #include "support/utils.h"
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
 #include _PSTL_TEST_HEADER(iterator)
 
 #include "support/utils_invoke.h"
-
-//This test is written without indirection from invoke_on_all_hetero_policies to make clear exactly which types
-// are being tested, and to limit the number of types to be within reason.
 
 #if TEST_DPCPP_BACKEND_PRESENT
 template <int __recurse, int __reverses, bool __read = true, bool __reset_read = true, bool __write = true,
@@ -219,127 +219,6 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
     }
 }
 
-template <typename T, int __recurse, typename Policy>
-void
-test(Policy&& policy, T trash, size_t n, std::string type_text)
-{
-    if (TestUtils::has_types_support<T>(policy.queue().get_device()))
-    {
-
-        auto policy1 = TestUtils::create_new_policy_idx<Policy, 0>(policy);
-        auto policy2 = TestUtils::create_new_policy_idx<Policy, 1>(policy);
-        auto policy3 = TestUtils::create_new_policy_idx<Policy, 2>(policy);
-        auto policy4 = TestUtils::create_new_policy_idx<Policy, 3>(policy);
-        auto policy5 = TestUtils::create_new_policy_idx<Policy, 4>(policy);
-
-        TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy.queue(), n);
-        oneapi::dpl::counting_iterator<int> counting(0);
-        if constexpr (std::is_integral_v<T>)
-        {
-            oneapi::dpl::counting_iterator<T> my_counting(0);
-            //counting_iterator
-            wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/false, /*__write=*/false,
-                         /*__check_write=*/false, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/true,
-                         /*__is_reversible=*/true>(policy1, my_counting, my_counting + n, counting, copy_out.get_data(),
-                                                   my_counting, copy_out.get_data(), counting, trash,
-                                                   std::string("counting_iterator<") + type_text + std::string(">"));
-        }
-
-        { // host iterator
-            std::vector<T> host_iter(n);
-            wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-                         /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
-                         /*__is_reversible=*/true>(
-                policy2, host_iter.begin(), host_iter.end(), counting, copy_out.get_data(), host_iter.begin(),
-                copy_out.get_data(), counting, trash, std::string("host_iterator<") + type_text + std::string(">"));
-        }
-
-        { // sycl iterator
-            sycl::buffer<T> buf(n);
-            //test all modes / wrappers
-            wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-                         /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
-                         /*__is_reversible=*/false>(policy3, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), counting,
-                                                    copy_out.get_data(), oneapi::dpl::begin(buf), copy_out.get_data(),
-                                                    counting, trash,
-                                                    std::string("sycl_iterator<") + type_text + std::string(">"));
-        }
-
-        { // usm_shared
-            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> shared_data(policy4.queue(), n);
-            auto usm_shared = shared_data.get_data();
-            //test all modes / wrappers
-            wrap_recurse<__recurse, 0>(policy4, usm_shared, usm_shared + n, counting, copy_out.get_data(), usm_shared,
-                                       copy_out.get_data(), counting, trash,
-                                       std::string("usm_shared<") + type_text + std::string(">"));
-        }
-
-        { // usm_device
-            TestUtils::usm_data_transfer<sycl::usm::alloc::device, T> device_data(policy5.queue(), n);
-            auto usm_device = device_data.get_data();
-            //test all modes / wrappers
-            wrap_recurse<__recurse, 0>(policy5, usm_device, usm_device + n, counting, copy_out.get_data(), usm_device,
-                                       copy_out.get_data(), counting, trash,
-                                       std::string("usm_device<") + type_text + std::string(">"));
-        }
-    }
-    else
-    {
-        TestUtils::unsupported_types_notifier(policy.queue().get_device());
-    }
-}
-
 #endif //TEST_DPCPP_BACKEND_PRESENT
 
-int
-main()
-{
-#if TEST_DPCPP_BACKEND_PRESENT
-
-    constexpr size_t n = 10;
-
-    auto q = TestUtils::get_test_queue();
-
-    auto policy = TestUtils::make_new_policy<class Kernel1>(q);
-
-    auto policy1 = TestUtils::create_new_policy_idx<decltype(policy), 0>(policy);
-    auto policy2 = TestUtils::create_new_policy_idx<decltype(policy), 1>(policy);
-    auto policy3 = TestUtils::create_new_policy_idx<decltype(policy), 2>(policy);
-    auto policy4 = TestUtils::create_new_policy_idx<decltype(policy), 3>(policy);
-    auto policy5 = TestUtils::create_new_policy_idx<decltype(policy), 4>(policy);
-    auto policy6 = TestUtils::create_new_policy_idx<decltype(policy), 5>(policy);
-
-    // baseline with no wrapping
-    test<float, 0>(policy1, -666.0f, n, "float");
-    test<double, 0>(policy2, -666.0, n, "double");
-    test<std::uint64_t, 0>(policy3, 999, n, "uint64_t");
-
-    // big recursion step: 1 and 2 layers of wrapping
-    test<std::int32_t, 2>(policy4, -666, n, "int32_t");
-
-    // special cases
-
-    // discard iterator
-    oneapi::dpl::counting_iterator<int> counting(0);
-    oneapi::dpl::discard_iterator discard{};
-    wrap_recurse<1, 0, /*__read =*/false, /*__reset_read=*/false, /*__write=*/true,
-                 /*__check_write=*/false, /*__usable_as_perm_map=*/false, /*__usable_as_perm_src=*/true,
-                 /*__is_reversible=*/true>(policy5, discard, discard + n, counting, discard, discard, discard, discard,
-                                           -666, "discard_iterator");
-
-    // recurse once on perm(perm(usm_shared<int>,count), count)
-
-    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> copy_out(policy6.queue(), n);
-    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> input(policy6.queue(), n);
-    auto perm1 = oneapi::dpl::make_permutation_iterator(input.get_data(), counting);
-    auto perm2 = oneapi::dpl::make_permutation_iterator(perm1, counting);
-    wrap_recurse<1, 0, /*__read =*/false, /*__reset_read=*/false, /*__write=*/true,
-                 /*__check_write=*/false, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/true,
-                 /*__is_reversible=*/true>(
-        policy6, perm2, perm2 + n, counting, copy_out.get_data(), perm2, copy_out.get_data(), counting, -666,
-        "permutation_iter(permutation_iterator(usm_shared<int>,counting_iterator),counting_iterator)");
-
-#endif // TEST_DPCPP_BACKEND_PRESENT
-
-    return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
-}
+#endif //_INPUT_DATA_SWEEP_H
