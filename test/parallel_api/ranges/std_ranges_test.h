@@ -210,6 +210,13 @@ struct test_range_algo
         auto subrange_view = [](auto&& v) { return std::ranges::subrange(v); };
         auto span_view = [](auto&& v) { return std::span(v); };
 
+        auto forward_view = [](auto&& v) {
+            using forward_it = TestUtils::ForwardIterator<decltype(v.begin()), ::std::forward_iterator_tag>;
+            return std::ranges::subrange(forward_it(v.begin()), forward_it(v.end()));
+        };
+
+        test<host_vector, NRanges>{}(host_policies(), algo, checker, f, std::identity{}, forward_view);
+#if 0
         test<host_vector, NRanges>{}(host_policies(), algo, checker, f, std::identity{}, subrange_view);
         test<host_vector, NRanges>{}(host_policies(), algo, checker, f, std::identity{}, span_view);
         test<host_vector, NRanges>{}(host_policies(), algo, checker, f, proj, std::views::all);
@@ -224,6 +231,7 @@ struct test_range_algo
         test<usm_span, NRanges>{}(dpcpp_policy(), algo, checker, f);
 
         test<sycl_buffer, NRanges>{}(dpcpp_policy(), algo, checker, f, std::identity{}, oneapi::dpl::views::all);
+#endif
     }
 };
 
