@@ -389,7 +389,6 @@ class __buffer_impl<oneapi::dpl::__internal::__device_backend_tag, _ExecutionPol
     __container_t __container;
 
   public:
-
     static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
 
     __buffer_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy /*__exec*/,

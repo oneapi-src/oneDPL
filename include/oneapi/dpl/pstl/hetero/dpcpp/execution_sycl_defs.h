@@ -79,7 +79,7 @@ class fpga_policy : public device_policy<KernelName>
 #    else
               __dpl_sycl::__fpga_selector()
 #    endif // _ONEDPL_FPGA_EMU
-              ))
+                  ))
     {
     }
 

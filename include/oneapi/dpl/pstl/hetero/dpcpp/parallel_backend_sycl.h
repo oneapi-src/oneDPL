@@ -871,7 +871,8 @@ __parallel_scan_copy(oneapi::dpl::__internal::__device_backend_tag __backend_tag
     _MaskAssigner __add_mask_op;
 
     // temporary buffer to store boolean mask
-    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(oneapi::dpl::__internal::__device_backend_tag{}, __exec, __n);
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(
+        oneapi::dpl::__internal::__device_backend_tag{}, __exec, __n);
 
     return __parallel_transform_scan_base(
         __backend_tag, ::std::forward<_ExecutionPolicy>(__exec),
