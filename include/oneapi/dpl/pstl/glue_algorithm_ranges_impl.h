@@ -24,6 +24,10 @@
 #    include "hetero/algorithm_impl_hetero.h" //TODO: for __brick_copy
 #endif
 
+#if _ONEDPL___cplusplus >= 202002L
+#include <ranges>
+#endif
+
 namespace oneapi
 {
 namespace dpl
@@ -35,10 +39,12 @@ namespace ranges
 
 // [alg.foreach]
 
+struct for_each_fn
+{
 template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
 constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
 std::ranges::for_each_result<oneapi::dpl::ranges::iterator_t<_R>, _Fun>>
-for_each_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj) const
+operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj) const
 {
     auto __f_1 = [__f, __proj](auto&& __val) { __f(__proj(__val));};
 
@@ -60,11 +66,18 @@ for_each_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __p
 
     return {__internal::__get_result(__r), std::move(__f)};
 }
+}; //for_each_fn
 
+inline constexpr for_each_fn for_each;
+
+// [alg.transform]
+
+struct transform_fn
+{
 template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj>
 constexpr std::ranges::unary_transform_result<oneapi::dpl::ranges::iterator_t<_InRange>,
 oneapi::dpl::ranges::iterator_t<_OutRange>>
-transform_fn::operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj) const
+operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj) const
 {
     assert(__in_r.size() == __out_r.size());
 
@@ -94,9 +107,11 @@ transform_fn::operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange
 
     return {__internal::__get_result(__in_r), __internal::__get_result(__out_r)};
 }
+};//transform_fn
 
+inline constexpr transform_fn transform;
 
-}
+} //ranges
 #endif
 
 namespace experimental

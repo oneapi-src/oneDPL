@@ -19,44 +19,10 @@
 #include "../functional"
 #include "execution_defs.h"
 
-#if _ONEDPL___cplusplus >= 202002L
-#include <ranges>
-#endif
-
 namespace oneapi
 {
 namespace dpl
 {
-
-#if _ONEDPL___cplusplus >= 202002L
-namespace ranges
-{
-
-// [alg.foreach]
-
-struct for_each_fn
-{
-template<typename _ExecutionPolicy, typename _R, typename _Proj = std::identity, typename _Fun>
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-std::ranges::for_each_result<oneapi::dpl::ranges::iterator_t<_R>, _Fun>>
-operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj = {}) const;
-};
-
-inline constexpr for_each_fn for_each;
-
-struct transform_fn
-{
-template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj = std::identity>
-constexpr std::ranges::unary_transform_result<oneapi::dpl::ranges::iterator_t<_InRange>,
-oneapi::dpl::ranges::iterator_t<_OutRange>>
-operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj = {}) const;
-};
-
-inline constexpr transform_fn transform;
-
-}
-#endif
-
 namespace experimental
 {
 namespace ranges
