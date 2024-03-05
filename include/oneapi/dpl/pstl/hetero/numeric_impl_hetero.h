@@ -129,8 +129,6 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
                               _Iterator1 __last, _Iterator2 __result, _UnaryOperation __unary_op, _InitType __init,
                               _BinaryOperation __binary_op, _Inclusive)
 {
-    using __backend_tag = typename __hetero_tag<_BackendTag>::__backend_tag;
-
     if (__first == __last)
         return __result;
 
@@ -147,7 +145,7 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
         auto __buf2 = __keep2(__result, __result + __n);
 
         oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n,
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n,
             __unary_op, __init, __binary_op, _Inclusive{})
             .wait();
     }
@@ -171,7 +169,7 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
         auto __buf2 = __keep2(__first_tmp, __last_tmp);
 
         // Run main algorithm and save data into temporary buffer
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__backend_tag{}, __policy, __buf1.all_view(),
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(_BackendTag{}, __policy, __buf1.all_view(),
                                                                      __buf2.all_view(), __n, __unary_op, __init,
                                                                      __binary_op, _Inclusive{})
             .wait();
