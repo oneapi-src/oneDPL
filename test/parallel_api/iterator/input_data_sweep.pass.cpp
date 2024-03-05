@@ -20,9 +20,6 @@
 
 #include "support/utils_invoke.h"
 
-// Enable for verbose list of tests run
-//#define VERBOSE_TEST 1
-
 //This test is written without indirection from invoke_on_all_hetero_policies to make clear exactly which types
 // are being tested, and to limit the number of types to be within reason.
 
@@ -67,9 +64,9 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
         }
     };
 
-#    if VERBOSE_TEST
+#    if _ONEDPL_DEBUG_SYCL
     std::cout << input_descr << ":";
-#    endif // VERBOSE_TEST
+#    endif // _ONEDPL_DEBUG_SYCL
 
     if constexpr (__read)
     {
@@ -88,9 +85,9 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
         std::string msg = std::string("wrong read effect from ") + input_descr;
         //verify result using original unwrapped output
         EXPECT_EQ_N(expect, orig_out_first, n, msg.c_str());
-#    if VERBOSE_TEST
+#    if _ONEDPL_DEBUG_SYCL
         std::cout << " read pass,";
-#    endif // VERBOSE_TEST
+#    endif // _ONEDPL_DEBUG_SYCL
     }
     if constexpr (__write)
     {
@@ -114,33 +111,33 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
             std::string msg = std::string("wrong write effect from ") + input_descr;
             //verify copied back data
             EXPECT_EQ_N(expect, copy_back.begin(), n, msg.c_str());
-#    if VERBOSE_TEST
+#    if _ONEDPL_DEBUG_SYCL
             std::cout << " write pass";
-#    endif // VERBOSE_TEST
+#    endif // _ONEDPL_DEBUG_SYCL
         }
         else
         {
-#    if VERBOSE_TEST
+#    if _ONEDPL_DEBUG_SYCL
             std::cout << " write pass (no check)";
-#    endif // VERBOSE_TEST
+#    endif // _ONEDPL_DEBUG_SYCL
         }
     }
     if constexpr (!__read && !__write)
     {
-#    if VERBOSE_TEST
+#    if _ONEDPL_DEBUG_SYCL
         std::cout << " has no valid tests";
-#    endif // VERBOSE_TEST
+#    endif // _ONEDPL_DEBUG_SYCL
     }
-#    if VERBOSE_TEST
+#    if _ONEDPL_DEBUG_SYCL
     std::cout << std::endl;
-#    endif // VERBOSE_TEST
+#    endif // _ONEDPL_DEBUG_SYCL
 
     // Now recurse with a layer of wrappers if requested
     if constexpr (__recurse > 0)
     {
-#    if VERBOSE_TEST
+#    if _ONEDPL_DEBUG_SYCL
         std::cout << std::endl << "Recursing on " << input_descr << ":" << std::endl;
-#    endif // VERBOSE_TEST
+#    endif // _ONEDPL_DEBUG_SYCL
         oneapi::dpl::discard_iterator discard{};
         // iterate through all wrappers and recurse - 1
         auto noop = [](auto i) { return i; };
