@@ -251,19 +251,20 @@ test(Policy&& policy, T trash, size_t n, std::string type_text)
         { // host iterator
             std::vector<T> host_iter(n);
             wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-                        /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
-                        /*__is_reversible=*/true>(policy2, host_iter.begin(), host_iter.end(), counting, copy_out.get_data(),
-                                                host_iter.begin(), copy_out.get_data(), counting, trash,
-                                                std::string("host_iterator<") + type_text + std::string(">"));
+                         /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
+                         /*__is_reversible=*/true>(
+                policy2, host_iter.begin(), host_iter.end(), counting, copy_out.get_data(), host_iter.begin(),
+                copy_out.get_data(), counting, trash, std::string("host_iterator<") + type_text + std::string(">"));
         }
 
         { // sycl iterator
             sycl::buffer<T> buf(n);
             //test all modes / wrappers
             wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-                        /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
-                        /*__is_reversible=*/false>(policy3, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
-                                                    counting, copy_out.get_data(), oneapi::dpl::begin(buf), copy_out.get_data(), counting, trash,
+                         /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
+                         /*__is_reversible=*/false>(policy3, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), counting,
+                                                    copy_out.get_data(), oneapi::dpl::begin(buf), copy_out.get_data(),
+                                                    counting, trash,
                                                     std::string("sycl_iterator<") + type_text + std::string(">"));
         }
 
@@ -271,17 +272,18 @@ test(Policy&& policy, T trash, size_t n, std::string type_text)
             TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> shared_data(policy4.queue(), n);
             auto usm_shared = shared_data.get_data();
             //test all modes / wrappers
-            wrap_recurse<__recurse, 0>(policy4, usm_shared, usm_shared + n, counting, copy_out.get_data(), usm_shared, copy_out.get_data(),
-                                    counting, trash, std::string("usm_shared<") + type_text + std::string(">"));
+            wrap_recurse<__recurse, 0>(policy4, usm_shared, usm_shared + n, counting, copy_out.get_data(), usm_shared,
+                                       copy_out.get_data(), counting, trash,
+                                       std::string("usm_shared<") + type_text + std::string(">"));
         }
 
         { // usm_device
             TestUtils::usm_data_transfer<sycl::usm::alloc::device, T> device_data(policy5.queue(), n);
             auto usm_device = device_data.get_data();
             //test all modes / wrappers
-            wrap_recurse<__recurse, 0>(policy5, usm_device, usm_device + n, counting, copy_out.get_data(), usm_device, copy_out.get_data(),
-                                    counting, trash, std::string("usm_device<") + type_text + std::string(">"));
-
+            wrap_recurse<__recurse, 0>(policy5, usm_device, usm_device + n, counting, copy_out.get_data(), usm_device,
+                                       copy_out.get_data(), counting, trash,
+                                       std::string("usm_device<") + type_text + std::string(">"));
         }
     }
     else
@@ -325,8 +327,8 @@ main()
     oneapi::dpl::discard_iterator discard{};
     wrap_recurse<1, 0, /*__read =*/false, /*__reset_read=*/false, /*__write=*/true,
                  /*__check_write=*/false, /*__usable_as_perm_map=*/false, /*__usable_as_perm_src=*/true,
-                 /*__is_reversible=*/true>(policy5, discard, discard + n,
-                                           counting, discard, discard, discard, discard, -666, "discard_iterator");
+                 /*__is_reversible=*/true>(policy5, discard, discard + n, counting, discard, discard, discard, discard,
+                                           -666, "discard_iterator");
 
     // recurse once on perm(perm(usm_shared<int>,count), count)
 
