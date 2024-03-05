@@ -29,8 +29,9 @@
 #if TEST_DPCPP_BACKEND_PRESENT
 template <int __recurse, int __reverses, bool __read = true, bool __reset_read = true, bool __write = true,
           bool __check_write = true, bool __usable_as_perm_map = true, bool __usable_as_perm_src = true,
-          typename Policy, typename InputIterator1, typename InputIterator2, typename OutputIterator,
-          typename OriginalIterator1, typename OriginalIterator2, typename ExpectedIterator, typename T>
+          bool __is_reversible = true,typename Policy, typename InputIterator1, typename InputIterator2,
+          typename OutputIterator, typename OriginalIterator1, typename OriginalIterator2, typename ExpectedIterator,
+          typename T>
 void
 wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIterator2 copy_from_first,
              OutputIterator copy_to_first, OriginalIterator1 orig_first, OriginalIterator2 orig_out_first,
@@ -144,13 +145,14 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
         // iterate through all wrappers and recurse - 1
         auto noop = [](auto i) { return i; };
 
+        if constexpr (__is_reversible)
         { // std::reverse_iterator(it)
             auto reversed_first = ::std::make_reverse_iterator(last);
             auto reversed_last = ::std::make_reverse_iterator(first);
             std::string new_input_descr = std::string("std::reverse(") + input_descr + std::string(")");
             //TODO: Look at device copyability of std::reverse_iterator and re-enable recurse
             wrap_recurse<0, __reverses + 1, __read, __reset_read, __write, __check_write, __usable_as_perm_map,
-                         __usable_as_perm_src>(exec7, reversed_first, reversed_last, copy_from_first, copy_to_first,
+                         __usable_as_perm_src, __is_reversible>(exec7, reversed_first, reversed_last, copy_from_first, copy_to_first,
                                                orig_first, orig_out_first, expected_first, trash, new_input_descr);
         }
 
@@ -158,7 +160,7 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
             auto trans = oneapi::dpl::make_transform_iterator(first, noop);
             std::string new_input_descr = std::string("transform_iterator(") + input_descr + std::string(", noop)");
             wrap_recurse<__recurse - 1, __reverses, __read, __reset_read, /*__write=*/false, __check_write,
-                         __usable_as_perm_map, __usable_as_perm_src>(exec8, trans, trans + n, discard, copy_to_first,
+                         __usable_as_perm_map, __usable_as_perm_src, __is_reversible>(exec8, trans, trans + n, discard, copy_to_first,
                                                                      orig_first, orig_out_first, expected_first, trash,
                                                                      new_input_descr);
         }
@@ -168,7 +170,7 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
             std::string new_input_descr = std::string("permutation_iterator(") + input_descr + std::string(", noop)");
             auto perm = oneapi::dpl::make_permutation_iterator(first, noop);
             wrap_recurse<__recurse - 1, __reverses, __read, __reset_read, __write, __check_write, __usable_as_perm_map,
-                         __usable_as_perm_src>(exec9, perm, perm + n, copy_from_first, copy_to_first, orig_first,
+                         __usable_as_perm_src, __is_reversible>(exec9, perm, perm + n, copy_from_first, copy_to_first, orig_first,
                                                orig_out_first, expected_first, trash, new_input_descr);
         }
 
@@ -178,7 +180,7 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
                 std::string("permutation_iterator(") + input_descr + std::string(", counting_iterator)");
             auto perm = oneapi::dpl::make_permutation_iterator(first, counting);
             wrap_recurse<__recurse - 1, __reverses, __read, __reset_read, __write, __check_write, __usable_as_perm_map,
-                         __usable_as_perm_src>(exec11, perm, perm + n, copy_from_first, copy_to_first, orig_first,
+                         __usable_as_perm_src, __is_reversible>(exec11, perm, perm + n, copy_from_first, copy_to_first, orig_first,
                                                orig_out_first, expected_first, trash, new_input_descr);
         }
 
@@ -188,7 +190,7 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
                 std::string("permutation_iterator(counting_iterator,") + input_descr + std::string(")");
             auto perm = oneapi::dpl::make_permutation_iterator(counting, first);
             wrap_recurse<__recurse - 1, __reverses, __read, __reset_read, /*__write=*/false, __check_write,
-                         __usable_as_perm_map, __usable_as_perm_src>(exec10, perm, perm + n, discard, copy_to_first,
+                         __usable_as_perm_map, __usable_as_perm_src, __is_reversible>(exec10, perm, perm + n, discard, copy_to_first,
                                                                      orig_first, orig_out_first, expected_first, trash,
                                                                      new_input_descr);
         }
@@ -199,7 +201,7 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
             auto zip = oneapi::dpl::make_zip_iterator(counting, first);
             auto zip_out = oneapi::dpl::make_zip_iterator(discard, copy_to_first);
             wrap_recurse<__recurse - 1, __reverses, __read, __reset_read, /*__write=*/false, __check_write,
-                         /*__usable_as_perm_map=*/false, __usable_as_perm_src>(exec12, zip, zip + n, discard, zip_out,
+                         /*__usable_as_perm_map=*/false, __usable_as_perm_src, __is_reversible>(exec12, zip, zip + n, discard, zip_out,
                                                                                orig_first, orig_out_first,
                                                                                expected_first, trash, new_input_descr);
         }
@@ -210,7 +212,7 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
             auto zip = oneapi::dpl::make_zip_iterator(first, discard);
             auto zip_in = oneapi::dpl::make_zip_iterator(copy_from_first, counting);
             wrap_recurse<__recurse - 1, __reverses, /*__read=*/false, false, __write, __check_write,
-                         /*__usable_as_perm_map=*/false, __usable_as_perm_src>(exec13, zip, zip + n, zip_in, discard,
+                         /*__usable_as_perm_map=*/false, __usable_as_perm_src, __is_reversible>(exec13, zip, zip + n, zip_in, discard,
                                                                                orig_first, orig_out_first,
                                                                                expected_first, trash, new_input_descr);
         }
@@ -237,7 +239,7 @@ test(Policy&& device_policy, T trash, size_t n, std::string type_text)
             oneapi::dpl::counting_iterator<T> my_counting(0);
             //counting_iterator
             wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/false, /*__write=*/false,
-                        /*__check_write=*/false, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/true>(
+                        /*__check_write=*/false, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/true, /*__is_reversible=*/true>(
                 device_policy1, my_counting, my_counting + n, counting, copy_out, my_counting, copy_out, counting,
                 trash, std::string("counting_iterator<") + type_text + std::string(">"));
         }
@@ -245,14 +247,16 @@ test(Policy&& device_policy, T trash, size_t n, std::string type_text)
         //host iterator
         std::vector<T> host_iter(n);
         wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-                    /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false>(
+                    /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false, /*__is_reversible=*/true>(
             device_policy2, host_iter.begin(), host_iter.end(), counting, copy_out, host_iter.begin(), copy_out,
             counting, trash, std::string("host_iterator<") + type_text + std::string(">"));
 
         //sycl iterator
         sycl::buffer<T> buf(n);
         //test all modes / wrappers
-        wrap_recurse<__recurse, 0>(device_policy3, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), counting, copy_out,
+        wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
+                    /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
+                    /*__is_reversible=*/false>(device_policy3, oneapi::dpl::begin(buf), oneapi::dpl::end(buf), counting, copy_out,
                                 oneapi::dpl::begin(buf), copy_out, counting, trash,
                                 std::string("sycl_iterator<") + type_text + std::string(">"));
 
@@ -300,7 +304,7 @@ main()
     oneapi::dpl::counting_iterator<int> counting(0);
     oneapi::dpl::discard_iterator discard{};
     wrap_recurse<1, 0, /*__read =*/false, /*__reset_read=*/false, /*__write=*/true,
-                 /*__check_write=*/false, /*__usable_as_perm_map=*/false, /*__usable_as_perm_src=*/true>(
+                 /*__check_write=*/false, /*__usable_as_perm_map=*/false, /*__usable_as_perm_src=*/true, /*__is_reversible=*/true>(
         TestUtils::make_device_policy<class Kernel5>(q), discard, discard + n, counting, discard, discard, discard,
         discard, -666, "discard_iterator");
 
@@ -311,7 +315,7 @@ main()
     auto perm1 = oneapi::dpl::make_permutation_iterator(input, counting);
     auto perm2 = oneapi::dpl::make_permutation_iterator(perm1, counting);
     wrap_recurse<1, 0, /*__read =*/false, /*__reset_read=*/false, /*__write=*/true,
-                 /*__check_write=*/false, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/true>(
+                 /*__check_write=*/false, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/true, /*__is_reversible=*/true>(
         policy, perm2, perm2 + n, counting, copy_out, perm2, copy_out, counting, -666,
         "permutation_iter(permutation_iterator(usm_shared<int>,counting_iterator),counting_iterator)");
 
