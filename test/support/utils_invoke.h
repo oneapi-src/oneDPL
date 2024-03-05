@@ -157,6 +157,17 @@ inline void unsupported_types_notifier(const sycl::device& device)
     }
 }
 
+template<typename KernelName>
+auto
+create_test_policy(sycl::queue _queue)
+{
+#if ONEDPL_FPGA_DEVICE
+    return TestUtils::make_fpga_policy</*unroll_factor = */ 1, KernelName>(_queue);
+#else
+    return TestUtils::make_device_policy<KernelName>(_queue);
+#endif
+}
+
 // Invoke test::operator()(policy,rest...) for each possible policy.
 template <::std::size_t CallNumber = 0>
 struct invoke_on_all_hetero_policies
@@ -182,12 +193,7 @@ struct invoke_on_all_hetero_policies
             // performs some checks that fail. As a workaround, define for functors which have this issue
             // __functor_type(see kernel_type definition) type field which doesn't have any pointers in it's name.
             using kernel_name = unique_kernel_name<Op, CallNumber>;
-            auto my_policy =
-#if ONEDPL_FPGA_DEVICE
-                TestUtils::make_fpga_policy</*unroll_factor = */ 1, kernel_name>(queue);
-#else
-                TestUtils::make_device_policy<kernel_name>(queue);
-#endif
+            auto my_policy = create_test_policy<kernel_name>(queue);
             iterator_invoker<::std::random_access_iterator_tag, /*IsReverse*/ ::std::false_type>()(
                 my_policy, op, ::std::forward<Args>(rest)...);
         }
