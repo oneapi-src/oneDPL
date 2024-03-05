@@ -253,7 +253,7 @@ copy(_ExecutionPolicy&& __exec, _Range1&& __rng, _Range2&& __result)
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__internal::__brick_copy<::std::decay_t<decltype(__dispatch_tag)>>{},
+        oneapi::dpl::__internal::__brick_copy<::std::decay_t<decltype(__dispatch_tag)>, _ExecutionPolicy>{},
         views::all_read(::std::forward<_Range1>(__rng)), views::all_write(::std::forward<_Range2>(__result)));
 }
 
@@ -612,7 +612,7 @@ move(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2)
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::__internal::__brick_move<::std::decay_t<decltype(__dispatch_tag)>>{},
+        oneapi::dpl::__internal::__brick_move<::std::decay_t<decltype(__dispatch_tag)>, _DecayedExecutionPolicy>{},
         views::all_read(::std::forward<_Range1>(__rng1)), views::all_write(::std::forward<_Range2>(__rng2)));
 }
 
