@@ -68,7 +68,7 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
     };
 
 #    if VERBOSE_TEST
-    std::cout << input_descr.c_str() << ":";
+    std::cout << input_descr << ":";
 #    endif // VERBOSE_TEST
 
     if constexpr (__read)
@@ -139,7 +139,7 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
     if constexpr (__recurse > 0)
     {
 #    if VERBOSE_TEST
-        std::cout << std::endl << "Recursing on " << input_descr.c_str() << ":" << std::endl;
+        std::cout << std::endl << "Recursing on " << input_descr << ":" << std::endl;
 #    endif // VERBOSE_TEST
         oneapi::dpl::discard_iterator discard{};
         // iterate through all wrappers and recurse - 1
