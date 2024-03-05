@@ -376,12 +376,12 @@ struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
     using type = sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
 };
 
-template <typename _BackendTag, typename _Tp>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
 class __buffer_impl;
 
 // impl for sycl::buffer<...>
-template <typename _T>
-class __buffer_impl<oneapi::dpl::__internal::__device_backend_tag, _T>
+template <typename _ExecutionPolicy, typename _T>
+class __buffer_impl<oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy, _T>
 {
   private:
     using __container_t = typename __local_buffer<sycl::buffer<_T>>::type;
@@ -390,7 +390,10 @@ class __buffer_impl<oneapi::dpl::__internal::__device_backend_tag, _T>
 
   public:
 
-    __buffer_impl(oneapi::dpl::__internal::__device_backend_tag, ::std::size_t __n_elements)
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+
+    __buffer_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy /*__exec*/,
+                  ::std::size_t __n_elements)
         : __container{sycl::range<1>(__n_elements)}
     {
     }
@@ -451,8 +454,9 @@ struct __memobj_traits<_T*>
 
 } // namespace __internal
 
-template <typename _T>
-using __buffer = __internal::__buffer_impl<oneapi::dpl::__internal::__device_backend_tag, _T>;
+template <typename _ExecutionPolicy, typename _T>
+using __buffer =
+    __internal::__buffer_impl<oneapi::dpl::__internal::__device_backend_tag, ::std::decay_t<_ExecutionPolicy>, _T>;
 
 template <typename T>
 struct __repacked_tuple

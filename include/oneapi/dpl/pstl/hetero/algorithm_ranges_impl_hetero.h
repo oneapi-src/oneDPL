@@ -360,7 +360,7 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range
     _DataAcc __get_data_op;
     _MaskAssigner __add_mask_op;
 
-    oneapi::dpl::__par_backend_hetero::__buffer<int32_t> __mask_buf(_BackendTag{}, __rng1.size());
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(_BackendTag{}, __exec, __rng1.size());
 
     auto __res =
         __par_backend_hetero::__parallel_transform_scan_base(
@@ -413,7 +413,7 @@ __pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 
     using _ValueType = oneapi::dpl::__internal::__value_t<_Range>;
 
-    oneapi::dpl::__par_backend_hetero::__buffer<_ValueType> __buf(_BackendTag{}, __rng.size());
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(_BackendTag{}, __exec, __rng.size());
     auto __copy_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
 
     auto __copy_last_id = __ranges::__pattern_copy_if(__tag, __exec, __rng, __copy_rng, __not_pred<_Predicate>{__pred},
@@ -461,7 +461,7 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
 
     using _ValueType = oneapi::dpl::__internal::__value_t<_Range>;
 
-    oneapi::dpl::__par_backend_hetero::__buffer<_ValueType> __buf(_BackendTag{}, __rng.size());
+    oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(_BackendTag{}, __exec, __rng.size());
     auto res_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
     auto res = __ranges::__pattern_unique_copy(__tag, __exec, __rng, res_rng, __pred,
                                                oneapi::dpl::__internal::__pstl_assign());
@@ -714,9 +714,9 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
     // Round 1: reduce with extra indices added to avoid long segments
     // TODO: At threshold points check if the key is equal to the key at the previous threshold point, indicating a long sequence.
     // Skip a round of copy_if and reduces if there are none.
-    auto __idx = oneapi::dpl::__par_backend_hetero::__buffer<__diff_type>(_BackendTag{}, __n).get_buffer();
-    auto __tmp_out_keys = oneapi::dpl::__par_backend_hetero::__buffer<__key_type>(_BackendTag{}, __n).get_buffer();
-    auto __tmp_out_values = oneapi::dpl::__par_backend_hetero::__buffer<__val_type>(_BackendTag{}, __n).get_buffer();
+    auto __idx = oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __diff_type>(_BackendTag{}, __exec, __n).get_buffer();
+    auto __tmp_out_keys = oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __key_type>(_BackendTag{}, __exec, __n) .get_buffer();
+    auto __tmp_out_values = oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __val_type>(_BackendTag{}, __exec, __n) .get_buffer();
 
     // Replicating first element of keys view to be able to compare (i-1)-th and (i)-th key with aligned sequences,
     //  dropping the last key for the i-1 sequence.

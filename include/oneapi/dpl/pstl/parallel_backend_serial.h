@@ -32,11 +32,11 @@ namespace dpl
 namespace __serial_backend
 {
 
-template <typename _BackendTag, typename _Tp>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
 class __buffer_impl;
 
-template <typename _Tp>
-class __buffer_impl<oneapi::dpl::__internal::__serial_backend_tag, _Tp>
+template <typename _ExecutionPolicy, typename _Tp>
+class __buffer_impl<oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy, _Tp>
 {
     ::std::allocator<_Tp> __allocator_;
     _Tp* __ptr_;
@@ -46,6 +46,8 @@ class __buffer_impl<oneapi::dpl::__internal::__serial_backend_tag, _Tp>
     operator=(const __buffer_impl&) = delete;
 
   public:
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+
     __buffer_impl(oneapi::dpl::__internal::__serial_backend_tag, ::std::size_t __n)
         : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n)
     {
@@ -60,8 +62,8 @@ class __buffer_impl<oneapi::dpl::__internal::__serial_backend_tag, _Tp>
     ~__buffer_impl() { __allocator_.deallocate(__ptr_, __buf_size_); }
 };
 
-template <typename _Tp>
-using __buffer = __buffer_impl<oneapi::dpl::__internal::__serial_backend_tag, _Tp>;
+template <typename _ExecutionPolicy, typename _Tp>
+using __buffer = __buffer_impl<oneapi::dpl::__internal::__serial_backend_tag, ::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 inline void
 __cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)

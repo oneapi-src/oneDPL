@@ -49,7 +49,7 @@ namespace dpl
 namespace __tbb_backend
 {
 
-template <typename _BackendTag, typename _Tp>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
 class __buffer_impl;
 
 //! Raw memory buffer with automatic freeing and no exceptions.
@@ -57,8 +57,8 @@ class __buffer_impl;
 not an initialize array, because initialization/destruction
 would make the span be at least O(N). */
 // tbb::allocator can improve performance in some cases.
-template <typename _Tp>
-class __buffer_impl<oneapi::dpl::__internal::__tbb_backend_tag, _Tp>
+template <typename _ExecutionPolicy, typename _Tp>
+class __buffer_impl<oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy, _Tp>
 {
     tbb::tbb_allocator<_Tp> _M_allocator;
     _Tp* _M_ptr;
@@ -68,9 +68,10 @@ class __buffer_impl<oneapi::dpl::__internal::__tbb_backend_tag, _Tp>
     operator=(const __buffer_impl&) = delete;
 
   public:
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
 
     //! Try to obtain buffer of given size to store objects of _Tp type
-    __buffer_impl(oneapi::dpl::__internal::__tbb_backend_tag, const ::std::size_t __n)
+    __buffer_impl(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy /*__exec*/, const ::std::size_t __n)
         : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n)
     {
     }
@@ -86,8 +87,8 @@ class __buffer_impl<oneapi::dpl::__internal::__tbb_backend_tag, _Tp>
     ~__buffer_impl() { _M_allocator.deallocate(_M_ptr, _M_buf_size); }
 };
 
-template <typename _Tp>
-using __buffer = __buffer_impl<oneapi::dpl::__internal::__tbb_backend_tag, _Tp>;
+template <typename _ExecutionPolicy, typename _Tp>
+using __buffer = __buffer_impl<oneapi::dpl::__internal::__tbb_backend_tag, ::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 // Wrapper for tbb::task
 inline void
@@ -395,7 +396,8 @@ __parallel_strict_scan(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPol
             const _Index __slack = 4;
             _Index __tilesize = (__n - 1) / (__slack * __p) + 1;
             _Index __m = (__n - 1) / __tilesize;
-            __tbb_backend::__buffer<_Tp> __buf(oneapi::dpl::__internal::__tbb_backend_tag{}, __m + 1);
+            __tbb_backend::__buffer<_ExecutionPolicy, _Tp> __buf(oneapi::dpl::__internal::__tbb_backend_tag{}, __exec,
+                                                                 __m + 1);
             _Tp* __r = __buf.get();
             __tbb_backend::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __reduce,
                                      __combine);
@@ -1200,7 +1202,8 @@ __parallel_stable_sort(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPol
         const _DifferenceType __sort_cut_off = _ONEDPL_STABLE_SORT_CUT_OFF;
         if (__n > __sort_cut_off)
         {
-            __tbb_backend::__buffer<_ValueType> __buf(oneapi::dpl::__internal::__tbb_backend_tag{}, __n);
+            __tbb_backend::__buffer<_ExecutionPolicy, _ValueType> __buf(oneapi::dpl::__internal::__tbb_backend_tag{},
+                                                                        __exec, __n);
             __root_task<__stable_sort_func<_RandomAccessIterator, _ValueType*, _Compare, _LeafSort>> __root{
                 __xs, __xe, __buf.get(), true, __comp, __leaf_sort, __nsort, __xs, __buf.get()};
             __task::spawn_root_and_wait(__root);
