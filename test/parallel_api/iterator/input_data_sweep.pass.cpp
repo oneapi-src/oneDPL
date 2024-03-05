@@ -224,18 +224,18 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
 
 template <typename T, int __recurse, typename Policy>
 void
-test(Policy&& device_policy, T trash, size_t n, std::string type_text)
+test(Policy&& policy, T trash, size_t n, std::string type_text)
 {
-    if (TestUtils::has_types_support<T>(device_policy.queue().get_device()))
+    if (TestUtils::has_types_support<T>(policy.queue().get_device()))
     {
 
-        auto device_policy1 = TestUtils::create_new_policy_idx<Policy, 0>(device_policy);
-        auto device_policy2 = TestUtils::create_new_policy_idx<Policy, 1>(device_policy);
-        auto device_policy3 = TestUtils::create_new_policy_idx<Policy, 2>(device_policy);
-        auto device_policy4 = TestUtils::create_new_policy_idx<Policy, 3>(device_policy);
-        auto device_policy5 = TestUtils::create_new_policy_idx<Policy, 4>(device_policy);
+        auto policy1 = TestUtils::create_new_policy_idx<Policy, 0>(policy);
+        auto policy2 = TestUtils::create_new_policy_idx<Policy, 1>(policy);
+        auto policy3 = TestUtils::create_new_policy_idx<Policy, 2>(policy);
+        auto policy4 = TestUtils::create_new_policy_idx<Policy, 3>(policy);
+        auto policy5 = TestUtils::create_new_policy_idx<Policy, 4>(policy);
 
-        auto copy_out = sycl::malloc_shared<T>(n, device_policy.queue());
+        auto copy_out = sycl::malloc_shared<T>(n, policy.queue());
         oneapi::dpl::counting_iterator<int> counting(0);
         if constexpr (std::is_integral_v<T>)
         {
@@ -243,43 +243,51 @@ test(Policy&& device_policy, T trash, size_t n, std::string type_text)
             //counting_iterator
             wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/false, /*__write=*/false,
                          /*__check_write=*/false, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/true,
-                         /*__is_reversible=*/true>(device_policy1, my_counting, my_counting + n, counting, copy_out,
+                         /*__is_reversible=*/true>(policy1, my_counting, my_counting + n, counting, copy_out,
                                                    my_counting, copy_out, counting, trash,
                                                    std::string("counting_iterator<") + type_text + std::string(">"));
         }
 
-        //host iterator
-        std::vector<T> host_iter(n);
-        wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-                     /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
-                     /*__is_reversible=*/true>(device_policy2, host_iter.begin(), host_iter.end(), counting, copy_out,
-                                               host_iter.begin(), copy_out, counting, trash,
-                                               std::string("host_iterator<") + type_text + std::string(">"));
+        { // host iterator
+            std::vector<T> host_iter(n);
+            wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
+                        /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
+                        /*__is_reversible=*/true>(policy2, host_iter.begin(), host_iter.end(), counting, copy_out,
+                                                host_iter.begin(), copy_out, counting, trash,
+                                                std::string("host_iterator<") + type_text + std::string(">"));
+        }
 
-        //sycl iterator
-        sycl::buffer<T> buf(n);
-        //test all modes / wrappers
-        wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
-                     /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
-                     /*__is_reversible=*/false>(device_policy3, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
-                                                counting, copy_out, oneapi::dpl::begin(buf), copy_out, counting, trash,
-                                                std::string("sycl_iterator<") + type_text + std::string(">"));
+        { // sycl iterator
+            sycl::buffer<T> buf(n);
+            //test all modes / wrappers
+            wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
+                        /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
+                        /*__is_reversible=*/false>(policy3, oneapi::dpl::begin(buf), oneapi::dpl::end(buf),
+                                                    counting, copy_out, oneapi::dpl::begin(buf), copy_out, counting, trash,
+                                                    std::string("sycl_iterator<") + type_text + std::string(">"));
+        }
 
-        //usm_shared
-        auto usm_shared = sycl::malloc_shared<T>(n, device_policy.queue());
-        //test all modes / wrappers
-        wrap_recurse<__recurse, 0>(device_policy4, usm_shared, usm_shared + n, counting, copy_out, usm_shared, copy_out,
-                                   counting, trash, std::string("usm_shared<") + type_text + std::string(">"));
+        { // usm_shared
+            auto usm_shared = sycl::malloc_shared<T>(n, policy4.queue());
+            //test all modes / wrappers
+            wrap_recurse<__recurse, 0>(policy4, usm_shared, usm_shared + n, counting, copy_out, usm_shared, copy_out,
+                                    counting, trash, std::string("usm_shared<") + type_text + std::string(">"));
+            sycl::free(usm_shared, policy4.queue());
+        }
 
-        //usm_device
-        auto usm_device = sycl::malloc_device<T>(n, device_policy.queue());
-        //test all modes / wrappers
-        wrap_recurse<__recurse, 0>(device_policy5, usm_device, usm_device + n, counting, copy_out, usm_device, copy_out,
-                                   counting, trash, std::string("usm_device<") + type_text + std::string(">"));
+        { // usm_device
+            auto usm_device = sycl::malloc_device<T>(n, policy5.queue());
+            //test all modes / wrappers
+            wrap_recurse<__recurse, 0>(policy5, usm_device, usm_device + n, counting, copy_out, usm_device, copy_out,
+                                    counting, trash, std::string("usm_device<") + type_text + std::string(">"));
+
+            sycl::free(usm_device, policy5.queue());
+        }
+        sycl::free(copy_out, policy.queue());
     }
     else
     {
-        TestUtils::unsupported_types_notifier(device_policy.queue().get_device());
+        TestUtils::unsupported_types_notifier(policy.queue().get_device());
     }
 }
 
@@ -292,37 +300,47 @@ main()
 
     constexpr size_t n = 10;
 
-    auto q = sycl::queue{sycl::default_selector_v};
+    auto q = TestUtils::get_test_queue();
 
-    //baseline with no wrapping
-    test<float, 0>(TestUtils::make_device_policy<class Kernel1>(q), -666.0f, n, "float");
-    test<double, 0>(TestUtils::make_device_policy<class Kernel2>(q), -666.0, n, "double");
-    test<std::uint64_t, 0>(TestUtils::make_device_policy<class Kernel3>(q), 999, n, "uint64_t");
+    auto policy = TestUtils::create_test_policy<class Kernel1>(q);
 
-    // //big recursion step: 1 and 2 layers of wrapping
-    test<std::int32_t, 2>(TestUtils::make_device_policy<class Kernel4>(q), -666, n, "int32_t");
+    auto policy1 = TestUtils::create_new_policy_idx<decltype(policy), 0>(policy);
+    auto policy2 = TestUtils::create_new_policy_idx<decltype(policy), 1>(policy);
+    auto policy3 = TestUtils::create_new_policy_idx<decltype(policy), 2>(policy);
+    auto policy4 = TestUtils::create_new_policy_idx<decltype(policy), 3>(policy);
+    auto policy5 = TestUtils::create_new_policy_idx<decltype(policy), 4>(policy);
+    auto policy6 = TestUtils::create_new_policy_idx<decltype(policy), 5>(policy);
 
-    //special cases
+    // baseline with no wrapping
+    test<float, 0>(policy1, -666.0f, n, "float");
+    test<double, 0>(policy2, -666.0, n, "double");
+    test<std::uint64_t, 0>(policy3, 999, n, "uint64_t");
 
-    //discard iterator
+    // big recursion step: 1 and 2 layers of wrapping
+    test<std::int32_t, 2>(policy4, -666, n, "int32_t");
+
+    // special cases
+
+    // discard iterator
     oneapi::dpl::counting_iterator<int> counting(0);
     oneapi::dpl::discard_iterator discard{};
     wrap_recurse<1, 0, /*__read =*/false, /*__reset_read=*/false, /*__write=*/true,
                  /*__check_write=*/false, /*__usable_as_perm_map=*/false, /*__usable_as_perm_src=*/true,
-                 /*__is_reversible=*/true>(TestUtils::make_device_policy<class Kernel5>(q), discard, discard + n,
+                 /*__is_reversible=*/true>(policy5, discard, discard + n,
                                            counting, discard, discard, discard, discard, -666, "discard_iterator");
 
-    //recurse once on perm(perm(usm_shared<int>,count), count)
-    auto policy = TestUtils::make_device_policy<class Kernel6>(q);
-    auto copy_out = sycl::malloc_shared<int>(n, policy.queue());
-    auto input = sycl::malloc_shared<int>(n, policy.queue());
+    // recurse once on perm(perm(usm_shared<int>,count), count)
+    auto copy_out = sycl::malloc_shared<int>(n, policy6.queue());
+    auto input = sycl::malloc_shared<int>(n, policy6.queue());
     auto perm1 = oneapi::dpl::make_permutation_iterator(input, counting);
     auto perm2 = oneapi::dpl::make_permutation_iterator(perm1, counting);
     wrap_recurse<1, 0, /*__read =*/false, /*__reset_read=*/false, /*__write=*/true,
                  /*__check_write=*/false, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/true,
                  /*__is_reversible=*/true>(
-        policy, perm2, perm2 + n, counting, copy_out, perm2, copy_out, counting, -666,
+        policy6, perm2, perm2 + n, counting, copy_out, perm2, copy_out, counting, -666,
         "permutation_iter(permutation_iterator(usm_shared<int>,counting_iterator),counting_iterator)");
+    sycl::free(copy_out, policy6.queue());
+    sycl::free(input, policy6.queue());
 
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
