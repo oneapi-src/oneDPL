@@ -122,7 +122,6 @@ kernel_test1(sycl::queue& deviceQueue)
 void
 kernel_test2(sycl::queue& deviceQueue)
 {
-#if TEST_STD_VER >= 20
     deviceQueue.submit([&](sycl::handler& cgh) {
         cgh.single_task<class KernelTest2>([=]() { static_assert(!has_underlying_type_member<double>::value); });
     });
