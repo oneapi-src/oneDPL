@@ -386,7 +386,7 @@ __downsweep(_Index __i, _Index __m, _Index __tilesize, _Tp* __r, _Index __lastsi
 // T must have a trivial constructor and destructor.
 template <class _ExecutionPolicy, typename _Index, typename _Tp, typename _Rp, typename _Cp, typename _Sp, typename _Ap>
 void
-__parallel_strict_scan(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _Index __n, _Tp __initial,
+__parallel_strict_scan(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&& __exec, _Index __n, _Tp __initial,
                        _Rp __reduce, _Cp __combine, _Sp __scan, _Ap __apex)
 {
     tbb::this_task_arena::isolate([=, &__combine]() {
@@ -1190,7 +1190,7 @@ __stable_sort_func<_RandomAccessIterator1, _RandomAccessIterator2, _Compare, _Le
 
 template <class _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare, typename _LeafSort>
 void
-__parallel_stable_sort(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&&, _RandomAccessIterator __xs,
+__parallel_stable_sort(oneapi::dpl::__internal::__tbb_backend_tag, _ExecutionPolicy&& __exec, _RandomAccessIterator __xs,
                        _RandomAccessIterator __xe, _Compare __comp, _LeafSort __leaf_sort, ::std::size_t __nsort)
 {
     tbb::this_task_arena::isolate([=, &__nsort]() {
