@@ -918,8 +918,6 @@ __pattern_find_first_of(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __ex
                         _ForwardIterator1 __last, _ForwardIterator2 __s_first, _ForwardIterator2 __s_last,
                         _BinaryPredicate __pred)
 {
-    using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
-
     return __internal::__except_handler([&]() {
         return __internal::__parallel_find(
             __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
