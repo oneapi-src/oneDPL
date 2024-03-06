@@ -159,14 +159,14 @@ inline constexpr bool __is_host_dispatch_tag_v =
 // __buffer_backend_tag_type
 //----------------------------------------------------------
 
-template <class _Tag, typename = void>
+template <class _Tag>
 struct __buffer_backend_tag_type
 {
     using type = typename _Tag::__backend_tag;
 };
 
-template <class _Tag>
-struct __buffer_backend_tag_type<_Tag, ::std::enable_if_t<__is_serial_tag_v<_Tag>>>
+template <class _IsVector>
+struct __buffer_backend_tag_type<__serial_tag<_IsVector>>
 {
     using type = __par_backend_tag;
 };
