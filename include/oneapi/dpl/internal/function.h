@@ -155,9 +155,9 @@ class transform_if_stencil_fun
     UnaryOperation op;
 };
 
-// Lower bound functor more suitable to SIMD-style execution to minimize subgroup divergence.
+// Lower bound functor more suitable to SIMD / SIMT style execution to minimize subgroup divergence.
 // Runs in Theta(log2(input size)) time.
-// Used by: binary_search, lower_bound, upper_bound.
+// Used by: binary_search and lower_bound.
 template <typename Acc, typename IdxT, typename Value, typename Compare>
 IdxT
 branchless_lower_bound(Acc acc, IdxT first, IdxT last, const Value& value, Compare comp)
@@ -171,15 +171,28 @@ branchless_lower_bound(Acc acc, IdxT first, IdxT last, const Value& value, Compa
         offset += static_cast<IdxT>(comp(acc[idx], value)) * i;
     }
     // Hoist the last case to special handle non-powers of two.
-    IdxT idx = ::std::min(n - 1, offset + 1);
-    offset += static_cast<IdxT>(comp(acc[idx], value));
-
+    if (n > 1)
+    {
+        IdxT idx = ::std::min(n - 1, offset + 1);
+        offset += static_cast<IdxT>(comp(acc[idx], value));
+    }
     // Special handle the case where comp is never satisifed
     if (offset == 0 && !comp(acc[0], value))
     {
         return first;
     }
+    // First + offset is the last place where comp is true, so we must return the next index.
     return first + offset + 1;
+}
+
+// Used by: upper_bound.
+template <typename Acc, typename IdxT, typename Value, typename Compare>
+IdxT
+branchless_upper_bound(Acc acc, IdxT first, IdxT last, const Value& value, Compare comp)
+{
+    return branchless_lower_bound(acc, first, last, value,
+                                  oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<Compare>>{
+                                      oneapi::dpl::__internal::__reorder_pred<Compare>{comp}});
 }
 } // namespace internal
 } // namespace dpl

@@ -56,7 +56,7 @@ struct custom_brick
         }
         else if (func == 1)
         {
-            get<2>(acc[idx]) = oneapi::dpl::internal::branchless_lower_bound(get<0>(acc.tuple()), start_orig, end_orig,
+            get<2>(acc[idx]) = oneapi::dpl::internal::branchless_upper_bound(get<0>(acc.tuple()), start_orig, end_orig,
                                                                              get<1>(acc[idx]), comp);
         }
         else
