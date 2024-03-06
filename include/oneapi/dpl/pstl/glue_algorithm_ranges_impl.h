@@ -25,7 +25,8 @@
 #endif
 
 #if _ONEDPL___cplusplus >= 202002L
-#include <ranges>
+#    include <ranges>
+#    include "algorithm_ranges_impl.h"
 #endif
 
 namespace oneapi
@@ -47,40 +48,8 @@ std::ranges::for_each_result<std::ranges::borrowed_iterator_t<_R>, _Fun>>
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj) const
     {
         const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __r);
-        return (*this)(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __f, __proj);
-    }
-
-private:
-    template<typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
-    decltype(auto)
-    operator()(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj) const
-    {
-        auto __f_1 = [__f, __proj](auto&& __val) { __f(__proj(__val));};
-        oneapi::dpl::__internal::__ranges::__pattern_walk_n(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __f,
-                                                            oneapi::dpl::views::all(::std::forward<_Range>(__rng)));
-        return {__internal::__get_result(__r), std::move(__f)};
-    }
-
-    template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
-    decltype(auto)
-    operator()(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj) const
-    {
-        using _It = std::ranges::iterator_t<_R>;
-        auto __view = std::views::common(::std::forward<_R>(__r));
-
-        auto __f_1 = [__f, __proj](auto&& __val) { __f(__proj(__val));};
-
-        oneapi::dpl::__internal::__pattern_walk1(__tag, ::std::forward<_ExecutionPolicy>(__exec), __view.begin(),
-            __view.end(), __f_1);
-
-        return {__internal::__get_result(__r), std::move(__f)};
-    }
-
-    template <typename _Tag, typename... _Args>
-    decltype(auto)
-    operator()(_Tag __tag, _Args&&... __args) const
-    {
-        return std::ranges::for_each(std::forward<_Args>(__args)...);
+        return oneapi::dpl::__internal::__ranges::__pattern_for_each(
+            __dispatch_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __f, __proj);
     }
 }; //for_each_fn
 
