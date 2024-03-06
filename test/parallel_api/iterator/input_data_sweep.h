@@ -32,7 +32,7 @@ template <int __recurse, int __reverses, bool __read = true, bool __reset_read =
 void
 wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIterator2 copy_from_first,
              OutputIterator copy_to_first, OriginalIterator1 orig_first, OriginalIterator2 orig_out_first,
-             ExpectedIterator expected_first, T trash, std::string input_descr)
+             ExpectedIterator expected_first, T trash, const std::string& input_descr)
 {
     auto exec1 = TestUtils::create_new_policy_idx<Policy, 0>(exec);
     auto exec2 = TestUtils::create_new_policy_idx<Policy, 1>(exec);
