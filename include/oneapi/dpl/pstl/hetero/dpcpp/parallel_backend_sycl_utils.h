@@ -376,15 +376,16 @@ struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
     using type = sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
 };
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp, typename = void>
 class __buffer_impl;
 
 // impl for sycl::buffer<...>
-template <typename _ExecutionPolicy, typename _T>
-class __buffer_impl<oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy, _T>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
+class __buffer_impl<_BackendTag, _ExecutionPolicy, _Tp,
+                    ::std::enable_if_t<::std::is_same_v<_BackendTag, oneapi::dpl::__internal::__device_backend_tag>>>
 {
   private:
-    using __container_t = typename __local_buffer<sycl::buffer<_T>>::type;
+    using __container_t = typename __local_buffer<sycl::buffer<_Tp>>::type;
 
     __container_t __container;
 
@@ -453,9 +454,8 @@ struct __memobj_traits<_T*>
 
 } // namespace __internal
 
-template <typename _ExecutionPolicy, typename _T>
-using __buffer =
-    __internal::__buffer_impl<oneapi::dpl::__internal::__device_backend_tag, ::std::decay_t<_ExecutionPolicy>, _T>;
+template <typename _BackendTag, typename _ExecutionPolicy, typename _T>
+using __buffer = __internal::__buffer_impl<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _T>;
 
 template <typename T>
 struct __repacked_tuple

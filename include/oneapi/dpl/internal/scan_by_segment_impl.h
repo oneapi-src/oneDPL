@@ -144,14 +144,14 @@ struct __sycl_scan_by_segment_impl
 
         ::std::size_t __n_groups = __internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
-        auto __partials =
-            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, __val_type>(_BackendTag{}, __exec, __n_groups)
-                .get_buffer();
+        auto __partials = oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __val_type>(
+                              _BackendTag{}, __exec, __n_groups)
+                              .get_buffer();
 
         // the number of segment ends found in each work group
-        auto __seg_ends =
-            oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, bool>(_BackendTag{}, __exec, __n_groups)
-                .get_buffer();
+        auto __seg_ends = oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, bool>(
+                              _BackendTag{}, __exec, __n_groups)
+                              .get_buffer();
 
         // 1. Work group reduction
         auto __wg_scan = __exec.queue().submit([&](sycl::handler& __cgh) {

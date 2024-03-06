@@ -57,11 +57,12 @@ __cancel_execution(oneapi::dpl::__internal::__omp_backend_tag)
 // raw buffer
 //------------------------------------------------------------------------
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp, typename = void>
 class __buffer_impl;
 
-template <typename _ExecutionPolicy, typename _Tp>
-class __buffer_impl<oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy, _Tp>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
+class __buffer_impl<_BackendTag, _ExecutionPolicy, _Tp,
+                    ::std::enable_if_t<::std::is_same_v<_BackendTag, oneapi::dpl::__internal::__omp_backend_tag>>>
 {
     std::allocator<_Tp> __allocator_;
     _Tp* __ptr_;
@@ -88,8 +89,8 @@ class __buffer_impl<oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy
     ~__buffer_impl() { __allocator_.deallocate(__ptr_, __buf_size_); }
 };
 
-template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = __buffer_impl<oneapi::dpl::__internal::__omp_backend_tag, ::std::decay_t<_ExecutionPolicy>, _Tp>;
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
+using __buffer = __buffer_impl<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 // Preliminary size of each chunk: requires further discussion
 constexpr std::size_t __default_chunk_size = 2048;
