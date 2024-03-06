@@ -1050,7 +1050,8 @@ __pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
 //template <class _Tag, typename _ExecutionPolicy, typename _D> // +
 //template <class _Tag, typename _ExecutionPolicy, typename = void>
 template <class _Tag, typename _ExecutionPolicy>
-struct __brick_copy_n<_Tag, _ExecutionPolicy, ::std::enable_if_t<oneapi::dpl::__internal::__is_host_dispatch_tag_v<_Tag>>>
+struct __brick_copy_n<_Tag, _ExecutionPolicy,
+                      ::std::enable_if_t<oneapi::dpl::__internal::__is_host_dispatch_tag_v<_Tag>>>
 {
     template <typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2>
     _RandomAccessIterator2

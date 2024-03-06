@@ -1630,8 +1630,7 @@ __pattern_rotate(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
-    auto __temp_buf =
-        oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, _Tp>(__exec, __n);
+    auto __temp_buf = oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, _Tp>(__exec, __n);
 
     auto __temp_rng =
         oneapi::dpl::__ranges::all_view<_Tp, __par_backend_hetero::access_mode::write>(__temp_buf.get_buffer());
