@@ -49,7 +49,7 @@ class __buffer_impl<_BackendTag, _ExecutionPolicy, _Tp,
   public:
     static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
 
-    __buffer_impl(oneapi::dpl::__internal::__serial_backend_tag, _ExecutionPolicy /*__exec*/, ::std::size_t __n)
+    __buffer_impl(_ExecutionPolicy /*__exec*/, ::std::size_t __n)
         : __allocator_(), __ptr_(__allocator_.allocate(__n)), __buf_size_(__n)
     {
     }

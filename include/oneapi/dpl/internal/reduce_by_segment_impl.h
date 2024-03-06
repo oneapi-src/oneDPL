@@ -116,7 +116,7 @@ reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterat
 
     // buffer that is used to store a flag indicating if the associated key is not equal to
     // the next key, and thus its associated sum should be part of the final result
-    oneapi::dpl::__par_backend::__buffer<__backend_tag, Policy, FlagType> _mask(__backend_tag{}, policy, n + 1);
+    oneapi::dpl::__par_backend::__buffer<__backend_tag, Policy, FlagType> _mask(policy, n + 1);
     auto mask = _mask.get();
     mask[0] = 1;
 
@@ -132,11 +132,11 @@ reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterat
     // buffer stores the sums of values associated with a given key. Sums are copied with
     // a shift into result2, and the shift is computed at the same time as the sums, so the
     // sums can't be written to result2 directly.
-    oneapi::dpl::__par_backend::__buffer<__backend_tag, Policy, ValueType> _scanned_values(__backend_tag{}, policy, n);
+    oneapi::dpl::__par_backend::__buffer<__backend_tag, Policy, ValueType> _scanned_values(policy, n);
 
     // Buffer is used to store results of the scan of the mask. Values indicate which position
     // in result2 needs to be written with the scanned_values element.
-    oneapi::dpl::__par_backend::__buffer<__backend_tag, Policy, FlagType> _scanned_tail_flags(__backend_tag{}, policy, n);
+    oneapi::dpl::__par_backend::__buffer<__backend_tag, Policy, FlagType> _scanned_tail_flags(policy, n);
 
     // Compute the sum of the segments. scanned_tail_flags values are not used.
     inclusive_scan(policy, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
@@ -264,23 +264,22 @@ __sycl_reduce_by_segment(__internal::__hetero_tag<_BackendTag>, _ExecutionPolicy
     ::std::size_t __n_groups = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __wgroup_size * __vals_per_item);
 
     // intermediate reductions within a workgroup
-    auto __partials = oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __val_type>(
-                          _BackendTag{}, __exec, __n_groups)
-                          .get_buffer();
+    auto __partials =
+        oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __val_type>(__exec, __n_groups)
+            .get_buffer();
 
-    auto __end_idx = oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __diff_type>(
-                         _BackendTag{}, __exec, 1)
-                         .get_buffer();
+    auto __end_idx =
+        oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __diff_type>(__exec, 1).get_buffer();
 
     // the number of segment ends found in each work group
-    auto __seg_ends = oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __diff_type>(
-                          _BackendTag{}, __exec, __n_groups)
-                          .get_buffer();
+    auto __seg_ends =
+        oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __diff_type>(__exec, __n_groups)
+            .get_buffer();
 
     // buffer that stores an exclusive scan of the results
-    auto __seg_ends_scanned = oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __diff_type>(
-                                  _BackendTag{}, __exec, __n_groups)
-                                  .get_buffer();
+    auto __seg_ends_scanned =
+        oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, __diff_type>(__exec, __n_groups)
+            .get_buffer();
 
     // 1. Count the segment ends in each workgroup
     auto __seg_end_identification = __exec.queue().submit([&](sycl::handler& __cgh) {

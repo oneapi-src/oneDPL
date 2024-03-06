@@ -392,9 +392,7 @@ class __buffer_impl<_BackendTag, _ExecutionPolicy, _Tp,
   public:
     static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
 
-    __buffer_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPolicy /*__exec*/,
-                  ::std::size_t __n_elements)
-        : __container{sycl::range<1>(__n_elements)}
+    __buffer_impl(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)}
     {
     }
 

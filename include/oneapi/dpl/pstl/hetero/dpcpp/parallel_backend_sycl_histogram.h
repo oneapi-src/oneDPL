@@ -428,7 +428,7 @@ struct __histogram_general_private_global_atomics_submitter<_BackendTag,
 
         auto __private_histograms =
             oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, _ExecutionPolicy, _bin_type>(
-                _BackendTag{}, __exec, __segments * __num_bins)
+                __exec, __segments * __num_bins)
                 .get_buffer();
 
         return __exec.queue().submit([&](auto& __h) {
