@@ -48,7 +48,6 @@ template <class _IsVector>
 struct __serial_tag
 {
     using __is_vector = _IsVector;
-    using __backend_tag = __par_backend_tag;
 };
 
 template <class _IsVector>
@@ -152,9 +151,25 @@ inline constexpr bool __is_parallel_tag_v = __is_parallel_tag<_Tag>::value;
 // __is_host_dispatch_tag_v
 //----------------------------------------------------------
 
-template <class _Tag>
+template <class _Tag, typename = void>
 inline constexpr bool __is_host_dispatch_tag_v =
     __is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag> || __is_parallel_tag_v<_Tag>;
+
+//----------------------------------------------------------
+// __buffer_backend_tag_type
+//----------------------------------------------------------
+
+template <class _Tag, typename = void>
+struct __buffer_backend_tag_type
+{
+    using type = typename _Tag::__backend_tag;
+};
+
+template <class _Tag>
+struct __buffer_backend_tag_type<_Tag, ::std::enable_if_t<__is_serial_tag_v<_Tag>>>
+{
+    using type = __par_backend_tag;
+};
 
 } // namespace __internal
 } // namespace dpl

@@ -87,7 +87,7 @@ reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterat
 {
     static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
 
-    using __backend_tag = typename _Tag::__backend_tag;
+    using __buffer_backend_tag = typename __internal::__buffer_backend_tag_type<_Tag>::type;
 
     // The algorithm reduces values in [first2, first2 + (last1-first1)) where the associated
     // keys for the values are equal to the adjacent key. This function's implementation is a derivative work
@@ -116,7 +116,7 @@ reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterat
 
     // buffer that is used to store a flag indicating if the associated key is not equal to
     // the next key, and thus its associated sum should be part of the final result
-    oneapi::dpl::__par_backend::__buffer<__backend_tag, Policy, FlagType> _mask(policy, n + 1);
+    oneapi::dpl::__par_backend::__buffer<__buffer_backend_tag, Policy, FlagType> _mask(policy, n + 1);
     auto mask = _mask.get();
     mask[0] = 1;
 
@@ -132,11 +132,11 @@ reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterat
     // buffer stores the sums of values associated with a given key. Sums are copied with
     // a shift into result2, and the shift is computed at the same time as the sums, so the
     // sums can't be written to result2 directly.
-    oneapi::dpl::__par_backend::__buffer<__backend_tag, Policy, ValueType> _scanned_values(policy, n);
+    oneapi::dpl::__par_backend::__buffer<__buffer_backend_tag, Policy, ValueType> _scanned_values(policy, n);
 
     // Buffer is used to store results of the scan of the mask. Values indicate which position
     // in result2 needs to be written with the scanned_values element.
-    oneapi::dpl::__par_backend::__buffer<__backend_tag, Policy, FlagType> _scanned_tail_flags(policy, n);
+    oneapi::dpl::__par_backend::__buffer<__buffer_backend_tag, Policy, FlagType> _scanned_tail_flags(policy, n);
 
     // Compute the sum of the segments. scanned_tail_flags values are not used.
     inclusive_scan(policy, make_zip_iterator(first2, _mask.get()), make_zip_iterator(first2, _mask.get()) + n,
