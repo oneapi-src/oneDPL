@@ -316,24 +316,6 @@ __select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _IteratorT
     static_assert(__is_random_access_iterator_v<_IteratorTypes...>);
     return {};
 }
-
-//----------------------------------------------------------
-// __is_backend_tag_hetero, __is_backend_tag_hetero_v
-//----------------------------------------------------------
-
-template <class _Tag>
-struct __is_backend_tag_hetero : ::std::false_type
-{
-};
-
-template <typename _BackendTag>
-struct __is_backend_tag_hetero<__hetero_tag<_BackendTag>> : ::std::true_type
-{
-};
-
-template <class _Tag>
-inline constexpr bool __is_backend_tag_hetero_v = __is_backend_tag_hetero<_Tag>::value;
-
 #endif
 
 } // namespace __internal

@@ -376,7 +376,7 @@ __pattern_generate_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec,
 //------------------------------------------------------------------------
 
 template <typename _BackendTag, typename _ExecutionPolicy>
-struct __brick_copy_n<__hetero_tag<_BackendTag>, _ExecutionPolicy, ::std::enable_if_t<__is_backend_tag_hetero_v<__hetero_tag<_BackendTag>>>>
+struct __brick_copy_n<__hetero_tag<_BackendTag>, _ExecutionPolicy>
 {
     template <typename _SourceT, typename _TargetT>
     void
@@ -387,7 +387,7 @@ struct __brick_copy_n<__hetero_tag<_BackendTag>, _ExecutionPolicy, ::std::enable
 };
 
 template <typename _BackendTag, typename _ExecutionPolicy>
-struct __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy, ::std::enable_if_t<__is_backend_tag_hetero_v<__hetero_tag<_BackendTag>>>>
+struct __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy, void>
 {
     template <typename _SourceT, typename _TargetT>
     void
@@ -398,7 +398,7 @@ struct __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy, ::std::enable_i
 };
 
 template <typename _BackendTag, typename _ExecutionPolicy>
-struct __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy, ::std::enable_if_t<__is_backend_tag_hetero_v<__hetero_tag<_BackendTag>>>>
+struct __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy, void>
 {
     template <typename _SourceT, typename _TargetT>
     void
@@ -409,7 +409,7 @@ struct __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy, ::std::enable_i
 };
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _SourceT>
-struct __brick_fill<__hetero_tag<_BackendTag>, _ExecutionPolicy, _SourceT, ::std::enable_if_t<__is_backend_tag_hetero_v<__hetero_tag<_BackendTag>>>>
+struct __brick_fill<__hetero_tag<_BackendTag>, _ExecutionPolicy, _SourceT, void>
 {
     _SourceT __value;
     template <typename _TargetT>
@@ -421,7 +421,7 @@ struct __brick_fill<__hetero_tag<_BackendTag>, _ExecutionPolicy, _SourceT, ::std
 };
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _SourceT>
-struct __brick_fill_n<__hetero_tag<_BackendTag>, _ExecutionPolicy, _SourceT, ::std::enable_if_t<__is_backend_tag_hetero_v<__hetero_tag<_BackendTag>>>>
+struct __brick_fill_n<__hetero_tag<_BackendTag>, _ExecutionPolicy, _SourceT, void>
 {
     _SourceT __value;
     template <typename _TargetT>
