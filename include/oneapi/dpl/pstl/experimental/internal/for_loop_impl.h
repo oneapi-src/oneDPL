@@ -65,7 +65,7 @@ struct __difference<_Ip, ::std::enable_if_t<::std::is_integral_v<_Ip>>>
 template <typename _Ip>
 struct __difference<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
 {
-    using __type = typename oneapi::dpl::__internal::__iterator_traits<_Ip>::difference_type;
+    using __type = typename ::std::iterator_traits<_Ip>::difference_type;
 };
 
 // This type is used as a stride value when it's known that stride == 1 at compile time(the case of for_loop and for_loop_n).
@@ -231,11 +231,10 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
         ::std::false_type{}, ::std::false_type{}, ::std::forward<_Rest>(__rest)...);
 }
 
+// Overload for bidirectional iterator _Ip
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-::std::enable_if_t<::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                                    ::std::bidirectional_iterator_tag>,
-                   _IndexType>
-__execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
+_IndexType
+__execute_loop_strided_impl(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType, ::std::true_type) noexcept
 {
     _IndexType __ordinal_position = 0;
 
@@ -268,13 +267,10 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
     return __ordinal_position;
 }
 
+// Overload for forward iterator _Ip
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-::std::enable_if_t<::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                                    ::std::forward_iterator_tag> ||
-                       ::std::is_same_v<typename oneapi::dpl::__internal::__iterator_traits<_Ip>::iterator_category,
-                                        ::std::input_iterator_tag>,
-                   _IndexType>
-__execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
+_IndexType
+__execute_loop_strided_impl(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType, ::std::false_type) noexcept
 {
     _IndexType __ordinal_position = 0;
 
@@ -290,6 +286,16 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
     }
 
     return __ordinal_position;
+}
+
+template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
+_IndexType
+__execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType __index) noexcept
+{
+    static_assert(!__is_random_access_or_integral_v<_Ip>);
+    static_assert(__is_iterator_of_category_v<::std::forward_iterator_tag, _Ip>);
+    return __execute_loop_strided_impl(__first, __last, __f, __stride, __pack, __index,
+                                       __is_iterator_of_category<::std::bidirectional_iterator_tag, _Ip>{});
 }
 
 // Sequenced version of for_loop for non-RAI and non-integral types
