@@ -69,11 +69,13 @@ struct DefaultKernelNameFPGA;
 template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
 class fpga_policy : public device_policy<KernelName>
 {
+    using base = device_policy<KernelName>;
+
   public:
     static constexpr unsigned int unroll_factor = factor;
 
     fpga_policy()
-        : device_policy<KernelName>(sycl::queue(
+        : base(sycl::queue(
 #    if _ONEDPL_FPGA_EMU
               __dpl_sycl::__fpga_emulator_selector()
 #    else
@@ -84,9 +86,9 @@ class fpga_policy : public device_policy<KernelName>
     }
 
     template <unsigned int other_factor, typename OtherName>
-    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : device_policy<KernelName>(other.queue()){};
-    explicit fpga_policy(sycl::queue q) : device_policy<KernelName>(q) {}
-    explicit fpga_policy(sycl::device d) : device_policy<KernelName>(d) {}
+    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
+    explicit fpga_policy(sycl::queue q) : base(q) {}
+    explicit fpga_policy(sycl::device d) : base(d) {}
 };
 
 #endif // _ONEDPL_FPGA_DEVICE
