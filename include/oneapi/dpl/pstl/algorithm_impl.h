@@ -1046,11 +1046,12 @@ __pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
 // clear that doing so is worth the trouble and extra layers of call chain.
 // Sometimes a little duplication for sake of regularity is better than the alternative.
 
+//template <class _Tag, typename _ExecutionPolicy, ::std::enable_if_t<oneapi::dpl::__internal::__is_host_backend_tag_v<_Tag>>>
+//template <class _Tag, typename _ExecutionPolicy, typename _D> // +
+//template <class _Tag, typename _ExecutionPolicy, typename = void>
 template <class _Tag, typename _ExecutionPolicy>
-struct __brick_copy_n
+struct __brick_copy_n<_Tag, _ExecutionPolicy, ::std::enable_if_t<oneapi::dpl::__internal::__is_host_backend_tag_v<_Tag>>>
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
-
     template <typename _RandomAccessIterator1, typename _Size, typename _RandomAccessIterator2>
     _RandomAccessIterator2
     operator()(_RandomAccessIterator1 __first, _Size __n, _RandomAccessIterator2 __result,
@@ -1074,10 +1075,8 @@ struct __brick_copy_n
 //------------------------------------------------------------------------
 
 template <class _Tag, typename _ExecutionPolicy>
-struct __brick_copy
+struct __brick_copy<_Tag, _ExecutionPolicy, ::std::enable_if_t<__is_host_backend_tag_v<_Tag>>>
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
-
     template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
     _RandomAccessIterator2
     operator()(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, _RandomAccessIterator2 __result,
@@ -1108,10 +1107,8 @@ struct __brick_copy
 //------------------------------------------------------------------------
 
 template <class _Tag, typename _ExecutionPolicy>
-struct __brick_move
+struct __brick_move<_Tag, _ExecutionPolicy, ::std::enable_if_t<__is_host_backend_tag_v<_Tag>>>
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
-
     template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
     _RandomAccessIterator2
     operator()(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, _RandomAccessIterator2 __result,
@@ -1137,11 +1134,9 @@ struct __brick_move
     }
 };
 
-template <class _Tag, typename _ExecutionPolicy>
+template <class _Tag, typename _ExecutionPolicy, typename = ::std::enable_if_t<__is_host_backend_tag_v<_Tag>>>
 struct __brick_move_destroy
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
-
     template <typename _RandomAccessIterator1, typename _RandomAccessIterator2>
     _RandomAccessIterator2
     operator()(_RandomAccessIterator1 __first, _RandomAccessIterator1 __last, _RandomAccessIterator2 __result,
@@ -2758,10 +2753,8 @@ __pattern_nth_element(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec
 // fill, fill_n
 //------------------------------------------------------------------------
 template <class _Tag, typename _ExecutionPolicy, typename _Tp>
-struct __brick_fill
+struct __brick_fill<_Tag, _ExecutionPolicy, _Tp, ::std::enable_if_t<__is_host_backend_tag_v<_Tag>>>
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
-
     const _Tp& __value;
 
     template <typename _RandomAccessIterator>
@@ -2808,10 +2801,8 @@ __pattern_fill(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcce
 }
 
 template <class _Tag, typename _ExecutionPolicy, typename _Tp>
-struct __brick_fill_n
+struct __brick_fill_n<_Tag, _ExecutionPolicy, _Tp, ::std::enable_if_t<__is_host_backend_tag_v<_Tag>>>
 {
-    static_assert(__is_host_backend_tag_v<_Tag>);
-
     const _Tp& __value;
 
     template <typename _RandomAccessIterator, typename _Size>

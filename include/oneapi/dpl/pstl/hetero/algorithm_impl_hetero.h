@@ -387,7 +387,7 @@ struct __brick_copy_n<__hetero_tag<_BackendTag>, _ExecutionPolicy>
 };
 
 template <typename _BackendTag, typename _ExecutionPolicy>
-struct __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>
+struct __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy, void>
 {
     template <typename _SourceT, typename _TargetT>
     void
@@ -398,7 +398,7 @@ struct __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>
 };
 
 template <typename _BackendTag, typename _ExecutionPolicy>
-struct __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>
+struct __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy, void>
 {
     template <typename _SourceT, typename _TargetT>
     void
@@ -409,7 +409,7 @@ struct __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>
 };
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _SourceT>
-struct __brick_fill<__hetero_tag<_BackendTag>, _ExecutionPolicy, _SourceT>
+struct __brick_fill<__hetero_tag<_BackendTag>, _ExecutionPolicy, _SourceT, void>
 {
     _SourceT __value;
     template <typename _TargetT>
@@ -421,7 +421,7 @@ struct __brick_fill<__hetero_tag<_BackendTag>, _ExecutionPolicy, _SourceT>
 };
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _SourceT>
-struct __brick_fill_n<__hetero_tag<_BackendTag>, _ExecutionPolicy, _SourceT>
+struct __brick_fill_n<__hetero_tag<_BackendTag>, _ExecutionPolicy, _SourceT, void>
 {
     _SourceT __value;
     template <typename _TargetT>
