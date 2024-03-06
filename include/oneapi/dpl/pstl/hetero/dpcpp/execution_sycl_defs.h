@@ -318,6 +318,30 @@ __select_backend(const execution::fpga_policy<_Factor, _KernelName>&, _IteratorT
 }
 #endif
 
+//----------------------------------------------------------
+// __is_hetero_backend_tag, __is_hetero_backend_tag_v
+//----------------------------------------------------------
+
+template <typename _BackendTag>
+struct __is_hetero_backend_tag : ::std::false_type
+{
+};
+
+template <>
+struct __is_hetero_backend_tag<__device_backend_tag> : ::std::true_type
+{
+};
+
+#if _ONEDPL_FPGA_DEVICE
+template <>
+struct __is_hetero_backend_tag<__fpga_backend_tag> : ::std::true_type
+{
+};
+#endif
+
+template <typename _BackendTag>
+inline constexpr bool __is_hetero_backend_tag_v = __is_hetero_backend_tag<_BackendTag>::value;
+
 } // namespace __internal
 
 } // namespace dpl

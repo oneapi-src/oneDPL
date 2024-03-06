@@ -382,7 +382,7 @@ class __buffer_impl;
 // impl for sycl::buffer<...>
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
 class __buffer_impl<_BackendTag, _ExecutionPolicy, _Tp,
-                    ::std::enable_if_t<::std::is_same_v<_BackendTag, oneapi::dpl::__internal::__device_backend_tag>>>
+                    ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_backend_tag_v<_BackendTag>>>
 {
   private:
     using __container_t = typename __local_buffer<sycl::buffer<_Tp>>::type;
