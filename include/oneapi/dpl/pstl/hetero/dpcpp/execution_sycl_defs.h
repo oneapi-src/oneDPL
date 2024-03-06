@@ -296,6 +296,10 @@ struct __device_backend_tag
 {
 };
 
+//----------------------------------------------------------
+// __select_backend (for the hetero policies)
+//----------------------------------------------------------
+
 template <class... _IteratorTypes, typename _KernelName>
 __hetero_tag<__device_backend_tag>
 __select_backend(const execution::device_policy<_KernelName>&, _IteratorTypes&&...)

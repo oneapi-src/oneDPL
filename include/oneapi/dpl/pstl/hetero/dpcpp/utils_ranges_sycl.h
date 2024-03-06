@@ -716,6 +716,10 @@ struct __get_sycl_range
     }
 };
 
+//----------------------------------------------------------
+// __select_backend (for the hetero policies)
+//----------------------------------------------------------
+
 //TODO required correct implementation of this __ranges::__select_backend()
 // 1. There is still not RA ranges checks
 // 2. Obviously, a return tag is not necessarily oneapi::dpl::__internal::__hetero_tag

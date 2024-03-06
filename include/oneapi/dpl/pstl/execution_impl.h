@@ -63,6 +63,10 @@ struct __parallel_forward_tag
     using __backend_tag = __par_backend_tag;
 };
 
+//----------------------------------------------------------
+// __select_backend (for the host policies)
+//----------------------------------------------------------
+
 template <class _IsVector, class... _IteratorTypes>
 using __tag_type = ::std::conditional_t<
     __internal::__is_random_access_iterator_v<_IteratorTypes...>, __parallel_tag<_IsVector>,
