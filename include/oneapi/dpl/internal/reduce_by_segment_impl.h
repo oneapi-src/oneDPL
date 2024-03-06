@@ -85,7 +85,7 @@ reduce_by_segment_impl(_Tag, Policy&& policy, InputIterator1 first1, InputIterat
                        OutputIterator1 result1, OutputIterator2 result2, BinaryPred binary_pred,
                        BinaryOperator binary_op)
 {
-    static_assert(__internal::__is_host_backend_tag_v<_Tag>);
+    static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
 
     using __backend_tag = typename _Tag::__backend_tag;
 

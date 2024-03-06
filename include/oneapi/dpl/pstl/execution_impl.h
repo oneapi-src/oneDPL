@@ -98,63 +98,63 @@ __select_backend(oneapi::dpl::execution::parallel_unsequenced_policy, _IteratorT
 }
 
 //----------------------------------------------------------
-// __is_backend_tag_serial, __is_backend_tag_serial_v
+// __is_serial_tag, __is_serial_tag_v
 //----------------------------------------------------------
 
 template <class _Tag>
-struct __is_backend_tag_serial : ::std::false_type
+struct __is_serial_tag : ::std::false_type
 {
 };
 
 template <class _IsVector>
-struct __is_backend_tag_serial<__serial_tag<_IsVector>> : ::std::true_type
+struct __is_serial_tag<__serial_tag<_IsVector>> : ::std::true_type
 {
 };
 
 template <class _Tag>
-inline constexpr bool __is_backend_tag_serial_v = __is_backend_tag_serial<_Tag>::value;
+inline constexpr bool __is_serial_tag_v = __is_serial_tag<_Tag>::value;
 
 //----------------------------------------------------------
-// __is_backend_tag_parallel_forward, __is_backend_tag_parallel_forward_v
+// __is_parallel_forward_tag, __is_parallel_forward_tag_v
 //----------------------------------------------------------
 
 template <class _Tag>
-struct __is_backend_tag_parallel_forward : ::std::false_type
+struct __is_parallel_forward_tag : ::std::false_type
 {
 };
 
 template <>
-struct __is_backend_tag_parallel_forward<__parallel_forward_tag> : ::std::true_type
+struct __is_parallel_forward_tag<__parallel_forward_tag> : ::std::true_type
 {
 };
 
 template <class _Tag>
-inline constexpr bool __is_backend_tag_parallel_forward_v = __is_backend_tag_parallel_forward<_Tag>::value;
+inline constexpr bool __is_parallel_forward_tag_v = __is_parallel_forward_tag<_Tag>::value;
 
 //----------------------------------------------------------
-// __is_backend_tag_parallel, __is_backend_tag_parallel_v
+// __is_parallel_tag, __is_parallel_tag_v
 //----------------------------------------------------------
 
 template <class _Tag>
-struct __is_backend_tag_parallel : ::std::false_type
+struct __is_parallel_tag : ::std::false_type
 {
 };
 
 template <class _IsVector>
-struct __is_backend_tag_parallel<__parallel_tag<_IsVector>> : ::std::true_type
+struct __is_parallel_tag<__parallel_tag<_IsVector>> : ::std::true_type
 {
 };
 
 template <class _Tag>
-inline constexpr bool __is_backend_tag_parallel_v = __is_backend_tag_parallel<_Tag>::value;
+inline constexpr bool __is_parallel_tag_v = __is_parallel_tag<_Tag>::value;
 
 //----------------------------------------------------------
-// __is_host_backend_tag_v
+// __is_host_dispatch_tag_v
 //----------------------------------------------------------
 
 template <class _Tag>
-inline constexpr bool __is_host_backend_tag_v =
-    __is_backend_tag_serial_v<_Tag> || __is_backend_tag_parallel_forward_v<_Tag> || __is_backend_tag_parallel_v<_Tag>;
+inline constexpr bool __is_host_dispatch_tag_v =
+    __is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag> || __is_parallel_tag_v<_Tag>;
 
 } // namespace __internal
 } // namespace dpl
