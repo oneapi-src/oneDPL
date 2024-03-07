@@ -15,8 +15,6 @@
 
 #include "set_common.h"
 
-#ifdef _PSTL_TEST_SET_INTERSECTION
-
 template <typename T>
 struct test_non_const_set_intersection
 {
@@ -28,15 +26,11 @@ struct test_non_const_set_intersection
     }
 };
 
-#endif
-
 int
 main()
 {
-#ifdef _PSTL_TEST_SET_INTERSECTION
     test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_set_intersection<std::int32_t>>());
     run_test_set<test_set_intersection>();
-#endif
 
-    return TestUtils::done(_PSTL_TEST_SET_INTERSECTION);
+    return TestUtils::done();
 }

@@ -25,14 +25,6 @@
 #include <cmath>
 #include <chrono>
 
-#if  !defined(_PSTL_TEST_SET_UNION) && !defined(_PSTL_TEST_SET_DIFFERENCE) && !defined(_PSTL_TEST_SET_INTERSECTION) &&\
-     !defined(_PSTL_TEST_SET_SYMMETRIC_DIFFERENCE)
-#define _PSTL_TEST_SET_UNION
-#define _PSTL_TEST_SET_DIFFERENCE
-#define _PSTL_TEST_SET_INTERSECTION
-#define _PSTL_TEST_SET_SYMMETRIC_DIFFERENCE
-#endif
-
 using namespace TestUtils;
 
 template <typename T>

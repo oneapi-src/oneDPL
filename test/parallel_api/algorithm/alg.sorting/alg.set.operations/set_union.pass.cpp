@@ -15,8 +15,6 @@
 
 #include "set_common.h"
 
-#ifdef _PSTL_TEST_SET_UNION
-
 template <typename T>
 struct test_non_const_set_union
 {
@@ -28,15 +26,11 @@ struct test_non_const_set_union
     }
 };
 
-#endif
-
 int
 main()
 {
-#ifdef _PSTL_TEST_SET_UNION
     test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_set_union<std::int32_t>>());
     run_test_set<test_set_union>();
-#endif
 
-    return TestUtils::done(_PSTL_TEST_SET_UNION);
+    return TestUtils::done();
 }
