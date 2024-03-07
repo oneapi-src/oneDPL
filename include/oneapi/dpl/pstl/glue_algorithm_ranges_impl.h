@@ -57,44 +57,20 @@ inline constexpr for_each_fn for_each;
 
 // [alg.transform]
 
-/*struct transform_fn
+struct transform_fn
 {
-template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj>
-constexpr std::ranges::unary_transform_result<oneapi::dpl::ranges::iterator_t<_InRange>,
-oneapi::dpl::ranges::iterator_t<_OutRange>>
+template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj,
+         oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+constexpr decltype(auto)
 operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj) const
 {
-    assert(__in_r.size() == __out_r.size());
-
-    auto __unary_op = [=](auto&& __val) -> decltype(auto) { return __op(__proj(__val));};
-
-    if constexpr(!oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value)
-    {
-        oneapi::dpl::__internal::__ranges::__pattern_walk_n(::std::forward<_ExecutionPolicy>(__exec), 
-            oneapi::dpl::__internal::__transform_functor<decltype(__unary_op)>{::std::move(__unary_op)},
-            oneapi::dpl::views::all_read(::std::forward<_InRange>(__in_r)),
-            oneapi::dpl::views::all_write(::std::forward<_OutRange>(__out_r)));
-    }
-    else
-    {
-        using _ItIn = std::ranges::iterator_t<_InRange>;
-        using _ItOut = std::ranges::iterator_t<_OutRange>;
-
-        auto __view_in = std::views::common(::std::forward<_InRange>(__in_r));
-        auto __view_out = std::views::common(::std::forward<_OutRange>(__out_r));
-
-        oneapi::dpl::__internal::__pattern_walk2(
-            ::std::forward<_ExecutionPolicy>(__exec), __view_in.begin(), __view_in.end(), __view_out.begin(),
-            oneapi::dpl::__internal::__transform_functor<decltype(__unary_op)>{::std::move(__unary_op)},
-            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _ItIn, _ItOut>(__exec),
-            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _ItIn, _ItOut>(__exec));
-    }
-
-    return {__internal::__get_result(__in_r), __internal::__get_result(__out_r)};
+    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __in_r.begin(), __out_r.begin());
+    return oneapi::dpl::__internal::__ranges::__pattern_transform(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
+        std::forward<_InRange>(__in_r), std::forward<_OutRange>(__out_r), __op, __proj);
 }
 };//transform_fn
 
-inline constexpr transform_fn transform;*/
+inline constexpr transform_fn transform;
 
 } //ranges
 #endif
