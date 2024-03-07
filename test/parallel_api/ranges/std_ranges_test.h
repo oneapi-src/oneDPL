@@ -216,7 +216,7 @@ struct test_range_algo
         };
 
         test<host_vector, NRanges>{}(host_policies(), algo, checker, f, std::identity{}, forward_view);
-#if 0
+
         test<host_vector, NRanges>{}(host_policies(), algo, checker, f, std::identity{}, subrange_view);
         test<host_vector, NRanges>{}(host_policies(), algo, checker, f, std::identity{}, span_view);
         test<host_vector, NRanges>{}(host_policies(), algo, checker, f, proj, std::views::all);
@@ -230,6 +230,7 @@ struct test_range_algo
         test<usm_subrange, NRanges>{}(dpcpp_policy(), algo, checker, f);
         test<usm_span, NRanges>{}(dpcpp_policy(), algo, checker, f);
 
+#if 1 //sycl buffer
         test<sycl_buffer, NRanges>{}(dpcpp_policy(), algo, checker, f, std::identity{}, oneapi::dpl::views::all);
 #endif
     }
