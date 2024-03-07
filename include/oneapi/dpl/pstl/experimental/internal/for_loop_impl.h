@@ -366,7 +366,7 @@ void
 __pattern_for_loop(_Tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f, __single_stride_type,
                    _Rest&&... __rest) noexcept
 {
-    static_assert(__is_host_dispatch_tag_v<_Tag>);
+    static_assert(__is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag>);
 
     __reduction_pack<_Rest...> __pack{__reduction_pack_tag(), ::std::forward<_Rest>(__rest)...};
 
@@ -422,6 +422,17 @@ __pattern_for_loop_n(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ip _
                    })
             .__finalize(__n);
     });
+}
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _Ip, typename _Function, typename... _Rest>
+void
+__pattern_for_loop(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function __f,
+                   __single_stride_type, _Rest&&... __rest)
+{
+    oneapi::dpl::__internal::__pattern_for_loop_n(
+        __tag, ::std::forward<_ExecutionPolicy>(__exec), __first,
+        oneapi::dpl::__internal::__calculate_input_sequence_length(__first, __last, __single_stride_type{}), __f,
+        __single_stride_type{}, ::std::forward<_Rest>(__rest)...);
 }
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Function, typename _Sp,
