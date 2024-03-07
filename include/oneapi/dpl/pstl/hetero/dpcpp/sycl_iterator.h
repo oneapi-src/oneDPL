@@ -159,7 +159,6 @@ using __usm_shared_alloc_vec_iter =
 template <typename Iter, typename ValueType = typename std::iterator_traits<Iter>::value_type>
 using __usm_host_alloc_vec_iter =
     typename std::vector<ValueType, typename sycl::usm_allocator<ValueType, sycl::usm::alloc::host>>::iterator;
-
 // Evaluates to true if the provided type is an iterator with a value_type and if the implementation of a
 // std::vector<value_type, Alloc>::iterator can be distinguished between three different allocators, the
 // default, usm_shared, and usm_host. If all are distinct, it is very unlikely any non-usm based allocator
@@ -234,6 +233,11 @@ __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator> end(syc
     return __internal::sycl_iterator<access_mode::discard_read_write, T, Allocator>{buf,
                                                                                     __dpl_sycl::__get_buffer_size(buf)};
 }
+
+template <typename ValueType>
+constexpr static bool usm_allocated_vector_iterators_supported_v =
+    oneapi::dpl::__internal::__vector_iter_distinguishes_by_allocator<ValueType*>::value;
+
 } // namespace dpl
 } // namespace oneapi
 
