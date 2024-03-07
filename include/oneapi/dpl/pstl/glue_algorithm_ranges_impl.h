@@ -42,12 +42,12 @@ namespace ranges
 
 struct for_each_fn
 {
-template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy,
-std::ranges::for_each_result<std::ranges::borrowed_iterator_t<_R>, _Fun>>
+template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun,
+         oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr decltype(auto)
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj) const
     {
-        const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __r);
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
         return oneapi::dpl::__internal::__ranges::__pattern_for_each(
             __dispatch_tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __f, __proj);
     }
@@ -57,7 +57,7 @@ inline constexpr for_each_fn for_each;
 
 // [alg.transform]
 
-struct transform_fn
+/*struct transform_fn
 {
 template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj>
 constexpr std::ranges::unary_transform_result<oneapi::dpl::ranges::iterator_t<_InRange>,
@@ -94,7 +94,7 @@ operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F
 }
 };//transform_fn
 
-inline constexpr transform_fn transform;
+inline constexpr transform_fn transform;*/
 
 } //ranges
 #endif
