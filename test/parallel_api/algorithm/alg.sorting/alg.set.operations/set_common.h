@@ -25,14 +25,6 @@
 #include <cmath>
 #include <chrono>
 
-#if  !defined(_PSTL_TEST_SET_UNION) && !defined(_PSTL_TEST_SET_DIFFERENCE) && !defined(_PSTL_TEST_SET_INTERSECTION) &&\
-     !defined(_PSTL_TEST_SET_SYMMETRIC_DIFFERENCE)
-#define _PSTL_TEST_SET_UNION
-#define _PSTL_TEST_SET_DIFFERENCE
-#define _PSTL_TEST_SET_INTERSECTION
-#define _PSTL_TEST_SET_SYMMETRIC_DIFFERENCE
-#endif
-
 using namespace TestUtils;
 
 template <typename T>
@@ -267,11 +259,10 @@ struct test_set_symmetric_difference
     }
 };
 
-template <typename T1, typename T2, typename Compare>
+template <template <typename T> typename TestType, typename T1, typename T2, typename Compare>
 void
 test_set(Compare compare, bool comp_flag)
 {
-
     const ::std::size_t n_max = 100000;
 
     // The rand()%(2*n+1) encourages generation of some duplicates.
@@ -288,38 +279,39 @@ test_set(Compare compare, bool comp_flag)
             ::std::sort(in1.begin(), in1.end(), compare);
             ::std::sort(in2.begin(), in2.end(), compare);
 
-#ifdef _PSTL_TEST_SET_UNION
-            if(comp_flag)
-                invoke_on_all_policies<0>()(test_set_union<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
-                                            compare);
+            if (comp_flag)
+                invoke_on_all_policies<0>()(TestType<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(), compare);
             else
-                invoke_on_all_policies<4>()(test_set_union<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
-#endif
-
-#ifdef _PSTL_TEST_SET_INTERSECTION
-            if(comp_flag)
-                invoke_on_all_policies<1>()(test_set_intersection<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
-                                            compare);
-            else
-                invoke_on_all_policies<5>()(test_set_intersection<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
-#endif
-#ifdef _PSTL_TEST_SET_DIFFERENCE
-            if(comp_flag)
-                invoke_on_all_policies<2>()(test_set_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend(),
-                                            compare);
-            else
-                invoke_on_all_policies<6>()(test_set_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
-#endif
-#ifdef _PSTL_TEST_SET_SYMMETRIC_DIFFERENCE
-            if(comp_flag)
-                invoke_on_all_policies<3>()(test_set_symmetric_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(),
-                                            in2.cend(), compare);
-            else
-                invoke_on_all_policies<7>()(test_set_symmetric_difference<T1>(), in1.begin(), in1.end(), in2.cbegin(),
-                                                in2.cend());
-#endif
+                invoke_on_all_policies<1>()(TestType<T1>(), in1.begin(), in1.end(), in2.cbegin(), in2.cend());
         }
     }
+}
+
+template <template <typename T> typename TestType>
+void
+run_test_set()
+{
+    using data_t =
+#if !ONEDPL_FPGA_DEVICE
+        float64_t;
+#else
+        std::int32_t;
+#endif
+
+    test_set<TestType, data_t, data_t>(oneapi::dpl::__internal::__pstl_less(), false);
+#if !ONEDPL_FPGA_DEVICE
+    test_set<TestType, data_t, data_t>(oneapi::dpl::__internal::__pstl_less(), true);
+#endif // !ONEDPL_FPGA_DEVICE
+
+#if !TEST_DPCPP_BACKEND_PRESENT
+    test_set<TestType, Num<std::int64_t>, Num<std::int32_t>>(
+        [](const Num<std::int64_t>& x, const Num<std::int32_t>& y) { return x < y; }, true);
+
+    test_set<TestType, MemoryChecker, MemoryChecker>(
+        [](const MemoryChecker& val1, const MemoryChecker& val2) -> bool { return val1.value() < val2.value(); }, true);
+    EXPECT_TRUE(MemoryChecker::alive_objects() == 0,
+                "wrong effect from set algorithms: number of ctor and dtor calls is not equal");
+#endif // !TEST_DPCPP_BACKEND_PRESENT
 }
 
 #endif // _SET_COMMON_H
