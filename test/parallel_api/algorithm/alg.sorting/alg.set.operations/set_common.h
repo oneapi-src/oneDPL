@@ -295,4 +295,31 @@ test_set(Compare compare, bool comp_flag)
     }
 }
 
+template <template <typename T> typename TestType>
+void
+run_test_set()
+{
+    using data_t =
+#if !ONEDPL_FPGA_DEVICE
+        float64_t;
+#else
+        std::int32_t;
+#endif
+
+    test_set<TestType, data_t, data_t>(oneapi::dpl::__internal::__pstl_less(), false);
+#if !ONEDPL_FPGA_DEVICE
+    test_set<TestType, data_t, data_t>(oneapi::dpl::__internal::__pstl_less(), true);
+#endif // !ONEDPL_FPGA_DEVICE
+
+#if !TEST_DPCPP_BACKEND_PRESENT
+    test_set<TestType, Num<std::int64_t>, Num<std::int32_t>>(
+        [](const Num<std::int64_t>& x, const Num<std::int32_t>& y) { return x < y; }, true);
+
+    test_set<TestType, MemoryChecker, MemoryChecker>(
+        [](const MemoryChecker& val1, const MemoryChecker& val2) -> bool { return val1.value() < val2.value(); }, true);
+    EXPECT_TRUE(MemoryChecker::alive_objects() == 0,
+                "wrong effect from set algorithms: number of ctor and dtor calls is not equal");
+#endif // !TEST_DPCPP_BACKEND_PRESENT
+}
+
 #endif // _SET_COMMON_H
