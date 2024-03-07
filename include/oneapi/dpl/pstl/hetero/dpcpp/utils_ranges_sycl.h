@@ -206,6 +206,17 @@ struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::val
 {
 };
 
+template <class Iter>
+struct is_passed_directly<
+    Iter,
+    ::std::enable_if_t<::std::is_same_v<
+        Iter, typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type,
+                                     typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
+                                                                  sycl::usm::alloc::shared>::iterator>>>>
+    : ::std::true_type
+{
+};
+
 template <typename Ip>
 struct is_passed_directly<oneapi::dpl::counting_iterator<Ip>> : ::std::true_type
 {
