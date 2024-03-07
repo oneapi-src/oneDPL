@@ -29,14 +29,14 @@ namespace dpl
 namespace internal
 {
 
-enum search_algorithm
+enum class search_algorithm
 {
     lower_bound,
     upper_bound,
     binary_search
 };
 
-template <typename Comp, typename T, int func>
+template <typename Comp, typename T, search_algorithm func>
 struct custom_brick
 {
     Comp comp;
@@ -49,12 +49,12 @@ struct custom_brick
         T start_orig = 0;
         auto end_orig = size;
         using ::std::get;
-        if constexpr (func == 0)
+        if constexpr (func == search_algorithm::lower_bound)
         {
             get<2>(acc[idx]) = oneapi::dpl::internal::lower_bound_fun(get<0>(acc.tuple()), start_orig, end_orig,
                                                                       get<1>(acc[idx]), comp);
         }
-        else if (func == 1)
+        else if (func == search_algorithm::upper_bound)
         {
             get<2>(acc[idx]) = oneapi::dpl::internal::upper_bound_fun(get<0>(acc.tuple()), start_orig, end_orig,
                                                                       get<1>(acc[idx]), comp);
@@ -135,7 +135,7 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     if (size <= ::std::numeric_limits<::std::uint32_t>::max())
     {
         __bknd::__parallel_for(::std::forward<Policy>(policy),
-                               custom_brick<StrictWeakOrdering, ::std::uint32_t, lower_bound>{comp, static_cast<::std::uint32_t>(size)}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::uint32_t, search_algorithm::lower_bound>{comp, static_cast<::std::uint32_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
@@ -143,7 +143,7 @@ lower_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     {
         auto fallback_policy = __bknd::make_wrapped_policy<lower_bound_fallback>(::std::forward<Policy>(policy));
         __bknd::__parallel_for(::std::move(fallback_policy),
-                               custom_brick<StrictWeakOrdering, ::std::size_t, lower_bound>{comp, static_cast<::std::size_t>(size)}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::size_t, search_algorithm::lower_bound>{comp, static_cast<::std::size_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
@@ -180,7 +180,7 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     if (size <= ::std::numeric_limits<::std::uint32_t>::max())
     {
         __bknd::__parallel_for(::std::forward<Policy>(policy),
-                               custom_brick<StrictWeakOrdering, ::std::uint32_t, upper_bound>{comp, static_cast<::std::uint32_t>(size)}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::uint32_t, search_algorithm::upper_bound>{comp, static_cast<::std::uint32_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
@@ -188,7 +188,7 @@ upper_bound_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, Inpu
     {
         auto fallback_policy = __bknd::make_wrapped_policy<upper_bound_fallback>(::std::forward<Policy>(policy));
         __bknd::__parallel_for(::std::move(fallback_policy),
-                               custom_brick<StrictWeakOrdering, ::std::size_t, upper_bound>{comp, static_cast<::std::size_t>(size)}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::size_t, search_algorithm::upper_bound>{comp, static_cast<::std::size_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
@@ -226,7 +226,7 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
     if (size <= ::std::numeric_limits<::std::uint32_t>::max())
     {
         __bknd::__parallel_for(::std::forward<Policy>(policy),
-                               custom_brick<StrictWeakOrdering, ::std::uint32_t, binary_search>{comp, static_cast<::std::uint32_t>(size)}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::uint32_t, search_algorithm::binary_search>{comp, static_cast<::std::uint32_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
@@ -234,7 +234,7 @@ binary_search_impl(Policy&& policy, InputIterator1 start, InputIterator1 end, In
     {
         auto fallback_policy = __bknd::make_wrapped_policy<binary_search_fallback>(::std::forward<Policy>(policy));
         __bknd::__parallel_for(::std::move(fallback_policy),
-                               custom_brick<StrictWeakOrdering, ::std::size_t, binary_search>{comp, static_cast<::std::size_t>(size)}, value_size,
+                               custom_brick<StrictWeakOrdering, ::std::size_t, search_algorithm::binary_search>{comp, static_cast<::std::size_t>(size)}, value_size,
                                zip_vw)
             .wait();
     }
