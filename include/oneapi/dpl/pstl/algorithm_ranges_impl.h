@@ -30,9 +30,9 @@ namespace __internal
 namespace __ranges
 {
 
-//------------------------------------------------------------------------
-// walk_n
-//------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_for_each
+//---------------------------------------------------------------------------------------------------------------------
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
 decltype(auto)
@@ -55,6 +55,43 @@ decltype(auto)
 __pattern_for_each(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
 {
     return std::ranges::for_each(std::forward<_R>(__r), __f, __proj);
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_transform
+//---------------------------------------------------------------------------------------------------------------------
+
+template<typename _IsVector, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj>
+decltype(auto)
+__pattern_transform(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
+                    _F __op, _Proj __proj)
+{
+    assert(__in_r.size() == __out_r.size());
+
+    auto __unary_op = [=](auto&& __val) -> decltype(auto) { return __op(__proj(__val));};
+    
+    using _ItIn = std::ranges::iterator_t<_InRange>;
+    using _ItOut = std::ranges::iterator_t<_OutRange>;
+
+    auto __view_in = std::views::common(::std::forward<_InRange>(__in_r));
+    auto __view_out = std::views::common(::std::forward<_OutRange>(__out_r));
+
+    oneapi::dpl::__internal::__pattern_walk2(__tag, ::std::forward<_ExecutionPolicy>(__exec), __view_in.begin(),
+        __view_in.end(), __view_out.begin(),
+        oneapi::dpl::__internal::__transform_functor<decltype(__unary_op)>{::std::move(__unary_op)});
+
+    using __return_t = std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<_InRange>,
+        std::ranges::borrowed_iterator_t<_OutRange>>;
+
+    return __return_t{__internal::__get_result(__in_r), __internal::__get_result(__out_r)};
+}
+
+template<typename _Tag, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj>
+decltype(auto)
+__pattern_transform(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
+                    _F __op, _Proj __proj)
+{
+    return std::ranges::transform(std::forward<_InRange>(__in_r), __out_r.begin(), __op, __proj);
 }
 
 } // namespace __ranges
