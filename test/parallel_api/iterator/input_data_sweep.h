@@ -74,7 +74,7 @@ wrap_recurse(Policy&& exec, InputIterator1 first, InputIterator1 last, InputIter
         if constexpr (__reset_read)
         {
             //Reset data if required
-            oneapi::dpl::copy(exec2, counting, counting + n, orig_first);
+            oneapi::dpl::copy(exec2, expected_first, expected_first + n, orig_first);
         }
 
         //Run test
