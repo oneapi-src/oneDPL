@@ -155,12 +155,12 @@ class transform_if_stencil_fun
     UnaryOperation op;
 };
 
-// Lower bound functor more suitable to SIMD / SIMT style execution to minimize subgroup divergence.
+// Lower bound function for vectorized lower bound intended to minimize subgroup divergence.
 // Runs in Theta(log2(input size)) time.
 // Used by: binary_search and lower_bound.
 template <typename Acc, typename IdxT, typename Value, typename Compare>
 IdxT
-branchless_lower_bound(Acc acc, IdxT first, IdxT last, const Value& value, Compare comp)
+lower_bound_fun(Acc acc, IdxT first, IdxT last, const Value& value, Compare comp)
 {
     IdxT n = last - first;
     IdxT offset = 0;
@@ -188,11 +188,11 @@ branchless_lower_bound(Acc acc, IdxT first, IdxT last, const Value& value, Compa
 // Used by: upper_bound.
 template <typename Acc, typename IdxT, typename Value, typename Compare>
 IdxT
-branchless_upper_bound(Acc acc, IdxT first, IdxT last, const Value& value, Compare comp)
+upper_bound_fun(Acc acc, IdxT first, IdxT last, const Value& value, Compare comp)
 {
-    return branchless_lower_bound(acc, first, last, value,
-                                  oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<Compare>>{
-                                      oneapi::dpl::__internal::__reorder_pred<Compare>{comp}});
+    return lower_bound_fun(acc, first, last, value,
+                           oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<Compare>>{
+                               oneapi::dpl::__internal::__reorder_pred<Compare>{comp}});
 }
 } // namespace internal
 } // namespace dpl
