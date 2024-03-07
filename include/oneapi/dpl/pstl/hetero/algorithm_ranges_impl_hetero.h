@@ -53,9 +53,9 @@ __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function
     }
 }
 
-//------------------------------------------------------------------------
-// for_each
-//------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_for_each
+//---------------------------------------------------------------------------------------------------------------------
 template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
 decltype(auto)
 __pattern_for_each(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
@@ -66,6 +66,27 @@ __pattern_for_each(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
                                                             
     using __return_t = std::ranges::for_each_result<std::ranges::borrowed_iterator_t<_R>, _Fun>;
     return __return_t{__internal::__get_result(__r), std::move(__f)};
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_transform
+//---------------------------------------------------------------------------------------------------------------------
+template<typename _BackendTag, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj>
+decltype(auto)
+__pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
+                    _F __op, _Proj __proj)
+{
+    auto __unary_op = [=](auto&& __val) -> decltype(auto) { return __op(__proj(__val));};
+
+    oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec), 
+            oneapi::dpl::__internal::__transform_functor<decltype(__unary_op)>{::std::move(__unary_op)},
+            oneapi::dpl::views::all_read(::std::forward<_InRange>(__in_r)),
+            oneapi::dpl::views::all_write(::std::forward<_OutRange>(__out_r)));
+
+    using __return_t = std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<_InRange>,
+        std::ranges::borrowed_iterator_t<_OutRange>>;
+
+    return __return_t{__internal::__get_result(__in_r), __internal::__get_result(__out_r)};
 }
 
 //------------------------------------------------------------------------
