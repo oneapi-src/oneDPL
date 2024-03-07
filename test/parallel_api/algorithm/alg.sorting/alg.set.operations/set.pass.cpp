@@ -26,8 +26,16 @@ main()
 #endif
 
     test_set<data_t, data_t>(oneapi::dpl::__internal::__pstl_less(), false);
+#if !ONEDPL_FPGA_DEVICE
+    test_set<data_t, data_t>(oneapi::dpl::__internal::__pstl_less(), true);
+#endif
 
 #if !TEST_DPCPP_BACKEND_PRESENT
+    test_set<Num<std::int64_t>, Num<std::int32_t>>([](const Num<std::int64_t>& x, const Num<std::int32_t>& y) { return x < y; }, true);
+
+    test_set<MemoryChecker, MemoryChecker>([](const MemoryChecker& val1, const MemoryChecker& val2) -> bool {
+        return val1.value() < val2.value();
+    }, true);
     EXPECT_TRUE(MemoryChecker::alive_objects() == 0, "wrong effect from set algorithms: number of ctor and dtor calls is not equal");
 #endif
 
