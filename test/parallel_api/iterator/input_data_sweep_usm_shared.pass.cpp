@@ -34,15 +34,30 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
     if (TestUtils::has_types_support<T>(policy.queue().get_device()))
     {
 
-        TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy.queue(), n);
-        oneapi::dpl::counting_iterator<int> counting(0);
-        // usm_shared
-        TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> shared_data(policy.queue(), n);
-        auto usm_shared = shared_data.get_data();
-        //test all modes / wrappers
-        wrap_recurse<__recurse, 0>(policy, usm_shared, usm_shared + n, counting, copy_out.get_data(), usm_shared,
-                                   copy_out.get_data(), counting, trash,
-                                   std::string("usm_shared<") + type_text + std::string(">"));
+        { //usm shared ptr
+            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy.queue(), n);
+            oneapi::dpl::counting_iterator<int> counting(0);
+            // usm_shared
+            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> shared_data(policy.queue(), n);
+            auto usm_shared = shared_data.get_data();
+            //test all modes / wrappers
+            wrap_recurse<__recurse, 0>(policy, usm_shared, usm_shared + n, counting, copy_out.get_data(), usm_shared,
+                                    copy_out.get_data(), counting, trash,
+                                    std::string("usm_shared<") + type_text + std::string(">"));
+        }
+
+        { //std::vector using usm shared allocator
+            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy.queue(), n);
+            oneapi::dpl::counting_iterator<int> counting(0);
+            // usm_shared allocator std::vector
+            sycl::usm_allocator<T, sycl::usm::alloc::shared> q_alloc{policy.queue()};
+            std::vector<T, decltype(q_alloc)> shared_data_vec(n, q_alloc);
+            //test all modes / wrappers
+            wrap_recurse<__recurse, 0>(policy, shared_data_vec.begin(), shared_data_vec.end(), counting, copy_out.get_data(), shared_data_vec.begin(),
+                                    copy_out.get_data(), counting, trash,
+                                    std::string("usm_shared_alloc_vector<") + type_text + std::string(">"));
+        }
+
     }
     else
     {
