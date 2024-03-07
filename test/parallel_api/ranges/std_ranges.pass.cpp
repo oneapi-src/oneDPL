@@ -25,7 +25,7 @@ main()
 
     auto f = [](auto&& val) -> decltype(auto) { return val * val; };
     auto proj = [](auto&& val) -> decltype(auto) { return val * 2; };
-    
+
     test_range_algo<1>{}(oneapi::dpl::ranges::for_each, std::ranges::for_each, f_mutuable, proj_mutuable);
     test_range_algo<2>{}(oneapi::dpl::ranges::transform, std::ranges::transform, f, proj);
 
