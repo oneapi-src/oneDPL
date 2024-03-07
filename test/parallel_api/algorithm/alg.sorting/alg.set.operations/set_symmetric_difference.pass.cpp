@@ -36,6 +36,7 @@ main()
 {
 #ifdef _PSTL_TEST_SET_SYMMETRIC_DIFFERENCE
     test_algo_basic_double<std::int32_t>(run_for_rnd_fw<test_non_const_set_symmetric_difference<std::int32_t>>());
+    run_test_set<test_set_symmetric_difference>();
 #endif
 
     return TestUtils::done(_PSTL_TEST_SET_SYMMETRIC_DIFFERENCE);
