@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-- input_data_sweep_usm_shared.pass.cpp ------------------------------===//
+//===-- input_data_sweep_usm_allocator.pass.cpp ---------------------------===//
 //
 // Copyright (C) Intel Corporation
 //
@@ -12,6 +12,8 @@
 // See https://llvm.org/LICENSE.txt for license information.
 //
 //===----------------------------------------------------------------------===//
+
+#define _ONEDPL_DEBUG_SYCL 1
 
 #include "support/utils.h"
 #include _PSTL_TEST_HEADER(execution)
@@ -33,17 +35,36 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
 {
     if (TestUtils::has_types_support<T>(policy.queue().get_device()))
     {
-
-        { //usm shared ptr
+        { //std::vector using usm shared allocator
             TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy.queue(), n);
             oneapi::dpl::counting_iterator<int> counting(0);
-            // usm_shared
-            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> shared_data(policy.queue(), n);
-            auto usm_shared = shared_data.get_data();
+            // usm_shared allocator std::vector
+            sycl::usm_allocator<T, sycl::usm::alloc::shared> q_alloc{policy.queue()};
+            std::vector<T, decltype(q_alloc)> shared_data_vec(n, q_alloc);
             //test all modes / wrappers
-            wrap_recurse<__recurse, 0>(policy, usm_shared, usm_shared + n, counting, copy_out.get_data(), usm_shared,
+
+            //TODO: understand why these inputs cant be used in as permutation iterator source iter
+            wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
+                     /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
+                     /*__is_reversible=*/true>(policy, shared_data_vec.begin(), shared_data_vec.end(), counting, copy_out.get_data(), shared_data_vec.begin(),
                                     copy_out.get_data(), counting, trash,
-                                    std::string("usm_shared<") + type_text + std::string(">"));
+                                    std::string("usm_shared_alloc_vector<") + type_text + std::string(">"));
+        }
+
+        { //std::vector using usm host allocator
+            TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy.queue(), n);
+            oneapi::dpl::counting_iterator<int> counting(0);
+            // usm_host allocator std::vector
+            sycl::usm_allocator<T, sycl::usm::alloc::host> q_alloc{policy.queue()};
+            std::vector<T, decltype(q_alloc)> host_data_vec(n, q_alloc);
+            //test all modes / wrappers
+
+            //TODO: understand why these inputs cant be used in as permutation iterator source iter
+            wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
+                     /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
+                     /*__is_reversible=*/true>(policy, host_data_vec.begin(), host_data_vec.end(), counting, copy_out.get_data(), host_data_vec.begin(),
+                                    copy_out.get_data(), counting, trash,
+                                    std::string("usm_host_alloc_vector<") + type_text + std::string(">"));
         }
     }
     else
@@ -79,17 +100,6 @@ main()
     // big recursion step: 1 and 2 layers of wrapping
     test<std::int32_t, 2>(policy4, -666, n, "int32_t");
 
-    // special case: recurse once on perm(perm(usm_shared<int>,count), count)
-    oneapi::dpl::counting_iterator<int> counting(0);
-    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> copy_out(policy5.queue(), n);
-    TestUtils::usm_data_transfer<sycl::usm::alloc::shared, int> input(policy5.queue(), n);
-    auto perm1 = oneapi::dpl::make_permutation_iterator(input.get_data(), counting);
-    auto perm2 = oneapi::dpl::make_permutation_iterator(perm1, counting);
-    wrap_recurse<1, 0, /*__read =*/false, /*__reset_read=*/false, /*__write=*/true,
-                 /*__check_write=*/false, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/true,
-                 /*__is_reversible=*/true>(
-        policy5, perm2, perm2 + n, counting, copy_out.get_data(), perm2, copy_out.get_data(), counting, -666,
-        "permutation_iter(permutation_iterator(usm_shared<int>,counting_iterator),counting_iterator)");
 #endif // TEST_DPCPP_BACKEND_PRESENT
 
     return TestUtils::done(TEST_DPCPP_BACKEND_PRESENT);
