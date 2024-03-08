@@ -213,7 +213,7 @@ struct is_passed_directly<
     ::std::enable_if_t<::std::is_same_v<
         Iter, typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type,
                                      typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
-                                                                  sycl::usm::alloc::shared>::iterator>>>>
+                                                                  sycl::usm::alloc::shared>>::iterator>>>
     : ::std::true_type
 {
 };
@@ -225,7 +225,7 @@ struct is_passed_directly<
     ::std::enable_if_t<::std::is_same_v<
         Iter, typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type,
                                      typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
-                                                                  sycl::usm::alloc::host>::iterator>>>>
+                                                                  sycl::usm::alloc::host>>::iterator>>>
     : ::std::true_type
 {
 };
