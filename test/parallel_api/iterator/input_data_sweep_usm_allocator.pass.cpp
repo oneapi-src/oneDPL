@@ -43,7 +43,7 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
             std::vector<T, decltype(q_alloc)> shared_data_vec(n, q_alloc);
             //test all modes / wrappers
 
-            //TODO: understand why these inputs cant be used in as permutation iterator source iter
+            //TODO: understand why these inputs can't be used in as permutation iterator source iter
             wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
                      /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
                      /*__is_reversible=*/true>(policy, shared_data_vec.begin(), shared_data_vec.end(), counting, copy_out.get_data(), shared_data_vec.begin(),
@@ -59,7 +59,7 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
             std::vector<T, decltype(q_alloc)> host_data_vec(n, q_alloc);
             //test all modes / wrappers
 
-            //TODO: understand why these inputs cant be used in as permutation iterator source iter
+            //TODO: understand why these inputs can't be used in as permutation iterator source iter
             wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
                      /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/false,
                      /*__is_reversible=*/true>(policy, host_data_vec.begin(), host_data_vec.end(), counting, copy_out.get_data(), host_data_vec.begin(),
