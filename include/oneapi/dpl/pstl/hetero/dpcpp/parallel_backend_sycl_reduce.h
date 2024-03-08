@@ -363,29 +363,29 @@ struct __parallel_transform_reduce_impl
                         // 1. Initialization (transform part). Fill local memory
                         _Size __n_items;
 
-                        _Tp __result = *::std::launder(reinterpret_cast<_Tp*>(alloca(sizeof(_Tp))));
+                        union __storage {_Tp __v; __storage(){} } __result;
                         if (__is_first)
                         {
-                            __result = __transform_pattern1(__item_id, __n, /*global_offset*/ (_Size)0, __rngs...);
+                            __result.__v = __transform_pattern1(__item_id, __n, /*global_offset*/ (_Size)0, __rngs...);
                             __n_items = __transform_pattern1.output_size(__n, __work_group_size);
                         }
                         else
                         {
-                            __result = __transform_pattern2(__item_id, __n, __offset_2, __temp_acc);
+                            __result.__v = __transform_pattern2(__item_id, __n, __offset_2, __temp_acc);
                             __n_items = __transform_pattern2.output_size(__n, __work_group_size);
                         }
                         // 2. Reduce within work group using local memory
-                        __result = __reduce_pattern(__item_id, __n_items, __result, __temp_local);
+                        __result.__v = __reduce_pattern(__item_id, __n_items, __result.__v, __temp_local);
                         if (__local_idx == 0)
                         {
                             // final reduction
                             if (__n_groups == 1)
                             {
-                                __reduce_pattern.apply_init(__init, __result);
-                                __res_ptr[0] = __result;
+                                __reduce_pattern.apply_init(__init, __result.__v);
+                                __res_ptr[0] = __result.__v;
                             }
 
-                            __temp_acc[__offset_1 + __group_idx] = __result;
+                            __temp_acc[__offset_1 + __group_idx] = __result.__v;
                         }
                     });
             });
