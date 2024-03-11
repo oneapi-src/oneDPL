@@ -374,6 +374,25 @@ test4buffers(int mult = kDefaultMultValue)
 {
     test4buffers<alloc_type, typename TestName::UsedValueType, TestName>(mult);
 }
+
+// Evaluates to true if the provided type is an iterator with a value_type and if the implementation of a
+//  std::vector<value_type>::iterator can be distinguished from std::vector<value_type, usm_allocator>::iterator
+template <typename Iter, typename Void = void>
+struct __vector_impl_distinguishes_usm_allocator_from_default : ::std::false_type
+{
+};
+
+template <typename Iter>
+struct __vector_impl_distinguishes_usm_allocator_from_default<
+    Iter, ::std::enable_if_t<!::std::is_same_v<
+              typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type>::iterator,
+              typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type,
+                                     typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
+                                                                  sycl::usm::alloc::shared>>::iterator>>>
+    : ::std::true_type
+{
+};
+
 } /* namespace TestUtils */
 
 #endif // _UTILS_SYCL_H
