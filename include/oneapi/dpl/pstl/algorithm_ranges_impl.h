@@ -47,7 +47,7 @@ __pattern_for_each(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
         __view.end(), __f_1);
 
     using __return_t = std::ranges::for_each_result<std::ranges::borrowed_iterator_t<_R>, _Fun>;
-    return __return_t{__internal::__get_result(__r), std::move(__f)};
+    return __return_t{__r.begin() + __r.size(), std::move(__f)};
 }
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
@@ -83,7 +83,7 @@ __pattern_transform(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
     using __return_t = std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<_InRange>,
         std::ranges::borrowed_iterator_t<_OutRange>>;
 
-    return __return_t{__internal::__get_result(__in_r), __internal::__get_result(__out_r)};
+    return __return_t{__in_r.begin() + __in_r.size(), __out_r.begin() + __out_r.size()};
 }
 
 template<typename _Tag, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj>
