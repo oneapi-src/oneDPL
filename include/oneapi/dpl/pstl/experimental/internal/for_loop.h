@@ -42,14 +42,20 @@ struct type_identity
 template <typename _Tp>
 using type_identity_t = typename type_identity<_Tp>::type;
 
+//hide vector policy till the algorithms implementation
+// template <>
+// struct __policy_traits<oneapi::dpl::execution::vector_policy>
+// {
+//     typedef ::std::false_type __allow_parallel;
+//     typedef ::std::false_type __allow_unsequenced;
+//     typedef ::std::true_type __allow_vector;
+// };
+
 // TODO: add static asserts for parameters according to the requirements
 template <typename _ExecutionPolicy, typename _Ip, typename... _Rest>
 void
 for_loop(_ExecutionPolicy&& __exec, type_identity_t<_Ip> __start, _Ip __finish, _Rest&&... __rest)
 {
-    static_assert(oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value,
-                  "for_loop is implemented for the host policies only");
-
     oneapi::dpl::__internal::__for_loop_repack(::std::forward<_ExecutionPolicy>(__exec), __start, __finish,
                                                oneapi::dpl::__internal::__single_stride_type{},
                                                ::std::forward_as_tuple(::std::forward<_Rest>(__rest)...));
@@ -59,9 +65,6 @@ template <typename _ExecutionPolicy, typename _Ip, typename _Sp, typename... _Re
 void
 for_loop_strided(_ExecutionPolicy&& __exec, type_identity_t<_Ip> __start, _Ip __finish, _Sp __stride, _Rest&&... __rest)
 {
-    static_assert(oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value,
-                  "for_loop_strided is implemented for the host policies only");
-
     oneapi::dpl::__internal::__for_loop_repack(::std::forward<_ExecutionPolicy>(__exec), __start, __finish, __stride,
                                                ::std::forward_as_tuple(::std::forward<_Rest>(__rest)...));
 }
@@ -70,9 +73,6 @@ template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename... _
 void
 for_loop_n(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Rest&&... __rest)
 {
-    static_assert(oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value,
-                  "for_loop_n is implemented for the host policies only");
-
     oneapi::dpl::__internal::__for_loop_repack_n(::std::forward<_ExecutionPolicy>(__exec), __start, __n,
                                                  oneapi::dpl::__internal::__single_stride_type{},
                                                  ::std::forward_as_tuple(::std::forward<_Rest>(__rest)...));
@@ -82,9 +82,6 @@ template <typename _ExecutionPolicy, typename _Ip, typename _Size, typename _Sp,
 void
 for_loop_n_strided(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Sp __stride, _Rest&&... __rest)
 {
-    static_assert(oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value,
-                  "for_loop_n_strided is implemented for the host policies only");
-
     oneapi::dpl::__internal::__for_loop_repack_n(::std::forward<_ExecutionPolicy>(__exec), __start, __n, __stride,
                                                  ::std::forward_as_tuple(::std::forward<_Rest>(__rest)...));
 }
