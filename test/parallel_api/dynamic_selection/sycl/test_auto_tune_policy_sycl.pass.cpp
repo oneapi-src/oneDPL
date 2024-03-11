@@ -492,7 +492,7 @@ main()
     bool bProcessed = false;
 
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
-#if ONEDPL_CPU_DEVICE || ONEDPL_GPU_DEVICE
+#if !ONEDPL_FPGA_DEVICE || !ONEDPL_FPGA_EMULATOR
     using policy_t = oneapi::dpl::experimental::auto_tune_policy<oneapi::dpl::experimental::sycl_backend>;
     std::vector<sycl::queue> u;
     build_auto_tune_universe(u);
