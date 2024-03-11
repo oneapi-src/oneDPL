@@ -357,7 +357,7 @@ __onesweep(sycl::queue __q, _RngPack1&& __pack, _RngPack2&& __pack_out, ::std::s
     auto __tmp_pack = __create_temp_pack<_RngPack1>(__mem_holder, __n);
     auto select_element = [] {
         if constexpr (__in_place)
-            return 1;
+            return 0;
         else
             return (__stage_count % 2);
     };
