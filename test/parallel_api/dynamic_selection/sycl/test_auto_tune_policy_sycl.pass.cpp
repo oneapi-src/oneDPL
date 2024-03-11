@@ -164,7 +164,7 @@ test_auto_submit_wait_on_event(UniverseContainer u, int best_resource)
         }
 
         int count = ecount.load();
-        //EXPECT_EQ(i * (i + 1) / 2, count, "ERROR: scheduler did not execute all tasks exactly once\n");
+        EXPECT_EQ(i * (i + 1) / 2, count, "ERROR: scheduler did not execute all tasks exactly once\n");
     }
     EXPECT_TRUE(pass, "ERROR: did not select expected resources\n");
     if constexpr (call_select_before_submit)
