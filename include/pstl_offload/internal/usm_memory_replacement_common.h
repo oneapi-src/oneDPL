@@ -32,11 +32,12 @@ __is_power_of_two(std::size_t __number)
     return (__number != 0) && ((__number & __number - 1) == 0);
 }
 
-// can't use std::shared_ptr, because sizeof(std::shared_ptr) is 2*sizeof(void*) while
+// can't use std::shared_ptr, because commonly sizeof(std::shared_ptr) is 2*sizeof(void*) while
 // sizeof(__block_header) must be power of 2 and with std::shared_ptr instead of
 // __sycl_device_shared_ptr memory fragmentation increases drastically
 class __sycl_device_shared_ptr
 {
+    // state is shared between TU with the context and all objects allocated in this TU
     struct __shared_device
     {
         std::optional<sycl::device> _M_device;
@@ -102,7 +103,7 @@ class __sycl_device_shared_ptr
         if (this != &other)
         {
             _M_shared_device = other._M_shared_device;
-            ++_M_shared_device->_M_cnt;
+            _M_shared_device->_M_cnt.fetch_add(1, std::memory_order_relaxed);
         }
         return *this;
     }
@@ -110,12 +111,12 @@ class __sycl_device_shared_ptr
     __sycl_device_shared_ptr(const __sycl_device_shared_ptr& other)
     {
         _M_shared_device = other._M_shared_device;
-        ++_M_shared_device->_M_cnt;
+        _M_shared_device->_M_cnt.fetch_add(1, std::memory_order_relaxed);
     }
 
     ~__sycl_device_shared_ptr()
     {
-        if (0 == --_M_shared_device->_M_cnt)
+        if (1 == _M_shared_device->_M_cnt.fetch_add(-1, std::memory_order_acq_rel))
         {
             delete _M_shared_device;
         }
