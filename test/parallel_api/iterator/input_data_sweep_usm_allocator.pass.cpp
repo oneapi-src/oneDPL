@@ -13,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define _ONEDPL_DEBUG_SYCL 1
-
 #include "support/utils.h"
 #include _PSTL_TEST_HEADER(execution)
 #include _PSTL_TEST_HEADER(algorithm)
