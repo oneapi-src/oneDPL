@@ -63,9 +63,9 @@ __pattern_for_each(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     auto __f_1 = [__f, __proj](auto&& __val) { __f(__proj(__val));};
         oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec), __f,
                                                             oneapi::dpl::views::all(::std::forward<_R>(__r)));
-                                                            
+
     using __return_t = std::ranges::for_each_result<std::ranges::borrowed_iterator_t<_R>, _Fun>;
-    return __return_t{__internal::__get_result(__r), std::move(__f)};
+    return __return_t{__r.begin() + __r.size(), std::move(__f)};
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ __pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
     using __return_t = std::ranges::unary_transform_result<std::ranges::borrowed_iterator_t<_InRange>,
         std::ranges::borrowed_iterator_t<_OutRange>>;
 
-    return __return_t{__internal::__get_result(__in_r), __internal::__get_result(__out_r)};
+    return __return_t{__in_r.begin() + __in_r.size(), __out_r.begin() + __out_r.size()};
 }
 
 //------------------------------------------------------------------------
