@@ -45,6 +45,25 @@ __create_accessor(_BufferType& __buf, _DiffType __offset, _DiffType __n)
 
     return {__buf, sycl::range<1>(__n_acc), __offset};
 }
+
+// Evaluates to true if the provided type is an iterator with a value_type and if the implementation of a
+//  std::vector<value_type>::iterator can be distinguished from std::vector<value_type, usm_allocator>::iterator
+template <typename Iter, typename Void = void>
+struct __vector_impl_distinguishes_usm_allocator_from_default : ::std::false_type
+{
+};
+
+template <typename Iter>
+struct __vector_impl_distinguishes_usm_allocator_from_default<
+    Iter, ::std::enable_if_t<!::std::is_same_v<
+              typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type>::iterator,
+              typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type,
+                                     typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
+                                                                  sycl::usm::alloc::shared>>::iterator>>>
+    : ::std::true_type
+{
+};
+
 } // namespace __internal
 
 //A SYCL range over SYCL buffer
@@ -211,14 +230,15 @@ template <class Iter>
 struct is_passed_directly<
     Iter,
     ::std::enable_if_t<
-        ::std::is_same_v<
-            Iter, typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type,
-                                         typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
-                                                                      sycl::usm::alloc::shared>>::iterator> ||
-        ::std::is_same_v<
-            Iter, typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type,
-                                         typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
-                                                                      sycl::usm::alloc::host>>::iterator>>>
+        oneapi::dpl::__ranges::__internal::__vector_impl_distinguishes_usm_allocator_from_default<Iter>::value &&
+        (::std::is_same_v<Iter, typename ::std::vector<
+                                    typename ::std::iterator_traits<Iter>::value_type,
+                                    typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
+                                                                 sycl::usm::alloc::shared>>::iterator> ||
+         ::std::is_same_v<Iter, typename ::std::vector<
+                                    typename ::std::iterator_traits<Iter>::value_type,
+                                    typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
+                                                                 sycl::usm::alloc::host>>::iterator>)>>
     : ::std::true_type
 {
 };
