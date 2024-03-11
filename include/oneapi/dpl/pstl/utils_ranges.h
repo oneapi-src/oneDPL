@@ -27,6 +27,7 @@ namespace oneapi
 {
 namespace dpl
 {
+
 namespace __internal
 {
 
@@ -565,41 +566,6 @@ struct permutation_discard_view
 };
 
 } // namespace __ranges
-
-#if _ONEDPL___cplusplus >= 202002L
-
-namespace ranges
-{
-template <typename View, typename Void = void>
-struct is_hetero_base : std::false_type
-{
-};
-
-template <typename View>
-struct is_hetero_base<View, ::std::enable_if_t<View::is_hetero_base::value>> : std::true_type
-{
-};
-
-template<typename R>
-using iterator_t = std::conditional_t<is_hetero_base<typename oneapi::dpl::__ranges::pipeline_base<R>::type>::value,
-    typename std::iterator_traits<std::ranges::iterator_t<R>>::difference_type,
-    std::ranges::borrowed_iterator_t<R>>;
-}
-
-namespace __internal
-{
-
-template<typename _R>
-constexpr auto __get_result(_R&& __r)
-{
-    if constexpr (std::is_integral_v<oneapi::dpl::ranges::iterator_t<_R>>)
-        return __r.size();
-    else
-        return __r.begin() + __r.size();
-}
-} // namespace __internal
-#endif //_ONEDPL___cplusplus >= 202002L
-
 } // namespace dpl
 } // namespace oneapi
 
