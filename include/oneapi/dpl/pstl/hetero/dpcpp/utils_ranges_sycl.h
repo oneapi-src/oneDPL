@@ -78,7 +78,11 @@ class all_view
     {
         return begin() + size();
     }
-    __return_t& operator[](__diff_type i) const { return begin()[i]; }
+    __return_t&
+    operator[](__diff_type i) const
+    {
+        return begin()[i];
+    }
 
     __diff_type
     size() const
@@ -206,26 +210,19 @@ struct is_passed_directly<Iter, ::std::enable_if_t<Iter::is_passed_directly::val
 {
 };
 
-//support std::vector::iterator with usm shared allocator as passed directly
+//support std::vector::iterator with usm host / shared allocator as passed directly
 template <class Iter>
 struct is_passed_directly<
     Iter,
-    ::std::enable_if_t<::std::is_same_v<
-        Iter, typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type,
-                                     typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
-                                                                  sycl::usm::alloc::shared>>::iterator>>>
-    : ::std::true_type
-{
-};
-
-//support std::vector::iterator with usm host allocator as passed directly
-template <class Iter>
-struct is_passed_directly<
-    Iter,
-    ::std::enable_if_t<::std::is_same_v<
-        Iter, typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type,
-                                     typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
-                                                                  sycl::usm::alloc::host>>::iterator>>>
+    ::std::enable_if_t<
+        ::std::is_same_v<
+            Iter, typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type,
+                                         typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
+                                                                      sycl::usm::alloc::shared>>::iterator> ||
+        ::std::is_same_v<
+            Iter, typename ::std::vector<typename ::std::iterator_traits<Iter>::value_type,
+                                         typename sycl::usm_allocator<typename ::std::iterator_traits<Iter>::value_type,
+                                                                      sycl::usm::alloc::host>>::iterator>>>
     : ::std::true_type
 {
 };
