@@ -65,7 +65,7 @@ struct __difference<_Ip, ::std::enable_if_t<::std::is_integral_v<_Ip>>>
 template <typename _Ip>
 struct __difference<_Ip, ::std::enable_if_t<!::std::is_integral_v<_Ip>>>
 {
-    using __type = typename std::iterator_traits<_Ip>::difference_type;
+    using __type = typename ::std::iterator_traits<_Ip>::difference_type;
 };
 
 // This type is used as a stride value when it's known that stride == 1 at compile time(the case of for_loop and for_loop_n).
@@ -232,7 +232,7 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-::std::enable_if_t<::std::is_same_v<typename std::iterator_traits<_Ip>::iterator_category,
+::std::enable_if_t<::std::is_same_v<typename ::std::iterator_traits<_Ip>::iterator_category,
                                     ::std::bidirectional_iterator_tag>,
                    _IndexType>
 __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
@@ -269,9 +269,9 @@ __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pa
 }
 
 template <typename _Ip, typename _Function, typename _Sp, typename _Pack, typename _IndexType>
-::std::enable_if_t<::std::is_same_v<typename std::iterator_traits<_Ip>::iterator_category,
+::std::enable_if_t<::std::is_same_v<typename ::std::iterator_traits<_Ip>::iterator_category,
                                     ::std::forward_iterator_tag> ||
-                       ::std::is_same_v<typename std::iterator_traits<_Ip>::iterator_category,
+                       ::std::is_same_v<typename ::std::iterator_traits<_Ip>::iterator_category,
                                         ::std::input_iterator_tag>,
                    _IndexType>
 __execute_loop_strided(_Ip __first, _Ip __last, _Function __f, _Sp __stride, _Pack& __pack, _IndexType) noexcept
