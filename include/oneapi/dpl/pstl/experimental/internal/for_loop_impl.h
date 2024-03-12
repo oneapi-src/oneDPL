@@ -478,42 +478,60 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
 template <typename _Ip>
 struct __use_par_vec_helper
 {
-    using __it_type = std::conditional_t<std::is_integral_v<_Ip>, _Ip*, _Ip>;
-
     template <typename _ExecutionPolicy>
     static constexpr auto
-    __use_vector(_ExecutionPolicy&& __exec)
+    __use_vector(_ExecutionPolicy&& __exec, _Ip __it)
     {
-        using __tag_type = decltype(oneapi::dpl::__internal::__select_backend(__exec, __it_type{}));
-        return typename __tag_type::__is_vector{};
+        if constexpr (::std::is_integral_v<_Ip>)
+        {
+            using __tag_type = decltype(oneapi::dpl::__internal::__select_backend(__exec));
+            return typename __tag_type::__is_vector{};
+        }
+        else
+        {
+            using __tag_type = decltype(oneapi::dpl::__internal::__select_backend(__exec, __it));
+            return typename __tag_type::__is_vector{};
+        }
     }
 
     template <typename _ExecutionPolicy>
     static constexpr auto
-    __use_parallel(_ExecutionPolicy&& __exec)
+    __use_parallel(_ExecutionPolicy&& __exec, _Ip __it)
     {
-        using __tag_type = decltype(oneapi::dpl::__internal::__select_backend(__exec, __it_type{}));
-        using __is_parallel_tag = std::disjunction<
-            std::is_same<oneapi::dpl::__internal::__parallel_tag<std::true_type>, __tag_type>,
-            std::is_same<oneapi::dpl::__internal::__parallel_tag<std::false_type>, __tag_type>>;
+        if constexpr (::std::is_integral_v<_Ip>)
+        {
+            using __tag_type = decltype(oneapi::dpl::__internal::__select_backend(__exec));
+            using __is_parallel_tag =
+                std::disjunction<std::is_same<oneapi::dpl::__internal::__parallel_tag<std::true_type>, __tag_type>,
+                                 std::is_same<oneapi::dpl::__internal::__parallel_tag<std::false_type>, __tag_type>>;
 
-        return __is_parallel_tag{};
+            return __is_parallel_tag{};
+        }
+        else
+        {
+            using __tag_type = decltype(oneapi::dpl::__internal::__select_backend(__exec, __it));
+            using __is_parallel_tag =
+                std::disjunction<std::is_same<oneapi::dpl::__internal::__parallel_tag<std::true_type>, __tag_type>,
+                                 std::is_same<oneapi::dpl::__internal::__parallel_tag<std::false_type>, __tag_type>>;
+
+            return __is_parallel_tag{};
+        }
     }
 };
 
 // Special versions for for_loop: handles both iterators and integral types(treated as random access iterators)
 template <typename _ExecutionPolicy, typename _Ip>
 auto
-__use_vectorization(_ExecutionPolicy&& __exec)
+__use_vectorization(_ExecutionPolicy&& __exec, _Ip __it)
 {
-    return __use_par_vec_helper<_Ip>::__use_vector(::std::forward<_ExecutionPolicy>(__exec));
+    return __use_par_vec_helper<_Ip>::__use_vector(::std::forward<_ExecutionPolicy>(__exec), __it);
 }
 
 template <typename _ExecutionPolicy, typename _Ip>
 auto
-__use_parallelization(_ExecutionPolicy&& __exec)
+__use_parallelization(_ExecutionPolicy&& __exec, _Ip __it)
 {
-    return __use_par_vec_helper<_Ip>::__use_parallel(::std::forward<_ExecutionPolicy>(__exec));
+    return __use_par_vec_helper<_Ip>::__use_parallel(::std::forward<_ExecutionPolicy>(__exec), __it);
 }
 
 // Helper functions to extract to separate a Callable object from the pack of reductions and inductions
@@ -524,8 +542,8 @@ __for_loop_impl(_ExecutionPolicy&& __exec, _Ip __start, _Ip __finish, _Fp&& __f,
 {
     oneapi::dpl::__internal::__pattern_for_loop(
         ::std::forward<_ExecutionPolicy>(__exec), __start, __finish, __f, __stride,
-        oneapi::dpl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(__exec),
-        oneapi::dpl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>(__exec),
+        oneapi::dpl::__internal::__use_vectorization(__exec, __start),
+        oneapi::dpl::__internal::__use_parallelization(__exec, __start),
         ::std::get<_Is>(::std::move(__t))...);
 }
 
@@ -537,8 +555,8 @@ __for_loop_n_impl(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Fp&& __f, 
 {
     oneapi::dpl::__internal::__pattern_for_loop_n(
         ::std::forward<_ExecutionPolicy>(__exec), __start, __n, __f, __stride,
-        oneapi::dpl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(__exec),
-        oneapi::dpl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>(__exec),
+        oneapi::dpl::__internal::__use_vectorization(__exec, __start),
+        oneapi::dpl::__internal::__use_parallelization(__exec, __start),
         ::std::get<_Is>(::std::move(__t))...);
 }
 
