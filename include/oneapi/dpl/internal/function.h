@@ -163,21 +163,15 @@ IdxT
 lower_bound_fun(Acc acc, IdxT first, IdxT last, const Value& value, Compare comp)
 {
     IdxT n = last - first;
-    IdxT offset = 0;
+    IdxT offset = first;
     IdxT start = oneapi::dpl::__internal::__dpl_bit_ceil(n) / 2;
-    for (IdxT i = start; i >= 2; i >>= 1)
+    for (IdxT i = start; i >= 1; i >>= 1)
     {
-        IdxT idx = offset + i;
-        offset += static_cast<IdxT>(comp(acc[idx], value)) * i;
-    }
-    // Hoist the last case to special handle non-powers of two.
-    if (n > 1)
-    {
-        IdxT idx = ::std::min(n - 1, offset + 1);
-        offset += static_cast<IdxT>(comp(acc[idx], value));
+        IdxT idx = ::std::min(n - 1, offset + i);
+        offset = comp(acc[idx], value) ? idx : offset;
     }
     // Special handle the case where comp is never satisifed
-    if (offset == 0 && !comp(acc[0], value))
+    if (offset == first && !comp(acc[first], value))
     {
         return first;
     }
