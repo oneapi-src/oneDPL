@@ -1691,9 +1691,6 @@ __pattern_reverse(_ExecutionPolicy&&, _BidirectionalIterator __first, _Bidirecti
                   _IsVector _is_vector,
                   /*is_parallel=*/::std::false_type) noexcept
 {
-    if (__first == __last)
-        return;
-
     __internal::__brick_reverse(__first, __last, _is_vector);
 }
 
@@ -1741,9 +1738,6 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Ou
 __pattern_reverse_copy(_ExecutionPolicy&&, _BidirectionalIterator __first, _BidirectionalIterator __last,
                        _OutputIterator __d_first, _IsVector __is_vector, /*is_parallel=*/::std::false_type) noexcept
 {
-    if (__first == __last)
-        return __d_first;
-
     return __internal::__brick_reverse_copy(__first, __last, __d_first, __is_vector);
 }
 
