@@ -483,8 +483,8 @@ struct __use_par_vec_helper
     __get_tag_type(_ExecutionPolicy&& __exec, _Ip __it)
     {
         using __tag_type = std::conditional_t<std::is_integral_v<_Ip>,
-                                              decltype(oneapi::dpl::__internal::__select_backend(__exec),
-                                              decltype(oneapi::dpl::__internal::__select_backend(__exec, it)>;
+                                              decltype(oneapi::dpl::__internal::__select_backend(__exec)),
+                                              decltype(oneapi::dpl::__internal::__select_backend(__exec, __it))>;
         return __tag_type{};
     }
 
