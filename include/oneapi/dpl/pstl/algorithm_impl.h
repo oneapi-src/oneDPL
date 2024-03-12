@@ -1691,7 +1691,10 @@ __pattern_reverse(_ExecutionPolicy&&, _BidirectionalIterator __first, _Bidirecti
                   _IsVector _is_vector,
                   /*is_parallel=*/::std::false_type) noexcept
 {
+    if (__first != __last)
+    {
     __internal::__brick_reverse(__first, __last, _is_vector);
+    }
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _IsVector>
