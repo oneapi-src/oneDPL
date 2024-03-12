@@ -1733,7 +1733,7 @@ __brick_reverse_copy(_RandomAccessIterator1 __first, _RandomAccessIterator1 __la
     typedef typename ::std::iterator_traits<_RandomAccessIterator2>::reference _ReferenceType2;
 
     return __unseq_backend::__simd_walk_2(::std::reverse_iterator<_RandomAccessIterator1>(__last), __last - __first,
-                                            __d_first, [](_ReferenceType1 __x, _ReferenceType2 __y) { __y = __x; });
+                                          __d_first, [](_ReferenceType1 __x, _ReferenceType2 __y) { __y = __x; });
 }
 
 template <class _ExecutionPolicy, class _BidirectionalIterator, class _OutputIterator, class _IsVector>
