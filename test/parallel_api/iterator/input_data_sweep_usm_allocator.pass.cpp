@@ -67,7 +67,7 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
             wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
                          /*__check_write=*/true, /*__usable_as_perm_map=*/true, /*__usable_as_perm_src=*/
                          TestUtils::__vector_impl_distinguishes_usm_allocator_from_default<
-                             decltype(shared_data_vec.begin())>::value,
+                             decltype(host_data_vec.begin())>::value,
                          /*__is_reversible=*/true>(
                 policy, host_data_vec.begin(), host_data_vec.end(), counting, copy_out.get_data(),
                 host_data_vec.begin(), copy_out.get_data(), counting, trash,
