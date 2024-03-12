@@ -480,27 +480,27 @@ struct __use_par_vec_helper
 {
     template <typename _ExecutionPolicy>
     static constexpr auto
-    __get_tag_type(_ExecutionPolicy&& __exec, _Ip __it)
+    __get_tag_type(_ExecutionPolicy&& __exec)
     {
         using __tag_type = std::conditional_t<std::is_integral_v<_Ip>,
                                               decltype(oneapi::dpl::__internal::__select_backend(__exec)),
-                                              decltype(oneapi::dpl::__internal::__select_backend(__exec, __it))>;
+                                              decltype(oneapi::dpl::__internal::__select_backend(__exec, declval<_Ip>()))>;
         return __tag_type{};
     }
 
     template <typename _ExecutionPolicy>
     static constexpr auto
-    __use_vector(_ExecutionPolicy&& __exec, _Ip __it)
+    __use_vector(_ExecutionPolicy&& __exec)
     {
-        using __tag_type = decltype(__get_tag_type(__exec, __it));
+        using __tag_type = decltype(__get_tag_type(__exec));
         return typename __tag_type::__is_vector{};
     }
 
     template <typename _ExecutionPolicy>
     static constexpr auto
-    __use_parallel(_ExecutionPolicy&& __exec, _Ip __it)
+    __use_parallel(_ExecutionPolicy&& __exec)
     {
-        using __tag_type = decltype(__get_tag_type(__exec, __it));
+        using __tag_type = decltype(__get_tag_type(__exec));
         return oneapi::dpl::__internal::__is_parallel_tag<__tag_type>();
     }
 };
@@ -508,16 +508,16 @@ struct __use_par_vec_helper
 // Special versions for for_loop: handles both iterators and integral types(treated as random access iterators)
 template <typename _ExecutionPolicy, typename _Ip>
 auto
-__use_vectorization(_ExecutionPolicy&& __exec, _Ip __it)
+__use_vectorization(_ExecutionPolicy&& __exec)
 {
-    return __use_par_vec_helper<_Ip>::__use_vector(::std::forward<_ExecutionPolicy>(__exec), __it);
+    return __use_par_vec_helper<_Ip>::__use_vector(::std::forward<_ExecutionPolicy>(__exec));
 }
 
 template <typename _ExecutionPolicy, typename _Ip>
 auto
-__use_parallelization(_ExecutionPolicy&& __exec, _Ip __it)
+__use_parallelization(_ExecutionPolicy&& __exec)
 {
-    return __use_par_vec_helper<_Ip>::__use_parallel(::std::forward<_ExecutionPolicy>(__exec), __it);
+    return __use_par_vec_helper<_Ip>::__use_parallel(::std::forward<_ExecutionPolicy>(__exec));
 }
 
 // Helper functions to extract to separate a Callable object from the pack of reductions and inductions
@@ -528,8 +528,8 @@ __for_loop_impl(_ExecutionPolicy&& __exec, _Ip __start, _Ip __finish, _Fp&& __f,
 {
     oneapi::dpl::__internal::__pattern_for_loop(
         ::std::forward<_ExecutionPolicy>(__exec), __start, __finish, __f, __stride,
-        oneapi::dpl::__internal::__use_vectorization(__exec, __start),
-        oneapi::dpl::__internal::__use_parallelization(__exec, __start),
+        oneapi::dpl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(__exec),
+        oneapi::dpl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>(__exec),
         ::std::get<_Is>(::std::move(__t))...);
 }
 
@@ -541,8 +541,8 @@ __for_loop_n_impl(_ExecutionPolicy&& __exec, _Ip __start, _Size __n, _Fp&& __f, 
 {
     oneapi::dpl::__internal::__pattern_for_loop_n(
         ::std::forward<_ExecutionPolicy>(__exec), __start, __n, __f, __stride,
-        oneapi::dpl::__internal::__use_vectorization(__exec, __start),
-        oneapi::dpl::__internal::__use_parallelization(__exec, __start),
+        oneapi::dpl::__internal::__use_vectorization<_ExecutionPolicy, _Ip>(__exec),
+        oneapi::dpl::__internal::__use_parallelization<_ExecutionPolicy, _Ip>(__exec),
         ::std::get<_Is>(::std::move(__t))...);
 }
 
