@@ -1707,7 +1707,8 @@ __pattern_reverse(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _Ran
         __par_backend::__parallel_for(
             ::std::forward<_ExecutionPolicy>(__exec), __first, __first + (__last - __first) / 2,
             [__is_vector, __first, __last](_RandomAccessIterator __inner_first, _RandomAccessIterator __inner_last) {
-                __internal::__brick_reverse(__inner_first, __inner_last, __last - (__inner_first - __first), __is_vector);
+                __internal::__brick_reverse(__inner_first, __inner_last, __last - (__inner_first - __first),
+                                            __is_vector);
             });
     }
 }
