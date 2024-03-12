@@ -21,7 +21,7 @@
 #include <algorithm>
 
 #if LOG_TEST_INFO
-#    include <iostream>
+#include <iostream>
 #endif
 
 #if __has_include(<sycl/sycl.hpp>)
@@ -40,9 +40,9 @@ template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelP
 void
 test_all_view(sycl::queue q, std::size_t size, KernelParam param)
 {
-#    if LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\ttest_all_view(" << size << ") : " << TypeInfo().name<T>() << std::endl;
-#    endif
+#endif
     std::vector<T> input(size);
     generate_data(input.data(), size, 42);
     std::vector<T> ref(input);
@@ -61,10 +61,10 @@ template <typename T, bool IsAscending, std::uint8_t RadixBits, typename KernelP
 void
 test_subrange_view(sycl::queue q, std::size_t size, KernelParam param)
 {
-#    if LOG_TEST_INFO
+#if LOG_TEST_INFO
     std::cout << "\ttest_subrange_view<T, " << IsAscending << ">(" << size << ") : " << TypeInfo().name<T>()
               << std::endl;
-#    endif
+#endif
     std::vector<T> expected(size);
     generate_data(expected.data(), size, 42);
 
@@ -162,12 +162,12 @@ test_small_sizes(sycl::queue q, KernelParam param)
     std::vector<T> ref(input);
 
     oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending, RadixBits>(q, oneapi::dpl::begin(input),
-                                                                             oneapi::dpl::begin(input), param)
+                                                                           oneapi::dpl::begin(input), param)
         .wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 0");
 
     oneapi::dpl::experimental::kt::esimd::radix_sort<IsAscending, RadixBits>(q, oneapi::dpl::begin(input),
-                                                                             oneapi::dpl::begin(input) + 1, param)
+                                                                           oneapi::dpl::begin(input) + 1, param)
         .wait();
     EXPECT_EQ_RANGES(ref, input, "sort modified input data when size == 1");
 }
