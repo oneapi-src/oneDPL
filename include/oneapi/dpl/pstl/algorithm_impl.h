@@ -1758,13 +1758,12 @@ __pattern_reverse_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first
         return __d_first;
 
     __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                    [__is_vector, __first, __len, __d_first](_RandomAccessIterator1 __inner_first,
-                                                                            _RandomAccessIterator1 __inner_last) {
-                                        __internal::__brick_reverse_copy(
-                                            __inner_first, __inner_last,
-                                            __d_first + (__len - (__inner_last - __first)), __is_vector);
-                                    });
-
+                                  [__is_vector, __first, __len, __d_first](_RandomAccessIterator1 __inner_first,
+                                                                           _RandomAccessIterator1 __inner_last) {
+                                      __internal::__brick_reverse_copy(__inner_first, __inner_last,
+                                                                       __d_first + (__len - (__inner_last - __first)),
+                                                                       __is_vector);
+                                  });
     return __d_first + __len;
 }
 
