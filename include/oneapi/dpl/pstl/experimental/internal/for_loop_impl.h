@@ -480,11 +480,19 @@ struct __use_par_vec_helper
 {
     template <typename _ExecutionPolicy>
     static constexpr auto
-    __use_vector(_ExecutionPolicy&& __exec, _Ip __it)
+    __get_tag_type(_ExecutionPolicy&& __exec, _Ip __it)
     {
         using __tag_type = std::conditional_t<std::is_integral_v<_Ip>,
                                               decltype(oneapi::dpl::__internal::__select_backend(__exec),
                                               decltype(oneapi::dpl::__internal::__select_backend(__exec, it)>;
+        return __tag_type{};
+    }
+
+    template <typename _ExecutionPolicy>
+    static constexpr auto
+    __use_vector(_ExecutionPolicy&& __exec, _Ip __it)
+    {
+        using __tag_type = decltype(__get_tag_type(__exec, __it));
         return typename __tag_type::__is_vector{};
     }
 
@@ -492,9 +500,7 @@ struct __use_par_vec_helper
     static constexpr auto
     __use_parallel(_ExecutionPolicy&& __exec, _Ip __it)
     {
-        using __tag_type = std::conditional_t<std::is_integral_v<_Ip>,
-                                              decltype(oneapi::dpl::__internal::__select_backend(__exec),
-                                              decltype(oneapi::dpl::__internal::__select_backend(__exec, it)>;
+        using __tag_type = decltype(__get_tag_type(__exec, __it));
         using __is_parallel_tag =
             std::disjunction<std::is_same<oneapi::dpl::__internal::__parallel_tag<std::true_type>, __tag_type>,
                                 std::is_same<oneapi::dpl::__internal::__parallel_tag<std::false_type>, __tag_type>>;
