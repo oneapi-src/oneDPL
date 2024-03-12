@@ -131,6 +131,8 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
     if (__first == __last)
         return __result;
 
+    using _AlgoType = ::std::integral_constant<::oneapi::dpl::__internal::__algorithm_type,
+                                               ::oneapi::dpl::__internal::__algorithm_type::transform_scan>;
     const auto __n = __last - __first;
 
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
@@ -143,9 +145,9 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
         auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
         auto __buf2 = __keep2(__result, __result + __n);
 
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(::std::forward<_ExecutionPolicy>(__exec),
-                                                                     __buf1.all_view(), __buf2.all_view(), __n,
-                                                                     __unary_op, __init, __binary_op, _Inclusive{})
+        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+            ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n, __unary_op, __init,
+            __binary_op, _Inclusive{}, _AlgoType{})
             .wait();
     }
     else
@@ -169,7 +171,8 @@ __pattern_transform_scan_base(_ExecutionPolicy&& __exec, _Iterator1 __first, _It
 
         // Run main algorithm and save data into temporary buffer
         oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(__policy, __buf1.all_view(), __buf2.all_view(),
-                                                                     __n, __unary_op, __init, __binary_op, _Inclusive{})
+                                                                     __n, __unary_op, __init, __binary_op, _Inclusive{},
+                                                                     _AlgoType{})
             .wait();
 
         // Move data from temporary buffer into results

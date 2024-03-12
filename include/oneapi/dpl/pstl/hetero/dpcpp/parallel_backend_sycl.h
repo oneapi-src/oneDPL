@@ -292,11 +292,51 @@ struct __parallel_scan_submitter;
 template <typename _CustomName, typename... _PropagateScanName>
 struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name<_PropagateScanName...>>
 {
+    static constexpr int
+    __iters_per_item(::oneapi::dpl::__internal::__algorithm_type __algo_type)
+    {
+        using namespace ::oneapi::dpl::__internal;
+        switch (__algo_type)
+        {
+        case __algorithm_type::partition:
+            return 1;
+        case __algorithm_type::unique:
+            return 2;
+        case __algorithm_type::set_operation:
+            return 4;
+        case __algorithm_type::scan_copy:
+            return 16;
+        case __algorithm_type::transform_scan:
+            return 32;
+        }
+        return 16;
+    }
+
+    static constexpr ::std::size_t
+    __preferred_wgroup_size(::oneapi::dpl::__internal::__algorithm_type __algo_type)
+    {
+        using namespace ::oneapi::dpl::__internal;
+        switch (__algo_type)
+        {
+        case __algorithm_type::transform_scan:
+            return 128;
+        case __algorithm_type::scan_copy:
+            return 256;
+        case __algorithm_type::unique:
+        case __algorithm_type::set_operation:
+            return 512;
+        case __algorithm_type::partition:
+            return ::std::numeric_limits<::std::size_t>::max();
+        }
+        return ::std::numeric_limits<::std::size_t>::max();
+    }
+
     template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation,
-              typename _InitType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
+              typename _InitType, typename _AlgoType, typename _LocalScan, typename _GroupScan, typename _GlobalScan>
     auto
     operator()(_ExecutionPolicy&& __exec, _Range1&& __rng1, _Range2&& __rng2, _BinaryOperation __binary_op,
-               _InitType __init, _LocalScan __local_scan, _GroupScan __group_scan, _GlobalScan __global_scan) const
+               _InitType __init, _AlgoType, _LocalScan __local_scan, _GroupScan __group_scan,
+               _GlobalScan __global_scan) const
     {
         using _Type = typename _InitType::__value_type;
         using _LocalScanKernel = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_generator<
@@ -309,7 +349,10 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         auto __max_cu = oneapi::dpl::__internal::__max_compute_units(__exec);
         // get the work group size adjusted to the local memory limit
         // TODO: find a way to generalize getting of reliable work-group sizes
-        ::std::size_t __wgroup_size = oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_Type));
+        ::std::size_t __wgroup_size_max =
+            oneapi::dpl::__internal::__slm_adjusted_work_group_size(__exec, sizeof(_Type));
+
+        ::std::size_t __wgroup_size = ::std::min(__wgroup_size_max, __preferred_wgroup_size(_AlgoType::value));
 
 #if _ONEDPL_COMPILE_KERNEL
         //Actually there is one kernel_bundle for the all kernels of the pattern.
@@ -321,8 +364,8 @@ struct __parallel_scan_submitter<_CustomName, __internal::__optional_kernel_name
         __wgroup_size = ::std::min({__wgroup_size, __wgroup_size_kernel_1, __wgroup_size_kernel_2});
 #endif
 
-        // Practically this is the better value that was found
-        constexpr decltype(__wgroup_size) __iters_per_witem = 16;
+        constexpr decltype(__wgroup_size) __iters_per_witem = __iters_per_item(_AlgoType::value);
+
         auto __size_per_wg = __iters_per_witem * __wgroup_size;
         auto __n_groups = (__n - 1) / __size_per_wg + 1;
         // Storage for the results of scan for each workgroup
@@ -735,11 +778,11 @@ __parallel_transform_scan_single_group(_ExecutionPolicy&& __exec, _InRng&& __in_
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinaryOperation, typename _InitType,
-          typename _LocalScan, typename _GroupScan, typename _GlobalScan,
+          typename _AlgoType, typename _LocalScan, typename _GroupScan, typename _GlobalScan,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng,
-                               _BinaryOperation __binary_op, _InitType __init, _LocalScan __local_scan,
+                               _BinaryOperation __binary_op, _InitType __init, _AlgoType, _LocalScan __local_scan,
                                _GroupScan __group_scan, _GlobalScan __global_scan)
 {
     using _CustomName = oneapi::dpl::__internal::__policy_kernel_name<_ExecutionPolicy>;
@@ -749,15 +792,16 @@ __parallel_transform_scan_base(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _R
 
     return __parallel_scan_submitter<_CustomName, _PropagateKernel>()(
         ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng), ::std::forward<_Range2>(__out_rng),
-        __binary_op, __init, __local_scan, __group_scan, __global_scan);
+        __binary_op, __init, _AlgoType{}, __local_scan, __group_scan, __global_scan);
 }
 
 template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation, typename _InitType,
-          typename _BinaryOperation, typename _Inclusive,
+          typename _AlgoType, typename _BinaryOperation, typename _Inclusive,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
 __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2&& __out_rng, ::std::size_t __n,
-                          _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive)
+                          _UnaryOperation __unary_op, _InitType __init, _BinaryOperation __binary_op, _Inclusive,
+                          _AlgoType)
 {
     using _Type = typename _InitType::__value_type;
 
@@ -797,7 +841,7 @@ __parallel_transform_scan(_ExecutionPolicy&& __exec, _Range1&& __in_rng, _Range2
     return __future(
         __parallel_transform_scan_base(
             ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__in_rng),
-            ::std::forward<_Range2>(__out_rng), __binary_op, __init,
+            ::std::forward<_Range2>(__out_rng), __binary_op, __init, _AlgoType{},
             // local scan
             unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
                                   _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op,
@@ -831,31 +875,29 @@ struct __invoke_single_group_copy_if
         if (__is_full_group)
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, true,
-                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                     __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ std::true_type, _CustomName>>
-                >()(
+                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                 /* _IsFullGroup= */ std::true_type, _CustomName>>>()(
                 __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
                 _ReduceOp{}, ::std::forward<_Pred>(__pred));
         else
             return __par_backend_hetero::__parallel_copy_if_static_single_group_submitter<
                 _SizeType, __num_elems_per_item, __wg_size, false,
-                   oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
+                oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
                     __scan_copy_single_wg_kernel<::std::integral_constant<::std::uint16_t, __wg_size>,
-                                                ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
-                                                /* _IsFullGroup= */ std::false_type, _CustomName>>
-                >()(
+                                                 ::std::integral_constant<::std::uint16_t, __num_elems_per_item>,
+                                                 /* _IsFullGroup= */ std::false_type, _CustomName>>>()(
                 __exec, ::std::forward<_InRng>(__in_rng), ::std::forward<_OutRng>(__out_rng), __n, _InitType{},
                 _ReduceOp{}, ::std::forward<_Pred>(__pred));
     }
 };
 
-template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _CreateMaskOp,
-          typename _CopyByMaskOp,
+template <typename _ExecutionPolicy, typename _InRng, typename _OutRng, typename _Size, typename _AlgoType,
+          typename _CreateMaskOp, typename _CopyByMaskOp,
           oneapi::dpl::__internal::__enable_if_device_execution_policy<_ExecutionPolicy, int> = 0>
 auto
-__parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n,
+__parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out_rng, _Size __n, _AlgoType,
                      _CreateMaskOp __create_mask_op, _CopyByMaskOp __copy_by_mask_op)
 {
     using _ReduceOp = ::std::plus<_Size>;
@@ -879,7 +921,7 @@ __parallel_scan_copy(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __o
             ::std::forward<_InRng>(__in_rng),
             oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
                 __mask_buf.get_buffer())),
-        ::std::forward<_OutRng>(__out_rng), __reduce_op, _InitType{},
+        ::std::forward<_OutRng>(__out_rng), __reduce_op, _InitType{}, _AlgoType{},
         // local scan
         unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
                               _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
@@ -929,9 +971,11 @@ __parallel_copy_if(_ExecutionPolicy&& __exec, _InRng&& __in_rng, _OutRng&& __out
         using CreateOp = unseq_backend::__create_mask<_Pred, _Size>;
         using CopyOp = unseq_backend::__copy_by_mask<_ReduceOp, oneapi::dpl::__internal::__pstl_assign,
                                                      /*inclusive*/ ::std::true_type, 1>;
+        using _AlgoType = ::std::integral_constant<::oneapi::dpl::__internal::__algorithm_type,
+                                                   ::oneapi::dpl::__internal::__algorithm_type::scan_copy>;
 
         return __parallel_scan_copy(::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_InRng>(__in_rng),
-                                    ::std::forward<_OutRng>(__out_rng), __n, CreateOp{__pred}, CopyOp{});
+                                    ::std::forward<_OutRng>(__out_rng), __n, _AlgoType{}, CreateOp{__pred}, CopyOp{});
     }
 }
 
