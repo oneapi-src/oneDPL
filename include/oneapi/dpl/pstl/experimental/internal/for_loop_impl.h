@@ -501,11 +501,7 @@ struct __use_par_vec_helper
     __use_parallel(_ExecutionPolicy&& __exec, _Ip __it)
     {
         using __tag_type = decltype(__get_tag_type(__exec, __it));
-        using __is_parallel_tag =
-            std::disjunction<std::is_same<oneapi::dpl::__internal::__parallel_tag<std::true_type>, __tag_type>,
-                                std::is_same<oneapi::dpl::__internal::__parallel_tag<std::false_type>, __tag_type>>;
-
-        return __is_parallel_tag{};
+        return oneapi::dpl::__internal::__is_parallel_tag<__tag_type>();
     }
 };
 
