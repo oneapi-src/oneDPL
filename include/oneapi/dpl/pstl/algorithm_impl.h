@@ -1691,10 +1691,10 @@ __pattern_reverse(_ExecutionPolicy&&, _BidirectionalIterator __first, _Bidirecti
                   _IsVector _is_vector,
                   /*is_parallel=*/::std::false_type) noexcept
 {
-    if (__first != __last)
-    {
-        __internal::__brick_reverse(__first, __last, _is_vector);
-    }
+    if (__first == __last)
+        return;
+
+    __internal::__brick_reverse(__first, __last, _is_vector);
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class _IsVector>
@@ -1702,15 +1702,14 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy>
 __pattern_reverse(_ExecutionPolicy&& __exec, _RandomAccessIterator __first, _RandomAccessIterator __last,
                   _IsVector __is_vector, /*is_parallel=*/::std::true_type)
 {
-    if (__first != __last)
-    {
-        __par_backend::__parallel_for(
-            ::std::forward<_ExecutionPolicy>(__exec), __first, __first + (__last - __first) / 2,
-            [__is_vector, __first, __last](_RandomAccessIterator __inner_first, _RandomAccessIterator __inner_last) {
-                __internal::__brick_reverse(__inner_first, __inner_last, __last - (__inner_first - __first),
-                                            __is_vector);
-            });
-    }
+    if (__first == __last)
+        return;
+
+    __par_backend::__parallel_for(
+        ::std::forward<_ExecutionPolicy>(__exec), __first, __first + (__last - __first) / 2,
+        [__is_vector, __first, __last](_RandomAccessIterator __inner_first, _RandomAccessIterator __inner_last) {
+            __internal::__brick_reverse(__inner_first, __inner_last, __last - (__inner_first - __first), __is_vector);
+        });
 }
 
 //------------------------------------------------------------------------
@@ -1742,12 +1741,10 @@ oneapi::dpl::__internal::__enable_if_host_execution_policy<_ExecutionPolicy, _Ou
 __pattern_reverse_copy(_ExecutionPolicy&&, _BidirectionalIterator __first, _BidirectionalIterator __last,
                        _OutputIterator __d_first, _IsVector __is_vector, /*is_parallel=*/::std::false_type) noexcept
 {
-    if (__first != __last)
-    {
-        return __internal::__brick_reverse_copy(__first, __last, __d_first, __is_vector);
-    }
+    if (__first == __last)
+        return __d_first;
 
-    return __d_first;
+    return __internal::__brick_reverse_copy(__first, __last, __d_first, __is_vector);
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2, class _IsVector>
@@ -1757,16 +1754,16 @@ __pattern_reverse_copy(_ExecutionPolicy&& __exec, _RandomAccessIterator1 __first
 {
     auto __len = __last - __first;
 
-    if (__len > 0)
-    {
-        __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-                                      [__is_vector, __first, __len, __d_first](_RandomAccessIterator1 __inner_first,
-                                                                               _RandomAccessIterator1 __inner_last) {
-                                          __internal::__brick_reverse_copy(
-                                              __inner_first, __inner_last,
-                                              __d_first + (__len - (__inner_last - __first)), __is_vector);
-                                      });
-    }
+    if (__len == 0)
+        return __d_first;
+
+    __par_backend::__parallel_for(::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+                                    [__is_vector, __first, __len, __d_first](_RandomAccessIterator1 __inner_first,
+                                                                            _RandomAccessIterator1 __inner_last) {
+                                        __internal::__brick_reverse_copy(
+                                            __inner_first, __inner_last,
+                                            __d_first + (__len - (__inner_last - __first)), __is_vector);
+                                    });
 
     return __d_first + __len;
 }
