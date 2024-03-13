@@ -4155,7 +4155,7 @@ __pattern_lexicographical_compare(__parallel_tag<_IsVector> __tag, _ExecutionPol
             { // if second sequence shorter than first or both have the same number of elements
                 return __comp(*__result, *(__first2 + (__result - __first1)));
             }
-        }
+        });
     }
 }
 
