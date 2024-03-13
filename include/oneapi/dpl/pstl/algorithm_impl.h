@@ -1678,10 +1678,10 @@ void
 __brick_reverse(_BidirectionalIterator __first, _BidirectionalIterator __last, _BidirectionalIterator __d_last,
                 /*is_vector=*/::std::false_type) noexcept
 {
-    for (--__d_last; __first != __last; ++__first, --__d_last)
+    for (; __first != __last; ++__first)
     {
         using ::std::iter_swap;
-        iter_swap(__first, __d_last);
+        iter_swap(__first, --__d_last);
     }
 }
 
@@ -1715,6 +1715,9 @@ __pattern_reverse(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
                   _RandomAccessIterator __last)
 {
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
+
+    if (__first == __last)
+        return;    
 
     __par_backend::__parallel_for(
         __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __first + (__last - __first) / 2,
@@ -1765,6 +1768,10 @@ __pattern_reverse_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ra
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     auto __len = __last - __first;
+
+    if (__len == 0)
+        return __d_first;
+
     __par_backend::__parallel_for(
         __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
         [__first, __len, __d_first](_RandomAccessIterator1 __inner_first, _RandomAccessIterator1 __inner_last) {
