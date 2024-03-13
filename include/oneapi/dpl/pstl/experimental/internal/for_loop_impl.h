@@ -493,11 +493,7 @@ struct __use_par_vec_helper
     __use_parallel(_ExecutionPolicy&& __exec)
     {
         using __tag_type = decltype(oneapi::dpl::__internal::__select_backend(__exec, std::declval<__it_type>()));
-        using __is_parallel_tag = std::disjunction<
-            std::is_same<oneapi::dpl::__internal::__parallel_tag<std::true_type>, __tag_type>,
-            std::is_same<oneapi::dpl::__internal::__parallel_tag<std::false_type>, __tag_type>>;
-
-        return __is_parallel_tag{};
+        return oneapi::dpl::__internal::__is_parallel_tag<__tag_type>{};
     }
 };
 
