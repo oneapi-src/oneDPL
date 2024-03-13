@@ -21,7 +21,6 @@
 #    include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 #endif
 #include "../functional"
-#include "../pstl/utils.h"
 #include <tuple>
 
 namespace oneapi
@@ -154,40 +153,6 @@ class transform_if_stencil_fun
     Predicate pred;
     UnaryOperation op;
 };
-
-// Lower bound function for vectorized lower bound intended to minimize subgroup divergence.
-// Runs in Theta(log2(input size)) time.
-// Used by: binary_search and lower_bound.
-template <typename Acc, typename IdxT, typename Value, typename Compare>
-IdxT
-lower_bound_fun(Acc acc, IdxT first, IdxT last, const Value& value, Compare comp)
-{
-    IdxT n = last - first;
-    IdxT offset = first;
-    IdxT start = oneapi::dpl::__internal::__dpl_bit_ceil(n) / 2;
-    for (IdxT i = start; i >= 1; i >>= 1)
-    {
-        IdxT idx = ::std::min(n - 1, offset + i);
-        offset = comp(acc[idx], value) ? idx : offset;
-    }
-    // Special handle the case where comp is never satisifed
-    if (offset == first && !comp(acc[first], value))
-    {
-        return first;
-    }
-    // First + offset is the last place where comp is true, so we must return the next index.
-    return first + offset + 1;
-}
-
-// Used by: upper_bound.
-template <typename Acc, typename IdxT, typename Value, typename Compare>
-IdxT
-upper_bound_fun(Acc acc, IdxT first, IdxT last, const Value& value, Compare comp)
-{
-    return lower_bound_fun(acc, first, last, value,
-                           oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<Compare>>{
-                               oneapi::dpl::__internal::__reorder_pred<Compare>{comp}});
-}
 } // namespace internal
 } // namespace dpl
 } // namespace oneapi
