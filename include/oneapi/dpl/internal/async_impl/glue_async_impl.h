@@ -146,10 +146,13 @@ reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterat
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-    auto ret_val = oneapi::dpl::__internal::__pattern_transform_reduce_async(
-        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op,
-        oneapi::dpl::__internal::__no_op());
-    return ret_val;
+
+    return __internal::__except_handler([&]() {
+        auto ret_val = oneapi::dpl::__internal::__pattern_transform_reduce_async(
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op,
+            oneapi::dpl::__internal::__no_op());
+        return ret_val;
+    });
 }
 
 template <class _ExecutionPolicy, class _ForwardIt, class... _Events,
@@ -203,9 +206,12 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _Forward
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-    return oneapi::dpl::__internal::__pattern_transform_reduce_async(
-        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1,
-        __binary_op2);
+
+    return __internal::__except_handler([&]() {
+        return oneapi::dpl::__internal::__pattern_transform_reduce_async(
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1,
+            __binary_op2);
+    });
 }
 
 template <class _ExecutionPolicy, class _ForwardIt, class _T, class _BinaryOp, class _UnaryOp, class... _Events,
@@ -218,8 +224,11 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-    return oneapi::dpl::__internal::__pattern_transform_reduce_async(
-        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op, __unary_op);
+
+    return __internal::__except_handler([&]() {
+        return oneapi::dpl::__internal::__pattern_transform_reduce_async(
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op, __unary_op);
+    });
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events,
