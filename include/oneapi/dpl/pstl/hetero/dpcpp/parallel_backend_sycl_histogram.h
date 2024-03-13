@@ -399,18 +399,17 @@ __histogram_general_local_atomics(oneapi::dpl::__internal::__device_backend_tag,
         ::std::forward<_Range2>(__bins), __binhash_manager);
 }
 
-template <typename _BackendTag, typename _KernelName>
+template <typename _KernelName>
 struct __histogram_general_private_global_atomics_submitter;
 
-template <typename _BackendTag, typename... _KernelName>
-struct __histogram_general_private_global_atomics_submitter<_BackendTag,
-                                                            __internal::__optional_kernel_name<_KernelName...>>
+template <typename... _KernelName>
+struct __histogram_general_private_global_atomics_submitter<__internal::__optional_kernel_name<_KernelName...>>
 {
-    template <typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinHashMgr>
+    template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _BinHashMgr>
     auto
-    operator()(_ExecutionPolicy&& __exec, const sycl::event& __init_event, ::std::uint16_t __min_iters_per_work_item,
-               ::std::uint16_t __work_group_size, _Range1&& __input, _Range2&& __bins,
-               const _BinHashMgr& __binhash_manager)
+    operator()(_BackendTag, _ExecutionPolicy&& __exec, const sycl::event& __init_event,
+               ::std::uint16_t __min_iters_per_work_item, ::std::uint16_t __work_group_size, _Range1&& __input,
+               _Range2&& __bins, const _BinHashMgr& __binhash_manager)
     {
         const ::std::size_t __n = __input.size();
         const ::std::size_t __num_bins = __bins.size();
@@ -489,10 +488,10 @@ __histogram_general_private_global_atomics(oneapi::dpl::__internal::__device_bac
     using _global_atomics_name = oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<
         __histo_kernel_private_glocal_atomics<_kernel_base_name>>;
 
-    return __histogram_general_private_global_atomics_submitter<oneapi::dpl::__internal::__device_backend_tag,
-                                                                _global_atomics_name>()(
-        ::std::forward<_ExecutionPolicy>(__exec), __init_event, __min_iters_per_work_item, __work_group_size,
-        ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins), __binhash_manager);
+    return __histogram_general_private_global_atomics_submitter<_global_atomics_name>()(
+        oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __init_event,
+        __min_iters_per_work_item, __work_group_size, ::std::forward<_Range1>(__input), ::std::forward<_Range2>(__bins),
+        __binhash_manager);
 }
 
 template <::std::uint16_t __iters_per_work_item, typename _ExecutionPolicy, typename _Range1, typename _Range2,

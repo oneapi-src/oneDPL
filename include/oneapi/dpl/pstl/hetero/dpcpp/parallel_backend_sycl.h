@@ -1685,16 +1685,16 @@ __parallel_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _ExecutionPo
 }
 
 // Please see the comment for __parallel_for_submitter for optional kernel name explanation
-template <typename _BackendTag, typename _GlobalSortName, typename _CopyBackName>
+template <typename _GlobalSortName, typename _CopyBackName>
 struct __parallel_partial_sort_submitter;
 
-template <typename _BackendTag, typename... _GlobalSortName, typename... _CopyBackName>
-struct __parallel_partial_sort_submitter<_BackendTag, __internal::__optional_kernel_name<_GlobalSortName...>,
+template <typename... _GlobalSortName, typename... _CopyBackName>
+struct __parallel_partial_sort_submitter<__internal::__optional_kernel_name<_GlobalSortName...>,
                                          __internal::__optional_kernel_name<_CopyBackName...>>
 {
-    template <typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
+    template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Merge, typename _Compare>
     auto
-    operator()(_ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
+    operator()(_BackendTag, _ExecutionPolicy&& __exec, _Range&& __rng, _Merge __merge, _Compare __comp) const
     {
         using _Tp = oneapi::dpl::__internal::__value_t<_Range>;
         using _Size = oneapi::dpl::__internal::__difference_t<_Range>;
@@ -1768,9 +1768,9 @@ __parallel_partial_sort_impl(oneapi::dpl::__internal::__device_backend_tag, _Exe
     using _CopyBackKernel =
         oneapi::dpl::__par_backend_hetero::__internal::__kernel_name_provider<__sort_copy_back_kernel<_CustomName>>;
 
-    return __parallel_partial_sort_submitter<oneapi::dpl::__internal::__device_backend_tag, _GlobalSortKernel,
-                                             _CopyBackKernel>()(::std::forward<_ExecutionPolicy>(__exec),
-                                                                ::std::forward<_Range>(__rng), __merge, __comp);
+    return __parallel_partial_sort_submitter<_GlobalSortKernel, _CopyBackKernel>()(
+        oneapi::dpl::__internal::__device_backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+        ::std::forward<_Range>(__rng), __merge, __comp);
 }
 
 //------------------------------------------------------------------------
