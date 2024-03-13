@@ -343,12 +343,14 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& _
         return (__predicate(__acc[__gidx]) ? 1 : 0);
     };
 
-    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
-                                                                          ::std::true_type /*is_commutative*/>(
-               _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
-               unseq_backend::__no_init_value{}, // no initial value
-               ::std::forward<_Range>(__rng))
-        .get();
+    return __internal::__except_handler([&]() {
+        return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                              ::std::true_type /*is_commutative*/>(
+                   _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                   unseq_backend::__no_init_value{}, // no initial value
+                   ::std::forward<_Range>(__rng))
+            .get();
+    }
 }
 
 //------------------------------------------------------------------------
@@ -581,28 +583,30 @@ __pattern_min_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Ran
     using _IndexValueType = oneapi::dpl::__internal::__difference_t<_Range>;
     using _ReduceValueType = oneapi::dpl::__internal::tuple<_IndexValueType, _IteratorValueType>;
 
-    // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
-    // not commutative.
-    auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
+    return __internal::__except_handler([&]() {
+        // This operator doesn't track the lowest found index in case of equal min. or max. values. Thus, this operator is
+        // not commutative.
+        auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
+            using ::std::get;
+            if (__comp(get<1>(__b), get<1>(__a)))
+            {
+                return __b;
+            }
+            return __a;
+        };
+        auto __transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
+
+        auto __ret_idx =
+            oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                           ::std::false_type /*is_commutative*/>(
+                _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                unseq_backend::__no_init_value{}, // no initial value
+                ::std::forward<_Range>(__rng))
+                .get();
+
         using ::std::get;
-        if (__comp(get<1>(__b), get<1>(__a)))
-        {
-            return __b;
-        }
-        return __a;
-    };
-    auto __transform_fn = [](auto __gidx, auto __acc) { return _ReduceValueType{__gidx, __acc[__gidx]}; };
-
-    auto __ret_idx =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
-                                                                       ::std::false_type /*is_commutative*/>(
-            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
-            unseq_backend::__no_init_value{}, // no initial value
-            ::std::forward<_Range>(__rng))
-            .get();
-
-    using ::std::get;
-    return get<0>(__ret_idx);
+        return get<0>(__ret_idx);
+    }
 }
 
 //------------------------------------------------------------------------
@@ -622,41 +626,43 @@ __pattern_minmax_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
     using _ReduceValueType =
         oneapi::dpl::__internal::tuple<_IndexValueType, _IndexValueType, _IteratorValueType, _IteratorValueType>;
 
-    // This operator doesn't track the lowest found index in case of equal min. values and the highest found index in
-    // case of equal max. values. Thus, this operator is not commutative.
-    auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
-        using ::std::get;
-        auto __chosen_for_min = __a;
-        auto __chosen_for_max = __b;
+    return __internal::__except_handler([&]() {
+        // This operator doesn't track the lowest found index in case of equal min. values and the highest found index in
+        // case of equal max. values. Thus, this operator is not commutative.
+        auto __reduce_fn = [__comp](_ReduceValueType __a, _ReduceValueType __b) {
+            using ::std::get;
+            auto __chosen_for_min = __a;
+            auto __chosen_for_max = __b;
 
-        assert(get<0>(__a) < get<0>(__b));
-        assert(get<1>(__a) < get<1>(__b));
+            assert(get<0>(__a) < get<0>(__b));
+            assert(get<1>(__a) < get<1>(__b));
 
-        if (__comp(get<2>(__b), get<2>(__a)))
-            __chosen_for_min = ::std::move(__b);
-        if (__comp(get<3>(__b), get<3>(__a)))
-            __chosen_for_max = ::std::move(__a);
-        return _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
-                                get<3>(__chosen_for_max)};
-    };
+            if (__comp(get<2>(__b), get<2>(__a)))
+                __chosen_for_min = ::std::move(__b);
+            if (__comp(get<3>(__b), get<3>(__a)))
+                __chosen_for_max = ::std::move(__a);
+            return _ReduceValueType{get<0>(__chosen_for_min), get<1>(__chosen_for_max), get<2>(__chosen_for_min),
+                                    get<3>(__chosen_for_max)};
+        };
 
-    // TODO: Doesn't work with `zip_iterator`.
-    //       In that case the first and the second arguments of `_ReduceValueType` will be
-    //       a `tuple` of `difference_type`, not the `difference_type` itself.
-    auto __transform_fn = [](auto __gidx, auto __acc) {
-        return _ReduceValueType{__gidx, __gidx, __acc[__gidx], __acc[__gidx]};
-    };
+        // TODO: Doesn't work with `zip_iterator`.
+        //       In that case the first and the second arguments of `_ReduceValueType` will be
+        //       a `tuple` of `difference_type`, not the `difference_type` itself.
+        auto __transform_fn = [](auto __gidx, auto __acc) {
+            return _ReduceValueType{__gidx, __gidx, __acc[__gidx], __acc[__gidx]};
+        };
 
-    _ReduceValueType __ret =
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
-                                                                       ::std::false_type /*is_commutative*/>(
+        _ReduceValueType __ret =
+            oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                           ::std::false_type /*is_commutative*/>(
             _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
             unseq_backend::__no_init_value{}, // no initial value
             ::std::forward<_Range>(__rng))
             .get();
 
-    using ::std::get;
-    return ::std::make_pair(get<0>(__ret), get<1>(__ret));
+        using ::std::get;
+        return ::std::make_pair(get<0>(__ret), get<1>(__ret));
+    }
 }
 
 //------------------------------------------------------------------------
