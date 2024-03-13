@@ -155,7 +155,7 @@ inline constexpr bool __is_parallel_tag_v = __is_parallel_tag<_Tag>::value;
 // __is_host_dispatch_tag_v
 //----------------------------------------------------------
 
-template <class _Tag, typename = void>
+template <class _Tag>
 inline constexpr bool __is_host_dispatch_tag_v =
     __is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag> || __is_parallel_tag_v<_Tag>;
 
