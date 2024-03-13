@@ -267,11 +267,11 @@ template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterato
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, _ForwardIterator2>
 copy(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __last, _ForwardIterator2 __result)
 {
-    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
+    auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     return oneapi::dpl::__internal::__pattern_walk2_brick(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-        oneapi::dpl::__internal::__brick_copy<::std::decay_t<decltype(__dispatch_tag)>, _ExecutionPolicy>{});
+        oneapi::dpl::__internal::__brick_copy<decltype(__dispatch_tag), _ExecutionPolicy>{});
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _Size, class _ForwardIterator2>
@@ -280,11 +280,11 @@ copy_n(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _Size __n, _Forward
 {
     using _DecayedExecutionPolicy = ::std::decay_t<_ExecutionPolicy>;
 
-    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
+    auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     return oneapi::dpl::__internal::__pattern_walk2_brick_n(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __n, __result,
-        oneapi::dpl::__internal::__brick_copy_n<::std::decay_t<decltype(__dispatch_tag)>, _DecayedExecutionPolicy>{});
+        oneapi::dpl::__internal::__brick_copy_n<decltype(__dispatch_tag), _DecayedExecutionPolicy>{});
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Predicate>
@@ -814,11 +814,11 @@ move(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterator1 __l
 {
     using _DecayedExecutionPolicy = ::std::decay_t<_ExecutionPolicy>;
 
-    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __d_first);
+    auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __d_first);
 
     return oneapi::dpl::__internal::__pattern_walk2_brick(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __d_first,
-        oneapi::dpl::__internal::__brick_move<::std::decay_t<decltype(__dispatch_tag)>, _DecayedExecutionPolicy>{});
+        oneapi::dpl::__internal::__brick_move<decltype(__dispatch_tag), _DecayedExecutionPolicy>{});
 }
 
 // [partial.sort]
