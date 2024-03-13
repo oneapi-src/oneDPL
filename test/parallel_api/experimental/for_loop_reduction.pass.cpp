@@ -77,10 +77,8 @@ test()
     {
         Sequence<T> in_out(n, [](long int k) { return T(k % 5 != 1 ? 3 * k - 7 : 0); });
         Sequence<T> expected = in_out;
-
-        // for_loop staff is implemented for the host policies only
-        invoke_on_all_host_policies()(test_body(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
-                                      in_out.size());
+        invoke_on_all_policies<>()(test_body(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
+                                   in_out.size());
     }
 }
 
@@ -178,12 +176,10 @@ test_predefined(::std::initializer_list<T> init_list)
     // Just arbitrary numbers
     Sequence<T> in_out = init_list;
     Sequence<T> expected = in_out;
-
-    // for_loop staff is implemented for the host policies only
-    invoke_on_all_host_policies()(test_body_predefined(), in_out.begin(), in_out.end(), expected.begin(),
-                                  expected.end(), in_out.size());
-    invoke_on_all_host_policies()(test_body_predefined_bits(), in_out.begin(), in_out.end(), expected.begin(),
-                                  expected.end(), in_out.size());
+    invoke_on_all_policies<>()(test_body_predefined(), in_out.begin(), in_out.end(), expected.begin(), expected.end(),
+                               in_out.size());
+    invoke_on_all_policies<>()(test_body_predefined_bits(), in_out.begin(), in_out.end(), expected.begin(),
+                               expected.end(), in_out.size());
 }
 
 void
