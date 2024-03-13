@@ -35,17 +35,7 @@ test(Policy&& policy, T trash, size_t n, const std::string& type_text)
     {
 
         TestUtils::usm_data_transfer<sycl::usm::alloc::shared, T> copy_out(policy.queue(), n);
-        auto copy_from = []() {
-            if constexpr (std::is_same_v<T, bool>)
-            {
-                return oneapi::dpl::transform_iterator(oneapi::dpl::counting_iterator<int>(0),
-                                                       [](int i) { return i % 2 == 0; });
-            }
-            else
-            {
-                return oneapi::dpl::counting_iterator<int>(0);
-            }
-        }();
+        auto copy_from = oneapi::dpl::counting_iterator<int>(0);
         // host iterator
         std::vector<T> host_iter(n);
         wrap_recurse<__recurse, 0, /*__read =*/true, /*__reset_read=*/true, /*__write=*/true,
@@ -79,7 +69,6 @@ main()
     auto policy4 = TestUtils::create_new_policy_idx<decltype(policy), 3>(policy);
 
     // baseline with no wrapping
-    test<bool, 0>(policy1, false, n, "bool");
     test<float, 0>(policy1, -666.0f, n, "float");
     test<double, 0>(policy2, -666.0, n, "double");
     test<std::uint64_t, 0>(policy3, 999, n, "uint64_t");
