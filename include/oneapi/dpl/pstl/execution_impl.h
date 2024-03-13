@@ -68,7 +68,7 @@ struct __parallel_forward_tag
 //----------------------------------------------------------
 
 template <class _IsVector, class... _IteratorTypes>
-using __tag_type = ::std::conditional_t<
+using __parallel_policy_tag_selector_t = ::std::conditional_t<
     __internal::__is_random_access_iterator_v<_IteratorTypes...>, __parallel_tag<_IsVector>,
     ::std::conditional_t<__is_forward_iterator_v<_IteratorTypes...>, __parallel_forward_tag, __serial_tag<_IsVector>>>;
 
@@ -87,14 +87,14 @@ __select_backend(oneapi::dpl::execution::unsequenced_policy, _IteratorTypes&&...
 }
 
 template <class... _IteratorTypes>
-__tag_type<std::false_type, _IteratorTypes...>
+__parallel_policy_tag_selector_t<std::false_type, _IteratorTypes...>
 __select_backend(oneapi::dpl::execution::parallel_policy, _IteratorTypes&&...)
 {
     return {};
 }
 
 template <class... _IteratorTypes>
-__tag_type<__internal::__is_random_access_iterator<_IteratorTypes...>, _IteratorTypes...>
+__parallel_policy_tag_selector_t<__internal::__is_random_access_iterator<_IteratorTypes...>, _IteratorTypes...>
 __select_backend(oneapi::dpl::execution::parallel_unsequenced_policy, _IteratorTypes&&...)
 {
     return {};
