@@ -48,10 +48,11 @@ __pattern_walk1_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _For
     return __future_obj;
 }
 
-template <typename _BackendTag, typename _IsSync = ::std::false_type,
+template <typename _IsSync = ::std::false_type,
           __par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
           __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::write,
-          typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function>
+          typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _Function>
 auto
 __pattern_walk2_async(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                       _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __f)

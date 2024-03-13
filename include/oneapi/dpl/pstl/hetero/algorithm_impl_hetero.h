@@ -78,10 +78,11 @@ __pattern_walk1_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _F
 // TODO: A tag _IsSync is used for provide a patterns call pipeline, where the last one should be synchronous
 // Probably it should be re-designed by a pipeline approach, when a pattern returns some sync obejects
 // and ones are combined into a "pipeline" (probably like Range pipeline)
-template <typename _BackendTag, typename _IsSync = ::std::true_type,
+template <typename _IsSync = ::std::true_type,
           __par_backend_hetero::access_mode __acc_mode1 = __par_backend_hetero::access_mode::read,
           __par_backend_hetero::access_mode __acc_mode2 = __par_backend_hetero::access_mode::write,
-          typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2, typename _Function>
+          typename _BackendTag, typename _ExecutionPolicy, typename _ForwardIterator1, typename _ForwardIterator2,
+          typename _Function>
 _ForwardIterator2
 __pattern_walk2(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                 _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __f)
@@ -125,7 +126,7 @@ _ForwardIterator2
 __pattern_swap(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator1 __first1,
                _ForwardIterator1 __last1, _ForwardIterator2 __first2, _Function __f)
 {
-    return __pattern_walk2<_BackendTag, /*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
+    return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
                            __par_backend_hetero::access_mode::read_write>(
         __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __f);
 }
@@ -258,7 +259,7 @@ __pattern_walk2_transform_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&&
 {
     // Require `read_write` access mode for output sequence to force a copy in for host iterators to capture incoming
     // values of the output sequence for elements where the predicate is false.
-    return __pattern_walk2<_BackendTag, /*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read,
+    return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read,
                            __par_backend_hetero::access_mode::read_write>(
         __tag,
         __par_backend_hetero::make_wrapped_policy<__walk2_transform_if_wrapper>(
@@ -1060,7 +1061,7 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
     auto __copy_last = __pattern_unique_copy(__tag, __exec, __first, __last, __copy_first, __pred);
 
     //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
-    return __pattern_walk2<_BackendTag, /*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
+    return __pattern_walk2</*_IsSync=*/::std::true_type, __par_backend_hetero::access_mode::read_write,
                            __par_backend_hetero::access_mode::read_write>(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
         __copy_first, __copy_last, __first, __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
@@ -1326,7 +1327,7 @@ __pattern_stable_partition(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& _
     auto true_count = copy_result.first - __true_result;
 
     //TODO: optimize copy back if possible (inplace, decrease number of submits)
-    __pattern_walk2<_BackendTag, /*_IsSync=*/::std::false_type>(
+    __pattern_walk2</*_IsSync=*/::std::false_type>(
         __tag, __par_backend_hetero::make_wrapped_policy<copy_back_wrapper>(__exec), __true_result, copy_result.first,
         __first, __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
@@ -1497,7 +1498,7 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
     {
         // If our output buffer is larger than the input buffer, simply copy elements to the output and use
         // full sort on them.
-        auto __out_end = __pattern_walk2<_BackendTag, /*_IsSync=*/::std::false_type>(
+        auto __out_end = __pattern_walk2</*_IsSync=*/::std::false_type>(
             __tag, __par_backend_hetero::make_wrapped_policy<__initial_copy_1>(__exec), __first, __last, __out_first,
             __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
@@ -1519,7 +1520,7 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 
         auto __buf_first = __buf.get();
 
-        auto __buf_last = __pattern_walk2<_BackendTag, /*_IsSync=*/::std::false_type>(
+        auto __buf_last = __pattern_walk2</*_IsSync=*/::std::false_type>(
             __tag, __par_backend_hetero::make_wrapped_policy<__initial_copy_2>(__exec), __first, __last, __buf_first,
             __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
