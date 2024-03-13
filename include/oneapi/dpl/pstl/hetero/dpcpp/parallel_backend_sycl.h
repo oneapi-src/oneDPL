@@ -1359,7 +1359,7 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _I
 
         //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
         oneapi::dpl::counting_iterator<_Index> __diag_it(0);
-        auto __res = ::std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
+        auto __res = __diag_it + oneapi::dpl::__internal::__pstl_lower_bound(__diag_it, static_cast<_Index>(0), static_cast<_Index>(__n_diag), 1/*value to find*/,
             [&__rng2, &__rng1, __q, __comp](const auto& __i_diag, const auto& __value) mutable
             {
                 auto __zero_or_one = __comp(__rng2[__q - __i_diag - 1], __rng1[__i_diag]);
@@ -1375,7 +1375,7 @@ __find_start_point(const _Rng1& __rng1, const _Rng2& __rng2, _Index __i_elem, _I
 
         //searching for the first '1', a lower bound for a diagonal [0, 0,..., 0, 1, 1,.... 1, 1]
         oneapi::dpl::counting_iterator<_Index> __diag_it(0);
-        auto __res = ::std::lower_bound(__diag_it, __diag_it + __n_diag, 1/*value to find*/,
+        auto __res = __diag_it + oneapi::dpl::__internal::__pstl_lower_bound(__diag_it, static_cast<_Index>(0), static_cast<_Index>(__n_diag), 1/*value to find*/,
             [&__rng2, &__rng1, __n2, __q, __comp](const auto& __i_diag, const auto& __value) mutable
             {
                 auto __zero_or_one = __comp(__rng2[__n2 - __i_diag - 1], __rng1[__q + __i_diag]);
