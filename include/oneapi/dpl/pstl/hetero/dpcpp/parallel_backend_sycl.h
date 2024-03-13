@@ -1255,9 +1255,8 @@ __parallel_find(oneapi::dpl::__internal::__device_backend_tag __backend_tag, _Ex
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf = __keep(__first, __last);
 
-    using _TagType =
-        typename ::std::conditional<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
-                                    __parallel_find_backward_tag<decltype(__buf.all_view())>>::type;
+    using _TagType = ::std::conditional_t<_IsFirst::value, __parallel_find_forward_tag<decltype(__buf.all_view())>,
+                                          __parallel_find_backward_tag<decltype(__buf.all_view())>>;
     return __first + oneapi::dpl::__par_backend_hetero::__parallel_find_or(
                          __backend_tag,
                          __par_backend_hetero::make_wrapped_policy<__find_policy_wrapper>(
