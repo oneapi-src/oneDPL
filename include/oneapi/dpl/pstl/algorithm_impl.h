@@ -3031,13 +3031,16 @@ __pattern_merge(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomAcc
 {
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
-    __par_backend::__parallel_merge(
-        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __d_first,
-        __comp,
-        [](_RandomAccessIterator1 __f1, _RandomAccessIterator1 __l1, _RandomAccessIterator2 __f2,
-           _RandomAccessIterator2 __l2, _RandomAccessIterator3 __f3,
-           _Compare __comp) { return __internal::__brick_merge(__f1, __l1, __f2, __l2, __f3, __comp, _IsVector{}); });
-    return __d_first + (__last1 - __first1) + (__last2 - __first2);
+    return __internal::__except_handler([&]() {
+        __par_backend::__parallel_merge(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __d_first,
+            __comp,
+            [](_RandomAccessIterator1 __f1, _RandomAccessIterator1 __l1, _RandomAccessIterator2 __f2,
+               _RandomAccessIterator2 __l2, _RandomAccessIterator3 __f3, _Compare __comp) {
+                return __internal::__brick_merge(__f1, __l1, __f2, __l2, __f3, __comp, _IsVector{});
+            });
+        return __d_first + (__last1 - __first1) + (__last2 - __first2);
+    });
 }
 
 //------------------------------------------------------------------------
