@@ -558,9 +558,11 @@ void
 __pattern_sort(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __rng, _Compare __comp, _Proj __proj)
 {
     if (__rng.size() >= 2)
-        __par_backend_hetero::__parallel_stable_sort(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                                     ::std::forward<_Range>(__rng), __comp, __proj)
-            .wait();
+        __internal::__except_handler([&]() {
+            __par_backend_hetero::__parallel_stable_sort(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                         ::std::forward<_Range>(__rng), __comp, __proj)
+                .wait();
+        });
 }
 
 //------------------------------------------------------------------------
