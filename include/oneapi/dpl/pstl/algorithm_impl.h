@@ -3714,13 +3714,15 @@ __pattern_set_symmetric_difference(__parallel_tag<_IsVector> __tag, _ExecutionPo
         return ::std::set_symmetric_difference(__first1, __last1, __first2, __last2, __result, __comp);
 
     typedef typename ::std::iterator_traits<_RandomAccessIterator3>::value_type _T;
-    return __internal::__parallel_set_union_op(
-        __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
-        [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
-           _RandomAccessIterator2 __last2, _T* __result, _Compare __comp) {
-            return oneapi::dpl::__utils::__set_symmetric_difference_construct(
-                __first1, __last1, __first2, __last2, __result, __comp, __BrickCopyConstruct<_IsVector>());
-        });
+    return __internal::__except_handler([&]() {
+        return __internal::__parallel_set_union_op(
+            __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __last2, __result, __comp,
+            [](_RandomAccessIterator1 __first1, _RandomAccessIterator1 __last1, _RandomAccessIterator2 __first2,
+               _RandomAccessIterator2 __last2, _T* __result, _Compare __comp) {
+                return oneapi::dpl::__utils::__set_symmetric_difference_construct(
+                    __first1, __last1, __first2, __last2, __result, __comp, __BrickCopyConstruct<_IsVector>());
+            });
+    });
 }
 
 //------------------------------------------------------------------------
