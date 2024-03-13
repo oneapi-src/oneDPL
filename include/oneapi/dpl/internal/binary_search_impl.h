@@ -134,11 +134,14 @@ lower_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
-                           custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size,
-                           zip_vw)
-        .wait();
-    return result + value_size;
+
+    return __internal::__except_handler([&]() {
+        __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
+                               custom_brick<StrictWeakOrdering, decltype(size), lower_bound>{comp, size}, value_size,
+                               zip_vw)
+            .wait();
+        return result + value_size;
+    });
 }
 
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
@@ -164,11 +167,14 @@ upper_bound_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, InputIt
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
-                           custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size,
-                           zip_vw)
-        .wait();
-    return result + value_size;
+
+    return __internal::__except_handler([&]() {
+        __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
+                               custom_brick<StrictWeakOrdering, decltype(size), upper_bound>{comp, size}, value_size,
+                               zip_vw)
+            .wait();
+        return result + value_size;
+    });
 }
 
 template <typename _BackendTag, typename Policy, typename InputIterator1, typename InputIterator2,
@@ -194,11 +200,14 @@ binary_search_impl(__internal::__hetero_tag<_BackendTag>, Policy&& policy, Input
     auto keep_result = oneapi::dpl::__ranges::__get_sycl_range<__bknd::access_mode::read_write, OutputIterator>();
     auto result_buf = keep_result(result, result + value_size);
     auto zip_vw = make_zip_view(input_buf.all_view(), value_buf.all_view(), result_buf.all_view());
-    __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
-                           custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size,
-                           zip_vw)
-        .wait();
-    return result + value_size;
+
+    return __internal::__except_handler([&]() {
+        __bknd::__parallel_for(_BackendTag{}, ::std::forward<Policy>(policy),
+                               custom_brick<StrictWeakOrdering, decltype(size), binary_search>{comp, size}, value_size,
+                               zip_vw)
+            .wait();
+        return result + value_size;
+    });
 }
 
 #endif

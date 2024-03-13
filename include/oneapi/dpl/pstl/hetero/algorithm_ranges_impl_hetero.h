@@ -46,10 +46,12 @@ __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function
     auto __n = oneapi::dpl::__ranges::__get_first_range_size(__rngs...);
     if (__n > 0)
     {
-        oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-                                                          ::std::forward<_Ranges>(__rngs)...)
-            .wait();
+        __internal::__except_handler([&]() {
+            oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                              unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
+                                                              ::std::forward<_Ranges>(__rngs)...)
+                .wait();
+        });
     }
 }
 
@@ -771,13 +773,15 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         unseq_backend::__brick_assign_key_position{});
 
     //reduce by segment
-    oneapi::dpl::__par_backend_hetero::__parallel_for(
-        _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce1_wrapper>(__exec),
-        unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__n)>(__binary_op, __n), __intermediate_result_end,
-        oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx),
-                                                __intermediate_result_end),
-        ::std::forward<_Range2>(__values), experimental::ranges::views::all_write(__tmp_out_values))
-        .wait();
+    __internal::__except_handler([&]() {
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
+            _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce1_wrapper>(__exec),
+            unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__n)>(__binary_op, __n), __intermediate_result_end,
+            oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx),
+                                                    __intermediate_result_end),
+            ::std::forward<_Range2>(__values), experimental::ranges::views::all_write(__tmp_out_values))
+            .wait();
+    });
 
     // Round 2: final reduction to get result for each segment of equal adjacent keys
     // create views over adjacent keys
@@ -812,7 +816,8 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         unseq_backend::__brick_assign_key_position{});
 
     //reduce by segment
-    oneapi::dpl::__par_backend_hetero::__parallel_for(
+    return __internal::__except_handler([&]() {
+        oneapi::dpl::__par_backend_hetero::__parallel_for(
         _BackendTag{},
         oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce2_wrapper>(
             ::std::forward<_ExecutionPolicy>(__exec)),
@@ -823,7 +828,8 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
         experimental::ranges::views::all_read(__tmp_out_values), ::std::forward<_Range4>(__out_values))
         .wait();
 
-    return __result_end;
+        return __result_end;
+    });
 }
 
 } // namespace __ranges

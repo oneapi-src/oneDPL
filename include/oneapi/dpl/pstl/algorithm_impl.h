@@ -1719,11 +1719,13 @@ __pattern_reverse(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
     if (__first == __last)
         return;
 
-    __par_backend::__parallel_for(
-        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __first + (__last - __first) / 2,
-        [__first, __last](_RandomAccessIterator __inner_first, _RandomAccessIterator __inner_last) {
-            __internal::__brick_reverse(__inner_first, __inner_last, __last - (__inner_first - __first), _IsVector{});
-        });
+    __internal::__except_handler([&]() {
+        __par_backend::__parallel_for(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __first + (__last - __first) / 2,
+            [__first, __last](_RandomAccessIterator __inner_first, _RandomAccessIterator __inner_last) {
+                __internal::__brick_reverse(__inner_first, __inner_last, __last - (__inner_first - __first), _IsVector{});
+            });
+    });
 }
 
 //------------------------------------------------------------------------
@@ -1772,13 +1774,15 @@ __pattern_reverse_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ra
     if (__len == 0)
         return __d_first;
 
-    __par_backend::__parallel_for(
-        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        [__first, __len, __d_first](_RandomAccessIterator1 __inner_first, _RandomAccessIterator1 __inner_last) {
-            __internal::__brick_reverse_copy(__inner_first, __inner_last,
-                                             __d_first + (__len - (__inner_last - __first)), _IsVector{});
-        });
-    return __d_first + __len;
+    return __internal::__except_handler([&]() {
+        __par_backend::__parallel_for(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            [__first, __len, __d_first](_RandomAccessIterator1 __inner_first, _RandomAccessIterator1 __inner_last) {
+                __internal::__brick_reverse_copy(__inner_first, __inner_last,
+                                                 __d_first + (__len - (__inner_last - __first)), _IsVector{});
+            });
+        return __d_first + __len;
+    });
 }
 
 //------------------------------------------------------------------------
@@ -1950,29 +1954,31 @@ __pattern_rotate_copy(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Ran
 {
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
-    __par_backend::__parallel_for(
-        __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
-        [__first, __last, __middle, __result](_RandomAccessIterator1 __b, _RandomAccessIterator1 __e) {
-            __internal::__brick_copy<__parallel_tag<_IsVector>, _ExecutionPolicy> __copy{};
-            if (__b > __middle)
-            {
-                __copy(__b, __e, __result + (__b - __middle), _IsVector{});
-            }
-            else
-            {
-                _RandomAccessIterator2 __new_result = __result + ((__last - __middle) + (__b - __first));
-                if (__e < __middle)
+    return __internal::__except_handler([&]() {
+        __par_backend::__parallel_for(
+            __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
+            [__first, __last, __middle, __result](_RandomAccessIterator1 __b, _RandomAccessIterator1 __e) {
+                __internal::__brick_copy<__parallel_tag<_IsVector>, _ExecutionPolicy> __copy{};
+                if (__b > __middle)
                 {
-                    __copy(__b, __e, __new_result, _IsVector{});
+                    __copy(__b, __e, __result + (__b - __middle), _IsVector{});
                 }
                 else
                 {
-                    __copy(__b, __middle, __new_result, _IsVector{});
-                    __copy(__middle, __e, __result, _IsVector{});
+                    _RandomAccessIterator2 __new_result = __result + ((__last - __middle) + (__b - __first));
+                    if (__e < __middle)
+                    {
+                        __copy(__b, __e, __new_result, _IsVector{});
+                    }
+                    else
+                    {
+                        __copy(__b, __middle, __new_result, _IsVector{});
+                        __copy(__middle, __e, __result, _IsVector{});
+                    }
                 }
-            }
-        });
-    return __result + (__last - __first);
+            });
+        return __result + (__last - __first);
+    });
 }
 
 //------------------------------------------------------------------------
@@ -4271,30 +4277,32 @@ __pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _Rand
     _DiffType __mid = __size / 2 + __size % 2;
     _DiffType __size_res = __size - __n;
 
-    //1. n >= size/2; there is enough memory to 'total' parallel copying
-    if (__n >= __mid)
-    {
-        __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n, __size,
-                                      [__first, __n](_DiffType __i, _DiffType __j) {
-                                          __brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(
-                                              __first + __i, __first + __j, __first + __i - __n, _IsVector{});
-                                      });
-    }
-    else //2. n < size/2; there is not enough memory to parallel copying; doing parallel copying by n elements
-    {
-        //TODO: to consider parallel processing by the 'internal' loop (but we may probably get cache locality issues)
-        for (auto __k = __n; __k < __size; __k += __n)
+    return __internal::__except_handler([&]() {
+        //1. n >= size/2; there is enough memory to 'total' parallel copying
+        if (__n >= __mid)
         {
-            auto __end = ::std::min(__k + __n, __size);
-            __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __k, __end,
+            __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __n, __size,
                                           [__first, __n](_DiffType __i, _DiffType __j) {
                                               __brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(
                                                   __first + __i, __first + __j, __first + __i - __n, _IsVector{});
                                           });
         }
-    }
+        else //2. n < size/2; there is not enough memory to parallel copying; doing parallel copying by n elements
+        {
+            //TODO: to consider parallel processing by the 'internal' loop (but we may probably get cache locality issues)
+            for (auto __k = __n; __k < __size; __k += __n)
+            {
+                auto __end = ::std::min(__k + __n, __size);
+                __par_backend::__parallel_for(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __k, __end,
+                                              [__first, __n](_DiffType __i, _DiffType __j) {
+                                                  __brick_move<__parallel_tag<_IsVector>, _ExecutionPolicy>{}(
+                                                      __first + __i, __first + __j, __first + __i - __n, _IsVector{});
+                                              });
+            }
+        }
 
-    return __first + __size_res;
+        return __first + __size_res;
+    });
 }
 
 template <class _Tag, class _ExecutionPolicy, class _BidirectionalIterator>
