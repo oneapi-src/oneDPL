@@ -350,8 +350,9 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     std::uint32_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
 
     _FlagStorageType* __status_flags = sycl::malloc_device<_FlagStorageType>(__status_flags_size, __queue);
-    _Type* __status_vals_full = sycl::malloc_device<_Type>(__status_flags_size, __queue);
-    _Type* __status_vals_partial = sycl::malloc_device<_Type>(__status_flags_size, __queue);
+    _Type* __status_vals = sycl::malloc_device<_Type>(2 * __status_flags_size, __queue);
+    _Type* __status_vals_full = __status_vals;
+    _Type* __status_vals_partial = __status_vals + __status_flags_size;
 
     assert(__status_flags && __status_vals_full && __status_vals_partial);
 
