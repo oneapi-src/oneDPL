@@ -349,10 +349,23 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     constexpr int __status_flag_padding = SUBGROUP_SIZE;
     std::uint32_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
 
-    _FlagStorageType* __status_flags = sycl::malloc_device<_FlagStorageType>(__status_flags_size, __queue);
-    _Type* __status_vals = sycl::malloc_device<_Type>(2 * __status_flags_size, __queue);
-    _Type* __status_vals_full = __status_vals;
-    _Type* __status_vals_partial = __status_vals + __status_flags_size;
+    _FlagStorageType* __status_flags = nullptr;
+    _Type* __status_vals_full = nullptr;
+    _Type* __status_vals_partial = nullptr;
+
+    if constexpr (::std::is_same_v<_Type, _FlagStorageType>)
+    {
+        __status_flags = sycl::malloc_device<_FlagStorageType>(3 * __status_flags_size, __queue);
+        __status_vals_full = __status_flags + __status_flags_size;
+        __status_vals_partial = __status_flags + (2 * __status_flags_size);
+    }
+    else
+    {
+        __status_flags = sycl::malloc_device<_FlagStorageType>(__status_flags_size, __queue);
+        _Type* __status_vals = sycl::malloc_device<_Type>(2 * __status_flags_size, __queue);
+        __status_vals_full = __status_vals;
+        __status_vals_partial = __status_vals + __status_flags_size;
+    }
 
     assert(__status_flags && __status_vals_full && __status_vals_partial);
 
