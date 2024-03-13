@@ -243,7 +243,7 @@ __pattern_adjacent_difference(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
     // if we have the only element, just copy it according to the specification
     if (__n == 1)
     {
-        return __internal::__except_handler([&__exec, __first, __last, __d_first, __d_last, &__op, __tag]() {
+        return __internal::__except_handler([__tag, &__exec, __first, __last, __d_first, __d_last, &__op]() {
             auto __wrapped_policy = __par_backend_hetero::make_wrapped_policy<adjacent_difference_wrapper>(
                 ::std::forward<_ExecutionPolicy>(__exec));
 
