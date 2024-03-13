@@ -380,17 +380,27 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
             __queue, __fill_event, __in_rng, __out_rng, __binary_op, __n, __status_flags, __status_flags_size,
             __status_vals_full, __status_vals_partial, __current_num_items);
 
+    // TODO: Currently, the following portion of code makes this entire function synchronous.
+    // Ideally, we should be able to use the asynchronous free below, but we have found that doing
+    // so introduces a large unexplainable slowdown. Once this slowdown has been identified and corrected,
+    // we should replace this code with the asynchronous version below.
     if (0)
     {
         return __queue.submit([=](sycl::handler& __hdl) {
             __hdl.depends_on(__prev_event);
-            __hdl.host_task([=]() { sycl::free(__status_flags, __queue); });
+            __hdl.host_task([=]() {
+                sycl::free(__status_flags, __queue);
+                if constexpr (!::std::is_same_v<_Type, _FlagStorageType>)
+                    sycl::free(__status_vals_full, __queue);
+            });
         });
     }
     else
     {
         __prev_event.wait();
         sycl::free(__status_flags, __queue);
+        if constexpr (!::std::is_same_v<_Type, _FlagStorageType>)
+            sycl::free(__status_vals_full, __queue);
         return __prev_event;
     }
 }
