@@ -1,0 +1,18 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Copyright (C) 2023 Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _ONEDPL_DISTRIBUTED_RANGES
+#define _ONEDPL_DISTRIBUTED_RANGES
+
+#include "oneapi/dpl/internal/common_config.h"
+#include "oneapi/dpl/pstl/onedpl_config.h"
+
+#include "oneapi/dpl/internal/distributed_ranges_impl/fixed_resource_policy.h"
+
+#endif /* _ONEDPL_DISTRIBUTED_RANGES */
