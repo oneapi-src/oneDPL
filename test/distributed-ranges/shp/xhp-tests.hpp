@@ -4,7 +4,7 @@
 #pragma once
 
 #include "cxxopts.hpp"
-#include "dr/shp.hpp"
+#include <oneapi/dpl/distributed-ranges>
 #include <dr/detail/logger.hpp>
 #include <fmt/core.h>
 #include <fmt/ranges.h>

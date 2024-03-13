@@ -13,6 +13,6 @@
 #include "oneapi/dpl/internal/common_config.h"
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
-#include "oneapi/dpl/internal/distributed_ranges_impl/fixed_resource_policy.h"
+#include "oneapi/dpl/internal/distributed_ranges_impl/shp.hpp"
 
 #endif /* _ONEDPL_DISTRIBUTED_RANGES */

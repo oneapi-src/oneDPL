@@ -8,10 +8,10 @@
 #include <fstream>
 #include <iostream>
 
-#include <vendor/source_location/source_location.hpp>
+#include "../source_location/source_location.hpp"
 
-#include <dr/detail/format_shim.hpp>
-#include <dr/detail/ranges_shim.hpp>
+#include "format_shim.hpp"
+#include "ranges_shim.hpp"
 
 namespace dr {
 
