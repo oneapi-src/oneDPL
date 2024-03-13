@@ -1663,7 +1663,7 @@ void
 __brick_reverse(_BidirectionalIterator __first, _BidirectionalIterator __last, _BidirectionalIterator __d_last,
                 /*is_vector=*/::std::false_type) noexcept
 {
-    for (__first != __last; ++__first)
+    for (; __first != __last; ++__first)
     {
         using ::std::iter_swap;
         iter_swap(__first, --__d_last);
