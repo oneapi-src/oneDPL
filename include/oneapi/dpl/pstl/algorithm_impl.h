@@ -1717,7 +1717,7 @@ __pattern_reverse(__parallel_tag<_IsVector>, _ExecutionPolicy&& __exec, _RandomA
     using __backend_tag = typename __parallel_tag<_IsVector>::__backend_tag;
 
     if (__first == __last)
-        return;    
+        return;
 
     __par_backend::__parallel_for(
         __backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec), __first, __first + (__last - __first) / 2,
