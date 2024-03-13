@@ -359,12 +359,7 @@ _ForwardIterator
 __pattern_generate_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _ForwardIterator __first,
                      _Size __count, _Generator __g)
 {
-    // TODO: is this new implementation are correct?
-    // Previously we hadn't hetero impl for __pattern_generate_n
-
-    return __pattern_walk1_n(__tag, ::std::forward<_ExecutionPolicy>(__exec),
-                             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::write>(__first),
-                             __count, generate_functor<_Generator>{__g});
+    return __pattern_generate(__tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __first + __count, __g);
 }
 
 //------------------------------------------------------------------------
