@@ -65,7 +65,7 @@ __pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec,
                    unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
                    __buf1.all_view(), __buf2.all_view())
             .get();
-    }
+    });
 }
 
 //------------------------------------------------------------------------
@@ -95,7 +95,7 @@ __pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec,
                    unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
                    __buf.all_view())
             .get();
-    }
+    });
 }
 
 //------------------------------------------------------------------------

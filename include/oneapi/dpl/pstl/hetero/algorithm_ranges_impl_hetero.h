@@ -350,7 +350,7 @@ __pattern_count(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& _
                    unseq_backend::__no_init_value{}, // no initial value
                    ::std::forward<_Range>(__rng))
             .get();
-    }
+    });
 }
 
 //------------------------------------------------------------------------
@@ -381,26 +381,28 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range
 
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, int32_t> __mask_buf(__exec, __rng1.size());
 
-    auto __res =
-        __par_backend_hetero::__parallel_transform_scan_base(
-            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-            oneapi::dpl::__ranges::zip_view(
-                __rng1, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
-                            __mask_buf.get_buffer())),
-            __rng2, __reduce_op, _InitType{},
-            // local scan
-            unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
-                                  _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
-                                                                           __add_mask_op, __create_mask_op},
-            // scan between groups
-            unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
-                                  _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
-                                                                  __get_data_op},
-            // global scan
-            __copy_by_mask_op)
-            .get();
+    return __internal::__except_handler([&]() {
+        auto __res =
+            __par_backend_hetero::__parallel_transform_scan_base(
+                _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                oneapi::dpl::__ranges::zip_view(
+                    __rng1, oneapi::dpl::__ranges::all_view<int32_t, __par_backend_hetero::access_mode::read_write>(
+                                __mask_buf.get_buffer())),
+                __rng2, __reduce_op, _InitType{},
+                // local scan
+                unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _Assigner,
+                                      _MaskAssigner, _CreateMaskOp, _InitType>{__reduce_op, __get_data_op, __assign_op,
+                                                                               __add_mask_op, __create_mask_op},
+                // scan between groups
+                unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
+                                      _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
+                                                                      __get_data_op},
+                // global scan
+                __copy_by_mask_op)
+                .get();
 
-    return __res;
+        return __res;
+    });
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _Predicate,
@@ -606,7 +608,7 @@ __pattern_min_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Ran
 
         using ::std::get;
         return get<0>(__ret_idx);
-    }
+    });
 }
 
 //------------------------------------------------------------------------
@@ -662,7 +664,7 @@ __pattern_minmax_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
 
         using ::std::get;
         return ::std::make_pair(get<0>(__ret), get<1>(__ret));
-    }
+    });
 }
 
 //------------------------------------------------------------------------
