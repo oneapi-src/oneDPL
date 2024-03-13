@@ -596,21 +596,23 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, adjacent_find_fn<_BinaryPredicate>>;
 
-    auto __result = __par_backend_hetero::__parallel_find(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        __par_backend_hetero::zip(
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1)),
-        __par_backend_hetero::zip(
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last - 1),
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last)),
-        _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, ::std::true_type{});
+    return __internal::__except_handler([&]() {
+        auto __result = __par_backend_hetero::__parallel_find(
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            __par_backend_hetero::zip(
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1)),
+            __par_backend_hetero::zip(
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last - 1),
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last)),
+            _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, ::std::true_type{});
 
-    auto __zip_at_first = __par_backend_hetero::zip(
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1));
-    _Iterator __result_iterator = __first + (__result - __zip_at_first);
-    return (__result_iterator == __last - 1) ? __last : __result_iterator;
+            auto __zip_at_first = __par_backend_hetero::zip(
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1));
+            _Iterator __result_iterator = __first + (__result - __zip_at_first);
+            return (__result_iterator == __last - 1) ? __last : __result_iterator;
+    });
 }
 
 //------------------------------------------------------------------------
@@ -723,11 +725,13 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterato
 
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
 
-    return __par_backend_hetero::__parallel_find(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__pred},
-        ::std::true_type{});
+    return __internal::__except_handler([&]() {
+        return __par_backend_hetero::__parallel_find(
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__pred},
+            ::std::true_type{});
+    });
 }
 
 //------------------------------------------------------------------------
@@ -752,13 +756,15 @@ __pattern_find_end(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     {
         using _Predicate = unseq_backend::multiple_match_pred<_ExecutionPolicy, _Pred>;
 
-        return __par_backend_hetero::__parallel_find(
-            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_last), _Predicate{__pred},
-            ::std::false_type{});
+        return __internal::__except_handler([&]() {
+            return __par_backend_hetero::__parallel_find(
+                _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_last), _Predicate{__pred},
+                ::std::false_type{});
+        });
     }
 }
 
@@ -776,15 +782,17 @@ __pattern_find_first_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
 
     using _Predicate = unseq_backend::first_match_pred<_ExecutionPolicy, _Pred>;
 
-    // TODO: To check whether it makes sense to iterate over the second sequence in case of
-    // distance(__first, __last) < distance(__s_first, __s_last).
-    return __par_backend_hetero::__parallel_find(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_last), _Predicate{__pred},
-        ::std::true_type{});
+    return __internal::__except_handler([&]() {
+        // TODO: To check whether it makes sense to iterate over the second sequence in case of
+        // distance(__first, __last) < distance(__s_first, __s_last).
+        return __par_backend_hetero::__parallel_find(
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_last), _Predicate{__pred},
+            ::std::true_type{});
+    });
 }
 
 //------------------------------------------------------------------------
@@ -815,14 +823,16 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _It
         return __res ? __first : __last;
     }
 
-    using _Predicate = unseq_backend::multiple_match_pred<_ExecutionPolicy, _Pred>;
-    return __par_backend_hetero::__parallel_find(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_last), _Predicate{__pred},
-        ::std::true_type{});
+    return __internal::__except_handler([&]() {
+        using _Predicate = unseq_backend::multiple_match_pred<_ExecutionPolicy, _Pred>;
+        return __par_backend_hetero::__parallel_find(
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_last), _Predicate{__pred},
+            ::std::true_type{});
+    });
 }
 
 //------------------------------------------------------------------------
@@ -863,12 +873,14 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
                    : __last;
     }
 
-    using _Predicate = unseq_backend::n_elem_match_pred<_ExecutionPolicy, _BinaryPredicate, _Tp, _Size>;
-    return __par_backend_hetero::__parallel_find(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
-        _Predicate{__pred, __value, __count}, ::std::true_type{});
+    return __internal::__except_handler([&]() {
+        using _Predicate = unseq_backend::n_elem_match_pred<_ExecutionPolicy, _BinaryPredicate, _Tp, _Size>;
+        return __par_backend_hetero::__parallel_find(
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
+            _Predicate{__pred, __value, __count}, ::std::true_type{});
+    });
 }
 
 //------------------------------------------------------------------------
@@ -886,14 +898,16 @@ __pattern_mismatch(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterat
 
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, equal_predicate<_Pred>>;
 
-    auto __first_zip = __par_backend_hetero::zip(
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first1),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first2));
-    auto __result = __par_backend_hetero::__parallel_find(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __first_zip, __first_zip + __n,
-        _Predicate{equal_predicate<_Pred>{__pred}}, ::std::true_type{});
-    __n = __result - __first_zip;
-    return ::std::make_pair(__first1 + __n, __first2 + __n);
+    return __internal::__except_handler([&]() {
+        auto __first_zip = __par_backend_hetero::zip(
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first1),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first2));
+        auto __result = __par_backend_hetero::__parallel_find(
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __first_zip, __first_zip + __n,
+            _Predicate{equal_predicate<_Pred>{__pred}}, ::std::true_type{});
+        __n = __result - __first_zip;
+        return ::std::make_pair(__first1 + __n, __first2 + __n);
+    });
 }
 
 //------------------------------------------------------------------------
@@ -1131,11 +1145,13 @@ __pattern_is_heap_until(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
     using _Predicate =
         oneapi::dpl::unseq_backend::single_match_pred_by_idx<_ExecutionPolicy, __is_heap_check<_Compare>>;
 
-    return __par_backend_hetero::__parallel_find(
-        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-        __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp},
-        ::std::true_type{});
+    return __internal::__except_handler([&]() {
+        return __par_backend_hetero::__parallel_find(
+            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last), _Predicate{__comp},
+            ::std::true_type{});
+    });
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _RandomAccessIterator, typename _Compare>

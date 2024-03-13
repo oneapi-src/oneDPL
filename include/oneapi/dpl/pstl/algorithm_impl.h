@@ -4129,29 +4129,32 @@ __pattern_lexicographical_compare(__parallel_tag<_IsVector> __tag, _ExecutionPol
     {
         typedef typename ::std::iterator_traits<_RandomAccessIterator1>::reference _RefType1;
         typedef typename ::std::iterator_traits<_RandomAccessIterator2>::reference _RefType2;
-        --__last1;
-        --__last2;
-        auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
-        auto __result = __internal::__parallel_find(
-            __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
-            [__first1, __first2, &__comp](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
-                return __internal::__brick_mismatch(
-                           __i, __j, __first2 + (__i - __first1), __first2 + (__j - __first1),
-                           [&__comp](const _RefType1 __x, const _RefType2 __y) {
-                               return !__comp(__x, __y) && !__comp(__y, __x);
-                           },
-                           _IsVector{})
-                    .first;
-            },
-            ::std::true_type{});
 
-        if (__result == __last1 && __first2 + (__result - __first1) != __last2)
-        { // if first sequence shorter than second
-            return !__comp(*(__first2 + (__result - __first1)), *__result);
-        }
-        else
-        { // if second sequence shorter than first or both have the same number of elements
-            return __comp(*__result, *(__first2 + (__result - __first1)));
+        return __internal::__except_handler([&]() {
+            --__last1;
+            --__last2;
+            auto __n = ::std::min(__last1 - __first1, __last2 - __first2);
+            auto __result = __internal::__parallel_find(
+                __tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __first1 + __n,
+                [__first1, __first2, &__comp](_RandomAccessIterator1 __i, _RandomAccessIterator1 __j) {
+                    return __internal::__brick_mismatch(
+                               __i, __j, __first2 + (__i - __first1), __first2 + (__j - __first1),
+                               [&__comp](const _RefType1 __x, const _RefType2 __y) {
+                                   return !__comp(__x, __y) && !__comp(__y, __x);
+                               },
+                           _IsVector{})
+                        .first;
+                },
+                ::std::true_type{});
+
+            if (__result == __last1 && __first2 + (__result - __first1) != __last2)
+            { // if first sequence shorter than second
+                return !__comp(*(__first2 + (__result - __first1)), *__result);
+            }
+            else
+            { // if second sequence shorter than first or both have the same number of elements
+                return __comp(*__result, *(__first2 + (__result - __first1)));
+            }
         }
     }
 }
