@@ -141,52 +141,54 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
     auto __keep1 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator1>();
     auto __buf1 = __keep1(__first, __last);
 
-    // This is a temporary workaround for an in-place exclusive scan while the SYCL backend scan pattern is not fixed.
-    const bool __is_scan_inplace_exclusive = __n > 1 && !_Inclusive{} && __iterators_possibly_equal(__first, __result);
-    if (!__is_scan_inplace_exclusive)
-    {
+    return __internal::__except_handler([&]() {
+        // This is a temporary workaround for an in-place exclusive scan while the SYCL backend scan pattern is not fixed.
+        const bool __is_scan_inplace_exclusive = __n > 1 && !_Inclusive{} && __iterators_possibly_equal(__first, __result);
+        if (!__is_scan_inplace_exclusive)
+        {
         auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
-        auto __buf2 = __keep2(__result, __result + __n);
+            auto __buf2 = __keep2(__result, __result + __n);
 
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
-            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n,
-            __unary_op, __init, __binary_op, _Inclusive{})
-            .wait();
-    }
-    else
-    {
-        assert(__n > 1);
-        assert(!_Inclusive{});
-        assert(__iterators_possibly_equal(__first, __result));
+            oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
+                _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __buf1.all_view(), __buf2.all_view(), __n,
+                __unary_op, __init, __binary_op, _Inclusive{})
+                .wait();
+        }
+        else
+        {
+            assert(__n > 1);
+            assert(!_Inclusive{});
+            assert(__iterators_possibly_equal(__first, __result));
 
-        using _Type = typename _InitType::__value_type;
+            using _Type = typename _InitType::__value_type;
 
-        auto __policy =
-            __par_backend_hetero::make_wrapped_policy<ExecutionPolicyWrapper>(::std::forward<_ExecutionPolicy>(__exec));
-        using _NewExecutionPolicy = decltype(__policy);
+            auto __policy =
+                __par_backend_hetero::make_wrapped_policy<ExecutionPolicyWrapper>(::std::forward<_ExecutionPolicy>(__exec));
+            using _NewExecutionPolicy = decltype(__policy);
 
-        // Create temporary buffer
-        oneapi::dpl::__par_backend_hetero::__buffer<_NewExecutionPolicy, _Type> __tmp_buf(__policy, __n);
-        auto __first_tmp = __tmp_buf.get();
-        auto __last_tmp = __first_tmp + __n;
-        auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
-        auto __buf2 = __keep2(__first_tmp, __last_tmp);
+            // Create temporary buffer
+            oneapi::dpl::__par_backend_hetero::__buffer<_NewExecutionPolicy, _Type> __tmp_buf(__policy, __n);
+            auto __first_tmp = __tmp_buf.get();
+            auto __last_tmp = __first_tmp + __n;
+            auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
+            auto __buf2 = __keep2(__first_tmp, __last_tmp);
 
-        // Run main algorithm and save data into temporary buffer
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(_BackendTag{}, __policy, __buf1.all_view(),
-                                                                     __buf2.all_view(), __n, __unary_op, __init,
-                                                                     __binary_op, _Inclusive{})
-            .wait();
+            // Run main algorithm and save data into temporary buffer
+            oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(_BackendTag{}, __policy, __buf1.all_view(),
+                                                                         __buf2.all_view(), __n, __unary_op, __init,
+                                                                         __binary_op, _Inclusive{})
+                .wait();
 
-        // Move data from temporary buffer into results
-        oneapi::dpl::__internal::__pattern_walk2_brick(
-            __tag, ::std::move(__policy), __first_tmp, __last_tmp, __result,
-            oneapi::dpl::__internal::__brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
+            // Move data from temporary buffer into results
+            oneapi::dpl::__internal::__pattern_walk2_brick(
+                __tag, ::std::move(__policy), __first_tmp, __last_tmp, __result,
+                oneapi::dpl::__internal::__brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>{});
 
-        //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
-    }
+            //TODO: optimize copy back depending on Iterator, i.e. set_final_data for host iterator/pointer
+        }
 
-    return __result + __n;
+        return __result + __n;
+    });
 }
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Iterator1, typename _Iterator2,
           typename _UnaryOperation, typename _Type, typename _BinaryOperation, typename _Inclusive>
