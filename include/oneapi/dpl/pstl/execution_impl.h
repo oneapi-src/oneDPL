@@ -159,22 +159,6 @@ template <class _Tag>
 inline constexpr bool __is_host_dispatch_tag_v =
     __is_serial_tag_v<_Tag> || __is_parallel_forward_tag_v<_Tag> || __is_parallel_tag_v<_Tag>;
 
-//----------------------------------------------------------
-// __buffer_backend_tag_type
-//----------------------------------------------------------
-
-template <class _Tag>
-struct __buffer_backend_tag_type
-{
-    using type = typename _Tag::__backend_tag;
-};
-
-template <class _IsVector>
-struct __buffer_backend_tag_type<__serial_tag<_IsVector>>
-{
-    using type = __par_backend_tag;
-};
-
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
