@@ -89,8 +89,7 @@ __parallel_strict_scan_body(_ExecutionPolicy&& __exec, _Index __n, _Tp __initial
     const _Index __slack = 4;
     _Index __tilesize = (__n - 1) / (__slack * __p) + 1;
     _Index __m = (__n - 1) / __tilesize;
-    __buffer<oneapi::dpl::__internal::__omp_backend_tag, _ExecutionPolicy, _Tp> __buf(
-        ::std::forward<_ExecutionPolicy>(__exec), __m + 1);
+    __buffer<_ExecutionPolicy, _Tp> __buf(::std::forward<_ExecutionPolicy>(__exec), __m + 1);
     _Tp* __r = __buf.get();
 
     oneapi::dpl::__omp_backend::__upsweep(_Index(0), _Index(__m + 1), __tilesize, __r, __n - __m * __tilesize, __reduce,
