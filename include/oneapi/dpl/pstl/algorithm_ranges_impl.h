@@ -94,6 +94,30 @@ __pattern_transform(_Tag __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _O
     return std::ranges::transform(std::forward<_InRange>(__in_r), __out_r.begin(), __op, __proj);
 }
 
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_find_if
+//---------------------------------------------------------------------------------------------------------------------
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+decltype(auto)
+__pattern_find_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+{
+    auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
+
+    using _It = std::ranges::iterator_t<_R>;
+    auto __view = std::views::common(::std::forward<_R>(__r));
+
+    return std::ranges::borrowed_iterator_t<_R>(oneapi::dpl::__internal::__pattern_find_if(__tag,
+        ::std::forward<_ExecutionPolicy>(__exec), __view.begin(), __view.end(), __pred_1));
+}
+
+template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+decltype(auto)
+__pattern_find_if(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+{
+    return std::ranges::find_if(std::forward<_R>(__r), __pred, __proj);
+}
+
 } // namespace __ranges
 } // namespace __internal
 } // namespace dpl
