@@ -471,6 +471,9 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
         __is_vector, ::std::true_type{}, ::std::forward<_Rest>(__rest)...);
 }
 
+template <typename _BackendTag>
+struct __hetero_tag;
+
 // Helper structure to split code functions for integral and iterator types so the return
 // value can be successfully deduced.
 template <typename _Ip>
@@ -484,13 +487,11 @@ struct __use_par_vec_helper
         return typename _Tag::__is_vector{};
     }
 
-#if _ONEDPL_BACKEND_SYCL
     template <typename _BackendTag>
     static constexpr auto __get_is_vector(__hetero_tag<_BackendTag>)
     {
         return ::std::true_type{};
     }
-#endif // _ONEDPL_BACKEND_SYCL
 
     template <typename _Tag>
     static constexpr auto __get_is_parallel(_Tag)
@@ -498,13 +499,11 @@ struct __use_par_vec_helper
         return oneapi::dpl::__internal::__is_parallel_tag<_Tag>{};
     }
 
-#if _ONEDPL_BACKEND_SYCL
     template <typename _BackendTag>
     static constexpr auto __get_is_parallel(__hetero_tag<_BackendTag>)
     {
         return ::std::true_type{};
     }
-#endif // _ONEDPL_BACKEND_SYCL
 
   public:
     using __it_type = std::conditional_t<std::is_integral_v<_Ip>, _Ip*, _Ip>;
