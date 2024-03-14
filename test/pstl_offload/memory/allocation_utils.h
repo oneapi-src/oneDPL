@@ -91,7 +91,7 @@ static allocs perform_allocations_impl() {
 
 static void perform_deallocations_impl(const allocs& na) {
 #if __linux__
-    EXPECT_TRUE(malloc_usable_size(ptr) >= allocs::alloc_size, "Incorrect return value of malloc_usable_size");
+    EXPECT_TRUE(malloc_usable_size(na.malloc_ptr) >= allocs::alloc_size, "Incorrect return value of malloc_usable_size");
 #elif _WIN64
     EXPECT_TRUE(_msize(na.malloc_ptr) >= allocs::alloc_size, "Incorrect return value of _msize");
 #endif
