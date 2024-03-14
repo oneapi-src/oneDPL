@@ -6,10 +6,10 @@
 
 #include <limits>
 
-#include <dr/concepts/concepts.hpp>
-#include <dr/detail/ranges_shim.hpp>
-#include <dr/shp/algorithms/for_each.hpp>
-#include <dr/views/iota.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//concepts/concepts.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/ranges_shim.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/algorithms/for_each.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//views/iota.hpp>
 
 namespace dr::shp {
 

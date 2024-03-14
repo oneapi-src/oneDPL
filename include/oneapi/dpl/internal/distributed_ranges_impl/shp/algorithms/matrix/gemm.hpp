@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <dr/shp/algorithms/matrix/local_gemm.hpp>
-#include <dr/shp/containers/distributed_dense_matrix.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/algorithms/matrix/local_gemm.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/distributed_dense_matrix.hpp>
 
 namespace dr::shp {
 

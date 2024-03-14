@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "xhp-tests.hpp"
-#include <dr/shp.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp.hpp>
 
 namespace shp = dr::shp;
 

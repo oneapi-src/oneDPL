@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <dr/detail/index.hpp>
-#include <dr/detail/iterator_adaptor.hpp>
-#include <dr/shp/containers/matrix_entry.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/index.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/iterator_adaptor.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/matrix_entry.hpp>
 #include <iterator>
 
 namespace dr::shp {

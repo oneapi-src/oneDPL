@@ -8,11 +8,11 @@
 
 #include <sycl/sycl.hpp>
 
-#include <dr/detail/segments_tools.hpp>
-#include <dr/shp/allocators.hpp>
-#include <dr/shp/device_ptr.hpp>
-#include <dr/shp/device_vector.hpp>
-#include <dr/shp/vector.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/segments_tools.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/allocators.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/device_ptr.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/device_vector.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/vector.hpp>
 
 namespace dr::shp {
 

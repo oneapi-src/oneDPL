@@ -4,15 +4,15 @@
 
 #pragma once
 
-#include <dr/detail/index.hpp>
-#include <dr/detail/ranges_shim.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/index.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/ranges_shim.hpp>
 
-#include <dr/shp/algorithms/matrix/local_gemv.hpp>
-#include <dr/shp/containers/duplicated_vector.hpp>
-#include <dr/shp/containers/sparse_matrix.hpp>
-#include <dr/shp/device_vector.hpp>
-#include <dr/shp/distributed_span.hpp>
-#include <dr/shp/util.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/algorithms/matrix/local_gemv.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/duplicated_vector.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/sparse_matrix.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/device_vector.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/distributed_span.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/util.hpp>
 
 namespace dr::shp {
 

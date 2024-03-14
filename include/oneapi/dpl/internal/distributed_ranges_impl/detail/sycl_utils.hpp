@@ -6,7 +6,7 @@
 
 #include <limits>
 
-#include <dr/detail/utils.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/utils.hpp>
 
 #ifdef SYCL_LANGUAGE_VERSION
 

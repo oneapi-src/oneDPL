@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <dr/shp/zip_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/zip_view.hpp>
 
 namespace dr::shp {
 

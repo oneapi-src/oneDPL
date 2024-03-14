@@ -5,7 +5,7 @@
 #pragma once
 
 #include <concepts>
-#include <dr/shp/views/csr_matrix_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/views/csr_matrix_view.hpp>
 #include <map>
 #include <random>
 

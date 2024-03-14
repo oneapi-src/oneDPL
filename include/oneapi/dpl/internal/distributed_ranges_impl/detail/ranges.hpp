@@ -8,7 +8,7 @@
 #include <iterator>
 #include <type_traits>
 
-#include <dr/detail/ranges_shim.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/ranges_shim.hpp>
 
 namespace dr {
 

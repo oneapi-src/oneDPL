@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <dr/detail/ranges.hpp>
-#include <dr/detail/sycl_utils.hpp>
-#include <dr/shp/device_ptr.hpp>
-#include <dr/shp/init.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/ranges.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/sycl_utils.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/device_ptr.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/init.hpp>
 #include <iterator>
 #include <sycl/sycl.hpp>
 

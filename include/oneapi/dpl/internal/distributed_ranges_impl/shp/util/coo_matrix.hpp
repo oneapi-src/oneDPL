@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <dr/shp/containers/matrix_entry.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/matrix_entry.hpp>
 #include <memory>
 #include <vector>
 

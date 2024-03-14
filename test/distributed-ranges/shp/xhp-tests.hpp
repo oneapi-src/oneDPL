@@ -4,11 +4,11 @@
 #pragma once
 
 #include "cxxopts.hpp"
-#include <oneapi/dpl/distributed-ranges>
-#include <dr/detail/logger.hpp>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include <gtest/gtest.h>
+#include <oneapi/dpl/distributed-ranges>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/logger.hpp>
 
 #define TEST_SHP
 
@@ -31,6 +31,6 @@ concept compliant_view = rng::forward_range<V> && requires(V &v) {
   dr::ranges::rank(dr::ranges::segments(v)[0]);
 };
 
-#include "common-tests.hpp"
+#include "../include/common-tests.hpp"
 
 using AllTypes = ::testing::Types<xhp::distributed_vector<int>>;

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <dr/concepts/concepts.hpp>
-#include <dr/shp/distributed_span.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//concepts/concepts.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/distributed_span.hpp>
 
 namespace dr::shp {
 

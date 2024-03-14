@@ -6,14 +6,14 @@
 
 #include <memory>
 
-#include <dr/detail/index.hpp>
-#include <dr/detail/owning_view.hpp>
-#include <dr/shp/containers/matrix_entry.hpp>
-#include <dr/shp/containers/matrix_partition.hpp>
-#include <dr/shp/containers/sequential/dense_matrix.hpp>
-#include <dr/shp/device_vector.hpp>
-#include <dr/shp/future.hpp>
-#include <dr/shp/views/dense_matrix_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/index.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//detail/owning_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/matrix_entry.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/matrix_partition.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/sequential/dense_matrix.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/device_vector.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/future.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl//shp/views/dense_matrix_view.hpp>
 
 namespace dr::shp {
 
