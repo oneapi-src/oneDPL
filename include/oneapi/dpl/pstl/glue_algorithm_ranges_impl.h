@@ -42,8 +42,8 @@ namespace ranges
 
 struct for_each_fn
 {
-template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun,
-         oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun,
+             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
     constexpr decltype(auto)
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj) const
     {
@@ -59,62 +59,66 @@ inline constexpr for_each_fn for_each;
 
 struct transform_fn
 {
-template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj,
-         oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
-constexpr decltype(auto)
-operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj) const
-{
-    const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __in_r.begin(), __out_r.begin());
-    return oneapi::dpl::__internal::__ranges::__pattern_transform(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
-        std::forward<_InRange>(__in_r), std::forward<_OutRange>(__out_r), __op, __proj);
-}
+    template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj,
+             oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr decltype(auto)
+    operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __in_r.begin(), __out_r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_transform(__dispatch_tag, std::forward<_ExecutionPolicy>(__exec),
+            std::forward<_InRange>(__in_r), std::forward<_OutRange>(__out_r), __op, __proj);
+    }
 };//transform_fn
 
-template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred >
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R>>
-find_if_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
-{
-    auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
-
-    if constexpr(!oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value)
-    {
-        auto __idx = oneapi::dpl::__internal::__ranges::__pattern_find_if(::std::forward<_ExecutionPolicy>(__exec),
-            views::all_read(::std::forward<_R>(__r)), __pred_1);
-
-        return {__internal::__get_result(__r, __idx)};
-    }
-    else
-    {
-        using _It = std::ranges::iterator_t<_R>;
-        auto __view = std::views::common(::std::forward<_R>(__r));
-
-        auto __res = oneapi::dpl::__internal::__pattern_find_if(::std::forward<_ExecutionPolicy>(__exec), __view.begin(),
-            __view.end(), __pred_1,
-            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _It>(__exec),
-            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _It>(__exec));
-
-        return {__internal::__get_result(__r, __res - __view.begin())};
-    }
-}
-
-template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R>>
-find_if_not_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
-{
-    return oneapi::dpl::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
-        oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy,
-        _Pred>>(__pred), __proj);
-}
-
-template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj>
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R>>
-find_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj) const
-{
-    return oneapi::dpl::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
-        oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy,
-        const _T>>(__value), __proj);
-}
 inline constexpr transform_fn transform;
+
+// [alg.find_if]
+
+struct find_if_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+    constexpr decltype(auto)
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
+    {
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_find_if(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
+    }
+}; //find_if_fn
+
+inline constexpr find_if_fn find_if;
+
+// [alg.find_if_not]
+
+struct find_if_not_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+    constexpr decltype(auto)
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
+    {
+        return oneapi::dpl::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+            oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy,
+            _Pred>>(__pred), __proj);
+    }
+}; //find_if_not_fn
+
+inline constexpr find_if_not_fn find_if_not;
+
+// [alg.find]
+
+struct find_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj>
+    constexpr decltype(auto)
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj) const
+    {
+        return oneapi::dpl::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+            oneapi::dpl::__internal::__equal_value<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy,
+            const _T>>(__value), __proj);
+    }
+}; //find_fn
+
+inline constexpr find_fn find;
 
 } //ranges
 #endif
