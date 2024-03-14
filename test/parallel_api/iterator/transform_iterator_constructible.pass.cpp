@@ -51,24 +51,31 @@ test_default_constructible()
     int* ptr = nullptr;
     oneapi::dpl::transform_iterator<int*, decltype(transformation)> trans1{ptr, transformation};
     //default constructibility of lambdas depends on c++ standard, we want transform iterator to match its template args
-    EXPECT_TRUE((std::is_default_constructible_v<decltype(transformation)> ==
-                 ::std::is_default_constructible_v<decltype(trans1)>),
-                "transform_iterator with lambda does not match default constructibility status of the lambda itself");
+    static_assert((std::is_default_constructible_v<decltype(transformation)> ==
+                   ::std::is_default_constructible_v<decltype(trans1)>),
+                  "transform_iterator with lambda does not match default constructibility status of the lambda itself");
 
     //both types are default constructible
     oneapi::dpl::transform_iterator<int*, noop> trans2{ptr, noop{}};
-    EXPECT_TRUE(::std::is_default_constructible_v<decltype(trans2)>,
-                "transform_iterator with default constructible lambda is seen to be non-default constructible");
+    static_assert(::std::is_default_constructible_v<decltype(trans2)>,
+                  "transform_iterator with default constructible lambda is seen to be non-default constructible");
 
     //functor is not default constructible
     oneapi::dpl::transform_iterator<int*, noop_nodefault> trans3{ptr, noop_nodefault{1}};
-    EXPECT_TRUE(!::std::is_default_constructible_v<decltype(trans3)>,
-                "transform_iterator with non-default constructible lambda is seen to be default constructible");
+    static_assert(!::std::is_default_constructible_v<decltype(trans3)>,
+                  "transform_iterator with non-default constructible lambda is seen to be default constructible");
 
     oneapi::dpl::transform_iterator<decltype(trans3), noop> trans4{trans3, noop{}};
-    EXPECT_TRUE(
+    static_assert(
         !::std::is_default_constructible_v<decltype(trans4)>,
         "transform_iterator with non-default constructible iterator source is seen to be default constructible");
+
+    oneapi::dpl::transform_iterator<int*, noop> a(ptr);
+    static_assert(std::is_constructible_v<oneapi::dpl::transform_iterator<int*, noop>, int*>,
+                  "transform_iterator with default constructible functor is not constructible from its source iterator "
+                  "type alone");
+    static_assert(!std::is_constructible_v<oneapi::dpl::transform_iterator<int*, noop_nodefault>, int*>,
+                  "transform_iterator is not constructible from its source iterator type alone");
 }
 
 std::int32_t
