@@ -169,6 +169,15 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&&
         _Predicate{__pred}, _TagType{}, ::std::forward<_Range>(__rng));
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+decltype(auto)
+__pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+{
+    auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
+    return oneapi::dpl::__internal::__ranges::__pattern_find_if(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __pred_1);
+}
+
 //------------------------------------------------------------------------
 // find_end
 //------------------------------------------------------------------------
