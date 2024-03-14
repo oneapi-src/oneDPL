@@ -376,20 +376,18 @@ struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
     using type = sycl::buffer<oneapi::dpl::__internal::tuple<_T...>, __dim, _AllocT>;
 };
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp, typename = void>
-class __buffer_impl;
-
 // impl for sycl::buffer<...>
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
-class __buffer_impl<_BackendTag, _ExecutionPolicy, _Tp,
-                    ::std::enable_if_t<oneapi::dpl::__internal::__is_hetero_backend_tag_v<_BackendTag>>>
+template <typename _ExecutionPolicy, typename _T>
+class __buffer_impl
 {
   private:
-    using __container_t = typename __local_buffer<sycl::buffer<_Tp>>::type;
+    using __container_t = typename __local_buffer<sycl::buffer<_T>>::type;
 
     __container_t __container;
 
   public:
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+
     __buffer_impl(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)}
     {
     }
@@ -450,8 +448,8 @@ struct __memobj_traits<_T*>
 
 } // namespace __internal
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _T>
-using __buffer = __internal::__buffer_impl<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _T>;
+template <typename _ExecutionPolicy, typename _T>
+using __buffer = __internal::__buffer_impl<::std::decay_t<_ExecutionPolicy>, _T>;
 
 template <typename T>
 struct __repacked_tuple

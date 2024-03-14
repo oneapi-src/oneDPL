@@ -49,17 +49,13 @@ namespace dpl
 namespace __tbb_backend
 {
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp, typename = void>
-class __buffer_impl;
-
 //! Raw memory buffer with automatic freeing and no exceptions.
 /** Some of our algorithms need to start with raw memory buffer,
 not an initialize array, because initialization/destruction
 would make the span be at least O(N). */
 // tbb::allocator can improve performance in some cases.
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
-class __buffer_impl<_BackendTag, _ExecutionPolicy, _Tp,
-                    ::std::enable_if_t<::std::is_same_v<_BackendTag, oneapi::dpl::__internal::__tbb_backend_tag>>>
+template <typename _ExecutionPolicy, typename _Tp>
+class __buffer_impl
 {
     tbb::tbb_allocator<_Tp> _M_allocator;
     _Tp* _M_ptr;
@@ -69,6 +65,8 @@ class __buffer_impl<_BackendTag, _ExecutionPolicy, _Tp,
     operator=(const __buffer_impl&) = delete;
 
   public:
+    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
+
     //! Try to obtain buffer of given size to store objects of _Tp type
     __buffer_impl(_ExecutionPolicy /*__exec*/, const ::std::size_t __n)
         : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n)
@@ -86,8 +84,8 @@ class __buffer_impl<_BackendTag, _ExecutionPolicy, _Tp,
     ~__buffer_impl() { _M_allocator.deallocate(_M_ptr, _M_buf_size); }
 };
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
-using __buffer = __buffer_impl<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _Tp>;
+template <typename _ExecutionPolicy, typename _Tp>
+using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 // Wrapper for tbb::task
 inline void
