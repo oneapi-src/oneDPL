@@ -506,7 +506,7 @@ __pstl_lower_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __va
         _Size1 __idx = ::std::min(__n - 1, __offset + __i);
         __offset = __comp(__acc[__idx], __value) ? __idx : __offset;
     }
-    // Special handle the case where __comp is never satisifed
+    // Special handle the case where __comp is never satisfied.
     if (__offset == __first && (__n == 0 || !__comp(__acc[__first], __value)))
     {
         return __first;
