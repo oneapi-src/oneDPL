@@ -412,8 +412,8 @@ class transform_iterator
 
     transform_iterator() = default;
     //only enable this constructor if the unary functor is default constructible
-    template <typename _UnaryFunc_ = _UnaryFunc,
-              ::std::enable_if_t<::std::is_default_constructible_v<_UnaryFunc_>, int> = 0>
+    template <typename _UnaryFuncLocal = _UnaryFunc,
+              ::std::enable_if_t<::std::is_default_constructible_v<_UnaryFuncLocal>, int> = 0>
     transform_iterator(_Iter __it) : __my_it_(__it), __my_unary_func_()
     {
     }
