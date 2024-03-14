@@ -476,37 +476,6 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
 template <typename _Ip>
 struct __use_par_vec_helper
 {
-  protected:
-
-    template <typename _Tag>
-    static constexpr auto __get_is_vector(_Tag)
-    {
-        return typename _Tag::__is_vector{};
-    }
-
-#if _ONEDPL_BACKEND_SYCL
-    template <typename _BackendTag>
-    static constexpr auto __get_is_vector(__hetero_tag<_BackendTag>)
-    {
-        return ::std::true_type{};
-    }
-#endif // _ONEDPL_BACKEND_SYCL
-
-    template <typename _Tag>
-    static constexpr auto __get_is_parallel(_Tag)
-    {
-        return oneapi::dpl::__internal::__is_parallel_tag<_Tag>{};
-    }
-
-#if _ONEDPL_BACKEND_SYCL
-    template <typename _BackendTag>
-    static constexpr auto __get_is_parallel(__hetero_tag<_BackendTag>)
-    {
-        return ::std::true_type{};
-    }
-#endif // _ONEDPL_BACKEND_SYCL
-
-  public:
     using __it_type = std::conditional_t<std::is_integral_v<_Ip>, _Ip*, _Ip>;
 
     template <typename _ExecutionPolicy>
@@ -514,7 +483,7 @@ struct __use_par_vec_helper
     __use_vector(_ExecutionPolicy&& __exec)
     {
         using __tag_type = decltype(oneapi::dpl::__internal::__select_backend(__exec, std::declval<__it_type>()));
-        return __get_is_vector(__tag_type{});
+        return typename __tag_type::__is_vector{};
     }
 
     template <typename _ExecutionPolicy>
@@ -522,7 +491,7 @@ struct __use_par_vec_helper
     __use_parallel(_ExecutionPolicy&& __exec)
     {
         using __tag_type = decltype(oneapi::dpl::__internal::__select_backend(__exec, std::declval<__it_type>()));
-        return __get_is_parallel(__tag_type{});
+        return oneapi::dpl::__internal::__is_parallel_tag<__tag_type>{};
     }
 };
 
