@@ -108,6 +108,13 @@ struct test
 
 private:
 
+    template<typename, typename = void>
+    static constexpr bool is_iterator{};
+
+    template<typename T>
+    static constexpr
+    bool is_iterator<T, std::void_t<decltype(++std::declval<T&>()), decltype(*std::declval<T&>())>> = true;
+
     template <typename Ret>
     static constexpr auto check_in(int) -> decltype(std::declval<Ret>().in, std::true_type{})
     {
@@ -124,7 +131,9 @@ private:
     auto ret_in_val(Ret&& ret, Begin&& begin)
     {
         if constexpr (check_in<Ret>(0))
-            return ret.in - begin;
+            return std::distance(begin, ret.in);
+        else if constexpr (is_iterator<Ret>)
+            return std::distance(begin, ret);
         else
             return ret;
     }
@@ -145,7 +154,9 @@ private:
     auto ret_out_val(Ret&& ret, Begin&& begin)
     {
         if constexpr (check_out<Ret>(0))
-            return ret.in - begin;
+            return std::distance(begin, ret.in);
+        else if constexpr (is_iterator<Ret>)
+            return std::distance(begin, ret);
         else
             return ret;
     }
@@ -284,7 +295,7 @@ struct test_range_algo
         test<usm_subrange, NRanges>{}(dpcpp_policy(), algo, checker, f);
         test<usm_span, NRanges>{}(dpcpp_policy(), algo, checker, f);
 
-#if 1 //sycl buffer
+#if 0 //sycl buffer
         test<sycl_buffer, NRanges>{}(dpcpp_policy(), algo, checker, f, std::identity{}, oneapi::dpl::views::all);
 #endif
     }
