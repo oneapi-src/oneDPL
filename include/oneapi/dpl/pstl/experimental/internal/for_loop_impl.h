@@ -471,9 +471,6 @@ __pattern_for_loop(_ExecutionPolicy&& __exec, _Ip __first, _Ip __last, _Function
         __is_vector, ::std::true_type{}, ::std::forward<_Rest>(__rest)...);
 }
 
-template <typename _BackendTag>
-struct __hetero_tag;
-
 // Helper structure to split code functions for integral and iterator types so the return
 // value can be successfully deduced.
 template <typename _Ip>
