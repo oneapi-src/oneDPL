@@ -378,7 +378,7 @@ struct __local_buffer<sycl::buffer<::std::tuple<_T...>, __dim, _AllocT>>
 
 // impl for sycl::buffer<...>
 template <typename _BackendTag, typename _ExecutionPolicy, typename _T>
-class __buffer_impl
+class __buffer_impl_hetero
 {
   private:
     using __container_t = typename __local_buffer<sycl::buffer<_T>>::type;
@@ -386,7 +386,8 @@ class __buffer_impl
     __container_t __container;
 
   public:
-    __buffer_impl(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements) : __container{sycl::range<1>(__n_elements)}
+    __buffer_impl_hetero(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements)
+        : __container{sycl::range<1>(__n_elements)}
     {
     }
 
@@ -447,7 +448,7 @@ struct __memobj_traits<_T*>
 } // namespace __internal
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _T>
-using __buffer = __internal::__buffer_impl<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _T>;
+using __buffer = __internal::__buffer_impl_hetero<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _T>;
 
 template <typename T>
 struct __repacked_tuple
