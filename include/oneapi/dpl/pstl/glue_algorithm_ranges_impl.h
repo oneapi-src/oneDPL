@@ -164,96 +164,51 @@ struct none_of_fn
 
 inline constexpr none_of_fn none_of;
 
-template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R>>
-adjacent_find_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
+struct adjacent_find_fn
 {
-    auto __pred_2 = [__pred, __proj](auto&& __val, auto&& __next) { return __pred(__proj(__val), __proj(__next));};
-
-    if constexpr(!oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value)
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr decltype(auto)
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
     {
-        auto __idx =  oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
-            std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::views::all_read(std::forward<_R>(__r)), __pred_2,
-            oneapi::dpl::__internal::__first_semantic());
-
-        return {__internal::__get_result(__r, __idx)};
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
     }
-    else
-    {
-        using _It = std::ranges::iterator_t<_R>;
-        auto __view = std::views::common(::std::forward<_R>(__r));
+}; //adjacent_find_fn
 
-        auto __res = oneapi::dpl::__internal::__pattern_adjacent_find(std::forward<_ExecutionPolicy>(__exec),
-            __view.begin(), __view.end(), __pred_2,
-            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _It>(__exec),
-            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _It>(__exec),
-            oneapi::dpl::__internal::__first_semantic());
+inline constexpr adjacent_find_fn adjacent_find;
 
-        return {__internal::__get_result(__r, __res - __view.begin())};
-    }
-}
-
-//TODO: according to the standard a subrange should be returned
-template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1, typename _Proj2>
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R1>>
-search_fn::operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred, _Proj1 __proj1,
-    _Proj2 __proj2) const
+struct search_fn
 {
-    auto __pred_2 = 
-        [__pred, __proj1, __proj2](auto&& __val1, auto&& __val2) { return __pred(__proj1(__val1), __proj2(__val2));};
-
-    if constexpr(!oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value)
+    template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1, typename _Proj2,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr decltype(auto)
+    operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred, _Proj1 __proj1,
+        _Proj2 __proj2) const
     {
-        auto __idx = oneapi::dpl::__internal::__ranges::__pattern_search(
-            std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::views::all_read(std::forward<_R1>(__r1)),
-            oneapi::dpl::views::all_read(std::forward<_R2>(__r2)), __pred_2);
-
-        return {__internal::__get_result(__r1, __idx)};
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r1.begin(), __r2.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_search(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R1>(__r1), std::forward<_R2>(__r2), __pred, __proj1,
+            __proj2);
     }
-    else
-    {
-        using _It1 = std::ranges::iterator_t<_R1>;
-        using _It2 = std::ranges::iterator_t<_R2>;
-        auto __view1 = std::views::common(std::forward<_R1>(__r1));
-        auto __view2 = std::views::common(std::forward<_R2>(__r2));
+}; //search_fn
 
-        auto __res = oneapi::dpl::__internal::__pattern_search(std::forward<_ExecutionPolicy>(__exec), __view1.begin(),
-            __view1.end(), __view2.begin(), __view2.end(), __pred_2,
-            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _It1, _It2>(__exec),
-            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _It1, _It2>(__exec));
+inline constexpr search_fn search;
 
-        return {__internal::__get_result(__r1, __res - __view1.begin())};
-    }
-}
-
-template<typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj>
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, oneapi::dpl::ranges::iterator_t<_R>>
-search_n_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, std::ranges::range_difference_t<_R> __count, const _T& __value,
-    _Pred __pred, _Proj __proj) const
+struct search_n_fn
 {
-    auto __pred_2 = [__pred, __proj, __value](auto&& __val1, auto&& __val2) { return __pred(__proj(__val1), __val2);};
-
-    if constexpr(!oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value)
+    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
+    constexpr decltype(auto)
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, std::ranges::range_difference_t<_R> __count, const _T& __value,
+        _Pred __pred, _Proj __proj) const
     {
-        auto __idx = oneapi::dpl::__internal::__ranges::__pattern_search_n(
-            std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __count,
-            __value, __pred_2);
-
-        return {__internal::__get_result(__r, __idx)};
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r);
+        return oneapi::dpl::__internal::__ranges::__pattern_search_n(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __count, __value, __pred, __proj);
     }
-    else
-    {
-        using _It = std::ranges::iterator_t<_R>;
-        auto __view = std::views::common(::std::forward<_R>(__r));
-
-        auto __res = oneapi::dpl::__internal::__pattern_search_n(
-            std::forward<_ExecutionPolicy>(__exec), __view.begin(), __view.end(), __count, __value, __pred_2,
-            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _It>(__exec),
-            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _It>(__exec));
-
-        return {__internal::__get_result(__r, __res - __view.begin())};
-    }
-}
+}; //search_n_fn
 
 } //ranges
 #endif
