@@ -51,9 +51,9 @@ struct test
         operator()(oneapi::dpl::execution::par_unseq, algo, args...);
     }
 
-    template<typename Policy, typename Algo, typename Checker, typename Functor, typename Proj = std::identity, typename Transform = std::identity>
+    template<typename Policy, typename Algo, typename Checker, typename FunctorOrVal, typename Proj = std::identity, typename Transform = std::identity>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && Ranges == 1>
-    operator()(Policy&& exec, Algo algo, Checker checker, Functor f, Proj proj = {}, Transform tr = {})
+    operator()(Policy&& exec, Algo algo, Checker checker, FunctorOrVal f, Proj proj = {}, Transform tr = {})
     {
         constexpr int max_n = 10;
         int data[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
