@@ -65,8 +65,6 @@ class __buffer_impl
     operator=(const __buffer_impl&) = delete;
 
   public:
-    static_assert(::std::is_same_v<_ExecutionPolicy, ::std::decay_t<_ExecutionPolicy>>);
-
     //! Try to obtain buffer of given size to store objects of _Tp type
     __buffer_impl(_ExecutionPolicy /*__exec*/, const ::std::size_t __n)
         : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n)
