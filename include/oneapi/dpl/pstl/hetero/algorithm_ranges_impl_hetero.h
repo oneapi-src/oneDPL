@@ -148,8 +148,8 @@ __pattern_find_end(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
 
     if (__rng1.size() == __rng2.size())
     {
-        const bool __res = __ranges::__pattern_equal(__tag, ::std::forward<_ExecutionPolicy>(__exec), __rng1,
-                                                     ::std::forward<_Range2>(__rng2), __pred);
+        const bool __res = __pattern_equal(__tag, ::std::forward<_ExecutionPolicy>(__exec), __rng1,
+                                           ::std::forward<_Range2>(__rng2), __pred);
         return __res ? 0 : __rng1.size();
     }
 
@@ -228,7 +228,7 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
 
     if (__rng1.size() == __rng2.size())
     {
-        const bool __res = __ranges::__pattern_equal(
+        const bool __res = __pattern_equal(
             __tag, __par_backend_hetero::make_wrapped_policy<equal_wrapper>(::std::forward<_ExecutionPolicy>(__exec)),
             __rng1, ::std::forward<_Range2>(__rng2), __pred);
         return __res ? 0 : __rng1.size();
@@ -416,8 +416,8 @@ __pattern_remove_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
     auto __copy_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
 
-    auto __copy_last_id = __ranges::__pattern_copy_if(__tag, __exec, __rng, __copy_rng, __not_pred<_Predicate>{__pred},
-                                                      oneapi::dpl::__internal::__pstl_assign());
+    auto __copy_last_id = __pattern_copy_if(__tag, __exec, __rng, __copy_rng, __not_pred<_Predicate>{__pred},
+                                            oneapi::dpl::__internal::__pstl_assign());
     auto __copy_rng_truncated = __copy_rng | oneapi::dpl::experimental::ranges::views::take(__copy_last_id);
 
     oneapi::dpl::__internal::__ranges::__pattern_walk_n(
@@ -463,8 +463,7 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
 
     oneapi::dpl::__par_backend_hetero::__buffer<_ExecutionPolicy, _ValueType> __buf(__exec, __rng.size());
     auto res_rng = oneapi::dpl::__ranges::views::all(__buf.get_buffer());
-    auto res = __ranges::__pattern_unique_copy(__tag, __exec, __rng, res_rng, __pred,
-                                               oneapi::dpl::__internal::__pstl_assign());
+    auto res = __pattern_unique_copy(__tag, __exec, __rng, res_rng, __pred, oneapi::dpl::__internal::__pstl_assign());
 
     __pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec),
                      __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{}, res_rng,
@@ -740,7 +739,7 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
     // evenly divisible by wg size (ensures segments are not long), or has a key not equal to the
     // adjacent element (marks end of real segments)
     // TODO: replace wgroup size with segment size based on platform specifics.
-    auto __intermediate_result_end = __ranges::__pattern_copy_if(
+    auto __intermediate_result_end = __pattern_copy_if(
         __tag, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__assign_key1_wrapper>(__exec), __view1, __view2,
         [__n, __binary_pred, __wgroup_size](const auto& __a) {
             // The size of key range for the (i-1) view is one less, so for the 0th index we do not check the keys
@@ -783,7 +782,7 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 
     // element is copied if it is the 0th element (marks beginning of first segment), or has a key not equal to
     // the adjacent element (end of a segment). Artificial segments based on wg size are not created.
-    auto __result_end = __ranges::__pattern_copy_if(
+    auto __result_end = __pattern_copy_if(
         __tag, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__assign_key2_wrapper>(__exec), __view3, __view4,
         [__binary_pred](const auto& __a) {
             // The size of key range for the (i-1) view is one less, so for the 0th index we do not check the keys
