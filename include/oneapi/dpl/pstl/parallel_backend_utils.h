@@ -25,9 +25,41 @@ namespace oneapi
 {
 namespace dpl
 {
-
 namespace __utils
 {
+
+//------------------------------------------------------------------------
+// raw buffer (with specified _TAllocator)
+//------------------------------------------------------------------------
+
+template <typename _ExecutionPolicy, typename _Tp, template <typename _T> typename _TAllocator>
+class __buffer_impl
+{
+    _TAllocator<_Tp> _M_allocator;
+    _Tp* _M_ptr = nullptr;
+    const ::std::size_t _M_buf_size = 0;
+
+    __buffer_impl(const __buffer_impl&) = delete;
+    void
+    operator=(const __buffer_impl&) = delete;
+
+  public:
+    //! Try to obtain buffer of given size to store objects of _Tp type
+    __buffer_impl(_ExecutionPolicy /*__exec*/, const ::std::size_t __n)
+        : _M_allocator(), _M_ptr(_M_allocator.allocate(__n)), _M_buf_size(__n)
+    {
+    }
+    //! True if buffer was successfully obtained, zero otherwise.
+    operator bool() const { return _M_ptr != nullptr; }
+    //! Return pointer to buffer, or nullptr if buffer could not be obtained.
+    _Tp*
+    get() const
+    {
+        return _M_ptr;
+    }
+    //! Destroy buffer
+    ~__buffer_impl() { _M_allocator.deallocate(_M_ptr, _M_buf_size); }
+};
 
 //! Destroy sequence [xs,xe)
 struct __serial_destroy
