@@ -1028,7 +1028,7 @@ __pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
     }
     else
     {
-        return __internal::__except_handler([&__exec, __first, __last, __count, &__value, __pred, __tag]() {
+        return __internal::__except_handler([__tag, &__exec, __first, __last, __count, &__value, __pred]() {
             return __internal::__parallel_find(
                 __tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last,
                 [__last, __count, &__value, __pred](_RandomAccessIterator __i, _RandomAccessIterator __j) {
