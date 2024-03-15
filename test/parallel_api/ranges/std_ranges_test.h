@@ -27,6 +27,7 @@
 #include <iostream>
 #include <vector>
 #include <ranges>
+#include <typeinfo>
 
 template<int call_id = 0>
 auto dpcpp_policy()
@@ -68,6 +69,7 @@ struct test
             auto res = algo(exec, tr(A), f, proj);
 
             auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, tr(A).begin());
+            if(!bres) std::cout << typeid(Algo).name() <<": ";
             EXPECT_TRUE(bres, "wrong return value from algo with ranges");
         }
 
@@ -96,10 +98,12 @@ struct test
             auto res = algo(exec, tr(A), tr(B), f, proj);
 
             auto bres_in = ret_in_val(expected_res, src_view.begin()) == ret_in_val(res, tr(A).begin());
+            if(!bres_in) std::cout << typeid(Algo).name() <<": ";
             EXPECT_TRUE(bres_in, "wrong return value from algo with input range");
 
             auto bres_out = ret_out_val(expected_res, src_view.begin()) == ret_out_val(res, tr(A).begin());
-            EXPECT_TRUE(bres_in, "wrong return value from algo with output range");
+            if(!bres_out) std::cout << typeid(Algo).name() <<": ";
+            EXPECT_TRUE(bres_out, "wrong return value from algo with output range");
         }
 
         //check result
