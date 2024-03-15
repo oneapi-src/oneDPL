@@ -36,7 +36,7 @@ main()
 
     auto pred1 = [](auto&& val) -> decltype(auto) { return val > 0; };
     auto pred2 = [](auto&& val) -> decltype(auto) { return val == 4; };
-    auto pred3 = [](auto&& val) -> decltype(auto) { return val < 0; };    
+    auto pred3 = [](auto&& val) -> decltype(auto) { return val < 0; };
 
     test_range_algo<1>{}(oneapi::dpl::ranges::all_of,  std::ranges::all_of, pred1, proj);
     test_range_algo<1>{}(oneapi::dpl::ranges::any_of,  std::ranges::any_of, pred2, std::identity{});
