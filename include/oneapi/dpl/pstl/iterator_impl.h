@@ -410,7 +410,13 @@ class transform_iterator
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
-    transform_iterator() = default;
+    //only enable this constructor if both template types are default constructible
+    template <typename _IterLocal = _Iter, typename _UnaryFuncLocal = _UnaryFunc,
+              typename = ::std::enable_if_t<
+                  ::std::is_default_constructible_v<_IterLocal> && ::std::is_default_constructible_v<_UnaryFuncLocal>>>
+    transform_iterator() : __my_it_(), __my_unary_func_()
+    {
+    }
     //only enable this constructor if the unary functor is default constructible
     template <typename _UnaryFuncLocal = _UnaryFunc,
               ::std::enable_if_t<::std::is_default_constructible_v<_UnaryFuncLocal>, int> = 0>
