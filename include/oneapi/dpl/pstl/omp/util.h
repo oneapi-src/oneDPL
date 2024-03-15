@@ -58,7 +58,7 @@ __cancel_execution(oneapi::dpl::__internal::__omp_backend_tag)
 //------------------------------------------------------------------------
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
-using __buffer = __buffer_impl<typename _BackendTag, ::std::decay_t<_ExecutionPolicy>, _Tp>;
+using __buffer = __buffer_impl_host<typename _BackendTag, ::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 // Preliminary size of each chunk: requires further discussion
 constexpr std::size_t __default_chunk_size = 2048;

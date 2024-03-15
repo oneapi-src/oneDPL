@@ -56,7 +56,7 @@ would make the span be at least O(N). */
 // tbb::allocator can improve performance in some cases.
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp,
           template <typename _Tp> typename _TAllocator = tbb::tbb_allocator<_Tp>>
-using __buffer = __buffer_impl<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _Tp, _TAllocator>;
+using __buffer = __buffer_impl_host<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _Tp, _TAllocator>;
 
 // Wrapper for tbb::task
 inline void
