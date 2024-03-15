@@ -46,6 +46,8 @@ pattern_exclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
 {
     static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
 
+    using __buffer_backend_tag = typename __internal::__buffer_backend_tag_type<_Tag>::type;
+
     const auto n = ::std::distance(first1, last1);
 
     // Check for empty and single element ranges
@@ -64,7 +66,7 @@ pattern_exclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
     InputIterator2 last2 = first2 + n;
 
     // compute head flags
-    oneapi::dpl::__par_backend::__buffer<Policy, FlagType> _flags(policy, n);
+    oneapi::dpl::__par_backend::__buffer<__buffer_backend_tag, Policy, FlagType> _flags(policy, n);
     auto flags = _flags.get();
     flags[0] = 1;
 
@@ -72,7 +74,7 @@ pattern_exclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
               oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     // shift input one to the right and initialize segments with init
-    oneapi::dpl::__par_backend::__buffer<Policy, OutputType> _temp(policy, n);
+    oneapi::dpl::__par_backend::__buffer<__buffer_backend_tag, Policy, OutputType> _temp(policy, n);
     auto temp = _temp.get();
 
     temp[0] = init;
@@ -123,7 +125,7 @@ exclusive_scan_by_segment_impl(__internal::__hetero_tag<_BackendTag>, Policy&& p
     InputIterator2 last2 = first2 + n;
 
     // compute head flags
-    oneapi::dpl::__par_backend_hetero::__buffer<Policy, FlagType> _flags(policy, n);
+    oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, Policy, FlagType> _flags(policy, n);
     {
         auto flag_buf = _flags.get_buffer();
         auto flags = flag_buf.get_host_access(sycl::read_write);
@@ -134,7 +136,7 @@ exclusive_scan_by_segment_impl(__internal::__hetero_tag<_BackendTag>, Policy&& p
               oneapi::dpl::__internal::__not_pred<BinaryPredicate>(binary_pred));
 
     // shift input one to the right and initialize segments with init
-    oneapi::dpl::__par_backend_hetero::__buffer<Policy, OutputType> _temp(policy, n);
+    oneapi::dpl::__par_backend_hetero::__buffer<_BackendTag, Policy, OutputType> _temp(policy, n);
     {
         auto temp_buf = _temp.get_buffer();
         auto temp = temp_buf.get_host_access(sycl::read_write);
