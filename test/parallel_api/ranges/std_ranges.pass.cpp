@@ -25,13 +25,14 @@ main()
 
     auto f = [](auto&& val) -> decltype(auto) { return val * val; };
     auto proj = [](auto&& val) -> decltype(auto) { return val * 2; };
+    auto pred = [](auto&& val) -> decltype(auto) { return val == 5; };
 
     test_range_algo<1>{}(oneapi::dpl::ranges::for_each, std::ranges::for_each, f_mutuable, proj_mutuable);
     test_range_algo<2>{}(oneapi::dpl::ranges::transform, std::ranges::transform, f, proj);
 
-    test_range_algo<1>{}(oneapi::dpl::ranges::find_if, std::ranges::find_if, f, proj);
-    test_range_algo<1>{}(oneapi::dpl::ranges::find_if_not, std::ranges::find_if_not, f, proj);
-    //test_range_algo<1>{}(oneapi::dpl::ranges::find, std::ranges::find, f, proj);
+    test_range_algo<1>{}(oneapi::dpl::ranges::find_if, std::ranges::find_if, pred, proj);
+    test_range_algo<1>{}(oneapi::dpl::ranges::find_if_not, std::ranges::find_if_not, pred, proj);
+    test_range_algo<1>{}(oneapi::dpl::ranges::find, std::ranges::find, 4, proj);
 
 #endif //_ENABLE_STD_RANGES_TESTING
 
