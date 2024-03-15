@@ -508,7 +508,7 @@ struct __usm_host_or_buffer_storage
     __use_USM_host_allocations(sycl::queue __queue)
     {
 // A buffer is used by default. Supporting compilers use the unified future on top of USM host memory or a buffer.
-#if _ONEDPL_SYCL_USM_HOST_PRESENT
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         auto __device = __queue.get_device();
         if (!__device.is_gpu())
             return false;
@@ -538,11 +538,26 @@ struct __usm_host_or_buffer_storage
         }
     }
 
+    template <typename _Acc>
+    static auto
+    __get_usm_host_or_buffer_accessor_ptr(const _Acc& __acc)
+    {
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
+        return __acc.__get_pointer();
+#else
+        return &__acc[0];
+#endif
+    }
+
     auto
     __get_acc(sycl::handler& __cgh)
     {
+#if _ONEDPL_SYCL_UNIFIED_USM_BUFFER_PRESENT
         return __usm ? __usm_host_or_buffer_accessor<_T>(__cgh, __usm_buf.get())
                      : __usm_host_or_buffer_accessor<_T>(__cgh, __sycl_buf.get());
+#else
+        return sycl::accessor(*__sycl_buf.get(), __cgh, sycl::read_write, __dpl_sycl::__no_init{});
+#endif
     }
 
     _T
