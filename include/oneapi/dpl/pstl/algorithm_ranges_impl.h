@@ -38,9 +38,8 @@ template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _
 decltype(auto)
 __pattern_for_each(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
 {
-    using _It = std::ranges::iterator_t<_R>;
     auto __view = std::views::common(::std::forward<_R>(__r));
-    
+
     auto __f_1 = [__f, __proj](auto&& __val) { __f(__proj(__val));};
     
     oneapi::dpl::__internal::__pattern_walk1(__tag, ::std::forward<_ExecutionPolicy>(__exec), __view.begin(),
@@ -52,7 +51,7 @@ __pattern_for_each(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
 decltype(auto)
-__pattern_for_each(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
+__pattern_for_each(_Tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
 {
     return std::ranges::for_each(std::forward<_R>(__r), __f, __proj);
 }
@@ -69,9 +68,6 @@ __pattern_transform(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, 
     assert(__in_r.size() == __out_r.size());
 
     auto __unary_op = [=](auto&& __val) -> decltype(auto) { return __op(__proj(__val));};
-    
-    using _ItIn = std::ranges::iterator_t<_InRange>;
-    using _ItOut = std::ranges::iterator_t<_OutRange>;
 
     auto __view_in = std::views::common(::std::forward<_InRange>(__in_r));
     auto __view_out = std::views::common(::std::forward<_OutRange>(__out_r));
@@ -103,8 +99,6 @@ decltype(auto)
 __pattern_find_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
 {
     auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
-
-    using _It = std::ranges::iterator_t<_R>;
     auto __view = std::views::common(::std::forward<_R>(__r));
 
     return std::ranges::borrowed_iterator_t<_R>(oneapi::dpl::__internal::__pattern_find_if(__tag,
@@ -113,18 +107,20 @@ __pattern_find_if(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 decltype(auto)
-__pattern_find_if(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+__pattern_find_if(_Tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
 {
     return std::ranges::find_if(std::forward<_R>(__r), __pred, __proj);
 }
+
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_any_of
+//---------------------------------------------------------------------------------------------------------------------
 
 template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 bool
 __pattern_any_of(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
 {
     auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
-
-    using _It = std::ranges::iterator_t<_R>;
     auto __view = std::views::common(::std::forward<_R>(__r));
 
     return oneapi::dpl::__internal::__pattern_any_of(__tag, ::std::forward<_ExecutionPolicy>(__exec), __view.begin(),
@@ -133,9 +129,89 @@ __pattern_any_of(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&
 
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 bool
-__pattern_any_of(_Tag __tag, _ExecutionPolicy&&, _R&& __r, _Pred __pred, _Proj __proj)
+__pattern_any_of(_Tag, _ExecutionPolicy&&, _R&& __r, _Pred __pred, _Proj __proj)
 {
     return std::ranges::any_of(std::forward<_R>(__r), __pred, __proj);
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_adjacent_find
+//---------------------------------------------------------------------------------------------------------------------
+
+template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+decltype(auto)
+__pattern_adjacent_find(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred,
+                        _Proj __proj)
+{
+    auto __pred_2 = [__pred, __proj](auto&& __val, auto&& __next) { return __pred(__proj(__val), __proj(__next));};
+    auto __view = std::views::common(::std::forward<_R>(__r));
+
+    auto __res = oneapi::dpl::__internal::__pattern_adjacent_find(__tag, std::forward<_ExecutionPolicy>(__exec),
+        __view.begin(), __view.end(), __pred_2, oneapi::dpl::__internal::__first_semantic());
+    return std::ranges::borrowed_iterator_t<_R>(__res);
+}
+
+template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+decltype(auto)
+__pattern_adjacent_find(_Tag, _ExecutionPolicy&&, _R&& __r, _Pred __pred, _Proj __proj)
+{
+    return std::ranges::adjacent_find(std::forward<_R>(__r), __pred, __proj);
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_search
+//---------------------------------------------------------------------------------------------------------------------
+
+template<typename _IsVector, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
+         typename _Proj2>
+decltype(auto)
+__pattern_search(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred,
+                 _Proj1 __proj1, _Proj2 __proj2)
+{
+    auto __pred_2 = 
+            [__pred, __proj1, __proj2](auto&& __val1, auto&& __val2) { return __pred(__proj1(__val1), __proj2(__val2));};
+
+    auto __view1 = std::views::common(std::forward<_R1>(__r1));
+    auto __view2 = std::views::common(std::forward<_R2>(__r2));
+    
+    auto __res = oneapi::dpl::__internal::__pattern_search(std::forward<_ExecutionPolicy>(__exec), __view1.begin(),
+        __view1.end(), __view2.begin(), __view2.end(), __pred_2);
+
+    return std::ranges::borrowed_subrange_t<_R1>(__res, __res + __r2.size());
+}
+
+template<typename _Tag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
+         typename _Proj2>
+decltype(auto)
+__pattern_search(_Tag, _ExecutionPolicy&&, _R1&& __r1, _R2&& __r2, _Pred __pred, _Proj1 __proj1, _Proj2 __proj2)
+{
+    return std::ranges::search(std::forward<_R1>(__r1), std::forward<_R2>(__r2), __pred, __proj1, __proj2);
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// pattern_search_n
+//---------------------------------------------------------------------------------------------------------------------
+
+template<typename _IsVector, typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj>
+decltype(auto)
+__pattern_search_n(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r,
+                   std::ranges::range_difference_t<_R> __count, const _T& __value, _Pred __pred, _Proj __proj)
+{
+    auto __pred_2 = [__pred, __proj, __value](auto&& __val1, auto&& __val2) { return __pred(__proj(__val1), __val2);};
+    auto __view = std::views::common(::std::forward<_R>(__r));
+
+    auto __res = oneapi::dpl::__internal::__pattern_search_n(
+        std::forward<_ExecutionPolicy>(__exec), __view.begin(), __view.end(), __count, __value, __pred_2);
+
+    return std::ranges::borrowed_subrange_t<_R>(__res, __res + __count);
+}
+
+template<typename _Tag, typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj>
+decltype(auto)
+__pattern_search_n(_Tag, _ExecutionPolicy&&, _R&& __r, std::ranges::range_difference_t<_R> __count, const _T& __value,
+        _Pred __pred, _Proj __proj)
+{
+    return std::ranges::search_n(std::forward<_R>(__r), __count, __value, __pred, __proj);
 }
 
 } // namespace __ranges

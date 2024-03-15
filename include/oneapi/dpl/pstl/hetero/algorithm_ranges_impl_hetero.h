@@ -174,8 +174,10 @@ decltype(auto)
 __pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
 {
     auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
-    return oneapi::dpl::__internal::__ranges::__pattern_find_if(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+    auto __idx = oneapi::dpl::__internal::__ranges::__pattern_find_if(__tag, ::std::forward<_ExecutionPolicy>(__exec),
         oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __pred_1);
+
+    return std::ranges::borrowed_iterator_t<_R>(__r.begin() + __idx);
 }
 
 //------------------------------------------------------------------------
@@ -298,6 +300,22 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
         _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
 }
 
+template<typename _BackendTag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
+         typename _Proj2>
+decltype(auto)
+__pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred,
+                 _Proj1 __proj1, _Proj2 __proj2)
+{
+    auto __pred_2 = 
+            [__pred, __proj1, __proj2](auto&& __val1, auto&& __val2) { return __pred(__proj1(__val1), __proj2(__val2));};
+
+    auto __idx = oneapi::dpl::__internal::__ranges::__pattern_search(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::views::all_read(::std::forward<_R1>(__r1)), oneapi::dpl::views::all_read(::std::forward<_R2>(__r2)),
+        __pred_2);
+
+    return std::ranges::borrowed_subrange_t<_R1>(__r1.begin() + __idx, __r1.begin() + __idx + __r2.size());
+}
+
 //------------------------------------------------------------------------
 // search_n
 //------------------------------------------------------------------------
@@ -315,6 +333,18 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
 
     return __ranges::__pattern_search(__tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
                                       __s_rng, __pred);
+}
+
+template<typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj>
+decltype(auto)
+__pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r,
+                   std::ranges::range_difference_t<_R> __count, const _T& __value, _Pred __pred, _Proj __proj)
+{
+    auto __pred_2 = [__pred, __proj, __value](auto&& __val1, auto&& __val2) { return __pred(__proj(__val1), __val2);};
+    auto __idx = oneapi::dpl::__internal::__ranges::__pattern_search_n(__tag, std::forward<_ExecutionPolicy>(__exec),
+        oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __count, __value, __pred_2);
+
+    return std::ranges::borrowed_subrange_t<_R>(__r.begin() + __idx, __r.begin() + __idx + __count);
 }
 
 template <typename _Size>
@@ -362,6 +392,20 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
     // inverted conditional because of
     // reorder_predicate in glue_algorithm_impl.h
     return return_value(result, __rng.size(), __is__or_semantic);
+}
+
+template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+decltype(auto)
+__pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred,
+                        _Proj __proj)
+{
+    auto __pred_2 = [__pred, __proj](auto&& __val, auto&& __next) { return __pred(__proj(__val), __proj(__next));};
+
+    auto __idx =  oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(__tag,
+        std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::views::all_read(std::forward<_R>(__r)), __pred_2,
+        oneapi::dpl::__internal::__first_semantic());
+
+    return std::ranges::borrowed_iterator_t<_R>(__r.begin() + __idx);
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Predicate>
