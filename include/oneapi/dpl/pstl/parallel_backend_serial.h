@@ -32,8 +32,8 @@ namespace dpl
 namespace __serial_backend
 {
 
-template <typename _ExecutionPolicy, typename _Tp>
-using __buffer = __buffer_impl<::std::decay_t<_ExecutionPolicy>, _Tp>;
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
+using __buffer = __buffer_impl<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _Tp>;
 
 inline void
 __cancel_execution(oneapi::dpl::__internal::__serial_backend_tag)
