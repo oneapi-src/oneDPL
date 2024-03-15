@@ -251,6 +251,15 @@ __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& 
         _Predicate{__pred}, oneapi::dpl::__par_backend_hetero::__parallel_or_tag{}, ::std::forward<_Range>(__rng));
 }
 
+template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+bool
+__pattern_any_of(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
+{
+    auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
+    return oneapi::dpl::__internal::__ranges::__pattern_any_of(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+                oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __pred_1);
+}
+
 //------------------------------------------------------------------------
 // search
 //------------------------------------------------------------------------

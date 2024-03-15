@@ -76,7 +76,8 @@ inline constexpr transform_fn transform;
 
 struct find_if_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
     constexpr decltype(auto)
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
     {
@@ -92,7 +93,8 @@ inline constexpr find_if_fn find_if;
 
 struct find_if_not_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
     constexpr decltype(auto)
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
     {
@@ -108,7 +110,8 @@ inline constexpr find_if_not_fn find_if_not;
 
 struct find_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj>
+    template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj,
+        oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
     constexpr decltype(auto)
     operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj) const
     {
@@ -120,46 +123,46 @@ struct find_fn
 
 inline constexpr find_fn find;
 
-template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-any_of_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
+struct any_of_fn
 {
-    auto __pred_1 = [__pred, __proj](auto&& __val) { return __pred(__proj(__val));};
-
-    if constexpr(!oneapi::dpl::__internal::__is_host_execution_policy<::std::decay_t<_ExecutionPolicy>>::value)
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
     {
-        return oneapi::dpl::__internal::__ranges::__pattern_any_of(::std::forward<_ExecutionPolicy>(__exec),
-            oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __pred_1);
+        const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
+        return oneapi::dpl::__internal::__ranges::__pattern_any_of(__dispatch_tag,
+            std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
     }
-    else
+}; //any_of_fn
+
+inline constexpr any_of_fn any_of;
+
+struct all_of_fn
+{
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
     {
-        using _It = std::ranges::iterator_t<_R>;
-        auto __view = std::views::common(::std::forward<_R>(__r));
-
-        return oneapi::dpl::__internal::__pattern_any_of(::std::forward<_ExecutionPolicy>(__exec), __view.begin(),
-            __view.end(), __pred_1,
-            oneapi::dpl::__internal::__is_vectorization_preferred<_ExecutionPolicy, _It>(__exec),
-            oneapi::dpl::__internal::__is_parallelization_preferred<_ExecutionPolicy, _It>(__exec));
+        return !oneapi::dpl::ranges::any_of(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
+            oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Pred>>(__pred),
+            __proj);
     }
-}
+}; //all_of_fn
 
-template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-all_of_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
-{
-    return !oneapi::dpl::ranges::any_of(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
-        oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__ref_or_copy<_ExecutionPolicy, _Pred>>(__pred),
-        __proj);
-}
+inline constexpr all_of_fn all_of;
 
-template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
-constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
-none_of_fn::operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
+struct none_of_fn
 {
-    return !oneapi::dpl::ranges::any_of(::std::forward<_ExecutionPolicy>(__exec),
-        oneapi::dpl::views::all_read(::std::forward<_R>(__r)),
-        [__pred, __proj](auto&& __val) { return __pred(__proj(__val));});
-}
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
+    constexpr oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, bool>
+    operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
+    {
+        return !oneapi::dpl::ranges::any_of(::std::forward<_ExecutionPolicy>(__exec),
+            oneapi::dpl::views::all_read(::std::forward<_R>(__r)), __pred, __proj);
+    }
+}; //none_of_fn
+
+inline constexpr none_of_fn none_of;
 
 } //ranges
 #endif
