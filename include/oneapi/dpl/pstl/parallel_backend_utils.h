@@ -32,7 +32,7 @@ namespace __utils
 // raw buffer (with specified _TAllocator)
 //------------------------------------------------------------------------
 
-template <typename _ExecutionPolicy, typename _Tp, template <typename _T> typename _TAllocator>
+template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp, template <typename _T> typename _TAllocator>
 class __buffer_impl
 {
     _TAllocator<_Tp> _M_allocator;
