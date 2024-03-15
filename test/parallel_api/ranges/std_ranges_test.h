@@ -52,7 +52,8 @@ struct test
         operator()(oneapi::dpl::execution::par_unseq, algo, args...);
     }
 
-    template<typename Policy, typename Algo, typename Checker, typename FunctorOrVal, typename Proj = std::identity, typename Transform = std::identity>
+    template<typename Policy, typename Algo, typename Checker, typename FunctorOrVal, typename Proj = std::identity,
+             typename Transform = std::identity>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && Ranges == 1>
     operator()(Policy&& exec, Algo algo, Checker checker, FunctorOrVal f, Proj proj = {}, Transform tr = {})
     {
@@ -68,6 +69,8 @@ struct test
 
             auto res = algo(exec, tr(A), f, proj);
 
+            static_assert(std::is_same_v<decltype(res), decltype(checker(tr(A), f, proj))>, "Wrong return type.");
+
             auto bres = ret_in_val(expected_res, expected_view.begin()) == ret_in_val(res, tr(A).begin());
             if(!bres) std::cout << typeid(Algo).name() <<": ";
             EXPECT_TRUE(bres, "wrong return value from algo with ranges");
@@ -77,7 +80,8 @@ struct test
         EXPECT_EQ_N(expected, data, max_n, "wrong effect algo with ranges");
     }
 
-    template<typename Policy, typename Algo, typename Checker, typename Functor, typename Proj = std::identity, typename Transform = std::identity>
+    template<typename Policy, typename Algo, typename Checker, typename Functor, typename Proj = std::identity,
+             typename Transform = std::identity>
     std::enable_if_t<!std::is_same_v<Policy, std::true_type> && Ranges == 2>
     operator()(Policy&& exec, Algo algo, Checker checker, Functor f, Proj proj = {}, Transform tr = {})
     {
@@ -96,6 +100,9 @@ struct test
             typename Container::type& B = cont_out();
 
             auto res = algo(exec, tr(A), tr(B), f, proj);
+
+            static_assert(std::is_same_v<decltype(res),
+                decltype(checker(tr(A), tr(B), f, proj))>, "Wrong return type.");
 
             auto bres_in = ret_in_val(expected_res, src_view.begin()) == ret_in_val(res, tr(A).begin());
             if(!bres_in) std::cout << typeid(Algo).name() <<": ";
