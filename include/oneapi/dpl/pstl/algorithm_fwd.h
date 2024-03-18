@@ -71,9 +71,9 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Fun
 void
 __pattern_walk1(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Function) noexcept;
 
-template <class _ExecutionPolicy, class _RandomAccessIterator, class _Function>
+template <class _ExecutionPolicy, class _ForwardIterator, class _Function>
 void
-__pattern_walk1(__parallel_forward_tag, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Function);
+__pattern_walk1(__parallel_forward_tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Function);
 
 template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator, class _Function>
 void
