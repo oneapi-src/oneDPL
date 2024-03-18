@@ -718,11 +718,11 @@ struct __spirv_target_conditional :
 inline constexpr bool __is_spirv_target_v = __spirv_target_conditional<::std::true_type, ::std::false_type>::value;
 
 // Lower bound implementation based on Shar's algorithm for binary search.
-template <typename _Acc, typename _Size1, typename _Value, typename _Compare,
-          ::std::enable_if_t<::std::is_unsigned_v<_Size1>, int> = 0>
+template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
 _Size1
 __shars_lower_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
 {
+    static_assert(::std::is_unsigned_v<_Size1>, "__shars_lower_bound requires an unsigned size type");
     _Size1 __n = __last - __first;
     if (__n == 0)
         return __first;
