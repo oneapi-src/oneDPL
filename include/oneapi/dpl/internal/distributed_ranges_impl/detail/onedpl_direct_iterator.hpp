@@ -6,7 +6,7 @@
 
 #include <iterator>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/iterator_adaptor.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
 
 namespace dr {
 

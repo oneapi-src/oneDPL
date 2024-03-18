@@ -6,11 +6,11 @@
 
 #include <vector>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//concepts/concepts.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/iterator_adaptor.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/ranges.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/segments_tools.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/device_span.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_span.hpp>
 
 namespace dr::shp {
 

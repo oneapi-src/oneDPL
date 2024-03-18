@@ -4,5 +4,5 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/algorithms/matrix/gemm.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/algorithms/matrix/gemv.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/matrix/gemm.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/matrix/gemv.hpp>

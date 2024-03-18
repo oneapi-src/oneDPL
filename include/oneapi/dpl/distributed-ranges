@@ -17,7 +17,7 @@
 #if defined(ONEDPL_USE_DISTRIBUTED_RANGES)
 #include "oneapi/dpl/internal/distributed_ranges_impl/shp.hpp"
 #else
-#error "Compiler does not support Distributed Ranges"
+#error "C++20 required to use Distributed Ranges"
 #endif
 
 #endif /* _ONEDPL_DISTRIBUTED_RANGES */

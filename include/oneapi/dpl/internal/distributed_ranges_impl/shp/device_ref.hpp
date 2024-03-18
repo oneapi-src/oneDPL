@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/init.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
 #include <sycl/sycl.hpp>
 #include <type_traits>
 

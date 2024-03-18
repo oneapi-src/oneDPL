@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/ranges.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges.hpp>
 
 namespace dr {
 

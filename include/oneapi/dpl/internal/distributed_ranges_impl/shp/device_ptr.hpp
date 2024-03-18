@@ -8,7 +8,7 @@
 
 #include <sycl/sycl.hpp>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/device_ref.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_ref.hpp>
 
 namespace dr::shp {
 

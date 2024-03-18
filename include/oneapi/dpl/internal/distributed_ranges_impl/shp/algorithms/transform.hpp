@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/detail.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/init.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/util.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/detail.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
 
 namespace dr::shp {
 

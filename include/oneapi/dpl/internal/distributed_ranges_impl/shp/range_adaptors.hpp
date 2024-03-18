@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/views/standard_views.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/zip_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/standard_views.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/zip_view.hpp>
 
 namespace dr::shp {
 

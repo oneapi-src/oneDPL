@@ -4,16 +4,16 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/index.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/algorithms/copy.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/matrix_entry.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/matrix_partition.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/device_vector.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/distributed_span.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/init.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/util/generate_random.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/views/csr_matrix_view.hpp>
 #include <iterator>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/index.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/copy.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/matrix_entry.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/matrix_partition.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_vector.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/distributed_span.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/util/generate_random.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/csr_matrix_view.hpp>
 
 namespace dr::shp {
 

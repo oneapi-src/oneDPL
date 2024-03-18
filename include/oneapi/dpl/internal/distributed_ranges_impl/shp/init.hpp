@@ -11,9 +11,9 @@
 #include <type_traits>
 #include <vector>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/algorithms/execution_policy.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/util.hpp>
 #include <oneapi/dpl/execution>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/execution_policy.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
 
 namespace dr::shp {
 
