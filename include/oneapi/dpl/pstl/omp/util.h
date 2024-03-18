@@ -41,6 +41,18 @@ namespace oneapi
 {
 namespace dpl
 {
+namespace __internal
+{
+//------------------------------------------------------------------------
+// Buffer allocators
+//------------------------------------------------------------------------
+template <typename _T>
+constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__omp_backend_tag)
+{
+    return ::std::allocator<_T>{};
+}
+}; // namespace __internal
+
 namespace __omp_backend
 {
 
@@ -57,8 +69,12 @@ __cancel_execution(oneapi::dpl::__internal::__omp_backend_tag)
 // raw buffer
 //------------------------------------------------------------------------
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp>
-using __buffer = __buffer_impl_host<typename _BackendTag, ::std::decay_t<_ExecutionPolicy>, _Tp>;
+template <typename _BackendOrDispatchTag, typename _ExecutionPolicy, typename _Tp,
+          typename _TAllocator =
+              decltype(oneapi::dpl::__internal::__get_buffer_allocator<_Tp>(::std::declval<_BackendOrDispatchTag>()))>
+using __buffer = oneapi::dpl::__utils::__buffer_impl_host<::std::decay_t<_ExecutionPolicy>, _Tp, _TAllocator>;
+
+//------------------------------------------------------------------------
 
 // Preliminary size of each chunk: requires further discussion
 constexpr std::size_t __default_chunk_size = 2048;

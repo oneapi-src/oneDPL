@@ -45,8 +45,6 @@ pattern_inclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
 {
     static_assert(__internal::__is_host_dispatch_tag_v<_Tag>);
 
-    using __buffer_backend_tag = typename __internal::__buffer_backend_tag_type<_Tag>::type;
-
     const auto n = ::std::distance(first1, last1);
 
     // Check for empty and single element ranges
@@ -61,7 +59,7 @@ pattern_inclusive_scan_by_segment(_Tag, Policy&& policy, InputIterator1 first1, 
     typedef unsigned int FlagType;
     typedef typename ::std::iterator_traits<InputIterator2>::value_type ValueType;
 
-    oneapi::dpl::__par_backend::__buffer<__buffer_backend_tag, Policy, FlagType> _mask(policy, n);
+    oneapi::dpl::__par_backend::__buffer<_Tag, Policy, FlagType> _mask(policy, n);
     auto mask = _mask.get();
 
     mask[0] = 1;
