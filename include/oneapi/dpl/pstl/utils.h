@@ -406,72 +406,7 @@ __cmp_iterators_by_values(_ForwardIterator __a, _ForwardIterator __b, _Compare _
     }
 }
 
-//-----------------------------------------------------------------------
-// Generic bit- and number-manipulation routines
-//-----------------------------------------------------------------------
-
-// Bitwise type casting, same as C++20 std::bit_cast
-template <typename _Dst, typename _Src>
-::std::enable_if_t<
-    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
-__dpl_bit_cast(const _Src& __src) noexcept
-{
-#if __cpp_lib_bit_cast >= 201806L
-    return ::std::bit_cast<_Dst>(__src);
-#elif _ONEDPL_BACKEND_SYCL && _ONEDPL_LIBSYCL_VERSION >= 50300
-    return sycl::bit_cast<_Dst>(__src);
-#elif __has_builtin(__builtin_bit_cast)
-    return __builtin_bit_cast(_Dst, __src);
-#else
-    _Dst __result;
-    ::std::memcpy(&__result, &__src, sizeof(_Dst));
-    return __result;
-#endif
-}
-
-// The max power of 2 not exceeding the given value, same as C++20 std::bit_floor
-template <typename _T>
-::std::enable_if_t<::std::is_integral_v<_T> && ::std::is_unsigned_v<_T>, _T>
-__dpl_bit_floor(_T __x) noexcept
-{
-    if (__x == 0)
-        return 0;
-#if __cpp_lib_int_pow2 >= 202002L
-    return ::std::bit_floor(__x);
-#elif _ONEDPL_BACKEND_SYCL
-    // Use the count-leading-zeros function
-    return _T{1} << (sizeof(_T) * CHAR_BIT - sycl::clz(__x) - 1);
-#else
-    // Fill all the lower bits with 1s
-    __x |= (__x >> 1);
-    __x |= (__x >> 2);
-    __x |= (__x >> 4);
-    if constexpr (sizeof(_T) > 1) __x |= (__x >> 8);
-    if constexpr (sizeof(_T) > 2) __x |= (__x >> 16);
-    if constexpr (sizeof(_T) > 4) __x |= (__x >> 32);
-    __x += 1; // Now it equals to the next greater power of 2, or 0 in case of wraparound
-    return (__x == 0) ? _T{1} << (sizeof(_T) * CHAR_BIT - 1) : __x >> 1;
-#endif
-}
-
-// The max power of 2 not smaller than the given value, same as C++20 std::bit_ceil
-template <typename _T>
-::std::enable_if_t<::std::is_integral_v<_T> && ::std::is_unsigned_v<_T>, _T>
-__dpl_bit_ceil(_T __x) noexcept
-{
-    return ((__x & (__x - 1)) != 0) ? __dpl_bit_floor(__x) << 1 : __x;
-}
-
-// rounded up result of (__number / __divisor)
-template <typename _T1, typename _T2>
-constexpr auto
-__dpl_ceiling_div(_T1 __number, _T2 __divisor)
-{
-    return (__number - 1) / __divisor + 1;
-}
-
-template <typename _Acc, typename _Size1, typename _Value, typename _Compare,
-          ::std::enable_if_t<!::std::is_unsigned_v<_Size1>, int> = 0>
+template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
 _Size1
 __pstl_lower_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
 {
@@ -491,30 +426,6 @@ __pstl_lower_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __va
             __n = __cur;
     }
     return __first;
-}
-
-template <typename _Acc, typename _Size1, typename _Value, typename _Compare,
-          ::std::enable_if_t<::std::is_unsigned_v<_Size1>, int> = 0>
-_Size1
-__pstl_lower_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
-{
-    _Size1 __n = __last - __first;
-    if (__n == 0)
-        return __first;
-    _Size1 __cur_pow2 = __dpl_bit_floor(__n);
-    // Check the middle element to determine if we should search the first or last
-    // 2^(bit_floor(__n)) - 1 elements.
-    _Size1 __shifted_first = __comp(__acc[__n / 2], __value) ? __n + 1 - __cur_pow2 : __first;
-    // Check descending powers of two. If __comp(__acc[__search_idx], __pow) holds for a __cur_pow2, then its
-    // bit must be set in the result.
-    _Size1 __search_offset{0};
-    for (__cur_pow2 /= 2; __cur_pow2 > 0; __cur_pow2 /= 2)
-    {
-        _Size1 __search_idx = __shifted_first + (__search_offset | __cur_pow2) - 1;
-        if (__comp(__acc[__search_idx], __value))
-            __search_offset |= __cur_pow2;
-    }
-    return __shifted_first + __search_offset;
 }
 
 template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
@@ -694,6 +605,70 @@ struct __lifetime_keeper : public __lifetime_keeper_base
     __lifetime_keeper(Ts... __t) : __my_tmps(::std::make_tuple(__t...)) {}
 };
 
+//-----------------------------------------------------------------------
+// Generic bit- and number-manipulation routines
+//-----------------------------------------------------------------------
+
+// Bitwise type casting, same as C++20 std::bit_cast
+template <typename _Dst, typename _Src>
+::std::enable_if_t<
+    sizeof(_Dst) == sizeof(_Src) && ::std::is_trivially_copyable_v<_Dst> && ::std::is_trivially_copyable_v<_Src>, _Dst>
+__dpl_bit_cast(const _Src& __src) noexcept
+{
+#if __cpp_lib_bit_cast >= 201806L
+    return ::std::bit_cast<_Dst>(__src);
+#elif _ONEDPL_BACKEND_SYCL && _ONEDPL_LIBSYCL_VERSION >= 50300
+    return sycl::bit_cast<_Dst>(__src);
+#elif __has_builtin(__builtin_bit_cast)
+    return __builtin_bit_cast(_Dst, __src);
+#else
+    _Dst __result;
+    ::std::memcpy(&__result, &__src, sizeof(_Dst));
+    return __result;
+#endif
+}
+
+// The max power of 2 not exceeding the given value, same as C++20 std::bit_floor
+template <typename _T>
+::std::enable_if_t<::std::is_integral_v<_T> && ::std::is_unsigned_v<_T>, _T>
+__dpl_bit_floor(_T __x) noexcept
+{
+    if (__x == 0)
+        return 0;
+#if __cpp_lib_int_pow2 >= 202002L
+    return ::std::bit_floor(__x);
+#elif _ONEDPL_BACKEND_SYCL
+    // Use the count-leading-zeros function
+    return _T{1} << (sizeof(_T) * CHAR_BIT - sycl::clz(__x) - 1);
+#else
+    // Fill all the lower bits with 1s
+    __x |= (__x >> 1);
+    __x |= (__x >> 2);
+    __x |= (__x >> 4);
+    if constexpr (sizeof(_T) > 1) __x |= (__x >> 8);
+    if constexpr (sizeof(_T) > 2) __x |= (__x >> 16);
+    if constexpr (sizeof(_T) > 4) __x |= (__x >> 32);
+    __x += 1; // Now it equals to the next greater power of 2, or 0 in case of wraparound
+    return (__x == 0) ? _T{1} << (sizeof(_T) * CHAR_BIT - 1) : __x >> 1;
+#endif
+}
+
+// The max power of 2 not smaller than the given value, same as C++20 std::bit_ceil
+template <typename _T>
+::std::enable_if_t<::std::is_integral_v<_T> && ::std::is_unsigned_v<_T>, _T>
+__dpl_bit_ceil(_T __x) noexcept
+{
+    return ((__x & (__x - 1)) != 0) ? __dpl_bit_floor(__x) << 1 : __x;
+}
+
+// rounded up result of (__number / __divisor)
+template <typename _T1, typename _T2>
+constexpr auto
+__dpl_ceiling_div(_T1 __number, _T2 __divisor)
+{
+    return (__number - 1) / __divisor + 1;
+}
+
 // TODO In C++20 we may try to use std::equality_comparable
 template <typename _Iterator1, typename _Iterator2, typename = void>
 struct __is_equality_comparable : std::false_type
@@ -741,6 +716,41 @@ struct __spirv_target_conditional :
 // Trait that has a true value if _ONEDPL_DETECT_SPIRV_COMPILATION is set and false otherwise. This may be used within kernels
 // to determine SPIR-V targets.
 inline constexpr bool __is_spirv_target_v = __spirv_target_conditional<::std::true_type, ::std::false_type>::value;
+
+// Lower bound implementation based on Shar's algorithm for binary search.
+template <typename _Acc, typename _Size1, typename _Value, typename _Compare,
+          ::std::enable_if_t<::std::is_unsigned_v<_Size1>, int> = 0>
+_Size1
+__shars_lower_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
+{
+    _Size1 __n = __last - __first;
+    if (__n == 0)
+        return __first;
+    _Size1 __cur_pow2 = __dpl_bit_floor(__n);
+    _Size1 __midpoint = __n / 2;
+    // Check the middle element to determine if we should search the first or last
+    // 2^(bit_floor(__n)) - 1 elements.
+    _Size1 __shifted_first = __comp(__acc[__midpoint], __value) ? __n + 1 - __cur_pow2 : __first;
+    // Check descending powers of two. If __comp(__acc[__search_idx], __pow) holds for a __cur_pow2, then its
+    // bit must be set in the result.
+    _Size1 __search_offset{0};
+    for (__cur_pow2 /= 2; __cur_pow2 > 0; __cur_pow2 /= 2)
+    {
+        _Size1 __search_idx = __shifted_first + (__search_offset | __cur_pow2) - 1;
+        if (__comp(__acc[__search_idx], __value))
+            __search_offset |= __cur_pow2;
+    }
+    return __shifted_first + __search_offset;
+}
+
+template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
+_Size1
+__shars_upper_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
+{
+    return __pstl_lower_bound(__acc, __first, __last, __value,
+                              oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<_Compare>>{
+                                  oneapi::dpl::__internal::__reorder_pred<_Compare>{__comp}});
+}
 
 } // namespace __internal
 } // namespace dpl
