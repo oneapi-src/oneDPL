@@ -75,9 +75,9 @@ template <class _ExecutionPolicy, class _ForwardIterator, class _Function>
 void
 __pattern_walk1(__parallel_forward_tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Function);
 
-template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator, class _Function>
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Function>
 void
-__pattern_walk1(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Function);
+__pattern_walk1(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator, _Function);
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Brick>
 void
@@ -298,9 +298,10 @@ template <class _Tag, class _ExecutionPolicy, class _ForwardIterator, class _Pre
 _ForwardIterator
 __pattern_find_if(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Predicate) noexcept;
 
-template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator, class _Predicate>
-_ForwardIterator
-__pattern_find_if(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator, _Predicate);
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator, class _Predicate>
+_RandomAccessIterator
+__pattern_find_if(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                  _Predicate);
 
 //------------------------------------------------------------------------
 // find_end
@@ -346,11 +347,11 @@ _ForwardIterator1
 __pattern_find_first_of(_Tag, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _ForwardIterator2,
                         _ForwardIterator2, _BinaryPredicate) noexcept;
 
-template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2,
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
           class _BinaryPredicate>
-_ForwardIterator1
-__pattern_find_first_of(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1,
-                        _ForwardIterator2, _ForwardIterator2, _BinaryPredicate);
+_RandomAccessIterator1
+__pattern_find_first_of(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1, _RandomAccessIterator1,
+                        _RandomAccessIterator2, _RandomAccessIterator2, _BinaryPredicate);
 
 //------------------------------------------------------------------------
 // search
@@ -1231,10 +1232,12 @@ bool
 __pattern_lexicographical_compare(_Tag, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1, _ForwardIterator2,
                                   _ForwardIterator2, _Compare) noexcept;
 
-template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Compare>
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator1, class _RandomAccessIterator2,
+          class _Compare>
 bool
-__pattern_lexicographical_compare(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _ForwardIterator1, _ForwardIterator1,
-                                  _ForwardIterator2, _ForwardIterator2, _Compare) noexcept;
+__pattern_lexicographical_compare(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator1,
+                                  _RandomAccessIterator1, _RandomAccessIterator2, _RandomAccessIterator2,
+                                  _Compare) noexcept;
 
 template <class _Tag, class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _Function>
 _ForwardIterator2
@@ -1259,10 +1262,10 @@ _ForwardIterator
 __pattern_shift_left(_Tag, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
                      typename ::std::iterator_traits<_ForwardIterator>::difference_type) noexcept;
 
-template <class _IsVector, class _ExecutionPolicy, class _ForwardIterator>
-_ForwardIterator
-__pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _ForwardIterator, _ForwardIterator,
-                     typename ::std::iterator_traits<_ForwardIterator>::difference_type);
+template <class _IsVector, class _ExecutionPolicy, class _RandomAccessIterator>
+_RandomAccessIterator
+__pattern_shift_left(__parallel_tag<_IsVector>, _ExecutionPolicy&&, _RandomAccessIterator, _RandomAccessIterator,
+                     typename ::std::iterator_traits<_RandomAccessIterator>::difference_type);
 
 //------------------------------------------------------------------------
 // shift_right
