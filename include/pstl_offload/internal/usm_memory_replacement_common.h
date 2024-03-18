@@ -146,7 +146,6 @@ inline void*
 __realloc_real_pointer(void* __user_ptr, std::size_t __new_size)
 {
     assert(__user_ptr != nullptr);
-    __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
 
     if (!__new_size)
     {
@@ -155,6 +154,7 @@ __realloc_real_pointer(void* __user_ptr, std::size_t __new_size)
     }
 
     void* __result = nullptr;
+    __block_header* __header = static_cast<__block_header*>(__user_ptr) - 1;
 
     if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
     {
@@ -216,7 +216,7 @@ __aligned_realloc_real_pointer(void* __user_ptr, std::size_t __new_size, std::si
 
     if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
     {
-        if (__header->_M_requested_number_of_bytes == __new_size && (std::uintptr_t)__user_ptr % __alignment == 0)
+        if (__header->_M_requested_number_of_bytes >= __new_size && (std::uintptr_t)__user_ptr % __alignment == 0)
         {
             __result = __user_ptr;
         }

@@ -297,12 +297,22 @@ __internal_expand(void* /*__user_ptr*/, std::size_t /*__size*/)
     return nullptr;
 }
 
+
+struct __system_info
+{
+    SYSTEM_INFO _M_si;
+    __system_info()
+    {
+        GetSystemInfo(&_M_si);
+    }
+};
+
 std::size_t
 __get_page_size()
 {
-    SYSTEM_INFO __si;
-    GetSystemInfo(&__si);
-    return __si.dwPageSize;
+    static __system_info __info;
+
+    return __info._M_si.dwPageSize;
 }
 
 static bool
