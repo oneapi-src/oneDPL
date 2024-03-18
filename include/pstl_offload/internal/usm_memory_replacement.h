@@ -26,6 +26,7 @@
 #include "usm_memory_replacement_common.h"
 
 #if _WIN64
+#include <corecrt.h>
 #    pragma comment(lib, "pstloffload.lib")
 #endif
 
@@ -160,17 +161,8 @@ __errno_handling_internal_aligned_alloc(std::size_t __size, std::size_t __alignm
 }
 
 static void*
-__internal_operator_new(std::size_t __size, std::size_t __alignment, bool __ext_alignment_requested)
+__internal_operator_new(std::size_t __size, std::size_t __alignment)
 {
-    // According to C++ standard "an alignment is ... the number of bytes between successive
-    // addresses at which a given object can be allocated", so zero alignment is invalid.
-    // Zero as __alignment value means that malloc (not aligned allocation) must be called
-    // in nested calls, this distinction is vital for Windows.
-    if (__ext_alignment_requested && !__alignment)
-    {
-        throw std::bad_alloc{};
-    }
-
     void* __res = __internal_aligned_alloc(__size, __alignment);
 
     while (__res == nullptr)
@@ -191,18 +183,31 @@ __internal_operator_new(std::size_t __size, std::size_t __alignment, bool __ext_
 }
 
 static void*
-__internal_operator_new(std::size_t __size, std::size_t __alignment, bool __ext_alignment_requested,
-                        const std::nothrow_t&) noexcept
+__internal_operator_new(std::size_t __size, std::size_t __alignment, const std::nothrow_t&) noexcept
 {
     void* __res = nullptr;
     try
     {
-        __res = __internal_operator_new(__size, __alignment, __ext_alignment_requested);
+        __res = __internal_operator_new(__size, __alignment);
     }
     catch (...)
     {
     }
     return __res;
+}
+
+static bool
+__verify_aligned_new_param(std::size_t __alignment)
+{
+    if (!__is_power_of_two(__alignment))
+    {
+#if _WIN64
+        errno = EINVAL;
+        _invalid_parameter_noinfo();
+#endif
+        return false;
+    }
+    return true;
 }
 
 } // namespace __pstl_offload
@@ -336,51 +341,53 @@ inline void* __attribute__((always_inline)) _aligned_realloc(void* __ptr, std::s
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size)
 {
-    return ::__pstl_offload::__internal_operator_new(__size, 0, /*__ext_alignment_requested=*/false);
+    return ::__pstl_offload::__internal_operator_new(__size, 0);
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size)
 {
-    return ::__pstl_offload::__internal_operator_new(__size, 0, /*__ext_alignment_requested=*/false);
+    return ::__pstl_offload::__internal_operator_new(__size, 0);
 }
 
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size, const std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, 0, /*__ext_alignment_requested=*/false, std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, 0, std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size, const std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, 0, /*__ext_alignment_requested=*/false, std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, 0, std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size, std::align_val_t __al)
 {
-    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), /*__ext_alignment_requested=*/true);
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al))) throw std::bad_alloc();
+    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al));
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size, std::align_val_t __al)
 {
-    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), /*__ext_alignment_requested=*/true);
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al))) throw std::bad_alloc();
+    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al));
 }
 
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), /*__ext_alignment_requested=*/true,
-                                                     std::nothrow);
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al))) return nullptr;
+    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), /*__ext_alignment_requested=*/true,
-                                                     std::nothrow);
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al))) return nullptr;
+    return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), std::nothrow);
 }
 
 #pragma GCC diagnostic pop
