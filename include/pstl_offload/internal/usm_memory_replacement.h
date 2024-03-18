@@ -134,8 +134,8 @@ __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
     {
         // note size/alignment args order for aligned allocation between Windows/Linux
 #if _WIN64
-        // Under Windows, memory with extended alignment must not be released by free() function,
-        // so have to use malloc() for non-extended alignment allocations.
+        // Under Windows, memory with explicitely set alignment must not be released by free() function,
+        // but rather with _aligned_free(), so have to use malloc() for non-extended alignment allocations.
         __res = __alignment ? __original_aligned_alloc(__alignment, __size) : __original_malloc(__size);
 #else
         __res = __original_aligned_alloc(__size, __alignment ? __alignment : alignof(std::max_align_t));
