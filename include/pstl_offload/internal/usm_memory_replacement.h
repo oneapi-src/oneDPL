@@ -26,7 +26,7 @@
 #include "usm_memory_replacement_common.h"
 
 #if _WIN64
-#include <corecrt.h>
+#    include <corecrt.h>
 #    pragma comment(lib, "pstloffload.lib")
 #endif
 
@@ -134,7 +134,7 @@ __internal_aligned_alloc(std::size_t __size, std::size_t __alignment)
     {
         // note size/alignment args order for aligned allocation between Windows/Linux
 #if _WIN64
-        // Under Windows, memory with explicitely set alignment must not be released by free() function,
+        // Under Windows, memory with explicitly set alignment must not be released by free() function,
         // but rather with _aligned_free(), so have to use malloc() for non-extended alignment allocations.
         __res = __alignment ? __original_aligned_alloc(__alignment, __size) : __original_malloc(__size);
 #else
@@ -365,28 +365,40 @@ operator new[](std::size_t __size, const std::nothrow_t&) noexcept
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size, std::align_val_t __al)
 {
-    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al))) throw std::bad_alloc();
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al)))
+    {
+        throw std::bad_alloc();
+    }
     return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al));
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size, std::align_val_t __al)
 {
-    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al))) throw std::bad_alloc();
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al)))
+    {
+        throw std::bad_alloc();
+    }
     return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al));
 }
 
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept
 {
-    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al))) return nullptr;
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al)))
+    {
+        return nullptr;
+    }
     return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size, std::align_val_t __al, const std::nothrow_t&) noexcept
 {
-    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al))) return nullptr;
+    if (!::__pstl_offload::__verify_aligned_new_param(std::size_t(__al)))
+    {
+        return nullptr;
+    }
     return ::__pstl_offload::__internal_operator_new(__size, std::size_t(__al), std::nothrow);
 }
 
