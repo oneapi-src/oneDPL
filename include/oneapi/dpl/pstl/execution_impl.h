@@ -73,7 +73,7 @@ using __parallel_policy_tag_selector_t = ::std::conditional_t<
     ::std::conditional_t<__is_forward_iterator_v<_IteratorTypes...>, __parallel_forward_tag, __serial_tag<_IsVector>>>;
 
 template <class... _IteratorTypes>
-__serial_tag<std::false_type>
+__serial_tag<::std::false_type>
 __select_backend(oneapi::dpl::execution::sequenced_policy, _IteratorTypes&&...)
 {
     return {};
@@ -87,7 +87,7 @@ __select_backend(oneapi::dpl::execution::unsequenced_policy, _IteratorTypes&&...
 }
 
 template <class... _IteratorTypes>
-__parallel_policy_tag_selector_t<std::false_type, _IteratorTypes...>
+__parallel_policy_tag_selector_t<::std::false_type, _IteratorTypes...>
 __select_backend(oneapi::dpl::execution::parallel_policy, _IteratorTypes&&...)
 {
     return {};
