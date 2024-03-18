@@ -499,20 +499,22 @@ _Size1
 __pstl_lower_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
 {
     _Size1 __n = __last - __first;
-    _Size1 __offset = __first;
-    _Size1 __start = __dpl_bit_ceil(__n) / 2;
-    for (_Size1 __i = __start; __i >= 1; __i >>= 1)
-    {
-        _Size1 __idx = ::std::min(__n - 1, __offset + __i);
-        __offset = __comp(__acc[__idx], __value) ? __idx : __offset;
-    }
-    // Special handle the case where __comp is never satisfied.
-    if (__offset == __first && (__n == 0 || !__comp(__acc[__first], __value)))
-    {
+    if (__n == 0)
         return __first;
+    _Size1 __cur_pow2 = __dpl_bit_floor(__n);
+    // Check the middle element to determine if we should search the first or last
+    // 2^(bit_floor(__n)) - 1 elements.
+    _Size1 __shifted_first = __comp(__acc[__n / 2], __value) ? __n + 1 - __cur_pow2 : __first;
+    // Check descending powers of two. If __comp(__acc[__search_idx], __pow) holds for a __cur_pow2, then its
+    // bit must be set in the result.
+    _Size1 __search_offset{0};
+    for (__cur_pow2 /= 2; __cur_pow2 > 0; __cur_pow2 /= 2)
+    {
+        _Size1 __search_idx = __shifted_first + (__search_offset | __cur_pow2) - 1;
+        if (__comp(__acc[__search_idx], __value))
+            __search_offset |= __cur_pow2;
     }
-    // First + offset is the __last place where __comp is true, so we must return the next index.
-    return __first + __offset + 1;
+    return __shifted_first + __search_offset;
 }
 
 template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
