@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/views/standard_views.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//views/iota.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//views/transform.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//views/views.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/standard_views.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/views/iota.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/views/transform.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/views/views.hpp>
 
 namespace dr::shp::views {
 

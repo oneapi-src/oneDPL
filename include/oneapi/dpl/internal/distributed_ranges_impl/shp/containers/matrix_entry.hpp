@@ -8,7 +8,7 @@
 #include <limits>
 #include <type_traits>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/index.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/index.hpp>
 
 namespace dr::shp {
 

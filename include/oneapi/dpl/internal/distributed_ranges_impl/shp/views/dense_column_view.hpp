@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/index.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/matrix_entry.hpp>
 #include <iterator>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/index.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/matrix_entry.hpp>
 
 namespace dr::shp {
 template <typename T, typename Iter> class dense_matrix_column_accessor {

@@ -5,8 +5,8 @@
 #pragma once
 
 #include <concepts>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/views/csr_matrix_view.hpp>
 #include <map>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/csr_matrix_view.hpp>
 #include <random>
 
 namespace dr::shp {

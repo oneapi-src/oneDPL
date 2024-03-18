@@ -12,8 +12,8 @@
 #include <tuple>
 #include <vector>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/util/coo_matrix.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/views/csr_matrix_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/util/coo_matrix.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/csr_matrix_view.hpp>
 
 namespace dr::shp {
 

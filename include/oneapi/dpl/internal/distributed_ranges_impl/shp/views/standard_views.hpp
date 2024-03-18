@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/index.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/segments_tools.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/distributed_span.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/views/enumerate.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/zip_view.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//views/transform.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/index.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/distributed_span.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/enumerate.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/zip_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/views/transform.hpp>
 
 namespace dr::shp {
 

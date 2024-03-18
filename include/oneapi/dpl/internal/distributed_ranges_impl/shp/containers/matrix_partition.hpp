@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/index.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/detail.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/init.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/index.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/detail.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
 
 namespace dr::shp {
 

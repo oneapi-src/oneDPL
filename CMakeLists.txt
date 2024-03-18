@@ -317,7 +317,7 @@ if (ONEDPL_BACKEND MATCHES "^(tbb|dpcpp|dpcpp_only)$")
             set(ONEDPL_USE_DR TRUE)
             message(STATUS "Adding Distributed Ranges to the project")
         else()
-            message(STATUS "Distributed Ranges not supported by the compiler")
+            message(STATUS "C++20 required to use Distributed Ranges in oneDPL")
         endif()
     endif()
 

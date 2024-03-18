@@ -9,11 +9,11 @@
 
 #include <sycl/sycl.hpp>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//concepts/concepts.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/segments_tools.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/detail.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/device_ptr.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/util.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/detail.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_ptr.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
 
 namespace dr::shp {
 

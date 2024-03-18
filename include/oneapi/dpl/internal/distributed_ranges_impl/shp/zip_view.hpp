@@ -6,11 +6,11 @@
 
 #include <oneapi/dpl/iterator>
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/iterator_adaptor.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/owning_view.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/ranges_shim.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/view_detectors.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/device_span.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/owning_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/view_detectors.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_span.hpp>
 
 namespace dr {
 

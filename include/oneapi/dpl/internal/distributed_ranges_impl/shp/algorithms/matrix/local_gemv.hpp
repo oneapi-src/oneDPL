@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <oneapi/dpl/internal/distributed_ranges_impl//detail/ranges_shim.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/containers/sparse_matrix.hpp>
-#include <oneapi/dpl/internal/distributed_ranges_impl//shp/util.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/sparse_matrix.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
 
 #ifdef USE_MKL
 #include <oneapi/mkl.hpp>
