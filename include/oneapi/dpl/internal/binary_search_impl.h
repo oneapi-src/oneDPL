@@ -20,6 +20,7 @@
 #include "function.h"
 #include "binary_search_extension_defs.h"
 #include "../pstl/iterator_impl.h"
+#include "../pstl/utils.h"
 
 namespace oneapi
 {
@@ -51,18 +52,18 @@ struct custom_brick
         using ::std::get;
         if constexpr (func == search_algorithm::lower_bound)
         {
-            get<2>(acc[idx]) = oneapi::dpl::__internal::__pstl_lower_bound(get<0>(acc.tuple()), start_orig, end_orig,
-                                                                           get<1>(acc[idx]), comp);
+            get<2>(acc[idx]) = oneapi::dpl::__internal::__shars_lower_bound(get<0>(acc.tuple()), start_orig, end_orig,
+                                                                            get<1>(acc[idx]), comp);
         }
         else if constexpr (func == search_algorithm::upper_bound)
         {
-            get<2>(acc[idx]) = oneapi::dpl::__internal::__pstl_upper_bound(get<0>(acc.tuple()), start_orig, end_orig,
-                                                                           get<1>(acc[idx]), comp);
+            get<2>(acc[idx]) = oneapi::dpl::__internal::__shars_upper_bound(get<0>(acc.tuple()), start_orig, end_orig,
+                                                                            get<1>(acc[idx]), comp);
         }
         else
         {
-            auto value = oneapi::dpl::__internal::__pstl_lower_bound(get<0>(acc.tuple()), start_orig, end_orig,
-                                                                     get<1>(acc[idx]), comp);
+            auto value = oneapi::dpl::__internal::__shars_lower_bound(get<0>(acc.tuple()), start_orig, end_orig,
+                                                                      get<1>(acc[idx]), comp);
             get<2>(acc[idx]) = (value != end_orig) && (get<1>(acc[idx]) == get<0>(acc[value]));
         }
     }
