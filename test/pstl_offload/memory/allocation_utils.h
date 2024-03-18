@@ -44,14 +44,14 @@ struct allocs {
     void* aligned_realloc_ptr;
 #endif // __linux__
 
-    void *new_ptr;
-    void *arr_new_ptr;
-    void *nothrow_new_ptr;
-    void *arr_nothrow_new_ptr;
-    void *aligned_new_ptr;
-    void *aligned_nothrow_new_ptr;
-    void *aligned_arr_new_ptr;
-    void *aligned_nothrow_arr_new_ptr;
+    void* new_ptr;
+    void* arr_new_ptr;
+    void* nothrow_new_ptr;
+    void* arr_nothrow_new_ptr;
+    void* aligned_new_ptr;
+    void* aligned_nothrow_new_ptr;
+    void* aligned_arr_new_ptr;
+    void* aligned_nothrow_arr_new_ptr;
 
     static constexpr std::size_t alloc_size = 1024;
     static constexpr std::size_t alignment = 16;

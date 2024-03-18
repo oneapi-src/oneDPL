@@ -23,9 +23,9 @@ void check_memory_ownership(const allocs &na, sycl::usm::alloc expected_type) {
             "Unexpected pointer type");
         EXPECT_TRUE(sycl::get_pointer_type(na.realloc_ptr, memory_context) == expected_type,
             "Unexpected pointer type");
-#if __linux__
         EXPECT_TRUE(sycl::get_pointer_type(na.memalign_ptr, memory_context) == expected_type,
             "Unexpected pointer type");
+#if __linux__
         EXPECT_TRUE(sycl::get_pointer_type(na.posix_memalign_ptr, memory_context) == expected_type,
             "Unexpected pointer type");
         EXPECT_TRUE(sycl::get_pointer_type(na.aligned_alloc_ptr, memory_context) == expected_type,
@@ -37,6 +37,9 @@ void check_memory_ownership(const allocs &na, sycl::usm::alloc expected_type) {
         EXPECT_TRUE(sycl::get_pointer_type(na.libc_realloc_ptr, memory_context) == expected_type,
             "Unexpected pointer type");
         EXPECT_TRUE(sycl::get_pointer_type(na.libc_memalign_ptr, memory_context) == expected_type,
+            "Unexpected pointer type");
+#elif _WIN64
+        EXPECT_TRUE(sycl::get_pointer_type(na.aligned_realloc_ptr, memory_context) == expected_type,
             "Unexpected pointer type");
 #endif // __linux__
 
