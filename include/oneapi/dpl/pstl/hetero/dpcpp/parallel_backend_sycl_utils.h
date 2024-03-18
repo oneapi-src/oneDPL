@@ -386,6 +386,8 @@ class __buffer_impl_hetero
     __container_t __container;
 
   public:
+    static_assert(::std::is_base_of_v<oneapi::dpl::__internal::__device_backend_tag, _BackendTag>);
+
     __buffer_impl_hetero(_ExecutionPolicy /*__exec*/, ::std::size_t __n_elements)
         : __container{sycl::range<1>(__n_elements)}
     {
@@ -447,8 +449,8 @@ struct __memobj_traits<_T*>
 
 } // namespace __internal
 
-template <typename _BackendOrDispatchTag, typename _ExecutionPolicy, typename _T>
-using __buffer = __internal::__buffer_impl_hetero<_BackendOrDispatchTag, ::std::decay_t<_ExecutionPolicy>, _T>;
+template <typename _BackendTag, typename _ExecutionPolicy, typename _T>
+using __buffer = __internal::__buffer_impl_hetero<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _T>;
 
 template <typename T>
 struct __repacked_tuple
