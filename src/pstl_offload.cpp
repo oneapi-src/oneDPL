@@ -492,7 +492,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE hInst, DWORD callReason, LPVOID reserve
 
     if (callReason==DLL_PROCESS_ATTACH && reserved && hInst)
     {
-        ret = __pstl_offload::__do_functions_replacement()? TRUE : FALSE;
+        ret = __pstl_offload::__do_functions_replacement() ? TRUE : FALSE;
     }
 
     return ret;

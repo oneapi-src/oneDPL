@@ -62,9 +62,12 @@ __original_realloc(void* __user_ptr, std::size_t __new_size)
 
 #elif _WIN64
 
+// export to not have windows.h in public header
 std::size_t
 __get_page_size();
 
+// have to export them, as original realloc/malloc/etc are locally replaced
+// in case of usm_memory_replacement.h inclusion
 void*
 __original_realloc(void* __user_ptr, std::size_t __new_size);
 void* __original_malloc(std::size_t);
@@ -213,7 +216,7 @@ __aligned_realloc_real_pointer(void* __user_ptr, std::size_t __new_size, std::si
 
     if (__same_memory_page(__user_ptr, __header) && __header->_M_uniq_const == __uniq_type_const)
     {
-        if (__header->_M_requested_number_of_bytes == __new_size && (uintptr_t)__user_ptr % __alignment == 0)
+        if (__header->_M_requested_number_of_bytes == __new_size && (std::uintptr_t)__user_ptr % __alignment == 0)
         {
             __result = __user_ptr;
         }

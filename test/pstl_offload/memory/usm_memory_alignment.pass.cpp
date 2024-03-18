@@ -17,15 +17,20 @@
 #include "support/utils.h"
 #if _WIN64
 #include <windows.h>
+
+static std::size_t get_page_size_impl() {
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return si.dwPageSize;
+}
+
 #endif
 
 static std::size_t get_page_size() {
 #if __linux__
     static std::size_t page_size = sysconf(_SC_PAGESIZE);
 #elif _WIN64
-    SYSTEM_INFO si;
-    GetSystemInfo(&si);
-    static std::size_t page_size = si.dwPageSize;
+    static std::size_t page_size = get_page_size_impl();
 #endif
     return page_size;
 }

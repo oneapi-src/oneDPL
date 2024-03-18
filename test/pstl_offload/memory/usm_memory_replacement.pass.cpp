@@ -11,7 +11,10 @@
 #error "PSTL offload compiler mode should be enabled to run this test"
 #endif
 
+#if _WIN64
+// strcpy is used in the test
 #define _CRT_SECURE_NO_WARNINGS 1
+#endif
 #include <new>
 #include <cstdlib>
 #include <limits>

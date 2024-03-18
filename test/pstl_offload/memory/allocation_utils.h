@@ -107,9 +107,10 @@ static void perform_deallocations_impl(const allocs& na) {
     free(na.libc_realloc_ptr);
     free(na.libc_memalign_ptr);
 #elif _WIN64
-    EXPECT_TRUE(_aligned_msize(na.memalign_ptr, allocs::alignment, 0) >= allocs::alloc_size, "Invalid size reported by _aligned_msize");
+    EXPECT_TRUE(_aligned_msize(na.memalign_ptr, allocs::alignment, /*offset*/0) >= allocs::alloc_size,
+                "Invalid size reported by _aligned_msize");
     _aligned_free(na.memalign_ptr);
-    _aligned_realloc(na.aligned_realloc_ptr, 0, 0);
+    _aligned_realloc(na.aligned_realloc_ptr, /*size*/0, /*alignment*/0);
 #endif // __linux__
 
     operator delete(na.new_ptr);
