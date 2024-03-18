@@ -153,6 +153,34 @@ struct __omp_backend_tag
 {
 };
 
+//------------------------------------------------------------------------
+// dispatch tags
+//------------------------------------------------------------------------
+
+template <class _IsVector>
+struct __serial_tag;
+
+template <class _IsVector>
+struct __parallel_tag;
+
+struct __parallel_forward_tag;
+
+//------------------------------------------------------------------------
+// Buffer allocator selectors
+//------------------------------------------------------------------------
+
+template <typename _T>
+constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__serial_backend_tag);
+
+template <typename _T, typename _IsVector>
+constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__serial_tag<_IsVector>);
+
+template <typename _T, typename _IsVector>
+constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__parallel_tag<_IsVector>);
+
+template <typename _T>
+constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__parallel_forward_tag);
+
 } // namespace __internal
 
 } // namespace dpl

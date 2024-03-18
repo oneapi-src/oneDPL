@@ -20,11 +20,13 @@
 #include <utility>
 #include <cassert>
 #include "utils.h"
+#include "execution_impl.h"
 
 namespace oneapi
 {
 namespace dpl
 {
+
 namespace __utils
 {
 
@@ -32,10 +34,10 @@ namespace __utils
 // raw buffer (with specified _TAllocator)
 //------------------------------------------------------------------------
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp, template <typename _T> typename _TAllocator>
+template <typename _ExecutionPolicy, typename _Tp, typename _TAllocator>
 class __buffer_impl_host
 {
-    _TAllocator<_Tp> _M_allocator;
+    _TAllocator _M_allocator;
     _Tp* _M_ptr = nullptr;
     const ::std::size_t _M_buf_size = 0;
 
@@ -77,6 +79,7 @@ struct __serial_destroy
     }
 };
 
+//------------------------------------------------------------------------
 //! Merge sequences [__xs,__xe) and [__ys,__ye) to output sequence [__zs,(__xe-__xs)+(__ye-__ys)), using ::std::move
 struct __serial_move_merge
 {

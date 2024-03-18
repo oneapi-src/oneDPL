@@ -22,9 +22,6 @@
 #include <algorithm>
 #include <type_traits>
 
-#include "parallel_backend_utils.h"
-#include "execution_impl.h"
-
 // Bring in minimal required subset of Intel(R) Threading Building Blocks (Intel(R) TBB)
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
@@ -38,6 +35,8 @@
 #    include <tbb/task.h>
 #endif
 
+#include "parallel_backend_utils.h"
+
 #if TBB_INTERFACE_VERSION < 10000
 #    error Intel(R) Threading Building Blocks 2018 is required; older versions are not supported.
 #endif
@@ -46,17 +45,32 @@ namespace oneapi
 {
 namespace dpl
 {
+namespace __internal
+{
+//------------------------------------------------------------------------
+// Buffer allocators
+//------------------------------------------------------------------------
+template <typename _T>
+constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__tbb_backend_tag)
+{
+    // Some of our algorithms need to start with raw memory buffer,
+    // not an initialize array, because initialization/destruction
+    // would make the span be at least O(N).
+    //
+    // tbb::allocator can improve performance in some cases.
+    //
+    return tbb::tbb_allocator<_T>{};
+}
+}; // namespace __internal
+
 namespace __tbb_backend
 {
 
 //! Raw memory buffer with automatic freeing and no exceptions.
-/** Some of our algorithms need to start with raw memory buffer,
-not an initialize array, because initialization/destruction
-would make the span be at least O(N). */
-// tbb::allocator can improve performance in some cases.
-template <typename _BackendTag, typename _ExecutionPolicy, typename _Tp,
-          template <typename _Tp> typename _TAllocator = tbb::tbb_allocator<_Tp>>
-using __buffer = __buffer_impl_host<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _Tp, _TAllocator>;
+template <typename _BackendOrDispatchTag, typename _ExecutionPolicy, typename _Tp,
+          typename _TAllocator =
+              decltype(oneapi::dpl::__internal::__get_buffer_allocator<_Tp>(::std::declval<_BackendOrDispatchTag>()))>
+using __buffer = oneapi::dpl::__utils::__buffer_impl_host<::std::decay_t<_ExecutionPolicy>, _Tp, _TAllocator>;
 
 // Wrapper for tbb::task
 inline void

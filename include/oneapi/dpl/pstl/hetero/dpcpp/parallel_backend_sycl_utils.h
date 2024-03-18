@@ -447,8 +447,8 @@ struct __memobj_traits<_T*>
 
 } // namespace __internal
 
-template <typename _BackendTag, typename _ExecutionPolicy, typename _T>
-using __buffer = __internal::__buffer_impl_hetero<_BackendTag, ::std::decay_t<_ExecutionPolicy>, _T>;
+template <typename _BackendOrDispatchTag, typename _ExecutionPolicy, typename _T>
+using __buffer = __internal::__buffer_impl_hetero<_BackendOrDispatchTag, ::std::decay_t<_ExecutionPolicy>, _T>;
 
 template <typename T>
 struct __repacked_tuple
