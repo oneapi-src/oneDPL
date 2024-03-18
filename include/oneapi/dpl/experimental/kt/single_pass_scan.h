@@ -13,8 +13,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _ONEDPL_parallel_backend_sycl_scan_H
-#define _ONEDPL_parallel_backend_sycl_scan_H
+#ifndef _ONEDPL_KT_SINGLE_PASS_SCAN_H
+#define _ONEDPL_KT_SINGLE_PASS_SCAN_H
 
 #include "../../pstl/hetero/dpcpp/sycl_defs.h"
 #include "../../pstl/hetero/dpcpp/unseq_backend_sycl.h"
@@ -434,4 +434,4 @@ inclusive_scan(sycl::queue __queue, _InIterator __in_begin, _InIterator __in_end
 
 } // namespace oneapi::dpl::experimental::kt
 
-#endif /* _ONEDPL_parallel_backend_sycl_scan_H */
+#endif /* _ONEDPL_KT_SINGLE_PASS_SCAN_H */
