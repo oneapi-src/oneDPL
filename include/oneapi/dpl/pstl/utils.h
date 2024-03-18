@@ -717,6 +717,41 @@ struct __spirv_target_conditional :
 // to determine SPIR-V targets.
 inline constexpr bool __is_spirv_target_v = __spirv_target_conditional<::std::true_type, ::std::false_type>::value;
 
+// Lower bound implementation based on Shar's algorithm for binary search.
+template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
+_Size1
+__shars_lower_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
+{
+    static_assert(::std::is_unsigned_v<_Size1>, "__shars_lower_bound requires an unsigned size type");
+    _Size1 __n = __last - __first;
+    if (__n == 0)
+        return __first;
+    _Size1 __cur_pow2 = __dpl_bit_floor(__n);
+    _Size1 __midpoint = __n / 2;
+    // Check the middle element to determine if we should search the first or last
+    // 2^(bit_floor(__n)) - 1 elements.
+    _Size1 __shifted_first = __comp(__acc[__midpoint], __value) ? __n + 1 - __cur_pow2 : __first;
+    // Check descending powers of two. If __comp(__acc[__search_idx], __pow) holds for a __cur_pow2, then its
+    // bit must be set in the result.
+    _Size1 __search_offset{0};
+    for (__cur_pow2 /= 2; __cur_pow2 > 0; __cur_pow2 /= 2)
+    {
+        _Size1 __search_idx = __shifted_first + (__search_offset | __cur_pow2) - 1;
+        if (__comp(__acc[__search_idx], __value))
+            __search_offset |= __cur_pow2;
+    }
+    return __shifted_first + __search_offset;
+}
+
+template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
+_Size1
+__shars_upper_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
+{
+    return __pstl_lower_bound(__acc, __first, __last, __value,
+                              oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<_Compare>>{
+                                  oneapi::dpl::__internal::__reorder_pred<_Compare>{__comp}});
+}
+
 } // namespace __internal
 } // namespace dpl
 } // namespace oneapi
