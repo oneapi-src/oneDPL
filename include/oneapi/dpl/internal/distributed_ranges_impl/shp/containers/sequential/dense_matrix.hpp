@@ -6,12 +6,12 @@
 
 #include <iterator>
 
-#include <dr/detail/index.hpp>
-#include <dr/detail/iterator_adaptor.hpp>
-#include <dr/shp/containers/matrix_entry.hpp>
-#include <dr/shp/views/dense_column_view.hpp>
-#include <dr/shp/views/dense_matrix_iterator.hpp>
-#include <dr/shp/views/dense_row_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/index.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/matrix_entry.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_column_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_matrix_iterator.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_row_view.hpp>
 
 namespace dr::shp {
 

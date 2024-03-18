@@ -6,12 +6,12 @@
 
 #include <sycl/sycl.hpp>
 
-#include <dr/detail/sycl_utils.hpp>
-#include <dr/shp/algorithms/execution_policy.hpp>
-#include <dr/shp/detail.hpp>
-#include <dr/shp/init.hpp>
-#include <dr/shp/util.hpp>
-#include <dr/shp/zip_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/sycl_utils.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/execution_policy.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/detail.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/zip_view.hpp>
 
 namespace dr::shp {
 

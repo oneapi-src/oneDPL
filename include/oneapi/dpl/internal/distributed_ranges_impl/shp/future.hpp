@@ -7,7 +7,7 @@
 #include <memory>
 #include <sycl/sycl.hpp>
 
-#include <dr/shp/detail.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/detail.hpp>
 
 namespace dr::shp {
 

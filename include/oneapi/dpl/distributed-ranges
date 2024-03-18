@@ -13,6 +13,11 @@
 #include "oneapi/dpl/internal/common_config.h"
 #include "oneapi/dpl/pstl/onedpl_config.h"
 
+// #if _ONEDPL_BACKEND_SYCL != 0 && __INTEL_LLVM_COMPILER >= 20230000
+#if defined(ONEDPL_USE_DISTRIBUTED_RANGES)
 #include "oneapi/dpl/internal/distributed_ranges_impl/shp.hpp"
+#else
+#error "C++20 required to use Distributed Ranges"
+#endif
 
 #endif /* _ONEDPL_DISTRIBUTED_RANGES */

@@ -9,10 +9,10 @@
 
 #include <oneapi/dpl/async>
 
-#include <dr/concepts/concepts.hpp>
-#include <dr/detail/onedpl_direct_iterator.hpp>
-#include <dr/shp/algorithms/execution_policy.hpp>
-#include <dr/shp/init.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/detail/onedpl_direct_iterator.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/execution_policy.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
 #include <sycl/sycl.hpp>
 
 namespace {

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <dr/shp/views/dense_matrix_view.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_matrix_view.hpp>
 
 #ifdef USE_MKL
 #include <oneapi/mkl.hpp>

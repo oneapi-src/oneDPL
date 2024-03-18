@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Intel Corporation
 #
 # SPDX-License-Identifier: BSD-3-Clause
-
 include(FetchContent)
 
 FetchContent_Declare(
@@ -40,6 +39,11 @@ target_compile_definitions(dr_shp INTERFACE USE_MKL
                                             _GLIBCXX_USE_TBB_PAR_BACKEND=0)
 target_link_libraries(dr_shp INTERFACE range-v3 fmt::fmt MKL::MKL_DPCPP)
 
+if (DEFINED ONEDPL_USE_DR)
+  target_compile_options(dr_shp INTERFACE "-DONEDPL_USE_DISTRIBUTED_RANGES")
+endif()
+
+
 # For use, see:
 # https://github.com/illuhad/hipSYCL/blob/develop/doc/using-hipsycl.md#using-the-cmake-integration
 # example: cmake .. -DhipSYCL_DIR=</hipsycl/install/lib/cmake/hipSYCL>
@@ -52,6 +56,9 @@ endif()
 
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+
+
 
 add_executable(
   shp-tests

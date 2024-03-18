@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <dr/shp/allocators.hpp>
-#include <dr/shp/vector.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/allocators.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/vector.hpp>
 
 namespace dr::shp {
 

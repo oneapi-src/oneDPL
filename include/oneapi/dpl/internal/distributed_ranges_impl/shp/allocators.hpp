@@ -8,7 +8,7 @@
 
 #include <sycl/sycl.hpp>
 
-#include <dr/shp/device_ptr.hpp>
+#include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_ptr.hpp>
 
 namespace dr::shp {
 
