@@ -19,6 +19,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "execution_defs.h"
+
 namespace oneapi
 {
 namespace dpl
