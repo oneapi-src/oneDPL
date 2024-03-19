@@ -17,8 +17,6 @@
 #define _ONEDPL_ALGORITHM_FWD_H
 
 #include <utility>
-
-#include "execution_defs.h"
 #include "iterator_defs.h"
 
 namespace oneapi
