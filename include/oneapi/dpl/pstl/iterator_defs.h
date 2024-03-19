@@ -31,9 +31,8 @@ namespace __internal
 // SFINAE with a non-iterator type by providing a default value.
 template <typename _IteratorTag, typename... _IteratorTypes>
 auto
-__is_iterator_of(int) -> decltype(
-    ::std::conjunction<::std::is_base_of<
-        _IteratorTag, typename ::std::iterator_traits<::std::decay_t<_IteratorTypes>>::iterator_category>...>{});
+__is_iterator_of(int) -> typename ::std::conjunction<::std::is_base_of<
+    _IteratorTag, typename ::std::iterator_traits<::std::decay_t<_IteratorTypes>>::iterator_category>...>::type;
 
 template <typename... _IteratorTypes>
 auto
