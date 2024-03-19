@@ -565,6 +565,21 @@ using __is_const_callable_object =
 template <typename _Tp>
 inline constexpr bool __is_const_callable_object_v = __is_const_callable_object<_Tp>::value;
 
+template <typename _Tp, typename _Arg, typename = void>
+struct __is_const_callable_with_arg : std::false_type
+{
+};
+
+template <typename _Tp, typename _Arg>
+struct __is_const_callable_with_arg<_Tp, _Arg,
+                                    std::void_t<decltype(std::declval<const _Tp&>().operator()(std::declval<_Arg>()))>>
+    : std::true_type
+{
+};
+
+template <typename _Tp, typename _Arg>
+inline constexpr bool __is_const_callable_with_arg_v = __is_const_callable_with_arg<_Tp, _Arg>::value;
+
 struct __next_to_last
 {
     template <typename _Iterator>
