@@ -40,9 +40,7 @@ auto
 __is_iterator_of(...) -> ::std::false_type;
 
 template <typename... _IteratorTypes>
-struct __is_random_access_iterator : decltype(__is_iterator_of<::std::random_access_iterator_tag, _IteratorTypes...>(0))
-{
-};
+using __is_random_access_iterator = decltype(__is_iterator_of<::std::random_access_iterator_tag, _IteratorTypes...>(0));
 
 template <typename... _IteratorTypes>
 struct __is_forward_iterator : decltype(__is_iterator_of<::std::forward_iterator_tag, _IteratorTypes...>(0))
