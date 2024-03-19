@@ -31,8 +31,8 @@
 
 using namespace TestUtils;
 
-//common checks of a random access iterator functionality
-template <bool check_default_constructible = true, typename RandomIt>
+//common checks of a random access iterator functionality which is needed for oneDPL algos
+template <typename RandomIt>
 void test_random_iterator(const RandomIt& it) {
     // check that RandomIt has all necessary publicly accessible member types
     {
@@ -43,8 +43,9 @@ void test_random_iterator(const RandomIt& it) {
         [[maybe_unused]] auto t4 = typename RandomIt::iterator_category{};
     }
 
-    static_assert(!check_default_constructible || ::std::is_default_constructible_v<RandomIt>,
-                  "iterator is not default constructible");
+    //Skips check of default constructible which is required by LegacyRandomAccessIterator, but not by oneDPL.
+    // Some types of iterators like transform_iterator and permutation_iterator may not be default constructible
+    // depending on their functor (lambda), but can still be treated as a random access iterator by oneDPL algorithms.
 
     EXPECT_TRUE(  it == it,      "== returned false negative");
     EXPECT_TRUE(!(it == it + 1), "== returned false positive");
@@ -141,6 +142,8 @@ struct test_counting_iterator {
         //explicit checks of the counting iterator specific
         EXPECT_TRUE(*(b + 1) == begin+1, "wrong result with operator+ for an iterator");
         EXPECT_TRUE(*(b+=1) == begin+1, "wrong result with operator+= for an iterator");
+
+        test_random_iterator(b);
     }
 };
 
@@ -262,6 +265,8 @@ struct test_transform_iterator {
 
         transform_functor new_functor;
         ref_transform_functor ref_functor;
+        //check default constructibility of transform_iterator with default constructible components
+        oneapi::dpl::transform_iterator<T1*, transform_functor> _it0;
         oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it1(in1.begin());
         oneapi::dpl::transform_iterator<typename ::std::vector<T1>::iterator, transform_functor> _it2(in1.begin(), new_functor);
 
@@ -314,10 +319,8 @@ struct test_permutation_iterator
         auto lambda = [n](auto i) { return n - i - 1; };
         auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), lambda, 1);
         EXPECT_TRUE(*++perm_it_fun_rev == *(in1.end()-3), "wrong result from permutation_iterator(base_iterator, functor)");
-        
-        // transform_iterator will only be default constructible if lambda is.
-        test_random_iterator</*check_default_constructible=*/std::is_default_constructible_v<decltype(lambda)>>(
-            perm_it_fun_rev);
+
+        test_random_iterator(perm_it_fun_rev);
 
         ::std::vector<T1> res(n);
         perm_it_fun_rev -= 2;
