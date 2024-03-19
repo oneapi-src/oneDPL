@@ -316,8 +316,7 @@ struct test_permutation_iterator
         test_random_iterator(perm_begin);
 
         auto n = in1.size();
-        auto lambda = [n](auto i) { return n - i - 1; };
-        auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), lambda, 1);
+        auto perm_it_fun_rev = oneapi::dpl::make_permutation_iterator(in1.begin(), [n] (auto i) { return n - i - 1;}, 1);
         EXPECT_TRUE(*++perm_it_fun_rev == *(in1.end()-3), "wrong result from permutation_iterator(base_iterator, functor)");
 
         test_random_iterator(perm_it_fun_rev);
