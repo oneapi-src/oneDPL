@@ -26,11 +26,6 @@ namespace dpl
 namespace __internal
 {
 
-template <class _IsVector>
-struct __parallel_tag;
-
-struct __parallel_forward_tag;
-
 //------------------------------------------------------------------------
 // any_of
 //------------------------------------------------------------------------
