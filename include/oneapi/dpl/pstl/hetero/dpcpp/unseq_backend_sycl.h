@@ -228,59 +228,11 @@ struct transform_reduce
             __res = __binary_op(__res, __unary_op(__start_idx + __i, __acc...));
     }
 
-    template <typename _Res, typename _Size, typename... _Acc>
-    _Res
-    full_reduction(const _Size __start_idx, const _Size __no_vec_ops, const _Size __stride, const _Acc&... __acc) const
-    {
-        _Res __res = vectorized_reduction_first<_Res>(__start_idx, __acc...);
-        for (_Size __i = 1; __i < __no_vec_ops; ++__i)
-            vectorized_reduction_remainder(__start_idx + __i * __stride, __res, __acc...);
-        return __res;
-    }
-
-    template <typename _Res, typename _Size, typename... _Acc>
-    _Res
-    partial_reduction(_Size __start_idx, const _Size __n, const _Size __no_vec_ops, const _Size __stride,
-                      const _Acc&... __acc) const
-    {
-        _Res __res = vectorized_reduction_first<_Res>(__start_idx, __acc...);
-        __start_idx += __stride;
-        for (_Size __i = 1; __i < __no_vec_ops; ++__i)
-        {
-            if (__start_idx + _VecSize > __n)
-                break;
-            vectorized_reduction_remainder(__start_idx, __res, __acc...);
-            __start_idx += __stride;
-        }
-        for (_Size __i = 0; __i < _VecSize - 1; ++__i)
-        {
-            if (__start_idx + __i >= __n)
-                break;
-            __res = __binary_op(__res, __unary_op(__start_idx + __i, __acc...));
-        }
-        return __res;
-    }
-
-    template <typename _Res, typename _Size, typename... _Acc>
-    _Res
-    scalar_reduction(const _Size __start_idx, const _Size __n, const _Acc&... __acc) const
-    {
-        _Res __res = __unary_op(__start_idx, __acc...);
-        for (_Size __i = 1; __i < _VecSize - 1; ++__i)
-        {
-            if (__start_idx + __i >= __n)
-                break;
-            __res = __binary_op(__res, __unary_op(__start_idx + __i, __acc...));
-        }
-        return __res;
-    }
-
-    static constexpr bool __use_nonseq_impl = _Commutative::value;
-
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     inline void
     operator()(const _NDItemId& __item_id, const _Size& __n, const ::std::uint8_t& __iters_per_work_item,
-               const _Size& __global_offset, const _AccLocal& __local_mem, const _Acc&... __acc) const
+               const _Size& __global_offset, const bool __is_full, const _Size __n_groups, const _AccLocal& __local_mem,
+               const _Acc&... __acc) const
     {
         using _Res = typename _AccLocal::value_type;
         auto __local_idx = __item_id.get_local_id(0);
@@ -295,10 +247,10 @@ struct transform_reduce
         const _Size __adjusted_n = __global_offset + __n;
 
         _Size __stride = _VecSize; // sequential loads with _VecSize-wide vectors
-        if constexpr (__use_nonseq_impl)
+        if constexpr (_Commutative{})
             __stride = __local_range * _VecSize; // coalesced loads with _VecSize-wide vectors
         _Size __adjusted_global_id = __global_offset;
-        if constexpr (__use_nonseq_impl)
+        if constexpr (_Commutative{})
         {
             __adjusted_global_id +=
                 __item_id.get_group_linear_id() * __local_range * __iters_per_work_item + __local_idx * _VecSize;
@@ -306,40 +258,54 @@ struct transform_reduce
         else
             __adjusted_global_id += __iters_per_work_item * __global_idx;
 
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 1, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 2, __acc...));
-            __res = __binary_op(__res, __unary_op(__adjusted_global_id + 3, __acc...));
-        bool __is_full = false;
-        if constexpr (__use_nonseq_impl)
-        {
-            if (__adjusted_global_id + __stride * (__no_vec_ops - 1) + _VecSize - 1 < __adjusted_n)
-                __is_full = true;
-        }
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id, __acc...));
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 1, __acc...));
-                __res = __binary_op(__res, __unary_op(__adjusted_global_id + 2, __acc...));
-            __local_mem[__local_idx] = __res;
-        else
-        {
-            if (__adjusted_global_id + __iters_per_work_item < __adjusted_n)
-                __is_full = true;
-        }
-
+        // If n is not evenly divisible by the number of elements processed per work-group, the last work-group might
+        // need to process less elements than __iters_per_work_item.
+        const bool __is_last_wg = (__n_groups > 1) && (static_cast<_Size>(__item_id.get_group(0)) != __n_groups - 1);
         // _VecSize-wide vectorized path (__iters_per_work_item are multiples of _VecSize)
-        if (__is_full)
+        if (__is_full || __is_last_wg)
         {
-            __local_mem[__local_idx] = full_reduction<_Res>(__adjusted_global_id, __no_vec_ops, __stride, __acc...);
+            _Res __res = vectorized_reduction_first<_Res>(__adjusted_global_id, __acc...);
+            for (_Size __i = 1; __i < __no_vec_ops; ++__i)
+                vectorized_reduction_remainder(__adjusted_global_id + __i * __stride, __res, __acc...);
+            __local_mem[__local_idx] = __res;
+            return;
         }
         // At least one vector operation
-        else if (__adjusted_global_id + _VecSize - 1 < __adjusted_n)
+        if (__adjusted_global_id + _VecSize - 1 < __adjusted_n)
         {
-            __local_mem[__local_idx] =
-            return nonseq_impl(__item_id, __n, __iters_per_work_item, __global_offset, __local_mem, __acc...);
+            _Res __res = vectorized_reduction_first<_Res>(__adjusted_global_id, __acc...);
+            for (_Size __i = 1; __i < __no_vec_ops; ++__i)
+            {
+                if (__adjusted_global_id + __i * __stride + _VecSize - 1 < __adjusted_n)
+                    vectorized_reduction_remainder(__adjusted_global_id + __i * __stride, __res, __acc...);
+                else if (__adjusted_global_id + __i * __stride < __adjusted_n)
+                {
+                    for (_Size __idx = 0; __idx < _VecSize - 1; ++__idx)
+                    {
+                        if (__adjusted_global_id + __i * __stride + __idx < __adjusted_n)
+                            __res =
+                                __binary_op(__res, __unary_op(__adjusted_global_id + __i * __stride + __idx, __acc...));
+                    }
+                    break;
+                }
+                else
+                    break;
+            }
+            __local_mem[__local_idx] = __res;
+            return;
         }
         // Scalar remainder
-        else if (__adjusted_global_id < __adjusted_n)
+        if (__adjusted_global_id < __adjusted_n)
         {
-            return seq_impl(__item_id, __n, __iters_per_work_item, __global_offset, __local_mem, __acc...);
+            _Res __res = __unary_op(__adjusted_global_id, __acc...);
+            for (_Size __i = 1; __i < _VecSize - 1; ++__i)
+            {
+                if (__adjusted_global_id + __i >= __adjusted_n)
+                    break;
+                __res = __binary_op(__res, __unary_op(__adjusted_global_id + __i, __acc...));
+            }
+            __local_mem[__local_idx] = __res;
+            return;
         }
         return;
     }
@@ -351,7 +317,7 @@ struct transform_reduce
     {
         if (__iters_per_work_item == 1)
             return __n;
-        if constexpr (__use_nonseq_impl)
+        if constexpr (_Commutative{})
         {
             _Size __items_per_work_group = __work_group_size * __iters_per_work_item;
             _Size __full_group_contrib = (__n / __items_per_work_group) * __work_group_size;
