@@ -401,7 +401,7 @@ class transform_iterator
 {
   private:
     _Iter __my_it_;
-    const _UnaryFunc __my_unary_func_;
+    _UnaryFunc __my_unary_func_;
 
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
@@ -410,19 +410,16 @@ class transform_iterator
     typedef typename ::std::iterator_traits<_Iter>::pointer pointer;
     typedef typename ::std::iterator_traits<_Iter>::iterator_category iterator_category;
 
-    //only enable this constructor if both template types are default constructible
-    template <typename _IterLocal = _Iter, typename _UnaryFuncLocal = _UnaryFunc,
-              typename = ::std::enable_if_t<
-                  ::std::is_default_constructible_v<_IterLocal> && ::std::is_default_constructible_v<_UnaryFuncLocal>>>
-    transform_iterator() : __my_it_(), __my_unary_func_()
-    {
-    }
+    //default constructor will only be present if both the unary functor and iterator are default constructible
+    transform_iterator() = default;
+
     //only enable this constructor if the unary functor is default constructible
     template <typename _UnaryFuncLocal = _UnaryFunc,
               ::std::enable_if_t<::std::is_default_constructible_v<_UnaryFuncLocal>, int> = 0>
     transform_iterator(_Iter __it) : __my_it_(__it), __my_unary_func_()
     {
     }
+
     transform_iterator(_Iter __it, _UnaryFunc __unary_func) : __my_it_(__it), __my_unary_func_(__unary_func) {}
 
     transform_iterator(const transform_iterator& __input) = default;
