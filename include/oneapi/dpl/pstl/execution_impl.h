@@ -80,7 +80,7 @@ __select_backend(oneapi::dpl::execution::sequenced_policy, _IteratorTypes&&...)
 }
 
 template <class... _IteratorTypes>
-__serial_tag<__internal::__is_random_access_iterator<_IteratorTypes...>>
+__serial_tag<__internal::__is_random_access_iterator_t<_IteratorTypes...>>
 __select_backend(oneapi::dpl::execution::unsequenced_policy, _IteratorTypes&&...)
 {
     return {};
@@ -94,7 +94,7 @@ __select_backend(oneapi::dpl::execution::parallel_policy, _IteratorTypes&&...)
 }
 
 template <class... _IteratorTypes>
-__parallel_policy_tag_selector_t<__internal::__is_random_access_iterator<_IteratorTypes...>, _IteratorTypes...>
+__parallel_policy_tag_selector_t<__internal::__is_random_access_iterator_t<_IteratorTypes...>, _IteratorTypes...>
 __select_backend(oneapi::dpl::execution::parallel_unsequenced_policy, _IteratorTypes&&...)
 {
     return {};
