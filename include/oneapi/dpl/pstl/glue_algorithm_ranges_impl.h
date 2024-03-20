@@ -44,7 +44,7 @@ struct for_each_fn
 {
     template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun,
              oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
-    constexpr decltype(auto)
+    constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
@@ -61,7 +61,7 @@ struct transform_fn
 {
     template<typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj,
              oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
-    constexpr decltype(auto)
+    constexpr auto
     operator()(_ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r, _F __op, _Proj __proj) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __in_r.begin(), __out_r.begin());
@@ -78,7 +78,7 @@ struct find_if_fn
 {
     template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred,
         oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
-    constexpr decltype(auto)
+    constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
@@ -95,7 +95,7 @@ struct find_if_not_fn
 {
     template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred,
         oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
-    constexpr decltype(auto)
+    constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
     {
         return oneapi::dpl::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
@@ -112,7 +112,7 @@ struct find_fn
 {
     template<typename _ExecutionPolicy, typename _R, typename _T, typename _Proj,
         oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
-    constexpr decltype(auto)
+    constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, const _T& __value, _Proj __proj) const
     {
         return oneapi::dpl::ranges::find_if(std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r),
@@ -168,7 +168,7 @@ struct adjacent_find_fn
 {
     template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred =  std::ranges::equal_to,
         oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
-    constexpr decltype(auto)
+    constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
@@ -183,7 +183,7 @@ struct search_fn
 {
     template<typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1, typename _Proj2,
         oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
-    constexpr decltype(auto)
+    constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R1&& __r1, _R2&& __r2, _Pred __pred, _Proj1 __proj1,
         _Proj2 __proj2) const
     {
@@ -200,7 +200,7 @@ struct search_n_fn
 {
     template<typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj,
         oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
-    constexpr decltype(auto)
+    constexpr auto
     operator()(_ExecutionPolicy&& __exec, _R&& __r, std::ranges::range_difference_t<_R> __count, const _T& __value,
         _Pred __pred, _Proj __proj) const
     {
