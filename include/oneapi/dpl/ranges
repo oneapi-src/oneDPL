@@ -31,6 +31,7 @@ static_assert(_ONEDPL_CXX_STANDARD_LIBRARY_CHECK,
               "The use of the range-based API requires the C++ standard libraries coming "
               "with GCC 8.1 (or higher) or Clang 7 (or higher)");
 
+#include <ranges>
 #include "oneapi/dpl/pstl/onedpl_config.h"
 #include "oneapi/dpl/pstl/ranges_defs.h"
 

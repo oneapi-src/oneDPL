@@ -166,7 +166,7 @@ inline constexpr none_of_fn none_of;
 
 struct adjacent_find_fn
 {
-    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred,
+    template<typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred =  std::ranges::equal_to,
         oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy, int> = 0>
     constexpr decltype(auto)
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
@@ -350,7 +350,7 @@ adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred
 {
     const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
-    return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
+    return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find2(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
         __pred, oneapi::dpl::__internal::__first_semantic());
 }
