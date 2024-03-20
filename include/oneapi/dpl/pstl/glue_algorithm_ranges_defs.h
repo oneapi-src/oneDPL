@@ -52,7 +52,6 @@ template <typename _ExecutionPolicy, typename _Range, typename _Function>
 oneapi::dpl::__internal::__enable_if_execution_policy<_ExecutionPolicy>
 for_each(_ExecutionPolicy&& __exec, _Range&& __rng, _Function __f);
 
-
 // [alg.find]
 
 template <typename _ExecutionPolicy, typename _Range, typename _Predicate>
