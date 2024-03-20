@@ -34,26 +34,38 @@ namespace __ranges
 // pattern_for_each
 //---------------------------------------------------------------------------------------------------------------------
 
-template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
+template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
 decltype(auto)
-__pattern_for_each(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
+__pattern_for_each_impl(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
 {
+    static_assert(__is_parallel_tag_v<_Tag> || typename _Tag::__is_vector{});
+
     auto __view = std::views::common(::std::forward<_R>(__r));
 
     auto __f_1 = [__f, __proj](auto&& __val) { __f(__proj(__val));};
-    
-    oneapi::dpl::__internal::__pattern_walk1(__tag, ::std::forward<_ExecutionPolicy>(__exec), __view.begin(),
+
+    oneapi::dpl::__internal::__pattern_walk1(__tag, std::forward<_ExecutionPolicy>(__exec), __view.begin(),
         __view.end(), __f_1);
 
     using __return_t = std::ranges::for_each_result<std::ranges::borrowed_iterator_t<_R>, _Fun>;
     return __return_t{__r.begin() + __r.size(), std::move(__f)};
 }
 
+template <typename _IsVector, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
+decltype(auto)
+__pattern_for_each(__parallel_tag<_IsVector> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
+{
+    return __pattern_for_each_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __f, __proj);
+}
+
 template <typename _Tag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
 decltype(auto)
-__pattern_for_each(_Tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
+__pattern_for_each(_Tag __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
 {
-    return std::ranges::for_each(std::forward<_R>(__r), __f, __proj);
+    if constexpr(typename _Tag::__is_vector{})
+        return __pattern_for_each_impl(__tag, std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __f, __proj);
+    else
+        return std::ranges::for_each(std::forward<_R>(__r), __f, __proj);
 }
 
 //---------------------------------------------------------------------------------------------------------------------

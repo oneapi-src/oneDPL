@@ -61,7 +61,7 @@ decltype(auto)
 __pattern_for_each(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
 {
     auto __f_1 = [__f, __proj](auto&& __val) { __f(__proj(__val));};
-        oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec), __f,
+        oneapi::dpl::__internal::__ranges::__pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec), __f_1,
                                                             oneapi::dpl::views::all(::std::forward<_R>(__r)));
 
     using __return_t = std::ranges::for_each_result<std::ranges::borrowed_iterator_t<_R>, _Fun>;
@@ -354,9 +354,9 @@ return_value(bool __res, _Size __size, ::std::true_type)
     return __res ? 0 : __size;
 }
 
-template <typename _Size>
-_Size
-return_value(_Size __res, _Size __size, ::std::false_type)
+template <typename _Size1, typename _Size2>
+auto
+return_value(_Size1 __res, _Size2 __size, ::std::false_type)
 {
     return __res == __size - 1 ? __size : __res;
 }
@@ -368,7 +368,7 @@ return_value(_Size __res, _Size __size, ::std::false_type)
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate,
           typename _OrFirstTag>
 oneapi::dpl::__internal::__difference_t<_Range>
-__pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __rng,
+__pattern_adjacent_find2(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __rng,
                         _BinaryPredicate __predicate, _OrFirstTag __is__or_semantic)
 {
     if (__rng.size() < 2)
@@ -379,8 +379,13 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
     using _TagType = ::std::conditional_t<__is__or_semantic(), oneapi::dpl::__par_backend_hetero::__parallel_or_tag,
                                           oneapi::dpl::__par_backend_hetero::__parallel_find_forward_tag<_Range>>;
 
+#if _ONEDPL___cplusplus >= 202002L
+    auto __rng1 = __rng | std::ranges::views::take(__rng.size() - 1);
+    auto __rng2 = __rng | std::ranges::views::drop(1);
+#else
     auto __rng1 = __rng | oneapi::dpl::experimental::ranges::views::take(__rng.size() - 1);
     auto __rng2 = __rng | oneapi::dpl::experimental::ranges::views::drop(1);
+#endif
 
     // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
@@ -401,7 +406,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
 {
     auto __pred_2 = [__pred, __proj](auto&& __val, auto&& __next) { return __pred(__proj(__val), __proj(__next));};
 
-    auto __idx =  oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(__tag,
+    auto __idx =  oneapi::dpl::__internal::__ranges::__pattern_adjacent_find2(__tag,
         std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::views::all_read(std::forward<_R>(__r)), __pred_2,
         oneapi::dpl::__internal::__first_semantic());
 
