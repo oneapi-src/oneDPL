@@ -50,6 +50,9 @@ struct __is_forward_iterator : decltype(__is_iterator_of<::std::forward_iterator
 };
 
 template <typename... _IteratorTypes>
+using __is_random_access_iterator_t = typename __is_random_access_iterator<_IteratorTypes...>::type;
+
+template <typename... _IteratorTypes>
 inline constexpr bool __is_random_access_iterator_v = __is_random_access_iterator<_IteratorTypes...>::value;
 
 template <typename... _IteratorTypes>
