@@ -243,14 +243,14 @@ struct __lookback_kernel_func
         {
             _FlagType __flag(__status_flags, __status_vals_full, __status_vals_partial, __tile_id);
 
-            if (__group.leader())
+            if (__subgroup.get_local_id() == 0)
             {
                 __flag.set_partial(__local_reduction);
             }
 
             __prev_tile_reduction = __flag.cooperative_lookback(__subgroup, __binary_op);
 
-            if (__group.leader())
+            if (__subgroup.get_local_id() == 0)
             {
                 __flag.set_full(__binary_op(__prev_tile_reduction, __local_reduction));
             }
