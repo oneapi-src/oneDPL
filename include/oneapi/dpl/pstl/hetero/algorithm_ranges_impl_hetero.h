@@ -57,7 +57,7 @@ __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function
 // pattern_for_each
 //---------------------------------------------------------------------------------------------------------------------
 template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Fun>
-decltype(auto)
+auto
 __pattern_for_each(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Fun __f, _Proj __proj)
 {
     auto __f_1 = [__f, __proj](auto&& __val) { __f(__proj(__val));};
@@ -72,7 +72,7 @@ __pattern_for_each(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
 // pattern_transform
 //---------------------------------------------------------------------------------------------------------------------
 template<typename _BackendTag, typename _ExecutionPolicy, typename _InRange, typename _OutRange, typename _F, typename _Proj>
-decltype(auto)
+auto
 __pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _InRange&& __in_r, _OutRange&& __out_r,
                     _F __op, _Proj __proj)
 {
@@ -327,8 +327,8 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     auto __s_rng = oneapi::dpl::experimental::ranges::views::iota(0, __count) |
                    oneapi::dpl::experimental::ranges::views::transform([__value](auto) { return __value; });
 
-    return __ranges::__pattern_search(__tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
-                                      __s_rng, __pred);
+    return __pattern_search(__tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __s_rng,
+                            __pred);
 }
 
 template<typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj>
