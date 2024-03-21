@@ -351,25 +351,27 @@ inline void* __attribute__((always_inline)) _aligned_realloc(void* __ptr, std::s
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size)
 {
-    return ::__pstl_offload::__internal_operator_new(__size, 0);
+    return ::__pstl_offload::__internal_operator_new(__size, __pstl_offload::__not_use_explicit_alignment);
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size)
 {
-    return ::__pstl_offload::__internal_operator_new(__size, 0);
+    return ::__pstl_offload::__internal_operator_new(__size, __pstl_offload::__not_use_explicit_alignment);
 }
 
 inline void* __attribute__((always_inline))
 operator new(std::size_t __size, const std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, 0, std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, __pstl_offload::__not_use_explicit_alignment,
+                                                     std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
 operator new[](std::size_t __size, const std::nothrow_t&) noexcept
 {
-    return ::__pstl_offload::__internal_operator_new(__size, 0, std::nothrow);
+    return ::__pstl_offload::__internal_operator_new(__size, __pstl_offload::__not_use_explicit_alignment,
+                                                     std::nothrow);
 }
 
 inline void* __attribute__((always_inline))
