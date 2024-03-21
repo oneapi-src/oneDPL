@@ -10,7 +10,7 @@
 #include <oneapi/mkl.hpp>
 #endif
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 namespace __detail {
 
@@ -81,4 +81,4 @@ auto local_gemm(sycl::queue &q, shp::dense_matrix_view<T> a,
 
 } // namespace __detail
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

@@ -14,7 +14,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_matrix_iterator.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_row_view.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <typename T, typename Iter = T *>
 class dense_matrix_view
@@ -24,9 +24,9 @@ public:
   using difference_type = std::ptrdiff_t;
 
   using scalar_reference = std::iter_reference_t<Iter>;
-  using reference = dr::shp::matrix_ref<T, std::size_t, scalar_reference>;
+  using reference = experimental::dr::shp::matrix_ref<T, std::size_t, scalar_reference>;
 
-  using key_type = dr::index<>;
+  using key_type = experimental::dr::index<>;
   using map_type = T;
 
   using iterator = dense_matrix_view_iterator<T, Iter>;
@@ -110,15 +110,15 @@ private:
 };
 
 template <std::random_access_iterator Iter>
-dense_matrix_view(Iter, dr::index<>, std::size_t)
+dense_matrix_view(Iter, experimental::dr::index<>, std::size_t)
     -> dense_matrix_view<std::iter_value_t<Iter>, Iter>;
 
 template <std::random_access_iterator Iter>
-dense_matrix_view(Iter, dr::index<>)
+dense_matrix_view(Iter, experimental::dr::index<>)
     -> dense_matrix_view<std::iter_value_t<Iter>, Iter>;
 
 template <typename T, typename Allocator>
 dense_matrix_view(dense_matrix<T, Allocator> &)
     -> dense_matrix_view<T, typename std::allocator_traits<Allocator>::pointer>;
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

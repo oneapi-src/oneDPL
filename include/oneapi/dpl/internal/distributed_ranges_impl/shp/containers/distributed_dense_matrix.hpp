@@ -15,7 +15,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/future.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_matrix_view.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <typename T, typename L> class distributed_dense_matrix_accessor {
 public:
@@ -25,9 +25,9 @@ public:
   using scalar_value_type = rng::range_value_t<L>;
   using scalar_reference = rng::range_reference_t<L>;
 
-  using value_type = dr::shp::matrix_entry<scalar_value_type, std::size_t>;
+  using value_type = experimental::dr::shp::matrix_entry<scalar_value_type, std::size_t>;
 
-  using reference = dr::shp::matrix_ref<T, std::size_t, scalar_reference>;
+  using reference = experimental::dr::shp::matrix_ref<T, std::size_t, scalar_reference>;
 
   using iterator_category = std::random_access_iterator_tag;
 
@@ -37,7 +37,7 @@ public:
 
   using tile_type = L;
 
-  using key_type = dr::index<>;
+  using key_type = experimental::dr::index<>;
 
   constexpr distributed_dense_matrix_accessor() noexcept = default;
   constexpr ~distributed_dense_matrix_accessor() noexcept = default;
@@ -131,30 +131,30 @@ private:
 
 template <typename T, typename L>
 using distributed_dense_matrix_iterator =
-    dr::iterator_adaptor<distributed_dense_matrix_accessor<T, L>>;
+    experimental::dr::iterator_adaptor<distributed_dense_matrix_accessor<T, L>>;
 
 template <typename T> class distributed_dense_matrix {
 public:
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  using value_type = dr::shp::matrix_entry<T>;
+  using value_type = experimental::dr::shp::matrix_entry<T>;
 
   using scalar_reference = rng::range_reference_t<
-      dr::shp::device_vector<T, dr::shp::device_allocator<T>>>;
+      experimental::dr::shp::device_vector<T, experimental::dr::shp::device_allocator<T>>>;
   using const_scalar_reference = rng::range_reference_t<
-      const dr::shp::device_vector<T, dr::shp::device_allocator<T>>>;
+      const experimental::dr::shp::device_vector<T, experimental::dr::shp::device_allocator<T>>>;
 
-  using reference = dr::shp::matrix_ref<T, scalar_reference>;
-  using const_reference = dr::shp::matrix_ref<const T, const_scalar_reference>;
+  using reference = experimental::dr::shp::matrix_ref<T, scalar_reference>;
+  using const_reference = experimental::dr::shp::matrix_ref<const T, const_scalar_reference>;
 
-  using key_type = dr::index<>;
+  using key_type = experimental::dr::index<>;
 
   using iterator = distributed_dense_matrix_iterator<
-      T, dr::shp::device_vector<T, dr::shp::device_allocator<T>>>;
+      T, experimental::dr::shp::device_vector<T, experimental::dr::shp::device_allocator<T>>>;
 
   distributed_dense_matrix(key_type shape)
-      : shape_(shape), partition_(new dr::shp::block_cyclic()) {
+      : shape_(shape), partition_(new experimental::dr::shp::block_cyclic()) {
     init_();
   }
 
@@ -211,17 +211,17 @@ public:
     std::size_t tn =
         std::min(tile_shape()[1], shape()[1] - j * tile_shape()[1]);
 
-    return dense_matrix_view<T, rng::iterator_t<dr::shp::device_vector<
-                                    T, dr::shp::device_allocator<T>>>>(
+    return dense_matrix_view<T, rng::iterator_t<experimental::dr::shp::device_vector<
+                                    T, experimental::dr::shp::device_allocator<T>>>>(
         iter, key_type{tm, tn}, tile_shape()[1],
         tiles_[i * grid_shape()[1] + j].rank());
   }
 
-  std::vector<dense_matrix_view<T, rng::iterator_t<dr::shp::device_vector<
-                                       T, dr::shp::device_allocator<T>>>>>
+  std::vector<dense_matrix_view<T, rng::iterator_t<experimental::dr::shp::device_vector<
+                                       T, experimental::dr::shp::device_allocator<T>>>>>
   tiles() {
-    std::vector<dense_matrix_view<T, rng::iterator_t<dr::shp::device_vector<
-                                         T, dr::shp::device_allocator<T>>>>>
+    std::vector<dense_matrix_view<T, rng::iterator_t<experimental::dr::shp::device_vector<
+                                         T, experimental::dr::shp::device_allocator<T>>>>>
         views_;
 
     for (std::size_t i = 0; i < grid_shape_[0]; i++) {
@@ -268,8 +268,8 @@ public:
   }
 
   auto segments() {
-    std::vector<dense_matrix_view<T, rng::iterator_t<dr::shp::device_vector<
-                                         T, dr::shp::device_allocator<T>>>>>
+    std::vector<dense_matrix_view<T, rng::iterator_t<experimental::dr::shp::device_vector<
+                                         T, experimental::dr::shp::device_allocator<T>>>>>
         views_;
 
     for (std::size_t i = 0; i < grid_shape_[0]; i++) {
@@ -289,7 +289,7 @@ public:
                             tiles_[i * grid_shape_[1] + j].rank());
       }
     }
-    return dr::__detail::owning_view(std::move(views_));
+    return experimental::dr::__detail::owning_view(std::move(views_));
   }
 
 private:
@@ -303,8 +303,8 @@ private:
       for (std::size_t j = 0; j < grid_shape_[1]; j++) {
         std::size_t rank = partition_->tile_rank(shape(), {i, j});
 
-        auto device = dr::shp::devices()[rank];
-        dr::shp::device_allocator<T> alloc(dr::shp::context(), device);
+        auto device = experimental::dr::shp::devices()[rank];
+        experimental::dr::shp::device_allocator<T> alloc(experimental::dr::shp::context(), device);
 
         std::size_t tile_size = tile_shape_[0] * tile_shape_[1];
 
@@ -324,9 +324,9 @@ private:
   key_type shape_;
   key_type grid_shape_;
   key_type tile_shape_;
-  std::unique_ptr<dr::shp::matrix_partition> partition_;
+  std::unique_ptr<experimental::dr::shp::matrix_partition> partition_;
 
-  std::vector<dr::shp::device_vector<T, dr::shp::device_allocator<T>>> tiles_;
+  std::vector<experimental::dr::shp::device_vector<T, experimental::dr::shp::device_allocator<T>>> tiles_;
 };
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

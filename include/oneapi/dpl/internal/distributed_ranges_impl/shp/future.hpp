@@ -9,7 +9,7 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/detail.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <typename T, typename Event = sycl::event> class future {
 public:
@@ -45,4 +45,4 @@ private:
   std::vector<Event> events_;
 };
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

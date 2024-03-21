@@ -15,7 +15,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/util/generate_random.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/csr_matrix_view.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <rng::random_access_range Segments>
   requires(rng::viewable_range<Segments>)
@@ -121,42 +121,42 @@ private:
 
 template <typename Segments>
 using distributed_sparse_matrix_iterator =
-    dr::iterator_adaptor<distributed_range_accessor<Segments>>;
+    experimental::dr::iterator_adaptor<distributed_range_accessor<Segments>>;
 
 template <typename T, std::integral I = std::int64_t> class sparse_matrix {
 public:
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  using value_type = dr::shp::matrix_entry<T>;
+  using value_type = experimental::dr::shp::matrix_entry<T>;
 
   using scalar_reference = rng::range_reference_t<
-      dr::shp::device_vector<T, dr::shp::device_allocator<T>>>;
+      experimental::dr::shp::device_vector<T, experimental::dr::shp::device_allocator<T>>>;
   using const_scalar_reference = rng::range_reference_t<
-      const dr::shp::device_vector<T, dr::shp::device_allocator<T>>>;
+      const experimental::dr::shp::device_vector<T, experimental::dr::shp::device_allocator<T>>>;
 
-  using reference = dr::shp::matrix_ref<T, scalar_reference>;
-  using const_reference = dr::shp::matrix_ref<const T, const_scalar_reference>;
+  using reference = experimental::dr::shp::matrix_ref<T, scalar_reference>;
+  using const_reference = experimental::dr::shp::matrix_ref<const T, const_scalar_reference>;
 
-  using key_type = dr::index<I>;
+  using key_type = experimental::dr::index<I>;
 
-  using segment_type = dr::shp::csr_matrix_view<
+  using segment_type = experimental::dr::shp::csr_matrix_view<
       T, I,
-      rng::iterator_t<dr::shp::device_vector<T, dr::shp::device_allocator<T>>>,
-      rng::iterator_t<dr::shp::device_vector<I, dr::shp::device_allocator<I>>>>;
+      rng::iterator_t<experimental::dr::shp::device_vector<T, experimental::dr::shp::device_allocator<T>>>,
+      rng::iterator_t<experimental::dr::shp::device_vector<I, experimental::dr::shp::device_allocator<I>>>>;
 
-  // using iterator = sparse_matrix_iterator<T, dr::shp::device_vector<T,
-  // dr::shp::device_allocator<T>>>;
+  // using iterator = sparse_matrix_iterator<T, experimental::dr::shp::device_vector<T,
+  // experimental::dr::shp::device_allocator<T>>>;
   using iterator =
       distributed_sparse_matrix_iterator<std::span<segment_type> &&>;
 
   sparse_matrix(key_type shape)
-      : shape_(shape), partition_(new dr::shp::block_cyclic()) {
+      : shape_(shape), partition_(new experimental::dr::shp::block_cyclic()) {
     init_();
   }
 
   sparse_matrix(key_type shape, double density)
-      : shape_(shape), partition_(new dr::shp::block_cyclic()) {
+      : shape_(shape), partition_(new experimental::dr::shp::block_cyclic()) {
     init_random_(density);
   }
 
@@ -217,15 +217,15 @@ public:
     colind.resize(tile_view.size());
     rowptr.resize(tile_view.shape()[0] + 1);
 
-    auto v_e = dr::shp::copy_async(tile_view.values_data(),
+    auto v_e = experimental::dr::shp::copy_async(tile_view.values_data(),
                                    tile_view.values_data() + values.size(),
                                    values.data());
 
-    auto c_e = dr::shp::copy_async(tile_view.colind_data(),
+    auto c_e = experimental::dr::shp::copy_async(tile_view.colind_data(),
                                    tile_view.colind_data() + colind.size(),
                                    colind.data());
 
-    auto r_e = dr::shp::copy_async(tile_view.rowptr_data(),
+    auto r_e = experimental::dr::shp::copy_async(tile_view.rowptr_data(),
                                    tile_view.rowptr_data() + rowptr.size(),
                                    rowptr.data());
 
@@ -320,9 +320,9 @@ private:
       for (std::size_t j = 0; j < grid_shape_[1]; j++) {
         std::size_t rank = partition_->tile_rank(shape(), {i, j});
 
-        auto device = dr::shp::devices()[rank];
-        dr::shp::device_allocator<T> alloc(dr::shp::context(), device);
-        dr::shp::device_allocator<I> i_alloc(dr::shp::context(), device);
+        auto device = experimental::dr::shp::devices()[rank];
+        experimental::dr::shp::device_allocator<T> alloc(experimental::dr::shp::context(), device);
+        experimental::dr::shp::device_allocator<I> i_alloc(experimental::dr::shp::context(), device);
 
         values_.emplace_back(1, alloc, rank);
         rowptr_.emplace_back(2, i_alloc, rank);
@@ -354,28 +354,28 @@ private:
         std::size_t tn = std::min<std::size_t>(tile_shape_[1],
                                                shape()[1] - j * tile_shape_[1]);
 
-        auto device = dr::shp::devices()[rank];
-        dr::shp::device_allocator<T> alloc(dr::shp::context(), device);
-        dr::shp::device_allocator<I> i_alloc(dr::shp::context(), device);
+        auto device = experimental::dr::shp::devices()[rank];
+        experimental::dr::shp::device_allocator<T> alloc(experimental::dr::shp::context(), device);
+        experimental::dr::shp::device_allocator<I> i_alloc(experimental::dr::shp::context(), device);
 
         auto seed = i * grid_shape_[1] + j;
 
         auto csr = generate_random_csr<T, I>(key_type(tm, tn), density, seed);
         std::size_t nnz = csr.size();
 
-        dr::shp::device_vector<T, dr::shp::device_allocator<T>> values(
+        experimental::dr::shp::device_vector<T, experimental::dr::shp::device_allocator<T>> values(
             csr.size(), alloc, rank);
-        dr::shp::device_vector<I, dr::shp::device_allocator<I>> rowptr(
+        experimental::dr::shp::device_vector<I, experimental::dr::shp::device_allocator<I>> rowptr(
             tm + 1, i_alloc, rank);
 
-        dr::shp::device_vector<I, dr::shp::device_allocator<I>> colind(
+        experimental::dr::shp::device_vector<I, experimental::dr::shp::device_allocator<I>> colind(
             csr.size(), i_alloc, rank);
 
-        dr::shp::copy(csr.values_data(), csr.values_data() + csr.size(),
+        experimental::dr::shp::copy(csr.values_data(), csr.values_data() + csr.size(),
                       values.data());
-        dr::shp::copy(csr.rowptr_data(), csr.rowptr_data() + tm + 1,
+        experimental::dr::shp::copy(csr.rowptr_data(), csr.rowptr_data() + tm + 1,
                       rowptr.data());
-        dr::shp::copy(csr.colind_data(), csr.colind_data() + csr.size(),
+        experimental::dr::shp::copy(csr.colind_data(), csr.colind_data() + csr.size(),
                       colind.data());
 
         values_.push_back(std::move(values));
@@ -397,11 +397,11 @@ private:
   key_type shape_;
   key_type grid_shape_;
   key_type tile_shape_;
-  std::unique_ptr<dr::shp::matrix_partition> partition_;
+  std::unique_ptr<experimental::dr::shp::matrix_partition> partition_;
 
-  std::vector<dr::shp::device_vector<T, dr::shp::device_allocator<T>>> values_;
-  std::vector<dr::shp::device_vector<I, dr::shp::device_allocator<I>>> rowptr_;
-  std::vector<dr::shp::device_vector<I, dr::shp::device_allocator<I>>> colind_;
+  std::vector<experimental::dr::shp::device_vector<T, experimental::dr::shp::device_allocator<T>>> values_;
+  std::vector<experimental::dr::shp::device_vector<I, experimental::dr::shp::device_allocator<I>>> rowptr_;
+  std::vector<experimental::dr::shp::device_vector<I, experimental::dr::shp::device_allocator<I>>> colind_;
 
   std::vector<std::size_t> nnz_;
   std::size_t total_nnz_ = 0;
@@ -410,4 +410,4 @@ private:
   std::vector<segment_type> segments_;
 };
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

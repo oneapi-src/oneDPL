@@ -9,7 +9,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/matrix_entry.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 template <typename T, typename Iter> class dense_matrix_row_accessor {
 public:
   using size_type = std::size_t;
@@ -18,9 +18,9 @@ public:
   using scalar_value_type = std::iter_value_t<Iter>;
   using scalar_reference = std::iter_reference_t<Iter>;
 
-  using value_type = dr::shp::matrix_entry<scalar_value_type, std::size_t>;
+  using value_type = experimental::dr::shp::matrix_entry<scalar_value_type, std::size_t>;
 
-  using reference = dr::shp::matrix_ref<T, std::size_t, scalar_reference>;
+  using reference = experimental::dr::shp::matrix_ref<T, std::size_t, scalar_reference>;
 
   using iterator_category = std::random_access_iterator_tag;
 
@@ -28,7 +28,7 @@ public:
   using const_iterator_accessor = iterator_accessor;
   using nonconst_iterator_accessor = iterator_accessor;
 
-  using key_type = dr::index<>;
+  using key_type = experimental::dr::index<>;
 
   constexpr dense_matrix_row_accessor() noexcept = default;
   constexpr ~dense_matrix_row_accessor() noexcept = default;
@@ -72,7 +72,7 @@ private:
 
 template <typename T, typename Iter>
 using dense_matrix_row_iterator =
-    dr::iterator_adaptor<dense_matrix_row_accessor<T, Iter>>;
+    experimental::dr::iterator_adaptor<dense_matrix_row_accessor<T, Iter>>;
 
 template <typename T, typename Iter> class dense_matrix_row_view {
 public:
@@ -81,7 +81,7 @@ public:
 
   using scalar_reference = std::iter_reference_t<Iter>;
 
-  using key_type = dr::index<>;
+  using key_type = experimental::dr::index<>;
   using map_type = T;
 
   using iterator = dense_matrix_row_iterator<T, Iter>;
@@ -106,4 +106,4 @@ template <std::random_access_iterator Iter>
 dense_matrix_row_view(Iter, std::size_t, std::size_t)
     -> dense_matrix_row_view<std::iter_value_t<Iter>, Iter>;
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

@@ -9,7 +9,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/csr_matrix_view.hpp>
 #include <random>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 namespace {
 
@@ -27,7 +27,7 @@ using uniform_distribution_t = typename uniform_distribution<T>::type;
 } // namespace
 
 template <typename T = float, std::integral I = std::size_t>
-auto generate_random_csr(dr::index<I> shape, double density = 0.01,
+auto generate_random_csr(experimental::dr::index<I> shape, double density = 0.01,
                          unsigned int seed = 0) {
 
   assert(density >= 0.0 && density < 1.0);
@@ -89,4 +89,4 @@ auto generate_random_csr(dr::index<I> shape, double density = 0.01,
   return csr_matrix_view(values, rowptr, colind, shape, nnz, 0);
 }
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

@@ -15,7 +15,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/util/coo_matrix.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/csr_matrix_view.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 namespace __detail {
 
@@ -24,7 +24,7 @@ namespace __detail {
 // 2) `tuples` has shape `shape`
 // 3) `tuples` has `nnz` elements
 template <typename Tuples, typename Allocator>
-auto convert_to_csr(Tuples &&tuples, dr::index<> shape, std::size_t nnz,
+auto convert_to_csr(Tuples &&tuples, experimental::dr::index<> shape, std::size_t nnz,
                     Allocator &&allocator) {
   auto &&[index, v] = *tuples.begin();
   auto &&[i, j] = index;
@@ -67,7 +67,7 @@ auto convert_to_csr(Tuples &&tuples, dr::index<> shape, std::size_t nnz,
   }
 
   return csr_matrix_view(values, rowptr, colind,
-                         dr::index<I>(shape[0], shape[1]), nnz, 0);
+                         experimental::dr::index<I>(shape[0], shape[1]), nnz, 0);
 }
 
 /// Read in the Matrix Market file at location `file_path` and a return
@@ -209,7 +209,7 @@ inline coo_matrix<T, I> mmread(std::string file_path, bool one_indexed = true) {
 }
 
 template <typename T, typename I, typename Allocator, typename... Args>
-void destroy_csr_matrix_view(dr::shp::csr_matrix_view<T, I, Args...> view,
+void destroy_csr_matrix_view(experimental::dr::shp::csr_matrix_view<T, I, Args...> view,
                              Allocator &&alloc) {
   alloc.deallocate(view.values_data(), view.size());
   typename std::allocator_traits<Allocator>::template rebind_alloc<I> i_alloc(
@@ -221,25 +221,25 @@ void destroy_csr_matrix_view(dr::shp::csr_matrix_view<T, I, Args...> view,
 } // namespace __detail
 
 template <typename T, typename I>
-auto create_distributed(dr::shp::csr_matrix_view<T, I> local_mat,
+auto create_distributed(experimental::dr::shp::csr_matrix_view<T, I> local_mat,
                         const matrix_partition &partition) {
-  dr::shp::sparse_matrix<T, I> a(local_mat.shape(), partition);
+  experimental::dr::shp::sparse_matrix<T, I> a(local_mat.shape(), partition);
 
-  std::vector<dr::shp::csr_matrix_view<T, I>> views;
+  std::vector<experimental::dr::shp::csr_matrix_view<T, I>> views;
   std::vector<sycl::event> events;
   views.reserve(a.grid_shape()[0] * a.grid_shape()[1]);
 
   for (I i = 0; i < a.grid_shape()[0]; i++) {
     for (I j = 0; j < a.grid_shape()[1]; j++) {
       auto &&tile = a.tile({i, j});
-      dr::index<I> row_bounds(i * a.tile_shape()[0],
+      experimental::dr::index<I> row_bounds(i * a.tile_shape()[0],
                               i * a.tile_shape()[0] + tile.shape()[0]);
-      dr::index<I> column_bounds(j * a.tile_shape()[1],
+      experimental::dr::index<I> column_bounds(j * a.tile_shape()[1],
                                  j * a.tile_shape()[1] + tile.shape()[1]);
 
       auto local_submat = local_mat.submatrix(row_bounds, column_bounds);
 
-      auto submatrix_shape = dr::index<I>(row_bounds[1] - row_bounds[0],
+      auto submatrix_shape = experimental::dr::index<I>(row_bounds[1] - row_bounds[0],
                                           column_bounds[1] - column_bounds[0]);
 
       auto copied_submat = __detail::convert_to_csr(
@@ -281,9 +281,9 @@ template <typename T, typename I = std::size_t>
 auto mmread(std::string file_path, bool one_indexed = true) {
   return mmread<T, I>(
       file_path,
-      dr::shp::block_cyclic({dr::shp::tile::div, dr::shp::tile::div},
-                            {dr::shp::nprocs(), 1}),
+      experimental::dr::shp::block_cyclic({experimental::dr::shp::tile::div, experimental::dr::shp::tile::div},
+                            {experimental::dr::shp::nprocs(), 1}),
       one_indexed);
 }
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

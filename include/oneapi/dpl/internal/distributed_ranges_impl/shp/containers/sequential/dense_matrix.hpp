@@ -13,7 +13,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_matrix_iterator.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_row_view.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <typename T, typename Allocator = std::allocator<T>>
 class dense_matrix {
@@ -26,9 +26,9 @@ public:
   using scalar_pointer = typename std::allocator_traits<Allocator>::pointer;
 
   using scalar_reference = std::iter_reference_t<scalar_pointer>;
-  using reference = dr::shp::matrix_ref<T, std::size_t, scalar_reference>;
+  using reference = experimental::dr::shp::matrix_ref<T, std::size_t, scalar_reference>;
 
-  using key_type = dr::index<>;
+  using key_type = experimental::dr::index<>;
   using map_type = T;
 
   using iterator = dense_matrix_iterator<T, scalar_pointer>;
@@ -140,4 +140,4 @@ private:
   size_type ld_;
 };
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

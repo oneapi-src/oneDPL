@@ -6,7 +6,7 @@
 
 #include <type_traits>
 
-namespace dr {
+namespace experimental::dr {
 
 template <typename T> struct is_ref_view : std::false_type {};
 template <rng::range R>
@@ -56,4 +56,4 @@ struct is_zip_view<rng::zip_view<Views...>> : std::true_type {};
 template <typename T>
 inline constexpr bool is_zip_view_v = is_zip_view<T>::value;
 
-} // namespace dr
+} // namespace experimental::dr

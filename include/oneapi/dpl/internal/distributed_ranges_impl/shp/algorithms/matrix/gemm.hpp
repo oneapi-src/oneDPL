@@ -7,7 +7,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/matrix/local_gemm.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/distributed_dense_matrix.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <typename T>
 void gemm(distributed_dense_matrix<T> &a, distributed_dense_matrix<T> &b,
@@ -48,7 +48,7 @@ void gemm_inplace(distributed_dense_matrix<T> &a,
         auto &&a_tile = a.tile({i, k});
         auto &&b_tile = b.tile({k, j});
 
-        auto &&q = __detail::queue(dr::ranges::rank(c_tile));
+        auto &&q = __detail::queue(experimental::dr::ranges::rank(c_tile));
 
         auto e = __detail::local_gemm(q, __detail::local(a_tile),
                                       __detail::local(b_tile),
@@ -91,14 +91,14 @@ void gemm_buffered(distributed_dense_matrix<T> &a,
       auto c_local = c.tile({i, j});
 
       threads.emplace_back([c_local, i, j, &a, &b, &communication, &compute] {
-        auto &&q = __detail::queue(dr::ranges::rank(c_local));
+        auto &&q = __detail::queue(experimental::dr::ranges::rank(c_local));
 
         std::size_t a_elem = a.tile_shape()[0] * a.tile_shape()[1];
         std::size_t b_elem = b.tile_shape()[0] * b.tile_shape()[1];
         std::size_t buffer_size = std::max(a_elem, b_elem);
 
-        dr::shp::device_allocator<T> gpu_allocator(q);
-        dr::shp::buffered_allocator buffered_allocator(gpu_allocator,
+        experimental::dr::shp::device_allocator<T> gpu_allocator(q);
+        experimental::dr::shp::buffered_allocator buffered_allocator(gpu_allocator,
                                                        buffer_size, 2);
         auto &&allocator = buffered_allocator;
 
@@ -114,8 +114,8 @@ void gemm_buffered(distributed_dense_matrix<T> &a,
           double duration = std::chrono::duration<double>(end - begin).count();
           communication += duration;
 
-          dr::shp::dense_matrix_view a_local(a_tile);
-          dr::shp::dense_matrix_view b_local(b_tile);
+          experimental::dr::shp::dense_matrix_view a_local(a_tile);
+          experimental::dr::shp::dense_matrix_view b_local(b_tile);
 
           begin = std::chrono::high_resolution_clock::now();
           __detail::local_gemm(q, __detail::local(a_local),
@@ -168,14 +168,14 @@ void gemm_buffered_async(distributed_dense_matrix<T> &a,
       auto c_local = c.tile({i, j});
 
       threads.emplace_back([c_local, i, j, &a, &b, &issue, &sync, &compute] {
-        auto &&q = __detail::queue(dr::ranges::rank(c_local));
+        auto &&q = __detail::queue(experimental::dr::ranges::rank(c_local));
 
         std::size_t a_elem = a.tile_shape()[0] * a.tile_shape()[1];
         std::size_t b_elem = b.tile_shape()[0] * b.tile_shape()[1];
         std::size_t buffer_size = std::max(a_elem, b_elem);
 
-        dr::shp::device_allocator<T> gpu_allocator(q);
-        dr::shp::buffered_allocator buffered_allocator(gpu_allocator,
+        experimental::dr::shp::device_allocator<T> gpu_allocator(q);
+        experimental::dr::shp::buffered_allocator buffered_allocator(gpu_allocator,
                                                        buffer_size, 4);
         auto &&allocator = buffered_allocator;
 
@@ -202,8 +202,8 @@ void gemm_buffered_async(distributed_dense_matrix<T> &a,
           double duration = std::chrono::duration<double>(end - begin).count();
           sync += duration;
 
-          dr::shp::dense_matrix_view a_local(a_tile);
-          dr::shp::dense_matrix_view b_local(b_tile);
+          experimental::dr::shp::dense_matrix_view a_local(a_tile);
+          experimental::dr::shp::dense_matrix_view b_local(b_tile);
 
           if (k_ + 1 < a.grid_shape()[1]) {
             begin = std::chrono::high_resolution_clock::now();
@@ -242,4 +242,4 @@ void gemm_buffered_async(distributed_dense_matrix<T> &a,
   }
 }
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

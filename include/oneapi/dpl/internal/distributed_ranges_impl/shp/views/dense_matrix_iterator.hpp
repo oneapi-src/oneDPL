@@ -12,7 +12,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_column_view.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_row_view.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <typename T, typename Iter> class dense_matrix_accessor {
 public:
@@ -22,9 +22,9 @@ public:
   using scalar_type = std::iter_value_t<Iter>;
   using scalar_reference = std::iter_reference_t<Iter>;
 
-  using value_type = dr::shp::matrix_entry<scalar_type, std::size_t>;
+  using value_type = experimental::dr::shp::matrix_entry<scalar_type, std::size_t>;
 
-  using reference = dr::shp::matrix_ref<T, std::size_t, scalar_reference>;
+  using reference = experimental::dr::shp::matrix_ref<T, std::size_t, scalar_reference>;
 
   using iterator_category = std::random_access_iterator_tag;
 
@@ -32,7 +32,7 @@ public:
   using const_iterator_accessor = iterator_accessor;
   using nonconst_iterator_accessor = iterator_accessor;
 
-  using key_type = dr::index<>;
+  using key_type = experimental::dr::index<>;
 
   constexpr dense_matrix_accessor() noexcept = default;
   constexpr ~dense_matrix_accessor() noexcept = default;
@@ -101,9 +101,9 @@ private:
 
 template <typename T, typename Iter>
 using dense_matrix_iterator =
-    dr::iterator_adaptor<dense_matrix_accessor<T, Iter>>;
+    experimental::dr::iterator_adaptor<dense_matrix_accessor<T, Iter>>;
 
 template <typename T, typename Iter>
 using dense_matrix_view_iterator = dense_matrix_iterator<T, Iter>;
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

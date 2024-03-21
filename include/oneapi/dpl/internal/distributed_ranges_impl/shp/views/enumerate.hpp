@@ -6,7 +6,7 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/zip_view.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 namespace views {
 
@@ -30,7 +30,7 @@ public:
     requires(rng::sized_range<R>)
   auto operator()(R &&r) const {
     using W = std::uint32_t;
-    return dr::shp::zip_view(rng::views::iota(W(0), W(rng::size(r))),
+    return experimental::dr::shp::zip_view(rng::views::iota(W(0), W(rng::size(r))),
                              std::forward<R>(r));
   }
 
@@ -53,4 +53,4 @@ inline constexpr auto enumerate = enumerate_fn_{};
 
 } // namespace views
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

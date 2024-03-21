@@ -11,7 +11,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 
-namespace dr {
+namespace experimental::dr {
 
 template <std::random_access_iterator Iter, std::copy_constructible F>
 class transform_iterator {
@@ -106,9 +106,9 @@ public:
   }
 
   auto local() const
-    requires(dr::ranges::__detail::has_local<Iter>)
+    requires(experimental::dr::ranges::__detail::has_local<Iter>)
   {
-    auto iter = dr::ranges::__detail::local(iter_);
+    auto iter = experimental::dr::ranges::__detail::local(iter_);
     return transform_iterator<decltype(iter), F>(iter, fn_);
   }
 
@@ -135,10 +135,10 @@ public:
   }
 
   auto segments() const
-    requires(dr::distributed_range<V>)
+    requires(experimental::dr::distributed_range<V>)
   {
     auto fn = fn_;
-    return dr::ranges::segments(base_) |
+    return experimental::dr::ranges::segments(base_) |
            rng::views::transform([fn]<typename T>(T &&segment) {
              return transform_view<rng::views::all_t<decltype(segment)>, F>(
                  std::forward<T>(segment), fn);
@@ -146,9 +146,9 @@ public:
   }
 
   auto rank() const
-    requires(dr::remote_range<V>)
+    requires(experimental::dr::remote_range<V>)
   {
-    return dr::ranges::rank(base_);
+    return experimental::dr::ranges::rank(base_);
   }
 
   V base() const { return base_; }
@@ -168,7 +168,7 @@ public:
   transform_adapter_closure(F fn) : fn_(fn) {}
 
   template <rng::viewable_range R> auto operator()(R &&r) const {
-    return dr::transform_view(std::forward<R>(r), fn_);
+    return experimental::dr::transform_view(std::forward<R>(r), fn_);
   }
 
   template <rng::viewable_range R>
@@ -195,13 +195,13 @@ public:
 inline constexpr auto transform = transform_fn_{};
 } // namespace views
 
-} // namespace dr
+} // namespace experimental::dr
 
 #if !defined(DR_SPEC)
 
 // Needed to satisfy rng::viewable_range
 template <rng::random_access_range V, std::copy_constructible F>
-inline constexpr bool rng::enable_borrowed_range<dr::transform_view<V, F>> =
+inline constexpr bool rng::enable_borrowed_range<experimental::dr::transform_view<V, F>> =
     true;
 
 #endif

@@ -8,7 +8,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/index.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/matrix_entry.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <typename T, typename I, typename TIter, typename IIter>
 class csr_matrix_view_accessor {
@@ -21,9 +21,9 @@ public:
 
   using index_type = I;
 
-  using value_type = dr::shp::matrix_entry<scalar_type, I>;
+  using value_type = experimental::dr::shp::matrix_entry<scalar_type, I>;
 
-  using reference = dr::shp::matrix_ref<T, I, scalar_reference>;
+  using reference = experimental::dr::shp::matrix_ref<T, I, scalar_reference>;
 
   using iterator_category = std::random_access_iterator_tag;
 
@@ -31,7 +31,7 @@ public:
   using const_iterator_accessor = iterator_accessor;
   using nonconst_iterator_accessor = iterator_accessor;
 
-  using key_type = dr::index<I>;
+  using key_type = experimental::dr::index<I>;
 
   constexpr csr_matrix_view_accessor() noexcept = default;
   constexpr ~csr_matrix_view_accessor() noexcept = default;
@@ -119,7 +119,7 @@ private:
 
 template <typename T, typename I, typename TIter, typename IIter>
 using csr_matrix_view_iterator =
-    dr::iterator_adaptor<csr_matrix_view_accessor<T, I, TIter, IIter>>;
+    experimental::dr::iterator_adaptor<csr_matrix_view_accessor<T, I, TIter, IIter>>;
 
 template <typename T, typename I, typename TIter = T *, typename IIter = I *>
 class csr_matrix_view
@@ -129,12 +129,12 @@ public:
   using difference_type = std::ptrdiff_t;
 
   using scalar_reference = std::iter_reference_t<TIter>;
-  using reference = dr::shp::matrix_ref<T, I, scalar_reference>;
+  using reference = experimental::dr::shp::matrix_ref<T, I, scalar_reference>;
 
   using scalar_type = T;
   using index_type = I;
 
-  using key_type = dr::index<I>;
+  using key_type = experimental::dr::index<I>;
   using map_type = T;
 
   using iterator = csr_matrix_view_iterator<T, I, TIter, IIter>;
@@ -222,4 +222,4 @@ csr_matrix_view(TIter, IIter, IIter, Args &&...)
     -> csr_matrix_view<std::iter_value_t<TIter>, std::iter_value_t<IIter>,
                        TIter, IIter>;
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp

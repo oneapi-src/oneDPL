@@ -10,21 +10,21 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/index.hpp>
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <typename T, typename I = std::size_t> class matrix_entry {
 public:
   using index_type = I;
   using map_type = T;
 
-  matrix_entry(dr::index<I> index, const map_type &value)
+  matrix_entry(experimental::dr::index<I> index, const map_type &value)
       : index_(index), value_(value) {}
-  matrix_entry(dr::index<I> index, map_type &&value)
+  matrix_entry(experimental::dr::index<I> index, map_type &&value)
       : index_(index), value_(std::move(value)) {}
 
   template <typename U>
     requires(std::is_constructible_v<T, U>)
-  matrix_entry(dr::index<I> index, U &&value)
+  matrix_entry(experimental::dr::index<I> index, U &&value)
       : index_(index), value_(std::forward<U>(value)) {}
 
   template <typename Entry>
@@ -44,7 +44,7 @@ public:
     return {{index_[0], index_[1]}, value_};
   }
 
-  dr::index<I> index() const noexcept { return index_; }
+  experimental::dr::index<I> index() const noexcept { return index_; }
 
   map_type value() const noexcept { return value_; }
 
@@ -81,33 +81,33 @@ public:
   matrix_entry &operator=(matrix_entry &&) = default;
 
 private:
-  dr::index<I> index_;
+  experimental::dr::index<I> index_;
   map_type value_;
 };
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp
 
 namespace std {
 
 template <typename T, typename I>
   requires(!std::is_const_v<T>)
-void swap(dr::shp::matrix_entry<T, I> a, dr::shp::matrix_entry<T, I> b) {
-  dr::shp::matrix_entry<T, I> other = a;
+void swap(experimental::dr::shp::matrix_entry<T, I> a, experimental::dr::shp::matrix_entry<T, I> b) {
+  experimental::dr::shp::matrix_entry<T, I> other = a;
   a = b;
   b = other;
 }
 
 template <std::size_t Index, typename T, typename I>
-struct tuple_element<Index, dr::shp::matrix_entry<T, I>>
-    : tuple_element<Index, std::tuple<dr::index<I>, T>> {};
+struct tuple_element<Index, experimental::dr::shp::matrix_entry<T, I>>
+    : tuple_element<Index, std::tuple<experimental::dr::index<I>, T>> {};
 
 template <typename T, typename I>
-struct tuple_size<dr::shp::matrix_entry<T, I>> : integral_constant<size_t, 2> {
+struct tuple_size<experimental::dr::shp::matrix_entry<T, I>> : integral_constant<size_t, 2> {
 };
 
 } // namespace std
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 template <typename T, typename I = std::size_t, typename TRef = T &>
 class matrix_ref {
@@ -115,14 +115,14 @@ public:
   using scalar_type = T;
   using index_type = I;
 
-  using key_type = dr::index<I>;
+  using key_type = experimental::dr::index<I>;
   using map_type = T;
 
   using scalar_reference = TRef;
 
-  using value_type = dr::shp::matrix_entry<T, I>;
+  using value_type = experimental::dr::shp::matrix_entry<T, I>;
 
-  matrix_ref(dr::index<I> index, scalar_reference value)
+  matrix_ref(experimental::dr::index<I> index, scalar_reference value)
       : index_(index), value_(value) {}
 
   operator value_type() const noexcept { return value_type(index_, value_); }
@@ -143,7 +143,7 @@ public:
     }
   }
 
-  dr::index<I> index() const noexcept { return index_; }
+  experimental::dr::index<I> index() const noexcept { return index_; }
 
   scalar_reference value() const noexcept { return value_; }
 
@@ -180,33 +180,33 @@ public:
   matrix_ref &operator=(matrix_ref &&) = default;
 
 private:
-  dr::index<I> index_;
+  experimental::dr::index<I> index_;
   scalar_reference value_;
 };
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp
 
 namespace std {
 
 template <typename T, typename I, typename TRef>
   requires(!std::is_const_v<T>)
-void swap(dr::shp::matrix_ref<T, I, TRef> a,
-          dr::shp::matrix_ref<T, I, TRef> b) {
-  dr::shp::matrix_entry<T, I> other = a;
+void swap(experimental::dr::shp::matrix_ref<T, I, TRef> a,
+          experimental::dr::shp::matrix_ref<T, I, TRef> b) {
+  experimental::dr::shp::matrix_entry<T, I> other = a;
   a = b;
   b = other;
 }
 
 template <std::size_t Index, typename T, typename I, typename TRef>
-struct tuple_element<Index, dr::shp::matrix_ref<T, I, TRef>>
-    : tuple_element<Index, std::tuple<dr::index<I>, TRef>> {};
+struct tuple_element<Index, experimental::dr::shp::matrix_ref<T, I, TRef>>
+    : tuple_element<Index, std::tuple<experimental::dr::index<I>, TRef>> {};
 
 template <typename T, typename I, typename TRef>
-struct tuple_size<dr::shp::matrix_ref<T, I, TRef>>
+struct tuple_size<experimental::dr::shp::matrix_ref<T, I, TRef>>
     : integral_constant<std::size_t, 2> {};
 
 template <std::size_t Index, typename T, typename I, typename TRef>
-inline decltype(auto) get(dr::shp::matrix_ref<T, I, TRef> ref)
+inline decltype(auto) get(experimental::dr::shp::matrix_ref<T, I, TRef> ref)
   requires(Index <= 1)
 {
   if constexpr (Index == 0) {
@@ -218,7 +218,7 @@ inline decltype(auto) get(dr::shp::matrix_ref<T, I, TRef> ref)
 }
 
 template <std::size_t Index, typename T, typename I, typename TRef>
-inline decltype(auto) get(dr::shp::matrix_entry<T, I> entry)
+inline decltype(auto) get(experimental::dr::shp::matrix_entry<T, I> entry)
   requires(Index <= 1)
 {
   if constexpr (Index == 0) {

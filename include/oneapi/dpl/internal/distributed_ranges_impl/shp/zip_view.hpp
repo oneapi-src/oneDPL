@@ -12,7 +12,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/view_detectors.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_span.hpp>
 
-namespace dr {
+namespace experimental::dr {
 
 template <typename T> struct is_owning_view : std::false_type {};
 // template <rng::range R>
@@ -21,9 +21,9 @@ template <typename T> struct is_owning_view : std::false_type {};
 template <typename T>
 inline constexpr bool is_owning_view_v = is_owning_view<T>{};
 
-}; // namespace dr
+}; // namespace experimental::dr
 
-namespace dr::shp {
+namespace experimental::dr::shp {
 
 namespace __detail {
 
@@ -101,7 +101,7 @@ private:
 };
 
 template <rng::random_access_iterator... Iters>
-using zip_iterator = dr::iterator_adaptor<zip_accessor<Iters...>>;
+using zip_iterator = experimental::dr::iterator_adaptor<zip_accessor<Iters...>>;
 
 /// zip
 template <rng::random_access_range... Rs>
@@ -137,8 +137,8 @@ public:
   template <std::size_t I> decltype(auto) get_view() const {
     auto &&view = std::get<I>(views_);
 
-    if constexpr (dr::is_ref_view_v<std::remove_cvref_t<decltype(view)>> ||
-                  dr::is_owning_view_v<std::remove_cvref_t<decltype(view)>>) {
+    if constexpr (experimental::dr::is_ref_view_v<std::remove_cvref_t<decltype(view)>> ||
+                  experimental::dr::is_owning_view_v<std::remove_cvref_t<decltype(view)>>) {
       return view.base();
     } else {
       return view;
@@ -148,7 +148,7 @@ public:
   // If there is at least one distributed range, expose segments
   // of overlapping remote ranges.
   auto segments() const
-    requires(dr::distributed_range<Rs> || ...)
+    requires(experimental::dr::distributed_range<Rs> || ...)
   {
     std::array<std::size_t, sizeof...(Rs)> segment_ids;
     std::array<std::size_t, sizeof...(Rs)> local_idx;
@@ -178,14 +178,14 @@ public:
       increment_local_idx(segment_ids, local_idx, size);
     }
 
-    return dr::__detail::owning_view(std::move(segment_views));
+    return experimental::dr::__detail::owning_view(std::move(segment_views));
   }
 
   // Return a range corresponding to each segment in `segments()`,
   // but with a tuple of the constituent ranges instead of a
   // `zip_view` of the ranges.
   auto zipped_segments() const
-    requires(dr::distributed_range<Rs> || ...)
+    requires(experimental::dr::distributed_range<Rs> || ...)
   {
     std::array<std::size_t, sizeof...(Rs)> segment_ids;
     std::array<std::size_t, sizeof...(Rs)> local_idx;
@@ -214,11 +214,11 @@ public:
       increment_local_idx(segment_ids, local_idx, size);
     }
 
-    return dr::__detail::owning_view(std::move(segment_views));
+    return experimental::dr::__detail::owning_view(std::move(segment_views));
   }
 
   auto local() const noexcept
-    requires(!(dr::distributed_range<Rs> || ...))
+    requires(!(experimental::dr::distributed_range<Rs> || ...))
   {
     return local_impl_(std::make_index_sequence<sizeof...(Rs)>());
   }
@@ -228,8 +228,8 @@ public:
   //   - There are no distributed ranges in the zip
   // Expose a rank.
   std::size_t rank() const
-    requires((dr::remote_range<Rs> || ...) &&
-             !(dr::distributed_range<Rs> || ...))
+    requires((experimental::dr::remote_range<Rs> || ...) &&
+             !(experimental::dr::distributed_range<Rs> || ...))
   {
     return get_rank_impl_<0, Rs...>();
   }
@@ -242,25 +242,25 @@ private:
 
   template <std::size_t I, typename R> std::size_t get_rank_impl_() const {
     static_assert(I < sizeof...(Rs));
-    return dr::ranges::rank(get_view<I>());
+    return experimental::dr::ranges::rank(get_view<I>());
   }
 
   template <std::size_t I, typename R, typename... Rs_>
     requires(sizeof...(Rs_) > 0)
   std::size_t get_rank_impl_() const {
     static_assert(I < sizeof...(Rs));
-    if constexpr (dr::remote_range<R>) {
-      return dr::ranges::rank(get_view<I>());
+    if constexpr (experimental::dr::remote_range<R>) {
+      return experimental::dr::ranges::rank(get_view<I>());
     } else {
       return get_rank_impl_<I + 1, Rs_...>();
     }
   }
 
   template <typename T> auto create_view_impl_(T &&t) const {
-    if constexpr (dr::remote_range<T>) {
-      return dr::shp::device_span(std::forward<T>(t));
+    if constexpr (experimental::dr::remote_range<T>) {
+      return experimental::dr::shp::device_span(std::forward<T>(t));
     } else {
-      return dr::shp::span(std::forward<T>(t));
+      return experimental::dr::shp::span(std::forward<T>(t));
     }
   }
 
@@ -307,9 +307,9 @@ private:
         rng::begin(std::get<Is>(views_))...);
   }
 
-  template <dr::distributed_range T>
+  template <experimental::dr::distributed_range T>
   decltype(auto) segment_or_orig_(T &&t, std::size_t idx) const {
-    return dr::ranges::segments(t)[idx];
+    return experimental::dr::ranges::segments(t)[idx];
   }
 
   template <typename T>
@@ -341,9 +341,9 @@ namespace views {
 
 /// Zip
 template <rng::random_access_range... Rs> auto zip(Rs &&...rs) {
-  return dr::shp::zip_view(std::forward<Rs>(rs)...);
+  return experimental::dr::shp::zip_view(std::forward<Rs>(rs)...);
 }
 
 } // namespace views
 
-} // namespace dr::shp
+} // namespace experimental::dr::shp
