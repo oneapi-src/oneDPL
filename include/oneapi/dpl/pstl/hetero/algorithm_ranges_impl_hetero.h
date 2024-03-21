@@ -377,7 +377,7 @@ return_value(_Size1 __res, _Size2 __size, ::std::false_type)
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _BinaryPredicate,
           typename _OrFirstTag>
 oneapi::dpl::__internal::__difference_t<_Range>
-__pattern_adjacent_find2(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __rng,
+__pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& __rng,
                         _BinaryPredicate __predicate, _OrFirstTag __is__or_semantic)
 {
     if (__rng.size() < 2)
@@ -411,12 +411,12 @@ __pattern_adjacent_find2(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
 #if _ONEDPL___cplusplus >= 202002L
 template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 decltype(auto)
-__pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred,
+__pattern_adjacent_find2(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred,
                         _Proj __proj)
 {
     auto __pred_2 = [__pred, __proj](auto&& __val, auto&& __next) { return __pred(__proj(__val), __proj(__next));};
 
-    auto __idx =  oneapi::dpl::__internal::__ranges::__pattern_adjacent_find2(__tag,
+    auto __idx =  oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(__tag,
         std::forward<_ExecutionPolicy>(__exec), oneapi::dpl::views::all_read(std::forward<_R>(__r)), __pred_2,
         oneapi::dpl::__internal::__first_semantic());
 
