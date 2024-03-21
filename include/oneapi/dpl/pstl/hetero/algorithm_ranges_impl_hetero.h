@@ -332,8 +332,8 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
     auto __s_rng = oneapi::dpl::experimental::ranges::views::iota(0, __count) |
                    oneapi::dpl::experimental::ranges::views::transform([__value](auto) { return __value; });
 
-    return __pattern_search(__tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng), __s_rng,
-                            __pred);
+    return __ranges::__pattern_search(__tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range>(__rng),
+                                      __s_rng, __pred);
 }
 
 template<typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj>
@@ -500,8 +500,9 @@ __pattern_copy_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
     unseq_backend::__create_mask<_Predicate, _SizeType> __create_mask_op{__pred};
     unseq_backend::__copy_by_mask<_ReduceOp, _Assign, /*inclusive*/ ::std::true_type, 1> __copy_by_mask_op;
 
-    return __pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
-                               ::std::forward<_Range2>(__rng2), __create_mask_op, __copy_by_mask_op);
+    return __ranges::__pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                         ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2),
+                                         __create_mask_op, __copy_by_mask_op);
 }
 
 //------------------------------------------------------------------------
@@ -548,8 +549,9 @@ __pattern_unique_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec
     __create_mask_unique_copy<__not_pred<_BinaryPredicate>, _It1DifferenceType> __create_mask_op{
         __not_pred<_BinaryPredicate>{__pred}};
 
-    return __pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng),
-                               ::std::forward<_Range2>(__result), __create_mask_op, __copy_by_mask_op);
+    return __ranges::__pattern_scan_copy(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                         ::std::forward<_Range1>(__rng), ::std::forward<_Range2>(__result),
+                                         __create_mask_op, __copy_by_mask_op);
 }
 
 //------------------------------------------------------------------------
@@ -570,9 +572,9 @@ __pattern_unique(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
     auto res = __ranges::__pattern_unique_copy(__tag, __exec, __rng, res_rng, __pred,
                                                oneapi::dpl::__internal::__pstl_assign());
 
-    __pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec),
-                     __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{}, res_rng,
-                     ::std::forward<_Range>(__rng));
+    __ranges::__pattern_walk_n(__tag, ::std::forward<_ExecutionPolicy>(__exec),
+                               __brick_copy<__hetero_tag<_BackendTag>, _ExecutionPolicy>{}, res_rng,
+                               ::std::forward<_Range>(__rng));
     return res;
 }
 
