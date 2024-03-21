@@ -71,9 +71,9 @@ header.  All iterators are implemented in the ``oneapi::dpl`` namespace.
   iterator and the unary function applied during dereference operations are required template parameters of
   the ``transform_iterator`` class. 
 
-  The unary functor provided to a transform iterator should have a const call operator that takes a single argument
-  whose parameter type can be converted to from the reference type of the original iterator. The functor's call operator
-  should not have any side effects and should not modify the state of the functor object.
+  The unary functor provided to a transform iterator should have a const call operator which is callable using the
+  reference type of the original iterator. The functor's call operator should not have any side effects and should not
+  modify the state of the functor object.
   
   The ``transform_iterator`` class provides three constructors:
 
