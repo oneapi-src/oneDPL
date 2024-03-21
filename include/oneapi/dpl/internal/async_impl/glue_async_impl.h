@@ -362,9 +362,8 @@ transform_exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
 
     return __internal::__except_handler([&]() {
         return oneapi::dpl::__internal::__pattern_transform_scan_async(
-            __dispatch_tag,
-            ::std::forward<_ExecutionPolicy>(__exec), __first1,
-            __last1, __first2, __unary_op, __init, __binary_op,
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __unary_op, __init,
+            __binary_op,
             /*exclusive=*/::std::false_type());
     });
 }
@@ -383,7 +382,8 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
 
     return __internal::__except_handler([&]() {
         return oneapi::dpl::__internal::__pattern_transform_scan_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __unary_op, __binary_op,
+            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __unary_op,
+            __binary_op,
             /*inclusive=*/::std::true_type());
     });
 }

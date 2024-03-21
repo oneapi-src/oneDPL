@@ -143,10 +143,12 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
 
     return __internal::__except_handler([&]() {
         // This is a temporary workaround for an in-place exclusive scan while the SYCL backend scan pattern is not fixed.
-        const bool __is_scan_inplace_exclusive = __n > 1 && !_Inclusive{} && __iterators_possibly_equal(__first, __result);
+        const bool __is_scan_inplace_exclusive =
+            __n > 1 && !_Inclusive{} && __iterators_possibly_equal(__first, __result);
         if (!__is_scan_inplace_exclusive)
         {
-        auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
+            auto __keep2 =
+                oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
             auto __buf2 = __keep2(__result, __result + __n);
 
             oneapi::dpl::__par_backend_hetero::__parallel_transform_scan(
@@ -162,15 +164,16 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&
 
             using _Type = typename _InitType::__value_type;
 
-            auto __policy =
-                __par_backend_hetero::make_wrapped_policy<ExecutionPolicyWrapper>(::std::forward<_ExecutionPolicy>(__exec));
+            auto __policy = __par_backend_hetero::make_wrapped_policy<ExecutionPolicyWrapper>(
+                ::std::forward<_ExecutionPolicy>(__exec));
             using _NewExecutionPolicy = decltype(__policy);
 
             // Create temporary buffer
             oneapi::dpl::__par_backend_hetero::__buffer<_NewExecutionPolicy, _Type> __tmp_buf(__policy, __n);
             auto __first_tmp = __tmp_buf.get();
             auto __last_tmp = __first_tmp + __n;
-            auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
+            auto __keep2 =
+                oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::write, _Iterator2>();
             auto __buf2 = __keep2(__first_tmp, __last_tmp);
 
             // Run main algorithm and save data into temporary buffer

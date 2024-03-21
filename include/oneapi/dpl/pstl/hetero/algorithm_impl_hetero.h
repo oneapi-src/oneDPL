@@ -552,12 +552,13 @@ __pattern_minmax_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
     auto __buf = __keep(__first, __last);
 
     return __internal::__except_handler([&]() {
-        auto __ret = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
-                                                                                ::std::false_type /*is_commutative*/>(
-                     _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
-                     unseq_backend::__no_init_value{}, // no initial value
-                     __buf.all_view())
-                     .get();
+        auto __ret =
+            oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                           ::std::false_type /*is_commutative*/>(
+                _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                unseq_backend::__no_init_value{}, // no initial value
+                __buf.all_view())
+                .get();
 
         return ::std::make_pair<_Iterator, _Iterator>(__first + ::std::get<0>(__ret), __first + ::std::get<1>(__ret));
     });
@@ -591,9 +592,9 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
             _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, __par_backend_hetero::__parallel_or_tag{},
             oneapi::dpl::__ranges::make_zip_view(__buf1.all_view(), __buf2.all_view()));
 
-            // inverted conditional because of
-            // reorder_predicate in glue_algorithm_impl.h
-            return result ? __first : __last;
+        // inverted conditional because of
+        // reorder_predicate in glue_algorithm_impl.h
+        return result ? __first : __last;
     });
 }
 
@@ -619,11 +620,11 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
                 __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last)),
             _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, ::std::true_type{});
 
-            auto __zip_at_first = __par_backend_hetero::zip(
-                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
-                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1));
-            _Iterator __result_iterator = __first + (__result - __zip_at_first);
-            return (__result_iterator == __last - 1) ? __last : __result_iterator;
+        auto __zip_at_first = __par_backend_hetero::zip(
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first + 1));
+        _Iterator __result_iterator = __first + (__result - __zip_at_first);
+        return (__result_iterator == __last - 1) ? __last : __result_iterator;
     });
 }
 
@@ -780,8 +781,8 @@ __pattern_find_end(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
                 __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__first),
                 __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__last),
                 __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_first),
-                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_last), _Predicate{__pred},
-                ::std::false_type{});
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read>(__s_last),
+                _Predicate{__pred}, ::std::false_type{});
         });
     }
 }
@@ -953,8 +954,8 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Itera
 
     return __internal::__except_handler([&]() {
         auto __res = __par_backend_hetero::__parallel_scan_copy(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                                                __buf1.all_view(), __buf2.all_view(), __n, __create_mask_op,
-                                                                __copy_by_mask_op);
+                                                                __buf1.all_view(), __buf2.all_view(), __n,
+                                                                __create_mask_op, __copy_by_mask_op);
 
         ::std::size_t __num_copied = __res.get();
         return ::std::make_pair(__output_first + __n, __num_copied);
@@ -981,7 +982,7 @@ __pattern_copy_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterato
 
     return __internal::__except_handler([&]() {
         auto __res = __par_backend_hetero::__parallel_copy_if(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          __buf1.all_view(), __buf2.all_view(), __n, __pred);
+                                                              __buf1.all_view(), __buf2.all_view(), __n, __pred);
 
         ::std::size_t __num_copied = __res.get();
         return __result_first + __num_copied;
@@ -1126,12 +1127,13 @@ __pattern_is_partitioned(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
     auto __buf = __keep(__first, __last);
 
     return __internal::__except_handler([&]() {
-        auto __res = oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
-                                                                                    ::std::false_type /*is_commutative*/>(
-                         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
-                         unseq_backend::__no_init_value{}, // no initial value
-                         __buf.all_view())
-                         .get();
+        auto __res =
+            oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
+                                                                           ::std::false_type /*is_commutative*/>(
+                _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                unseq_backend::__no_init_value{}, // no initial value
+                __buf.all_view())
+                .get();
 
         return __broken != __reduce_fn(_ReduceValueType{__all_true}, __res);
     });
@@ -1571,7 +1573,8 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
                 _BackendTag{}, __par_backend_hetero::make_wrapped_policy<__partial_sort_2>(__exec),
                 __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_first),
                 __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_mid),
-                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_last), __comp);
+                __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_last),
+                __comp);
         });
 
         return __pattern_walk2(
@@ -1612,13 +1615,13 @@ __pattern_reverse(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterato
 
     auto __keep = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read_write, _Iterator>();
     auto __buf = __keep(__first, __last);
-    
+
     __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend_hetero::__parallel_for(
             _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
             unseq_backend::__reverse_functor<typename ::std::iterator_traits<_Iterator>::difference_type>{__n}, __n / 2,
             __buf.all_view())
-        .wait();
+            .wait();
     });
 }
 
@@ -1645,7 +1648,8 @@ __pattern_reverse_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Bi
     return __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend_hetero::__parallel_for(
             _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-            unseq_backend::__reverse_copy<typename ::std::iterator_traits<_BidirectionalIterator>::difference_type>{__n},
+            unseq_backend::__reverse_copy<typename ::std::iterator_traits<_BidirectionalIterator>::difference_type>{
+                __n},
             __n, __buf1.all_view(), __buf2.all_view())
             .wait();
 
@@ -1689,14 +1693,14 @@ __pattern_rotate(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator
     return __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend_hetero::__parallel_for(
             _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__rotate_wrapper>(__exec),
-            unseq_backend::__rotate_copy<typename ::std::iterator_traits<_Iterator>::difference_type>{__n, __shift}, __n,
-            __buf.all_view(), __temp_rng);
+            unseq_backend::__rotate_copy<typename ::std::iterator_traits<_Iterator>::difference_type>{__n, __shift},
+            __n, __buf.all_view(), __temp_rng);
 
         using _Function = __brick_move<__hetero_tag<_BackendTag>, _ExecutionPolicy>;
         auto __brick = unseq_backend::walk_n<_ExecutionPolicy, _Function>{_Function{}};
 
-        oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __brick,
-                                                          __n, __temp_rng, __buf.all_view())
+        oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                          __brick, __n, __temp_rng, __buf.all_view())
             .wait();
 
         return __first + (__last - __new_first);
@@ -1728,8 +1732,8 @@ __pattern_rotate_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Bid
     return __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend_hetero::__parallel_for(
             _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-            unseq_backend::__rotate_copy<typename ::std::iterator_traits<_BidirectionalIterator>::difference_type>{__n,
-                                                                                                               __shift},
+            unseq_backend::__rotate_copy<typename ::std::iterator_traits<_BidirectionalIterator>::difference_type>{
+                __n, __shift},
             __n, __buf1.all_view(), __buf2.all_view())
             .wait();
 
@@ -1794,8 +1798,8 @@ __pattern_hetero_set_op(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _F
                     __reduce_op, __get_data_op, __assign_op, _MaskAssigner{}, __create_mask_op},
                 // scan between groups
                 unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
-                                      _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
-                                                                      __get_data_op},
+                                      _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{},
+                                                                      __assign_op, __get_data_op},
                 // global scan
                 __copy_by_mask_op)
                 .get();
@@ -2035,8 +2039,8 @@ __pattern_shift_left(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Rang
             auto __src = oneapi::dpl::__ranges::drop_view_simple<_Range, _DiffType>(__rng, __n);
             auto __dst = oneapi::dpl::__ranges::take_view_simple<_Range, _DiffType>(__rng, __size_res);
 
-        oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                                          __brick, __size_res, __src, __dst)
+            oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                              __brick, __size_res, __src, __dst)
                 .wait();
         }
         else //2. n < size/2; 'n' parallel copying

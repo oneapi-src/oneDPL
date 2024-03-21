@@ -48,8 +48,8 @@ __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function
     {
         __internal::__except_handler([&]() {
             oneapi::dpl::__par_backend_hetero::__parallel_for(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                                              unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f}, __n,
-                                                              ::std::forward<_Ranges>(__rngs)...)
+                                                              unseq_backend::walk_n<_ExecutionPolicy, _Function>{__f},
+                                                              __n, ::std::forward<_Ranges>(__rngs)...)
                 .wait();
         });
     }
@@ -209,7 +209,7 @@ __pattern_any_of(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&& 
         return false;
 
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, _Pred>;
-    
+
     return __internal::__except_handler([&]() {
         return oneapi::dpl::__par_backend_hetero::__parallel_find_or(
             _BackendTag{},
@@ -321,9 +321,9 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _R
             _Predicate{adjacent_find_fn<_BinaryPredicate>{__predicate}}, _TagType{},
             oneapi::dpl::__ranges::zip_view(__rng1, __rng2));
 
-            // inverted conditional because of
-            // reorder_predicate in glue_algorithm_impl.h
-            return return_value(result, __rng.size(), __is__or_semantic);
+        // inverted conditional because of
+        // reorder_predicate in glue_algorithm_impl.h
+        return return_value(result, __rng.size(), __is__or_semantic);
     });
 }
 
@@ -395,8 +395,8 @@ __pattern_scan_copy(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range
                                                                                __add_mask_op, __create_mask_op},
                 // scan between groups
                 unseq_backend::__scan</*inclusive*/ ::std::true_type, _ExecutionPolicy, _ReduceOp, _DataAcc, _NoAssign,
-                                      _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{}, __assign_op,
-                                                                      __get_data_op},
+                                      _Assigner, _DataAcc, _InitType>{__reduce_op, __get_data_op, _NoAssign{},
+                                                                      __assign_op, __get_data_op},
                 // global scan
                 __copy_by_mask_op)
                 .get();
@@ -657,10 +657,10 @@ __pattern_minmax_element(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
         _ReduceValueType __ret =
             oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_ReduceValueType,
                                                                            ::std::false_type /*is_commutative*/>(
-            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
-            unseq_backend::__no_init_value{}, // no initial value
-            ::std::forward<_Range>(__rng))
-            .get();
+                _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __reduce_fn, __transform_fn,
+                unseq_backend::__no_init_value{}, // no initial value
+                ::std::forward<_Range>(__rng))
+                .get();
 
         using ::std::get;
         return ::std::make_pair(get<0>(__ret), get<1>(__ret));
@@ -788,7 +788,8 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
     __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend_hetero::__parallel_for(
             _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce1_wrapper>(__exec),
-            unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__n)>(__binary_op, __n), __intermediate_result_end,
+            unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__n)>(__binary_op, __n),
+            __intermediate_result_end,
             oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx),
                                                     __intermediate_result_end),
             ::std::forward<_Range2>(__values), experimental::ranges::views::all_write(__tmp_out_values))
@@ -830,15 +831,15 @@ __pattern_reduce_by_segment(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
     //reduce by segment
     return __internal::__except_handler([&]() {
         oneapi::dpl::__par_backend_hetero::__parallel_for(
-        _BackendTag{},
-        oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce2_wrapper>(
-            ::std::forward<_ExecutionPolicy>(__exec)),
-        unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__intermediate_result_end)>(
-            __binary_op, __intermediate_result_end),
-        __result_end,
-        oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx), __result_end),
-        experimental::ranges::views::all_read(__tmp_out_values), ::std::forward<_Range4>(__out_values))
-        .wait();
+            _BackendTag{},
+            oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__reduce2_wrapper>(
+                ::std::forward<_ExecutionPolicy>(__exec)),
+            unseq_backend::__brick_reduce_idx<_BinaryOperator, decltype(__intermediate_result_end)>(
+                __binary_op, __intermediate_result_end),
+            __result_end,
+            oneapi::dpl::__ranges::take_view_simple(experimental::ranges::views::all_read(__idx), __result_end),
+            experimental::ranges::views::all_read(__tmp_out_values), ::std::forward<_Range4>(__out_values))
+            .wait();
 
         return __result_end;
     });
