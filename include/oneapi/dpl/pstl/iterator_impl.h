@@ -404,7 +404,7 @@ class transform_iterator
     _UnaryFunc __my_unary_func_;
 
     static_assert(std::is_invocable_v<const _UnaryFunc, typename std::iterator_traits<_Iter>::reference>,
-                  "Unary Functor is not const callable with the reference type of base iterator.");
+                  "_UnaryFunc is not const callable with the reference type of base iterator.");
 
   public:
     typedef typename ::std::iterator_traits<_Iter>::difference_type difference_type;
