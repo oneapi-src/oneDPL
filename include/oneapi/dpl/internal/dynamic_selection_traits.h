@@ -121,6 +121,18 @@ struct has_report_value : decltype(has_report_value_impl<S, Info>(0))
 {
 };
 
+template <typename Backend>
+auto
+has_lazy_report_impl(...) -> std::false_type;
+
+template <typename Backend>
+auto
+has_lazy_report_impl() -> decltype(std::declval<Backend>().lazy_report(), std::true_type{});
+
+template <typename Backend>
+struct has_lazy_report : decltype(has_lazy_report_impl<Backend>(0))
+{
+};
 } //namespace internal
 
 struct deferred_initialization_t
@@ -298,6 +310,19 @@ struct report_value
 };
 template <typename S, typename Info>
 inline constexpr bool report_value_v = report_value<S, Info>::value;
+
+template <typename T>
+auto
+has_lazy_report_impl(...) -> std::false_type;
+
+template <typename T>
+auto
+has_lazy_report_impl(int) -> decltype(std::declval<T>().lazy_report(), std::true_type{});
+
+template <typename T>
+struct has_lazy_report : decltype(has_lazy_report_impl<T>(0))
+{
+};
 
 } // namespace experimental
 } // namespace dpl
