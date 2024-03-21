@@ -573,7 +573,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _I
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator>();
     auto __buf2 = __keep2(__first + 1, __last);
 
-    // TODO: in case of confilicting names
+    // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
     bool result = __par_backend_hetero::__parallel_find_or(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec),
@@ -688,7 +688,7 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Iterator1
     auto __keep2 = oneapi::dpl::__ranges::__get_sycl_range<__par_backend_hetero::access_mode::read, _Iterator2>();
     auto __buf2 = __keep2(__first2, __last2);
 
-    // TODO: in case of confilicting names
+    // TODO: in case of conflicting names
     // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
     return !__par_backend_hetero::__parallel_find_or(
         _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
