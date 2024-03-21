@@ -425,7 +425,7 @@ class transform_iterator
 
     transform_iterator(_Iter __it, _UnaryFunc __unary_func) : __my_it_(__it), __my_unary_func_(__unary_func) {}
 
-    transform_iterator(const transform_iterator& __input) = default;
+    transform_iterator(const transform_iterator&) = default;
     transform_iterator&
     operator=(const transform_iterator& __input)
     {
