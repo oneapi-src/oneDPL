@@ -49,14 +49,12 @@ __pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec,
     using _Functor = unseq_backend::walk_n<_ExecutionPolicy, _BinaryOperation2>;
     using _RepackedTp = oneapi::dpl::__par_backend_hetero::__repacked_tuple_t<_Tp>;
 
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
-                                                                              ::std::true_type /*is_commutative*/>(
-                   _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
-                   unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
-                   ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
-            .get();
-    });
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
+                                                                          ::std::true_type /*is_commutative*/>(
+               _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op1, _Functor{__binary_op2},
+               unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
+               ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2))
+        .get();
 }
 
 //------------------------------------------------------------------------
@@ -75,14 +73,12 @@ __pattern_transform_reduce(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec,
     using _Functor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
     using _RepackedTp = oneapi::dpl::__par_backend_hetero::__repacked_tuple_t<_Tp>;
 
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
-                                                                              ::std::true_type /*is_commutative*/>(
-                   _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
-                   unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
-                   ::std::forward<_Range>(__rng))
-            .get();
-    });
+    return oneapi::dpl::__par_backend_hetero::__parallel_transform_reduce<_RepackedTp,
+                                                                          ::std::true_type /*is_commutative*/>(
+               _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __binary_op, _Functor{__unary_op},
+               unseq_backend::__init_value<_RepackedTp>{__init}, // initial value
+               ::std::forward<_Range>(__rng))
+        .get();
 }
 
 //------------------------------------------------------------------------
@@ -105,27 +101,25 @@ __pattern_transform_scan_base(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __ex
     using _UnaryFunctor = unseq_backend::walk_n<_ExecutionPolicy, _UnaryOperation>;
     using _NoOpFunctor = unseq_backend::walk_n<_ExecutionPolicy, oneapi::dpl::__internal::__no_op>;
 
-    return __internal::__except_handler([&]() {
-        _Assigner __assign_op;
-        _NoAssign __no_assign_op;
-        _NoOpFunctor __get_data_op;
+    _Assigner __assign_op;
+    _NoAssign __no_assign_op;
+    _NoOpFunctor __get_data_op;
 
-        oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_base(
-            _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
-            ::std::forward<_Range2>(__rng2), __binary_op, __init,
-            // local scan
-            unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
-                                  _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op,
-                                                           __assign_op, __get_data_op},
-            // scan between groups
-            unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
-                                  _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
-                __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
-            // global scan
-            unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
-            .wait();
-        return __rng1_size;
-    });
+    oneapi::dpl::__par_backend_hetero::__parallel_transform_scan_base(
+        _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), ::std::forward<_Range1>(__rng1),
+        ::std::forward<_Range2>(__rng2), __binary_op, __init,
+        // local scan
+        unseq_backend::__scan<_Inclusive, _ExecutionPolicy, _BinaryOperation, _UnaryFunctor, _Assigner, _Assigner,
+                              _NoOpFunctor, _InitType>{__binary_op, _UnaryFunctor{__unary_op}, __assign_op, __assign_op,
+                                                       __get_data_op},
+        // scan between groups
+        unseq_backend::__scan</*inclusive=*/::std::true_type, _ExecutionPolicy, _BinaryOperation, _NoOpFunctor,
+                              _NoAssign, _Assigner, _NoOpFunctor, unseq_backend::__no_init_value<_Type>>{
+            __binary_op, _NoOpFunctor{}, __no_assign_op, __assign_op, __get_data_op},
+        // global scan
+        unseq_backend::__global_scan_functor<_Inclusive, _BinaryOperation, _InitType>{__binary_op, __init})
+        .wait();
+    return __rng1_size;
 }
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range1, typename _Range2, typename _UnaryOperation,

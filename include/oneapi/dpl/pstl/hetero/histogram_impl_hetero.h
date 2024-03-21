@@ -141,34 +141,30 @@ __pattern_histogram(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Rando
         auto __bins = __bins_buf.all_view();
 
         auto __fill_func = oneapi::dpl::__internal::fill_functor<_global_histogram_type>{_global_histogram_type{0}};
+        //fill histogram bins with zeros
 
-        return __internal::__except_handler([&]() {
-            //fill histogram bins with zeros
+        auto __init_event = oneapi::dpl::__par_backend_hetero::__parallel_for(
+            _BackendTag{}, oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__hist_fill_zeros_wrapper>(__exec),
+            unseq_backend::walk_n<_ExecutionPolicy, decltype(__fill_func)>{__fill_func}, __num_bins, __bins);
 
-            auto __init_event = oneapi::dpl::__par_backend_hetero::__parallel_for(
-                _BackendTag{},
-                oneapi::dpl::__par_backend_hetero::make_wrapped_policy<__hist_fill_zeros_wrapper>(__exec),
-                unseq_backend::walk_n<_ExecutionPolicy, decltype(__fill_func)>{__fill_func}, __num_bins, __bins);
+        if (__n > 0)
+        {
+            //need __binhash_manager to stay in scope until the kernel completes to keep the buffer alive
+            // __make_binhash_manager will call __get_sycl_range for any data which requires it within __func
+            auto __binhash_manager = __make_binhash_manager(::std::forward<_BinHash>(__func));
+            auto __keep_input =
+                oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
+                                                        _RandomAccessIterator1>();
+            auto __input_buf = __keep_input(__first, __last);
 
-            if (__n > 0)
-            {
-                //need __binhash_manager to stay in scope until the kernel completes to keep the buffer alive
-                // __make_binhash_manager will call __get_sycl_range for any data which requires it within __func
-                auto __binhash_manager = __make_binhash_manager(::std::forward<_BinHash>(__func));
-                auto __keep_input =
-                    oneapi::dpl::__ranges::__get_sycl_range<oneapi::dpl::__par_backend_hetero::access_mode::read,
-                                                            _RandomAccessIterator1>();
-                auto __input_buf = __keep_input(__first, __last);
-
-                __parallel_histogram(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __init_event,
-                                     __input_buf.all_view(), ::std::move(__bins), __binhash_manager)
-                    .wait();
-            }
-            else
-            {
-                __init_event.wait();
-            }
-        });
+            __parallel_histogram(_BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), __init_event,
+                                 __input_buf.all_view(), ::std::move(__bins), __binhash_manager)
+                .wait();
+        }
+        else
+        {
+            __init_event.wait();
+        }
     }
 }
 
