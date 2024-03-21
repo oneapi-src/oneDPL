@@ -106,7 +106,7 @@ __pattern_equal(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range1&& 
     using _Predicate = oneapi::dpl::unseq_backend::single_match_pred<_ExecutionPolicy, equal_predicate<_Pred>>;
 
     return __internal::__except_handler([&]() {
-        // TODO: in case of confilicting names
+        // TODO: in case of conflicting names
         // __par_backend_hetero::make_wrapped_policy<__par_backend_hetero::__or_policy_wrapper>()
         return !oneapi::dpl::__par_backend_hetero::__parallel_find_or(
             _BackendTag{}, ::std::forward<_ExecutionPolicy>(__exec), _Predicate{equal_predicate<_Pred>{__pred}},
