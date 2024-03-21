@@ -75,7 +75,7 @@ add_executable(shp-tests-3 shp-tests.cpp containers-3.cpp copy-3.cpp)
 
 #foreach(test-exec IN ITEMS shp-tests shp-tests-3 shp-quick-test)
 foreach(test-exec IN ITEMS shp-tests shp-tests-3)
-  target_link_libraries(${test-exec} GTest::gtest_main experimental::dr::shp fmt::fmt cxxopts)
+  target_link_libraries(${test-exec} GTest::gtest_main DR::shp fmt::fmt cxxopts)
 endforeach()
 
 add_custom_target(shp-all-tests)

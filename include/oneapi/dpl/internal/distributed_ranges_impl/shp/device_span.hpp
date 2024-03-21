@@ -8,7 +8,11 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/span.hpp>
 #include <span>
 
+<<<<<<< HEAD
 namespace experimental::dr::shp {
+=======
+namespace experimental::shp {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 // A `device_span` is simply a normal `std::span` that's
 // been decorated with an extra `rank()` function, showing
@@ -94,4 +98,8 @@ template <rng::random_access_range R>
 device_span(R &&, std::size_t)
     -> device_span<rng::range_value_t<R>, rng::iterator_t<R>>;
 
+<<<<<<< HEAD
 } // namespace experimental::dr::shp
+=======
+} // namespace experimental::shp
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

@@ -13,7 +13,11 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/zip_view.hpp>
 
+<<<<<<< HEAD
 namespace experimental::dr::shp {
+=======
+namespace experimental::shp {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 template <typename ExecutionPolicy, experimental::dr::distributed_range R, typename Fn>
 void for_each(ExecutionPolicy &&policy, R &&r, Fn &&fn) {
@@ -54,4 +58,8 @@ void for_each(Iter begin, Iter end, Fn &&fn) {
   for_each(experimental::dr::shp::par_unseq, begin, end, std::forward<Fn>(fn));
 }
 
+<<<<<<< HEAD
 } // namespace experimental::dr::shp
+=======
+} // namespace experimental::shp
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

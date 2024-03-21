@@ -8,7 +8,11 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/index.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/matrix_entry.hpp>
 
+<<<<<<< HEAD
 namespace experimental::dr::shp {
+=======
+namespace experimental::shp {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 template <typename T, typename Iter> class dense_matrix_column_accessor {
 public:
   using size_type = std::size_t;
@@ -108,4 +112,8 @@ template <std::random_access_iterator Iter>
 dense_matrix_column_view(Iter, std::size_t, std::size_t, std::size_t)
     -> dense_matrix_column_view<std::iter_value_t<Iter>, Iter>;
 
+<<<<<<< HEAD
 } // namespace experimental::dr::shp
+=======
+} // namespace experimental::shp
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

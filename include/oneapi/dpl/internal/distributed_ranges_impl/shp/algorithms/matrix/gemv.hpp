@@ -14,7 +14,11 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/distributed_span.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
 
+<<<<<<< HEAD
 namespace experimental::dr::shp {
+=======
+namespace experimental::shp {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 template <experimental::dr::distributed_range C, typename T, typename I,
           experimental::dr::distributed_range B>
@@ -205,4 +209,8 @@ void gemv_square_copy(C &&c, experimental::dr::shp::sparse_matrix<T, I> &a, B &&
   __detail::wait(events);
 }
 
+<<<<<<< HEAD
 } // namespace experimental::dr::shp
+=======
+} // namespace experimental::shp
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

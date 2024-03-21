@@ -11,7 +11,11 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 
+<<<<<<< HEAD
 namespace experimental::dr {
+=======
+namespace experimental {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 template <std::random_access_iterator Iter, std::copy_constructible F>
 class transform_iterator {
@@ -195,7 +199,11 @@ public:
 inline constexpr auto transform = transform_fn_{};
 } // namespace views
 
+<<<<<<< HEAD
 } // namespace experimental::dr
+=======
+} // namespace experimental
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 #if !defined(DR_SPEC)
 

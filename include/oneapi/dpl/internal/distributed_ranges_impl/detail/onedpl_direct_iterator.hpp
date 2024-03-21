@@ -8,7 +8,11 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/iterator_adaptor.hpp>
 
+<<<<<<< HEAD
 namespace experimental::dr {
+=======
+namespace experimental {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 namespace __detail {
 
@@ -108,4 +112,8 @@ private:
 
 } // namespace __detail
 
+<<<<<<< HEAD
 } // namespace experimental::dr
+=======
+} // namespace experimental
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

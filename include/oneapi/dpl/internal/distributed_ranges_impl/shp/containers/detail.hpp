@@ -6,7 +6,11 @@
 
 #include <cmath>
 
+<<<<<<< HEAD
 namespace experimental::dr::shp {
+=======
+namespace experimental::shp {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 namespace detail {
 
@@ -25,4 +29,8 @@ inline std::tuple<std::size_t, std::size_t> factor(std::size_t n) {
 
 } // namespace detail
 
+<<<<<<< HEAD
 } // namespace experimental::dr::shp
+=======
+} // namespace experimental::shp
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

@@ -8,7 +8,11 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/detail.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
 
+<<<<<<< HEAD
 namespace experimental::dr::shp {
+=======
+namespace experimental::shp {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 namespace tile {
 
@@ -85,9 +89,15 @@ private:
     return grid;
   }
 
+<<<<<<< HEAD
   experimental::dr::index<> tile_shape_;
   experimental::dr::index<> grid_shape_;
 }; // namespace experimental::dr::shp
+=======
+  dr::index<> tile_shape_;
+  dr::index<> grid_shape_;
+}; // namespace experimental::shp
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 inline std::vector<block_cyclic> partition_matmul(std::size_t m, std::size_t n,
                                                   std::size_t k) {
@@ -112,4 +122,8 @@ inline std::vector<block_cyclic> partition_matmul(std::size_t m, std::size_t n,
   return {a_block, b_block, c_block};
 }
 
+<<<<<<< HEAD
 } // namespace experimental::dr::shp
+=======
+} // namespace experimental::shp
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

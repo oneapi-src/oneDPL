@@ -4,7 +4,11 @@
 
 #pragma once
 
+<<<<<<< HEAD
 namespace experimental::dr::views {
+=======
+namespace experimental::views {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 //
 // range-v3 iota uses sentinels that are not the same type as the
@@ -24,4 +28,8 @@ struct iota_fn_ {
 
 inline constexpr auto iota = iota_fn_{};
 
+<<<<<<< HEAD
 } // namespace experimental::dr::views
+=======
+} // namespace experimental::views
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

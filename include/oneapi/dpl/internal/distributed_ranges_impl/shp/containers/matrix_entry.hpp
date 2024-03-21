@@ -10,7 +10,11 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/index.hpp>
 
+<<<<<<< HEAD
 namespace experimental::dr::shp {
+=======
+namespace experimental::shp {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 template <typename T, typename I = std::size_t> class matrix_entry {
 public:
@@ -85,7 +89,11 @@ private:
   map_type value_;
 };
 
+<<<<<<< HEAD
 } // namespace experimental::dr::shp
+=======
+} // namespace experimental::shp
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 namespace std {
 
@@ -107,7 +115,11 @@ struct tuple_size<experimental::dr::shp::matrix_entry<T, I>> : integral_constant
 
 } // namespace std
 
+<<<<<<< HEAD
 namespace experimental::dr::shp {
+=======
+namespace experimental::shp {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 template <typename T, typename I = std::size_t, typename TRef = T &>
 class matrix_ref {
@@ -184,7 +196,11 @@ private:
   scalar_reference value_;
 };
 
+<<<<<<< HEAD
 } // namespace experimental::dr::shp
+=======
+} // namespace experimental::shp
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 namespace std {
 

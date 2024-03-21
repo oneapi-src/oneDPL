@@ -7,7 +7,11 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
 
+<<<<<<< HEAD
 namespace experimental::dr::shp {
+=======
+namespace experimental::shp {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 /**
  * Applies the given function to a range and stores the result in another range,
@@ -91,4 +95,8 @@ auto transform(Iter1 in_begin, Iter1 in_end, Iter2 out_end, Fn &&fn) {
                    std::forward<Fn>(fn));
 }
 
+<<<<<<< HEAD
 } // namespace experimental::dr::shp
+=======
+} // namespace experimental::shp
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

@@ -15,7 +15,11 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/future.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_matrix_view.hpp>
 
+<<<<<<< HEAD
 namespace experimental::dr::shp {
+=======
+namespace experimental::shp {
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 template <typename T, typename L> class distributed_dense_matrix_accessor {
 public:
@@ -329,4 +333,8 @@ private:
   std::vector<experimental::dr::shp::device_vector<T, experimental::dr::shp::device_allocator<T>>> tiles_;
 };
 
+<<<<<<< HEAD
 } // namespace experimental::dr::shp
+=======
+} // namespace experimental::shp
+>>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
