@@ -15,7 +15,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_ptr.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <std::contiguous_iterator Iter>
   requires(!std::is_const_v<std::iter_value_t<Iter>> &&
@@ -91,4 +91,4 @@ auto fill(Iter first, Iter last, const T &value) {
   return last;
 }
 
-} // namespace dr::shp
+} // namespace experimental::shp

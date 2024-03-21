@@ -6,7 +6,7 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 
-namespace dr {
+namespace experimental {
 
 namespace __detail {
 
@@ -66,4 +66,4 @@ private:
 
 } // namespace __detail
 
-} // namespace dr
+} // namespace experimental

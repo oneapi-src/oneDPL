@@ -8,7 +8,7 @@
 #include <sycl/sycl.hpp>
 #include <type_traits>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename T>
   requires(std::is_trivially_copyable_v<T> || std::is_void_v<T>)
@@ -57,4 +57,4 @@ private:
   T *pointer_;
 };
 
-} // namespace dr::shp
+} // namespace experimental::shp

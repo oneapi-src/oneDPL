@@ -7,7 +7,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/views/transform.hpp>
 
-namespace dr {
+namespace experimental {
 
 // returns range: [(rank, element) ...]
 auto ranked_view(const dr::distributed_range auto &r) {
@@ -15,4 +15,4 @@ auto ranked_view(const dr::distributed_range auto &r) {
   return rng::views::zip(rng::views::transform(r, rank), r);
 }
 
-} // namespace dr
+} // namespace experimental

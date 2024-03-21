@@ -12,7 +12,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/view_detectors.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_span.hpp>
 
-namespace dr {
+namespace experimental {
 
 template <typename T> struct is_owning_view : std::false_type {};
 // template <rng::range R>
@@ -21,9 +21,9 @@ template <typename T> struct is_owning_view : std::false_type {};
 template <typename T>
 inline constexpr bool is_owning_view_v = is_owning_view<T>{};
 
-}; // namespace dr
+}; // namespace experimental
 
-namespace dr::shp {
+namespace experimental::shp {
 
 namespace __detail {
 
@@ -346,4 +346,4 @@ template <rng::random_access_range... Rs> auto zip(Rs &&...rs) {
 
 } // namespace views
 
-} // namespace dr::shp
+} // namespace experimental::shp

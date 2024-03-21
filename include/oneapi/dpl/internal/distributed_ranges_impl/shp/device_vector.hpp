@@ -7,7 +7,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/allocators.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/vector.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename T, typename Allocator>
 class device_vector : public dr::shp::vector<T, Allocator> {
@@ -34,4 +34,4 @@ template <class Alloc>
 device_vector(std::size_t, const Alloc, std::size_t)
     -> device_vector<typename Alloc::value_type, Alloc>;
 
-} // namespace dr::shp
+} // namespace experimental::shp

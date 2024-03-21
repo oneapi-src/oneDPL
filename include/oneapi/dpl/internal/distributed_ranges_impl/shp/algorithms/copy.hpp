@@ -15,7 +15,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_ptr.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 // Copy between contiguous ranges
 template <std::contiguous_iterator InputIt, std::contiguous_iterator OutputIt>
@@ -225,4 +225,4 @@ O copy(R &&r, O result) {
   return copy(rng::begin(r), rng::end(r), result);
 }
 
-} // namespace dr::shp
+} // namespace experimental::shp

@@ -8,7 +8,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/matrix_entry.hpp>
 #include <vector>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 namespace __detail {
 
@@ -167,4 +167,4 @@ private:
 
 } // namespace __detail
 
-} // namespace dr::shp
+} // namespace experimental::shp

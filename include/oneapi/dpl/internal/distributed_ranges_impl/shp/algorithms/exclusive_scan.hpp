@@ -20,7 +20,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/vector.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/views.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename ExecutionPolicy, dr::distributed_contiguous_range R,
           dr::distributed_contiguous_range O, typename U, typename BinaryOp>
@@ -222,4 +222,4 @@ void exclusive_scan(Iter first, Iter last, OutputIter d_first, T init) {
   exclusive_scan(dr::shp::par_unseq, first, last, d_first, init);
 }
 
-} // namespace dr::shp
+} // namespace experimental::shp

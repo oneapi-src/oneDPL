@@ -12,7 +12,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_column_view.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_row_view.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename T, typename Iter> class dense_matrix_accessor {
 public:
@@ -106,4 +106,4 @@ using dense_matrix_iterator =
 template <typename T, typename Iter>
 using dense_matrix_view_iterator = dense_matrix_iterator<T, Iter>;
 
-} // namespace dr::shp
+} // namespace experimental::shp

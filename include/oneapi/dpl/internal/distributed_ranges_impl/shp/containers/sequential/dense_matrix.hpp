@@ -13,7 +13,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_matrix_iterator.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_row_view.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename T, typename Allocator = std::allocator<T>>
 class dense_matrix {
@@ -140,4 +140,4 @@ private:
   size_type ld_;
 };
 
-} // namespace dr::shp
+} // namespace experimental::shp

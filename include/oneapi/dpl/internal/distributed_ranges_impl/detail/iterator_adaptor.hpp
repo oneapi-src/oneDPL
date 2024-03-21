@@ -9,7 +9,7 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 
-namespace dr {
+namespace experimental {
 
 namespace {
 
@@ -197,4 +197,4 @@ private:
   accessor_type accessor_;
 };
 
-} // namespace dr
+} // namespace experimental

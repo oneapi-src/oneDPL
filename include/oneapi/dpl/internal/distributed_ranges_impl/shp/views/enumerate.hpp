@@ -6,7 +6,7 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/zip_view.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 namespace views {
 
@@ -53,4 +53,4 @@ inline constexpr auto enumerate = enumerate_fn_{};
 
 } // namespace views
 
-} // namespace dr::shp
+} // namespace experimental::shp

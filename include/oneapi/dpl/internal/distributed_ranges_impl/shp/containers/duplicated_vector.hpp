@@ -7,7 +7,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/allocators.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_vector.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename T, typename Allocator = dr::shp::device_allocator<T>>
 class duplicated_vector {
@@ -45,4 +45,4 @@ private:
   std::size_t size_ = 0;
 };
 
-} // namespace dr::shp
+} // namespace experimental::shp

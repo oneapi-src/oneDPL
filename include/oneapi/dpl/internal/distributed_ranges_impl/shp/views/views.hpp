@@ -9,7 +9,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/views/transform.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/views/views.hpp>
 
-namespace dr::shp::views {
+namespace experimental::shp::views {
 
 inline constexpr auto all = rng::views::all;
 
@@ -23,4 +23,4 @@ inline constexpr auto take = rng::views::take;
 
 inline constexpr auto transform = dr::views::transform;
 
-} // namespace dr::shp::views
+} // namespace experimental::shp::views

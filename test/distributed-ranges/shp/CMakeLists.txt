@@ -54,11 +54,7 @@ if($(HIPSYCL_TARGETS))
   target_compile_options(dr_shp INTERFACE --hipsycl-targets='cuda:sm_75')
 endif()
 
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-
-
 
 add_executable(
   shp-tests
@@ -74,10 +70,11 @@ add_executable(
 add_executable(shp-tests-3 shp-tests.cpp containers-3.cpp copy-3.cpp)
 
 # skeleton for rapid builds of individual tests, feel free to change this
-add_executable(shp-quick-test shp-tests.cpp ../common/transform.cpp)
-target_compile_definitions(shp-quick-test PRIVATE QUICK_TEST)
+# add_executable(shp-quick-test shp-tests.cpp ../common/transform.cpp)
+# target_compile_definitions(shp-quick-test PRIVATE QUICK_TEST)
 
-foreach(test-exec IN ITEMS shp-tests shp-tests-3 shp-quick-test)
+#foreach(test-exec IN ITEMS shp-tests shp-tests-3 shp-quick-test)
+foreach(test-exec IN ITEMS shp-tests shp-tests-3)
   target_link_libraries(${test-exec} GTest::gtest_main DR::shp fmt::fmt cxxopts)
 endforeach()
 

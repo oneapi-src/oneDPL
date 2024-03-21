@@ -22,7 +22,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/vector.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/views.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename ExecutionPolicy, dr::distributed_contiguous_range R,
           dr::distributed_contiguous_range O, typename BinaryOp,
@@ -249,4 +249,4 @@ OutputIter inclusive_scan(Iter first, Iter last, OutputIter d_first,
                         std::forward<BinaryOp>(binary_op), init);
 }
 
-} // namespace dr::shp
+} // namespace experimental::shp

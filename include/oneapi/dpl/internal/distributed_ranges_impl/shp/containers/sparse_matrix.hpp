@@ -15,7 +15,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/util/generate_random.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/csr_matrix_view.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <rng::random_access_range Segments>
   requires(rng::viewable_range<Segments>)
@@ -410,4 +410,4 @@ private:
   std::vector<segment_type> segments_;
 };
 
-} // namespace dr::shp
+} // namespace experimental::shp

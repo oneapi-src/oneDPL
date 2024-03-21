@@ -11,7 +11,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
 #include <sycl/sycl.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 namespace __detail {
 
@@ -87,4 +87,4 @@ inline void wait(const std::vector<sycl::event> &events) {
 
 } // namespace __detail
 
-} // namespace dr::shp
+} // namespace experimental::shp

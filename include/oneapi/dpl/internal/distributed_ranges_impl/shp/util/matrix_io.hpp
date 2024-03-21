@@ -15,7 +15,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/util/coo_matrix.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/csr_matrix_view.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 namespace __detail {
 
@@ -286,4 +286,4 @@ auto mmread(std::string file_path, bool one_indexed = true) {
       one_indexed);
 }
 
-} // namespace dr::shp
+} // namespace experimental::shp

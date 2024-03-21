@@ -7,7 +7,7 @@
 #include <iostream>
 #include <sycl/sycl.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename Selector> sycl::device select_device(Selector &&selector) {
   sycl::device d;
@@ -243,4 +243,4 @@ concept sycl_device_selector = requires(T &t, const sycl::device &device) {
 
 }
 
-} // namespace dr::shp
+} // namespace experimental::shp

@@ -8,7 +8,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/index.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/matrix_entry.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename T, typename I, typename TIter, typename IIter>
 class csr_matrix_view_accessor {
@@ -222,4 +222,4 @@ csr_matrix_view(TIter, IIter, IIter, Args &&...)
     -> csr_matrix_view<std::iter_value_t<TIter>, std::iter_value_t<IIter>,
                        TIter, IIter>;
 
-} // namespace dr::shp
+} // namespace experimental::shp

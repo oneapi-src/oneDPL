@@ -7,7 +7,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/matrix/local_gemm.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/containers/distributed_dense_matrix.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename T>
 void gemm(distributed_dense_matrix<T> &a, distributed_dense_matrix<T> &b,
@@ -242,4 +242,4 @@ void gemm_buffered_async(distributed_dense_matrix<T> &a,
   }
 }
 
-} // namespace dr::shp
+} // namespace experimental::shp

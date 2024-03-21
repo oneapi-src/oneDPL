@@ -6,7 +6,7 @@
 
 #include <memory>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 // TODO: deal properly with non-trivially destructible types
 //       - constructors, destructors, assign
@@ -245,4 +245,4 @@ private:
   allocator_type allocator_;
 };
 
-} // namespace dr::shp
+} // namespace experimental::shp

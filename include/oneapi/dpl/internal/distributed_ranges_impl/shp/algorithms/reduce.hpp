@@ -51,7 +51,7 @@ auto reduce_no_init_async(ExecutionPolicy &&policy, Iter first, Iter last,
 
 } // namespace
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename ExecutionPolicy, dr::distributed_range R, typename T,
           typename BinaryOp>
@@ -164,4 +164,4 @@ T reduce(Iter first, Iter last, T init, BinaryOp &&binary_op) {
                 std::forward<BinaryOp>(binary_op));
 }
 
-} // namespace dr::shp
+} // namespace experimental::shp

@@ -11,7 +11,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/for_each.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/views/iota.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <dr::distributed_range R, std::integral T> void iota(R &&r, T value) {
   auto iota_view = rng::views::iota(value, T(value + rng::distance(r)));
@@ -28,4 +28,4 @@ void iota(Iter begin, Iter end, T value) {
   iota(r, value);
 }
 
-} // namespace dr::shp
+} // namespace experimental::shp

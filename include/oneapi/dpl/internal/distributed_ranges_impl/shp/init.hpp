@@ -15,7 +15,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/algorithms/execution_policy.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/util.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 namespace __detail {
 
@@ -103,4 +103,4 @@ inline auto &dpl_policy(std::size_t rank) {
 
 } // namespace __detail
 
-} // namespace dr::shp
+} // namespace experimental::shp

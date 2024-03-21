@@ -12,7 +12,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/segments_tools.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_span.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <typename T, typename L> class distributed_span_accessor {
 public:
@@ -254,4 +254,4 @@ distributed_span(R &&r) -> distributed_span<
     rng::range_value_t<R>,
     rng::iterator_t<rng::range_value_t<decltype(dr::ranges::segments(r))>>>;
 
-} // namespace dr::shp
+} // namespace experimental::shp

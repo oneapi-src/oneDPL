@@ -11,7 +11,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/zip_view.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/views/transform.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 namespace views {
 
@@ -44,4 +44,4 @@ inline auto slice(dr::index<> slice_indices) {
 
 } // namespace views
 
-} // namespace dr::shp
+} // namespace experimental::shp

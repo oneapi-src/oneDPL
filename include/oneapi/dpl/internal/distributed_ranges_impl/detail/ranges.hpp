@@ -10,7 +10,7 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 
-namespace dr {
+namespace experimental {
 
 namespace ranges {
 
@@ -259,4 +259,4 @@ inline constexpr auto local = local_fn_{};
 
 } // namespace ranges
 
-} // namespace dr
+} // namespace experimental

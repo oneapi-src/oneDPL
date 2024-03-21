@@ -13,7 +13,7 @@
 #include "format_shim.hpp"
 #include "ranges_shim.hpp"
 
-namespace dr {
+namespace experimental {
 
 class timer {
 public:
@@ -111,4 +111,4 @@ inline logger drlog;
 #define DRLOG(...)                                                             \
   dr::drlog.debug(nostd::source_location::current(), __VA_ARGS__)
 
-} // namespace dr
+} // namespace experimental

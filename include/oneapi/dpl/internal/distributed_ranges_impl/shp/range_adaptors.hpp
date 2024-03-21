@@ -7,11 +7,11 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/standard_views.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/zip_view.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <rng::range R> auto enumerate(R &&r) {
   auto i = rng::views::iota(uint32_t(0), uint32_t(rng::size(r)));
   return dr::shp::zip_view(i, r);
 }
 
-} // namespace dr::shp
+} // namespace experimental::shp

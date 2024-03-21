@@ -14,7 +14,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/init.hpp>
 #include <sycl/sycl.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 namespace __detail {
 
@@ -285,4 +285,4 @@ void sort(RandomIt first, RandomIt last, Compare comp = Compare()) {
   sort(rng::subrange(first, last), comp);
 }
 
-} // namespace dr::shp
+} // namespace experimental::shp

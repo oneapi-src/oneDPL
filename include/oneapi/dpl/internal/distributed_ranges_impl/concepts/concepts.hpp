@@ -6,7 +6,8 @@
 
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges.hpp>
 
-namespace dr {
+namespace experimental
+{
 
 template <typename I>
 concept remote_iterator =
@@ -56,4 +57,4 @@ concept distributed_contiguous_iterator =
     remote_contiguous_range<rng::range_value_t<decltype(dr::ranges::segments(
         std::declval<Iter>()))>>;
 
-} // namespace dr
+} // namespace experimental

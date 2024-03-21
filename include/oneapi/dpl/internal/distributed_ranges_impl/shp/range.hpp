@@ -7,7 +7,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/distributed_span.hpp>
 
-namespace dr::shp {
+namespace experimental::shp {
 
 template <int dimensions = 1> class id {
 public:
@@ -149,4 +149,4 @@ template <rng::forward_range R> auto distributed_iota_view(R &&r) {
 }
 */
 
-} // namespace dr::shp
+} // namespace experimental::shp
