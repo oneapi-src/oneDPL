@@ -46,6 +46,8 @@
 #include "../pstl/hetero/dpcpp/unseq_backend_sycl.h"
 #include "../pstl/hetero/dpcpp/parallel_backend_sycl_utils.h"
 
+#include "../pstl/hetero/dpcpp/sycl_traits.h" //SYCL traits specialization for some oneDPL types.
+
 namespace oneapi
 {
 namespace dpl

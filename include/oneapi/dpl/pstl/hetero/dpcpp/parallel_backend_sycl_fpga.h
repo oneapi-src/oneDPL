@@ -34,6 +34,8 @@
 #include "../../iterator_impl.h"
 #include "sycl_iterator.h"
 
+#include "sycl_traits.h" //SYCL traits specialization for some oneDPL types.
+
 namespace oneapi
 {
 namespace dpl
