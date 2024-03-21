@@ -8,11 +8,7 @@
 #include <sycl/sycl.hpp>
 #include <vector>
 
-<<<<<<< HEAD
 namespace experimental::dr::shp {
-=======
-namespace experimental::shp {
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 struct device_policy {
   device_policy(sycl::device device) : devices_({device}) {}
@@ -35,8 +31,4 @@ private:
   std::vector<sycl::device> devices_;
 };
 
-<<<<<<< HEAD
 } // namespace experimental::dr::shp
-=======
-} // namespace experimental::shp
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

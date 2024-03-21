@@ -14,11 +14,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_matrix_iterator.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/dense_row_view.hpp>
 
-<<<<<<< HEAD
 namespace experimental::dr::shp {
-=======
-namespace experimental::shp {
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 template <typename T, typename Iter = T *>
 class dense_matrix_view
@@ -125,8 +121,4 @@ template <typename T, typename Allocator>
 dense_matrix_view(dense_matrix<T, Allocator> &)
     -> dense_matrix_view<T, typename std::allocator_traits<Allocator>::pointer>;
 
-<<<<<<< HEAD
 } // namespace experimental::dr::shp
-=======
-} // namespace experimental::shp
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

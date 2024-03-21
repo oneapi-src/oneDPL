@@ -9,11 +9,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/ranges_shim.hpp>
 
-<<<<<<< HEAD
 namespace experimental::dr {
-=======
-namespace experimental {
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 template <std::forward_iterator I>
 class remote_subrange : public rng::subrange<I, I> {
@@ -47,11 +43,7 @@ remote_subrange(R &&, std::size_t) -> remote_subrange<rng::iterator_t<R>>;
 template <experimental::dr::remote_range R>
 remote_subrange(R &&) -> remote_subrange<rng::iterator_t<R>>;
 
-<<<<<<< HEAD
 } // namespace experimental::dr
-=======
-} // namespace experimental
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 #if !defined(DR_SPEC)
 

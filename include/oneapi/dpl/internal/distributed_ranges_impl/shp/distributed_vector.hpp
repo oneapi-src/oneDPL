@@ -14,11 +14,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/device_vector.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/vector.hpp>
 
-<<<<<<< HEAD
 namespace experimental::dr::shp {
-=======
-namespace experimental::shp {
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 template <typename T, typename L> class distributed_vector_accessor {
 public:
@@ -218,8 +214,4 @@ private:
   std::size_t segment_size_ = 0;
 };
 
-<<<<<<< HEAD
 } // namespace experimental::dr::shp
-=======
-} // namespace experimental::shp
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

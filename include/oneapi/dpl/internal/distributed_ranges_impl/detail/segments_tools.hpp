@@ -10,11 +10,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/remote_subrange.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/detail/view_detectors.hpp>
 
-<<<<<<< HEAD
 namespace experimental::dr {
-=======
-namespace experimental {
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 namespace __detail {
 
@@ -95,11 +91,7 @@ template <typename R> auto drop_segments(R &&segments, std::size_t n) {
 
 } // namespace __detail
 
-<<<<<<< HEAD
 } // namespace experimental::dr
-=======
-} // namespace experimental
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 namespace DR_RANGES_NAMESPACE {
 

@@ -7,11 +7,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/concepts/concepts.hpp>
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/distributed_span.hpp>
 
-<<<<<<< HEAD
 namespace experimental::dr::shp {
-=======
-namespace experimental::shp {
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 template <int dimensions = 1> class id {
 public:
@@ -133,28 +129,5 @@ private:
   std::size_t global_offset_;
 };
 
-/*
-template <rng::forward_range R> auto distributed_iota_view(R &&r) {
-  static_assert(experimental::dr::distributed_contiguous_range<R>);
-  if constexpr (experimental::dr::distributed_contiguous_range<R>) {
-    std::vector<segment_range<>> iota_segments;
-    std::size_t global_offset = 0;
-    std::size_t segment_id = 0;
-    for (auto &&segment : r.segments()) {
-      iota_segments.push_back(
-          segment_range(segment_id, segment.size(), global_offset));
-      global_offset += segment.size();
-      segment_id++;
-    }
-    return experimental::dr::shp::distributed_span(iota_segments);
-  } else {
-    return segment_range(0, rng::size(r), 0);
-  }
-}
-*/
 
-<<<<<<< HEAD
 } // namespace experimental::dr::shp
-=======
-} // namespace experimental::shp
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

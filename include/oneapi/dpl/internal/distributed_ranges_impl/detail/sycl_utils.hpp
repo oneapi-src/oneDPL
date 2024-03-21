@@ -12,11 +12,7 @@
 
 #include <sycl/sycl.hpp>
 
-<<<<<<< HEAD
 namespace experimental::dr::__detail {
-=======
-namespace experimental::__detail {
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 // With the ND-range workaround, the maximum kernel size is
 // `std::numeric_limits<std::int32_t>::max()` rounded down to
@@ -195,29 +191,17 @@ sycl::event parallel_for(sycl::queue &q, sycl::range<3> global, Fn &&fn) {
 
 using event = sycl::event;
 
-<<<<<<< HEAD
 } // namespace experimental::dr::__detail
 
 #else
 
 namespace experimental::dr::__detail {
-=======
-} // namespace experimental::__detail
-
-#else
-
-namespace experimental::__detail {
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 class event {
 public:
   void wait() {}
 };
 
-<<<<<<< HEAD
 } // namespace experimental::dr::__detail
-=======
-} // namespace experimental::__detail
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 #endif // SYCL_LANGUAGE_VERSION

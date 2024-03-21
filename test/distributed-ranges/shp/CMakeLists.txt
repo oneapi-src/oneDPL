@@ -32,7 +32,7 @@ find_package(MKL REQUIRED)
 # include(GoogleTest)
 
 add_library(dr_shp INTERFACE)
-add_library(experimental::dr::shp ALIAS dr_shp)
+add_library(DR::shp ALIAS dr_shp)
 
 target_include_directories(dr_shp INTERFACE . vendor ../../../include)
 target_compile_definitions(dr_shp INTERFACE USE_MKL

@@ -12,11 +12,7 @@
 #include <oneapi/mkl.hpp>
 #endif
 
-<<<<<<< HEAD
 namespace experimental::dr::shp {
-=======
-namespace experimental::shp {
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 namespace __detail {
 
@@ -101,8 +97,4 @@ auto local_gemv(sycl::queue &q, csr_matrix_view<T, I, Args...> a, Iter b,
 
 } // namespace __detail
 
-<<<<<<< HEAD
 } // namespace experimental::dr::shp
-=======
-} // namespace experimental::shp
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0

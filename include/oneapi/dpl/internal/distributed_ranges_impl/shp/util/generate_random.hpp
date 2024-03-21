@@ -9,11 +9,7 @@
 #include <oneapi/dpl/internal/distributed_ranges_impl/shp/views/csr_matrix_view.hpp>
 #include <random>
 
-<<<<<<< HEAD
 namespace experimental::dr::shp {
-=======
-namespace experimental::shp {
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
 
 namespace {
 
@@ -93,8 +89,4 @@ auto generate_random_csr(experimental::dr::index<I> shape, double density = 0.01
   return csr_matrix_view(values, rowptr, colind, shape, nnz, 0);
 }
 
-<<<<<<< HEAD
 } // namespace experimental::dr::shp
-=======
-} // namespace experimental::shp
->>>>>>> cd565891f4ffdd0b4641810a38c60c683e5f1fe0
