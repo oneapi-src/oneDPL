@@ -26,6 +26,7 @@ main()
     auto f = [](auto&& val) -> decltype(auto) { return val * val; };
     auto proj = [](auto&& val) -> decltype(auto) { return val * 2; };
     auto pred = [](auto&& val) -> decltype(auto) { return val == 5; };
+    auto pred_2 = [](auto&& val1, auto&& val2) -> decltype(auto) { return val1 == val2; };
 
     using namespace test_std_ranges;
 
@@ -46,8 +47,9 @@ main()
     test_range_algo{}(oneapi::dpl::ranges::any_of,  std::ranges::any_of, pred2, std::identity{});
     test_range_algo{}(oneapi::dpl::ranges::none_of,  std::ranges::none_of, pred3, std::identity{});
 
-    auto pred_2 = [](auto&& val1, auto&& val2) -> decltype(auto) { return val1 == val2; };
     test_range_algo{}(oneapi::dpl::ranges::adjacent_find,  std::ranges::adjacent_find, pred_2, proj);
+
+    test_range_algo<data_in_in>{}(oneapi::dpl::ranges::search,  std::ranges::search, pred_2, proj);
 
 #endif //_ENABLE_STD_RANGES_TESTING
 

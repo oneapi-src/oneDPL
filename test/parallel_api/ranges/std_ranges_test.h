@@ -121,12 +121,42 @@ struct test
             auto bres_in = ret_in_val(expected_res, src_view.begin()) == ret_in_val(res, tr(A).begin());
             EXPECT_TRUE(bres_in, (std::string("wrong return value from algo with input range: ") + typeid(Algo).name()).c_str());
 
-            auto bres_out = ret_out_val(expected_res, src_view.begin()) == ret_out_val(res, tr(A).begin());
+            auto bres_out = ret_out_val(expected_res, expected) == ret_out_val(res, B.begin());
             EXPECT_TRUE(bres_out, (std::string("wrong return value from algo with output range: ") + typeid(Algo).name()).c_str());
         }
 
         //check result
         EXPECT_EQ_N(expected, data_out, max_n, (std::string("wrong effect algo with ranges: ") + typeid(Algo).name()).c_str());
+    }
+
+    template<typename Policy, typename Algo, typename Checker, typename Functor, typename Proj = std::identity,
+             typename Transform = std::identity>
+    std::enable_if_t<!std::is_same_v<Policy, std::true_type> && Ranges == data_in_in>
+    operator()(Policy&& exec, Algo algo, Checker checker, Functor f, Proj proj = {}, Transform tr = {})
+    {
+        constexpr int max_n = 10;
+        int data_in1[max_n] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        int data_in2[max_n] = {0, 0, 2, 3, 4, 5, 0, 0, 0, 0};
+
+        auto src_view1 = tr(std::ranges::subrange(data_in1, data_in1 + max_n));
+        auto src_view2 = tr(std::ranges::subrange(data_in2, data_in2 + max_n));
+        auto expected_res = checker(src_view1, src_view2, f, proj, proj);
+        {
+            Container cont_in1(exec, data_in1, max_n);
+            Container cont_in2(exec, data_in2, max_n);
+
+            typename Container::type& A = cont_in1();
+            typename Container::type& B = cont_in2();
+
+            auto res = algo(exec, tr(A), tr(B), f, proj, proj);
+
+            if constexpr(RetTypeCheck)
+                static_assert(std::is_same_v<decltype(res), decltype(checker(tr(A), tr(B), f, proj, proj))>, "Wrong return type");
+
+            auto bres_in = ret_in_val(expected_res, src_view1.begin()) == ret_in_val(res, tr(A).begin());
+            EXPECT_TRUE(bres_in, (std::string("wrong return value from algo: ") + typeid(Algo).name() +
+                typeid(decltype(tr(std::declval<Container&>()()))).name()).c_str());
+        }
     }
 
 private:
@@ -138,48 +168,50 @@ private:
     static constexpr
     bool is_iterator<T, std::void_t<decltype(++std::declval<T&>()), decltype(*std::declval<T&>())>> = true;
 
-    template <typename Ret>
-    static constexpr auto check_in(int) -> decltype(std::declval<Ret>().in, std::true_type{})
-    {
-        return {};
-    }
+    template<typename, typename = void>
+    static constexpr bool check_in{};
 
-    template <typename Ret>
-    static constexpr auto check_in(...) -> std::false_type
-    {
-        return {};
-    }
+    template<typename T>
+    static constexpr
+    bool check_in<T, std::void_t<decltype(std::declval<T>().in)>> = true;
+
+    template<typename, typename = void>
+    static constexpr bool check_out{};
+
+    template<typename T>
+    static constexpr
+    bool check_out<T, std::void_t<decltype(std::declval<T>().out)>> = true;
+
+
+    template<typename, typename = void>
+    static constexpr bool is_range{};
+
+    template<typename T>
+    static constexpr
+    bool is_range<T, std::void_t<decltype(std::declval<T&>().begin())>> = true;
 
     template<typename Ret, typename Begin>
     auto ret_in_val(Ret&& ret, Begin&& begin)
     {
-        if constexpr (check_in<Ret>(0))
+        if constexpr (check_in<Ret>)
             return std::distance(begin, ret.in);
         else if constexpr (is_iterator<Ret>)
             return std::distance(begin, ret);
+        else if constexpr(is_range<Ret>)
+            return std::pair{std::distance(begin, ret.begin()), std::ranges::distance(ret.begin(), ret.end())};
         else
             return ret;
-    }
-    
-    template <typename Ret>
-    static constexpr auto check_out(int) -> decltype(std::declval<Ret>().out, std::true_type{})
-    {
-        return {};
-    }
-
-    template <typename Ret>
-    static constexpr auto check_out(...) -> std::false_type
-    {
-        return {};
     }
 
     template<typename Ret, typename Begin>
     auto ret_out_val(Ret&& ret, Begin&& begin)
     {
-        if constexpr (check_out<Ret>(0))
-            return std::distance(begin, ret.in);
+        if constexpr (check_out<Ret>)
+            return std::distance(begin, ret.out);
         else if constexpr (is_iterator<Ret>)
             return std::distance(begin, ret);
+        else if constexpr(is_range<Ret>)
+            return std::pair{std::distance(begin, ret.begin()), std::ranges::distance(ret.begin(), ret.end())};
         else
             return ret;
     }

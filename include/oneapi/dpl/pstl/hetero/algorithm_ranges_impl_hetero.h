@@ -313,7 +313,8 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1
         oneapi::dpl::views::all_read(::std::forward<_R1>(__r1)), oneapi::dpl::views::all_read(::std::forward<_R2>(__r2)),
         __pred_2);
 
-    return std::ranges::borrowed_subrange_t<_R1>(__r1.begin() + __idx, __r1.begin() + __idx + __r2.size());
+    auto __end = (__idx == __r1.size() ? __r1.begin() + __idx : __r1.begin() + __idx + __r2.size());
+    return std::ranges::borrowed_subrange_t<_R1>(__r1.begin() + __idx, __end);
 }
 
 //------------------------------------------------------------------------
