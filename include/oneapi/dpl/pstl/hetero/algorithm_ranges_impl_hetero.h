@@ -53,6 +53,7 @@ __pattern_walk_n(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Function
     }
 }
 
+#if _ONEDPL___cplusplus >= 202002L
 //---------------------------------------------------------------------------------------------------------------------
 // pattern_for_each
 //---------------------------------------------------------------------------------------------------------------------
@@ -88,6 +89,7 @@ __pattern_transform(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, 
 
     return __return_t{__in_r.begin() + __in_r.size(), __out_r.begin() + __out_r.size()};
 }
+#endif //_ONEDPL___cplusplus >= 202002L
 
 //------------------------------------------------------------------------
 // swap
@@ -165,6 +167,7 @@ __pattern_find_if(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _Range&&
         _Predicate{__pred}, _TagType{}, ::std::forward<_Range>(__rng));
 }
 
+#if _ONEDPL___cplusplus >= 202002L
 template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 decltype(auto)
 __pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj)
@@ -175,6 +178,7 @@ __pattern_find_if(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R
 
     return std::ranges::borrowed_iterator_t<_R>(__r.begin() + __idx);
 }
+#endif //_ONEDPL___cplusplus >= 202002L
 
 //------------------------------------------------------------------------
 // find_end
@@ -296,6 +300,7 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _Ra
         _Predicate{__pred}, _TagType{}, ::std::forward<_Range1>(__rng1), ::std::forward<_Range2>(__rng2));
 }
 
+#if _ONEDPL___cplusplus >= 202002L
 template<typename _BackendTag, typename _ExecutionPolicy, typename _R1, typename _R2, typename _Pred, typename _Proj1,
          typename _Proj2>
 decltype(auto)
@@ -312,6 +317,7 @@ __pattern_search(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R1
     auto __end = (__idx == __r1.size() ? __r1.begin() + __idx : __r1.begin() + __idx + __r2.size());
     return std::ranges::borrowed_subrange_t<_R1>(__r1.begin() + __idx, __end);
 }
+#endif //_ONEDPL___cplusplus >= 202002L
 
 //------------------------------------------------------------------------
 // search_n
@@ -332,6 +338,7 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
                                       __s_rng, __pred);
 }
 
+#if _ONEDPL___cplusplus >= 202002L
 template<typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _T, typename _Pred, typename _Proj>
 decltype(auto)
 __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r,
@@ -343,6 +350,7 @@ __pattern_search_n(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _
 
     return std::ranges::borrowed_subrange_t<_R>(__r.begin() + __idx, __r.begin() + __idx + __count);
 }
+#endif //_ONEDPL___cplusplus >= 202002L
 
 template <typename _Size>
 _Size
@@ -396,6 +404,7 @@ __pattern_adjacent_find2(__hetero_tag<_BackendTag>, _ExecutionPolicy&& __exec, _
     return return_value(result, __rng.size(), __is__or_semantic);
 }
 
+#if _ONEDPL___cplusplus >= 202002L
 template <typename _BackendTag, typename _ExecutionPolicy, typename _R, typename _Proj, typename _Pred>
 decltype(auto)
 __pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __exec, _R&& __r, _Pred __pred,
@@ -409,6 +418,7 @@ __pattern_adjacent_find(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& __ex
 
     return std::ranges::borrowed_iterator_t<_R>(__r.begin() + __idx);
 }
+#endif //_ONEDPL___cplusplus >= 202002L
 
 template <typename _BackendTag, typename _ExecutionPolicy, typename _Range, typename _Predicate>
 oneapi::dpl::__internal::__difference_t<_Range>
