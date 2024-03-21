@@ -312,25 +312,16 @@ struct test_sort_op
 {
     template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
               typename... Compare>
-    ::std::enable_if_t<
-        TestUtils::is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator> &&
-            (TestUtils::can_use_default_less_operator_v<T> || sizeof...(Compare) > 0)>
+    void
     operator()(Policy&& exec, OutputIterator tmp_first, OutputIterator tmp_last, OutputIterator2 expected_first,
                OutputIterator2 expected_last, InputIterator first, InputIterator last, Size n, Compare ...compare)
     {
-        run_test(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last, first, last, n,
-                 compare...);
-    }
-
-    template <typename Policy, typename InputIterator, typename OutputIterator, typename OutputIterator2, typename Size,
-              typename... Compare>
-    ::std::enable_if_t<
-        !TestUtils::is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator> ||
-            !(TestUtils::can_use_default_less_operator_v<T> || sizeof...(Compare) > 0)>
-    operator()(Policy&& /* exec */, OutputIterator /* tmp_first */, OutputIterator /* tmp_last */,
-               OutputIterator2 /* expected_first */, OutputIterator2 /* expected_last */, InputIterator /* first */,
-               InputIterator /* last */, Size /* n */, Compare .../*compare*/)
-    {
+        if constexpr (TestUtils::is_base_of_iterator_category_v<::std::random_access_iterator_tag, InputIterator> &&
+                      (TestUtils::can_use_default_less_operator_v<T> || sizeof...(Compare) > 0))
+        {
+            run_test(::std::forward<Policy>(exec), tmp_first, tmp_last, expected_first, expected_last, first, last, n,
+                     compare...);
+        }
     }
 };
 
