@@ -59,7 +59,6 @@ class all_view
 
   public:
     using value_type = _T;
-    std::true_type is_hetero_base;
 
     all_view(sycl::buffer<_T, 1> __buf = sycl::buffer<_T, 1>(0), __diff_type __offset = 0, __diff_type __n = 0)
         : __m_acc(__internal::__create_accessor<__accessor_t>(__buf, __offset, __n))
