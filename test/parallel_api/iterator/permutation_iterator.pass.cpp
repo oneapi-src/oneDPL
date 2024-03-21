@@ -47,7 +47,7 @@ main()
               "Wrong result of std::distance<permutationIterator1, permutationIterator2)");
 
     std::vector<int> resultCopy(perm_size_result);
-    auto itCopiedDataEnd = dpl::copy(TestUtils::default_dpcpp_policy, permItBegin, permItEnd, resultCopy.begin());
+    auto itCopiedDataEnd = dpl::copy(TestUtils::get_default_dpcpp_policy(), permItBegin, permItEnd, resultCopy.begin());
     EXPECT_EQ(true, resultCopy.end() == itCopiedDataEnd, "Wrong result of dpl::copy");
 
     const std::vector<int> expectedCopy = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};

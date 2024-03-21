@@ -23,6 +23,8 @@
 #include "sycl_defs.h"
 
 #include <type_traits>
+#include <mutex>
+#include <optional>
 
 namespace oneapi
 {
@@ -35,58 +37,122 @@ inline namespace __dpl
 
 struct DefaultKernelName;
 
+////////////////////////////////////////////////////////////////////////////////
+// sycl_queue_container - container with optionally created sycl::queue instance
+template <class TSYCLQueueFactory>
+class sycl_queue_container
+{
+  public:
+    template <typename... Args>
+    sycl::queue
+    get_queue(Args&&... args)
+    {
+        ::std::call_once(__is_created, [&]() {
+            TSYCLQueueFactory factory;
+            __queue.emplace(factory(::std::forward<Args>(args)...));
+        });
+
+        assert(__queue.has_value());
+        return __queue.value();
+    }
+
+  private:
+    ::std::once_flag __is_created;
+    ::std::optional<sycl::queue> __queue;
+};
+template <typename TFactory>
+using sycl_queue_container_ptr = ::std::shared_ptr<sycl_queue_container<TFactory>>;
+
+////////////////////////////////////////////////////////////////////////////////
+// sycl_queue_factory_device - default sycl::queue factory for device policy
+struct sycl_queue_factory_device
+{
+    template <typename... Args>
+    sycl::queue
+    operator()(Args&&... args)
+    {
+        return sycl::queue(::std::forward<Args>(args)...);
+    }
+};
+
 //We can create device_policy object:
 // 1. from sycl::queue
 // 2. from sycl::device_selector (implicitly through sycl::queue)
 // 3. from sycl::device
 // 4. from other device_policy encapsulating the same queue type
-template <typename KernelName = DefaultKernelName>
+template <typename KernelName = DefaultKernelName, class TSyclQueueFactory = sycl_queue_factory_device>
 class device_policy
 {
   public:
     using kernel_name = KernelName;
 
-    device_policy() = default;
+    device_policy() : q_container(::std::make_shared<sycl_queue_container<TSyclQueueFactory>>()) {}
+
     template <typename OtherName>
-    device_policy(const device_policy<OtherName>& other) : q(other.queue())
+    device_policy(const device_policy<OtherName, TSyclQueueFactory>& other)
+        : q_container(other.get_sycl_queue_container())
     {
     }
-    explicit device_policy(sycl::queue q_) : q(q_) {}
-    explicit device_policy(sycl::device d_) : q(d_) {}
-    operator sycl::queue() const { return q; }
+    explicit device_policy(sycl::queue q_) : device_policy() { q_container->get_queue(::std::move(q_)); }
+    explicit device_policy(sycl::device d_) : device_policy() { q_container->get_queue(::std::move(d_)); }
+    operator sycl::queue() const { return queue(); }
     sycl::queue
     queue() const
     {
-        return q;
+        return q_container->get_queue();
+    }
+
+    auto
+    get_sycl_queue_container() const
+    {
+        return q_container;
     }
 
   private:
-    sycl::queue q;
+    mutable sycl_queue_container_ptr<TSyclQueueFactory> q_container;
 };
 
 #if _ONEDPL_FPGA_DEVICE
-struct DefaultKernelNameFPGA;
-template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA>
-class fpga_policy : public device_policy<KernelName>
+
+////////////////////////////////////////////////////////////////////////////////
+// sycl_queue_factory_fpga - default sycl::queue FPGA factory
+struct sycl_queue_factory_fpga
 {
-    using base = device_policy<KernelName>;
+    template <class... Args>
+    sycl::queue
+    operator()(Args&&... args)
+    {
+        if constexpr (sizeof...(Args) > 0)
+        {
+            return sycl::queue(::std::forward<Args>(args)...);
+        }
+        else
+        {
+            return sycl::queue(
+#    if _ONEDPL_FPGA_EMU
+                __dpl_sycl::__fpga_emulator_selector()
+#    else
+                __dpl_sycl::__fpga_selector()
+#    endif // _ONEDPL_FPGA_EMU
+            );
+        }
+    }
+};
+
+struct DefaultKernelNameFPGA;
+template <unsigned int factor = 1, typename KernelName = DefaultKernelNameFPGA,
+          class TSYCLQueueFactory = sycl_queue_factory_fpga>
+class fpga_policy : public device_policy<KernelName, TSYCLQueueFactory>
+{
+    using base = device_policy<KernelName, TSYCLQueueFactory>;
 
   public:
     static constexpr unsigned int unroll_factor = factor;
 
-    fpga_policy()
-        : base(sycl::queue(
-#    if _ONEDPL_FPGA_EMU
-              __dpl_sycl::__fpga_emulator_selector()
-#    else
-              __dpl_sycl::__fpga_selector()
-#    endif // _ONEDPL_FPGA_EMU
-                  ))
-    {
-    }
+    fpga_policy() = default;
 
     template <unsigned int other_factor, typename OtherName>
-    fpga_policy(const fpga_policy<other_factor, OtherName>& other) : base(other.queue()){};
+    fpga_policy(const fpga_policy<other_factor, OtherName, TSYCLQueueFactory>& other) : base(other){};
     explicit fpga_policy(sycl::queue q) : base(q) {}
     explicit fpga_policy(sycl::device d) : base(d) {}
 };
@@ -111,6 +177,13 @@ inline fpga_policy<> dpcpp_fpga{};
 #endif // _ONEDPL_PREDEFINED_POLICIES
 
 // make_policy functions
+template <typename KernelNameOther>
+auto
+make_device_policy(const device_policy<KernelNameOther>& other)
+{
+    return device_policy<DefaultKernelName>(other);
+}
+
 template <typename KernelName = DefaultKernelName>
 device_policy<KernelName>
 make_device_policy(sycl::queue q)
@@ -125,7 +198,7 @@ make_device_policy(sycl::device d)
     return device_policy<KernelName>(d);
 }
 
-template <typename NewKernelName, typename OldKernelName = DefaultKernelName>
+template <typename NewKernelName, typename OldKernelName>
 device_policy<NewKernelName>
 make_device_policy(const device_policy<OldKernelName>& policy
 #if _ONEDPL_PREDEFINED_POLICIES
@@ -136,7 +209,7 @@ make_device_policy(const device_policy<OldKernelName>& policy
     return device_policy<NewKernelName>(policy);
 }
 
-template <typename NewKernelName, typename OldKernelName = DefaultKernelName>
+template <typename NewKernelName, typename OldKernelName>
 device_policy<NewKernelName>
 make_hetero_policy(const device_policy<OldKernelName>& policy)
 {
