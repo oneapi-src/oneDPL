@@ -172,7 +172,7 @@ struct adjacent_find_fn
     operator()(_ExecutionPolicy&& __exec, _R&& __r, _Pred __pred, _Proj __proj) const
     {
         const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __r.begin());
-        return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(__dispatch_tag,
+        return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find2(__dispatch_tag,
             std::forward<_ExecutionPolicy>(__exec), std::forward<_R>(__r), __pred, __proj);
     }
 }; //adjacent_find_fn
@@ -350,7 +350,7 @@ adjacent_find(_ExecutionPolicy&& __exec, _Range&& __rng, _BinaryPredicate __pred
 {
     const auto __dispatch_tag = oneapi::dpl::__ranges::__select_backend(__exec, __rng);
 
-    return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find2(
+    return oneapi::dpl::__internal::__ranges::__pattern_adjacent_find(
         __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), views::all_read(::std::forward<_Range>(__rng)),
         __pred, oneapi::dpl::__internal::__first_semantic());
 }
