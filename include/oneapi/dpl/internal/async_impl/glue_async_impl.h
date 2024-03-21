@@ -46,12 +46,10 @@ transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIt
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_walk2_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-            oneapi::dpl::__internal::__transform_functor<_UnaryOperation>{::std::move(__op)});
-    });
+    auto ret_val = oneapi::dpl::__internal::__pattern_walk2_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+        oneapi::dpl::__internal::__transform_functor<_UnaryOperation>{::std::move(__op)});
+    return ret_val;
 }
 
 template <class _ExecutionPolicy, class _ForwardIterator1, class _ForwardIterator2, class _ForwardIterator,
@@ -66,12 +64,10 @@ transform_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first1, _ForwardI
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2, __result);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_walk3_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
-            oneapi::dpl::__internal::__transform_functor<_BinaryOperation>(::std::move(__op)));
-    });
+    auto ret_val = oneapi::dpl::__internal::__pattern_walk3_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __result,
+        oneapi::dpl::__internal::__transform_functor<_BinaryOperation>(::std::move(__op)));
+    return ret_val;
 }
 
 // [async.copy]
@@ -84,12 +80,10 @@ copy_async(_ExecutionPolicy&& __exec, _ForwardIterator1 __first, _ForwardIterato
     auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first, __result);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_walk2_brick_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
-            oneapi::dpl::__internal::__brick_copy<decltype(__dispatch_tag), _ExecutionPolicy>{});
-    });
+    auto ret_val = oneapi::dpl::__internal::__pattern_walk2_brick_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __result,
+        oneapi::dpl::__internal::__brick_copy<decltype(__dispatch_tag), _ExecutionPolicy>{});
+    return ret_val;
 }
 
 // [async.sort]
@@ -108,10 +102,8 @@ sort_async(_ExecutionPolicy&& __exec, _Iterator __first, _Iterator __last, _Comp
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
     using __backend_tag = typename decltype(__dispatch_tag)::__backend_tag;
 
-    return __internal::__except_handler([&]() {
-        return __par_backend_hetero::__parallel_stable_sort(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
-                                                            __buf.all_view(), __comp, oneapi::dpl::identity{});
-    });
+    return __par_backend_hetero::__parallel_stable_sort(__backend_tag{}, ::std::forward<_ExecutionPolicy>(__exec),
+                                                        __buf.all_view(), __comp, oneapi::dpl::identity{});
 }
 
 template <class _ExecutionPolicy, class _RandomAccessIterator, class... _Events,
@@ -135,11 +127,9 @@ for_each_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIter
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_walk1_async(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                              __first, __last, __f);
-    });
+    auto ret_val = oneapi::dpl::__internal::__pattern_walk1_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __f);
+    return ret_val;
 }
 
 // [async.reduce]
@@ -154,12 +144,10 @@ reduce_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterat
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_transform_reduce_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op,
-            oneapi::dpl::__internal::__no_op());
-    });
+    auto ret_val = oneapi::dpl::__internal::__pattern_transform_reduce_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op,
+        oneapi::dpl::__internal::__no_op());
+    return ret_val;
 }
 
 template <class _ExecutionPolicy, class _ForwardIt, class... _Events,
@@ -193,11 +181,8 @@ fill_async(_ExecutionPolicy&& __exec, _ForwardIterator __first, _ForwardIterator
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_fill_async(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
-                                                             __first, __last, __value);
-    });
+    return oneapi::dpl::__internal::__pattern_fill_async(__dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec),
+                                                         __first, __last, __value);
 }
 
 // [async.transform_reduce]
@@ -213,12 +198,9 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _Forward
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_transform_reduce_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1,
-            __binary_op2);
-    });
+    return oneapi::dpl::__internal::__pattern_transform_reduce_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __init, __binary_op1,
+        __binary_op2);
 }
 
 template <class _ExecutionPolicy, class _ForwardIt, class _T, class _BinaryOp, class _UnaryOp, class... _Events,
@@ -231,11 +213,8 @@ transform_reduce_async(_ExecutionPolicy&& __exec, _ForwardIt __first, _ForwardIt
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_transform_reduce_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op, __unary_op);
-    });
+    return oneapi::dpl::__internal::__pattern_transform_reduce_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first, __last, __init, __binary_op, __unary_op);
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events,
@@ -262,12 +241,9 @@ inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt
 
     using _ValueType = typename ::std::iterator_traits<_ForwardIt1>::value_type;
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_transform_scan_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
-            oneapi::dpl::__internal::__no_op(), ::std::plus<_ValueType>(), /*inclusive=*/::std::true_type());
-    });
+    return oneapi::dpl::__internal::__pattern_transform_scan_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+        oneapi::dpl::__internal::__no_op(), ::std::plus<_ValueType>(), /*inclusive=*/::std::true_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class... _Events,
@@ -280,12 +256,9 @@ inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_transform_scan_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
-            oneapi::dpl::__internal::__no_op(), __binary_op, /*inclusive=*/::std::true_type());
-    });
+    return oneapi::dpl::__internal::__pattern_transform_scan_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+        oneapi::dpl::__internal::__no_op(), __binary_op, /*inclusive=*/::std::true_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class _T,
@@ -299,12 +272,9 @@ inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_transform_scan_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
-            oneapi::dpl::__internal::__no_op(), __init, __binary_op, /*inclusive=*/::std::true_type());
-    });
+    return oneapi::dpl::__internal::__pattern_transform_scan_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+        oneapi::dpl::__internal::__no_op(), __init, __binary_op, /*inclusive=*/::std::true_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class... _Events,
@@ -316,12 +286,9 @@ exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_transform_scan_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
-            oneapi::dpl::__internal::__no_op(), __init, ::std::plus<_T>(), /*exclusive=*/::std::false_type());
-    });
+    return oneapi::dpl::__internal::__pattern_transform_scan_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+        oneapi::dpl::__internal::__no_op(), __init, ::std::plus<_T>(), /*exclusive=*/::std::false_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOperation,
@@ -335,12 +302,9 @@ exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, _ForwardIt
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_transform_scan_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
-            oneapi::dpl::__internal::__no_op(), __init, __binary_op, /*exclusive=*/::std::false_type());
-    });
+    return oneapi::dpl::__internal::__pattern_transform_scan_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2,
+        oneapi::dpl::__internal::__no_op(), __init, __binary_op, /*exclusive=*/::std::false_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _T, class _BinaryOperation,
@@ -354,13 +318,10 @@ transform_exclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_transform_scan_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __unary_op, __init,
-            __binary_op,
-            /*exclusive=*/::std::false_type());
-    });
+    return oneapi::dpl::__internal::__pattern_transform_scan_async(__dispatch_tag,
+                                                                   ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                                   __last1, __first2, __unary_op, __init, __binary_op,
+                                                                   /*exclusive=*/::std::false_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class _UnaryOperation,
@@ -374,13 +335,9 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_transform_scan_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __unary_op,
-            __binary_op,
-            /*inclusive=*/::std::true_type());
-    });
+    return oneapi::dpl::__internal::__pattern_transform_scan_async(
+        __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __unary_op, __binary_op,
+        /*inclusive=*/::std::true_type());
 }
 
 template <class _ExecutionPolicy, class _ForwardIt1, class _ForwardIt2, class _BinaryOperation, class _UnaryOperation,
@@ -395,13 +352,10 @@ transform_inclusive_scan_async(_ExecutionPolicy&& __exec, _ForwardIt1 __first1, 
     const auto __dispatch_tag = oneapi::dpl::__internal::__select_backend(__exec, __first1, __first2);
 
     wait_for_all(::std::forward<_Events>(__dependencies)...);
-
-    return __internal::__except_handler([&]() {
-        return oneapi::dpl::__internal::__pattern_transform_scan_async(
-            __dispatch_tag, ::std::forward<_ExecutionPolicy>(__exec), __first1, __last1, __first2, __unary_op, __init,
-            __binary_op,
-            /*inclusive=*/::std::true_type());
-    });
+    return oneapi::dpl::__internal::__pattern_transform_scan_async(__dispatch_tag,
+                                                                   ::std::forward<_ExecutionPolicy>(__exec), __first1,
+                                                                   __last1, __first2, __unary_op, __init, __binary_op,
+                                                                   /*inclusive=*/::std::true_type());
 }
 
 } // namespace experimental
