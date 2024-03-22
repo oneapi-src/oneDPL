@@ -55,11 +55,9 @@ class sycl_backend
     {
         sycl::event e_;
         Selection* s;
-        std::optional<std::chrono::steady_clock::time_point> timing;
-
       public:
         async_waiter(sycl::event e) : e_(e){}
-        async_waiter(sycl::event e, Selection* selection, std::optional<std::chrono::steady_clock::time_point> t=std::nullopt) : e_(e), s(selection), timing(t) {}
+        async_waiter(sycl::event e, Selection* selection) : e_(e), s(selection) {}
 
         sycl::event
         unwrap()
@@ -76,15 +74,9 @@ class sycl_backend
         void
         report() override{
             if constexpr (report_value_v<Selection, execution_info::task_time_t>){
-                if (!timing.has_value())
-                {
-                    cl_ulong time_start = e_.template get_profiling_info<sycl::info::event_profiling::command_start>();
-                    cl_ulong time_end = e_.template get_profiling_info<sycl::info::event_profiling::command_end>();
-                    s->report(execution_info::task_time, time_end-time_start);
-                }else{
-                    auto t = timing.value();
-                    s->report(execution_info::task_time, (std::chrono::steady_clock::now() - t).count());
-                }
+                cl_ulong time_start = e_.template get_profiling_info<sycl::info::event_profiling::command_start>();
+                cl_ulong time_end = e_.template get_profiling_info<sycl::info::event_profiling::command_end>();
+                s->report(execution_info::task_time, time_end-time_start);
             }
 
         }
@@ -175,9 +167,13 @@ class sycl_backend
                     return waiter;
                 }
                 else{
-                    auto waiter = async_waiter{e1, new SelectionHandle(s), t0};
-                    add_waiter(new async_waiter(waiter));
-                    return waiter;
+                    auto e2 = q.submit([=](sycl::handler& h){
+                        h.depends_on(e1);
+                        h.host_task([=](){
+                            s.report(execution_info::task_time, (std::chrono::steady_clock::now() - t0).count());
+                        });
+                    });
+                    return async_waiter{e2, new SelectionHandle(s)};
                 }
             }
         }

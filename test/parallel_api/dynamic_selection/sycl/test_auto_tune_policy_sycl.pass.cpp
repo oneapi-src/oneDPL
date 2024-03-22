@@ -513,7 +513,6 @@ main()
     bool bProcessed = false;
 
 #if TEST_DYNAMIC_SELECTION_AVAILABLE
-    std::cout<<"HERE\n";
     using policy_t = oneapi::dpl::experimental::auto_tune_policy<oneapi::dpl::experimental::sycl_backend>;
     std::vector<sycl::queue> u1;
     std::vector<sycl::queue> u2;

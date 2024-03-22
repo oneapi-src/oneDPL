@@ -122,11 +122,19 @@ class auto_tune_policy
             std::lock_guard<std::mutex> l(m_);
             auto index = r.index_;
             timing_t new_value = t;
-            auto& td = time_by_index_[index];
-            auto n = td.num_timings_;
-            new_value = (n * td.value_ + t) / (n + 1);
-            td.num_timings_ = n + 1;
-            td.value_ = new_value;
+            if (time_by_index_.count(index) == 0)
+            {
+                // ignore the 1st timing to cover for JIT compilation
+                time_by_index_[index] = time_data_t{0, std::numeric_limits<timing_t>::max()};
+            }
+            else
+            {
+                auto& td = time_by_index_[index];
+                auto n = td.num_timings_;
+                new_value = (n * td.value_ + t) / (n + 1);
+                td.num_timings_ = n + 1;
+                td.value_ = new_value;
+            }
             if (new_value < best_timing_)
             {
                 best_timing_ = new_value;
