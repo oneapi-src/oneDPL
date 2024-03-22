@@ -230,7 +230,7 @@ struct transform_reduce
 
     template <typename _NDItemId, typename _Size, typename _AccLocal, typename... _Acc>
     inline void
-    operator()(const _NDItemId& __item_id, const _Size& __n, const ::std::uint8_t& __iters_per_work_item,
+    operator()(const _NDItemId& __item_id, const _Size& __n, const _Size& __iters_per_work_item,
                const _Size& __global_offset, const bool __is_full, const _Size __n_groups, const _AccLocal& __local_mem,
                const _Acc&... __acc) const
     {
@@ -312,8 +312,7 @@ struct transform_reduce
 
     template <typename _Size>
     _Size
-    output_size(const _Size& __n, const ::std::uint16_t& __work_group_size,
-                const ::std::uint8_t& __iters_per_work_item) const
+    output_size(const _Size& __n, const _Size& __work_group_size, const _Size& __iters_per_work_item) const
     {
         if (__iters_per_work_item == 1)
             return __n;
