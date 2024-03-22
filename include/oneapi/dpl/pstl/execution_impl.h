@@ -163,10 +163,13 @@ inline constexpr bool __is_host_dispatch_tag_v =
 // Buffer allocator selectors
 //------------------------------------------------------------------------
 
+template <typename _T>
+using __serial_buffer_allocator = ::std::allocator<_T>;
+
 template <typename _T, typename _IsVector>
 constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__serial_tag<_IsVector>)
 {
-    return oneapi::dpl::__internal::__get_buffer_allocator<_T>(oneapi::dpl::__internal::__serial_backend_tag{});
+    return __serial_buffer_allocator<_T>{};
 }
 
 template <typename _T, typename _IsVector>

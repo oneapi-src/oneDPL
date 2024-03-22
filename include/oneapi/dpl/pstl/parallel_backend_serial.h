@@ -36,7 +36,7 @@ namespace __internal
 template <typename _T>
 constexpr decltype(auto) __get_buffer_allocator(oneapi::dpl::__internal::__serial_backend_tag)
 {
-    return ::std::allocator<_T>{};
+    return oneapi::dpl::__internal::__serial_buffer_allocator<_T>{};
 }
 };
 
