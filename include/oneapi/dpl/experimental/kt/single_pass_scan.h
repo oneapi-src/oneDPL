@@ -342,31 +342,22 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
     constexpr ::std::size_t __data_per_workitem = _KernelParam::data_per_workitem;
 
     // Avoid non_uniform n by padding up to a multiple of workgroup_size
-    std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
+    ::std::uint32_t __elems_in_tile = __workgroup_size * __data_per_workitem;
     ::std::size_t __num_wgs = oneapi::dpl::__internal::__dpl_ceiling_div(__n, __elems_in_tile);
 
     constexpr int __status_flag_padding = SUBGROUP_SIZE;
-    std::uint32_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
+    ::std::uint32_t __status_flags_size = __num_wgs + 1 + __status_flag_padding;
 
-    _FlagStorageType* __status_flags = nullptr;
-    _Type* __status_vals_full = nullptr;
-    _Type* __status_vals_partial = nullptr;
+    ::std::size_t __status_flags_size_mem_size = __status_flags_size * sizeof(_FlagStorageType) + (__status_flags_size * sizeof(_Type))*2;
+    ::std::size_t __status_vals_full_offset = __status_flags_size * sizeof(_FlagStorageType);
+    ::std::size_t __status_vals_partial_offset =  __status_vals_full_offset + __status_flags_size * sizeof(_Type);
 
-    if constexpr (::std::is_same_v<_Type, _FlagStorageType>)
-    {
-        __status_flags = sycl::malloc_device<_FlagStorageType>(3 * __status_flags_size, __queue);
-        __status_vals_full = __status_flags + __status_flags_size;
-        __status_vals_partial = __status_flags + (2 * __status_flags_size);
-    }
-    else
-    {
-        __status_flags = sycl::malloc_device<_FlagStorageType>(__status_flags_size, __queue);
-        _Type* __status_vals = sycl::malloc_device<_Type>(2 * __status_flags_size, __queue);
-        __status_vals_full = __status_vals;
-        __status_vals_partial = __status_vals + __status_flags_size;
-    }
+    ::std::byte* __device_mem = sycl::malloc_device<::std::byte>(__status_flags_size_mem_size, __queue);
+    assert(__device_mem);
 
-    assert(__status_flags && __status_vals_full && __status_vals_partial);
+    _FlagStorageType* __status_flags = reinterpret_cast<_FlagStorageType*>(__device_mem);
+    _Type* __status_vals_full = reinterpret_cast<_Type*>(__device_mem + __status_vals_full_offset);
+    _Type* __status_vals_partial = reinterpret_cast<_Type*>(__device_mem + __status_vals_partial_offset);
 
     auto __fill_event = __lookback_init_submitter<_FlagType, _Type, _BinaryOp, _LookbackInitKernel>{}(
         __queue, __status_flags, __status_vals_partial, __status_flags_size, __status_flag_padding);
@@ -388,18 +379,14 @@ __single_pass_scan(sycl::queue __queue, _InRange&& __in_rng, _OutRange&& __out_r
         return __queue.submit([=](sycl::handler& __hdl) {
             __hdl.depends_on(__prev_event);
             __hdl.host_task([=]() {
-                sycl::free(__status_flags, __queue);
-                if constexpr (!::std::is_same_v<_Type, _FlagStorageType>)
-                    sycl::free(__status_vals_full, __queue);
+                sycl::free(__device_mem, __queue);
             });
         });
     }
     else
     {
         __prev_event.wait();
-        sycl::free(__status_flags, __queue);
-        if constexpr (!::std::is_same_v<_Type, _FlagStorageType>)
-            sycl::free(__status_vals_full, __queue);
+        sycl::free(__device_mem, __queue);
         return __prev_event;
     }
 }
