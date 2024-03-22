@@ -747,9 +747,9 @@ template <typename _Acc, typename _Size1, typename _Value, typename _Compare>
 _Size1
 __shars_upper_bound(_Acc __acc, _Size1 __first, _Size1 __last, const _Value& __value, _Compare __comp)
 {
-    return __pstl_lower_bound(__acc, __first, __last, __value,
-                              oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<_Compare>>{
-                                  oneapi::dpl::__internal::__reorder_pred<_Compare>{__comp}});
+    return __shars_lower_bound(__acc, __first, __last, __value,
+                               oneapi::dpl::__internal::__not_pred<oneapi::dpl::__internal::__reorder_pred<_Compare>>{
+                                   oneapi::dpl::__internal::__reorder_pred<_Compare>{__comp}});
 }
 
 } // namespace __internal
