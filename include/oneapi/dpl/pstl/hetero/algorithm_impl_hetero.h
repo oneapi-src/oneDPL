@@ -1514,11 +1514,15 @@ __pattern_partial_sort_copy(__hetero_tag<_BackendTag> __tag, _ExecutionPolicy&& 
 
         auto __buf_mid = __buf_first + __out_size;
 
+        // The wait() call on result of __parallel_partial_sort isn't required here
+        // because our temporary buffer __buf (__par_backend_hetero::__buffer) is implemented on sycl::buffer
+        // and all required syncronization will be done on sycl::accessors level
+        // inside the next __pattern_walk2 call.
         __par_backend_hetero::__parallel_partial_sort(
             _BackendTag{}, __par_backend_hetero::make_wrapped_policy<__partial_sort_2>(__exec),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_first),
             __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_mid),
-            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_last), __comp).wait();
+            __par_backend_hetero::make_iter_mode<__par_backend_hetero::access_mode::read_write>(__buf_last), __comp);
 
         return __pattern_walk2(
             __tag, __par_backend_hetero::make_wrapped_policy<__copy_back>(::std::forward<_ExecutionPolicy>(__exec)),
